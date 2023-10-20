@@ -5,57 +5,63 @@ import (
 	"fmt"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"os"
 )
 
 const (
-	AppName = "camino-messenger-provider"
+	configFileName = "camino-messenger-provider.yaml"
+
+	configFlagKey = "config"
 )
 
 type MatrixConfig struct {
-	Username   string
-	Password   string
-	MatrixHost string
+	Username   string `mapstructure:"matrix-username"`
+	Password   string `mapstructure:"matrix-password"`
+	MatrixHost string `mapstructure:"matrix-host"`
 }
 type RPCServerConfig struct {
-	RPCServerPort int
+	RPCServerPort int `mapstructure:"rpc-server-port"`
 }
 type PartnerPluginConfig struct {
-	PartnerPluginHost string
-	PartnerPluginPort int
+	PartnerPluginHost string `mapstructure:"partner-plugin-host"`
+	PartnerPluginPort int    `mapstructure:"partner-plugin-port"`
 }
 type Config struct {
-	MatrixConfig
-	RPCServerConfig
-	PartnerPluginConfig
+	MatrixConfig        `mapstructure:",squash"`
+	RPCServerConfig     `mapstructure:",squash"`
+	PartnerPluginConfig `mapstructure:",squash"`
 }
 
 func ReadConfig() (*Config, error) {
-	fs := flag.NewFlagSet("tcm", flag.ExitOnError)
+	var configFile string
+
+	// Define command-line flags
+	flag.StringVar(&configFile, "config", "config.yaml", "Path to configuration file")
+	flag.Parse()
+
+	viper.New()
+	viper.SetConfigFile(configFile)
+
 	cfg := &Config{}
-
-	err := fs.Parse(os.Args[:])
-	if err != nil {
-		return nil, err
-	}
-
-	// Use viper to bind command-line flags to config
-	v := viper.New()
+	fs := flag.NewFlagSet("tcm", flag.ExitOnError)
 	readMatrixConfig(cfg.MatrixConfig, fs)
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
 	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
-
+	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)
 	pfs.AddGoFlagSet(fs)
-	err = v.BindPFlags(pfs)
+	err := viper.BindPFlags(pfs)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check for missing required arguments
-	if cfg.Username == "" || cfg.Password == "" || cfg.MatrixHost == "" {
-		return nil, fmt.Errorf("missing required arguments")
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, err
 	}
 
+	if err := viper.Unmarshal(cfg); err != nil {
+		return nil, err
+	}
+
+	fmt.Println(cfg)
 	return cfg, nil
 }

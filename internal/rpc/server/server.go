@@ -1,9 +1,9 @@
 package server
 
 import (
+	"camino-messenger-provider/config"
 	"camino-messenger-provider/internal/proto/pb"
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -12,12 +12,7 @@ import (
 )
 
 var (
-	_          Server = (*server)(nil)
-	tls               = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	certFile          = flag.String("cert_file", "", "The TLS cert file")
-	keyFile           = flag.String("key_file", "", "The TLS key file")
-	jsonDBFile        = flag.String("json_db_file", "", "A json file containing a list of features")
-	port              = flag.Int("port", 50051, "The server port")
+	_ Server = (*server)(nil)
 )
 
 type Server interface {
@@ -27,18 +22,19 @@ type Server interface {
 type server struct {
 	pb.GreetingServiceServer
 	grpcServer *grpc.Server
+	cfg        *config.RPCServerConfig
 }
 
-func NewServer(opts []grpc.ServerOption) *server {
+func NewServer(cfg *config.RPCServerConfig, opts []grpc.ServerOption) *server {
 	// TODO TLS creds?
 	grpcServer := grpc.NewServer(opts...)
-	server := &server{grpcServer: grpcServer}
+	server := &server{grpcServer: grpcServer, cfg: cfg}
 	pb.RegisterGreetingServiceServer(grpcServer, server)
 	return server
 }
 
 func (s *server) Start() {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", s.cfg.RPCServerPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

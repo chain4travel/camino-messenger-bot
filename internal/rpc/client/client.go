@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"camino-messenger-provider/config"
@@ -36,8 +36,8 @@ func (r *RPCClient) Shutdown() error {
 func main() {
 
 	c := NewClient(&config.PartnerPluginConfig{
-		PartnerPluginHost: "",
-		PartnerPluginPort: 0,
+		PartnerPluginHost: "localhost",
+		PartnerPluginPort: 50051,
 	})
 	request := &pb.GreetingServiceRequest{Name: "Gophers"}
 
