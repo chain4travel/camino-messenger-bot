@@ -5,6 +5,7 @@ import (
 	"camino-messenger-provider/internal/proto/pb"
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"log"
 	"net"
 
@@ -23,12 +24,13 @@ type server struct {
 	pb.GreetingServiceServer
 	grpcServer *grpc.Server
 	cfg        *config.RPCServerConfig
+	logger     *zap.SugaredLogger
 }
 
-func NewServer(cfg *config.RPCServerConfig, opts []grpc.ServerOption) *server {
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []grpc.ServerOption) *server {
 	// TODO TLS creds?
 	grpcServer := grpc.NewServer(opts...)
-	server := &server{grpcServer: grpcServer, cfg: cfg}
+	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger}
 	pb.RegisterGreetingServiceServer(grpcServer, server)
 	return server
 }
@@ -42,6 +44,7 @@ func (s *server) Start() {
 }
 
 func (s *server) Stop() {
+	s.logger.Info("Stopping gRPC server...")
 	s.grpcServer.Stop()
 }
 

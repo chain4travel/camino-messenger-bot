@@ -2,6 +2,11 @@ package config
 
 import "flag"
 
+func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
+	fs.BoolVar(&cfg.DeveloperMode, DeveloperMode, false, "Sets developer mode")
+
+}
+
 func readMatrixConfig(cfg MatrixConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.Username, MatrixUsername, "", "Sets username used for the matrix server connection")
 	fs.StringVar(&cfg.Password, MatrixPassword, "", "Sets password used for the matrix server connection")

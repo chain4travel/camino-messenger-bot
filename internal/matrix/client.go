@@ -55,12 +55,16 @@ func (c *client) Join(roomID string) error {
 
 func (c *client) Send(roomID string, message TimelineEventContent) error {
 	//TODO implement me
-	panic("implement me")
+	//panic("implement me")
+
+	c.logger.Debug("Matrix send called")
+	return nil
+
 }
 
 type Client interface {
 	Login(matrixLoginRequest LoginRequest) error
-	Sync(roomInviteChannel, roomTimelineChannel chan<- Rooms)
+	Sync(roomInviteChannel chan<- InviteRooms, roomTimelineChannel chan<- JoinedRooms)
 	Upload(payload, eventID string) error
 	Join(roomID string) error
 	Send(roomID string, message TimelineEventContent) error
@@ -117,7 +121,7 @@ func (c *client) Login(matrixLoginRequest LoginRequest) error {
 	return nil
 }
 
-func (c *client) Sync(roomInviteChannel, roomTimelineChannel chan<- Rooms) {
+func (c *client) Sync(roomInviteChannel chan<- InviteRooms, roomTimelineChannel chan<- JoinedRooms) {
 	filter, err := c.getOrInitSyncFilter()
 	if err != nil {
 		c.logger.Errorf("Error: %v\n", err)
@@ -142,30 +146,20 @@ func (c *client) Sync(roomInviteChannel, roomTimelineChannel chan<- Rooms) {
 		//}
 
 		// Process the response body here
-		var bodyResponse map[string]interface{}
+		var bodyResponse SyncResponse
 		err = json.NewDecoder(resp.Body).Decode(&bodyResponse)
 		if err != nil {
 			c.logger.Errorf("Error reading response body: %v\n", err)
 		}
-		c.session.NextBatch = bodyResponse["next_batch"].(string)
+		c.session.NextBatch = bodyResponse.NextBatch
 
-		// process invite events
-		if rooms, ok := bodyResponse["rooms"]; ok {
-			if invite, ok := rooms.(map[string]interface{})["invite"]; ok {
-				roomInviteChannel <- invite.(Rooms)
-			}
+		if bodyResponse.Rooms.Invite != nil {
+			roomInviteChannel <- bodyResponse.Rooms.Invite
 		}
-
-		// process timeline events
-		if rooms, ok := bodyResponse["rooms"]; ok {
-			if invite, ok := rooms.(map[string]interface{})["join"]; ok {
-				roomTimelineChannel <- invite.(Rooms)
-			}
+		if bodyResponse.Rooms.Join != nil {
+			roomTimelineChannel <- bodyResponse.Rooms.Join
 		}
 		c.logger.Infof("Next batch: %s\n", c.session.NextBatch)
-		//c.logger.Infof("Received data: %s\n", bodyResponse)
-
-		// TODO
 	} else {
 		var errorResponse map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&errorResponse)

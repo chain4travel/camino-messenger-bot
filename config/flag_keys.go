@@ -1,6 +1,7 @@
 package config
 
 const (
+	DeveloperMode        = "developer-mode"
 	MatrixUsername       = "matrix-username"
 	MatrixPassword       = "matrix-password"
 	MatrixHost           = "matrix-host"

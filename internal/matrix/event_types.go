@@ -12,12 +12,28 @@ const (
 	Unknown
 
 	// message types
-	DummyRequest  MessageType = "Request"
-	DummyResponse MessageType = "Response"
+
+	HotelAvailRequest  MessageType = "C4TContentHotelAvailRequest"
+	HotelAvailResponse MessageType = "C4TContentHotelAvailResponse"
+
+	HotelBookRequest  MessageType = "C4TContentHotelBookRequest"
+	HotelBookResponse MessageType = "C4TContentHotelBookResponse"
+
+	HotelMappingsRequest  MessageType = "C4TContentHotelMappingsRequest"
+	HotelMappingsResponse MessageType = "C4TContentHotelMappingsResponse"
+
+	FlightSearchRequest  MessageType = "C4TContentFlightSearchRequest"
+	FlightSearchResponse MessageType = "C4TContentFlightSearchResponse"
+
+	FlightBookRequest  MessageType = "C4TContentFlightBookRequest"
+	FlightBookResponse MessageType = "C4TContentFlightBookResponse"
+
+	FlightInfoRequest  MessageType = "C4TContentFlightInfoRequest"
+	FlightInfoResponse MessageType = "C4TContentFlightInfoResponse"
 
 	// event types
 	RoomMember RoomEventType = "m.room.member"
-	CaminoMsg  RoomEventType = "m.room.camino-msg"
+	CaminoMsg  RoomEventType = "m.room.c4t-msg"
 )
 
 type MessageRequestContent struct {
@@ -50,22 +66,50 @@ type RoomEvent struct {
 	StateKey string           `json:"state_key"`
 }
 
-type RoomEvents struct {
-	Events []RoomEvent
+type Room struct {
+	Timeline struct {
+		Events []RoomEvent `json:"events"`
+	} `json:"timeline"`
+	Invite struct {
+		Events []RoomEvent `json:"events"`
+	} `json:"invite_state"`
 }
-type RoomInviteEvents struct {
-	RoomEvents `json:"invite_state.events"`
+
+//	type RoomInviteEvents struct {
+//		Room `json:"invite_state.events"`
+//	}
+//
+//	type RoomTimelineEvents struct {
+//		Room `json:"timeline.events"`
+//	}
+
+type JoinedRooms map[string]Room
+type InviteRooms map[string]Room
+type Rooms struct {
+	Join   JoinedRooms `json:"join"`
+	Invite InviteRooms `json:"invite"`
 }
-type RoomTimelineEvents struct {
-	RoomEvents `json:"timeline.events"`
+
+type SyncResponse struct {
+	NextBatch string `json:"next_batch"`
+	Rooms     Rooms  `json:"rooms"`
 }
-type Rooms map[string]RoomEvents
 
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
-	case DummyRequest:
+	case HotelAvailRequest,
+		HotelBookRequest,
+		HotelMappingsRequest,
+		FlightSearchRequest,
+		FlightBookRequest,
+		FlightInfoRequest:
 		return Request
-	case DummyResponse:
+	case HotelAvailResponse,
+		HotelBookResponse,
+		HotelMappingsResponse,
+		FlightSearchResponse,
+		FlightBookResponse,
+		FlightInfoResponse:
 		return Response
 	default:
 		return Unknown

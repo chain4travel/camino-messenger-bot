@@ -10,8 +10,6 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"log"
-	"sync"
 )
 
 type App struct {
@@ -26,9 +24,15 @@ func NewApp(cfg *config.Config) (*App, error) {
 	}
 
 	// create logger
-	logger, err := zap.NewProduction()
-	if err != nil {
-		log.Fatal(err)
+	var logger *zap.Logger
+	// Development configuration with a lower log level (e.g., Debug).
+	if cfg.DeveloperMode {
+		cfg := zap.NewDevelopmentConfig()
+		cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+		logger, _ = cfg.Build()
+	} else { // Production configuration with a higher log level (e.g., Info).
+		cfg := zap.NewProductionConfig()
+		logger, _ = cfg.Build()
 	}
 	app.logger = logger.Sugar()
 	defer logger.Sync()
@@ -55,27 +59,30 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 
-	poller := messaging.NewPoller(a.matrixClient, a.logger, a.cfg.Username)
-	g.Go(func() error {
-		a.logger.Info("Starting message receiver...")
-		return poller.Start()
-	})
-
-	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, []grpc.ServerOption{}) //TODO
+	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, []grpc.ServerOption{}) //TODO
 	g.Go(func() error {
 		a.logger.Info("Starting RPC server...")
 		rpcServer.Start()
 		return nil
 	})
 
-	var rpcClientMu sync.Mutex
-	var rpcClient client.RPCClient
+	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
 	g.Go(func() error {
 		a.logger.Info("Starting RPC client...")
-		rpcClientMu.Lock()
-		rpcClient = client.NewClient(&a.cfg.PartnerPluginConfig)
-		rpcClientMu.Unlock()
+		return rpcClient.Start()
+	})
+
+	msgProcessor := messaging.NewProcessor(a.matrixClient, rpcClient, a.cfg.Username, a.logger)
+	g.Go(func() error {
+		a.logger.Info("Starting message processor...")
+		msgProcessor.Start(ctx)
 		return nil
+	})
+
+	poller := messaging.NewPoller(a.matrixClient, a.logger, msgProcessor)
+	g.Go(func() error {
+		a.logger.Info("Starting message receiver...")
+		return poller.Start()
 	})
 
 	g.Go(func() error {
@@ -92,12 +99,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	g.Go(func() error {
 		<-gCtx.Done()
-		rpcClientMu.Lock()
-		if rpcClient != (client.RPCClient{}) {
-			rpcClient.Shutdown()
-		}
-		rpcClientMu.Unlock()
-		return nil
+		return rpcClient.Shutdown()
 	})
 
 	if err := g.Wait(); err != nil {

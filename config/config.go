@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -13,6 +12,9 @@ const (
 	configFlagKey = "config"
 )
 
+type AppConfig struct {
+	DeveloperMode bool `mapstructure:"developer-mode"`
+}
 type MatrixConfig struct {
 	Username   string `mapstructure:"matrix-username"`
 	Password   string `mapstructure:"matrix-password"`
@@ -26,6 +28,7 @@ type PartnerPluginConfig struct {
 	PartnerPluginPort int    `mapstructure:"partner-plugin-port"`
 }
 type Config struct {
+	AppConfig           `mapstructure:",squash"`
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
@@ -35,7 +38,7 @@ func ReadConfig() (*Config, error) {
 	var configFile string
 
 	// Define command-line flags
-	flag.StringVar(&configFile, "config", "config.yaml", "Path to configuration file")
+	flag.StringVar(&configFile, configFlagKey, configFileName, "Path to configuration file")
 	flag.Parse()
 
 	viper.New()
@@ -43,9 +46,11 @@ func ReadConfig() (*Config, error) {
 
 	cfg := &Config{}
 	fs := flag.NewFlagSet("tcm", flag.ExitOnError)
+	readAppConfig(cfg.AppConfig, fs)
 	readMatrixConfig(cfg.MatrixConfig, fs)
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
 	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
+
 	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)
 	pfs.AddGoFlagSet(fs)
@@ -61,7 +66,5 @@ func ReadConfig() (*Config, error) {
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, err
 	}
-
-	fmt.Println(cfg)
 	return cfg, nil
 }
