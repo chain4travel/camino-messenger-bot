@@ -1,21 +1,22 @@
 package app
 
 import (
-	"camino-messenger-provider/config"
-	"camino-messenger-provider/internal/matrix"
-	"camino-messenger-provider/internal/messaging"
-	"camino-messenger-provider/internal/rpc/client"
-	"camino-messenger-provider/internal/rpc/server"
 	"context"
+	"time"
+
+	"camino-messenger-bot/config"
+	"camino-messenger-bot/internal/matrix"
+	"camino-messenger-bot/internal/messaging"
+	"camino-messenger-bot/internal/rpc/client"
+	"camino-messenger-bot/internal/rpc/server"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 )
 
 type App struct {
-	cfg          *config.Config
-	logger       *zap.SugaredLogger
-	matrixClient matrix.Client
+	cfg    *config.Config
+	logger *zap.SugaredLogger
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -37,34 +38,13 @@ func NewApp(cfg *config.Config) (*App, error) {
 	app.logger = logger.Sugar()
 	defer logger.Sync()
 
-	// create matrix client
-	app.matrixClient = matrix.NewClient(cfg.MatrixHost, app.logger, matrix.DefaultInterval)
 	return app, nil
 }
 
 func (a *App) Run(ctx context.Context) error {
 	g, gCtx := errgroup.WithContext(ctx)
 
-	// login
-	err := a.matrixClient.Login(matrix.LoginRequest{
-		Type: "m.login.password",
-		Identifier: matrix.LoginRequestIdentifier{
-			Type:    "m.id.thirdparty",
-			Medium:  matrix.ThirdPartyIdentifierMedium,
-			Address: a.cfg.Username,
-		},
-		Password: a.cfg.Password,
-	})
-	if err != nil {
-		return err
-	}
-
-	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, []grpc.ServerOption{}) //TODO
-	g.Go(func() error {
-		a.logger.Info("Starting RPC server...")
-		rpcServer.Start()
-		return nil
-	})
+	//// TODO do proper DI with FX
 
 	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
 	g.Go(func() error {
@@ -72,23 +52,29 @@ func (a *App) Run(ctx context.Context) error {
 		return rpcClient.Start()
 	})
 
-	msgProcessor := messaging.NewProcessor(a.matrixClient, rpcClient, a.cfg.Username, a.logger)
+	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
+	g.Go(func() error {
+		a.logger.Info("Starting message receiver...")
+		return messenger.StartReceiver()
+	})
+
+	msgProcessor := messaging.NewProcessor(messenger, rpcClient, a.cfg.Username, a.logger, time.Duration(a.cfg.MessengerConfig.Timeout)*time.Millisecond)
 	g.Go(func() error {
 		a.logger.Info("Starting message processor...")
 		msgProcessor.Start(ctx)
 		return nil
 	})
 
-	poller := messaging.NewPoller(a.matrixClient, a.logger, msgProcessor)
+	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, []grpc.ServerOption{}, msgProcessor) //TODO
 	g.Go(func() error {
-		a.logger.Info("Starting message receiver...")
-		return poller.Start()
+		a.logger.Info("Starting RPC server...")
+		rpcServer.Start()
+		return nil
 	})
 
 	g.Go(func() error {
 		<-gCtx.Done()
-		poller.Stop()
-		return nil
+		return messenger.StopReceiver()
 	})
 
 	g.Go(func() error {

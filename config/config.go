@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -27,11 +28,15 @@ type PartnerPluginConfig struct {
 	PartnerPluginHost string `mapstructure:"partner-plugin-host"`
 	PartnerPluginPort int    `mapstructure:"partner-plugin-port"`
 }
+type MessengerConfig struct {
+	Timeout int `mapstructure:"timeout"` // in milliseconds
+}
 type Config struct {
 	AppConfig           `mapstructure:",squash"`
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
+	MessengerConfig     `mapstructure:",squash"`
 }
 
 func ReadConfig() (*Config, error) {
@@ -50,6 +55,7 @@ func ReadConfig() (*Config, error) {
 	readMatrixConfig(cfg.MatrixConfig, fs)
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
 	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
+	readMessengerConfig(cfg.MessengerConfig, fs)
 
 	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)

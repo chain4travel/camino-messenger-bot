@@ -1,13 +1,16 @@
 package server
 
 import (
-	"camino-messenger-provider/config"
-	"camino-messenger-provider/internal/proto/pb"
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"log"
 	"net"
+
+	"camino-messenger-bot/config"
+	"camino-messenger-bot/internal/messaging"
+	"camino-messenger-bot/internal/proto/pb"
+	"go.uber.org/zap"
+	"google.golang.org/grpc/metadata"
 
 	"google.golang.org/grpc"
 )
@@ -25,12 +28,13 @@ type server struct {
 	grpcServer *grpc.Server
 	cfg        *config.RPCServerConfig
 	logger     *zap.SugaredLogger
+	processor  messaging.Processor
 }
 
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []grpc.ServerOption) *server {
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []grpc.ServerOption, processor messaging.Processor) *server {
 	// TODO TLS creds?
 	grpcServer := grpc.NewServer(opts...)
-	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger}
+	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger, processor: processor}
 	pb.RegisterGreetingServiceServer(grpcServer, server)
 	return server
 }
@@ -48,8 +52,18 @@ func (s *server) Stop() {
 	s.grpcServer.Stop()
 }
 
-func (s *server) Greeting(_ context.Context, req *pb.GreetingServiceRequest) (*pb.GreetingServiceReply, error) {
+func (s *server) Greeting(ctx context.Context, req *pb.GreetingServiceRequest) (*pb.GreetingServiceReply, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("missing metadata")
+	}
+
+	sender := md.Get("sender")
+	m := &messaging.Message{}
+	m.Metadata.Sender = sender[0]
+
+	response, err := s.processor.ProcessOutbound(*m)
 	return &pb.GreetingServiceReply{
-		Message: fmt.Sprintf("Hello, %s", req.Name),
-	}, nil
+		Message: fmt.Sprintf("Hello, %s", response.RequestID),
+	}, err
 }

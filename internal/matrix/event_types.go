@@ -1,35 +1,10 @@
 package matrix
 
-type MessageCategory byte
-type MessageType string
+import "camino-messenger-bot/internal/messaging"
+
 type RoomEventType string
 
 const (
-
-	// message categories
-	Request MessageCategory = iota
-	Response
-	Unknown
-
-	// message types
-
-	HotelAvailRequest  MessageType = "C4TContentHotelAvailRequest"
-	HotelAvailResponse MessageType = "C4TContentHotelAvailResponse"
-
-	HotelBookRequest  MessageType = "C4TContentHotelBookRequest"
-	HotelBookResponse MessageType = "C4TContentHotelBookResponse"
-
-	HotelMappingsRequest  MessageType = "C4TContentHotelMappingsRequest"
-	HotelMappingsResponse MessageType = "C4TContentHotelMappingsResponse"
-
-	FlightSearchRequest  MessageType = "C4TContentFlightSearchRequest"
-	FlightSearchResponse MessageType = "C4TContentFlightSearchResponse"
-
-	FlightBookRequest  MessageType = "C4TContentFlightBookRequest"
-	FlightBookResponse MessageType = "C4TContentFlightBookResponse"
-
-	FlightInfoRequest  MessageType = "C4TContentFlightInfoRequest"
-	FlightInfoResponse MessageType = "C4TContentFlightInfoResponse"
 
 	// event types
 	RoomMember RoomEventType = "m.room.member"
@@ -46,7 +21,7 @@ type MessageResponseContent struct {
 	eventID    string `json:"inReplyToEventId,omitempty"`
 }
 type TimelineEventContent struct {
-	Type MessageType `json:"msgtype,omitempty"`
+	Type messaging.MessageType `json:"msgtype,omitempty"`
 	MessageRequestContent
 	MessageResponseContent
 }
@@ -93,25 +68,4 @@ type Rooms struct {
 type SyncResponse struct {
 	NextBatch string `json:"next_batch"`
 	Rooms     Rooms  `json:"rooms"`
-}
-
-func (mt MessageType) Category() MessageCategory {
-	switch mt {
-	case HotelAvailRequest,
-		HotelBookRequest,
-		HotelMappingsRequest,
-		FlightSearchRequest,
-		FlightBookRequest,
-		FlightInfoRequest:
-		return Request
-	case HotelAvailResponse,
-		HotelBookResponse,
-		HotelMappingsResponse,
-		FlightSearchResponse,
-		FlightBookResponse,
-		FlightInfoResponse:
-		return Response
-	default:
-		return Unknown
-	}
 }

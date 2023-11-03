@@ -1,14 +1,13 @@
 package client
 
 import (
-	"camino-messenger-provider/config"
-	"camino-messenger-provider/internal/proto/pb"
-	"context"
 	"fmt"
+	"sync"
+
+	"camino-messenger-bot/config"
+	"camino-messenger-bot/internal/proto/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"log"
-	"sync"
 )
 
 type RPCClient struct {
@@ -41,19 +40,4 @@ func (rc *RPCClient) Start() error {
 func (rc *RPCClient) Shutdown() error {
 	rc.logger.Info("Shutting down gRPC client...")
 	return rc.cc.Close()
-}
-
-func main() {
-
-	c := NewClient(&config.PartnerPluginConfig{
-		PartnerPluginHost: "localhost",
-		PartnerPluginPort: 50051,
-	}, &zap.SugaredLogger{})
-	request := &pb.GreetingServiceRequest{Name: "Gophers"}
-
-	resp, err := c.Gsc.Greeting(context.Background(), request)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Receive response => %s ", resp.Message)
 }

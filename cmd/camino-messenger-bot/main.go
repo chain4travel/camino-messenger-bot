@@ -1,11 +1,12 @@
 package main
 
 import (
-	"camino-messenger-provider/config"
-	"camino-messenger-provider/internal/app"
 	"context"
 	"os/signal"
 	"syscall"
+
+	"camino-messenger-bot/config"
+	"camino-messenger-bot/internal/app"
 )
 
 func main() {

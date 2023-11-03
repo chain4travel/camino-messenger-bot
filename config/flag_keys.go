@@ -8,4 +8,5 @@ const (
 	RPCServerPortKey     = "rpc-server-port"
 	PartnerPluginHostKey = "partner-plugin-host"
 	PartnerPluginPortKey = "partner-plugin-port"
+	MessengerTimeoutKey  = "messenger-timeout"
 )

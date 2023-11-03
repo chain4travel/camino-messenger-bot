@@ -1,53 +1,52 @@
 package messaging
 
 import (
-	"camino-messenger-provider/internal/matrix"
-	"camino-messenger-provider/internal/proto/pb"
-	"camino-messenger-provider/internal/rpc/client"
-	wrappers "camino-messenger-provider/internal/utils"
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
+	"camino-messenger-bot/internal/proto/pb"
+	"camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
 )
 
 var (
 	_                             Processor = (*processor)(nil)
 	ErrUserIDNotSet                         = errors.New("user id not set")
+	ErrUnknownMessageCategory               = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed           = errors.New("only request messages allowed")
 )
 
-type MsgProcessor interface {
-	Request(roomID string, msg *matrix.TimelineEventContent) error
-	Respond(extSystem *client.RPCClient, roomID string, event *matrix.RoomEvent) error
-	Forward(extSystem *client.RPCClient, msg *matrix.TimelineEventContent) error
+type MsgHandler interface {
+	Request(msg Message) (Message, error)
+	Respond(extSystem *client.RPCClient, msg Message) error
+	Forward(msg Message)
 }
 type Processor interface {
-	MsgProcessor
+	MsgHandler
 	Start(ctx context.Context)
-	RoomChannel() chan<- matrix.InviteRooms
-	MsgChannel() chan<- matrix.JoinedRooms
-	ProcessRoomInvitation(events matrix.InviteRooms) error
-	ProcessMessage(message matrix.JoinedRooms) error
+	ProcessInbound(message Message) error
+	ProcessOutbound(message Message) (Message, error)
 }
 
 type processor struct {
-	matrixClient matrix.Client
-	rpcClient    *client.RPCClient
-	userID       string
-	logger       *zap.SugaredLogger
-	roomChannel  chan matrix.InviteRooms
-	msgChannel   chan matrix.JoinedRooms
+	messenger       Messenger
+	rpcClient       *client.RPCClient
+	userID          string
+	logger          *zap.SugaredLogger
+	timeout         time.Duration // timeout after which a request is considered failed
+	responseChannel chan Message
 }
 
-func NewProcessor(matrixClient matrix.Client, rpcClient *client.RPCClient, userID string, logger *zap.SugaredLogger) Processor {
+func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, userID string, logger *zap.SugaredLogger, timeout time.Duration) Processor {
 	return &processor{
-		matrixClient: matrixClient,
-		rpcClient:    rpcClient,
-		userID:       userID,
-		logger:       logger,
-		roomChannel:  make(chan matrix.InviteRooms),
-		msgChannel:   make(chan matrix.JoinedRooms),
+		messenger:       messenger,
+		rpcClient:       rpcClient,
+		userID:          userID,
+		logger:          logger,
+		timeout:         timeout,            // for now applies to all request types
+		responseChannel: make(chan Message), // channel where only response messages are routed
 	}
 }
 
@@ -56,15 +55,9 @@ func (p *processor) Start(ctx context.Context) {
 
 	go func() {
 		select {
-		case roomEvent := <-p.roomChannel:
-			p.logger.Debug("Received room event")
-			err := p.ProcessRoomInvitation(roomEvent)
-			if err != nil {
-				p.logger.Error(err)
-			}
-		case msgEvent := <-p.msgChannel:
+		case msgEvent := <-p.messenger.Inbound():
 			p.logger.Debug("Received msg event")
-			err := p.ProcessMessage(msgEvent)
+			err := p.ProcessInbound(msgEvent)
 			if err != nil {
 				p.logger.Error(err)
 			}
@@ -76,91 +69,78 @@ func (p *processor) Start(ctx context.Context) {
 
 }
 
-func (p *processor) RoomChannel() chan<- matrix.InviteRooms {
-	return p.roomChannel
-}
-
-func (p *processor) MsgChannel() chan<- matrix.JoinedRooms {
-	return p.msgChannel
-}
-
-func (p *processor) ProcessRoomInvitation(rooms matrix.InviteRooms) error {
-	errs := wrappers.Errs{}
-	for roomID, events := range rooms {
-		go func() {
-			for _, event := range events.Invite.Events {
-				if event.Type == matrix.RoomMember && event.Content.Membership == "invite" {
-					errs.Add(p.matrixClient.Join(roomID))
-				}
-			}
-		}()
-	}
-	return errs.Err
-}
-
-func (p *processor) ProcessMessage(rooms matrix.JoinedRooms) error {
+func (p *processor) ProcessInbound(msg Message) error {
 	if p.userID == "" {
 		return ErrUserIDNotSet
 	}
-	errs := wrappers.Errs{}
-	for roomID, events := range rooms {
-		go func() {
-			for _, event := range events.Timeline.Events {
-				if event.Type == matrix.CaminoMsg && event.Sender == p.userID { // outbound messages = messages sent by own ext system
-					if event.Content.Type.Category() == matrix.Request { // only request messages (received by are processed
-						errs.Add(p.Request(roomID, &event.Content.TimelineEventContent)) // forward request message to matrix
-					} else {
-						p.logger.Debugf("Ignoring outgoing response message to matrix from sender: %s ", event.Sender)
-						errs.Add(ErrOnlyRequestMessagesAllowed) // ignore msg
-					}
-				} else if event.Type == matrix.CaminoMsg { // inbound messages = messages sent by other systems via messenger
-					switch event.Content.Type.Category() {
-					case matrix.Request:
-						errs.Add(p.Respond(p.rpcClient, roomID, &event))
-					case matrix.Response:
-						errs.Add(p.Forward(p.rpcClient, &event.Content.TimelineEventContent))
-					case matrix.Unknown:
-						p.logger.Debugf("Ignoring incoming  message of unknown category: %s ", event.Content.Type)
-					}
-				}
-			}
-		}()
+	if msg.Metadata.Sender != p.userID { // outbound messages = messages sent by own ext system
+		switch msg.Type.Category() {
+		case Request:
+			return p.Respond(p.rpcClient, msg)
+		case Response:
+			p.Forward(msg)
+			return nil
+		case Unknown:
+			p.logger.Debugf("Ignoring incoming msg of unknown category: %s ", msg.Type)
+			return ErrUnknownMessageCategory
+		default:
+			p.logger.Debugf("Ignoring incoming msg of category: %s ", msg.Type)
+			return ErrOnlyRequestMessagesAllowed // ignore msg
+		}
+	} else {
+		p.logger.Debug("Ignoring own outbound messages")
+		return ErrOnlyRequestMessagesAllowed // ignore msg
 	}
-	return errs.Err
 }
 
-func (p *processor) Request(roomID string, msg *matrix.TimelineEventContent) error {
-	p.logger.Debugf("Sending outgoing request message to room: %s ", roomID)
-	// issue and attach cheques
-	msg.Cheques = nil //TODO
-	// forward msg to matrix
-	return p.matrixClient.Send(roomID, *msg)
+func (p *processor) ProcessOutbound(msg Message) (Message, error) {
+	if msg.Metadata.Sender == p.userID && msg.Type.Category() == Request { // only request messages (received by are processed
+		return p.Request(msg) // forward request msg to matrix
+	} else {
+		p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
+		return Message{}, ErrOnlyRequestMessagesAllowed // ignore msg
+	}
 }
 
-func (p *processor) Respond(extSystem *client.RPCClient, roomID string, event *matrix.RoomEvent) error {
+func (p *processor) Request(msg Message) (Message, error) {
+	p.logger.Debug("Sending outgoing request message")
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
 
+	msg.Metadata.Cheques = nil //TODO issue and attach cheques
+	err := p.messenger.SendAsync(msg)
+	if err != nil {
+		return Message{}, err
+	}
+
+	for {
+		select {
+		case response := <-p.responseChannel:
+			if response.RequestID == msg.RequestID {
+				return response, nil
+			}
+		case <-ctx.Done():
+			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds", p.timeout)
+		}
+	}
+}
+
+func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 	fmt.Println(extSystem)
-	request := &pb.GreetingServiceRequest{Name: string(event.Content.Type)}
+	request := &pb.GreetingServiceRequest{Name: string(msg.Type)}
 	resp, err := extSystem.Gsc.Greeting(context.Background(), request)
 	if err != nil { //TODO retry mechanism?
 		return err
 	}
 	//TODO talk to legacy system and get response
-	msg := matrix.TimelineEventContent{
-		Type:                  "",
-		MessageRequestContent: matrix.MessageRequestContent{Body: resp.Message},
+	// add metadata?
+	responseMsg := Message{
+		Type: "",
 	}
-	p.logger.Debugf("Responding to incoming request message with: %s ", msg.Body)
-	return p.matrixClient.Send(roomID, msg)
+	p.logger.Debugf("Responding to incoming request message with: %s ", resp.Message)
+	return p.messenger.SendAsync(responseMsg)
 }
 
-func (p *processor) Forward(extSystem *client.RPCClient, msg *matrix.TimelineEventContent) error {
-	// TODO forward response to legacy system (grpc client)
-	request := &pb.GreetingServiceRequest{Name: string(msg.Type)}
-	resp, err := extSystem.Gsc.Greeting(context.Background(), request)
-	if err != nil {
-		return err
-	}
-	p.logger.Debugf("Forwarding response message to ext system: %s ", resp.Message)
-	return nil
+func (p *processor) Forward(msg Message) {
+	p.responseChannel <- msg
 }
