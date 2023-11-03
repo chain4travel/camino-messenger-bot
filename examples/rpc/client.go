@@ -28,7 +28,7 @@ func main() {
 	// ralf sending request to a3m
 	md := metadata.New(map[string]string{
 		"sender":  "0x028f455c1f95e1ec24bfafb81cb2d1e76118944931e3a2599241a457d7d5b8399b2ba5bb39",
-		"room_id": "VZwjBnxEukQOzOjoYt",
+		"room_id": "!VZwjBnxEukQOzOjoYt:matrix.chain4travel.com",
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
