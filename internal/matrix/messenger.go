@@ -2,15 +2,20 @@ package matrix
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
 
 	"camino-messenger-bot/config"
 	"camino-messenger-bot/internal/messaging"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/metadata"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
 	"maunium.net/go/mautrix/event"
+	"maunium.net/go/mautrix/id"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -34,7 +39,7 @@ type messenger struct {
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenger {
-	c, err := mautrix.NewClient(cfg.MatrixHost, "", "")
+	c, err := mautrix.NewClient(cfg.Host, "", "")
 	if err != nil {
 		panic(err)
 	}
@@ -58,6 +63,7 @@ func (m *messenger) StartReceiver() error {
 		m.msgChannel <- messaging.Message{
 			Metadata: messaging.Metadata{
 				Sender: evt.Sender.String(),
+				RoomID: evt.RoomID.String(),
 			},
 			RequestID: evt.ID.String(),
 			Body:      evt.Content.AsMessage().Body,
@@ -79,7 +85,7 @@ func (m *messenger) StartReceiver() error {
 		}
 	})
 
-	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), "mautrix.db") //TODO refactor
+	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) //TODO refactor
 	if err != nil {
 		return err
 	}
@@ -115,24 +121,49 @@ func (m *messenger) StartReceiver() error {
 }
 func (m *messenger) StopReceiver() error {
 	m.logger.Info("Stopping matrix syncer...")
-	m.client.cancelSync()
+	if m.client.cancelSync != nil {
+		m.client.cancelSync()
+	}
 	m.client.syncStopWait.Wait()
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) Send(msg messaging.Message, rc chan<- messaging.APIMessageResponse) error {
-	//TODO implement me
-	m.logger.Info("Sending message", zap.Any("msg", msg))
-	response := messaging.APIMessageResponse{}
-	rc <- response
-	return nil
-}
-
-func (m *messenger) SendAsync(msg messaging.Message) error {
+func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error {
 	m.logger.Info("Sending async message", zap.Any("msg", msg))
+	md, err := m.extractMetadata(ctx)
+	if err != nil {
+		return err
+	}
+	m.client.SendText(id.RoomID(md.RoomID), msg.Body) // TODO refactor
 	return nil
 }
 
 func (m *messenger) Inbound() chan messaging.Message {
 	return m.msgChannel
+}
+
+func (m *messenger) extractMetadata(ctx context.Context) (*messaging.Metadata, error) {
+	mdPairs, ok := metadata.FromIncomingContext(ctx)
+	metadata := &messaging.Metadata{}
+
+	if !ok {
+		return metadata, fmt.Errorf("metadata not found in context")
+	}
+
+	if sender, found := mdPairs["sender"]; found {
+		metadata.Sender = sender[0]
+	}
+
+	if roomID, found := mdPairs["room_id"]; found {
+		metadata.RoomID = roomID[0]
+	}
+
+	if cheques, found := mdPairs["cheques"]; found {
+		chequesJSON := strings.Join(cheques, "")
+		if err := json.Unmarshal([]byte(chequesJSON), &metadata.Cheques); err != nil {
+			return metadata, fmt.Errorf("error unmarshalling cheques: %v", err)
+		}
+	}
+
+	return metadata, nil
 }

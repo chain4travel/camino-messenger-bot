@@ -1,5 +1,17 @@
 package messaging
 
+type Metadata struct {
+	Sender  string                   `json:"sender"`
+	RoomID  string                   `json:"room_id"`
+	Cheques []map[string]interface{} `json:"cheques"`
+}
+type Message struct {
+	RequestID string
+	Type      MessageType
+	Body      string
+	Metadata  Metadata
+}
+
 type MessageCategory byte
 type MessageType string
 

@@ -10,11 +10,12 @@ func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
 func readMatrixConfig(cfg MatrixConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.Username, MatrixUsername, "", "Sets username used for the matrix server connection")
 	fs.StringVar(&cfg.Password, MatrixPassword, "", "Sets password used for the matrix server connection")
-	fs.StringVar(&cfg.MatrixHost, MatrixHost, "", "Sets the matrix host")
+	fs.StringVar(&cfg.Host, MatrixHost, "", "Sets the matrix host")
+	fs.StringVar(&cfg.Store, MatrixStore, "", "Sets the matrix store (sqlite3 db path)")
 }
 
 func readRPCServerConfig(cfg RPCServerConfig, fs *flag.FlagSet) {
-	fs.IntVar(&cfg.RPCServerPort, RPCServerPortKey, 50051, "The RPC server port")
+	fs.IntVar(&cfg.RPCServerPort, RPCServerPortKey, 9090, "The RPC server port")
 }
 
 func readPartnerRpcServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {

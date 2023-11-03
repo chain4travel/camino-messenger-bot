@@ -9,6 +9,7 @@ import (
 	"camino-messenger-bot/internal/proto/pb"
 	"camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/metadata"
 )
 
 var (
@@ -19,15 +20,15 @@ var (
 )
 
 type MsgHandler interface {
-	Request(msg Message) (Message, error)
-	Respond(extSystem *client.RPCClient, msg Message) error
+	Request(ctx context.Context, msg Message) (Message, error)
+	Respond(ctx context.Context, extSystem *client.RPCClient, msg Message) error
 	Forward(msg Message)
 }
 type Processor interface {
 	MsgHandler
 	Start(ctx context.Context)
 	ProcessInbound(message Message) error
-	ProcessOutbound(message Message) (Message, error)
+	ProcessOutbound(ctx context.Context, message Message) (Message, error)
 }
 
 type processor struct {
@@ -76,7 +77,8 @@ func (p *processor) ProcessInbound(msg Message) error {
 	if msg.Metadata.Sender != p.userID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case Request:
-			return p.Respond(p.rpcClient, msg)
+			ctx := metadata.NewOutgoingContext(context.Background(), metadataToMD(msg.Metadata))
+			return p.Respond(ctx, p.rpcClient, msg)
 		case Response:
 			p.Forward(msg)
 			return nil
@@ -93,22 +95,22 @@ func (p *processor) ProcessInbound(msg Message) error {
 	}
 }
 
-func (p *processor) ProcessOutbound(msg Message) (Message, error) {
+func (p *processor) ProcessOutbound(ctx context.Context, msg Message) (Message, error) {
 	if msg.Metadata.Sender == p.userID && msg.Type.Category() == Request { // only request messages (received by are processed
-		return p.Request(msg) // forward request msg to matrix
+		return p.Request(ctx, msg) // forward request msg to matrix
 	} else {
 		p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
 		return Message{}, ErrOnlyRequestMessagesAllowed // ignore msg
 	}
 }
 
-func (p *processor) Request(msg Message) (Message, error) {
-	p.logger.Debug("Sending outgoing request message")
-	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
+	p.logger.Debug("Sending outbound request message")
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 
 	msg.Metadata.Cheques = nil //TODO issue and attach cheques
-	err := p.messenger.SendAsync(msg)
+	err := p.messenger.SendAsync(ctx, msg)
 	if err != nil {
 		return Message{}, err
 	}
@@ -125,7 +127,7 @@ func (p *processor) Request(msg Message) (Message, error) {
 	}
 }
 
-func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
+func (p *processor) Respond(ctx context.Context, extSystem *client.RPCClient, msg Message) error {
 	fmt.Println(extSystem)
 	request := &pb.GreetingServiceRequest{Name: string(msg.Type)}
 	resp, err := extSystem.Gsc.Greeting(context.Background(), request)
@@ -138,9 +140,16 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 		Type: "",
 	}
 	p.logger.Debugf("Responding to incoming request message with: %s ", resp.Message)
-	return p.messenger.SendAsync(responseMsg)
+	return p.messenger.SendAsync(ctx, responseMsg)
 }
 
 func (p *processor) Forward(msg Message) {
 	p.responseChannel <- msg
+}
+func metadataToMD(m Metadata) metadata.MD {
+	md := metadata.New(map[string]string{
+		"sender":  m.Sender,
+		"room_id": m.RoomID,
+	})
+	return md
 }

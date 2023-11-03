@@ -17,7 +17,7 @@ func main() {
 
 	c := client.NewClient(&config.PartnerPluginConfig{
 		PartnerPluginHost: "localhost",
-		PartnerPluginPort: 50051,
+		PartnerPluginPort: 9090,
 	}, &zap.SugaredLogger{})
 	request := &pb.GreetingServiceRequest{Name: "Gophers"}
 
@@ -25,7 +25,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	md := metadata.New(map[string]string{"sender": "0x028f455c1f95e1ec24bfafb81cb2d1e76118944931e3a2599241a457d7d5b8399b2ba5bb39"})
+	// ralf sending request to a3m
+	md := metadata.New(map[string]string{
+		"sender":  "0x028f455c1f95e1ec24bfafb81cb2d1e76118944931e3a2599241a457d7d5b8399b2ba5bb39",
+		"room_id": "VZwjBnxEukQOzOjoYt",
+	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 	resp, err := c.Gsc.Greeting(ctx, request)

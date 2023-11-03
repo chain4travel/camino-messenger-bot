@@ -17,9 +17,10 @@ type AppConfig struct {
 	DeveloperMode bool `mapstructure:"developer-mode"`
 }
 type MatrixConfig struct {
-	Username   string `mapstructure:"matrix-username"`
-	Password   string `mapstructure:"matrix-password"`
-	MatrixHost string `mapstructure:"matrix-host"`
+	Username string `mapstructure:"matrix-username"`
+	Password string `mapstructure:"matrix-password"`
+	Host     string `mapstructure:"matrix-host"`
+	Store    string `mapstructure:"matrix-store"`
 }
 type RPCServerConfig struct {
 	RPCServerPort int `mapstructure:"rpc-server-port"`
@@ -29,7 +30,7 @@ type PartnerPluginConfig struct {
 	PartnerPluginPort int    `mapstructure:"partner-plugin-port"`
 }
 type MessengerConfig struct {
-	Timeout int `mapstructure:"timeout"` // in milliseconds
+	Timeout int `mapstructure:"response-timeout"` // in milliseconds
 }
 type Config struct {
 	AppConfig           `mapstructure:",squash"`

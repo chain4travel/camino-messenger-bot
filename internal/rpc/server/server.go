@@ -67,7 +67,7 @@ func (s *server) Greeting(ctx context.Context, req *pb.GreetingServiceRequest) (
 	}
 	m.Metadata.Sender = sender[0]
 
-	response, err := s.processor.ProcessOutbound(*m)
+	response, err := s.processor.ProcessOutbound(ctx, *m)
 	return &pb.GreetingServiceReply{
 		Message: fmt.Sprintf("Hello, %s", response.RequestID),
 	}, err
