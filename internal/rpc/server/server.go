@@ -59,7 +59,12 @@ func (s *server) Greeting(ctx context.Context, req *pb.GreetingServiceRequest) (
 	}
 
 	sender := md.Get("sender")
-	m := &messaging.Message{}
+	m := &messaging.Message{
+		RequestID: "",
+		Type:      messaging.HotelAvailRequest, // TODO remove
+		Body:      "",
+		Metadata:  messaging.Metadata{},
+	}
 	m.Metadata.Sender = sender[0]
 
 	response, err := s.processor.ProcessOutbound(*m)

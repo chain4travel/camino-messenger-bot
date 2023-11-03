@@ -50,7 +50,7 @@ func (m *messenger) StartReceiver() error {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
 	// TODO: custom message event types have to be registered properly . see also event.TypeMap[event.MessageEventType] = event.MessageEventContent{}
 	syncer.OnEventType(event.EventMessage, func(source mautrix.EventSource, evt *event.Event) {
-		m.logger.Info("Received msg",
+		m.logger.Debug("Received msg",
 			zap.String("sender", evt.Sender.String()),
 			zap.String("type", evt.Type.String()),
 			zap.String("id", evt.ID.String()),

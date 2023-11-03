@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc/metadata"
 
 	"camino-messenger-bot/config"
 	"camino-messenger-bot/internal/proto/pb"
@@ -20,9 +21,19 @@ func main() {
 	}, &zap.SugaredLogger{})
 	request := &pb.GreetingServiceRequest{Name: "Gophers"}
 
-	resp, err := c.Gsc.Greeting(context.Background(), request)
+	err := c.Start()
+	if err != nil {
+		panic(err)
+	}
+	md := metadata.New(map[string]string{"sender": "0x028f455c1f95e1ec24bfafb81cb2d1e76118944931e3a2599241a457d7d5b8399b2ba5bb39"})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	resp, err := c.Gsc.Greeting(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("StartReceiver response => %s ", resp.Message)
+
+	c.Shutdown()
+
 }

@@ -56,7 +56,7 @@ func (p *processor) Start(ctx context.Context) {
 	go func() {
 		select {
 		case msgEvent := <-p.messenger.Inbound():
-			p.logger.Debug("Received msg event")
+			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
 			err := p.ProcessInbound(msgEvent)
 			if err != nil {
 				p.logger.Error(err)
