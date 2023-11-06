@@ -5,10 +5,13 @@ import (
 	"sync"
 
 	"camino-messenger-bot/config"
+	"camino-messenger-bot/internal/metadata"
 	"camino-messenger-bot/internal/proto/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
+
+var _ metadata.Checkpoint = (*RPCClient)(nil)
 
 type RPCClient struct {
 	Gsc    pb.GreetingServiceClient
@@ -24,6 +27,11 @@ func NewClient(cfg *config.PartnerPluginConfig, logger *zap.SugaredLogger) *RPCC
 		logger: logger,
 	}
 }
+
+func (rc *RPCClient) Checkpoint() string {
+	return "ext-system-client"
+}
+
 func (rc *RPCClient) Start() error {
 	rc.mu.Lock()
 	defer rc.mu.Unlock()

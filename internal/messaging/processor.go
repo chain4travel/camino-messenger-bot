@@ -6,26 +6,35 @@ import (
 	"fmt"
 	"time"
 
-	"camino-messenger-bot/internal/proto/pb"
+	"camino-messenger-bot/internal/metadata"
 	"camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/metadata"
+
+	grpc_metadata "google.golang.org/grpc/metadata"
 )
 
+type InvalidMessageError struct {
+	error
+}
+
 var (
-	_                             Processor = (*processor)(nil)
-	ErrUserIDNotSet                         = errors.New("user id not set")
-	ErrUnknownMessageCategory               = errors.New("unknown message category")
-	ErrOnlyRequestMessagesAllowed           = errors.New("only request messages allowed")
+	_ Processor = (*processor)(nil)
+
+	ErrUserIDNotSet               = errors.New("user id not set")
+	ErrUnknownMessageCategory     = errors.New("unknown message category")
+	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
+	ErrOnlyExternalOutbound       = errors.New("only external outbound messages allowed")
 )
 
 type MsgHandler interface {
 	Request(ctx context.Context, msg Message) (Message, error)
-	Respond(ctx context.Context, extSystem *client.RPCClient, msg Message) error
+	Respond(extSystem *client.RPCClient, msg Message) error
 	Forward(msg Message)
 }
 type Processor interface {
+	metadata.Checkpoint
 	MsgHandler
+	SetUserID(userID string)
 	Start(ctx context.Context)
 	ProcessInbound(message Message) error
 	ProcessOutbound(ctx context.Context, message Message) (Message, error)
@@ -40,11 +49,18 @@ type processor struct {
 	responseChannel chan Message
 }
 
-func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, userID string, logger *zap.SugaredLogger, timeout time.Duration) Processor {
+func (p *processor) SetUserID(userID string) {
+	p.userID = userID
+}
+
+func (p *processor) Checkpoint() string {
+	return "processor"
+}
+
+func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, logger *zap.SugaredLogger, timeout time.Duration) Processor {
 	return &processor{
 		messenger:       messenger,
 		rpcClient:       rpcClient,
-		userID:          userID,
 		logger:          logger,
 		timeout:         timeout,            // for now applies to all request types
 		responseChannel: make(chan Message), // channel where only response messages are routed
@@ -53,21 +69,21 @@ func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, userID strin
 
 func (p *processor) Start(ctx context.Context) {
 	//TODO start multiple routines??
-
 	go func() {
-		select {
-		case msgEvent := <-p.messenger.Inbound():
-			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
-			err := p.ProcessInbound(msgEvent)
-			if err != nil {
-				p.logger.Error(err)
+		for {
+			select {
+			case msgEvent := <-p.messenger.Inbound():
+				p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
+				err := p.ProcessInbound(msgEvent)
+				if err != nil {
+					p.logger.Warnf("could not process message: %v", err)
+				}
+			case <-ctx.Done():
+				p.logger.Info("Stopping processor...")
+				return
 			}
-		case <-ctx.Done():
-			p.logger.Info("Stopping processor...")
-			return
 		}
 	}()
-
 }
 
 func (p *processor) ProcessInbound(msg Message) error {
@@ -77,21 +93,17 @@ func (p *processor) ProcessInbound(msg Message) error {
 	if msg.Metadata.Sender != p.userID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case Request:
-			ctx := metadata.NewOutgoingContext(context.Background(), metadataToMD(msg.Metadata))
-			return p.Respond(ctx, p.rpcClient, msg)
+			return p.Respond(p.rpcClient, msg)
 		case Response:
 			p.Forward(msg)
 			return nil
 		case Unknown:
-			p.logger.Debugf("Ignoring incoming msg of unknown category: %s ", msg.Type)
-			return ErrUnknownMessageCategory
+			return InvalidMessageError{ErrUnknownMessageCategory}
 		default:
-			p.logger.Debugf("Ignoring incoming msg of category: %s ", msg.Type)
-			return ErrOnlyRequestMessagesAllowed // ignore msg
+			return InvalidMessageError{ErrOnlyRequestMessagesAllowed} // ignore msg
 		}
 	} else {
-		p.logger.Debug("Ignoring own outbound messages")
-		return ErrOnlyRequestMessagesAllowed // ignore msg
+		return InvalidMessageError{ErrOnlyExternalOutbound} // ignore msg
 	}
 }
 
@@ -111,6 +123,8 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 
 	msg.Metadata.Cheques = nil //TODO issue and attach cheques
 	err := p.messenger.SendAsync(ctx, msg)
+
+	p.logger.Debugf("Metadata: %v ", msg.Metadata)
 	if err != nil {
 		return Message{}, err
 	}
@@ -118,38 +132,48 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 	for {
 		select {
 		case response := <-p.responseChannel:
-			if response.RequestID == msg.RequestID {
+			if response.Metadata.RequestID == msg.Metadata.RequestID {
 				return response, nil
 			}
+			p.logger.Debugf("Ignoring response message with request id: %s ", response.Metadata.RequestID)
 		case <-ctx.Done():
 			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds", p.timeout)
 		}
 	}
 }
 
-func (p *processor) Respond(ctx context.Context, extSystem *client.RPCClient, msg Message) error {
-	fmt.Println(extSystem)
-	request := &pb.GreetingServiceRequest{Name: string(msg.Type)}
-	resp, err := extSystem.Gsc.Greeting(context.Background(), request)
-	if err != nil { //TODO retry mechanism?
-		return err
-	}
+func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
+	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
+
+	md := msg.Metadata
+	md.Sender = p.userID // overwrite sender with actual sender
+	md.Stamp(fmt.Sprintf("%s-%s", extSystem.Checkpoint(), "request"))
+
+	//TODO uncomment
+	//request := &pb.GreetingServiceRequest{Name: string(msg.Type)}
+	//resp, err := extSystem.Gsc.Greeting(ctx, request)
+	//if err != nil { //TODO retry mechanism?
+	//	return err
+	//}
+
+	//TODO uncomment? do we need to pass metadata to legacy system?
+	//err := md.ExtractMetadata(ctx)
+	//if err != nil {
+	//	return fmt.Errorf("error extracting metadata")
+	//}
+	md.Stamp(fmt.Sprintf("%s-%s", extSystem.Checkpoint(), "response"))
 	//TODO talk to legacy system and get response
 	// add metadata?
 	responseMsg := Message{
-		Type: "",
+		Type:     HotelAvailResponse,
+		Body:     "Hello from mocked legacy system",
+		Metadata: md,
 	}
-	p.logger.Debugf("Responding to incoming request message with: %s ", resp.Message)
+	p.logger.Debugf("Metadata: %v ", md)
 	return p.messenger.SendAsync(ctx, responseMsg)
 }
 
 func (p *processor) Forward(msg Message) {
+	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
 	p.responseChannel <- msg
-}
-func metadataToMD(m Metadata) metadata.MD {
-	md := metadata.New(map[string]string{
-		"sender":  m.Sender,
-		"room_id": m.RoomID,
-	})
-	return md
 }

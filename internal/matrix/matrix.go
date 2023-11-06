@@ -2,16 +2,14 @@ package matrix
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
+	"reflect"
 	"sync"
 
 	"camino-messenger-bot/config"
 	"camino-messenger-bot/internal/messaging"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/metadata"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
 	"maunium.net/go/mautrix/event"
@@ -50,24 +48,32 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		client:     client{Client: c},
 	}
 }
+func (m *messenger) Checkpoint() string {
+	return "messenger-gateway"
+}
 
-func (m *messenger) StartReceiver() error {
+func (m *messenger) StartReceiver() (string, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
+
+	event.TypeMap[C4TMessage] = reflect.TypeOf(CaminoMatrixMessage{})
 	// TODO: custom message event types have to be registered properly . see also event.TypeMap[event.MessageEventType] = event.MessageEventContent{}
-	syncer.OnEventType(event.EventMessage, func(source mautrix.EventSource, evt *event.Event) {
+	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
 		m.logger.Debug("Received msg",
 			zap.String("sender", evt.Sender.String()),
 			zap.String("type", evt.Type.String()),
 			zap.String("id", evt.ID.String()),
 			zap.String("body", evt.Content.AsMessage().Body))
+
+		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
+		msg.Metadata.Sender = evt.Sender.String() // overwrite sender with actual sender
+		msg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
+		m.logger.Debugf("Metadata: %v", msg.Metadata)
+		m.logger.Debugf("msg: %v", msg)
+
 		m.msgChannel <- messaging.Message{
-			Metadata: messaging.Metadata{
-				Sender: evt.Sender.String(),
-				RoomID: evt.RoomID.String(),
-			},
-			RequestID: evt.ID.String(),
-			Body:      evt.Content.AsMessage().Body,
-			Type:      messaging.MessageType(evt.Content.AsMessage().MsgType),
+			Metadata: msg.Metadata,
+			Body:     msg.Body,
+			Type:     messaging.MessageType(msg.MsgType),
 		}
 	})
 	syncer.OnEventType(event.StateMember, func(source mautrix.EventSource, evt *event.Event) {
@@ -87,7 +93,7 @@ func (m *messenger) StartReceiver() error {
 
 	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) //TODO refactor
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	cryptoHelper.LoginAs = &mautrix.ReqLogin{
@@ -97,13 +103,13 @@ func (m *messenger) StartReceiver() error {
 	}
 	err = cryptoHelper.Init()
 	if err != nil {
-		return err
+		return "", err
 	}
 	// Set the client crypto helper in order to automatically encrypt outgoing messages
 	m.client.Crypto = cryptoHelper
 	m.client.cryptoHelper = cryptoHelper // nikos: we need the struct cause stop method is not available on the interface level
 
-	m.logger.Info("Now running")
+	m.logger.Info("Successfully logged in as: %s", m.client.UserID.String())
 	syncCtx, cancelSync := context.WithCancel(context.Background())
 	m.client.ctx = syncCtx
 	m.client.cancelSync = cancelSync
@@ -117,7 +123,7 @@ func (m *messenger) StartReceiver() error {
 		}
 	}()
 
-	return nil
+	return m.client.UserID.String(), nil
 }
 func (m *messenger) StopReceiver() error {
 	m.logger.Info("Stopping matrix syncer...")
@@ -128,42 +134,15 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error {
+func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 	m.logger.Info("Sending async message", zap.Any("msg", msg))
-	md, err := m.extractMetadata(ctx)
-	if err != nil {
-		return err
-	}
-	m.client.SendText(id.RoomID(md.RoomID), msg.Body) // TODO refactor
-	return nil
+	_, err := m.client.SendMessageEvent(id.RoomID(msg.Metadata.RoomID), C4TMessage, CaminoMatrixMessage{
+		MessageEventContent: event.MessageEventContent{Body: msg.Body, MsgType: event.MessageType(msg.Type)},
+		Metadata:            msg.Metadata,
+	})
+	return err
 }
 
 func (m *messenger) Inbound() chan messaging.Message {
 	return m.msgChannel
-}
-
-func (m *messenger) extractMetadata(ctx context.Context) (*messaging.Metadata, error) {
-	mdPairs, ok := metadata.FromIncomingContext(ctx)
-	metadata := &messaging.Metadata{}
-
-	if !ok {
-		return metadata, fmt.Errorf("metadata not found in context")
-	}
-
-	if sender, found := mdPairs["sender"]; found {
-		metadata.Sender = sender[0]
-	}
-
-	if roomID, found := mdPairs["room_id"]; found {
-		metadata.RoomID = roomID[0]
-	}
-
-	if cheques, found := mdPairs["cheques"]; found {
-		chequesJSON := strings.Join(cheques, "")
-		if err := json.Unmarshal([]byte(chequesJSON), &metadata.Cheques); err != nil {
-			return metadata, fmt.Errorf("error unmarshalling cheques: %v", err)
-		}
-	}
-
-	return metadata, nil
 }

@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/tidwall/gjson v1.16.0 // indirect

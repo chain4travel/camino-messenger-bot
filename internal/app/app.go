@@ -53,13 +53,21 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
+	userIDUpdated := make(chan string) // Channel to pass the userID
 	g.Go(func() error {
 		a.logger.Info("Starting message receiver...")
-		return messenger.StartReceiver()
+		userID, err := messenger.StartReceiver()
+		// Pass userID through the channel
+		userIDUpdated <- userID
+		return err
 	})
 
-	msgProcessor := messaging.NewProcessor(messenger, rpcClient, a.cfg.Username, a.logger, time.Duration(a.cfg.MessengerConfig.Timeout)*time.Millisecond)
+	msgProcessor := messaging.NewProcessor(messenger, rpcClient, a.logger, time.Duration(a.cfg.MessengerConfig.Timeout)*time.Millisecond)
 	g.Go(func() error {
+		// Wait for userID to be passed
+		userID := <-userIDUpdated
+		close(userIDUpdated)
+		msgProcessor.SetUserID(userID)
 		a.logger.Info("Starting message processor...")
 		msgProcessor.Start(ctx)
 		return nil

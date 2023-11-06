@@ -1,15 +1,11 @@
 package messaging
 
-type Metadata struct {
-	Sender  string                   `json:"sender"`
-	RoomID  string                   `json:"room_id"`
-	Cheques []map[string]interface{} `json:"cheques"`
-}
+import "camino-messenger-bot/internal/metadata"
+
 type Message struct {
-	RequestID string
-	Type      MessageType
-	Body      string
-	Metadata  Metadata
+	Type     MessageType       `json:"msgtype"`
+	Body     string            `json:"body"`
+	Metadata metadata.Metadata `json:"metadata"`
 }
 
 type MessageCategory byte
@@ -22,7 +18,6 @@ const (
 	Unknown
 
 	// message types
-	DummyResponse MessageType = "m.text" // TODO remove
 
 	HotelAvailRequest  MessageType = "C4TContentHotelAvailRequest"
 	HotelAvailResponse MessageType = "C4TContentHotelAvailResponse"
@@ -57,8 +52,7 @@ func (mt MessageType) Category() MessageCategory {
 		HotelMappingsResponse,
 		FlightSearchResponse,
 		FlightBookResponse,
-		FlightInfoResponse,
-		DummyResponse:
+		FlightInfoResponse:
 		return Response
 	default:
 		return Unknown

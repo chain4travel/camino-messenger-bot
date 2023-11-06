@@ -15,20 +15,28 @@ import (
 
 func main() {
 
+	// create logger
+	var logger *zap.Logger
+	cfg := zap.NewDevelopmentConfig()
+	cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	logger, _ = cfg.Build()
+	sLogger := logger.Sugar()
+	logger.Sync()
+
 	c := client.NewClient(&config.PartnerPluginConfig{
 		PartnerPluginHost: "localhost",
 		PartnerPluginPort: 9090,
-	}, &zap.SugaredLogger{})
+	}, sLogger)
 	request := &pb.GreetingServiceRequest{Name: "Gophers"}
 
 	err := c.Start()
 	if err != nil {
 		panic(err)
 	}
-	// ralf sending request to a3m
+	// ralf sending request to OAG
 	md := metadata.New(map[string]string{
-		"sender":  "0x028f455c1f95e1ec24bfafb81cb2d1e76118944931e3a2599241a457d7d5b8399b2ba5bb39",
-		"room_id": "!VZwjBnxEukQOzOjoYt:matrix.chain4travel.com",
+		"sender":  "@t-kopernikus15r59v8u6uc4d5cgzscyeskkq8ydndukp5jucg2:matrix.chain4travel.com",
+		"room_id": "!hlEisVaujNqfJEBuzR:matrix.chain4travel.com",
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 

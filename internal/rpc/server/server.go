@@ -8,10 +8,11 @@ import (
 
 	"camino-messenger-bot/config"
 	"camino-messenger-bot/internal/messaging"
+	"camino-messenger-bot/internal/metadata"
 	"camino-messenger-bot/internal/proto/pb"
-	"go.uber.org/zap"
-	"google.golang.org/grpc/metadata"
 
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -20,6 +21,7 @@ var (
 )
 
 type Server interface {
+	metadata.Checkpoint
 	Start()
 	Stop()
 }
@@ -29,6 +31,10 @@ type server struct {
 	cfg        *config.RPCServerConfig
 	logger     *zap.SugaredLogger
 	processor  messaging.Processor
+}
+
+func (s *server) Checkpoint() string {
+	return "request-gateway"
 }
 
 func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []grpc.ServerOption, processor messaging.Processor) *server {
@@ -53,22 +59,29 @@ func (s *server) Stop() {
 }
 
 func (s *server) Greeting(ctx context.Context, req *pb.GreetingServiceRequest) (*pb.GreetingServiceReply, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, fmt.Errorf("missing metadata")
+	requestID, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
 	}
 
-	sender := md.Get("sender")
-	m := &messaging.Message{
-		RequestID: "",
-		Type:      messaging.HotelAvailRequest, // TODO remove
-		Body:      "",
-		Metadata:  messaging.Metadata{},
+	md := metadata.Metadata{
+		RequestID: requestID.String(),
 	}
-	m.Metadata.Sender = sender[0]
+	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "received"))
+	err = md.ExtractMetadata(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error extracting metadata")
+	}
+
+	m := &messaging.Message{
+		Type:     messaging.HotelAvailRequest, // TODO remove
+		Body:     "",
+		Metadata: md,
+	}
 
 	response, err := s.processor.ProcessOutbound(ctx, *m)
+	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	return &pb.GreetingServiceReply{
-		Message: fmt.Sprintf("Hello, %s", response.RequestID),
+		Message: fmt.Sprintf("Hello, %s", response.Metadata.RequestID),
 	}, err
 }
