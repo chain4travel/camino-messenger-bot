@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+import "types/date.proto";
+
+package tcm.protobuf;
+
+option go_package = "github.com/chain4travel/camino-messenger-bot/internal/proto/types";
+
+message FlightSearchCriteria {
+  Date departure_date = 1;
+  string departure = 2;
+  string arrival = 3;
+  string min_time = 4;
+  string max_time = 5;
+}
+
+message FlightOfferCriteria {
+  CabinCriteria cabin_criteria = 1;
+  ServiceCriteria service_criteria = 2;
+}
+
+message CabinCriteria {
+  CabinType cabin_type = 1;
+  repeated SeatCriteria seat_criteria = 2;
+  int32 row_number = 3;
+}
+
+message CabinType {
+  string class_of_service_code = 1;
+  string class_of_service_description = 2;
+}
+
+message SeatCriteria { repeated SeatType seat_type = 1; }
+
+message SeatType {
+  string code = 1;
+  string description = 2;
+}
+
+message ServiceCriteria {
+  bool meal = 1;
+  ServiceSpecialNeed special_needs = 2;
+}
+
+message ServiceSpecialNeed {
+  string code = 1;
+  string description = 2;
+}

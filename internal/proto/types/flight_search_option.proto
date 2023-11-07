@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+import "types/price.proto";
+import "types/cancel_policy.proto";
+
+package tcm.protobuf;
+
+option go_package = "github.com/chain4travel/camino-messenger-bot/internal/proto/types";
+
+// Search Option
+//
+// This is for basic property search response's search options
+message FlightSearchOption {
+  string id = 1;
+  string offer_id = 2;
+  repeated FlightSegment segments = 3;
+  Price price = 4;
+  repeated AnciliaryService anciliary_services = 5;
+  Validity validity = 6;
+  CancelPolicy cancel_policy = 7;
+}
+
+message FlightSegment {
+  string segment_id = 1;
+  string airline = 2;
+  FlightSchedule departure = 3;
+  FlightSchedule arrival = 4;
+  string class_of_service_description = 5;
+  string class_of_service_code = 6;
+  Price price = 7;
+}
+
+message FlightSchedule {
+  string date = 1;
+  string airport = 2;
+}
+
+message AnciliaryService {
+  string service_id = 1;
+  string name = 2;
+  Price price = 3;
+}
+
+message Validity {
+  string start = 1;
+  string end = 2;
+}

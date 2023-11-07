@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "types/currency.proto";
+
+package tcm.protobuf;
+
+option go_package = "github.com/chain4travel/camino-messenger-bot/internal/proto/types";
+
+// Price
+message Price {
+  Currency currency = 1;
+  float net = 2;
+  float gross = 3;
+  bool binding = 4;
+  string concept = 5; // FIXME: Can this be an enum?
+  // We can use a single price to represent a price breakdown
+  repeated Price breakdown = 6;
+}

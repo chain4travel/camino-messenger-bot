@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+import "types/tcm_message.proto";
+import "types/traveller.proto";
+import "types/flight_search_criteria.proto";
+import "types/flight_search_option.proto";
+
+package tcm.messages;
+
+option go_package = "github.com/chain4travel/camino-messenger-bot/internal/proto";
+
+service FlightSearchService {
+  rpc Greeting(FlightSearchRequest) returns (FlightSearchResponse) {}
+}
+
+
+/*
+# Flight Search Request Message
+
+## Description
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, diam
+vitae aliquam tincidunt, nunc nisl ultricies nunc, quis aliquam nisl nisl
+velit. Nulla facilisi. Nulla facilisi. Nulla facilisi. Nulla facilisi.
+
+## Diagram
+
+![FlightSearch](http://34.36.20.191/tcm/static/diagrams/messages/flight_search.proto.dot.svg)
+
+*/
+message FlightSearchRequest {
+
+  // Message Header
+  // Contains api version, message info string, sender & receiver wallet
+  // addresses
+  tcm.protobuf.Header header = 1;
+
+  string external_session_id = 2;
+  string enrichment = 3;
+  string currency = 4;
+  string language = 5;
+  string market = 6;
+  string include_on_request = 7;
+  string include_combinations = 8;
+
+  repeated tcm.protobuf.Traveller passengers = 9;
+  repeated tcm.protobuf.FlightSearchCriteria flight_search_criterias = 10;
+  repeated tcm.protobuf.FlightOfferCriteria flight_offer_criterias = 11;
+}
+
+/*
+# Flight Search Response Message
+
+## Description
+
+Vitae aliquam tincidunt, nunc nisl ultricies nunc, quis aliquam nisl nisl
+velit. Nulla facilisi. Nulla facilisi. Nulla facilisi. Nulla facilisi.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, diam
+
+## Diagram
+
+![FlightSearch](http://34.36.20.191/tcm/static/diagrams/messages/flight_search.proto.dot.svg)
+
+*/
+message FlightSearchResponse {
+
+  // Message Header
+  // Contains api version, message info string, sender & receiver wallet
+  // addresses
+  tcm.protobuf.Header header = 1;
+
+  string context = 2;
+  string errors = 3;
+  string warnings = 4;
+  string supplier_code = 5;
+  string external_session_id = 6;
+  string search_id = 7;
+  repeated tcm.protobuf.FlightSearchOption options = 8;
+}
