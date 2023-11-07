@@ -7,7 +7,7 @@ import "types/flight_search_option.proto";
 
 package tcm.messages;
 
-option go_package = "github.com/chain4travel/camino-messenger-bot/internal/proto";
+option go_package = "github.com/chain4travel/camino-messenger-bot/proto";
 
 service FlightSearchService {
   rpc Greeting(FlightSearchRequest) returns (FlightSearchResponse) {}

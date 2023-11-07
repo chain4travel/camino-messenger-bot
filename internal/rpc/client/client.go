@@ -6,7 +6,7 @@ import (
 
 	"camino-messenger-bot/config"
 	"camino-messenger-bot/internal/metadata"
-	"camino-messenger-bot/internal/proto/pb"
+	"camino-messenger-bot/proto/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

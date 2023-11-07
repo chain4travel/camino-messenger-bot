@@ -5,7 +5,7 @@ import "types/cancel_policy.proto";
 
 package tcm.protobuf;
 
-option go_package = "github.com/chain4travel/camino-messenger-bot/internal/proto/types";
+option go_package = "github.com/chain4travel/camino-messenger-bot/proto/types";
 
 // Search Option
 //

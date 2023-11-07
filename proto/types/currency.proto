@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package tcm.protobuf;
 
-option go_package = "github.com/chain4travel/camino-messenger-bot/internal/proto/types";
+option go_package = "github.com/chain4travel/camino-messenger-bot/proto/types";
 
 /*
 ## Currency list of ISO 4217 standard

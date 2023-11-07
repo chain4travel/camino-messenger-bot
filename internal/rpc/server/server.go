@@ -9,7 +9,7 @@ import (
 	"camino-messenger-bot/config"
 	"camino-messenger-bot/internal/messaging"
 	"camino-messenger-bot/internal/metadata"
-	"camino-messenger-bot/internal/proto/pb"
+	pb2 "camino-messenger-bot/proto/pb"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -26,7 +26,7 @@ type Server interface {
 	Stop()
 }
 type server struct {
-	pb.GreetingServiceServer
+	pb2.GreetingServiceServer
 	grpcServer *grpc.Server
 	cfg        *config.RPCServerConfig
 	logger     *zap.SugaredLogger
@@ -41,7 +41,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []gr
 	// TODO TLS creds?
 	grpcServer := grpc.NewServer(opts...)
 	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger, processor: processor}
-	pb.RegisterGreetingServiceServer(grpcServer, server)
+	pb2.RegisterGreetingServiceServer(grpcServer, server)
 	return server
 }
 
@@ -58,7 +58,7 @@ func (s *server) Stop() {
 	s.grpcServer.Stop()
 }
 
-func (s *server) Greeting(ctx context.Context, req *pb.GreetingServiceRequest) (*pb.GreetingServiceReply, error) {
+func (s *server) Greeting(ctx context.Context, req *pb2.GreetingServiceRequest) (*pb2.GreetingServiceReply, error) {
 	requestID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (s *server) Greeting(ctx context.Context, req *pb.GreetingServiceRequest) (
 
 	response, err := s.processor.ProcessOutbound(ctx, *m)
 	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
-	return &pb.GreetingServiceReply{
+	return &pb2.GreetingServiceReply{
 		Message: fmt.Sprintf("Hello, %s", response.Metadata.RequestID),
 	}, err
 }
