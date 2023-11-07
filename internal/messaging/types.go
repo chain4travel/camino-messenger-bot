@@ -1,6 +1,6 @@
 package messaging
 
-import "camino-messenger-bot/internal/metadata"
+import "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
 type Message struct {
 	Type     MessageType       `json:"msgtype"`

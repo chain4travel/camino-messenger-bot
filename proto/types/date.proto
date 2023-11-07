@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package tcm.protobuf;
+package types;
 
-option go_package = "github.com/chain4travel/camino-messenger-bot/proto/types";
+option go_package = "github.com/chain4travel/camino-messenger-bot/proto/pb/types";
 
 /*
 # Date Message

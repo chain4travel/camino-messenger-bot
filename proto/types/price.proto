@@ -2,9 +2,9 @@ syntax = "proto3";
 
 import "types/currency.proto";
 
-package tcm.protobuf;
+package types;
 
-option go_package = "github.com/chain4travel/camino-messenger-bot/proto/types";
+option go_package = "github.com/chain4travel/camino-messenger-bot/proto/pb/types";
 
 // Price
 message Price {

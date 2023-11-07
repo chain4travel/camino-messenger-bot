@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log"
 
-	"camino-messenger-bot/proto/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/metadata"
 
-	"camino-messenger-bot/config"
-	"camino-messenger-bot/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/proto/pb"
 )
 
 func main() {

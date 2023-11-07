@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"camino-messenger-bot/config"
-	"camino-messenger-bot/internal/app"
+	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/app"
 )
 
 func main() {

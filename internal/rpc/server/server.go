@@ -6,10 +6,10 @@ import (
 	"log"
 	"net"
 
-	"camino-messenger-bot/config"
-	"camino-messenger-bot/internal/messaging"
-	"camino-messenger-bot/internal/metadata"
-	pb2 "camino-messenger-bot/proto/pb"
+	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	pb2 "github.com/chain4travel/camino-messenger-bot/proto/pb"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"

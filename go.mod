@@ -1,9 +1,10 @@
-module camino-messenger-bot
+module github.com/chain4travel/camino-messenger-bot
 
 go 1.20
 
 require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
+	github.com/google/uuid v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/rs/zerolog v1.30.0
 	github.com/spf13/pflag v1.0.5
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/google/uuid v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/tidwall/gjson v1.16.0 // indirect

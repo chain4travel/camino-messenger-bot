@@ -3,7 +3,7 @@ package messaging
 import (
 	"context"
 
-	"camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 )
 
 type APIMessageResponse struct {

@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"sync"
 
-	"camino-messenger-bot/config"
-	"camino-messenger-bot/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"

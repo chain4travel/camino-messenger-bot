@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	"camino-messenger-bot/config"
-	"camino-messenger-bot/internal/metadata"
-	"camino-messenger-bot/proto/pb"
+	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/proto/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

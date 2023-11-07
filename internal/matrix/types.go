@@ -1,7 +1,7 @@
 package matrix
 
 import (
-	"camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"maunium.net/go/mautrix/event"
 )
 

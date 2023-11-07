@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"camino-messenger-bot/internal/metadata"
-	"camino-messenger-bot/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
 
 	grpc_metadata "google.golang.org/grpc/metadata"
