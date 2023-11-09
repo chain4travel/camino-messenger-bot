@@ -13,9 +13,9 @@ import (
 type Metadata struct {
 	RequestID  string                   `json:"request_id"`
 	Sender     string                   `json:"sender"`
-	RoomID     string                   `json:"room_id"`
+	Recipient  string                   `json:"recipient"`
 	Cheques    []map[string]interface{} `json:"cheques"`
-	Timestamps map[string]int64         `json:"timestamps"`
+	Timestamps map[string]int64         `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
 }
 
 func (m *Metadata) ExtractMetadata(ctx context.Context) error {
@@ -32,8 +32,8 @@ func (m *Metadata) ExtractMetadata(ctx context.Context) error {
 		m.Sender = sender[0]
 	}
 
-	if roomID, found := mdPairs["room_id"]; found {
-		m.RoomID = roomID[0]
+	if recipient, found := mdPairs["recipient"]; found {
+		m.Recipient = recipient[0]
 	}
 
 	if cheques, found := mdPairs["cheques"]; found {
@@ -54,11 +54,16 @@ func (m *Metadata) ExtractMetadata(ctx context.Context) error {
 
 func (m *Metadata) ToGrpcMD() metadata.MD {
 	md := metadata.New(map[string]string{
-		"sender":  m.Sender,
-		"room_id": m.RoomID,
+		"request_id": m.RequestID,
+		"sender":     m.Sender,
+		"recipient":  m.Recipient,
 		"timestamps": func() string {
 			timestampsJSON, _ := json.Marshal(m.Timestamps)
 			return string(timestampsJSON)
+		}(),
+		"cheques": func() string {
+			chequesJSON, _ := json.Marshal(m.Cheques)
+			return string(chequesJSON)
 		}(),
 	})
 	return md
@@ -67,5 +72,5 @@ func (m *Metadata) Stamp(checkpoint string) {
 	if m.Timestamps == nil {
 		m.Timestamps = make(map[string]int64)
 	}
-	m.Timestamps[checkpoint] = time.Now().Unix()
+	m.Timestamps[checkpoint] = time.Now().UnixMilli()
 }

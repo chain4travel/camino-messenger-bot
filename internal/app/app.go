@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
@@ -62,7 +61,7 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	})
 
-	msgProcessor := messaging.NewProcessor(messenger, rpcClient, a.logger, time.Duration(a.cfg.MessengerConfig.Timeout)*time.Millisecond)
+	msgProcessor := messaging.NewProcessor(messenger, rpcClient, a.logger, a.cfg.ProcessorConfig)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

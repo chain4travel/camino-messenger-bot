@@ -30,10 +30,11 @@ type client struct {
 	cryptoHelper *cryptohelper.CryptoHelper
 }
 type messenger struct {
-	msgChannel chan messaging.Message
-	cfg        *config.MatrixConfig
-	logger     *zap.SugaredLogger
-	client     client
+	msgChannel  chan messaging.Message
+	cfg         *config.MatrixConfig
+	logger      *zap.SugaredLogger
+	client      client
+	roomHandler RoomHandler
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenger {
@@ -42,10 +43,11 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		panic(err)
 	}
 	return &messenger{
-		msgChannel: make(chan messaging.Message),
-		cfg:        cfg,
-		logger:     logger,
-		client:     client{Client: c},
+		msgChannel:  make(chan messaging.Message),
+		cfg:         cfg,
+		logger:      logger,
+		client:      client{Client: c},
+		roomHandler: NewRoomHandler(c, logger),
 	}
 }
 func (m *messenger) Checkpoint() string {
@@ -58,21 +60,21 @@ func (m *messenger) StartReceiver() (string, error) {
 	event.TypeMap[C4TMessage] = reflect.TypeOf(CaminoMatrixMessage{})
 	// TODO: custom message event types have to be registered properly . see also event.TypeMap[event.MessageEventType] = event.MessageEventContent{}
 	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
-		m.logger.Debug("Received msg",
-			zap.String("sender", evt.Sender.String()),
-			zap.String("type", evt.Type.String()),
-			zap.String("id", evt.ID.String()),
-			zap.String("body", evt.Content.AsMessage().Body))
-
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
+		//content, _ := msg.Content.ToJSON()
+		//m.logger.Debug("Received msg",
+		//	zap.String("sender", evt.Sender.String()),
+		//	zap.String("type", evt.Type.String()),
+		//	zap.String("id", evt.ID.String()),
+		//	zap.String("content", content))
+
 		msg.Metadata.Sender = evt.Sender.String() // overwrite sender with actual sender
 		msg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
 		m.logger.Debugf("Metadata: %v", msg.Metadata)
-		m.logger.Debugf("msg: %v", msg)
 
 		m.msgChannel <- messaging.Message{
 			Metadata: msg.Metadata,
-			Body:     msg.Body,
+			Content:  msg.Content,
 			Type:     messaging.MessageType(msg.MsgType),
 		}
 	})
@@ -109,7 +111,7 @@ func (m *messenger) StartReceiver() (string, error) {
 	m.client.Crypto = cryptoHelper
 	m.client.cryptoHelper = cryptoHelper // nikos: we need the struct cause stop method is not available on the interface level
 
-	m.logger.Info("Successfully logged in as: %s", m.client.UserID.String())
+	m.logger.Infof("Successfully logged in as: %s", m.client.UserID.String())
 	syncCtx, cancelSync := context.WithCancel(context.Background())
 	m.client.ctx = syncCtx
 	m.client.cancelSync = cancelSync
@@ -136,8 +138,14 @@ func (m *messenger) StopReceiver() error {
 
 func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 	m.logger.Info("Sending async message", zap.Any("msg", msg))
-	_, err := m.client.SendMessageEvent(id.RoomID(msg.Metadata.RoomID), C4TMessage, CaminoMatrixMessage{
-		MessageEventContent: event.MessageEventContent{Body: msg.Body, MsgType: event.MessageType(msg.Type)},
+
+	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
+	if err != nil {
+		return err
+	}
+	_, err = m.client.SendMessageEvent(roomID, C4TMessage, CaminoMatrixMessage{
+		MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
+		Content:             msg.Content,
 		Metadata:            msg.Metadata,
 	})
 	return err

@@ -1,10 +1,25 @@
 package messaging
 
-import "github.com/chain4travel/camino-messenger-bot/internal/metadata"
+import (
+	"encoding/json"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
+)
+
+type RequestContent struct {
+	messages.FlightSearchRequest
+}
+type ResponseContent struct {
+	messages.FlightSearchResponse
+}
+type MessageContent struct {
+	RequestContent
+	ResponseContent
+}
 type Message struct {
 	Type     MessageType       `json:"msgtype"`
-	Body     string            `json:"body"`
+	Content  MessageContent    `json:"content"`
 	Metadata metadata.Metadata `json:"metadata"`
 }
 
@@ -57,4 +72,12 @@ func (mt MessageType) Category() MessageCategory {
 	default:
 		return Unknown
 	}
+}
+
+func (mc *MessageContent) ToJSON() (string, error) {
+	jsonData, err := json.Marshal(mc)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonData), nil
 }

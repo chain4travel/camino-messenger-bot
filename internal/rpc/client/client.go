@@ -6,7 +6,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb"
+	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -14,7 +14,7 @@ import (
 var _ metadata.Checkpoint = (*RPCClient)(nil)
 
 type RPCClient struct {
-	Gsc    pb.GreetingServiceClient
+	Sc     messages.FlightSearchServiceClient
 	cfg    *config.PartnerPluginConfig
 	logger *zap.SugaredLogger
 	cc     *grpc.ClientConn
@@ -40,7 +40,7 @@ func (rc *RPCClient) Start() error {
 	if err != nil {
 		return nil
 	}
-	rc.Gsc = pb.NewGreetingServiceClient(cc)
+	rc.Sc = messages.NewFlightSearchServiceClient(cc)
 	rc.cc = cc
 	return nil
 }

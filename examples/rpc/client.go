@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb"
 )
 
 func main() {
@@ -27,7 +28,10 @@ func main() {
 		PartnerPluginHost: "localhost",
 		PartnerPluginPort: 9090,
 	}, sLogger)
-	request := &pb.GreetingServiceRequest{Name: "Gophers"}
+	request := &messages.FlightSearchRequest{
+		Market:   "MUC",
+		Currency: "EUR",
+	}
 
 	err := c.Start()
 	if err != nil {
@@ -35,16 +39,17 @@ func main() {
 	}
 	// ralf sending request to OAG
 	md := metadata.New(map[string]string{
-		"sender":  "@t-kopernikus15r59v8u6uc4d5cgzscyeskkq8ydndukp5jucg2:matrix.chain4travel.com",
-		"room_id": "!hlEisVaujNqfJEBuzR:matrix.chain4travel.com",
+		"sender":    "@t-kopernikus15r59v8u6uc4d5cgzscyeskkq8ydndukp5jucg2:matrix.chain4travel.com",
+		"recipient": "@t-kopernikus15wq43957dapx4mt5984u9g37splwayudtpjdmy:matrix.chain4travel.com",
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	resp, err := c.Gsc.Greeting(ctx, request)
+	begin := time.Now()
+	resp, err := c.Sc.Search(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("StartReceiver response => %s ", resp.Message)
+	fmt.Printf("Received response after %s => %s\n", time.Since(begin), resp.Context)
 
 	c.Shutdown()
 

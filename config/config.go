@@ -2,9 +2,12 @@ package config
 
 import (
 	"flag"
+	"fmt"
+	"strings"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -12,6 +15,8 @@ const (
 
 	configFlagKey = "config"
 )
+
+type SupportedRequestTypesFlag []string
 
 type AppConfig struct {
 	DeveloperMode bool `mapstructure:"developer-mode"`
@@ -29,15 +34,16 @@ type PartnerPluginConfig struct {
 	PartnerPluginHost string `mapstructure:"partner-plugin-host"`
 	PartnerPluginPort int    `mapstructure:"partner-plugin-port"`
 }
-type MessengerConfig struct {
-	Timeout int `mapstructure:"response-timeout"` // in milliseconds
+type ProcessorConfig struct {
+	Timeout               int                       `mapstructure:"response-timeout"` // in milliseconds
+	SupportedRequestTypes SupportedRequestTypesFlag `mapstructure:"supported-request-types"`
 }
 type Config struct {
 	AppConfig           `mapstructure:",squash"`
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
-	MessengerConfig     `mapstructure:",squash"`
+	ProcessorConfig     `mapstructure:",squash"`
 }
 
 func ReadConfig() (*Config, error) {
@@ -56,7 +62,7 @@ func ReadConfig() (*Config, error) {
 	readMatrixConfig(cfg.MatrixConfig, fs)
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
 	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
-	readMessengerConfig(cfg.MessengerConfig, fs)
+	readMessengerConfig(cfg.ProcessorConfig, fs)
 
 	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)
@@ -73,5 +79,18 @@ func ReadConfig() (*Config, error) {
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, err
 	}
+	fmt.Println(cfg)
 	return cfg, nil
+}
+
+func (i *SupportedRequestTypesFlag) String() string {
+	return "[" + strings.Join(*i, ",") + "]"
+}
+func (i *SupportedRequestTypesFlag) Contains(requestType string) bool {
+	return slices.Contains(*i, requestType)
+}
+
+func (i *SupportedRequestTypesFlag) Set(requestType string) error {
+	*i = append(*i, requestType)
+	return nil
 }

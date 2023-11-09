@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	"go.uber.org/zap"
-
 	grpc_metadata "google.golang.org/grpc/metadata"
 )
 
@@ -23,7 +24,7 @@ var (
 	ErrUserIDNotSet               = errors.New("user id not set")
 	ErrUnknownMessageCategory     = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
-	ErrOnlyExternalOutbound       = errors.New("only external outbound messages allowed")
+	ErrUnsupportedRequestType     = errors.New("unsupported request type")
 )
 
 type MsgHandler interface {
@@ -41,6 +42,7 @@ type Processor interface {
 }
 
 type processor struct {
+	cfg             config.ProcessorConfig
 	messenger       Messenger
 	rpcClient       *client.RPCClient
 	userID          string
@@ -57,13 +59,14 @@ func (p *processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, logger *zap.SugaredLogger, timeout time.Duration) Processor {
+func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, logger *zap.SugaredLogger, cfg config.ProcessorConfig) Processor {
 	return &processor{
+		cfg:             cfg,
 		messenger:       messenger,
 		rpcClient:       rpcClient,
 		logger:          logger,
-		timeout:         timeout,            // for now applies to all request types
-		responseChannel: make(chan Message), // channel where only response messages are routed
+		timeout:         time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
+		responseChannel: make(chan Message),                            // channel where only response messages are routed
 	}
 }
 
@@ -103,7 +106,8 @@ func (p *processor) ProcessInbound(msg Message) error {
 			return InvalidMessageError{ErrOnlyRequestMessagesAllowed} // ignore msg
 		}
 	} else {
-		return InvalidMessageError{ErrOnlyExternalOutbound} // ignore msg
+		p.logger.Debugf("Ignoring own outbound message: %s", msg.Metadata.RequestID)
+		return nil
 	}
 }
 
@@ -123,8 +127,6 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 
 	msg.Metadata.Cheques = nil //TODO issue and attach cheques
 	err := p.messenger.SendAsync(ctx, msg)
-
-	p.logger.Debugf("Metadata: %v ", msg.Metadata)
 	if err != nil {
 		return Message{}, err
 	}
@@ -143,6 +145,10 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 }
 
 func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
+
+	if !p.cfg.SupportedRequestTypes.Contains(string(msg.Type)) {
+		return fmt.Errorf("%v: %s", ErrUnsupportedRequestType, msg.Type)
+	}
 	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
 
 	md := msg.Metadata
@@ -151,7 +157,7 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 
 	//TODO uncomment
 	//request := &pb.GreetingServiceRequest{Name: string(msg.Type)}
-	//resp, err := extSystem.Gsc.Greeting(ctx, request)
+	//resp, err := extSystem.Sc.Greeting(ctx, request)
 	//if err != nil { //TODO retry mechanism?
 	//	return err
 	//}
@@ -165,8 +171,21 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 	//TODO talk to legacy system and get response
 	// add metadata?
 	responseMsg := Message{
-		Type:     HotelAvailResponse,
-		Body:     "Hello from mocked legacy system",
+		Type: FlightSearchResponse,
+		Content: MessageContent{
+			ResponseContent: ResponseContent{
+				messages.FlightSearchResponse{
+					Header:            nil,
+					Context:           "Hello from mocked legacy system",
+					Errors:            "",
+					Warnings:          "",
+					SupplierCode:      "",
+					ExternalSessionId: "",
+					SearchId:          msg.Metadata.RequestID,
+					Options:           nil,
+				},
+			},
+		},
 		Metadata: md,
 	}
 	p.logger.Debugf("Metadata: %v ", md)

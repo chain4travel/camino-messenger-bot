@@ -9,8 +9,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	pb2 "github.com/chain4travel/camino-messenger-bot/proto/pb"
-
+	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -26,7 +25,7 @@ type Server interface {
 	Stop()
 }
 type server struct {
-	pb2.GreetingServiceServer
+	messages.FlightSearchServiceServer
 	grpcServer *grpc.Server
 	cfg        *config.RPCServerConfig
 	logger     *zap.SugaredLogger
@@ -41,7 +40,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []gr
 	// TODO TLS creds?
 	grpcServer := grpc.NewServer(opts...)
 	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger, processor: processor}
-	pb2.RegisterGreetingServiceServer(grpcServer, server)
+	messages.RegisterFlightSearchServiceServer(grpcServer, server)
 	return server
 }
 
@@ -58,7 +57,7 @@ func (s *server) Stop() {
 	s.grpcServer.Stop()
 }
 
-func (s *server) Greeting(ctx context.Context, req *pb2.GreetingServiceRequest) (*pb2.GreetingServiceReply, error) {
+func (s *server) Search(ctx context.Context, request *messages.FlightSearchRequest) (*messages.FlightSearchResponse, error) {
 	requestID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -73,15 +72,18 @@ func (s *server) Greeting(ctx context.Context, req *pb2.GreetingServiceRequest) 
 		return nil, fmt.Errorf("error extracting metadata")
 	}
 
+	// TODO: consider all necessary request fields including Header (->metadata)
 	m := &messaging.Message{
-		Type:     messaging.HotelAvailRequest, // TODO remove
-		Body:     "",
+		Type: messaging.FlightSearchRequest,
+		Content: messaging.MessageContent{
+			RequestContent: messaging.RequestContent{
+				FlightSearchRequest: *request,
+			},
+		},
 		Metadata: md,
 	}
 
 	response, err := s.processor.ProcessOutbound(ctx, *m)
 	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
-	return &pb2.GreetingServiceReply{
-		Message: fmt.Sprintf("Hello, %s", response.Metadata.RequestID),
-	}, err
+	return &response.Content.ResponseContent.FlightSearchResponse, err //TODO metadata, errors etc?
 }

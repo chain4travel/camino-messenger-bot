@@ -4,7 +4,7 @@
 // 	protoc        v3.12.4
 // source: flight_search.proto
 
-package proto
+package messages
 
 import (
 	reflect "reflect"
