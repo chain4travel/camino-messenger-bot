@@ -6,10 +6,12 @@ matrix-host: matrix.camino.network
 matrix-store: mautrix.db
 rpc-server-port: 9090
 rpc-unencrypted: false
-server-cert-file: server.crt
-server-key-file: server.key
+rpc-server-cert-file: server-cert.pem
+rpc-server-key-file: server-key.pem
 partner-plugin-host: localhost
 partner-plugin-port: 3000
+partner-plugin-unencrypted: false
+partner-plugin-ca-file: ca-cert.pem
 response-timeout: 3000
 supported-request-types:
  - C4TContentHotelAvailRequest

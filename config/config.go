@@ -33,8 +33,10 @@ type RPCServerConfig struct {
 	ServerKeyFile  string `mapstructure:"rpc-server-key-file"`
 }
 type PartnerPluginConfig struct {
-	PartnerPluginHost string `mapstructure:"partner-plugin-host"`
-	PartnerPluginPort int    `mapstructure:"partner-plugin-port"`
+	Host        string `mapstructure:"partner-plugin-host"`
+	Port        int    `mapstructure:"partner-plugin-port"`
+	Unencrypted bool   `mapstructure:"partner-plugin-unencrypted"`
+	CACertFile  string `mapstructure:"partner-plugin-ca-file"`
 }
 type ProcessorConfig struct {
 	Timeout               int                       `mapstructure:"response-timeout"` // in milliseconds

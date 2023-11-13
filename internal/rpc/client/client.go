@@ -2,11 +2,13 @@ package client
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
+	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -19,14 +21,12 @@ type RPCClient struct {
 	logger *zap.SugaredLogger
 	cc     *grpc.ClientConn
 	mu     sync.Mutex
-	opts   []grpc.DialOption
 }
 
-func NewClient(cfg *config.PartnerPluginConfig, logger *zap.SugaredLogger, opts []grpc.DialOption) *RPCClient {
+func NewClient(cfg *config.PartnerPluginConfig, logger *zap.SugaredLogger) *RPCClient {
 	return &RPCClient{
 		cfg:    cfg,
 		logger: logger,
-		opts:   opts,
 	}
 }
 
@@ -37,7 +37,19 @@ func (rc *RPCClient) Checkpoint() string {
 func (rc *RPCClient) Start() error {
 	rc.mu.Lock()
 	defer rc.mu.Unlock()
-	cc, err := grpc.Dial(fmt.Sprintf("%s:%d", rc.cfg.PartnerPluginHost, rc.cfg.PartnerPluginPort), rc.opts...)
+
+	var opts []grpc.DialOption
+	if rc.cfg.Unencrypted {
+		opts = append(opts, grpc.WithInsecure())
+	} else {
+		tlsCreds, err := utils.LoadCATLSCredentials(rc.cfg.CACertFile)
+		if err != nil {
+			log.Fatalf("could not load TLS keys: %s", err)
+		}
+		opts = append(opts, grpc.WithTransportCredentials(tlsCreds))
+	}
+
+	cc, err := grpc.Dial(fmt.Sprintf("%s:%d", rc.cfg.Host, rc.cfg.Port), opts...)
 	if err != nil {
 		return nil
 	}

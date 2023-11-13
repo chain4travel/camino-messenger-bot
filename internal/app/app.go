@@ -10,7 +10,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
 )
 
 type App struct {
@@ -45,7 +44,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	//// TODO do proper DI with FX
 
-	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger, []grpc.DialOption{grpc.WithInsecure()}) // TODO tls
+	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
 	g.Go(func() error {
 		a.logger.Info("Starting RPC client...")
 		return rpcClient.Start()

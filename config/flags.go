@@ -23,8 +23,11 @@ func readRPCServerConfig(cfg RPCServerConfig, fs *flag.FlagSet) {
 }
 
 func readPartnerRpcServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.PartnerPluginHost, PartnerPluginHostKey, "", "The partner plugin RPC server host")
-	fs.IntVar(&cfg.PartnerPluginPort, PartnerPluginPortKey, 50051, "The partner plugin RPC server port")
+	fs.StringVar(&cfg.Host, PartnerPluginHostKey, "", "The partner plugin RPC server host")
+	fs.IntVar(&cfg.Port, PartnerPluginPortKey, 50051, "The partner plugin RPC server port")
+	fs.BoolVar(&cfg.Unencrypted, PartnerPluginUnencryptedKey, false, "Whether the RPC client should initiate an unencrypted connection with the server")
+	fs.StringVar(&cfg.CACertFile, PartnerPluginCAFileKey, "", "The partner plugin RPC server CA certificate file")
+
 }
 
 func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {

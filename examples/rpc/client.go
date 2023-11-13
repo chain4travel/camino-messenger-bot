@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
-	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -25,21 +23,15 @@ func main() {
 	sLogger := logger.Sugar()
 	logger.Sync()
 
-	var opts []grpc.DialOption
 	argsWithoutProg := os.Args[1:]
-	if len(argsWithoutProg) == 1 {
-		tlsCreds, err := utils.LoadCATLSCredentials(argsWithoutProg[0])
-		if err != nil {
-			log.Fatalf("could not load TLS keys: %s", err)
-		}
-		opts = append(opts, grpc.WithTransportCredentials(tlsCreds))
-	} else {
-		opts = append(opts, grpc.WithInsecure())
-	}
+	unencrypted := len(argsWithoutProg) == 0
+	caCertFile := argsWithoutProg[0]
 	c := client.NewClient(&config.PartnerPluginConfig{
-		PartnerPluginHost: "localhost",
-		PartnerPluginPort: 9090,
-	}, sLogger, opts)
+		Host:        "localhost",
+		Port:        9090,
+		Unencrypted: unencrypted,
+		CACertFile:  caCertFile,
+	}, sLogger)
 	request := &messages.FlightSearchRequest{
 		Market:   "MUC",
 		Currency: "EUR",
