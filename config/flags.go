@@ -15,7 +15,11 @@ func readMatrixConfig(cfg MatrixConfig, fs *flag.FlagSet) {
 }
 
 func readRPCServerConfig(cfg RPCServerConfig, fs *flag.FlagSet) {
-	fs.IntVar(&cfg.RPCServerPort, RPCServerPortKey, 9090, "The RPC server port")
+	fs.IntVar(&cfg.Port, RPCServerPortKey, 9090, "The RPC server port")
+	fs.BoolVar(&cfg.Unencrypted, RPCUnencryptedKey, false, "Whether the RPC server should be unencrypted")
+	fs.StringVar(&cfg.ServerCertFile, RPCServerCertFileKey, "", "The server certificate file")
+	fs.StringVar(&cfg.ServerKeyFile, RPCServerKeyFileKey, "", "The server key file")
+
 }
 
 func readPartnerRpcServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {

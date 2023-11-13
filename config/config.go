@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -28,7 +27,10 @@ type MatrixConfig struct {
 	Store    string `mapstructure:"matrix-store"`
 }
 type RPCServerConfig struct {
-	RPCServerPort int `mapstructure:"rpc-server-port"`
+	Port           int    `mapstructure:"rpc-server-port"`
+	Unencrypted    bool   `mapstructure:"rpc-unencrypted"`
+	ServerCertFile string `mapstructure:"server-cert-file"`
+	ServerKeyFile  string `mapstructure:"server-key-file"`
 }
 type PartnerPluginConfig struct {
 	PartnerPluginHost string `mapstructure:"partner-plugin-host"`
@@ -79,7 +81,6 @@ func ReadConfig() (*Config, error) {
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, err
 	}
-	fmt.Println(cfg)
 	return cfg, nil
 }
 

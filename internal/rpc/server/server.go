@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -13,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var (
@@ -36,8 +38,17 @@ func (s *server) Checkpoint() string {
 	return "request-gateway"
 }
 
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []grpc.ServerOption, processor messaging.Processor) *server {
-	// TODO TLS creds?
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor messaging.Processor) *server {
+	var opts []grpc.ServerOption
+	if cfg.Unencrypted {
+		logger.Warn("Running gRPC server without TLS!")
+	} else {
+		creds, err := loadTLSCredentials()
+		if err != nil {
+			log.Fatalf("could not load TLS keys: %s", err)
+		}
+		opts = []grpc.ServerOption{grpc.Creds(creds)}
+	}
 	grpcServer := grpc.NewServer(opts...)
 	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger, processor: processor}
 	messages.RegisterFlightSearchServiceServer(grpcServer, server)
@@ -45,7 +56,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, opts []gr
 }
 
 func (s *server) Start() {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", s.cfg.RPCServerPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", s.cfg.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -82,8 +93,19 @@ func (s *server) Search(ctx context.Context, request *messages.FlightSearchReque
 		},
 		Metadata: md,
 	}
-
 	response, err := s.processor.ProcessOutbound(ctx, *m)
 	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	return &response.Content.ResponseContent.FlightSearchResponse, err //TODO metadata, errors etc?
+}
+
+func loadTLSCredentials() (credentials.TransportCredentials, error) {
+	serverCert, err := tls.LoadX509KeyPair("cert/server.crt", "cert/server.key")
+	if err != nil {
+		return nil, err
+	}
+	config := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		ClientAuth:   tls.NoClientCert,
+	}
+	return credentials.NewTLS(config), nil
 }

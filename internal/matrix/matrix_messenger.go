@@ -70,7 +70,6 @@ func (m *messenger) StartReceiver() (string, error) {
 
 		msg.Metadata.Sender = evt.Sender.String() // overwrite sender with actual sender
 		msg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
-		m.logger.Debugf("Metadata: %v", msg.Metadata)
 
 		m.msgChannel <- messaging.Message{
 			Metadata: msg.Metadata,
@@ -98,9 +97,15 @@ func (m *messenger) StartReceiver() (string, error) {
 		return "", err
 	}
 
+	//cryptoHelper.LoginAs = &mautrix.ReqLogin{
+	//	Type:       mautrix.AuthTypePassword,
+	//	Identifier: mautrix.UserIdentifier{Type: mautrix.IdentifierTypeThirdParty, Medium: "camino", Address: m.cfg.Username},
+	//	Password:   m.cfg.Password,
+	//}
+
 	cryptoHelper.LoginAs = &mautrix.ReqLogin{
 		Type:       mautrix.AuthTypePassword,
-		Identifier: mautrix.UserIdentifier{Type: mautrix.IdentifierTypeThirdParty, Medium: "camino", Address: m.cfg.Username},
+		Identifier: mautrix.UserIdentifier{Type: mautrix.IdentifierTypeUser, User: m.cfg.Username},
 		Password:   m.cfg.Password,
 	}
 	err = cryptoHelper.Init()
@@ -137,14 +142,14 @@ func (m *messenger) StopReceiver() error {
 }
 
 func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
-	m.logger.Info("Sending async message", zap.Any("msg", msg))
+	m.logger.Info("Sending async message", zap.Any("msg", msg.Metadata.RequestID))
 
 	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
 	if err != nil {
 		return err
 	}
 	_, err = m.client.SendMessageEvent(roomID, C4TMessage, CaminoMatrixMessage{
-		MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
+		MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type), Body: "Hello from mocked legacy system"},
 		Content:             msg.Content,
 		Metadata:            msg.Metadata,
 	})

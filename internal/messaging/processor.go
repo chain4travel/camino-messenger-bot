@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -42,13 +43,16 @@ type Processor interface {
 }
 
 type processor struct {
-	cfg             config.ProcessorConfig
-	messenger       Messenger
-	rpcClient       *client.RPCClient
-	userID          string
-	logger          *zap.SugaredLogger
-	timeout         time.Duration // timeout after which a request is considered failed
-	responseChannel chan Message
+	cfg       config.ProcessorConfig
+	messenger Messenger
+	rpcClient *client.RPCClient
+	userID    string
+	logger    *zap.SugaredLogger
+	timeout   time.Duration // timeout after which a request is considered failed
+	//responseChannel chan Message
+
+	mu               sync.Mutex
+	responseChannels map[string]chan Message
 }
 
 func (p *processor) SetUserID(userID string) {
@@ -61,32 +65,32 @@ func (p *processor) Checkpoint() string {
 
 func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, logger *zap.SugaredLogger, cfg config.ProcessorConfig) Processor {
 	return &processor{
-		cfg:             cfg,
-		messenger:       messenger,
-		rpcClient:       rpcClient,
-		logger:          logger,
-		timeout:         time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannel: make(chan Message),                            // channel where only response messages are routed
+		cfg:              cfg,
+		messenger:        messenger,
+		rpcClient:        rpcClient,
+		logger:           logger,
+		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
+		responseChannels: make(map[string]chan Message),
 	}
 }
 
 func (p *processor) Start(ctx context.Context) {
 	//TODO start multiple routines??
-	go func() {
-		for {
-			select {
-			case msgEvent := <-p.messenger.Inbound():
-				p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
+	for {
+		select {
+		case msgEvent := <-p.messenger.Inbound():
+			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
+			go func() {
 				err := p.ProcessInbound(msgEvent)
 				if err != nil {
 					p.logger.Warnf("could not process message: %v", err)
 				}
-			case <-ctx.Done():
-				p.logger.Info("Stopping processor...")
-				return
-			}
+			}()
+		case <-ctx.Done():
+			p.logger.Info("Stopping processor...")
+			return
 		}
-	}()
+	}
 }
 
 func (p *processor) ProcessInbound(msg Message) error {
@@ -106,8 +110,7 @@ func (p *processor) ProcessInbound(msg Message) error {
 			return InvalidMessageError{ErrOnlyRequestMessagesAllowed} // ignore msg
 		}
 	} else {
-		p.logger.Debugf("Ignoring own outbound message: %s", msg.Metadata.RequestID)
-		return nil
+		return nil // ignore own outbound messages
 	}
 }
 
@@ -122,6 +125,16 @@ func (p *processor) ProcessOutbound(ctx context.Context, msg Message) (Message, 
 
 func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 	p.logger.Debug("Sending outbound request message")
+	responseChan := make(chan Message)
+	p.mu.Lock()
+	p.responseChannels[msg.Metadata.RequestID] = responseChan
+	p.mu.Unlock()
+	defer func() {
+		p.mu.Lock()
+		delete(p.responseChannels, msg.Metadata.RequestID)
+		p.mu.Unlock()
+	}()
+
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 
@@ -133,19 +146,18 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 
 	for {
 		select {
-		case response := <-p.responseChannel:
+		case response := <-responseChan:
 			if response.Metadata.RequestID == msg.Metadata.RequestID {
 				return response, nil
 			}
-			p.logger.Debugf("Ignoring response message with request id: %s ", response.Metadata.RequestID)
+			//p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
 		case <-ctx.Done():
-			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds", p.timeout)
+			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds for request: %s", p.timeout, msg.Metadata.RequestID)
 		}
 	}
 }
 
 func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
-
 	if !p.cfg.SupportedRequestTypes.Contains(string(msg.Type)) {
 		return fmt.Errorf("%v: %s", ErrUnsupportedRequestType, msg.Type)
 	}
@@ -188,11 +200,17 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 		},
 		Metadata: md,
 	}
-	p.logger.Debugf("Metadata: %v ", md)
 	return p.messenger.SendAsync(ctx, responseMsg)
 }
 
 func (p *processor) Forward(msg Message) {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
-	p.responseChannel <- msg
+	//p.responseChannel <- msg
+	p.mu.Lock()
+	responseChan, ok := p.responseChannels[msg.Metadata.RequestID]
+	if ok {
+		responseChan <- msg
+		close(responseChan)
+	}
+	p.mu.Unlock()
 }

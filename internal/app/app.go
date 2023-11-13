@@ -10,7 +10,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
 )
 
 type App struct {
@@ -72,7 +71,7 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, []grpc.ServerOption{}, msgProcessor) //TODO
+	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, msgProcessor) //TODO
 	g.Go(func() error {
 		a.logger.Info("Starting RPC server...")
 		rpcServer.Start()

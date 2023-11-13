@@ -39,8 +39,8 @@ func main() {
 	}
 	// ralf sending request to OAG
 	md := metadata.New(map[string]string{
-		"sender":    "@t-kopernikus15r59v8u6uc4d5cgzscyeskkq8ydndukp5jucg2:matrix.chain4travel.com",
-		"recipient": "@t-kopernikus15wq43957dapx4mt5984u9g37splwayudtpjdmy:matrix.chain4travel.com",
+		"sender":    "@nikostest1:localhost",
+		"recipient": "@nikostest2:localhost",
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
