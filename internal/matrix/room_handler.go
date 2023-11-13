@@ -67,7 +67,7 @@ func (r *roomHandler) EnableEncryptionForRoom(roomID id.RoomID) error {
 }
 
 func (r *roomHandler) GetEncryptedRoomForRecipient(recipient id.UserID) (id.RoomID, bool) {
-	// TODO implement look in cache/memory
+	//TODO implement look in cache/memory
 
 	// if not found query joined rooms
 	rooms, err := r.client.JoinedRooms()

@@ -75,7 +75,6 @@ func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, logger *zap.
 }
 
 func (p *processor) Start(ctx context.Context) {
-	//TODO start multiple routines??
 	for {
 		select {
 		case msgEvent := <-p.messenger.Inbound():
@@ -167,13 +166,6 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 	md.Sender = p.userID // overwrite sender with actual sender
 	md.Stamp(fmt.Sprintf("%s-%s", extSystem.Checkpoint(), "request"))
 
-	//TODO uncomment
-	//request := &pb.GreetingServiceRequest{Name: string(msg.Type)}
-	//resp, err := extSystem.Sc.Greeting(ctx, request)
-	//if err != nil { //TODO retry mechanism?
-	//	return err
-	//}
-
 	//TODO uncomment? do we need to pass metadata to legacy system?
 	//err := md.ExtractMetadata(ctx)
 	//if err != nil {
@@ -181,7 +173,6 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 	//}
 	md.Stamp(fmt.Sprintf("%s-%s", extSystem.Checkpoint(), "response"))
 	//TODO talk to legacy system and get response
-	// add metadata?
 	responseMsg := Message{
 		Type: FlightSearchResponse,
 		Content: MessageContent{

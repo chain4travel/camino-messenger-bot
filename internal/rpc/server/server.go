@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -11,10 +10,10 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
+	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 var (
@@ -43,9 +42,9 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
 	} else {
-		creds, err := loadTLSCredentials()
+		creds, err := utils.LoadTLSCredentials(cfg.ServerCertFile, cfg.ServerKeyFile)
 		if err != nil {
-			log.Fatalf("could not load TLS keys: %s", err)
+			logger.Fatalf("could not load TLS keys: %s", err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
@@ -96,16 +95,4 @@ func (s *server) Search(ctx context.Context, request *messages.FlightSearchReque
 	response, err := s.processor.ProcessOutbound(ctx, *m)
 	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	return &response.Content.ResponseContent.FlightSearchResponse, err //TODO metadata, errors etc?
-}
-
-func loadTLSCredentials() (credentials.TransportCredentials, error) {
-	serverCert, err := tls.LoadX509KeyPair("cert/server.crt", "cert/server.key")
-	if err != nil {
-		return nil, err
-	}
-	config := &tls.Config{
-		Certificates: []tls.Certificate{serverCert},
-		ClientAuth:   tls.NoClientCert,
-	}
-	return credentials.NewTLS(config), nil
 }

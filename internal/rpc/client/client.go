@@ -19,12 +19,14 @@ type RPCClient struct {
 	logger *zap.SugaredLogger
 	cc     *grpc.ClientConn
 	mu     sync.Mutex
+	opts   []grpc.DialOption
 }
 
-func NewClient(cfg *config.PartnerPluginConfig, logger *zap.SugaredLogger) *RPCClient {
+func NewClient(cfg *config.PartnerPluginConfig, logger *zap.SugaredLogger, opts []grpc.DialOption) *RPCClient {
 	return &RPCClient{
 		cfg:    cfg,
 		logger: logger,
+		opts:   opts,
 	}
 }
 
@@ -35,8 +37,7 @@ func (rc *RPCClient) Checkpoint() string {
 func (rc *RPCClient) Start() error {
 	rc.mu.Lock()
 	defer rc.mu.Unlock()
-	opts := grpc.WithInsecure() //todo add TLS
-	cc, err := grpc.Dial(fmt.Sprintf("%s:%d", rc.cfg.PartnerPluginHost, rc.cfg.PartnerPluginPort), opts)
+	cc, err := grpc.Dial(fmt.Sprintf("%s:%d", rc.cfg.PartnerPluginHost, rc.cfg.PartnerPluginPort), rc.opts...)
 	if err != nil {
 		return nil
 	}

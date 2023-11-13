@@ -29,8 +29,8 @@ type MatrixConfig struct {
 type RPCServerConfig struct {
 	Port           int    `mapstructure:"rpc-server-port"`
 	Unencrypted    bool   `mapstructure:"rpc-unencrypted"`
-	ServerCertFile string `mapstructure:"server-cert-file"`
-	ServerKeyFile  string `mapstructure:"server-key-file"`
+	ServerCertFile string `mapstructure:"rpc-server-cert-file"`
+	ServerKeyFile  string `mapstructure:"rpc-server-key-file"`
 }
 type PartnerPluginConfig struct {
 	PartnerPluginHost string `mapstructure:"partner-plugin-host"`
