@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	configFileName = "camino-messenger-provider.yaml"
+	configFileName = "camino-messenger-bot.yaml"
 
 	configFlagKey = "config"
 )

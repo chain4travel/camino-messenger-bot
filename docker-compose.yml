@@ -1,0 +1,49 @@
+version: '3'
+services:
+  provider-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CONFIG_CONTENT: |
+          developer-mode: true
+          matrix-username: nikostest1
+          matrix-password: gep.FCN*cxk2hyv2hyv
+          matrix-host: matrix.chain4travel.com
+          matrix-store: mautrix-localhost.db
+          rpc-server-port: 9090
+          rpc-unencrypted: true
+          partner-plugin-host: localhost
+          partner-plugin-port: 50051
+          partner-plugin-unencrypted: true
+          response-timeout: 3000
+          supported-request-types:
+            - C4TContentHotelAvailRequest
+            - C4TContentFlightSearchRequest
+            - C4TContentHotelMappingsRequest
+    ports:
+      - "9090:9090"
+
+  distributor-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CONFIG_CONTENT: |
+          developer-mode: true
+          matrix-username: nikostest2
+          matrix-password: ypj3ufp_xne5BYJ0efp
+          matrix-host: matrix.chain4travel.com
+          matrix-store: mautrix-localhost.db
+          rpc-server-port: 9090
+          rpc-unencrypted: true
+          partner-plugin-host: localhost
+          partner-plugin-port: 50051
+          partner-plugin-unencrypted: true
+          response-timeout: 3000
+          supported-request-types:
+            - C4TContentHotelAvailRequest
+            - C4TContentFlightSearchRequest
+            - C4TContentHotelMappingsRequest
+    ports:
+      - "9092:9090"

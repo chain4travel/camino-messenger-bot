@@ -25,13 +25,15 @@ func main() {
 
 	argsWithoutProg := os.Args[1:]
 	unencrypted := len(argsWithoutProg) == 0
-	caCertFile := argsWithoutProg[0]
-	c := client.NewClient(&config.PartnerPluginConfig{
+	ppConfig := config.PartnerPluginConfig{
 		Host:        "localhost",
 		Port:        9090,
 		Unencrypted: unencrypted,
-		CACertFile:  caCertFile,
-	}, sLogger)
+	}
+	if !unencrypted {
+		ppConfig.CACertFile = argsWithoutProg[0]
+	}
+	c := client.NewClient(&ppConfig, sLogger)
 	request := &messages.FlightSearchRequest{
 		Market:   "MUC",
 		Currency: "EUR",

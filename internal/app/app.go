@@ -46,7 +46,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
 	g.Go(func() error {
-		a.logger.Info("Starting RPC client...")
+		a.logger.Info("Starting gRPC client...")
 		return rpcClient.Start()
 	})
 
@@ -71,9 +71,9 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, msgProcessor) //TODO
+	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, msgProcessor)
 	g.Go(func() error {
-		a.logger.Info("Starting RPC server...")
+		a.logger.Info("Starting gRPC server...")
 		rpcServer.Start()
 		return nil
 	})
