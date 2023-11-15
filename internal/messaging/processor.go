@@ -10,8 +10,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
 )
 
@@ -160,36 +160,30 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 	if !p.cfg.SupportedRequestTypes.Contains(string(msg.Type)) {
 		return fmt.Errorf("%v: %s", ErrUnsupportedRequestType, msg.Type)
 	}
-	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
 
-	md := msg.Metadata
+	md := &msg.Metadata
 	md.Sender = p.userID // overwrite sender with actual sender
 	md.Stamp(fmt.Sprintf("%s-%s", extSystem.Checkpoint(), "request"))
 
-	//TODO uncomment? do we need to pass metadata to legacy system?
-	//err := md.ExtractMetadata(ctx)
-	//if err != nil {
-	//	return fmt.Errorf("error extracting metadata")
-	//}
-	md.Stamp(fmt.Sprintf("%s-%s", extSystem.Checkpoint(), "response"))
-	//TODO talk to legacy system and get response
+	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
+	var header grpc_metadata.MD
+	response, err := p.rpcClient.Sc.Search(ctx, &msg.Content.RequestContent.FlightSearchRequest, grpc.Header(&header))
+	if err != nil {
+		return err
+	}
+
+	err = md.FromGrpcMD(header)
+	if err != nil {
+		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
+	}
 	responseMsg := Message{
 		Type: FlightSearchResponse,
 		Content: MessageContent{
 			ResponseContent: ResponseContent{
-				messages.FlightSearchResponse{
-					Header:            nil,
-					Context:           "Hello from mocked legacy system",
-					Errors:            "",
-					Warnings:          "",
-					SupplierCode:      "",
-					ExternalSessionId: "",
-					SearchId:          msg.Metadata.RequestID,
-					Options:           nil,
-				},
+				FlightSearchResponse: *response,
 			},
 		},
-		Metadata: md,
+		Metadata: *md,
 	}
 	return p.messenger.SendAsync(ctx, responseMsg)
 }

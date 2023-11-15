@@ -1,6 +1,8 @@
 package matrix
 
 import (
+	"sync"
+
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/event"
@@ -9,17 +11,19 @@ import (
 
 type RoomHandler interface {
 	GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomID, error)
-	CreateRoomAndInviteUsers(userIDs []id.UserID) (id.RoomID, error)
+	CreateRoomAndInviteUser(userID id.UserID) (id.RoomID, error)
 	EnableEncryptionForRoom(roomID id.RoomID) error
 	GetEncryptedRoomForRecipient(recipient id.UserID) (id.RoomID, bool)
 }
 type roomHandler struct {
 	client *mautrix.Client
 	logger *zap.SugaredLogger
+	rooms  map[id.UserID]id.RoomID
+	mu     sync.RWMutex
 }
 
 func NewRoomHandler(client *mautrix.Client, logger *zap.SugaredLogger) RoomHandler {
-	return &roomHandler{client: client, logger: logger}
+	return &roomHandler{client: client, logger: logger, rooms: make(map[id.UserID]id.RoomID)}
 }
 
 func (r *roomHandler) GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomID, error) {
@@ -30,7 +34,7 @@ func (r *roomHandler) GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomI
 	var err error
 	// if not create room and invite recipient
 	if !found {
-		roomID, err = r.CreateRoomAndInviteUsers([]id.UserID{recipient})
+		roomID, err = r.CreateRoomAndInviteUser(recipient)
 		if err != nil {
 			return "", err
 		}
@@ -45,17 +49,18 @@ func (r *roomHandler) GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomI
 	return roomID, nil
 }
 
-func (r *roomHandler) CreateRoomAndInviteUsers(userIDs []id.UserID) (id.RoomID, error) {
-	r.logger.Debugf("Creating room and inviting users %v", userIDs)
+func (r *roomHandler) CreateRoomAndInviteUser(userID id.UserID) (id.RoomID, error) {
+	r.logger.Debugf("Creating room and inviting user %v", userID)
 	req := mautrix.ReqCreateRoom{
 		Visibility: "private",
 		Preset:     "private_chat",
-		Invite:     userIDs,
+		Invite:     []id.UserID{userID},
 	}
 	resp, err := r.client.CreateRoom(&req)
 	if err != nil {
 		return "", err
 	}
+	r.cacheRoom(userID, resp.RoomID)
 	return resp.RoomID, nil
 }
 
@@ -67,8 +72,10 @@ func (r *roomHandler) EnableEncryptionForRoom(roomID id.RoomID) error {
 }
 
 func (r *roomHandler) GetEncryptedRoomForRecipient(recipient id.UserID) (id.RoomID, bool) {
-	//TODO implement look in cache/memory
-
+	roomID := r.fetchCachedRoom(recipient)
+	if roomID != "" {
+		return roomID, true
+	}
 	// if not found query joined rooms
 	rooms, err := r.client.JoinedRooms()
 	if err != nil {
@@ -84,8 +91,22 @@ func (r *roomHandler) GetEncryptedRoomForRecipient(recipient id.UserID) (id.Room
 		}
 
 		_, found := members.Joined[recipient]
+		if found {
+			r.cacheRoom(recipient, roomID)
+		}
 		return roomID, found
 
 	}
 	return "", false
+}
+
+func (r *roomHandler) fetchCachedRoom(recipient id.UserID) id.RoomID {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.rooms[recipient]
+}
+func (r *roomHandler) cacheRoom(recipient id.UserID, roomID id.RoomID) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.rooms[recipient] = roomID
 }

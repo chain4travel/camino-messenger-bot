@@ -38,7 +38,7 @@ services:
           rpc-server-port: 9090
           rpc-unencrypted: true
           partner-plugin-host: localhost
-          partner-plugin-port: 50051
+          partner-plugin-port: 50052
           partner-plugin-unencrypted: true
           response-timeout: 3000
           supported-request-types:
@@ -47,3 +47,11 @@ services:
             - C4TContentHotelMappingsRequest
     ports:
       - "9092:9090"
+  provider-plugin:
+    build:
+      context: .
+      dockerfile: Dockerfile.plugin
+      args:
+        port: 50052
+    ports:
+      - "50052:50052"

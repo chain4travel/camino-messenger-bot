@@ -22,8 +22,15 @@ func (m *Metadata) ExtractMetadata(ctx context.Context) error {
 	mdPairs, ok := metadata.FromIncomingContext(ctx)
 
 	if !ok {
-		return fmt.Errorf("metadata not found in context")
+		mdPairs, ok = metadata.FromOutgoingContext(ctx)
+		if !ok {
+			return fmt.Errorf("metadata not found in context")
+		}
 	}
+	return m.FromGrpcMD(mdPairs)
+}
+
+func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
 	if requestID, found := mdPairs["request_id"]; found {
 		m.RequestID = requestID[0]
 	}
@@ -51,7 +58,6 @@ func (m *Metadata) ExtractMetadata(ctx context.Context) error {
 	}
 	return nil
 }
-
 func (m *Metadata) ToGrpcMD() metadata.MD {
 	md := metadata.New(map[string]string{
 		"request_id": m.RequestID,

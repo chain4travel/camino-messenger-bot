@@ -15,7 +15,7 @@ go_file_path="../examples/rpc/client.go"
 # Loop to run the Go file X times in parallel
 for ((i=1; i<=$times_to_run; i++))
 do
-    echo "Running $i time..."
+    echo "Sending $i request..."
     go run $go_file_path &
 done
 
