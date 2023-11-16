@@ -10,8 +10,8 @@ services:
           developer-mode: true
           matrix-username: nikostest1
           matrix-password: gep.FCN*cxk2hyv2hyv
-          matrix-host: matrix.chain4travel.com
-          matrix-store: mautrix-localhost.db
+          matrix-host: matrix.camino.network
+          matrix-store: matrix-localhost.db
           rpc-server-port: 9090
           rpc-unencrypted: true
           partner-plugin-host: localhost
@@ -35,7 +35,7 @@ services:
           developer-mode: true
           matrix-username: nikostest2
           matrix-password: ypj3ufp_xne5BYJ0efp
-          matrix-host: matrix.chain4travel.com
+          matrix-host: matrix.camino.network
           matrix-store: mautrix-localhost.db
           rpc-server-port: 9090
           rpc-unencrypted: true
