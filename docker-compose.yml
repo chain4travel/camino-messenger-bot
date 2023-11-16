@@ -1,6 +1,7 @@
 version: '3'
 services:
   provider-bot:
+    image: c4tplatform/camino-messenger-bot
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,6 +26,7 @@ services:
       - "9090:9090"
 
   distributor-bot:
+    image: c4tplatform/camino-messenger-bot
     build:
       context: .
       dockerfile: Dockerfile
@@ -48,6 +50,7 @@ services:
     ports:
       - "9092:9090"
   provider-plugin:
+    image: c4tplatform/camino-messenger-bot-plugin
     build:
       context: .
       dockerfile: Dockerfile.plugin
