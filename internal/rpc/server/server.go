@@ -82,7 +82,6 @@ func (s *server) Search(ctx context.Context, request *messages.FlightSearchReque
 		return nil, fmt.Errorf("error extracting metadata")
 	}
 
-	// TODO: consider all necessary request fields including Header (->metadata)
 	m := &messaging.Message{
 		Type: messaging.FlightSearchRequest,
 		Content: messaging.MessageContent{
@@ -93,6 +92,7 @@ func (s *server) Search(ctx context.Context, request *messages.FlightSearchReque
 		Metadata: md,
 	}
 	response, err := s.processor.ProcessOutbound(ctx, *m)
-	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
-	return &response.Content.ResponseContent.FlightSearchResponse, err //TODO metadata, errors etc?
+	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
+	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
+	return &response.Content.ResponseContent.FlightSearchResponse, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
