@@ -32,6 +32,6 @@ func readPartnerRpcServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {
 
 func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 	fs.IntVar(&cfg.Timeout, MessengerTimeoutKey, 3000, "The messenger timeout (in milliseconds)")
-	flag.Var(&cfg.SupportedRequestTypes, SupportedRequestTypesKey, "The list of supported request types")
+	fs.Var(&cfg.SupportedRequestTypes, SupportedRequestTypesKey, "The list of supported request types")
 	flag.Parse()
 }

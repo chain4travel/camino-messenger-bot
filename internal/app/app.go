@@ -55,9 +55,11 @@ func (a *App) Run(ctx context.Context) error {
 	g.Go(func() error {
 		a.logger.Info("Starting message receiver...")
 		userID, err := messenger.StartReceiver()
-		// Pass userID through the channel
-		userIDUpdated <- userID
-		return err
+		if err != nil {
+			panic(err)
+		}
+		userIDUpdated <- userID // Pass userID through the channel
+		return nil
 	})
 
 	msgProcessor := messaging.NewProcessor(messenger, rpcClient, a.logger, a.cfg.ProcessorConfig)

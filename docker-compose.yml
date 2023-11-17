@@ -1,52 +1,44 @@
 version: '3'
 services:
   provider-bot:
-    image: c4tplatform/camino-messenger-bot-provider
+    image: c4tplatform/camino-messenger-bot
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        CONFIG_CONTENT: |
-          developer-mode: true
-          matrix-username: nikostest1
-          matrix-password: gep.FCN*cxk2hyv2hyv
-          matrix-host: matrix.camino.network
-          matrix-store: matrix-localhost.db
-          rpc-server-port: 9090
-          rpc-unencrypted: true
-          partner-plugin-host: localhost
-          partner-plugin-port: 50051
-          partner-plugin-unencrypted: true
-          response-timeout: 3000
-          supported-request-types:
-            - C4TContentHotelAvailRequest
-            - C4TContentFlightSearchRequest
-            - C4TContentHotelMappingsRequest
+    environment:
+      CMB_DEVELOPER_MODE: "true"
+      CMB_MATRIX_USERNAME: "nikostest1"
+      CMB_MATRIX_PASSWORD: "gep.FCN*cxk2hyv2hyv"
+      CMB_MATRIX_HOST: "matrix.camino.network"
+      CMB_MATRIX_STORE: "mautrix-localhost.db"
+      CMB_RPC_SERVER_PORT: "9090"
+      CMB_RPC_UNENCRYPTED: 'true'
+      CMB_PARTNER_PLUGIN_HOST: "localhost"
+      CMB_PARTNER_PLUGIN_PORT: "50051"
+      CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
+      CMB_RESPONSE_TIMEOUT: "3000"
+      CMB_SUPPORTED_REQUEST_TYPES: "C4TContentHotelAvailRequest,C4TContentFlightSearchRequest,C4TContentHotelMappingsRequest"
     ports:
       - "9090:9090"
 
   distributor-bot:
-    image: c4tplatform/camino-messenger-bot-distributor
+    image: c4tplatform/camino-messenger-bot
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        CONFIG_CONTENT: |
-          developer-mode: true
-          matrix-username: nikostest2
-          matrix-password: ypj3ufp_xne5BYJ0efp
-          matrix-host: matrix.camino.network
-          matrix-store: mautrix-localhost.db
-          rpc-server-port: 9090
-          rpc-unencrypted: true
-          partner-plugin-host: localhost
-          partner-plugin-port: 50052
-          partner-plugin-unencrypted: true
-          response-timeout: 3000
-          supported-request-types:
-            - C4TContentHotelAvailRequest
-            - C4TContentFlightSearchRequest
-            - C4TContentHotelMappingsRequest
+    environment:
+      CMB_DEVELOPER_MODE: "true"
+      CMB_MATRIX_USERNAME: "nikostest2"
+      CMB_MATRIX_PASSWORD: "ypj3ufp_xne5BYJ0efp"
+      CMB_MATRIX_HOST: "matrix.camino.network"
+      CMB_MATRIX_STORE: "mautrix-localhost.db"
+      CMB_RPC_SERVER_PORT: "9090"
+      CMB_RPC_UNENCRYPTED: "true"
+      CMB_PARTNER_PLUGIN_HOST: "localhost"
+      CMB_PARTNER_PLUGIN_PORT: "50052"
+      CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
+      CMB_RESPONSE_TIMEOUT: "3000"
+      CMB_SUPPORTED_REQUEST_TYPES: "C4TContentHotelAvailRequest,C4TContentFlightSearchRequest,C4TContentHotelMappingsRequest"
     ports:
       - "9092:9090"
   provider-plugin:

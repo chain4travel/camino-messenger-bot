@@ -20,12 +20,6 @@ RUN apk add --no-cache olm-dev
 
 WORKDIR /
 
-ARG CONFIG_CONTENT
-RUN echo "$CONFIG_CONTENT" > camino-messenger-bot.yaml
 COPY --from=build-stage /camino-messenger-bot/bot /camino-messenger-bot
 
-#rpc server port
-RUN rpc_server_port=$(awk '/rpc-server-port:/ {print $2}' camino-messenger-bot.yaml)
-EXPOSE $rpc_server_port
-
-CMD ["./camino-messenger-bot", "config", "camino-messenger-bot.yaml"]
+ENTRYPOINT ["./camino-messenger-bot"]
