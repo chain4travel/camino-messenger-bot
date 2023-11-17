@@ -9,7 +9,6 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
@@ -30,7 +29,7 @@ var (
 
 type MsgHandler interface {
 	Request(ctx context.Context, msg Message) (Message, error)
-	Respond(extSystem *client.RPCClient, msg Message) error
+	Respond(msg Message) error
 	Forward(msg Message)
 }
 type Processor interface {
@@ -45,7 +44,6 @@ type Processor interface {
 type processor struct {
 	cfg       config.ProcessorConfig
 	messenger Messenger
-	rpcClient *client.RPCClient
 	userID    string
 	logger    *zap.SugaredLogger
 	timeout   time.Duration // timeout after which a request is considered failed
@@ -53,6 +51,7 @@ type processor struct {
 
 	mu               sync.Mutex
 	responseChannels map[string]chan Message
+	serviceRegistry  *ServiceRegistry
 }
 
 func (p *processor) SetUserID(userID string) {
@@ -63,14 +62,14 @@ func (p *processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, rpcClient *client.RPCClient, logger *zap.SugaredLogger, cfg config.ProcessorConfig) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry *ServiceRegistry) Processor {
 	return &processor{
 		cfg:              cfg,
 		messenger:        messenger,
-		rpcClient:        rpcClient,
 		logger:           logger,
 		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
 		responseChannels: make(map[string]chan Message),
+		serviceRegistry:  registry,
 	}
 }
 
@@ -99,7 +98,7 @@ func (p *processor) ProcessInbound(msg Message) error {
 	if msg.Metadata.Sender != p.userID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case Request:
-			return p.Respond(p.rpcClient, msg)
+			return p.Respond(msg)
 		case Response:
 			p.Forward(msg)
 			return nil
@@ -156,18 +155,20 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 	}
 }
 
-func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
-	if !p.cfg.SupportedRequestTypes.Contains(string(msg.Type)) {
+func (p *processor) Respond(msg Message) error {
+	var service Service
+	var supported bool
+	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
 		return fmt.Errorf("%v: %s", ErrUnsupportedRequestType, msg.Type)
 	}
 
 	md := &msg.Metadata
 	md.Sender = p.userID // overwrite sender with actual sender
-	md.Stamp(fmt.Sprintf("%s-%s", extSystem.Checkpoint(), "request"))
+	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 
 	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
 	var header grpc_metadata.MD
-	response, err := p.rpcClient.Sc.Search(ctx, &msg.Content.RequestContent.FlightSearchRequest, grpc.Header(&header))
+	response, msgType, err := service.call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
 	if err != nil {
 		return err
 	}
@@ -177,11 +178,9 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
 	}
 	responseMsg := Message{
-		Type: FlightSearchResponse,
+		Type: msgType,
 		Content: MessageContent{
-			ResponseContent: ResponseContent{
-				FlightSearchResponse: *response,
-			},
+			ResponseContent: response,
 		},
 		Metadata: *md,
 	}
@@ -190,7 +189,6 @@ func (p *processor) Respond(extSystem *client.RPCClient, msg Message) error {
 
 func (p *processor) Forward(msg Message) {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
-	//p.responseChannel <- msg
 	p.mu.Lock()
 	responseChan, ok := p.responseChannels[msg.Metadata.RequestID]
 	if ok {

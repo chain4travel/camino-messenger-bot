@@ -15,6 +15,8 @@ require (
 )
 
 require (
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231116230201-89505677fb5c.2 // indirect
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231116230201-89505677fb5c.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/tidwall/gjson v1.16.0 // indirect

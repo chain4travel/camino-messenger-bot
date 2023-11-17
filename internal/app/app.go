@@ -62,7 +62,10 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	msgProcessor := messaging.NewProcessor(messenger, rpcClient, a.logger, a.cfg.ProcessorConfig)
+	serviceRegistry := messaging.NewServiceRegistry(a.logger, rpcClient)
+	serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes)
+
+	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

@@ -7,7 +7,6 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -16,11 +15,10 @@ import (
 var _ metadata.Checkpoint = (*RPCClient)(nil)
 
 type RPCClient struct {
-	Sc     messages.FlightSearchServiceClient
-	cfg    *config.PartnerPluginConfig
-	logger *zap.SugaredLogger
-	cc     *grpc.ClientConn
-	mu     sync.Mutex
+	cfg        *config.PartnerPluginConfig
+	logger     *zap.SugaredLogger
+	ClientConn *grpc.ClientConn
+	mu         sync.Mutex
 }
 
 func NewClient(cfg *config.PartnerPluginConfig, logger *zap.SugaredLogger) *RPCClient {
@@ -53,12 +51,11 @@ func (rc *RPCClient) Start() error {
 	if err != nil {
 		return nil
 	}
-	rc.Sc = messages.NewFlightSearchServiceClient(cc)
-	rc.cc = cc
+	rc.ClientConn = cc
 	return nil
 }
 
 func (rc *RPCClient) Shutdown() error {
 	rc.logger.Info("Shutting down gRPC client...")
-	return rc.cc.Close()
+	return rc.ClientConn.Close()
 }

@@ -4,6 +4,8 @@ import "flag"
 
 func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
 	fs.BoolVar(&cfg.DeveloperMode, DeveloperMode, false, "Sets developer mode")
+	fs.Var(&cfg.SupportedRequestTypes, SupportedRequestTypesKey, "The list of supported request types")
+	flag.Parse()
 
 }
 
@@ -32,6 +34,4 @@ func readPartnerRpcServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {
 
 func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 	fs.IntVar(&cfg.Timeout, MessengerTimeoutKey, 3000, "The messenger timeout (in milliseconds)")
-	fs.Var(&cfg.SupportedRequestTypes, SupportedRequestTypesKey, "The list of supported request types")
-	flag.Parse()
 }

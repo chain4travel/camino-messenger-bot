@@ -17,7 +17,8 @@ const (
 type SupportedRequestTypesFlag []string
 
 type AppConfig struct {
-	DeveloperMode bool `mapstructure:"developer_mode"`
+	DeveloperMode         bool                      `mapstructure:"developer_mode"`
+	SupportedRequestTypes SupportedRequestTypesFlag `mapstructure:"supported_request_types"`
 }
 type MatrixConfig struct {
 	Username string `mapstructure:"matrix_username"`
@@ -38,8 +39,7 @@ type PartnerPluginConfig struct {
 	CACertFile  string `mapstructure:"partner_plugin_ca_file"`
 }
 type ProcessorConfig struct {
-	Timeout               int                       `mapstructure:"messenger_timeout"` // in milliseconds
-	SupportedRequestTypes SupportedRequestTypesFlag `mapstructure:"supported_request_types"`
+	Timeout int `mapstructure:"messenger_timeout"` // in milliseconds
 }
 type Config struct {
 	AppConfig           `mapstructure:",squash"`

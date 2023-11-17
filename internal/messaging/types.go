@@ -3,15 +3,15 @@ package messaging
 import (
 	"encoding/json"
 
+	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 )
 
 type RequestContent struct {
-	messages.FlightSearchRequest
+	accommodationv1alpha1.AccommodationSearchRequest
 }
 type ResponseContent struct {
-	messages.FlightSearchResponse
+	accommodationv1alpha1.AccommodationSearchResponse
 }
 type MessageContent struct {
 	RequestContent
@@ -34,40 +34,15 @@ const (
 
 	// message types
 
-	HotelAvailRequest  MessageType = "C4TContentHotelAvailRequest"
-	HotelAvailResponse MessageType = "C4TContentHotelAvailResponse"
-
-	HotelBookRequest  MessageType = "C4TContentHotelBookRequest"
-	HotelBookResponse MessageType = "C4TContentHotelBookResponse"
-
-	HotelMappingsRequest  MessageType = "C4TContentHotelMappingsRequest"
-	HotelMappingsResponse MessageType = "C4TContentHotelMappingsResponse"
-
-	FlightSearchRequest  MessageType = "C4TContentFlightSearchRequest"
-	FlightSearchResponse MessageType = "C4TContentFlightSearchResponse"
-
-	FlightBookRequest  MessageType = "C4TContentFlightBookRequest"
-	FlightBookResponse MessageType = "C4TContentFlightBookResponse"
-
-	FlightInfoRequest  MessageType = "C4TContentFlightInfoRequest"
-	FlightInfoResponse MessageType = "C4TContentFlightInfoResponse"
+	AccommodationSearchRequest  MessageType = "AccommodationSearchRequest"
+	AccommodationSearchResponse MessageType = "AccommodationSearchResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
-	case HotelAvailRequest,
-		HotelBookRequest,
-		HotelMappingsRequest,
-		FlightSearchRequest,
-		FlightBookRequest,
-		FlightInfoRequest:
+	case AccommodationSearchRequest:
 		return Request
-	case HotelAvailResponse,
-		HotelBookResponse,
-		HotelMappingsResponse,
-		FlightSearchResponse,
-		FlightBookResponse,
-		FlightInfoResponse:
+	case AccommodationSearchResponse:
 		return Response
 	default:
 		return Unknown

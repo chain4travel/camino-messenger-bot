@@ -6,10 +6,11 @@ import (
 	"log"
 	"net"
 
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -18,6 +19,8 @@ import (
 
 var (
 	_ Server = (*server)(nil)
+
+	_ accommodationv1alpha1grpc.AccommodationSearchServiceServer = (*server)(nil)
 )
 
 type Server interface {
@@ -26,7 +29,6 @@ type Server interface {
 	Stop()
 }
 type server struct {
-	messages.FlightSearchServiceServer
 	grpcServer *grpc.Server
 	cfg        *config.RPCServerConfig
 	logger     *zap.SugaredLogger
@@ -50,7 +52,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 	}
 	grpcServer := grpc.NewServer(opts...)
 	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger, processor: processor}
-	messages.RegisterFlightSearchServiceServer(grpcServer, server)
+	accommodationv1alpha1grpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
 	return server
 }
 
@@ -67,7 +69,7 @@ func (s *server) Stop() {
 	s.grpcServer.Stop()
 }
 
-func (s *server) Search(ctx context.Context, request *messages.FlightSearchRequest) (*messages.FlightSearchResponse, error) {
+func (s *server) AccommodationSearch(ctx context.Context, request *accommodationv1alpha1.AccommodationSearchRequest) (*accommodationv1alpha1.AccommodationSearchResponse, error) {
 	requestID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -83,10 +85,10 @@ func (s *server) Search(ctx context.Context, request *messages.FlightSearchReque
 	}
 
 	m := &messaging.Message{
-		Type: messaging.FlightSearchRequest,
+		Type: messaging.AccommodationSearchRequest,
 		Content: messaging.MessageContent{
 			RequestContent: messaging.RequestContent{
-				FlightSearchRequest: *request,
+				AccommodationSearchRequest: *request,
 			},
 		},
 		Metadata: md,
@@ -94,5 +96,5 @@ func (s *server) Search(ctx context.Context, request *messages.FlightSearchReque
 	response, err := s.processor.ProcessOutbound(ctx, *m)
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
-	return &response.Content.ResponseContent.FlightSearchResponse, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+	return &response.Content.ResponseContent.AccommodationSearchResponse, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
