@@ -45,9 +45,15 @@ func (a *App) Run(ctx context.Context) error {
 	//// TODO do proper DI with FX
 
 	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
+	serviceRegistry := messaging.NewServiceRegistry(a.logger, rpcClient)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC client...")
-		return rpcClient.Start()
+		err := rpcClient.Start()
+		if err != nil {
+			panic(err)
+		}
+		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes)
+		return nil
 	})
 
 	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
@@ -61,9 +67,6 @@ func (a *App) Run(ctx context.Context) error {
 		userIDUpdated <- userID // Pass userID through the channel
 		return nil
 	})
-
-	serviceRegistry := messaging.NewServiceRegistry(a.logger, rpcClient)
-	serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes)
 
 	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry)
 	g.Go(func() error {

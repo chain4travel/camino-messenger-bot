@@ -23,13 +23,13 @@ type Service interface {
 }
 
 type accommodationService struct {
-	client accommodationv1alpha1grpc.AccommodationSearchServiceClient
+	client *accommodationv1alpha1grpc.AccommodationSearchServiceClient
 }
 
 func (a accommodationService) call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.AccommodationSearchRequest == nil {
 		return ResponseContent{}, "", ErrInvalidRequest
 	}
-	response, err := a.client.AccommodationSearch(ctx, &request.AccommodationSearchRequest, opts...)
+	response, err := (*a.client).AccommodationSearch(ctx, &request.AccommodationSearchRequest, opts...)
 	return ResponseContent{AccommodationSearchResponse: *response}, AccommodationSearchResponse, err
 }

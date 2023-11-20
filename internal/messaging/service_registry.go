@@ -28,11 +28,11 @@ func NewServiceRegistry(logger *zap.SugaredLogger, rpcClient *client.RPCClient) 
 
 func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestTypesFlag) {
 	for _, requestType := range requestTypes {
-
 		var service Service
 		switch MessageType(requestType) {
 		case AccommodationSearchRequest:
-			service = accommodationService{client: accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)}
+			c := accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)
+			service = accommodationService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)
 			continue

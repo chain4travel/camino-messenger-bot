@@ -8,16 +8,17 @@ import (
 	"os"
 	"strconv"
 
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
+	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb/messages"
 	"google.golang.org/grpc"
 )
 
 type partnerPlugin struct {
-	messages.FlightSearchServiceServer
+	accommodationv1alpha1grpc.AccommodationSearchServiceServer
 }
 
-func (p *partnerPlugin) Search(ctx context.Context, request *messages.FlightSearchRequest) (*messages.FlightSearchResponse, error) {
+func (p *partnerPlugin) AccommodationSearch(ctx context.Context, request *accommodationv1alpha1.AccommodationSearchRequest) (*accommodationv1alpha1.AccommodationSearchResponse, error) {
 
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -26,9 +27,10 @@ func (p *partnerPlugin) Search(ctx context.Context, request *messages.FlightSear
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
-	response := messages.FlightSearchResponse{
+
+	response := accommodationv1alpha1.AccommodationSearchResponse{
 		Header:            nil,
-		Context:           fmt.Sprintf("Response to: %s", md.RequestID),
+		Context:           "",
 		Errors:            "",
 		Warnings:          "",
 		SupplierCode:      "",
@@ -42,7 +44,7 @@ func (p *partnerPlugin) Search(ctx context.Context, request *messages.FlightSear
 
 func main() {
 	grpcServer := grpc.NewServer()
-	messages.RegisterFlightSearchServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv1alpha1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 
 	port := 55555
 	var err error
