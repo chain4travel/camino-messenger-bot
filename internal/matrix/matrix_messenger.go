@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"go.uber.org/zap"
@@ -97,17 +99,22 @@ func (m *messenger) StartReceiver() (string, error) {
 		return "", err
 	}
 
-	//cryptoHelper.LoginAs = &mautrix.ReqLogin{
-	//	Type:       mautrix.AuthTypePassword,
-	//	Identifier: mautrix.UserIdentifier{Type: mautrix.IdentifierTypeThirdParty, Medium: "camino", Address: m.cfg.Username},
-	//	Password:   m.cfg.Password,
-	//}
+	camioPrivateKey, err := readPrivateKey(m.cfg.Key)
+	if err != nil {
+		return "", err
+	}
+
+	signature, message, err := signPublicKey(camioPrivateKey)
+	if err != nil {
+		return "", err
+	}
 
 	cryptoHelper.LoginAs = &mautrix.ReqLogin{
-		Type:       mautrix.AuthTypePassword,
-		Identifier: mautrix.UserIdentifier{Type: mautrix.IdentifierTypeUser, User: m.cfg.Username},
-		Password:   m.cfg.Password,
+		Type:      mautrix.AuthTypeCamino,
+		PublicKey: message[2:],   // removing 0x prefix
+		Signature: signature[2:], // removing 0x prefix
 	}
+
 	err = cryptoHelper.Init()
 	if err != nil {
 		return "", err
@@ -158,4 +165,28 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 
 func (m *messenger) Inbound() chan messaging.Message {
 	return m.msgChannel
+}
+
+func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {
+	key := new(secp256k1.PrivateKey)
+	if err := key.UnmarshalText([]byte("\"" + keyStr + "\"")); err != nil {
+		return nil, err
+	}
+	return key, nil
+}
+
+func signPublicKey(key *secp256k1.PrivateKey) (signature string, message string, err error) {
+	signatureBytes, err := key.Sign(key.PublicKey().Bytes())
+	if err != nil {
+		return "", "", err
+	}
+	signature, err = formatting.Encode(formatting.Hex, signatureBytes)
+	if err != nil {
+		return "", "", err
+	}
+	message, err = formatting.Encode(formatting.Hex, key.PublicKey().Bytes())
+	if err != nil {
+		return "", "", err
+	}
+	return signature, message, nil
 }

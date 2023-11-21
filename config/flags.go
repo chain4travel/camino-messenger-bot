@@ -10,8 +10,7 @@ func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
 }
 
 func readMatrixConfig(cfg MatrixConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.Username, MatrixUsername, "", "Sets username used for the matrix server connection")
-	fs.StringVar(&cfg.Password, MatrixPassword, "", "Sets password used for the matrix server connection")
+	fs.StringVar(&cfg.Key, MatrixKey, "", "Sets private key used for the matrix server connection")
 	fs.StringVar(&cfg.Host, MatrixHost, "", "Sets the matrix host")
 	fs.StringVar(&cfg.Store, MatrixStore, "", "Sets the matrix store (sqlite3 db path)")
 }
