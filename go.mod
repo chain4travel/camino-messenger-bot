@@ -8,8 +8,10 @@ require (
 	github.com/ava-labs/avalanchego v1.9.16
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/google/uuid v1.4.0
+	github.com/klauspost/compress v1.17.3
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/rs/zerolog v1.31.0
+	github.com/pierrec/lz4 v2.6.1+incompatible
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	go.uber.org/zap v1.24.0
@@ -33,6 +35,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	maunium.net/go/maulogger/v2 v2.4.1 // indirect
 )
 
 require (
@@ -55,7 +58,6 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	maunium.net/go/maulogger/v2 v2.4.1 // indirect
 	maunium.net/go/mautrix v0.15.1
 )
 
