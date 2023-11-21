@@ -2,8 +2,7 @@ package config
 
 const (
 	DeveloperMode               = "developer_mode"
-	MatrixUsername              = "matrix_username"
-	MatrixPassword              = "matrix_password"
+	MatrixKey                   = "matrix_key"
 	MatrixHost                  = "matrix_host"
 	MatrixStore                 = "matrix_store"
 	RPCServerPortKey            = "rpc_server_port"
