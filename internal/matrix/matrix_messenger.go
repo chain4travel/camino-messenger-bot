@@ -10,7 +10,9 @@ import (
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
+	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
@@ -63,16 +65,36 @@ func (m *messenger) StartReceiver() (string, error) {
 	// TODO: custom message event types have to be registered properly . see also event.TypeMap[event.MessageEventType] = event.MessageEventContent{}
 	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
-		//content, _ := msg.Content.ToJSON()
-		//m.logger.Debug("Received msg",
-		//	zap.String("sender", evt.Sender.String()),
-		//	zap.String("type", evt.Type.String()),
-		//	zap.String("id", evt.ID.String()),
-		//	zap.String("content", content))
-
 		msg.Metadata.Sender = evt.Sender.String() // overwrite sender with actual sender
 		msg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
 
+		if msg.Metadata.Compressed {
+			decompressedContent, err := compression.Decompress(msg.CompressedContent)
+
+			switch messaging.MessageType(msg.MsgType).Category() {
+			case messaging.Request:
+				requestContent := &messaging.RequestContent{}
+				err = proto.Unmarshal(decompressedContent, requestContent)
+				msg.Content = messaging.MessageContent{
+					RequestContent: *requestContent,
+				}
+			case messaging.Response:
+				responseContent := &messaging.ResponseContent{}
+				err = proto.Unmarshal(decompressedContent, responseContent)
+				msg.Content = messaging.MessageContent{
+					ResponseContent: *responseContent,
+				}
+			default:
+				m.logger.Errorf("unknown message category for type: %v", messaging.MessageType(msg.MsgType))
+				return
+			}
+
+			if err != nil {
+				m.logger.Error("failed to decompress msg", zap.Error(err))
+				return
+			}
+
+		}
 		m.msgChannel <- messaging.Message{
 			Metadata: msg.Metadata,
 			Content:  msg.Content,
@@ -148,18 +170,41 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
-	m.logger.Info("Sending async message", zap.Any("msg", msg.Metadata.RequestID))
+func (m *messenger) SendAsync(_ context.Context, msg messaging.Message, compressed bool) error {
+	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 
 	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
 	if err != nil {
 		return err
 	}
-	_, err = m.client.SendMessageEvent(roomID, C4TMessage, CaminoMatrixMessage{
+
+	caminoMatrixMsg := CaminoMatrixMessage{
 		MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type), Body: "Hello from mocked legacy system"},
-		Content:             msg.Content,
 		Metadata:            msg.Metadata,
-	})
+	}
+	if compressed {
+		var (
+			bytes []byte
+			err   error
+		)
+		switch msg.Type.Category() {
+		case messaging.Request:
+			bytes, err = proto.Marshal(&msg.Content.RequestContent)
+		case messaging.Response:
+			bytes, err = proto.Marshal(&msg.Content.ResponseContent)
+		default:
+			return fmt.Errorf("unknown message category: %v", msg.Type.Category())
+		}
+		if err != nil {
+			return fmt.Errorf("error while encoding msg for compression: %v", err)
+		}
+		caminoMatrixMsg.CompressedContent = compression.Compress(bytes)
+		caminoMatrixMsg.Metadata.Compressed = true
+	} else {
+		caminoMatrixMsg.Content = msg.Content
+	}
+
+	_, err = m.client.SendMessageEvent(roomID, C4TMessage, caminoMatrixMsg)
 	return err
 }
 

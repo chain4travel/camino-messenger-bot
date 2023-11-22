@@ -8,6 +8,7 @@ import (
 
 type CaminoMatrixMessage struct {
 	event.MessageEventContent
-	Content  messaging.MessageContent `json:"content"`
-	Metadata metadata.Metadata        `json:"Metadata"`
+	Content           messaging.MessageContent `json:"content"`
+	CompressedContent []byte                   `json:"compressed_content"`
+	Metadata          metadata.Metadata        `json:"metadata"`
 }

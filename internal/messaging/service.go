@@ -31,5 +31,9 @@ func (a accommodationService) call(ctx context.Context, request *RequestContent,
 		return ResponseContent{}, "", ErrInvalidRequest
 	}
 	response, err := (*a.client).AccommodationSearch(ctx, &request.AccommodationSearchRequest, opts...)
-	return ResponseContent{AccommodationSearchResponse: *response}, AccommodationSearchResponse, err
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.AccommodationSearchResponse = *response // otherwise 	nil pointer dereference
+	}
+	return responseContent, AccommodationSearchResponse, err
 }

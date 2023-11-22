@@ -137,7 +137,7 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 	defer cancel()
 
 	msg.Metadata.Cheques = nil //TODO issue and attach cheques
-	err := p.messenger.SendAsync(ctx, msg)
+	err := p.messenger.SendAsync(ctx, msg, true)
 	if err != nil {
 		return Message{}, err
 	}
@@ -184,7 +184,7 @@ func (p *processor) Respond(msg Message) error {
 		},
 		Metadata: *md,
 	}
-	return p.messenger.SendAsync(ctx, responseMsg)
+	return p.messenger.SendAsync(ctx, responseMsg, true)
 }
 
 func (p *processor) Forward(msg Message) {

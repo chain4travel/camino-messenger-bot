@@ -16,6 +16,7 @@ type Metadata struct {
 	Recipient  string                   `json:"recipient"`
 	Cheques    []map[string]interface{} `json:"cheques"`
 	Timestamps map[string]int64         `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
+	Compressed bool                     `json:"compressed"`
 }
 
 func (m *Metadata) ExtractMetadata(ctx context.Context) error {

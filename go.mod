@@ -3,15 +3,15 @@ module github.com/chain4travel/camino-messenger-bot
 go 1.20
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231116230201-89505677fb5c.2
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231116230201-89505677fb5c.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231121111915-e1c144d1c95c.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231121111915-e1c144d1c95c.2
 	github.com/ava-labs/avalanchego v1.9.16
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/google/uuid v1.4.0
 	github.com/klauspost/compress v1.17.3
 	github.com/mattn/go-sqlite3 v1.14.18
-	github.com/rs/zerolog v1.31.0
 	github.com/pierrec/lz4 v2.6.1+incompatible
+	github.com/rs/zerolog v1.31.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	go.uber.org/zap v1.24.0
