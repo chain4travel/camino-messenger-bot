@@ -11,6 +11,7 @@ func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
 
 func readMatrixConfig(cfg MatrixConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.Key, MatrixKey, "", "Sets private key used for the matrix server connection")
+	fs.Uint64Var(&cfg.NetworkID, NetworkID, 1002, "Camino network id")
 	fs.StringVar(&cfg.Host, MatrixHost, "", "Sets the matrix host")
 	fs.StringVar(&cfg.Store, MatrixStore, "", "Sets the matrix store (sqlite3 db path)")
 }
