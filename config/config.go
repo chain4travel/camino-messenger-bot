@@ -21,9 +21,10 @@ type AppConfig struct {
 	SupportedRequestTypes SupportedRequestTypesFlag `mapstructure:"supported_request_types"`
 }
 type MatrixConfig struct {
-	Key   string `mapstructure:"matrix_key"` // TODO @evlekht I'd suggest to add some parsed config, so we'll see on config read if some fields are invalid
-	Host  string `mapstructure:"matrix_host"`
-	Store string `mapstructure:"matrix_store"`
+	Key       string `mapstructure:"matrix_key"` // TODO @evlekht I'd suggest to add some parsed config, so we'll see on config read if some fields are invalid
+	NetworkID uint64 `mapstructure:"network_id"` // same as above - could be parsed to u32 in parsed config
+	Host      string `mapstructure:"matrix_host"`
+	Store     string `mapstructure:"matrix_store"`
 }
 type RPCServerConfig struct {
 	Port           int    `mapstructure:"rpc_server_port"`

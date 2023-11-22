@@ -3,6 +3,7 @@ package config
 const (
 	DeveloperMode               = "developer_mode"
 	MatrixKey                   = "matrix_key"
+	NetworkID                   = "network_id"
 	MatrixHost                  = "matrix_host"
 	MatrixStore                 = "matrix_store"
 	RPCServerPortKey            = "rpc_server_port"
