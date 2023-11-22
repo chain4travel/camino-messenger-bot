@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	MaxChunkSize = 48 << 10 // according to element limit
+	MaxChunkSize = 48 << 10 // according to element configured safe max limit
 )
 
 var encoder, _ = zstd.NewWriter(nil) // TODO: evalaute the need of using zstd.WithEncoderConcurrency

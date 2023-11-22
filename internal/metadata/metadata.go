@@ -11,12 +11,13 @@ import (
 )
 
 type Metadata struct {
-	RequestID  string                   `json:"request_id"`
-	Sender     string                   `json:"sender"`
-	Recipient  string                   `json:"recipient"`
-	Cheques    []map[string]interface{} `json:"cheques"`
-	Timestamps map[string]int64         `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
-	Compressed bool                     `json:"compressed"`
+	RequestID      string                   `json:"request_id"`
+	Sender         string                   `json:"sender"`
+	Recipient      string                   `json:"recipient"`
+	Cheques        []map[string]interface{} `json:"cheques"`
+	Timestamps     map[string]int64         `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
+	NumberOfChunks uint                     `json:"number_of_chunks"`
+	ChunkIndex     uint                     `json:"chunk_index"`
 }
 
 func (m *Metadata) ExtractMetadata(ctx context.Context) error {
