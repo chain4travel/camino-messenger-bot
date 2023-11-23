@@ -10,9 +10,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
-	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
@@ -34,11 +32,12 @@ type client struct {
 	cryptoHelper *cryptohelper.CryptoHelper
 }
 type messenger struct {
-	msgChannel  chan messaging.Message
-	cfg         *config.MatrixConfig
-	logger      *zap.SugaredLogger
-	client      client
-	roomHandler RoomHandler
+	msgChannel   chan messaging.Message
+	cfg          *config.MatrixConfig
+	logger       *zap.SugaredLogger
+	client       client
+	roomHandler  RoomHandler
+	msgAssembler MessageAssembler
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenger {
@@ -47,11 +46,12 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		panic(err)
 	}
 	return &messenger{
-		msgChannel:  make(chan messaging.Message),
-		cfg:         cfg,
-		logger:      logger,
-		client:      client{Client: c},
-		roomHandler: NewRoomHandler(c, logger),
+		msgChannel:   make(chan messaging.Message),
+		cfg:          cfg,
+		logger:       logger,
+		client:       client{Client: c},
+		roomHandler:  NewRoomHandler(c, logger),
+		msgAssembler: NewMessageAssembler(logger),
 	}
 }
 func (m *messenger) Checkpoint() string {
@@ -64,37 +64,19 @@ func (m *messenger) StartReceiver() (string, error) {
 
 	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
-		msg.Metadata.Sender = evt.Sender.String() // overwrite sender with actual sender
-		msg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
-
-		decompressedContent, err := compression.Decompress(msg.CompressedContent)
-
-		switch messaging.MessageType(msg.MsgType).Category() {
-		case messaging.Request:
-			requestContent := &messaging.RequestContent{}
-			err = proto.Unmarshal(decompressedContent, requestContent)
-			msg.Content = messaging.MessageContent{
-				RequestContent: *requestContent,
-			}
-		case messaging.Response:
-			responseContent := &messaging.ResponseContent{}
-			err = proto.Unmarshal(decompressedContent, responseContent)
-			msg.Content = messaging.MessageContent{
-				ResponseContent: *responseContent,
-			}
-		default:
-			m.logger.Errorf("unknown message category for type: %v", messaging.MessageType(msg.MsgType))
-			return
-		}
-
+		completeMsg, err, completed := m.msgAssembler.AssembleMessage(*msg)
 		if err != nil {
-			m.logger.Error("failed to decompress msg", zap.Error(err))
+			m.logger.Errorf("failed to assemble message: %v", err)
 			return
 		}
-
+		if !completed {
+			return // partial messages are not passed down to the msgChannel
+		}
+		completeMsg.Metadata.Sender = evt.Sender.String() // overwrite sender with actual sender TODO move to Respond?
+		completeMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
 		m.msgChannel <- messaging.Message{
-			Metadata: msg.Metadata,
-			Content:  msg.Content,
+			Metadata: completeMsg.Metadata,
+			Content:  completeMsg.Content,
 			Type:     messaging.MessageType(msg.MsgType),
 		}
 	})
@@ -175,18 +157,18 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 		return err
 	}
 
-	messageEvents, err := compressAndSplitCaminoMatrixMsg(roomID, msg)
+	messages, err := compressAndSplitCaminoMatrixMsg(msg)
 	if err != nil {
 		return err
 	}
 
-	return m.sendMessageEvents(messageEvents)
+	return m.sendMessageEvents(roomID, C4TMessage, messages)
 }
 
-func (m *messenger) sendMessageEvents(messageEvents []caminoMsgEventPayload) error {
+func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
 	//TODO add retry logic?
-	for _, me := range messageEvents {
-		_, err := m.client.SendMessageEvent(me.roomID, me.eventType, me.caminoMatrixMsg)
+	for _, msg := range messages {
+		_, err := m.client.SendMessageEvent(roomID, eventType, msg)
 		if err != nil {
 			return err
 		}

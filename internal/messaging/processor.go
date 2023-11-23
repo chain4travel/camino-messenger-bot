@@ -47,7 +47,6 @@ type processor struct {
 	userID    string
 	logger    *zap.SugaredLogger
 	timeout   time.Duration // timeout after which a request is considered failed
-	//responseChannel chan Message
 
 	mu               sync.Mutex
 	responseChannels map[string]chan Message

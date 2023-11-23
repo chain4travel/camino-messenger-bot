@@ -14,32 +14,35 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func assembleAndDecompressCaminoMatrixMessages(messagePayloads []caminoMsgEventPayload) (messaging.Message, error) {
+func assembleAndDecompressCaminoMatrixMessages(messages []CaminoMatrixMessage) (CaminoMatrixMessage, error) {
 	var compressedPayloads [][]byte
 
 	// chunks have to be sorted
-	sort.Sort(ByChunkIndex(messagePayloads))
-	for _, msg := range messagePayloads {
-		compressedPayloads = append(compressedPayloads, msg.caminoMatrixMsg.CompressedContent)
+	sort.Sort(ByChunkIndex(messages))
+	for _, msg := range messages {
+		compressedPayloads = append(compressedPayloads, msg.CompressedContent)
 	}
 
 	// assemble chunks and decompress content
 	originalContent, err := assembleAndDecompress(compressedPayloads)
 	if err != nil {
-		return messaging.Message{}, fmt.Errorf("failed to assemble and decompress camino matrix msg: %v", err)
+		return CaminoMatrixMessage{}, fmt.Errorf("failed to assemble and decompress camino matrix msg: %v", err)
 	}
 
-	msg := CaminoMatrixMessage{}
+	msg := CaminoMatrixMessage{
+		MessageEventContent: messages[0].MessageEventContent,
+		Metadata:            messages[0].Metadata,
+	}
 	switch messaging.MessageType(msg.MsgType).Category() {
 	case messaging.Request:
 		proto.Unmarshal(originalContent, &msg.Content.RequestContent)
 	case messaging.Response:
 		proto.Unmarshal(originalContent, &msg.Content.ResponseContent)
 	default:
-		return messaging.Message{}, fmt.Errorf("could not categorize unknown message type: %v", msg.MsgType)
+		return CaminoMatrixMessage{}, fmt.Errorf("could not categorize unknown message type: %v", msg.MsgType)
 	}
 
-	return messaging.Message{Content: msg.Content, Type: messaging.MessageType(msg.MsgType), Metadata: msg.Metadata}, nil
+	return msg, nil
 }
 func assembleAndDecompress(src [][]byte) ([]byte, error) {
 	return compression.Decompress(assembleByteArray(src))

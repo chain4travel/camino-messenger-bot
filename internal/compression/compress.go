@@ -6,8 +6,6 @@
 package compression
 
 import (
-	"encoding/base64"
-
 	"github.com/klauspost/compress/zstd"
 )
 
@@ -19,12 +17,8 @@ const (
 	MaxChunkSize = 35 << 10 // max pre-encrypted chunk size is 35KB
 )
 
-var encoder, _ = zstd.NewWriter(nil) // TODO: evalaute the need of using zstd.WithEncoderConcurrency
+var encoder, _ = zstd.NewWriter(nil) // TODO: evaluate the need of using zstd.WithEncoderConcurrency
 
 func Compress(src []byte) []byte {
 	return encoder.EncodeAll(src, make([]byte, 0, len(src)))
-}
-func CompressAndEncode(src []byte) string {
-	bytes := Compress(src)
-	return base64.StdEncoding.EncodeToString(bytes)
 }
