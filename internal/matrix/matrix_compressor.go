@@ -16,8 +16,8 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
-func compressAndSplitCaminoMatrixMsg(roomID id.RoomID, msg messaging.Message) ([]messageEventPayload, error) {
-	var messageEvents []messageEventPayload
+func compressAndSplitCaminoMatrixMsg(roomID id.RoomID, msg messaging.Message) ([]caminoMsgEventPayload, error) {
+	var messageEvents []caminoMsgEventPayload
 
 	var (
 		bytes []byte
@@ -29,7 +29,7 @@ func compressAndSplitCaminoMatrixMsg(roomID id.RoomID, msg messaging.Message) ([
 	case messaging.Response:
 		bytes, err = proto.Marshal(&msg.Content.ResponseContent)
 	default:
-		return nil, fmt.Errorf("unknown message category: %v", msg.Type.Category())
+		return nil, fmt.Errorf("could not categorize unknown message type: %v", msg.Type.Category())
 	}
 	if err != nil {
 		return nil, fmt.Errorf("error while encoding msg for compression: %v", err)
@@ -44,20 +44,21 @@ func compressAndSplitCaminoMatrixMsg(roomID id.RoomID, msg messaging.Message) ([
 			Metadata:            msg.Metadata,
 		}
 		caminoMatrixMsg.Metadata.NumberOfChunks = uint(len(splitCompressedContent))
+		caminoMatrixMsg.Metadata.ChunkIndex = 0
 		caminoMatrixMsg.CompressedContent = splitCompressedContent[0]
-		messageEvents = append(messageEvents, messageEventPayload{
-			roomID:      roomID,
-			eventType:   C4TMessage,
-			contentJSON: caminoMatrixMsg,
+		messageEvents = append(messageEvents, caminoMsgEventPayload{
+			roomID:          roomID,
+			eventType:       C4TMessage,
+			caminoMatrixMsg: caminoMatrixMsg,
 		})
 	}
 
 	// if multiple chunks were produced upon compression, add them to messageEvents slice
 	for i, chunk := range splitCompressedContent[1:] {
-		messageEvents = append(messageEvents, messageEventPayload{
+		messageEvents = append(messageEvents, caminoMsgEventPayload{
 			roomID:    roomID,
 			eventType: C4TMessage,
-			contentJSON: CaminoMatrixMessage{
+			caminoMatrixMsg: CaminoMatrixMessage{
 				MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
 				Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, ChunkIndex: uint(i + 1)},
 				CompressedContent:   chunk,
@@ -69,11 +70,19 @@ func compressAndSplitCaminoMatrixMsg(roomID id.RoomID, msg messaging.Message) ([
 }
 
 func compressAndSplit(bytes []byte) [][]byte {
-	return split(compression.Compress(bytes))
+	return splitByteArray(compression.Compress(bytes), compression.MaxChunkSize)
 }
-func split(bytes []byte) [][]byte {
-	//TODO implement
-	var chunks [][]byte
-	chunks = append(chunks, bytes)
-	return chunks
+
+func splitByteArray(src []byte, maxSize int) [][]byte {
+	var result [][]byte
+
+	for i := 0; i < len(src); i += maxSize {
+		end := i + maxSize
+		if end > len(src) {
+			end = len(src)
+		}
+		result = append(result, src[i:end])
+	}
+
+	return result
 }

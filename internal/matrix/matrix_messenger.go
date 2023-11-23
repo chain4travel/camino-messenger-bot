@@ -26,12 +26,6 @@ var _ messaging.Messenger = (*messenger)(nil)
 
 var C4TMessage = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
 
-type messageEventPayload struct {
-	roomID      id.RoomID
-	eventType   event.Type
-	contentJSON interface{}
-}
-
 type client struct {
 	*mautrix.Client
 	ctx          context.Context
@@ -189,10 +183,10 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 	return m.sendMessageEvents(messageEvents)
 }
 
-func (m *messenger) sendMessageEvents(messageEvents []messageEventPayload) error {
+func (m *messenger) sendMessageEvents(messageEvents []caminoMsgEventPayload) error {
 	//TODO add retry logic?
 	for _, me := range messageEvents {
-		_, err := m.client.SendMessageEvent(me.roomID, me.eventType, me.contentJSON)
+		_, err := m.client.SendMessageEvent(me.roomID, me.eventType, me.caminoMatrixMsg)
 		if err != nil {
 			return err
 		}
