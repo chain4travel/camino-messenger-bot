@@ -11,7 +11,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/golang/protobuf/proto"
 	"maunium.net/go/mautrix/event"
 )
 
@@ -23,10 +22,9 @@ func compressAndSplitCaminoMatrixMsg(msg messaging.Message) ([]CaminoMatrixMessa
 		err   error
 	)
 	switch msg.Type.Category() {
-	case messaging.Request:
-		bytes, err = proto.Marshal(&msg.Content.RequestContent)
-	case messaging.Response:
-		bytes, err = proto.Marshal(&msg.Content.ResponseContent)
+	case messaging.Request,
+		messaging.Response:
+		bytes, err = msg.MarshalContent()
 	default:
 		return nil, fmt.Errorf("could not categorize unknown message type: %v", msg.Type)
 	}

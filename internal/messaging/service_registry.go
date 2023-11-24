@@ -7,6 +7,7 @@ package messaging
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
@@ -33,6 +34,9 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 		case AccommodationSearchRequest:
 			c := accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)
 			service = accommodationService{client: &c}
+		case PingRequest:
+			c := pingv1alpha1grpc.NewPingServiceClient(s.rpcClient.ClientConn)
+			service = pingService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)
 			continue

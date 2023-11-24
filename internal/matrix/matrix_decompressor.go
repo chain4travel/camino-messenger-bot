@@ -11,7 +11,6 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
-	"github.com/golang/protobuf/proto"
 )
 
 func assembleAndDecompressCaminoMatrixMessages(messages []CaminoMatrixMessage) (CaminoMatrixMessage, error) {
@@ -34,10 +33,9 @@ func assembleAndDecompressCaminoMatrixMessages(messages []CaminoMatrixMessage) (
 		Metadata:            messages[0].Metadata,
 	}
 	switch messaging.MessageType(msg.MsgType).Category() {
-	case messaging.Request:
-		proto.Unmarshal(originalContent, &msg.Content.RequestContent)
-	case messaging.Response:
-		proto.Unmarshal(originalContent, &msg.Content.ResponseContent)
+	case messaging.Request,
+		messaging.Response:
+		msg.UnmarshalContent(originalContent)
 	default:
 		return CaminoMatrixMessage{}, fmt.Errorf("could not categorize unknown message type: %v", msg.MsgType)
 	}

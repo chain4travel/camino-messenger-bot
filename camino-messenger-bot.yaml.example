@@ -14,6 +14,5 @@ partner_plugin_unencrypted: false
 partner_plugin_ca_file: ca-cert.pem
 response_timeout: 3000
 supported_request_types:
- - C4TContentHotelAvailRequest
- - C4TContentFlightSearchRequest
- - C4TContentHotelMappingsRequest
+  - AccommodationSearchRequest
+  - PingRequest

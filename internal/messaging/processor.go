@@ -101,10 +101,8 @@ func (p *processor) ProcessInbound(msg Message) error {
 		case Response:
 			p.Forward(msg)
 			return nil
-		case Unknown:
-			return InvalidMessageError{ErrUnknownMessageCategory}
 		default:
-			return InvalidMessageError{ErrOnlyRequestMessagesAllowed} // ignore msg
+			return InvalidMessageError{ErrUnknownMessageCategory}
 		}
 	} else {
 		return nil // ignore own outbound messages
@@ -112,7 +110,8 @@ func (p *processor) ProcessInbound(msg Message) error {
 }
 
 func (p *processor) ProcessOutbound(ctx context.Context, msg Message) (Message, error) {
-	if msg.Metadata.Sender == p.userID && msg.Type.Category() == Request { // only request messages (received by are processed
+	msg.Metadata.Sender = p.userID
+	if msg.Type.Category() == Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	} else {
 		p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)

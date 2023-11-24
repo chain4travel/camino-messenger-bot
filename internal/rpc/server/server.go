@@ -1,6 +1,8 @@
 package server
 
 import (
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
+	pingv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha1"
 	"context"
 	"fmt"
 	"log"
@@ -50,10 +52,16 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
-	grpcServer := grpc.NewServer(opts...)
-	server := &server{grpcServer: grpcServer, cfg: cfg, logger: logger, processor: processor}
-	accommodationv1alpha1grpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
+	server := &server{cfg: cfg, logger: logger, processor: processor}
+	server.grpcServer = createGrpcServerAndRegisterServices(server, opts...)
 	return server
+}
+
+func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOption) *grpc.Server {
+	grpcServer := grpc.NewServer(opts...)
+	accommodationv1alpha1grpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
+	pingv1alpha1grpc.RegisterPingServiceServer(grpcServer, server)
+	return grpcServer
 }
 
 func (s *server) Start() {
@@ -97,4 +105,34 @@ func (s *server) AccommodationSearch(ctx context.Context, request *accommodation
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
 	return &response.Content.ResponseContent.AccommodationSearchResponse, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+}
+
+func (s *server) Ping(ctx context.Context, request *pingv1alpha1.PingRequest) (*pingv1alpha1.PingResponse, error) {
+	requestID, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+
+	md := metadata.Metadata{
+		RequestID: requestID.String(),
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "received"))
+	err = md.ExtractMetadata(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error extracting metadata")
+	}
+
+	m := &messaging.Message{
+		Type: messaging.PingRequest,
+		Content: messaging.MessageContent{
+			RequestContent: messaging.RequestContent{
+				PingRequest: *request,
+			},
+		},
+		Metadata: md,
+	}
+	response, err := s.processor.ProcessOutbound(ctx, *m)
+	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
+	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
+	return &response.Content.ResponseContent.PingResponse, err
 }

@@ -1,22 +1,26 @@
 package messaging
 
 import (
-	"encoding/json"
-
 	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
+	pingv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/golang/protobuf/proto"
 )
 
 type RequestContent struct {
 	accommodationv1alpha1.AccommodationSearchRequest
+	pingv1alpha1.PingRequest
 }
 type ResponseContent struct {
 	accommodationv1alpha1.AccommodationSearchResponse
+	pingv1alpha1.PingResponse
 }
 type MessageContent struct {
 	RequestContent
 	ResponseContent
 }
+
+// Message is the message format used for communication between the messenger and the service
 type Message struct {
 	Type     MessageType       `json:"msgtype"`
 	Content  MessageContent    `json:"content"`
@@ -36,23 +40,35 @@ const (
 
 	AccommodationSearchRequest  MessageType = "AccommodationSearchRequest"
 	AccommodationSearchResponse MessageType = "AccommodationSearchResponse"
+	PingRequest                 MessageType = "PingRequest"
+	PingResponse                MessageType = "PingResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
-	case AccommodationSearchRequest:
+	case AccommodationSearchRequest,
+		PingRequest:
 		return Request
-	case AccommodationSearchResponse:
+	case AccommodationSearchResponse,
+		PingResponse:
 		return Response
 	default:
 		return Unknown
 	}
 }
 
-func (mc *MessageContent) ToJSON() (string, error) {
-	jsonData, err := json.Marshal(mc)
-	if err != nil {
-		return "", err
+func (m *Message) MarshalContent() ([]byte, error) {
+
+	switch m.Type {
+	case AccommodationSearchRequest:
+		return proto.Marshal(&m.Content.AccommodationSearchRequest)
+	case AccommodationSearchResponse:
+		return proto.Marshal(&m.Content.AccommodationSearchResponse)
+	case PingRequest:
+		return proto.Marshal(&m.Content.PingRequest)
+	case PingResponse:
+		return proto.Marshal(&m.Content.PingResponse)
+	default:
+		return nil, ErrInvalidMessageType
 	}
-	return string(jsonData), nil
 }
