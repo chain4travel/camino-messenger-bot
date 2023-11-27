@@ -47,9 +47,16 @@ func assembleAndDecompress(src [][]byte) ([]byte, error) {
 }
 
 func assembleByteArray(src [][]byte) []byte {
-	var result []byte
+	totalLength := 0
 	for _, slice := range src {
-		result = append(result, slice...)
+		totalLength += len(slice)
+	}
+
+	result := make([]byte, totalLength)
+	index := 0
+	for _, slice := range src {
+		copy(result[index:], slice)
+		index += len(slice)
 	}
 	return result
 }

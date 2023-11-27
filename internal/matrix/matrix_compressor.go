@@ -63,14 +63,19 @@ func compressAndSplit(bytes []byte) [][]byte {
 }
 
 func splitByteArray(src []byte, maxSize int) [][]byte {
-	var result [][]byte
+	numChunks := (len(src) + maxSize - 1) / maxSize
+	result := make([][]byte, numChunks)
 
-	for i := 0; i < len(src); i += maxSize {
-		end := i + maxSize
+	start := 0
+	for i := 0; i < numChunks; i++ {
+		end := start + maxSize
 		if end > len(src) {
 			end = len(src)
 		}
-		result = append(result, src[i:end])
+		result[i] = make([]byte, end-start)
+		copy(result[i], src[start:end])
+		start = end
 	}
+
 	return result
 }
