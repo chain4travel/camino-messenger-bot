@@ -72,7 +72,6 @@ func (m *messenger) StartReceiver() (string, error) {
 		if !completed {
 			return // partial messages are not passed down to the msgChannel
 		}
-		completeMsg.Metadata.Sender = evt.Sender.String() // overwrite sender with actual sender TODO move to Respond?
 		completeMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
 		m.msgChannel <- messaging.Message{
 			Metadata: completeMsg.Metadata,

@@ -17,7 +17,7 @@ const (
 	MaxChunkSize = 35 << 10 // max pre-encrypted chunk size is 35KB
 )
 
-var encoder, _ = zstd.NewWriter(nil) // TODO: evaluate the need of using zstd.WithEncoderConcurrency
+var encoder, _ = zstd.NewWriter(nil)
 
 func Compress(src []byte) []byte {
 	return encoder.EncodeAll(src, make([]byte, 0, len(src)))

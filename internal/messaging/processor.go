@@ -142,7 +142,7 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 
 	for {
 		select {
-		case response := <-responseChan: //TODO implement chunk handling
+		case response := <-responseChan:
 			if response.Metadata.RequestID == msg.Metadata.RequestID {
 				return response, nil
 			}
@@ -161,7 +161,9 @@ func (p *processor) Respond(msg Message) error {
 	}
 
 	md := &msg.Metadata
-	md.Sender = p.userID // overwrite sender with actual sender
+	// rewrite sender & recipient metadata
+	md.Recipient = md.Sender
+	md.Sender = p.userID
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 
 	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
