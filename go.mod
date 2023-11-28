@@ -3,8 +3,8 @@ module github.com/chain4travel/camino-messenger-bot
 go 1.20
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231121111915-e1c144d1c95c.2
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231121111915-e1c144d1c95c.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231127184602-bf191c09b09a.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231127184602-bf191c09b09a.2
 	github.com/ava-labs/avalanchego v1.9.16
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/google/uuid v1.4.0
@@ -40,7 +40,7 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.3
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
