@@ -48,7 +48,6 @@ func main() {
 		Enrichment:        0,
 		Currency:          typesv1alpha1.Currency_CURRENCY_EUR,
 		Language:          typesv1alpha1.Language_LANGUAGE_EN,
-		Country:           typesv1alpha1.Country_COUNTRY_UNSPECIFIED,
 		Flags:             nil,
 		Units:             nil,
 	}
@@ -77,7 +76,6 @@ func main() {
 		fmt.Print("error extracting metadata")
 	}
 	fmt.Printf("Received response after %s => %s\n", time.Since(begin), resp.Context)
-	fmt.Printf("Metadata: %v", metadata)
 	c.Shutdown()
 
 }
