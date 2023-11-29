@@ -24,9 +24,10 @@ type messageAssembler struct {
 func NewMessageAssembler(logger *zap.SugaredLogger) MessageAssembler {
 	return &messageAssembler{logger: logger, partialMessages: make(map[string][]CaminoMatrixMessage)}
 }
-func (a *messageAssembler) AssembleMessage(msg CaminoMatrixMessage) (CaminoMatrixMessage, error, bool) {
+func (a *messageAssembler) AssembleMessage(msg CaminoMatrixMessage) (decompressedCaminoMsg CaminoMatrixMessage, err error, completed bool) {
+	// standalone message
 	if msg.Metadata.NumberOfChunks == 1 {
-		decompressedCaminoMsg, err := assembleAndDecompressCaminoMatrixMessages([]CaminoMatrixMessage{msg})
+		decompressedCaminoMsg, err = assembleAndDecompressCaminoMatrixMessages([]CaminoMatrixMessage{msg})
 		return decompressedCaminoMsg, err, true
 	}
 	a.mu.Lock()
@@ -36,11 +37,13 @@ func (a *messageAssembler) AssembleMessage(msg CaminoMatrixMessage) (CaminoMatri
 		a.partialMessages[id] = []CaminoMatrixMessage{}
 	}
 
+	// add chunk to partial message slice
 	a.partialMessages[id] = append(a.partialMessages[id], msg)
+	// check if message is complete
 	if len(a.partialMessages[id]) == int(msg.Metadata.NumberOfChunks) {
-		decompressedCaminoMsg, err := assembleAndDecompressCaminoMatrixMessages(a.partialMessages[id])
+		decompressedCaminoMsg, err = assembleAndDecompressCaminoMatrixMessages(a.partialMessages[id])
 		delete(a.partialMessages, id)
 		return decompressedCaminoMsg, err, true
 	}
-	return CaminoMatrixMessage{}, nil, false
+	return decompressedCaminoMsg, nil, false
 }

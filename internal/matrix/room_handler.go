@@ -1,6 +1,7 @@
 package matrix
 
 import (
+	"math/rand"
 	"sync"
 
 	"go.uber.org/zap"
@@ -9,21 +10,28 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
+const RoomPoolSize = 10
+
 type RoomHandler interface {
 	GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomID, error)
 	CreateRoomAndInviteUser(userID id.UserID) (id.RoomID, error)
 	EnableEncryptionForRoom(roomID id.RoomID) error
 	GetEncryptedRoomForRecipient(recipient id.UserID) (id.RoomID, bool)
+	CacheRoom(recipient id.UserID, roomID id.RoomID)
+}
+
+type roomPool struct {
+	rooms []id.RoomID
 }
 type roomHandler struct {
 	client *mautrix.Client
 	logger *zap.SugaredLogger
-	rooms  map[id.UserID]id.RoomID
+	rooms  map[id.UserID]*roomPool
 	mu     sync.RWMutex
 }
 
 func NewRoomHandler(client *mautrix.Client, logger *zap.SugaredLogger) RoomHandler {
-	return &roomHandler{client: client, logger: logger, rooms: make(map[id.UserID]id.RoomID)}
+	return &roomHandler{client: client, logger: logger, rooms: make(map[id.UserID]*roomPool)}
 }
 
 func (r *roomHandler) GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomID, error) {
@@ -34,14 +42,16 @@ func (r *roomHandler) GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomI
 	var err error
 	// if not create room and invite recipient
 	if !found {
-		roomID, err = r.CreateRoomAndInviteUser(recipient)
-		if err != nil {
-			return "", err
-		}
-		// enable encryption for room
-		err = r.EnableEncryptionForRoom(roomID)
-		if err != nil {
-			return "", err
+		for i := 0; i < RoomPoolSize; i++ {
+			roomID, err = r.CreateRoomAndInviteUser(recipient)
+			if err != nil {
+				return "", err
+			}
+			// enable encryption for room
+			err = r.EnableEncryptionForRoom(roomID)
+			if err != nil {
+				return "", err
+			}
 		}
 	}
 
@@ -60,7 +70,7 @@ func (r *roomHandler) CreateRoomAndInviteUser(userID id.UserID) (id.RoomID, erro
 	if err != nil {
 		return "", err
 	}
-	r.cacheRoom(userID, resp.RoomID)
+	r.CacheRoom(userID, resp.RoomID)
 	return resp.RoomID, nil
 }
 
@@ -81,6 +91,8 @@ func (r *roomHandler) GetEncryptedRoomForRecipient(recipient id.UserID) (id.Room
 	if err != nil {
 		return "", false
 	}
+
+	createdRooms := 0
 	for _, roomID := range rooms.JoinedRooms {
 		if !r.client.StateStore.IsEncrypted(roomID) {
 			continue
@@ -92,8 +104,25 @@ func (r *roomHandler) GetEncryptedRoomForRecipient(recipient id.UserID) (id.Room
 
 		_, found := members.Joined[recipient]
 		if found {
-			r.cacheRoom(recipient, roomID)
-			return roomID, found
+			r.CacheRoom(recipient, roomID)
+			createdRooms++
+		}
+		if createdRooms == RoomPoolSize {
+			return r.fetchCachedRoom(recipient), true
+		}
+	}
+
+	// add rooms to pool until pool is full
+	for i := createdRooms; i < RoomPoolSize; i++ {
+		roomID, err = r.CreateRoomAndInviteUser(recipient)
+		if err != nil {
+			r.logger.Debugf("Failed to create room for recipient %v", recipient)
+			// enable encryption for room
+		} else {
+			err = r.EnableEncryptionForRoom(roomID)
+			if err != nil {
+				r.logger.Debugf("Failed to enable encryption for room %v", roomID)
+			}
 		}
 	}
 	return "", false
@@ -102,10 +131,21 @@ func (r *roomHandler) GetEncryptedRoomForRecipient(recipient id.UserID) (id.Room
 func (r *roomHandler) fetchCachedRoom(recipient id.UserID) id.RoomID {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return r.rooms[recipient]
+	if _, found := r.rooms[recipient]; found {
+		return r.rooms[recipient].rooms[rand.Intn(RoomPoolSize)]
+	}
+	return ""
 }
-func (r *roomHandler) cacheRoom(recipient id.UserID, roomID id.RoomID) {
+func (r *roomHandler) CacheRoom(recipient id.UserID, roomID id.RoomID) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.rooms[recipient] = roomID
+	if _, found := r.rooms[recipient]; !found {
+		r.rooms[recipient] = &roomPool{rooms: make([]id.RoomID, RoomPoolSize)}
+	}
+	for i := 0; i < RoomPoolSize; i++ {
+		if r.rooms[recipient].rooms[i] == "" {
+			r.rooms[recipient].rooms[i] = roomID
+			return
+		}
+	}
 }

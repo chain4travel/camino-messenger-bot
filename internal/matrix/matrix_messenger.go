@@ -83,6 +83,7 @@ func (m *messenger) StartReceiver() (string, error) {
 		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
 			_, err := m.client.JoinRoomByID(evt.RoomID)
 			if err == nil {
+				m.roomHandler.CacheRoom(id.UserID(evt.Sender.String()), evt.RoomID) // add room to cache
 				m.logger.Info("Joined room after invite",
 					zap.String("room_id", evt.RoomID.String()),
 					zap.String("inviter", evt.Sender.String()))
