@@ -12,7 +12,7 @@ type APIMessageResponse struct {
 }
 type Messenger interface {
 	metadata.Checkpoint
-	StartReceiver() (string, error)                 // start receiving messages. Returns the user id
+	StartReceiver(botMode uint) (string, error)     // start receiving messages. Returns the user id
 	StopReceiver() error                            // stop receiving messages
 	SendAsync(ctx context.Context, m Message) error // asynchronous call (fire and forget)
 	Inbound() chan Message                          // channel where incoming messages are written

@@ -146,7 +146,7 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 			if response.Metadata.RequestID == msg.Metadata.RequestID {
 				return response, nil
 			}
-			//p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
+			p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
 		case <-ctx.Done():
 			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds for request: %s", p.timeout, msg.Metadata.RequestID)
 		}

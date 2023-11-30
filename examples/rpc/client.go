@@ -1,15 +1,16 @@
 package main
 
 import (
-	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
 	"context"
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
 	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
+	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
 	internalmetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -64,23 +65,46 @@ func main() {
 		panic(err)
 	}
 	md := metadata.New(map[string]string{
-		"recipient": "@t-kopernikus1tyewqsap6v8r8wghg7qn7dyfzg2prtcrw04ke3:matrix.camino.network",
+		"recipient": "@t-kopernikus1dry573dcz6jefshfxgya68jd6s07xezpm27ng9:matrix.camino.network",
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 	ass := accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(c.ClientConn)
-	begin := time.Now()
 	var header metadata.MD
+	begin := time.Now()
 	resp, err := ass.AccommodationSearch(ctx, request, grpc.Header(&header))
 	if err != nil {
 		log.Fatal(err)
 	}
+	totalTime := time.Since(begin)
+	fmt.Printf("Total time|%s|%s\n", resp.Metadata.SearchId, totalTime)
 	metadata := &internalmetadata.Metadata{}
 	err = metadata.FromGrpcMD(header)
 	if err != nil {
 		fmt.Print("error extracting metadata")
 	}
-	fmt.Printf("Received response after %s => ID: %s\n", time.Since(begin), resp.Metadata.SearchId)
+
+	var entries []struct {
+		Key   string
+		Value int64
+	}
+	// Populate the slice with map entries
+	for key, value := range metadata.Timestamps {
+		entries = append(entries, struct {
+			Key   string
+			Value int64
+		}{Key: key, Value: value})
+	}
+
+	// Sort the slice based on values
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Value < entries[j].Value
+	})
+	lastValue := int64(0)
+	for _, entry := range entries {
+		fmt.Printf("%s|%s|%d|%d|%f\n", entry.Key, resp.Metadata.SearchId, entry.Value, entry.Value-lastValue, float32(entry.Value-lastValue)/float32(totalTime.Milliseconds()))
+		lastValue = entry.Value
+	}
 	c.Shutdown()
 
 }

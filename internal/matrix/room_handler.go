@@ -77,7 +77,7 @@ func (r *roomHandler) CreateRoomAndInviteUser(userID id.UserID) (id.RoomID, erro
 func (r *roomHandler) EnableEncryptionForRoom(roomID id.RoomID) error {
 	r.logger.Debugf("Enabling encryption for room %s", roomID)
 	_, err := r.client.SendStateEvent(roomID, event.StateEncryption, "",
-		event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1})
+		event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1, RotationPeriodMessages: 10000})
 	return err
 }
 

@@ -15,4 +15,5 @@ const (
 	PartnerPluginCAFileKey      = "partner_plugin_ca_file"
 	MessengerTimeoutKey         = "messenger_timeout"
 	SupportedRequestTypesKey    = "supported_request_types"
+	BotModeKey                  = "bot_mode"
 )

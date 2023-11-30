@@ -17,7 +17,6 @@ import (
 	partnerv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha1"
 	pingv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha1"
 	transportv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha1"
-
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
 	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -27,6 +26,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var (
@@ -72,6 +72,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 	}
 	server := &server{cfg: cfg, logger: logger, processor: processor, serviceRegistry: serviceRegistry}
 	server.grpcServer = createGrpcServerAndRegisterServices(server, opts...)
+	reflection.Register(server.grpcServer)
 	return server
 }
 
@@ -152,9 +153,26 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 		Metadata: md,
 	}
 	response, err := s.processor.ProcessOutbound(ctx, *m)
-	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
+	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "response"))
 	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
 	return response.Content.ResponseContent, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+}
+
+func (s *server) parseMetadata(ctx context.Context) (error, metadata.Metadata) {
+	requestID, err := uuid.NewRandom()
+	if err != nil {
+		return nil, metadata.Metadata{}
+	}
+
+	md := metadata.Metadata{
+		RequestID: requestID.String(),
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "request"))
+	err = md.ExtractMetadata(ctx)
+	if err != nil && md.RequestID == "" {
+		return fmt.Errorf("no recipient assigned"), md
+	}
+	return err, md
 }
 
 func (s *server) processMetadata(ctx context.Context) (error, metadata.Metadata) {
@@ -166,7 +184,7 @@ func (s *server) processMetadata(ctx context.Context) (error, metadata.Metadata)
 	md := metadata.Metadata{
 		RequestID: requestID.String(),
 	}
-	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "received"))
+	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "request"))
 	err = md.ExtractMetadata(ctx)
 	return err, md
 }

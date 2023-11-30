@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
@@ -22,7 +23,8 @@ import (
 
 var _ messaging.Messenger = (*messenger)(nil)
 
-var C4TMessage = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
+var C4TMessageRequest = event.Type{Type: "m.room.c4t-msg-request", Class: event.MessageEventType}
+var C4TMessageResponse = event.Type{Type: "m.room.c4t-msg-response", Class: event.MessageEventType}
 
 type client struct {
 	*mautrix.Client
@@ -38,6 +40,7 @@ type messenger struct {
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
+	mu           sync.Mutex
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenger {
@@ -58,27 +61,49 @@ func (m *messenger) Checkpoint() string {
 	return "messenger-gateway"
 }
 
-func (m *messenger) StartReceiver() (string, error) {
+func (m *messenger) StartReceiver(botMode uint) (string, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
-	event.TypeMap[C4TMessage] = reflect.TypeOf(CaminoMatrixMessage{}) // custom message event types have to be registered properly
+	event.TypeMap[C4TMessageRequest] = reflect.TypeOf(CaminoMatrixMessage{})  // custom message event types have to be registered properly
+	event.TypeMap[C4TMessageResponse] = reflect.TypeOf(CaminoMatrixMessage{}) // custom message event types have to be registered properly
 
-	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
+	processCamMsg := func(source mautrix.EventSource, evt *event.Event) {
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
-		completeMsg, err, completed := m.msgAssembler.AssembleMessage(*msg)
-		if err != nil {
-			m.logger.Errorf("failed to assemble message: %v", err)
-			return
-		}
-		if !completed {
-			return // partial messages are not passed down to the msgChannel
-		}
-		completeMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
-		m.msgChannel <- messaging.Message{
-			Metadata: completeMsg.Metadata,
-			Content:  completeMsg.Content,
-			Type:     messaging.MessageType(msg.MsgType),
-		}
-	})
+
+		go func() {
+			t := time.Now()
+			completeMsg, err, completed := m.msgAssembler.AssembleMessage(*msg)
+			if err != nil {
+				m.logger.Errorf("failed to assemble message: %v", err)
+				return
+			}
+			if !completed {
+				return // partial messages are not passed down to the msgChannel
+			}
+			fmt.Printf("received-message: |%s|%d\n", completeMsg.Metadata.RequestID, t.UnixMilli())
+			completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"), t.UnixMilli())
+			completeMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "assembled"))
+
+			m.mu.Lock()
+			m.msgChannel <- messaging.Message{
+				Metadata: completeMsg.Metadata,
+				Content:  completeMsg.Content,
+				Type:     messaging.MessageType(msg.MsgType),
+			}
+			m.mu.Unlock()
+		}()
+	}
+	switch botMode {
+	case 0:
+		syncer.OnEventType(C4TMessageResponse, processCamMsg)
+		syncer.OnEventType(C4TMessageRequest, processCamMsg)
+	case 1:
+		syncer.OnEventType(C4TMessageRequest, processCamMsg)
+	case 2:
+		syncer.OnEventType(C4TMessageResponse, processCamMsg)
+	default:
+		return "", fmt.Errorf("invalid bot mode: %d", botMode)
+	}
+
 	syncer.OnEventType(event.StateMember, func(source mautrix.EventSource, evt *event.Event) {
 		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
 			_, err := m.client.JoinRoomByID(evt.RoomID)
@@ -150,7 +175,7 @@ func (m *messenger) StopReceiver() error {
 }
 
 func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
-	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
+	//m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 
 	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
 	if err != nil {
@@ -162,13 +187,20 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 		return err
 	}
 
-	return m.sendMessageEvents(roomID, C4TMessage, messages)
+	switch msg.Type.Category() {
+	case messaging.Request:
+		return m.sendMessageEvents(roomID, C4TMessageRequest, messages)
+	case messaging.Response:
+		return m.sendMessageEvents(roomID, C4TMessageResponse, messages)
+	default:
+		return fmt.Errorf("no message category defined for type: %s", msg.Type)
+	}
 }
 
 func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
 	//TODO add retry logic?
 	for _, msg := range messages {
-		_, err := m.client.SendMessageEvent(roomID, eventType, msg)
+		_, err := m.client.SendMessageEvent(roomID, eventType, msg, mautrix.ReqSendEvent{TransactionID: msg.Metadata.RequestID})
 		if err != nil {
 			return err
 		}

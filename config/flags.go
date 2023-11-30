@@ -5,6 +5,7 @@ import "flag"
 func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
 	fs.BoolVar(&cfg.DeveloperMode, DeveloperMode, false, "Sets developer mode")
 	fs.Var(&cfg.SupportedRequestTypes, SupportedRequestTypesKey, "The list of supported request types")
+	fs.UintVar(&cfg.BotMode, BotModeKey, 0, "The bot mode")
 	flag.Parse()
 
 }

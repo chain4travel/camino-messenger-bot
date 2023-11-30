@@ -56,11 +56,16 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
+	if a.cfg.BotMode > 2 {
+		a.logger.Error("Invalid bot mode")
+		return nil
+	}
+
 	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
 	userIDUpdated := make(chan string) // Channel to pass the userID
 	g.Go(func() error {
-		a.logger.Info("Starting message receiver...")
-		userID, err := messenger.StartReceiver()
+		a.logger.Infof("Starting message receiver with botmode %d ...", a.cfg.BotMode)
+		userID, err := messenger.StartReceiver(a.cfg.BotMode)
 		if err != nil {
 			panic(err)
 		}
