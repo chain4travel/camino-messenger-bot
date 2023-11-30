@@ -73,13 +73,13 @@ func (m *messenger) StartReceiver() (string, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
 	event.TypeMap[C4TMessage] = reflect.TypeOf(CaminoMatrixMessage{}) // custom message event types have to be registered properly
 
-	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
+	syncer.OnEventType(C4TMessage, func(ctx context.Context, evt *event.Event) {
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
 		traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
 		if err != nil {
 			m.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
 		}
-		ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
+		ctx = trace.ContextWithRemoteSpanContext(ctx, trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
 		_, span := m.tracer.Start(ctx, "messenger.OnC4TMessageReceive", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", evt.Type.Type)))
 		defer span.End()
 		t := time.Now()
@@ -99,9 +99,9 @@ func (m *messenger) StartReceiver() (string, error) {
 			Type:     messaging.MessageType(msg.MsgType),
 		}
 	})
-	syncer.OnEventType(event.StateMember, func(source mautrix.EventSource, evt *event.Event) {
+	syncer.OnEventType(event.StateMember, func(ctx context.Context, evt *event.Event) {
 		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
-			_, err := m.client.JoinRoomByID(evt.RoomID)
+			_, err := m.client.JoinRoomByID(ctx, evt.RoomID)
 			if err == nil {
 				m.logger.Info("Joined room after invite",
 					zap.String("room_id", evt.RoomID.String()),
@@ -135,7 +135,7 @@ func (m *messenger) StartReceiver() (string, error) {
 		Signature: signature[2:], // removing 0x prefix
 	}
 
-	err = cryptoHelper.Init()
+	err = cryptoHelper.Init(context.TODO())
 	if err != nil {
 		return "", err
 	}
@@ -174,7 +174,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error 
 	defer span.End()
 
 	ctx, roomSpan := m.tracer.Start(ctx, "roomHandler.GetOrCreateRoom", trace.WithAttributes(attribute.String("type", string(msg.Type))))
-	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
+	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(ctx, id.UserID(msg.Metadata.Recipient))
 	if err != nil {
 		return err
 	}
@@ -187,13 +187,13 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error 
 	}
 	compressSpan.End()
 
-	return m.sendMessageEvents(roomID, C4TMessage, messages)
+	return m.sendMessageEvents(ctx, roomID, C4TMessage, messages)
 }
 
-func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
+func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
 	//TODO add retry logic?
 	for _, msg := range messages {
-		_, err := m.client.SendMessageEvent(roomID, eventType, msg, mautrix.ReqSendEvent{RequestID: msg.Metadata.RequestID})
+		_, err := m.client.SendMessageEvent(ctx, roomID, eventType, msg)
 		if err != nil {
 			return err
 		}

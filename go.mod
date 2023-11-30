@@ -11,7 +11,7 @@ require (
 	github.com/chzyer/readline v1.5.1
 	github.com/google/uuid v1.4.0
 	github.com/klauspost/compress v1.17.3
-	github.com/mattn/go-sqlite3 v1.14.18
+	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/pierrec/lz4 v2.6.1+incompatible
 	github.com/rs/zerolog v1.31.0
 	github.com/spf13/pflag v1.0.5
@@ -21,8 +21,8 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.0
 	go.opentelemetry.io/otel/sdk v1.11.0
 	go.opentelemetry.io/otel/trace v1.11.0
-	go.uber.org/zap v1.24.0
-	golang.org/x/sync v0.3.0
+	go.uber.org/zap v1.26.0
+	golang.org/x/sync v0.5.0
 	google.golang.org/grpc v1.59.0
 )
 
@@ -30,6 +30,10 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
+	github.com/go-logr/logr v1.3.0 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/google/renameio/v2 v2.0.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.12.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -52,9 +56,11 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
+	go.mau.fi/util v0.3.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.11.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
-	golang.org/x/crypto v0.15.0 // indirect
+	go.uber.org/mock v0.4.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
@@ -71,11 +77,11 @@ require (
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
+	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
+	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/exp v0.0.0-20231127185646-65229373498e
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 	google.golang.org/protobuf v1.33.0
 	gopkg.in/ini.v1 v1.67.0 // indirect
