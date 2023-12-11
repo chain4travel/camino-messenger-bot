@@ -3,11 +3,8 @@ RUN apk update && apk upgrade && apk add build-base
 
 WORKDIR /camino-messenger-bot
 
-COPY go.mod go.sum ./
-RUN go mod download
-
 COPY . .
-
+RUN go mod download
 RUN go build -o plugin  examples/rpc/partner-plugin/server.go
 
 

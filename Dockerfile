@@ -3,13 +3,14 @@ RUN apk update && apk upgrade && apk add build-base
 
 WORKDIR /camino-messenger-bot
 
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-
+# add ext library
 RUN apk add olm-dev
 
+# build
+COPY . .
+RUN go mod download
+RUN apk --no-cache add git
+RUN git submodule update --init
 RUN go build -o bot  cmd/camino-messenger-bot/main.go
 
 

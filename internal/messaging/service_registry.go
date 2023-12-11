@@ -7,7 +7,11 @@ package messaging
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha1/activityv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha1/networkv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha1/partnerv1alpha1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha1/transportv1alpha1grpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
@@ -31,12 +35,24 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 	for _, requestType := range requestTypes {
 		var service Service
 		switch MessageType(requestType) {
+		case ActivitySearchRequest:
+			c := activityv1alpha1grpc.NewActivitySearchServiceClient(s.rpcClient.ClientConn)
+			service = activityService{client: &c}
 		case AccommodationSearchRequest:
 			c := accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)
 			service = accommodationService{client: &c}
+		case GetNetworkFeeRequest:
+			c := networkv1alpha1grpc.NewGetNetworkFeeServiceClient(s.rpcClient.ClientConn)
+			service = networkService{client: &c}
+		case GetPartnerConfigurationRequest:
+			c := partnerv1alpha1grpc.NewGetPartnerConfigurationServiceClient(s.rpcClient.ClientConn)
+			service = partnerService{client: &c}
 		case PingRequest:
 			c := pingv1alpha1grpc.NewPingServiceClient(s.rpcClient.ClientConn)
 			service = pingService{client: &c}
+		case TransportSearchRequest:
+			c := transportv1alpha1grpc.NewTransportSearchServiceClient(s.rpcClient.ClientConn)
+			service = transportService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)
 			continue

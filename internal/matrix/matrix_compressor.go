@@ -34,6 +34,9 @@ func compressAndSplitCaminoMatrixMsg(msg messaging.Message) ([]CaminoMatrixMessa
 
 	splitCompressedContent := compressAndSplit(bytes)
 
+	if len(splitCompressedContent) == 0 {
+		return nil, fmt.Errorf("compression produced no chunks") // should never happen
+	}
 	// add first chunk to messages slice
 	{
 		caminoMatrixMsg := CaminoMatrixMessage{

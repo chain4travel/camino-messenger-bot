@@ -1,8 +1,8 @@
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231127184602-bf191c09b09a.2 h1:wjjfIDHu2oV3UDF0V9KxvTwokrzH+XB6+t7vCjb1KAo=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231127184602-bf191c09b09a.2/go.mod h1:o8zYPkFRRYZgMrWZpWb9KdqDV0RuJ1hxW1tBnvr82Ac=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.28.1-20231127184602-bf191c09b09a.4/go.mod h1:2viX8eSuMFjoDrr8x3FYytCp81PVYkdgfB68aIcGW6c=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231127184602-bf191c09b09a.2 h1:Z80QH+070Zw9x06e+LSMdTAzSvvSHO6OhsINeJpvzOI=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231127184602-bf191c09b09a.2/go.mod h1:h8QtMQVd5+WnHrXJrqA/eCt8mGw9efCAmxoHzeORKdw=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231211091155-5467620e05ed.2 h1:Yy0x91aZhzQOikR33x5eEIFEWS1TZzuzRc+LP8NuCgQ=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231211091155-5467620e05ed.2/go.mod h1:xDIPwKMomacOmFbzRICgdUP/gpjEoetNVYVTVr29H0k=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.28.1-20231211091155-5467620e05ed.4/go.mod h1:2viX8eSuMFjoDrr8x3FYytCp81PVYkdgfB68aIcGW6c=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231211091155-5467620e05ed.2 h1:8HbCQyMVfu/+Spx4yOPwWThwJpr0JELRxJgt8Kdoso4=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231211091155-5467620e05ed.2/go.mod h1:h8QtMQVd5+WnHrXJrqA/eCt8mGw9efCAmxoHzeORKdw=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
