@@ -25,14 +25,30 @@ func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
 func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	switch messaging.MessageType(m.MsgType) {
+	case messaging.ActivitySearchRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.ActivitySearchRequest)
+	case messaging.ActivitySearchResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.ActivitySearchResponse)
 	case messaging.AccommodationSearchRequest:
 		return proto.Unmarshal(src, &m.Content.RequestContent.AccommodationSearchRequest)
 	case messaging.AccommodationSearchResponse:
 		return proto.Unmarshal(src, &m.Content.ResponseContent.AccommodationSearchResponse)
+	case messaging.GetNetworkFeeRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.GetNetworkFeeRequest)
+	case messaging.GetNetworkFeeResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.GetNetworkFeeResponse)
+	case messaging.GetPartnerConfigurationRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.GetPartnerConfigurationRequest)
+	case messaging.GetPartnerConfigurationResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.GetPartnerConfigurationResponse)
 	case messaging.PingRequest:
 		return proto.Unmarshal(src, &m.Content.RequestContent.PingRequest)
 	case messaging.PingResponse:
 		return proto.Unmarshal(src, &m.Content.ResponseContent.PingResponse)
+	case messaging.TransportSearchRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.TransportSearchRequest)
+	case messaging.TransportSearchResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.TransportSearchResponse)
 	default:
 		return messaging.ErrInvalidMessageType
 	}

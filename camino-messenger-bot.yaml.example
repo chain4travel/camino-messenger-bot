@@ -15,4 +15,7 @@ response_timeout: 3000
 supported_request_types:
   - ActivitySearchRequest
   - AccommodationSearchRequest
+  - GetNetworkFeeRequest
+  - GetPartnerConfigurationRequest
   - PingRequest
+  - TransportSearchRequest
