@@ -93,9 +93,8 @@ func (r *roomHandler) GetEncryptedRoomForRecipient(recipient id.UserID) (id.Room
 		_, found := members.Joined[recipient]
 		if found {
 			r.cacheRoom(recipient, roomID)
+			return roomID, found
 		}
-		return roomID, found
-
 	}
 	return "", false
 }
