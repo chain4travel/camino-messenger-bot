@@ -8,9 +8,9 @@ RUN apk add olm-dev
 
 # build
 COPY . .
-RUN go mod download
 RUN apk --no-cache add git
 RUN git submodule update --init
+RUN go mod download
 RUN go build -o bot  cmd/camino-messenger-bot/main.go
 
 
