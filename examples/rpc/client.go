@@ -1,6 +1,7 @@
 package main
 
 import (
+	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
 	"context"
 	"fmt"
 	"log"
@@ -9,7 +10,6 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
 	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
-	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
 	internalmetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -43,23 +43,22 @@ func main() {
 		panic(err)
 	}
 	request := &accommodationv1alpha1.AccommodationSearchRequest{
-		Header:            nil,
-		ExternalSessionId: "",
-		Enrichment:        0,
-		Currency:          typesv1alpha1.Currency_CURRENCY_EUR,
-		Language:          typesv1alpha1.Language_LANGUAGE_EN,
-		Flags:             nil,
-		Units:             nil,
+		Header: nil,
+		SearchParameters: &typesv1alpha1.SearchParameters{
+			Currency:   typesv1alpha1.Currency_CURRENCY_EUR,
+			Language:   typesv1alpha1.Language_LANGUAGE_UG,
+			Market:     1,
+			MaxOptions: 2,
+		},
+		Units: nil,
 	}
 
 	err = c.Start()
 	if err != nil {
 		panic(err)
 	}
-	// ralf sending request to OAG
 	md := metadata.New(map[string]string{
-		"sender":    "@t-kopernikus1fztmn6zjdwqjmrkcg5heefwd6a7gplfun0xasv:matrix.camino.network",
-		"recipient": "@t-kopernikus15r59v8u6uc4d5cgzscyeskkq8ydndukp5jucg2:matrix.camino.network",
+		"recipient": "@t-kopernikus1tyewqsap6v8r8wghg7qn7dyfzg2prtcrw04ke3:matrix.camino.network",
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
@@ -75,7 +74,7 @@ func main() {
 	if err != nil {
 		fmt.Print("error extracting metadata")
 	}
-	fmt.Printf("Received response after %s => %s\n", time.Since(begin), resp.Context)
+	fmt.Printf("Received response after %s => ID: %s\n", time.Since(begin), resp.Metadata.SearchId)
 	c.Shutdown()
 
 }
