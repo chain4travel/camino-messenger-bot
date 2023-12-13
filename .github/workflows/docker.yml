@@ -26,4 +26,4 @@ jobs:
           push: true
           tags: |
             c4tplatform/camino-messenger-bot:latest
-            c4tplatform/camino-messenger-bot:${GITHUB_SHA}
+            c4tplatform/camino-messenger-bot:${{ github.sha }}
