@@ -7,9 +7,8 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
+	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"go.uber.org/zap"
@@ -105,18 +104,15 @@ func (m *messenger) StartReceiver() (string, error) {
 		return "", err
 	}
 
-	username, err := getUserNameFromKey(camioPrivateKey, uint32(m.cfg.NetworkID))
+	signature, message, err := signPublicKey(camioPrivateKey)
 	if err != nil {
 		return "", err
 	}
 
 	cryptoHelper.LoginAs = &mautrix.ReqLogin{
-		Type: mautrix.AuthTypeCamino,
-		Identifier: mautrix.UserIdentifier{
-			Type: mautrix.IdentifierTypeUser,
-			User: username,
-		},
-		CaminoKey: camioPrivateKey,
+		Type:      mautrix.AuthTypeCamino,
+		PublicKey: message[2:],   // removing 0x prefix
+		Signature: signature[2:], // removing 0x prefix
 	}
 
 	err = cryptoHelper.Init()
@@ -191,6 +187,18 @@ func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {
 	return key, nil
 }
 
-func getUserNameFromKey(key *secp256k1.PrivateKey, networkID uint32) (string, error) {
-	return address.Format("t", constants.GetHRP(networkID), key.Address().Bytes())
+func signPublicKey(key *secp256k1.PrivateKey) (signature string, message string, err error) {
+	signatureBytes, err := key.Sign(key.PublicKey().Bytes())
+	if err != nil {
+		return "", "", err
+	}
+	signature, err = formatting.Encode(formatting.Hex, signatureBytes)
+	if err != nil {
+		return "", "", err
+	}
+	message, err = formatting.Encode(formatting.Hex, key.PublicKey().Bytes())
+	if err != nil {
+		return "", "", err
+	}
+	return signature, message, nil
 }

@@ -14,14 +14,12 @@ require (
 	github.com/rs/zerolog v1.31.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
-	go.uber.org/zap v1.26.0
-	golang.org/x/exp v0.0.0-20220426173459-3bcf042a4bf5
+	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.3.0
 	google.golang.org/grpc v1.59.0
 )
 
 require (
-	github.com/btcsuite/btcd/btcutil v1.1.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
@@ -36,6 +34,7 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	maunium.net/go/maulogger/v2 v2.4.1 // indirect
 )
 
@@ -49,7 +48,9 @@ require (
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/multierr v1.9.0 // indirect
+	golang.org/x/exp v0.0.0-20220426173459-3bcf042a4bf5
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
@@ -61,5 +62,3 @@ require (
 )
 
 replace maunium.net/go/mautrix => ./camino-matrix-go
-
-replace github.com/ava-labs/avalanchego => github.com/chain4travel/caminogo v1.0.0-rc1
