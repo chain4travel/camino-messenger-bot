@@ -1,6 +1,7 @@
 package main
 
 import (
+	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
 	"context"
 	"fmt"
 	"log"
@@ -10,7 +11,6 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
 	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
-	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
 	internalmetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -31,7 +31,7 @@ func main() {
 	argsWithoutProg := os.Args[1:]
 	unencrypted := len(argsWithoutProg) == 0
 	ppConfig := config.PartnerPluginConfig{
-		Host:        "localhost",
+		Host:        "127.0.0.1",
 		Port:        9092,
 		Unencrypted: unencrypted,
 	}
@@ -65,7 +65,7 @@ func main() {
 		panic(err)
 	}
 	md := metadata.New(map[string]string{
-		"recipient": "@t-kopernikus1dry573dcz6jefshfxgya68jd6s07xezpm27ng9:matrix.camino.network",
+		"recipient": "@t-kopernikus1tyewqsap6v8r8wghg7qn7dyfzg2prtcrw04ke3:matrix.camino.network",
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 

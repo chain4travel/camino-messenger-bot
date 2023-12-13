@@ -105,7 +105,7 @@ func (m *messenger) StartReceiver(botMode uint) (string, error) {
 	}
 
 	syncer.OnEventType(event.StateMember, func(source mautrix.EventSource, evt *event.Event) {
-		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
+		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite && !m.roomHandler.HasAlreadyJoined(id.UserID(evt.Sender.String()), evt.RoomID) {
 			_, err := m.client.JoinRoomByID(evt.RoomID)
 			if err == nil {
 				m.roomHandler.CacheRoom(id.UserID(evt.Sender.String()), evt.RoomID) // add room to cache
@@ -155,6 +155,7 @@ func (m *messenger) StartReceiver(botMode uint) (string, error) {
 	m.client.cancelSync = cancelSync
 	m.client.syncStopWait.Add(1)
 
+	m.roomHandler.Init()
 	go func() {
 		err = m.client.SyncWithContext(syncCtx)
 		defer m.client.syncStopWait.Done()
@@ -175,7 +176,7 @@ func (m *messenger) StopReceiver() error {
 }
 
 func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
-	//m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
+	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 
 	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
 	if err != nil {
