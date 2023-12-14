@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -37,6 +38,8 @@ var (
 	_ partnerv1alpha1grpc.GetPartnerConfigurationServiceServer   = (*server)(nil)
 	_ pingv1alpha1grpc.PingServiceServer                         = (*server)(nil)
 	_ transportv1alpha1grpc.TransportSearchServiceServer         = (*server)(nil)
+
+	errMissingRecipient = errors.New("missing recipient")
 )
 
 type Server interface {
@@ -45,17 +48,18 @@ type Server interface {
 	Stop()
 }
 type server struct {
-	grpcServer *grpc.Server
-	cfg        *config.RPCServerConfig
-	logger     *zap.SugaredLogger
-	processor  messaging.Processor
+	grpcServer      *grpc.Server
+	cfg             *config.RPCServerConfig
+	logger          *zap.SugaredLogger
+	processor       messaging.Processor
+	serviceRegistry *messaging.ServiceRegistry
 }
 
 func (s *server) Checkpoint() string {
 	return "request-gateway"
 }
 
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor messaging.Processor) *server {
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) *server {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
@@ -66,7 +70,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
-	server := &server{cfg: cfg, logger: logger, processor: processor}
+	server := &server{cfg: cfg, logger: logger, processor: processor, serviceRegistry: serviceRegistry}
 	server.grpcServer = createGrpcServerAndRegisterServices(server, opts...)
 	return server
 }
@@ -96,39 +100,48 @@ func (s *server) Stop() {
 }
 
 func (s *server) AccommodationSearch(ctx context.Context, request *accommodationv1alpha1.AccommodationSearchRequest) (*accommodationv1alpha1.AccommodationSearchResponse, error) {
-	response, err := s.processRequest(ctx, messaging.AccommodationSearchRequest, &messaging.RequestContent{AccommodationSearchRequest: *request})
+	response, err := s.processExternalRequest(ctx, messaging.AccommodationSearchRequest, &messaging.RequestContent{AccommodationSearchRequest: *request})
 	return &response.AccommodationSearchResponse, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
 
 func (s *server) Ping(ctx context.Context, request *pingv1alpha1.PingRequest) (*pingv1alpha1.PingResponse, error) {
-	response, err := s.processRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: *request})
+	response, err := s.processExternalRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: *request})
 	return &response.PingResponse, err
 }
 
 func (s *server) GetNetworkFee(ctx context.Context, request *networkv1alpha1.GetNetworkFeeRequest) (*networkv1alpha1.GetNetworkFeeResponse, error) {
-	response, err := s.processRequest(ctx, messaging.GetNetworkFeeRequest, &messaging.RequestContent{GetNetworkFeeRequest: *request})
+	response, err := s.processInternalRequest(ctx, messaging.GetNetworkFeeRequest, &messaging.RequestContent{GetNetworkFeeRequest: *request})
 	return &response.GetNetworkFeeResponse, err
 }
 
 func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv1alpha1.GetPartnerConfigurationRequest) (*partnerv1alpha1.GetPartnerConfigurationResponse, error) {
-	response, err := s.processRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: *request})
+	response, err := s.processInternalRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: *request})
 	return &response.GetPartnerConfigurationResponse, err
 }
 
 func (s *server) ActivitySearch(ctx context.Context, request *activityv1alpha1.ActivitySearchRequest) (*activityv1alpha1.ActivitySearchResponse, error) {
-	response, err := s.processRequest(ctx, messaging.ActivitySearchRequest, &messaging.RequestContent{ActivitySearchRequest: *request})
+	response, err := s.processExternalRequest(ctx, messaging.ActivitySearchRequest, &messaging.RequestContent{ActivitySearchRequest: *request})
 	return &response.ActivitySearchResponse, err
 }
 
 func (s *server) TransportSearch(ctx context.Context, request *transportv1alpha1.TransportSearchRequest) (*transportv1alpha1.TransportSearchResponse, error) {
-	response, err := s.processRequest(ctx, messaging.TransportSearchRequest, &messaging.RequestContent{TransportSearchRequest: *request})
+	response, err := s.processExternalRequest(ctx, messaging.TransportSearchRequest, &messaging.RequestContent{TransportSearchRequest: *request})
 	return &response.TransportSearchResponse, err
 }
 
-func (s *server) processRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {
+func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
+	service, registered := s.serviceRegistry.GetService(requestType)
+	if !registered {
+		return messaging.ResponseContent{}, fmt.Errorf("%v: %s", messaging.ErrUnsupportedRequestType, requestType)
+	}
+	response, _, err := service.Call(ctx, request)
+	return response, err
+}
+
+func (s *server) processExternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
 	err, md := s.processMetadata(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error processing metadata: %v", err)
+		return messaging.ResponseContent{}, fmt.Errorf("error processing metadata: %v", err)
 	}
 
 	m := &messaging.Message{
@@ -141,7 +154,7 @@ func (s *server) processRequest(ctx context.Context, requestType messaging.Messa
 	response, err := s.processor.ProcessOutbound(ctx, *m)
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
-	return &response.Content.ResponseContent, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+	return response.Content.ResponseContent, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
 
 func (s *server) processMetadata(ctx context.Context) (error, metadata.Metadata) {

@@ -8,8 +8,6 @@ package messaging
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha1/activityv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha1/networkv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha1/partnerv1alpha1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha1/transportv1alpha1grpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -42,11 +40,9 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 			c := accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)
 			service = accommodationService{client: &c}
 		case GetNetworkFeeRequest:
-			c := networkv1alpha1grpc.NewGetNetworkFeeServiceClient(s.rpcClient.ClientConn)
-			service = networkService{client: &c}
+			service = networkService{} // this service does not talk to partner plugin
 		case GetPartnerConfigurationRequest:
-			c := partnerv1alpha1grpc.NewGetPartnerConfigurationServiceClient(s.rpcClient.ClientConn)
-			service = partnerService{client: &c}
+			service = partnerService{} // this service does not talk to partner plugin
 		case PingRequest:
 			c := pingv1alpha1grpc.NewPingServiceClient(s.rpcClient.ClientConn)
 			service = pingService{client: &c}

@@ -79,7 +79,7 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, msgProcessor)
+	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, msgProcessor, serviceRegistry)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC server...")
 		rpcServer.Start()

@@ -168,7 +168,7 @@ func (p *processor) Respond(msg Message) error {
 
 	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
 	var header grpc_metadata.MD
-	response, msgType, err := service.call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
+	response, msgType, err := service.Call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
 	if err != nil {
 		return err
 	}

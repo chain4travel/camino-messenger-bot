@@ -7,10 +7,10 @@ package messaging
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha1/activityv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha1/networkv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha1/partnerv1alpha1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha1/transportv1alpha1grpc"
+	networkv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha1"
+	partnerv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha1"
 	"context"
 	"errors"
 
@@ -29,7 +29,7 @@ var (
 )
 
 type Service interface {
-	call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error)
+	Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error)
 }
 
 type activityService struct {
@@ -39,10 +39,8 @@ type accommodationService struct {
 	client *accommodationv1alpha1grpc.AccommodationSearchServiceClient
 }
 type networkService struct {
-	client *networkv1alpha1grpc.GetNetworkFeeServiceClient
 }
 type partnerService struct {
-	client *partnerv1alpha1grpc.GetPartnerConfigurationServiceClient
 }
 type pingService struct {
 	client *pingv1alpha1grpc.PingServiceClient
@@ -51,7 +49,7 @@ type transportService struct {
 	client *transportv1alpha1grpc.TransportSearchServiceClient
 }
 
-func (s activityService) call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.ActivitySearchRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
@@ -63,7 +61,7 @@ func (s activityService) call(ctx context.Context, request *RequestContent, opts
 	return responseContent, ActivitySearchResponse, err
 }
 
-func (s accommodationService) call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+func (s accommodationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.AccommodationSearchRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
@@ -75,11 +73,15 @@ func (s accommodationService) call(ctx context.Context, request *RequestContent,
 	return responseContent, AccommodationSearchResponse, err
 }
 
-func (s networkService) call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+func (s networkService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.GetNetworkFeeRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
-	response, err := (*s.client).GetNetworkFee(ctx, &request.GetNetworkFeeRequest, opts...)
+
+	//TODO implement
+	response, err := &networkv1alpha1.GetNetworkFeeResponse{
+		NetworkFee: &networkv1alpha1.NetworkFee{Amount: 100000},
+	}, (error)(nil)
 	responseContent := ResponseContent{}
 	if err == nil {
 		responseContent.GetNetworkFeeResponse = *response // otherwise 	nil pointer dereference
@@ -87,11 +89,16 @@ func (s networkService) call(ctx context.Context, request *RequestContent, opts 
 	return responseContent, GetNetworkFeeResponse, err
 }
 
-func (s partnerService) call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.GetPartnerConfigurationRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
-	response, err := (*s.client).GetPartnerConfiguration(ctx, &request.GetPartnerConfigurationRequest, opts...)
+
+	//TODO implement
+	response, err := &partnerv1alpha1.GetPartnerConfigurationResponse{
+		PartnerConfiguration: nil,
+		CurrentBlockHeight:   0,
+	}, (error)(nil)
 	responseContent := ResponseContent{}
 	if err == nil {
 		responseContent.GetPartnerConfigurationResponse = *response // otherwise 	nil pointer dereference
@@ -99,7 +106,7 @@ func (s partnerService) call(ctx context.Context, request *RequestContent, opts 
 	return responseContent, GetPartnerConfigurationResponse, err
 }
 
-func (s pingService) call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+func (s pingService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.PingRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
@@ -111,7 +118,7 @@ func (s pingService) call(ctx context.Context, request *RequestContent, opts ...
 	return responseContent, PingResponse, err
 }
 
-func (s transportService) call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+func (s transportService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.TransportSearchRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}

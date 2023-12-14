@@ -47,7 +47,6 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, request *activityv1a
 	response := activityv1alpha1.ActivitySearchResponse{
 		Header:   nil,
 		Metadata: &typesv1alpha1.SearchResponseMetadata{SearchId: &typesv1alpha1.UUID{Value: md.RequestID}},
-		Options:  nil,
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
@@ -65,7 +64,6 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, request *accomm
 	response := accommodationv1alpha1.AccommodationSearchResponse{
 		Header:   nil,
 		Metadata: &typesv1alpha1.SearchResponseMetadata{SearchId: &typesv1alpha1.UUID{Value: md.RequestID}},
-		Options:  nil,
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
@@ -133,7 +131,6 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, request *transportv
 	response := transportv1alpha1.TransportSearchResponse{
 		Header:   nil,
 		Metadata: &typesv1alpha1.SearchResponseMetadata{SearchId: &typesv1alpha1.UUID{Value: md.RequestID}},
-		Options:  nil,
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil

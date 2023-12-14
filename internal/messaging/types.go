@@ -68,8 +68,6 @@ func (mt MessageType) Category() MessageCategory {
 	switch mt {
 	case ActivitySearchRequest,
 		AccommodationSearchRequest,
-		GetNetworkFeeRequest,
-		GetPartnerConfigurationRequest,
 		PingRequest,
 		TransportSearchRequest:
 		return Request
