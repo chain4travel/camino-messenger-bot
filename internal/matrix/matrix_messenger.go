@@ -79,9 +79,8 @@ func (m *messenger) StartReceiver(botMode uint) (string, error) {
 			if !completed {
 				return // partial messages are not passed down to the msgChannel
 			}
-			fmt.Printf("received-message: |%s|%d\n", completeMsg.Metadata.RequestID, t.UnixMilli())
-			completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"), t.UnixMilli())
-			completeMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "assembled"))
+			completeMsg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", completeMsg.MsgType), evt.Timestamp)
+			completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.Checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
 
 			m.mu.Lock()
 			m.msgChannel <- messaging.Message{

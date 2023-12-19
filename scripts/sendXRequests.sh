@@ -16,13 +16,4 @@ times_to_run=$1
 
 # Change the path to your Go file below
 go_file_path="examples/rpc/client.go"
-
-# Loop to run the Go file X times in parallel
-for ((i=1; i<=$times_to_run; i++))
-do
-#    echo "Sending $i request..."
-    go run $go_file_path &
-done
-
-# Wait for all background processes to finish
-wait
+go run $go_file_path $times_to_run
