@@ -7,7 +7,6 @@ package matrix
 
 import (
 	"fmt"
-
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -21,6 +20,9 @@ func compressAndSplitCaminoMatrixMsg(msg messaging.Message) ([]CaminoMatrixMessa
 		bytes []byte
 		err   error
 	)
+	if err != nil {
+		return nil, err
+	}
 	switch msg.Type.Category() {
 	case messaging.Request,
 		messaging.Response:
@@ -53,7 +55,7 @@ func compressAndSplitCaminoMatrixMsg(msg messaging.Message) ([]CaminoMatrixMessa
 	for i, chunk := range splitCompressedContent[1:] {
 		messages = append(messages, CaminoMatrixMessage{
 			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
-			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint(len(splitCompressedContent)), ChunkIndex: uint(i + 1)},
+			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, Recipient: msg.Metadata.Recipient, NumberOfChunks: uint(len(splitCompressedContent)), ChunkIndex: uint(i + 1)},
 			CompressedContent:   chunk,
 		})
 	}

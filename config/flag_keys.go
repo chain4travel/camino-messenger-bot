@@ -16,4 +16,5 @@ const (
 	MessengerTimeoutKey         = "messenger_timeout"
 	SupportedRequestTypesKey    = "supported_request_types"
 	BotModeKey                  = "bot_mode"
+	PrivateRSAKey               = "private_rsa_key"
 )

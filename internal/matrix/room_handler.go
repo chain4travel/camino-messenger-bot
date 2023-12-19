@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-const RoomPoolSize = 10
+const RoomPoolSize = 50
 
 type RoomHandler interface {
 	Init()
@@ -34,12 +34,12 @@ func (r *roomHandler) Init() {
 		return
 	}
 
-	// cache all encrypted rooms
+	// pubKeyCache all encrypted rooms
 	for _, roomID := range rooms.JoinedRooms {
-		r.logger.Debugf("Caching room %v | encrypted: %v", roomID, r.client.StateStore.IsEncrypted(roomID))
-		if !r.client.StateStore.IsEncrypted(roomID) {
+		if r.client.StateStore.IsEncrypted(roomID) {
 			continue
 		}
+		r.logger.Debugf("Caching room %v | encrypted: %v", roomID, r.client.StateStore.IsEncrypted(roomID))
 		members, err := r.client.JoinedMembers(roomID)
 		if err != nil {
 			r.logger.Debugf("failed to fetch members for room %v", roomID)
@@ -82,7 +82,7 @@ func (r *roomHandler) GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomI
 		if err != nil {
 			return "", err
 		} else {
-			err = r.enableEncryptionForRoom(roomID)
+			//err = r.enableEncryptionForRoom(roomID)
 			return roomID, err
 		}
 	}
@@ -130,7 +130,7 @@ func (r *roomHandler) getEncryptedRoomForRecipient(recipient id.UserID) (id.Room
 
 	createdRooms := 0
 	for _, roomID := range rooms.JoinedRooms {
-		if !r.client.StateStore.IsEncrypted(roomID) {
+		if r.client.StateStore.IsEncrypted(roomID) {
 			continue
 		}
 		members, err := r.client.JoinedMembers(roomID)
