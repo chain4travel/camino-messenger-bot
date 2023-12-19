@@ -80,5 +80,13 @@ func (m *Metadata) Stamp(checkpoint string) {
 	if m.Timestamps == nil {
 		m.Timestamps = make(map[string]int64)
 	}
-	m.Timestamps[checkpoint] = time.Now().UnixMilli()
+	idx := len(m.Timestamps) // for analysis' sake, we want to know the order of the checkpoints
+	m.Timestamps[fmt.Sprintf("%d-%s", idx, checkpoint)] = time.Now().UnixMilli()
+}
+func (m *Metadata) StampOn(checkpoint string, t int64) {
+	if m.Timestamps == nil {
+		m.Timestamps = make(map[string]int64)
+	}
+	idx := len(m.Timestamps) // for analysis' sake, we want to know the order of the checkpoints
+	m.Timestamps[fmt.Sprintf("%d-%s", idx, checkpoint)] = t
 }
