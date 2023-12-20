@@ -44,13 +44,19 @@ func main() {
 	}
 	request := &accommodationv1alpha1.AccommodationSearchRequest{
 		Header: nil,
-		SearchParameters: &typesv1alpha1.SearchParameters{
+		SearchParametersGeneric: &typesv1alpha1.SearchParameters{
 			Currency:   typesv1alpha1.Currency_CURRENCY_EUR,
 			Language:   typesv1alpha1.Language_LANGUAGE_UG,
 			Market:     1,
 			MaxOptions: 2,
 		},
-		Units: nil,
+		SearchParametersAccommodation: &accommodationv1alpha1.AccommodationSearchParameters{
+			RatePlan: []*typesv1alpha1.RatePlan{
+				{
+					RatePlan: "economy",
+				},
+			},
+		},
 	}
 
 	err = c.Start()
