@@ -10,9 +10,11 @@ import (
 // CaminoMatrixMessage is a matrix-specific message format used for communication between the messenger and the service
 type CaminoMatrixMessage struct {
 	event.MessageEventContent
-	Content           messaging.MessageContent `json:"content"`
-	CompressedContent []byte                   `json:"compressed_content"`
-	Metadata          metadata.Metadata        `json:"metadata"`
+	Content                    messaging.MessageContent `json:"content"`
+	CompressedContent          []byte                   `json:"compressed_content"`
+	EncryptedCompressedContent []byte                   `json:"encrypted_compressed_content"`
+	EncryptedSymmetricKey      []byte                   `json:"encrypted_symmetric_key"`
+	Metadata                   metadata.Metadata        `json:"metadata"`
 }
 
 type ByChunkIndex []CaminoMatrixMessage

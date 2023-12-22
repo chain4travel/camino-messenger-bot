@@ -19,6 +19,8 @@ type SupportedRequestTypesFlag []string
 type AppConfig struct {
 	DeveloperMode         bool                      `mapstructure:"developer_mode"`
 	SupportedRequestTypes SupportedRequestTypesFlag `mapstructure:"supported_request_types"`
+	BotMode               uint                      `mapstructure:"bot_mode"` // 0 both, 1 request, 2 response
+	PrivateRSAFileKey     string                    `mapstructure:"private_rsa_file_key"`
 }
 type MatrixConfig struct {
 	Key   string `mapstructure:"matrix_key"` // TODO @evlekht I'd suggest to add some parsed config, so we'll see on config read if some fields are invalid

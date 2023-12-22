@@ -82,3 +82,9 @@ func (m *Metadata) Stamp(checkpoint string) {
 	}
 	m.Timestamps[checkpoint] = time.Now().UnixMilli()
 }
+func (m *Metadata) StampOn(checkpoint string, t int64) {
+	if m.Timestamps == nil {
+		m.Timestamps = make(map[string]int64)
+	}
+	m.Timestamps[checkpoint] = t
+}

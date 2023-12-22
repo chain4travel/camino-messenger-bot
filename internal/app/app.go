@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	rsa_util "github.com/chain4travel/camino-messenger-bot/utils/rsa"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
@@ -56,11 +57,20 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
+	if a.cfg.BotMode > 2 {
+		a.logger.Error("Invalid bot mode")
+		return nil
+	}
+	privateRSAKey, err := rsa_util.ParseRSAPrivateKeyFromFile(a.cfg.PrivateRSAFileKey)
+	if err != nil {
+		a.logger.Error("Error while parsing private RSA key")
+		return nil
+	}
+	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger, privateRSAKey)
 	userIDUpdated := make(chan string) // Channel to pass the userID
 	g.Go(func() error {
-		a.logger.Info("Starting message receiver...")
-		userID, err := messenger.StartReceiver()
+		a.logger.Infof("Starting message receiver with botmode %d ...", a.cfg.BotMode)
+		userID, err := messenger.StartReceiver(a.cfg.BotMode)
 		if err != nil {
 			panic(err)
 		}
