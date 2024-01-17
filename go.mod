@@ -3,8 +3,8 @@ module github.com/chain4travel/camino-messenger-bot
 go 1.20
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20231220001345-2dbff1450b98.2
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.31.0-20231220001345-2dbff1450b98.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240115123926-5ce123dca9ac.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.32.0-20240115123926-5ce123dca9ac.1
 	github.com/ava-labs/avalanchego v1.9.16
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/google/uuid v1.4.0
@@ -55,7 +55,7 @@ require (
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	maunium.net/go/mautrix v0.15.1
