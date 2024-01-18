@@ -1,31 +1,31 @@
 package messaging
 
 import (
-	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
-	activityv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha1"
-	networkv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha1"
-	partnerv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha1"
-	pingv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha1"
-	transportv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha1"
+	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
+	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
+	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
+	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
+	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
+	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/golang/protobuf/proto"
 )
 
 type RequestContent struct {
-	activityv1alpha1.ActivitySearchRequest
-	accommodationv1alpha1.AccommodationSearchRequest
-	networkv1alpha1.GetNetworkFeeRequest
-	partnerv1alpha1.GetPartnerConfigurationRequest
-	pingv1alpha1.PingRequest
-	transportv1alpha1.TransportSearchRequest
+	activityv1alpha.ActivitySearchRequest
+	accommodationv1alpha.AccommodationSearchRequest
+	networkv1alpha.GetNetworkFeeRequest
+	partnerv1alpha.GetPartnerConfigurationRequest
+	pingv1alpha.PingRequest
+	transportv1alpha.TransportSearchRequest
 }
 type ResponseContent struct {
-	activityv1alpha1.ActivitySearchResponse
-	accommodationv1alpha1.AccommodationSearchResponse
-	networkv1alpha1.GetNetworkFeeResponse
-	partnerv1alpha1.GetPartnerConfigurationResponse
-	pingv1alpha1.PingResponse
-	transportv1alpha1.TransportSearchResponse
+	activityv1alpha.ActivitySearchResponse
+	accommodationv1alpha.AccommodationSearchResponse
+	networkv1alpha.GetNetworkFeeResponse
+	partnerv1alpha.GetPartnerConfigurationResponse
+	pingv1alpha.PingResponse
+	transportv1alpha.TransportSearchResponse
 }
 type MessageContent struct {
 	RequestContent

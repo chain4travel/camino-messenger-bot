@@ -8,34 +8,35 @@ import (
 	"os"
 	"strconv"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha1/activityv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha1/networkv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha1/partnerv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha1/transportv1alpha1grpc"
-	activityv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha1"
-	networkv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha1"
-	partnerv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha1"
-	pingv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha1"
-	transportv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha1"
-	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha/networkv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha/partnerv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
-	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
+	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
+	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
+	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
+	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
+	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
+	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
+	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
+
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 )
 
 type partnerPlugin struct {
-	activityv1alpha1grpc.ActivitySearchServiceServer
-	accommodationv1alpha1grpc.AccommodationSearchServiceServer
-	networkv1alpha1grpc.GetNetworkFeeServiceServer
-	partnerv1alpha1grpc.GetPartnerConfigurationServiceServer
-	pingv1alpha1grpc.PingServiceServer
-	transportv1alpha1grpc.TransportSearchServiceServer
+	activityv1alphagrpc.ActivitySearchServiceServer
+	accommodationv1alphagrpc.AccommodationSearchServiceServer
+	networkv1alphagrpc.GetNetworkFeeServiceServer
+	partnerv1alphagrpc.GetPartnerConfigurationServiceServer
+	pingv1alphagrpc.PingServiceServer
+	transportv1alphagrpc.TransportSearchServiceServer
 }
 
-func (p *partnerPlugin) ActivitySearch(ctx context.Context, request *activityv1alpha1.ActivitySearchRequest) (*activityv1alpha1.ActivitySearchResponse, error) {
+func (p *partnerPlugin) ActivitySearch(ctx context.Context, request *activityv1alpha.ActivitySearchRequest) (*activityv1alpha.ActivitySearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -44,15 +45,15 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, request *activityv1a
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := activityv1alpha1.ActivitySearchResponse{
+	response := activityv1alpha.ActivitySearchResponse{
 		Header:   nil,
-		Metadata: &typesv1alpha1.SearchResponseMetadata{SearchId: &typesv1alpha1.UUID{Value: md.RequestID}},
+		Metadata: &typesv1alpha.SearchResponseMetadata{SearchId: &typesv1alpha.UUID{Value: md.RequestID}},
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
 
-func (p *partnerPlugin) AccommodationSearch(ctx context.Context, request *accommodationv1alpha1.AccommodationSearchRequest) (*accommodationv1alpha1.AccommodationSearchResponse, error) {
+func (p *partnerPlugin) AccommodationSearch(ctx context.Context, request *accommodationv1alpha.AccommodationSearchRequest) (*accommodationv1alpha.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -61,15 +62,15 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, request *accomm
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := accommodationv1alpha1.AccommodationSearchResponse{
+	response := accommodationv1alpha.AccommodationSearchResponse{
 		Header:   nil,
-		Metadata: &typesv1alpha1.SearchResponseMetadata{SearchId: &typesv1alpha1.UUID{Value: md.RequestID}},
+		Metadata: &typesv1alpha.SearchResponseMetadata{SearchId: &typesv1alpha.UUID{Value: md.RequestID}},
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
 
-func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1alpha1.GetNetworkFeeRequest) (*networkv1alpha1.GetNetworkFeeResponse, error) {
+func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1alpha.GetNetworkFeeRequest) (*networkv1alpha.GetNetworkFeeResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -78,8 +79,8 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1alp
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := networkv1alpha1.GetNetworkFeeResponse{
-		NetworkFee: &networkv1alpha1.NetworkFee{
+	response := networkv1alpha.GetNetworkFeeResponse{
+		NetworkFee: &networkv1alpha.NetworkFee{
 			Amount: 0,
 			Asset:  nil,
 		},
@@ -88,7 +89,7 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1alp
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
-func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *partnerv1alpha1.GetPartnerConfigurationRequest) (*partnerv1alpha1.GetPartnerConfigurationResponse, error) {
+func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *partnerv1alpha.GetPartnerConfigurationRequest) (*partnerv1alpha.GetPartnerConfigurationResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -97,15 +98,15 @@ func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *pa
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := partnerv1alpha1.GetPartnerConfigurationResponse{
-		PartnerConfiguration: &partnerv1alpha1.PartnerConfiguration{},
+	response := partnerv1alpha.GetPartnerConfigurationResponse{
+		PartnerConfiguration: &partnerv1alpha.PartnerConfiguration{},
 		CurrentBlockHeight:   request.GetBlockHeight(),
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
 
-func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1alpha1.PingRequest) (*pingv1alpha1.PingResponse, error) {
+func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1alpha.PingRequest) (*pingv1alpha.PingResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -114,12 +115,12 @@ func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1alpha1.PingRequ
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	return &pingv1alpha1.PingResponse{
+	return &pingv1alpha.PingResponse{
 		Header:      nil,
 		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
 	}, nil
 }
-func (p *partnerPlugin) TransportSearch(ctx context.Context, request *transportv1alpha1.TransportSearchRequest) (*transportv1alpha1.TransportSearchResponse, error) {
+func (p *partnerPlugin) TransportSearch(ctx context.Context, request *transportv1alpha.TransportSearchRequest) (*transportv1alpha.TransportSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -128,9 +129,9 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, request *transportv
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := transportv1alpha1.TransportSearchResponse{
+	response := transportv1alpha.TransportSearchResponse{
 		Header:   nil,
-		Metadata: &typesv1alpha1.SearchResponseMetadata{SearchId: &typesv1alpha1.UUID{Value: md.RequestID}},
+		Metadata: &typesv1alpha.SearchResponseMetadata{SearchId: &typesv1alpha.UUID{Value: md.RequestID}},
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
@@ -138,12 +139,12 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, request *transportv
 
 func main() {
 	grpcServer := grpc.NewServer()
-	activityv1alpha1grpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv1alpha1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
-	networkv1alpha1grpc.RegisterGetNetworkFeeServiceServer(grpcServer, &partnerPlugin{})
-	partnerv1alpha1grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
-	pingv1alpha1grpc.RegisterPingServiceServer(grpcServer, &partnerPlugin{})
-	transportv1alpha1grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
+	activityv1alphagrpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv1alphagrpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
+	networkv1alphagrpc.RegisterGetNetworkFeeServiceServer(grpcServer, &partnerPlugin{})
+	partnerv1alphagrpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
+	pingv1alphagrpc.RegisterPingServiceServer(grpcServer, &partnerPlugin{})
+	transportv1alphagrpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	port := 55555
 	var err error
 	p, found := os.LookupEnv("PORT")

@@ -6,10 +6,10 @@
 package messaging
 
 import (
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha1/activityv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha1/transportv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
@@ -34,20 +34,20 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 		var service Service
 		switch MessageType(requestType) {
 		case ActivitySearchRequest:
-			c := activityv1alpha1grpc.NewActivitySearchServiceClient(s.rpcClient.ClientConn)
+			c := activityv1alphagrpc.NewActivitySearchServiceClient(s.rpcClient.ClientConn)
 			service = activityService{client: &c}
 		case AccommodationSearchRequest:
-			c := accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)
+			c := accommodationv1alphagrpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)
 			service = accommodationService{client: &c}
 		case GetNetworkFeeRequest:
 			service = networkService{} // this service does not talk to partner plugin
 		case GetPartnerConfigurationRequest:
 			service = partnerService{} // this service does not talk to partner plugin
 		case PingRequest:
-			c := pingv1alpha1grpc.NewPingServiceClient(s.rpcClient.ClientConn)
+			c := pingv1alphagrpc.NewPingServiceClient(s.rpcClient.ClientConn)
 			service = pingService{client: &c}
 		case TransportSearchRequest:
-			c := transportv1alpha1grpc.NewTransportSearchServiceClient(s.rpcClient.ClientConn)
+			c := transportv1alphagrpc.NewTransportSearchServiceClient(s.rpcClient.ClientConn)
 			service = transportService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)

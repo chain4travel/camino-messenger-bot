@@ -1,15 +1,15 @@
 package main
 
 import (
-	typesv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha1"
+	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
-	accommodationv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
+	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	internalmetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -42,18 +42,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	request := &accommodationv1alpha1.AccommodationSearchRequest{
+	request := &accommodationv1alpha.AccommodationSearchRequest{
 		Header: nil,
-		SearchParametersGeneric: &typesv1alpha1.SearchParameters{
-			Currency:   typesv1alpha1.Currency_CURRENCY_EUR,
-			Language:   typesv1alpha1.Language_LANGUAGE_UG,
+		SearchParametersGeneric: &typesv1alpha.SearchParameters{
+			Currency:   typesv1alpha.Currency_CURRENCY_EUR,
+			Language:   typesv1alpha.Language_LANGUAGE_UG,
 			Market:     1,
 			MaxOptions: 2,
 		},
-		SearchParametersAccommodation: &accommodationv1alpha1.AccommodationSearchParameters{
-			RatePlan: []*typesv1alpha1.RatePlan{
-				{
-					RatePlan: "economy",
+		Queries: []*accommodationv1alpha.AccommodationSearchQuery{
+			{
+				SearchParametersAccommodation: &accommodationv1alpha.AccommodationSearchParameters{
+					RatePlan: []*typesv1alpha.RatePlan{{RatePlan: "economy"}},
 				},
 			},
 		},
@@ -68,7 +68,7 @@ func main() {
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	ass := accommodationv1alpha1grpc.NewAccommodationSearchServiceClient(c.ClientConn)
+	ass := accommodationv1alphagrpc.NewAccommodationSearchServiceClient(c.ClientConn)
 	begin := time.Now()
 	var header metadata.MD
 	resp, err := ass.AccommodationSearch(ctx, request, grpc.Header(&header))

@@ -6,15 +6,15 @@
 package messaging
 
 import (
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha1/activityv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha1/pingv1alpha1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha1/transportv1alpha1grpc"
-	networkv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha1"
-	partnerv1alpha1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
+	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
+	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	"context"
 	"errors"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha1/accommodationv1alpha1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"google.golang.org/grpc"
 )
 
@@ -33,20 +33,20 @@ type Service interface {
 }
 
 type activityService struct {
-	client *activityv1alpha1grpc.ActivitySearchServiceClient
+	client *activityv1alphagrpc.ActivitySearchServiceClient
 }
 type accommodationService struct {
-	client *accommodationv1alpha1grpc.AccommodationSearchServiceClient
+	client *accommodationv1alphagrpc.AccommodationSearchServiceClient
 }
 type networkService struct {
 }
 type partnerService struct {
 }
 type pingService struct {
-	client *pingv1alpha1grpc.PingServiceClient
+	client *pingv1alphagrpc.PingServiceClient
 }
 type transportService struct {
-	client *transportv1alpha1grpc.TransportSearchServiceClient
+	client *transportv1alphagrpc.TransportSearchServiceClient
 }
 
 func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
@@ -79,8 +79,8 @@ func (s networkService) Call(_ context.Context, request *RequestContent, _ ...gr
 	}
 
 	//TODO implement
-	response, err := &networkv1alpha1.GetNetworkFeeResponse{
-		NetworkFee: &networkv1alpha1.NetworkFee{Amount: 100000},
+	response, err := &networkv1alpha.GetNetworkFeeResponse{
+		NetworkFee: &networkv1alpha.NetworkFee{Amount: 100000},
 	}, (error)(nil)
 	responseContent := ResponseContent{}
 	if err == nil {
@@ -95,7 +95,7 @@ func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...gr
 	}
 
 	//TODO implement
-	response, err := &partnerv1alpha1.GetPartnerConfigurationResponse{
+	response, err := &partnerv1alpha.GetPartnerConfigurationResponse{
 		PartnerConfiguration: nil,
 		CurrentBlockHeight:   0,
 	}, (error)(nil)
