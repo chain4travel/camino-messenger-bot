@@ -18,6 +18,11 @@ Camino-Messenger-Bot is designed to facilitate communication through various mes
 4. **gRPC Client**
     - The gRPC Client communicates with a middleware or "partner-plugin" via gRPC, exchanging protobuf messages. The middleware handles necessary conversions and interacts with the external system of the partner. It's important to note that the middleware is not part of this application.
 
+## Dependencies
+This application depends on the [camino-messenger-protocol](https://github.com/chain4travel/camino-messenger-protocol), which is a separate repository. The protocol defines the protobuf messages and services used for communication between the gRPC server and client.
+
+Version used: [release-2](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-2)
+
 ## Examples and Docker Support
 
 The repository includes examples demonstrating the setup of gRPC servers and clients under the `examples` folder. Additionally, Dockerfiles and a docker-compose.yml file are provided to simplify the deployment of a provider, distributor bot, and a partner plugin application that mocks responses.
