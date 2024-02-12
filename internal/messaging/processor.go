@@ -170,7 +170,7 @@ func (p *processor) Respond(msg Message) error {
 	var header grpc_metadata.MD
 	response, msgType, err := service.Call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
 	if err != nil {
-		return err
+		return err //TODO handle error and return a response message
 	}
 
 	err = md.FromGrpcMD(header)

@@ -13,6 +13,6 @@ const (
 	PartnerPluginPortKey        = "partner_plugin_port"
 	PartnerPluginUnencryptedKey = "partner_plugin_unencrypted"
 	PartnerPluginCAFileKey      = "partner_plugin_ca_file"
-	MessengerTimeoutKey         = "messenger_timeout"
+	MessengerTimeoutKey         = "response_timeout"
 	SupportedRequestTypesKey    = "supported_request_types"
 )

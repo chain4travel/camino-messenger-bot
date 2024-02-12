@@ -38,7 +38,7 @@ type PartnerPluginConfig struct {
 	CACertFile  string `mapstructure:"partner_plugin_ca_file"`
 }
 type ProcessorConfig struct {
-	Timeout int `mapstructure:"messenger_timeout"` // in milliseconds
+	Timeout int `mapstructure:"response_timeout"` // in milliseconds
 }
 type Config struct {
 	AppConfig           `mapstructure:",squash"`

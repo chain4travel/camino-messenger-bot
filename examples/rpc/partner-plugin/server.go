@@ -29,6 +29,8 @@ import (
 
 type partnerPlugin struct {
 	activityv1alphagrpc.ActivitySearchServiceServer
+	accommodationv1alphagrpc.AccommodationProductInfoServiceServer
+	accommodationv1alphagrpc.AccommodationProductListServiceServer
 	accommodationv1alphagrpc.AccommodationSearchServiceServer
 	networkv1alphagrpc.GetNetworkFeeServiceServer
 	partnerv1alphagrpc.GetPartnerConfigurationServiceServer
@@ -52,7 +54,36 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, request *activityv1a
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, request *accommodationv1alpha.AccommodationProductInfoRequest) (*accommodationv1alpha.AccommodationProductInfoResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
 
+	response := accommodationv1alpha.AccommodationProductInfoResponse{
+		Properties: []*accommodationv1alpha.PropertyExtendedInfo{{PaymentType: "cash"}},
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+func (p *partnerPlugin) AccommodationProductList(ctx context.Context, request *accommodationv1alpha.AccommodationProductListRequest) (*accommodationv1alpha.AccommodationProductListResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := accommodationv1alpha.AccommodationProductListResponse{
+		Properties: []*accommodationv1alpha.Property{{Name: "Hotel"}},
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
 func (p *partnerPlugin) AccommodationSearch(ctx context.Context, request *accommodationv1alpha.AccommodationSearchRequest) (*accommodationv1alpha.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -140,6 +171,8 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, request *transportv
 func main() {
 	grpcServer := grpc.NewServer()
 	activityv1alphagrpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv1alphagrpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv1alphagrpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
 	accommodationv1alphagrpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	networkv1alphagrpc.RegisterGetNetworkFeeServiceServer(grpcServer, &partnerPlugin{})
 	partnerv1alphagrpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
