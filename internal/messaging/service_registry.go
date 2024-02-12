@@ -36,6 +36,12 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 		case ActivitySearchRequest:
 			c := activityv1alphagrpc.NewActivitySearchServiceClient(s.rpcClient.ClientConn)
 			service = activityService{client: &c}
+		case AccommodationProductInfoRequest:
+			c := accommodationv1alphagrpc.NewAccommodationProductInfoServiceClient(s.rpcClient.ClientConn)
+			service = accommodationProductInfoService{client: &c}
+		case AccommodationProductListRequest:
+			c := accommodationv1alphagrpc.NewAccommodationProductListServiceClient(s.rpcClient.ClientConn)
+			service = accommodationProductListService{client: &c}
 		case AccommodationSearchRequest:
 			c := accommodationv1alphagrpc.NewAccommodationSearchServiceClient(s.rpcClient.ClientConn)
 			service = accommodationService{client: &c}

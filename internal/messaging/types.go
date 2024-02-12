@@ -13,6 +13,8 @@ import (
 
 type RequestContent struct {
 	activityv1alpha.ActivitySearchRequest
+	accommodationv1alpha.AccommodationProductInfoRequest
+	accommodationv1alpha.AccommodationProductListRequest
 	accommodationv1alpha.AccommodationSearchRequest
 	networkv1alpha.GetNetworkFeeRequest
 	partnerv1alpha.GetPartnerConfigurationRequest
@@ -21,6 +23,8 @@ type RequestContent struct {
 }
 type ResponseContent struct {
 	activityv1alpha.ActivitySearchResponse
+	accommodationv1alpha.AccommodationProductInfoResponse
+	accommodationv1alpha.AccommodationProductListResponse
 	accommodationv1alpha.AccommodationSearchResponse
 	networkv1alpha.GetNetworkFeeResponse
 	partnerv1alpha.GetPartnerConfigurationResponse
@@ -50,28 +54,36 @@ const (
 
 	// message types
 
-	ActivitySearchRequest           MessageType = "ActivitySearchRequest"
-	ActivitySearchResponse          MessageType = "ActivitySearchResponse"
-	AccommodationSearchRequest      MessageType = "AccommodationSearchRequest"
-	AccommodationSearchResponse     MessageType = "AccommodationSearchResponse"
-	GetNetworkFeeRequest            MessageType = "GetNetworkFeeRequest"
-	GetNetworkFeeResponse           MessageType = "GetNetworkFeeResponse"
-	GetPartnerConfigurationRequest  MessageType = "GetPartnerConfigurationRequest"
-	GetPartnerConfigurationResponse MessageType = "GetPartnerConfigurationResponse"
-	PingRequest                     MessageType = "PingRequest"
-	PingResponse                    MessageType = "PingResponse"
-	TransportSearchRequest          MessageType = "TransportSearchRequest"
-	TransportSearchResponse         MessageType = "TransportSearchResponse"
+	ActivitySearchRequest            MessageType = "ActivitySearchRequest"
+	ActivitySearchResponse           MessageType = "ActivitySearchResponse"
+	AccommodationProductInfoRequest  MessageType = "AccommodationProductInfoRequest"
+	AccommodationProductInfoResponse MessageType = "AccommodationProductInfoResponse"
+	AccommodationProductListRequest  MessageType = "AccommodationProductListRequest"
+	AccommodationProductListResponse MessageType = "AccommodationProductListResponse"
+	AccommodationSearchRequest       MessageType = "AccommodationSearchRequest"
+	AccommodationSearchResponse      MessageType = "AccommodationSearchResponse"
+	GetNetworkFeeRequest             MessageType = "GetNetworkFeeRequest"
+	GetNetworkFeeResponse            MessageType = "GetNetworkFeeResponse"
+	GetPartnerConfigurationRequest   MessageType = "GetPartnerConfigurationRequest"
+	GetPartnerConfigurationResponse  MessageType = "GetPartnerConfigurationResponse"
+	PingRequest                      MessageType = "PingRequest"
+	PingResponse                     MessageType = "PingResponse"
+	TransportSearchRequest           MessageType = "TransportSearchRequest"
+	TransportSearchResponse          MessageType = "TransportSearchResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
 	case ActivitySearchRequest,
+		AccommodationProductInfoRequest,
+		AccommodationProductListRequest,
 		AccommodationSearchRequest,
 		PingRequest,
 		TransportSearchRequest:
 		return Request
 	case ActivitySearchResponse,
+		AccommodationProductInfoResponse,
+		AccommodationProductListResponse,
 		AccommodationSearchResponse,
 		GetNetworkFeeResponse,
 		GetPartnerConfigurationResponse,
@@ -90,6 +102,14 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(&m.Content.ActivitySearchRequest)
 	case ActivitySearchResponse:
 		return proto.Marshal(&m.Content.ActivitySearchResponse)
+	case AccommodationProductInfoRequest:
+		return proto.Marshal(&m.Content.AccommodationProductInfoRequest)
+	case AccommodationProductInfoResponse:
+		return proto.Marshal(&m.Content.AccommodationProductInfoResponse)
+	case AccommodationProductListRequest:
+		return proto.Marshal(&m.Content.AccommodationProductListRequest)
+	case AccommodationProductListResponse:
+		return proto.Marshal(&m.Content.AccommodationProductListResponse)
 	case AccommodationSearchRequest:
 		return proto.Marshal(&m.Content.AccommodationSearchRequest)
 	case AccommodationSearchResponse:

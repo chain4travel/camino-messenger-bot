@@ -29,6 +29,14 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 		return proto.Unmarshal(src, &m.Content.RequestContent.ActivitySearchRequest)
 	case messaging.ActivitySearchResponse:
 		return proto.Unmarshal(src, &m.Content.ResponseContent.ActivitySearchResponse)
+	case messaging.AccommodationProductInfoRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.AccommodationProductInfoRequest)
+	case messaging.AccommodationProductInfoResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.AccommodationProductInfoResponse)
+	case messaging.AccommodationProductListRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.AccommodationProductListRequest)
+	case messaging.AccommodationProductListResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.AccommodationProductListResponse)
 	case messaging.AccommodationSearchRequest:
 		return proto.Unmarshal(src, &m.Content.RequestContent.AccommodationSearchRequest)
 	case messaging.AccommodationSearchResponse:

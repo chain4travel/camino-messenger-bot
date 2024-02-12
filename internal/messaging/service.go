@@ -20,6 +20,8 @@ import (
 
 var (
 	_                     Service = (*activityService)(nil)
+	_                     Service = (*accommodationProductInfoService)(nil)
+	_                     Service = (*accommodationProductListService)(nil)
 	_                     Service = (*accommodationService)(nil)
 	_                     Service = (*networkService)(nil)
 	_                     Service = (*partnerService)(nil)
@@ -35,6 +37,13 @@ type Service interface {
 type activityService struct {
 	client *activityv1alphagrpc.ActivitySearchServiceClient
 }
+type accommodationProductInfoService struct {
+	client *accommodationv1alphagrpc.AccommodationProductInfoServiceClient
+}
+type accommodationProductListService struct {
+	client *accommodationv1alphagrpc.AccommodationProductListServiceClient
+}
+
 type accommodationService struct {
 	client *accommodationv1alphagrpc.AccommodationSearchServiceClient
 }
@@ -49,6 +58,28 @@ type transportService struct {
 	client *transportv1alphagrpc.TransportSearchServiceClient
 }
 
+func (a accommodationProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+	if &request.AccommodationProductInfoRequest == nil {
+		return ResponseContent{}, "", ErrInvalidMessageType
+	}
+	response, err := (*a.client).AccommodationProductInfo(ctx, &request.AccommodationProductInfoRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.AccommodationProductInfoResponse = *response // otherwise nil pointer dereference
+	}
+	return responseContent, AccommodationProductInfoResponse, err
+}
+func (a accommodationProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+	if &request.AccommodationProductListRequest == nil {
+		return ResponseContent{}, "", ErrInvalidMessageType
+	}
+	response, err := (*a.client).AccommodationProductList(ctx, &request.AccommodationProductListRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.AccommodationProductListResponse = *response // otherwise nil pointer dereference
+	}
+	return responseContent, AccommodationProductListResponse, err
+}
 func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.ActivitySearchRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType

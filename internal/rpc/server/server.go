@@ -32,12 +32,14 @@ import (
 var (
 	_ Server = (*server)(nil)
 
-	_ accommodationv1alphagrpc.AccommodationSearchServiceServer = (*server)(nil)
-	_ activityv1alphagrpc.ActivitySearchServiceServer           = (*server)(nil)
-	_ networkv1alphagrpc.GetNetworkFeeServiceServer             = (*server)(nil)
-	_ partnerv1alphagrpc.GetPartnerConfigurationServiceServer   = (*server)(nil)
-	_ pingv1alphagrpc.PingServiceServer                         = (*server)(nil)
-	_ transportv1alphagrpc.TransportSearchServiceServer         = (*server)(nil)
+	_ accommodationv1alphagrpc.AccommodationProductInfoServiceServer = (*server)(nil)
+	_ accommodationv1alphagrpc.AccommodationProductListServiceServer = (*server)(nil)
+	_ accommodationv1alphagrpc.AccommodationSearchServiceServer      = (*server)(nil)
+	_ activityv1alphagrpc.ActivitySearchServiceServer                = (*server)(nil)
+	_ networkv1alphagrpc.GetNetworkFeeServiceServer                  = (*server)(nil)
+	_ partnerv1alphagrpc.GetPartnerConfigurationServiceServer        = (*server)(nil)
+	_ pingv1alphagrpc.PingServiceServer                              = (*server)(nil)
+	_ transportv1alphagrpc.TransportSearchServiceServer              = (*server)(nil)
 
 	errMissingRecipient = errors.New("missing recipient")
 )
@@ -78,6 +80,8 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOption) *grpc.Server {
 	grpcServer := grpc.NewServer(opts...)
 	activityv1alphagrpc.RegisterActivitySearchServiceServer(grpcServer, server)
+	accommodationv1alphagrpc.RegisterAccommodationProductInfoServiceServer(grpcServer, server)
+	accommodationv1alphagrpc.RegisterAccommodationProductListServiceServer(grpcServer, server)
 	accommodationv1alphagrpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
 	networkv1alphagrpc.RegisterGetNetworkFeeServiceServer(grpcServer, server)
 	partnerv1alphagrpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, server)
@@ -97,6 +101,16 @@ func (s *server) Start() {
 func (s *server) Stop() {
 	s.logger.Info("Stopping gRPC server...")
 	s.grpcServer.Stop()
+}
+
+func (s *server) AccommodationProductInfo(ctx context.Context, request *accommodationv1alpha.AccommodationProductInfoRequest) (*accommodationv1alpha.AccommodationProductInfoResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductInfoRequest, &messaging.RequestContent{AccommodationProductInfoRequest: *request})
+	return &response.AccommodationProductInfoResponse, err
+}
+
+func (s *server) AccommodationProductList(ctx context.Context, request *accommodationv1alpha.AccommodationProductListRequest) (*accommodationv1alpha.AccommodationProductListResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductListRequest, &messaging.RequestContent{AccommodationProductListRequest: *request})
+	return &response.AccommodationProductListResponse, err
 }
 
 func (s *server) AccommodationSearch(ctx context.Context, request *accommodationv1alpha.AccommodationSearchRequest) (*accommodationv1alpha.AccommodationSearchResponse, error) {
