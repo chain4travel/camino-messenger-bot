@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
@@ -64,6 +65,7 @@ func (m *messenger) StartReceiver() (string, error) {
 
 	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
+		t := time.Now()
 		completeMsg, err, completed := m.msgAssembler.AssembleMessage(*msg)
 		if err != nil {
 			m.logger.Errorf("failed to assemble message: %v", err)
@@ -72,7 +74,8 @@ func (m *messenger) StartReceiver() (string, error) {
 		if !completed {
 			return // partial messages are not passed down to the msgChannel
 		}
-		completeMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", m.Checkpoint(), "received"))
+		completeMsg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", completeMsg.MsgType), evt.Timestamp)
+		completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.Checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
 		m.msgChannel <- messaging.Message{
 			Metadata: completeMsg.Metadata,
 			Content:  completeMsg.Content,
