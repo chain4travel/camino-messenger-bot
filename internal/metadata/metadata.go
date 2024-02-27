@@ -18,6 +18,9 @@ type Metadata struct {
 	Timestamps     map[string]int64         `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
 	NumberOfChunks uint                     `json:"number_of_chunks"`
 	ChunkIndex     uint                     `json:"chunk_index"`
+
+	// Deprecated: this metadata serves only as a temp solution and should be removed and addressed on the protocol level
+	ProviderOperator string `json:"provider_operator"`
 }
 
 func (m *Metadata) ExtractMetadata(ctx context.Context) error {
@@ -58,6 +61,9 @@ func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
 			return fmt.Errorf("error unmarshalling timestamps: %v", err)
 		}
 	}
+	if providerOperator, found := mdPairs["provider_operator"]; found {
+		m.ProviderOperator = providerOperator[0]
+	}
 	return nil
 }
 func (m *Metadata) ToGrpcMD() metadata.MD {
@@ -73,6 +79,7 @@ func (m *Metadata) ToGrpcMD() metadata.MD {
 			chequesJSON, _ := json.Marshal(m.Cheques)
 			return string(chequesJSON)
 		}(),
+		"provider_operator": m.ProviderOperator,
 	})
 	return md
 }
