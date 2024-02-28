@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"net"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -53,6 +53,7 @@ type server struct {
 	grpcServer      *grpc.Server
 	cfg             *config.RPCServerConfig
 	logger          *zap.SugaredLogger
+	tracer          trace.Tracer
 	processor       messaging.Processor
 	serviceRegistry *messaging.ServiceRegistry
 }
@@ -61,7 +62,7 @@ func (s *server) Checkpoint() string {
 	return "request-gateway"
 }
 
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) *server {
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer trace.Tracer, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) *server {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
@@ -72,7 +73,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
-	server := &server{cfg: cfg, logger: logger, processor: processor, serviceRegistry: serviceRegistry}
+	server := &server{cfg: cfg, logger: logger, tracer: tracer, processor: processor, serviceRegistry: serviceRegistry}
 	server.grpcServer = createGrpcServerAndRegisterServices(server, opts...)
 	return server
 }
@@ -144,6 +145,8 @@ func (s *server) TransportSearch(ctx context.Context, request *transportv1alpha.
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
+	ctx, span := s.tracer.Start(ctx, "server.processInternalRequest", trace.WithSpanKind(trace.SpanKindServer))
+	defer span.End()
 	service, registered := s.serviceRegistry.GetService(requestType)
 	if !registered {
 		return messaging.ResponseContent{}, fmt.Errorf("%v: %s", messaging.ErrUnsupportedRequestType, requestType)
@@ -153,7 +156,9 @@ func (s *server) processInternalRequest(ctx context.Context, requestType messagi
 }
 
 func (s *server) processExternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
-	err, md := s.processMetadata(ctx)
+	ctx, span := s.tracer.Start(ctx, "server.processExternalRequest", trace.WithSpanKind(trace.SpanKindServer))
+	defer span.End()
+	err, md := s.processMetadata(ctx, span.SpanContext().TraceID())
 	if err != nil {
 		return messaging.ResponseContent{}, fmt.Errorf("error processing metadata: %v", err)
 	}
@@ -171,16 +176,11 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 	return response.Content.ResponseContent, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
 
-func (s *server) processMetadata(ctx context.Context) (error, metadata.Metadata) {
-	requestID, err := uuid.NewRandom()
-	if err != nil {
-		return nil, metadata.Metadata{}
-	}
-
+func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (error, metadata.Metadata) {
 	md := metadata.Metadata{
-		RequestID: requestID.String(),
+		RequestID: id.String(),
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "received"))
-	err = md.ExtractMetadata(ctx)
+	err := md.ExtractMetadata(ctx)
 	return err, md
 }

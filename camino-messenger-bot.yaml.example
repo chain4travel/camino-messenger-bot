@@ -12,6 +12,12 @@ partner_plugin_port: 3000
 partner_plugin_unencrypted: false
 partner_plugin_ca_file: ca-cert.pem
 response_timeout: 3000
+tracing_enabled: true
+tracing_host: localhost
+tracing_port: 4317
+tracing_insecure: true
+tracing_cert_file: server-cert.pem
+tracing_key_file: server-key.pem
 supported_request_types:
   - ActivitySearchRequest
   - AccommodationProductInfoRequest
