@@ -49,6 +49,14 @@ type TvmConfig struct {
 	AwaitTxConfirmationTimeout uint   `mapstructure:"tvm_await_tx_confirmation_timeout"` // in milliseconds"
 }
 
+type TracingConfig struct {
+	Enabled  bool   `mapstructure:"tracing_enabled"`
+	Host     string `mapstructure:"tracing_host"`
+	Port     int    `mapstructure:"tracing_port"`
+	Insecure bool   `mapstructure:"tracing_insecure"`
+	CertFile string `mapstructure:"tracing_cert_file"`
+	KeyFile  string `mapstructure:"tracing_key_file"`
+}
 type Config struct {
 	AppConfig           `mapstructure:",squash"` //TODO use nested yaml structure
 	MatrixConfig        `mapstructure:",squash"`
@@ -56,6 +64,7 @@ type Config struct {
 	PartnerPluginConfig `mapstructure:",squash"`
 	ProcessorConfig     `mapstructure:",squash"`
 	TvmConfig           `mapstructure:",squash"`
+	TracingConfig       `mapstructure:",squash"`
 }
 
 func ReadConfig() (*Config, error) {
@@ -80,6 +89,7 @@ func ReadConfig() (*Config, error) {
 	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
 	readMessengerConfig(cfg.ProcessorConfig, fs)
 	readTvmConfig(cfg.TvmConfig, fs)
+	readTracingConfig(cfg.TracingConfig, fs)
 
 	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)

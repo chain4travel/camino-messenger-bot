@@ -42,3 +42,12 @@ func readTvmConfig(cfg TvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.ChainID, TvmChainIDKey, "", "The TVM chain ID")
 	fs.UintVar(&cfg.AwaitTxConfirmationTimeout, TvmAwaitTxConfirmationTimeout, 3000, "The TVM await transaction confirmation timeout (in milliseconds)")
 }
+
+func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {
+	fs.BoolVar(&cfg.Enabled, TracingEnabledKey, false, "Whether tracing is enabled")
+	fs.StringVar(&cfg.Host, TracingHostKey, "localhost", "The tracing host")
+	fs.IntVar(&cfg.Port, TracingPortKey, 4317, "The tracing port")
+	fs.BoolVar(&cfg.Insecure, TracingInsecureKey, true, "Whether the tracing connection should be insecure")
+	fs.StringVar(&cfg.CertFile, TracingCertFileKey, "", "The tracing certificate file")
+	fs.StringVar(&cfg.KeyFile, TracingKeyFileKey, "", "The tracing key file")
+}

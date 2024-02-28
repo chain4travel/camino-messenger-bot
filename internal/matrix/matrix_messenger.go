@@ -4,16 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"reflect"
 	"sync"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"go.uber.org/zap"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
 	"maunium.net/go/mautrix/event"
@@ -34,9 +37,12 @@ type client struct {
 	cryptoHelper *cryptohelper.CryptoHelper
 }
 type messenger struct {
-	msgChannel   chan messaging.Message
-	cfg          *config.MatrixConfig
-	logger       *zap.SugaredLogger
+	msgChannel chan messaging.Message
+
+	cfg    *config.MatrixConfig
+	logger *zap.SugaredLogger
+	tracer trace.Tracer
+
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
@@ -52,6 +58,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		msgChannel:   make(chan messaging.Message),
 		cfg:          cfg,
 		logger:       logger,
+		tracer:       otel.GetTracerProvider().Tracer(""),
 		client:       client{Client: c},
 		roomHandler:  NewRoomHandler(c, logger),
 		msgAssembler: NewMessageAssembler(logger),
@@ -68,6 +75,13 @@ func (m *messenger) StartReceiver() (string, error) {
 
 	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
+		traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
+		if err != nil {
+			m.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
+		}
+		ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
+		_, span := m.tracer.Start(ctx, "messenger.OnC4TMessageReceive", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", evt.Type.Type)))
+		defer span.End()
 		t := time.Now()
 		completeMsg, err, completed := m.msgAssembler.AssembleMessage(*msg)
 		if err != nil {
@@ -154,18 +168,24 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
+func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
+	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	defer span.End()
 
+	ctx, roomSpan := m.tracer.Start(ctx, "roomHandler.GetOrCreateRoom", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
 	if err != nil {
 		return err
 	}
+	roomSpan.End()
 
+	ctx, compressSpan := m.tracer.Start(ctx, "messenger.Compress", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	messages, err := m.compressor.Compress(msg)
 	if err != nil {
 		return err
 	}
+	compressSpan.End()
 
 	return m.sendMessageEvents(roomID, C4TMessage, messages)
 }
@@ -173,7 +193,7 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
 	//TODO add retry logic?
 	for _, msg := range messages {
-		_, err := m.client.SendMessageEvent(roomID, eventType, msg)
+		_, err := m.client.SendMessageEvent(roomID, eventType, msg, mautrix.ReqSendEvent{RequestID: msg.Metadata.RequestID})
 		if err != nil {
 			return err
 		}
