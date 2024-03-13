@@ -40,12 +40,21 @@ type PartnerPluginConfig struct {
 type ProcessorConfig struct {
 	Timeout int `mapstructure:"response_timeout"` // in milliseconds
 }
+type TracingConfig struct {
+	Enabled  bool   `mapstructure:"tracing_enabled"`
+	Host     string `mapstructure:"tracing_host"`
+	Port     int    `mapstructure:"tracing_port"`
+	Insecure bool   `mapstructure:"tracing_insecure"`
+	CertFile string `mapstructure:"tracing_cert_file"`
+	KeyFile  string `mapstructure:"tracing_key_file"`
+}
 type Config struct {
 	AppConfig           `mapstructure:",squash"`
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
 	ProcessorConfig     `mapstructure:",squash"`
+	TracingConfig       `mapstructure:",squash"`
 }
 
 func ReadConfig() (*Config, error) {
@@ -69,6 +78,7 @@ func ReadConfig() (*Config, error) {
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
 	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
 	readMessengerConfig(cfg.ProcessorConfig, fs)
+	readTracingConfig(cfg.TracingConfig, fs)
 
 	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)
