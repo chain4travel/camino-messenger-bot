@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
@@ -68,7 +69,13 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry)
+	// TODO make client init conditional based on provided config
+	tvmClient, err := tvm.NewClient(a.cfg.TvmConfig)
+	if err != nil {
+		return err
+	}
+	responseHandler := messaging.NewResponseHandler(tvmClient)
+	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

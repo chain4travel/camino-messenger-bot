@@ -193,7 +193,6 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
 	return response.Content.ResponseContent, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
-
 func (s *server) processMetadata(ctx context.Context) (error, metadata.Metadata) {
 	requestID, err := uuid.NewRandom()
 	if err != nil {

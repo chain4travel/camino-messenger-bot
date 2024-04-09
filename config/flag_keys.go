@@ -15,4 +15,8 @@ const (
 	PartnerPluginCAFileKey      = "partner_plugin_ca_file"
 	MessengerTimeoutKey         = "response_timeout"
 	SupportedRequestTypesKey    = "supported_request_types"
+	TvmNodeURIKey               = "tvm_node_uri"
+	TvmPrivateKeyKey            = "tvm_private_key"
+	TvmNetworkIDKey             = "tvm_network_id"
+	TvmChainIDKey               = "tvm_chain_id"
 )

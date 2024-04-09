@@ -40,12 +40,21 @@ type PartnerPluginConfig struct {
 type ProcessorConfig struct {
 	Timeout int `mapstructure:"response_timeout"` // in milliseconds
 }
+
+type TvmConfig struct {
+	NodeURI    string `mapstructure:"tvm_node_uri"` // URI of the node to connect to
+	PrivateKey string `mapstructure:"tvm_private_key"`
+	NetworkID  uint   `mapstructure:"tvm_network_id"`
+	ChainID    string `mapstructure:"tvm_chain_id"`
+}
+
 type Config struct {
 	AppConfig           `mapstructure:",squash"`
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
 	ProcessorConfig     `mapstructure:",squash"`
+	TvmConfig           `mapstructure:",squash"`
 }
 
 func ReadConfig() (*Config, error) {
@@ -69,6 +78,7 @@ func ReadConfig() (*Config, error) {
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
 	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
 	readMessengerConfig(cfg.ProcessorConfig, fs)
+	readTvmConfig(cfg.TvmConfig, fs)
 
 	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)
