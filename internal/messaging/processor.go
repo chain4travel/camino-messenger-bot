@@ -51,6 +51,7 @@ type processor struct {
 	mu               sync.Mutex
 	responseChannels map[string]chan Message
 	serviceRegistry  *ServiceRegistry
+	responseHandler  *TvmResponseHandler
 }
 
 func (p *processor) SetUserID(userID string) {
@@ -61,7 +62,7 @@ func (p *processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry *ServiceRegistry) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry *ServiceRegistry, responseHandler *TvmResponseHandler) Processor {
 	return &processor{
 		cfg:              cfg,
 		messenger:        messenger,
@@ -69,6 +70,7 @@ func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.Pro
 		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
 		responseChannels: make(map[string]chan Message),
 		serviceRegistry:  registry,
+		responseHandler:  responseHandler,
 	}
 }
 
@@ -176,6 +178,11 @@ func (p *processor) Respond(msg Message) error {
 	err = md.FromGrpcMD(header)
 	if err != nil {
 		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
+	}
+
+	err = p.responseHandler.HandleResponse(ctx, msgType, &response)
+	if err != nil {
+		return err //TODO handle error and return a response message
 	}
 	responseMsg := Message{
 		Type: msgType,

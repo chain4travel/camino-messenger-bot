@@ -34,3 +34,10 @@ func readPartnerRpcServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {
 func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 	fs.IntVar(&cfg.Timeout, MessengerTimeoutKey, 3000, "The messenger timeout (in milliseconds)")
 }
+
+func readTvmConfig(cfg TvmConfig, fs *flag.FlagSet) {
+	fs.StringVar(&cfg.NodeURI, TvmNodeURIKey, "", "The TVM node URI")
+	fs.StringVar(&cfg.PrivateKey, TvmPrivateKeyKey, "", "The TVM private key")
+	fs.UintVar(&cfg.NetworkID, TvmNetworkIDKey, 0, "The TVM network ID")
+	fs.StringVar(&cfg.ChainID, TvmChainIDKey, "", "The TVM chain ID")
+}
