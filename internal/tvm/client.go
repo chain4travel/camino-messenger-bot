@@ -7,7 +7,10 @@ package tvm
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
+
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/hypersdk/chain"
@@ -19,15 +22,23 @@ import (
 	brpc "github.com/chain4travel/hypersdk/examples/touristicvm/rpc"
 )
 
+var (
+	ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded Timeout of")
+)
+
 type Client struct {
 	cli         *rpc.JSONRPCClient
 	ws          *rpc.WebSocketClient
 	tCli        *brpc.JSONRPCClient
 	authFactory *auth.SECP256K1Factory
+
+	Timeout time.Duration // milliseconds
 }
 
-func (c *Client) SendAndWait(ctx context.Context, action chain.Action) (bool, ids.ID, error) {
-	return cmd.SendAndWait(ctx, nil, action, c.cli, c.ws, c.tCli, c.authFactory, true)
+func (c *Client) SendTxAndWait(ctx context.Context, action chain.Action) (bool, ids.ID, error) {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.Timeout)
+	defer cancel()
+	return cmd.SendAndWait(ctxWithTimeout, nil, action, c.cli, c.ws, c.tCli, c.authFactory, false)
 }
 
 func NewClient(cfg config.TvmConfig) (*Client, error) {
@@ -58,6 +69,7 @@ func NewClient(cfg config.TvmConfig) (*Client, error) {
 		ws:          ws,
 		tCli:        tCli,
 		authFactory: factory,
+		Timeout:     time.Duration(cfg.AwaitTxConfirmationTimeout) * time.Millisecond,
 	}, nil
 }
 

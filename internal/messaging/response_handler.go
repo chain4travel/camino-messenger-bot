@@ -7,6 +7,7 @@ package messaging
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
@@ -26,13 +27,16 @@ type TvmResponseHandler struct {
 
 func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, response *ResponseContent) error {
 
-	if msgType == PingResponse {
+	if false { //TODO replace with msgType == Mintresponse
 		owner, err := codec.ParseAddressBech32(consts.HRP, response.PingMessage) //TODO replace with bot's addr
 		if err != nil {
 			return fmt.Errorf("error parsing address: %v", err)
 		}
 
-		success, txID, err := h.tvmClient.SendAndWait(ctx, createNFTAction("https://example.com", "qweqwe", owner))
+		success, txID, err := h.tvmClient.SendTxAndWait(ctx, createNFTAction("https://example.com", "qweqwe", owner))
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("%w: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
+		}
 		if err != nil {
 			return fmt.Errorf("error minting NFT: %v", err)
 		}

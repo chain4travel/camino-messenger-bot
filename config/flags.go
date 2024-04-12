@@ -40,4 +40,5 @@ func readTvmConfig(cfg TvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.PrivateKey, TvmPrivateKeyKey, "", "The TVM private key")
 	fs.UintVar(&cfg.NetworkID, TvmNetworkIDKey, 0, "The TVM network ID")
 	fs.StringVar(&cfg.ChainID, TvmChainIDKey, "", "The TVM chain ID")
+	fs.UintVar(&cfg.AwaitTxConfirmationTimeout, TvmAwaitTxConfirmationTimeout, 3000, "The TVM await transaction confirmation timeout (in milliseconds)")
 }

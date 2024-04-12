@@ -69,12 +69,16 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
+	var responseHandler messaging.ResponseHandler
 	// TODO make client init conditional based on provided config
 	tvmClient, err := tvm.NewClient(a.cfg.TvmConfig)
 	if err != nil {
-		return err
+		// do no return error here, let the bot continue
+		a.logger.Warnf("Failed to create tvm client: %v", err)
+		responseHandler = messaging.NoopResponseHandler{}
+	} else {
+		responseHandler = messaging.NewResponseHandler(tvmClient)
 	}
-	responseHandler := messaging.NewResponseHandler(tvmClient)
 	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
