@@ -25,6 +25,7 @@ var (
 	ErrUnknownMessageCategory     = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
 	ErrUnsupportedRequestType     = errors.New("unsupported request type")
+	ErrMissingRecipient           = errors.New("missing recipient")
 )
 
 type MsgHandler interface {
@@ -51,7 +52,7 @@ type processor struct {
 	mu               sync.Mutex
 	responseChannels map[string]chan Message
 	serviceRegistry  *ServiceRegistry
-	responseHandler  *TvmResponseHandler
+	responseHandler  ResponseHandler
 }
 
 func (p *processor) SetUserID(userID string) {
@@ -62,7 +63,7 @@ func (p *processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry *ServiceRegistry, responseHandler *TvmResponseHandler) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry *ServiceRegistry, responseHandler ResponseHandler) Processor {
 	return &processor{
 		cfg:              cfg,
 		messenger:        messenger,
@@ -136,6 +137,9 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 
+	if msg.Metadata.Recipient == "" { // TODO: add address validation
+		return Message{}, ErrMissingRecipient
+	}
 	msg.Metadata.Cheques = nil //TODO issue and attach cheques
 	err := p.messenger.SendAsync(ctx, msg)
 	if err != nil {

@@ -42,14 +42,15 @@ type ProcessorConfig struct {
 }
 
 type TvmConfig struct {
-	NodeURI    string `mapstructure:"tvm_node_uri"` // URI of the node to connect to
-	PrivateKey string `mapstructure:"tvm_private_key"`
-	NetworkID  uint   `mapstructure:"tvm_network_id"`
-	ChainID    string `mapstructure:"tvm_chain_id"`
+	NodeURI                    string `mapstructure:"tvm_node_uri"` // URI of the node to connect to
+	PrivateKey                 string `mapstructure:"tvm_private_key"`
+	NetworkID                  uint   `mapstructure:"tvm_network_id"`
+	ChainID                    string `mapstructure:"tvm_chain_id"`
+	AwaitTxConfirmationTimeout uint   `mapstructure:"tvm_await_tx_confirmation_timeout"` // in milliseconds"
 }
 
 type Config struct {
-	AppConfig           `mapstructure:",squash"`
+	AppConfig           `mapstructure:",squash"` //TODO use nested yaml structure
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
