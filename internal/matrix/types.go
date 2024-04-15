@@ -53,6 +53,14 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 		return proto.Unmarshal(src, &m.Content.RequestContent.GetPartnerConfigurationRequest)
 	case messaging.GetPartnerConfigurationResponse:
 		return proto.Unmarshal(src, &m.Content.ResponseContent.GetPartnerConfigurationResponse)
+	case messaging.MintRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.MintRequest)
+	case messaging.MintResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.MintResponse)
+	case messaging.ValidationRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.ValidationRequest)
+	case messaging.ValidationResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.ValidationResponse)
 	case messaging.PingRequest:
 		return proto.Unmarshal(src, &m.Content.RequestContent.PingRequest)
 	case messaging.PingResponse:
