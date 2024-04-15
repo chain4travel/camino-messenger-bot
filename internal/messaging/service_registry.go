@@ -8,6 +8,7 @@ package messaging
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -52,6 +53,12 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 			service = networkService{} // this service does not talk to partner plugin
 		case GetPartnerConfigurationRequest:
 			service = partnerService{} // this service does not talk to partner plugin
+		case MintRequest:
+			c := bookv1alphagrpc.NewMintServiceClient(s.rpcClient.ClientConn)
+			service = mintService{client: &c}
+		case ValidationRequest:
+			c := bookv1alphagrpc.NewValidationServiceClient(s.rpcClient.ClientConn)
+			service = validationService{client: &c}
 		case PingRequest:
 			c := pingv1alphagrpc.NewPingServiceClient(s.rpcClient.ClientConn)
 			service = pingService{client: &c}

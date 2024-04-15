@@ -7,6 +7,7 @@ package messaging
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
@@ -24,6 +25,8 @@ var (
 	_                     Service = (*accommodationProductInfoService)(nil)
 	_                     Service = (*accommodationProductListService)(nil)
 	_                     Service = (*accommodationService)(nil)
+	_                     Service = (*mintService)(nil)
+	_                     Service = (*validationService)(nil)
 	_                     Service = (*networkService)(nil)
 	_                     Service = (*partnerService)(nil)
 	_                     Service = (*pingService)(nil)
@@ -112,6 +115,39 @@ func (s accommodationService) Call(ctx context.Context, request *RequestContent,
 		responseContent.AccommodationSearchResponse = *response // otherwise nil pointer dereference
 	}
 	return responseContent, AccommodationSearchResponse, err
+}
+
+type mintService struct {
+	client *bookv1alphagrpc.MintServiceClient
+}
+
+func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+
+	if &request.MintRequest == nil {
+		return ResponseContent{}, "", ErrInvalidMessageType
+	}
+	response, err := (*m.client).Mint(ctx, &request.MintRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.MintResponse = *response // otherwise nil pointer dereference
+	}
+	return responseContent, MintResponse, err
+}
+
+type validationService struct {
+	client *bookv1alphagrpc.ValidationServiceClient
+}
+
+func (v validationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+	if &request.ValidationRequest == nil {
+		return ResponseContent{}, "", ErrInvalidMessageType
+	}
+	response, err := (*v.client).Validation(ctx, &request.ValidationRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.ValidationResponse = *response // otherwise nil pointer dereference
+	}
+	return responseContent, ValidationResponse, err
 }
 
 type networkService struct {
