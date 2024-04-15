@@ -1,8 +1,8 @@
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240227122456-42804c7c34e9.2 h1:Mm0zvKL65yspiBn+sCCAAfzhKRklqNcndheuRgF+51s=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240227122456-42804c7c34e9.2/go.mod h1:9pDBfOynqDOVt1wRRan2E8KBB70Ssrpwkt/kitcgp1c=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.28.1-20240227122456-42804c7c34e9.4/go.mod h1:2viX8eSuMFjoDrr8x3FYytCp81PVYkdgfB68aIcGW6c=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.32.0-20240227122456-42804c7c34e9.1 h1:x5RlH4dygWHbVKikPu8LSTbUVivfSYkvPq1kaG59/SA=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.32.0-20240227122456-42804c7c34e9.1/go.mod h1:XvDoE4EYgguzH74B9sx3BOh/Q8oaELUMxpAFfb2Xa6M=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240412100111-3654d6c5a4fb.2 h1:AO0mgtrYSWAJOh5hoZ3Ex0bqEcAQPdSWWIKcy64Uwqc=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240412100111-3654d6c5a4fb.2/go.mod h1:hq+qoNCKEnAmrIxy0SrDnr5oLzf6SciT/p/OX2DGJuE=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.28.1-20240412100111-3654d6c5a4fb.4/go.mod h1:2viX8eSuMFjoDrr8x3FYytCp81PVYkdgfB68aIcGW6c=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.33.0-20240412100111-3654d6c5a4fb.1 h1:Law6v5UCyz7Lj7Bghj3n0gWiur6tUBfoveRieT9nfQI=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.33.0-20240412100111-3654d6c5a4fb.1/go.mod h1:gsLG4/oOZhDfc11a7nNX2eBty0bQvCqxP6kKBgrJLvA=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -1197,7 +1197,6 @@ google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQ
 google.golang.org/protobuf v1.27.1/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.28.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 google.golang.org/protobuf v1.28.1/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
-google.golang.org/protobuf v1.32.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 google.golang.org/protobuf v1.33.0 h1:uNO2rsAINq/JlFpSdYEKIZ0uKD/R9cpdv0T+yoGwGmI=
 google.golang.org/protobuf v1.33.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

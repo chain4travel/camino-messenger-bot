@@ -113,7 +113,6 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1alp
 	response := networkv1alpha.GetNetworkFeeResponse{
 		NetworkFee: &networkv1alpha.NetworkFee{
 			Amount: 0,
-			Asset:  nil,
 		},
 		CurrentBlockHeight: request.BlockHeight,
 	}
