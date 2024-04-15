@@ -12,6 +12,7 @@ import (
 )
 
 type RequestContent struct {
+	activityv1alpha.ActivityProductListRequest
 	activityv1alpha.ActivitySearchRequest
 	accommodationv1alpha.AccommodationProductInfoRequest
 	accommodationv1alpha.AccommodationProductListRequest
@@ -22,6 +23,7 @@ type RequestContent struct {
 	transportv1alpha.TransportSearchRequest
 }
 type ResponseContent struct {
+	activityv1alpha.ActivityProductListResponse
 	activityv1alpha.ActivitySearchResponse
 	accommodationv1alpha.AccommodationProductInfoResponse
 	accommodationv1alpha.AccommodationProductListResponse
@@ -53,7 +55,8 @@ const (
 	Unknown
 
 	// message types
-
+	ActivityProductListRequest       MessageType = "ActivityProductListRequest"
+	ActivityProductListResponse      MessageType = "ActivityProductListResponse"
 	ActivitySearchRequest            MessageType = "ActivitySearchRequest"
 	ActivitySearchResponse           MessageType = "ActivitySearchResponse"
 	AccommodationProductInfoRequest  MessageType = "AccommodationProductInfoRequest"
@@ -74,14 +77,16 @@ const (
 
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
-	case ActivitySearchRequest,
+	case ActivityProductListRequest,
+		ActivitySearchRequest,
 		AccommodationProductInfoRequest,
 		AccommodationProductListRequest,
 		AccommodationSearchRequest,
 		PingRequest,
 		TransportSearchRequest:
 		return Request
-	case ActivitySearchResponse,
+	case ActivityProductListResponse,
+		ActivitySearchResponse,
 		AccommodationProductInfoResponse,
 		AccommodationProductListResponse,
 		AccommodationSearchResponse,
@@ -98,6 +103,10 @@ func (mt MessageType) Category() MessageCategory {
 func (m *Message) MarshalContent() ([]byte, error) {
 
 	switch m.Type {
+	case ActivityProductListRequest:
+		return proto.Marshal(&m.Content.ActivityProductListRequest)
+	case ActivityProductListResponse:
+		return proto.Marshal(&m.Content.ActivityProductListResponse)
 	case ActivitySearchRequest:
 		return proto.Marshal(&m.Content.ActivitySearchRequest)
 	case ActivitySearchResponse:

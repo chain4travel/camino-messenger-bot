@@ -25,6 +25,10 @@ func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
 func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	switch messaging.MessageType(m.MsgType) {
+	case messaging.ActivityProductListRequest:
+		return proto.Unmarshal(src, &m.Content.RequestContent.ActivityProductListRequest)
+	case messaging.ActivityProductListResponse:
+		return proto.Unmarshal(src, &m.Content.ResponseContent.ActivityProductListResponse)
 	case messaging.ActivitySearchRequest:
 		return proto.Unmarshal(src, &m.Content.RequestContent.ActivitySearchRequest)
 	case messaging.ActivitySearchResponse:
