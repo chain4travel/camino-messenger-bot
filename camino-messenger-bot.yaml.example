@@ -20,5 +20,7 @@ supported_request_types:
   - AccommodationSearchRequest
   - GetNetworkFeeRequest
   - GetPartnerConfigurationRequest
+  - MintRequest
+  - ValidationRequest
   - PingRequest
   - TransportSearchRequest

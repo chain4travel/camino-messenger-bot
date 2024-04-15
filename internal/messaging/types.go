@@ -3,6 +3,7 @@ package messaging
 import (
 	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
+	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
@@ -19,6 +20,8 @@ type RequestContent struct {
 	accommodationv1alpha.AccommodationSearchRequest
 	networkv1alpha.GetNetworkFeeRequest
 	partnerv1alpha.GetPartnerConfigurationRequest
+	bookv1alpha.MintRequest
+	bookv1alpha.ValidationRequest
 	pingv1alpha.PingRequest
 	transportv1alpha.TransportSearchRequest
 }
@@ -30,6 +33,8 @@ type ResponseContent struct {
 	accommodationv1alpha.AccommodationSearchResponse
 	networkv1alpha.GetNetworkFeeResponse
 	partnerv1alpha.GetPartnerConfigurationResponse
+	bookv1alpha.MintResponse
+	bookv1alpha.ValidationResponse
 	pingv1alpha.PingResponse
 	transportv1alpha.TransportSearchResponse
 }
@@ -69,6 +74,10 @@ const (
 	GetNetworkFeeResponse            MessageType = "GetNetworkFeeResponse"
 	GetPartnerConfigurationRequest   MessageType = "GetPartnerConfigurationRequest"
 	GetPartnerConfigurationResponse  MessageType = "GetPartnerConfigurationResponse"
+	MintRequest                      MessageType = "MintRequest"
+	MintResponse                     MessageType = "MintResponse"
+	ValidationRequest                MessageType = "ValidationRequest"
+	ValidationResponse               MessageType = "ValidationResponse"
 	PingRequest                      MessageType = "PingRequest"
 	PingResponse                     MessageType = "PingResponse"
 	TransportSearchRequest           MessageType = "TransportSearchRequest"
@@ -82,6 +91,8 @@ func (mt MessageType) Category() MessageCategory {
 		AccommodationProductInfoRequest,
 		AccommodationProductListRequest,
 		AccommodationSearchRequest,
+		MintRequest,
+		ValidationRequest,
 		PingRequest,
 		TransportSearchRequest:
 		return Request
@@ -92,6 +103,8 @@ func (mt MessageType) Category() MessageCategory {
 		AccommodationSearchResponse,
 		GetNetworkFeeResponse,
 		GetPartnerConfigurationResponse,
+		MintResponse,
+		ValidationResponse,
 		PingResponse,
 		TransportSearchResponse:
 		return Response
@@ -131,6 +144,14 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(&m.Content.GetPartnerConfigurationRequest)
 	case GetPartnerConfigurationResponse:
 		return proto.Marshal(&m.Content.GetPartnerConfigurationResponse)
+	case MintRequest:
+		return proto.Marshal(&m.Content.MintRequest)
+	case MintResponse:
+		return proto.Marshal(&m.Content.MintResponse)
+	case ValidationRequest:
+		return proto.Marshal(&m.Content.ValidationRequest)
+	case ValidationResponse:
+		return proto.Marshal(&m.Content.ValidationResponse)
 	case PingRequest:
 		return proto.Marshal(&m.Content.PingRequest)
 	case PingResponse:

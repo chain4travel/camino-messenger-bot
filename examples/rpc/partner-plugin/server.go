@@ -7,24 +7,27 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha/networkv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha/partnerv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
+	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
 	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
-
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"google.golang.org/grpc"
 )
 
 type partnerPlugin struct {
@@ -36,6 +39,43 @@ type partnerPlugin struct {
 	partnerv1alphagrpc.GetPartnerConfigurationServiceServer
 	pingv1alphagrpc.PingServiceServer
 	transportv1alphagrpc.TransportSearchServiceServer
+}
+
+func (p *partnerPlugin) Mint(ctx context.Context, request *bookv1alpha.MintRequest) (*bookv1alpha.MintResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := bookv1alpha.MintResponse{
+		MintId: md.RequestID,
+		BookingTimestamp: &timestamppb.Timestamp{
+			Seconds: time.Now().Unix(),
+		},
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) Validation(ctx context.Context, request *bookv1alpha.ValidationRequest) (*bookv1alpha.ValidationResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := bookv1alpha.ValidationResponse{
+		Header:           nil,
+		ValidationId:     md.RequestID,
+		ValidationObject: nil,
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
 }
 
 func (p *partnerPlugin) ActivitySearch(ctx context.Context, request *activityv1alpha.ActivitySearchRequest) (*activityv1alpha.ActivitySearchResponse, error) {
@@ -175,6 +215,8 @@ func main() {
 	accommodationv1alphagrpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	networkv1alphagrpc.RegisterGetNetworkFeeServiceServer(grpcServer, &partnerPlugin{})
 	partnerv1alphagrpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
+	bookv1alphagrpc.RegisterMintServiceServer(grpcServer, &partnerPlugin{})
+	bookv1alphagrpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
 	pingv1alphagrpc.RegisterPingServiceServer(grpcServer, &partnerPlugin{})
 	transportv1alphagrpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	port := 55555

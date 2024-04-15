@@ -2,6 +2,8 @@ package server
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
+	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
 	"context"
 	"errors"
 	"fmt"
@@ -39,6 +41,8 @@ var (
 	_ activityv1alphagrpc.ActivitySearchServiceServer                = (*server)(nil)
 	_ networkv1alphagrpc.GetNetworkFeeServiceServer                  = (*server)(nil)
 	_ partnerv1alphagrpc.GetPartnerConfigurationServiceServer        = (*server)(nil)
+	_ bookv1alphagrpc.MintServiceServer                              = (*server)(nil)
+	_ bookv1alphagrpc.ValidationServiceServer                        = (*server)(nil)
 	_ pingv1alphagrpc.PingServiceServer                              = (*server)(nil)
 	_ transportv1alphagrpc.TransportSearchServiceServer              = (*server)(nil)
 
@@ -87,6 +91,8 @@ func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOpti
 	accommodationv1alphagrpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
 	networkv1alphagrpc.RegisterGetNetworkFeeServiceServer(grpcServer, server)
 	partnerv1alphagrpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, server)
+	bookv1alphagrpc.RegisterMintServiceServer(grpcServer, server)
+	bookv1alphagrpc.RegisterValidationServiceServer(grpcServer, server)
 	pingv1alphagrpc.RegisterPingServiceServer(grpcServer, server)
 	transportv1alphagrpc.RegisterTransportSearchServiceServer(grpcServer, server)
 	return grpcServer
@@ -143,6 +149,16 @@ func (s *server) ActivityProductList(ctx context.Context, request *activityv1alp
 func (s *server) ActivitySearch(ctx context.Context, request *activityv1alpha.ActivitySearchRequest) (*activityv1alpha.ActivitySearchResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.ActivitySearchRequest, &messaging.RequestContent{ActivitySearchRequest: *request})
 	return &response.ActivitySearchResponse, err
+}
+
+func (s *server) Mint(ctx context.Context, request *bookv1alpha.MintRequest) (*bookv1alpha.MintResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.MintRequest, &messaging.RequestContent{MintRequest: *request})
+	return &response.MintResponse, err
+}
+
+func (s *server) Validation(ctx context.Context, request *bookv1alpha.ValidationRequest) (*bookv1alpha.ValidationResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.ValidationRequest, &messaging.RequestContent{ValidationRequest: *request})
+	return &response.ValidationResponse, err
 }
 
 func (s *server) TransportSearch(ctx context.Context, request *transportv1alpha.TransportSearchRequest) (*transportv1alpha.TransportSearchResponse, error) {
