@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	_                     Service = (*activityProductListService)(nil)
 	_                     Service = (*activityService)(nil)
 	_                     Service = (*accommodationProductInfoService)(nil)
 	_                     Service = (*accommodationProductListService)(nil)
@@ -33,29 +34,40 @@ var (
 type Service interface {
 	Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error)
 }
+type activityProductListService struct {
+	client *activityv1alphagrpc.ActivityProductListServiceClient
+}
+
+func (a activityProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+	if &request.ActivityProductListRequest == nil {
+		return ResponseContent{}, "", ErrInvalidMessageType
+	}
+	response, err := (*a.client).ActivityProductList(ctx, &request.ActivityProductListRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.ActivityProductListResponse = *response // otherwise nil pointer dereference
+	}
+	return responseContent, ActivityProductListResponse, err
+}
 
 type activityService struct {
 	client *activityv1alphagrpc.ActivitySearchServiceClient
 }
-type accommodationProductInfoService struct {
-	client *accommodationv1alphagrpc.AccommodationProductInfoServiceClient
-}
-type accommodationProductListService struct {
-	client *accommodationv1alphagrpc.AccommodationProductListServiceClient
+
+func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
+	if &request.ActivitySearchRequest == nil {
+		return ResponseContent{}, "", ErrInvalidMessageType
+	}
+	response, err := (*s.client).ActivitySearch(ctx, &request.ActivitySearchRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.ActivitySearchResponse = *response // otherwise nil pointer dereference
+	}
+	return responseContent, ActivitySearchResponse, err
 }
 
-type accommodationService struct {
-	client *accommodationv1alphagrpc.AccommodationSearchServiceClient
-}
-type networkService struct {
-}
-type partnerService struct {
-}
-type pingService struct {
-	client *pingv1alphagrpc.PingServiceClient
-}
-type transportService struct {
-	client *transportv1alphagrpc.TransportSearchServiceClient
+type accommodationProductInfoService struct {
+	client *accommodationv1alphagrpc.AccommodationProductInfoServiceClient
 }
 
 func (a accommodationProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
@@ -69,6 +81,11 @@ func (a accommodationProductInfoService) Call(ctx context.Context, request *Requ
 	}
 	return responseContent, AccommodationProductInfoResponse, err
 }
+
+type accommodationProductListService struct {
+	client *accommodationv1alphagrpc.AccommodationProductListServiceClient
+}
+
 func (a accommodationProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.AccommodationProductListRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
@@ -80,16 +97,9 @@ func (a accommodationProductListService) Call(ctx context.Context, request *Requ
 	}
 	return responseContent, AccommodationProductListResponse, err
 }
-func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
-	if &request.ActivitySearchRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
-	}
-	response, err := (*s.client).ActivitySearch(ctx, &request.ActivitySearchRequest, opts...)
-	responseContent := ResponseContent{}
-	if err == nil {
-		responseContent.ActivitySearchResponse = *response // otherwise nil pointer dereference
-	}
-	return responseContent, ActivitySearchResponse, err
+
+type accommodationService struct {
+	client *accommodationv1alphagrpc.AccommodationSearchServiceClient
 }
 
 func (s accommodationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
@@ -102,6 +112,9 @@ func (s accommodationService) Call(ctx context.Context, request *RequestContent,
 		responseContent.AccommodationSearchResponse = *response // otherwise nil pointer dereference
 	}
 	return responseContent, AccommodationSearchResponse, err
+}
+
+type networkService struct {
 }
 
 func (s networkService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
@@ -118,6 +131,9 @@ func (s networkService) Call(_ context.Context, request *RequestContent, _ ...gr
 		responseContent.GetNetworkFeeResponse = *response // otherwise 	nil pointer dereference
 	}
 	return responseContent, GetNetworkFeeResponse, err
+}
+
+type partnerService struct {
 }
 
 func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
@@ -137,6 +153,10 @@ func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...gr
 	return responseContent, GetPartnerConfigurationResponse, err
 }
 
+type pingService struct {
+	client *pingv1alphagrpc.PingServiceClient
+}
+
 func (s pingService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.PingRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
@@ -147,6 +167,10 @@ func (s pingService) Call(ctx context.Context, request *RequestContent, opts ...
 		responseContent.PingResponse = *response // otherwise 	nil pointer dereference
 	}
 	return responseContent, PingResponse, err
+}
+
+type transportService struct {
+	client *transportv1alphagrpc.TransportSearchServiceClient
 }
 
 func (s transportService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {

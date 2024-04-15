@@ -33,6 +33,9 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 	for _, requestType := range requestTypes {
 		var service Service
 		switch MessageType(requestType) {
+		case ActivityProductListRequest:
+			c := activityv1alphagrpc.NewActivityProductListServiceClient(s.rpcClient.ClientConn)
+			service = activityProductListService{client: &c}
 		case ActivitySearchRequest:
 			c := activityv1alphagrpc.NewActivitySearchServiceClient(s.rpcClient.ClientConn)
 			service = activityService{client: &c}
