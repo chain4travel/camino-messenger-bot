@@ -35,6 +35,7 @@ var (
 	_ accommodationv1alphagrpc.AccommodationProductInfoServiceServer = (*server)(nil)
 	_ accommodationv1alphagrpc.AccommodationProductListServiceServer = (*server)(nil)
 	_ accommodationv1alphagrpc.AccommodationSearchServiceServer      = (*server)(nil)
+	_ activityv1alphagrpc.ActivityProductListServiceServer           = (*server)(nil)
 	_ activityv1alphagrpc.ActivitySearchServiceServer                = (*server)(nil)
 	_ networkv1alphagrpc.GetNetworkFeeServiceServer                  = (*server)(nil)
 	_ partnerv1alphagrpc.GetPartnerConfigurationServiceServer        = (*server)(nil)
@@ -79,6 +80,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, processor
 
 func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOption) *grpc.Server {
 	grpcServer := grpc.NewServer(opts...)
+	activityv1alphagrpc.RegisterActivityProductListServiceServer(grpcServer, server)
 	activityv1alphagrpc.RegisterActivitySearchServiceServer(grpcServer, server)
 	accommodationv1alphagrpc.RegisterAccommodationProductInfoServiceServer(grpcServer, server)
 	accommodationv1alphagrpc.RegisterAccommodationProductListServiceServer(grpcServer, server)
@@ -131,6 +133,11 @@ func (s *server) GetNetworkFee(ctx context.Context, request *networkv1alpha.GetN
 func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv1alpha.GetPartnerConfigurationRequest) (*partnerv1alpha.GetPartnerConfigurationResponse, error) {
 	response, err := s.processInternalRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: *request})
 	return &response.GetPartnerConfigurationResponse, err
+}
+
+func (s *server) ActivityProductList(ctx context.Context, request *activityv1alpha.ActivityProductListRequest) (*activityv1alpha.ActivityProductListResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.ActivityProductListRequest, &messaging.RequestContent{ActivityProductListRequest: *request})
+	return &response.ActivityProductListResponse, err
 }
 
 func (s *server) ActivitySearch(ctx context.Context, request *activityv1alpha.ActivitySearchRequest) (*activityv1alpha.ActivitySearchResponse, error) {
