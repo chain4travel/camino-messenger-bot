@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ava-labs/hypersdk/codec"
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -17,9 +18,9 @@ import (
 	"github.com/ava-labs/hypersdk/pubsub"
 	"github.com/ava-labs/hypersdk/rpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/hypersdk/examples/touristicvm/auth"
-	"github.com/chain4travel/hypersdk/examples/touristicvm/cmd/touristic-cli/cmd"
-	brpc "github.com/chain4travel/hypersdk/examples/touristicvm/rpc"
+	"github.com/chain4travel/caminotravelvm/auth"
+	"github.com/chain4travel/caminotravelvm/cmd/caminotravel-cli/cmd"
+	brpc "github.com/chain4travel/caminotravelvm/rpc"
 )
 
 var (
@@ -31,6 +32,7 @@ type Client struct {
 	ws          *rpc.WebSocketClient
 	tCli        *brpc.JSONRPCClient
 	authFactory *auth.SECP256K1Factory
+	pk          *secp256k1.PrivateKey
 
 	Timeout time.Duration // milliseconds
 }
@@ -69,8 +71,13 @@ func NewClient(cfg config.TvmConfig) (*Client, error) {
 		ws:          ws,
 		tCli:        tCli,
 		authFactory: factory,
+		pk:          pk,
 		Timeout:     time.Duration(cfg.AwaitTxConfirmationTimeout) * time.Millisecond,
 	}, nil
+}
+
+func (c *Client) Address() codec.Address {
+	return auth.NewSECP256K1Address(*c.pk.PublicKey())
 }
 
 func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {

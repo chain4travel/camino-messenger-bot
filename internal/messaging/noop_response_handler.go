@@ -5,13 +5,15 @@
 
 package messaging
 
-import "context"
+import (
+	"context"
+)
 
 var _ ResponseHandler = (*NoopResponseHandler)(nil)
 
 type NoopResponseHandler struct {
 }
 
-func (n NoopResponseHandler) HandleResponse(context.Context, MessageType, *ResponseContent) error {
+func (n NoopResponseHandler) HandleResponse(context.Context, MessageType, *RequestContent, *ResponseContent) error {
 	return nil
 }

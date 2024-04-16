@@ -3,11 +3,11 @@ module github.com/chain4travel/camino-messenger-bot
 go 1.20
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240415140348-9f62f6fadb08.2
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.33.0-20240415140348-9f62f6fadb08.1
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240416134251-eea07d77749c.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.33.0-20240416134251-eea07d77749c.1
 	github.com/ava-labs/avalanchego v1.10.18
 	github.com/ava-labs/hypersdk v0.0.16
-	github.com/chain4travel/hypersdk/examples/touristicvm v0.0.0-20240409080050-5c8e03dfdb05
+	github.com/chain4travel/caminotravelvm v0.0.0-20240416095713-19b054e9e6ab
 	github.com/chzyer/readline v1.5.1
 	github.com/google/uuid v1.4.0
 	github.com/klauspost/compress v1.17.3
@@ -110,7 +110,7 @@ require (
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	maunium.net/go/mautrix v0.15.1
@@ -120,4 +120,4 @@ replace maunium.net/go/mautrix => ./camino-matrix-go
 
 replace github.com/ava-labs/hypersdk => ../c4t/hypersdk
 
-replace github.com/chain4travel/hypersdk/examples/touristicvm => ../c4t/hypersdk/examples/touristicvm
+replace github.com/chain4travel/caminotravelvm => ../c4t/caminotravelvm

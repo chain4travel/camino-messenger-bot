@@ -9,31 +9,38 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
 	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
-	"github.com/chain4travel/hypersdk/examples/touristicvm/actions"
-	"github.com/chain4travel/hypersdk/examples/touristicvm/consts"
+	"github.com/chain4travel/caminotravelvm/actions"
+	"github.com/chain4travel/caminotravelvm/consts"
+	"strconv"
 )
 
 var _ ResponseHandler = (*TvmResponseHandler)(nil)
 
 type ResponseHandler interface {
-	HandleResponse(ctx context.Context, msgType MessageType, response *ResponseContent) error
+	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) error
 }
 type TvmResponseHandler struct {
 	tvmClient *tvm.Client
 }
 
-func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, response *ResponseContent) error {
+func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) error {
 
-	if false { //TODO replace with msgType == Mintresponse
-		owner, err := codec.ParseAddressBech32(consts.HRP, response.PingMessage) //TODO replace with bot's addr
+	if msgType == MintResponse {
+		owner := h.tvmClient.Address()
+
+		buyer, err := codec.ParseAddressBech32(consts.HRP, request.MintRequest.BuyerAddress)
 		if err != nil {
-			return fmt.Errorf("error parsing address: %v", err)
+			return fmt.Errorf("error parsing buyer address: %w", err)
 		}
-
-		success, txID, err := h.tvmClient.SendTxAndWait(ctx, createNFTAction("https://example.com", "qweqwe", owner))
+		price, err := strconv.Atoi(response.MintResponse.Price.Value)
+		if err != nil {
+			return fmt.Errorf("error parsing price value: %w", err)
+		}
+		success, txID, err := h.tvmClient.SendTxAndWait(ctx, createNFTAction(owner, buyer, uint64(response.MintResponse.BuyableUntil.Seconds), uint64(price), response.MintResponse.MintId))
 		if errors.Is(err, context.DeadlineExceeded) {
 			return fmt.Errorf("%w: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
 		}
@@ -44,6 +51,7 @@ func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 			return fmt.Errorf("minting NFT tx failed")
 		}
 		fmt.Printf("NFT minted with txID: %s\n", txID)
+		response.MintTransactionId = txID.String()
 		return nil
 	}
 	return nil
@@ -52,10 +60,15 @@ func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 func NewResponseHandler(tvmClient *tvm.Client) *TvmResponseHandler {
 	return &TvmResponseHandler{tvmClient: tvmClient}
 }
-func createNFTAction(URL, metadata string, recipient codec.Address) chain.Action {
+func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {
 	return &actions.CreateNFT{
-		Metadata: []byte(metadata),
-		Owner:    recipient,
-		URL:      []byte(URL),
+		Owner:                owner,
+		Issuer:               owner,
+		Buyer:                buyer,
+		PurchaseExpiration:   purchaseExpiration,
+		Asset:                ids.ID{},
+		Price:                price,
+		CancellationPolicies: actions.CancellationPolicies{},
+		Metadata:             []byte(metadata),
 	}
 }
