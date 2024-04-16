@@ -52,8 +52,12 @@ func (p *partnerPlugin) Mint(ctx context.Context, request *bookv1alpha.MintReque
 
 	response := bookv1alpha.MintResponse{
 		MintId: md.RequestID,
-		BookingTimestamp: &timestamppb.Timestamp{
+		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Unix(),
+		},
+		Price: &typesv1alpha.Price{
+			Value:    "1",
+			Decimals: 9,
 		},
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
