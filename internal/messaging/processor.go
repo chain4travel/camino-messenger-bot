@@ -150,6 +150,7 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 		select {
 		case response := <-responseChan:
 			if response.Metadata.RequestID == msg.Metadata.RequestID {
+				p.responseHandler.HandleResponse(ctx, msg.Type, &msg.Content.RequestContent, &response.Content.ResponseContent)
 				return response, nil
 			}
 			//p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)

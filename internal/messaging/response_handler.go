@@ -15,6 +15,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
 	"github.com/chain4travel/caminotravelvm/actions"
 	"github.com/chain4travel/caminotravelvm/consts"
+	"go.uber.org/zap"
 	"strconv"
 )
 
@@ -25,13 +26,34 @@ type ResponseHandler interface {
 }
 type TvmResponseHandler struct {
 	tvmClient *tvm.Client
+	logger    *zap.SugaredLogger
 }
 
 func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) error {
-
-	if msgType == MintResponse {
+	switch msgType {
+	case MintRequest:
+		if response.MintTransactionId == "" {
+			return fmt.Errorf("missing mint transaction id")
+		}
+		mintID, err := ids.FromString(response.MintTransactionId)
+		if err != nil {
+			return fmt.Errorf("error parsing mint transaction id: %w", err)
+		}
+		success, txID, err := h.tvmClient.SendTxAndWait(ctx, transferNFTAction(h.tvmClient.Address(), mintID))
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("%w: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
+		}
+		if err != nil {
+			return fmt.Errorf("error buying NFT: %v", err)
+		}
+		if !success {
+			return fmt.Errorf("buying NFT failed")
+		}
+		h.logger.Infof("Bought NFT with ID: %s\n", txID)
+		response.BuyTransactionId = txID.String()
+		return nil
+	case MintResponse:
 		owner := h.tvmClient.Address()
-
 		buyer, err := codec.ParseAddressBech32(consts.HRP, request.MintRequest.BuyerAddress)
 		if err != nil {
 			return fmt.Errorf("error parsing buyer address: %w", err)
@@ -50,15 +72,15 @@ func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 		if !success {
 			return fmt.Errorf("minting NFT tx failed")
 		}
-		fmt.Printf("NFT minted with txID: %s\n", txID)
+		h.logger.Infof("NFT minted with txID: %s\n", txID)
 		response.MintTransactionId = txID.String()
 		return nil
 	}
 	return nil
 }
 
-func NewResponseHandler(tvmClient *tvm.Client) *TvmResponseHandler {
-	return &TvmResponseHandler{tvmClient: tvmClient}
+func NewResponseHandler(tvmClient *tvm.Client, logger *zap.SugaredLogger) *TvmResponseHandler {
+	return &TvmResponseHandler{tvmClient: tvmClient, logger: logger}
 }
 func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {
 	return &actions.CreateNFT{
@@ -70,5 +92,13 @@ func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint6
 		Price:                price,
 		CancellationPolicies: actions.CancellationPolicies{},
 		Metadata:             []byte(metadata),
+	}
+}
+func transferNFTAction(newOwner codec.Address, nftID ids.ID) chain.Action {
+	return &actions.TransferNFT{
+		To:             newOwner,
+		ID:             nftID,
+		OnChainPayment: false, // TODO change based on tchain configuration
+		Memo:           nil,
 	}
 }
