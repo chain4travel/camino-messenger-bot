@@ -53,7 +53,7 @@ func (p *partnerPlugin) Mint(ctx context.Context, request *bookv1alpha.MintReque
 	response := bookv1alpha.MintResponse{
 		MintId: md.RequestID,
 		BuyableUntil: &timestamppb.Timestamp{
-			Seconds: time.Now().Unix(),
+			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
 		Price: &typesv1alpha.Price{
 			Value:    "1",

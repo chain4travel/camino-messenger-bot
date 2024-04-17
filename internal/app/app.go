@@ -77,7 +77,7 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Warnf("Failed to create tvm client: %v", err)
 		responseHandler = messaging.NoopResponseHandler{}
 	} else {
-		responseHandler = messaging.NewResponseHandler(tvmClient)
+		responseHandler = messaging.NewResponseHandler(tvmClient, a.logger)
 	}
 	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler)
 	g.Go(func() error {
