@@ -1,0 +1,10 @@
+tasks:
+  - name: Main
+    before: echo -e "\e[93mBot is compiling in the terminal on the right...\e[0m"
+    init: echo -e "\e[96mFor more info https://docs.camino.network/camino-messenger/bot/\e[0m"
+    command: echo -e '\e[92mTry "./bot --help" when compilation is finished!\e[0m'
+  - name: Compile Bot
+    before: sudo apt install -y libolm-dev
+    init: echo "Installing Go modules..." && git submodule update --init && go mod download
+    command: echo "Compiling bot..." && go build -o bot cmd/camino-messenger-bot/main.go
+    openMode: split-right

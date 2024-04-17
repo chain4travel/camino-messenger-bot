@@ -1,4 +1,4 @@
 [submodule "camino-matrix-go"]
 	path = camino-matrix-go
-	url = ../camino-matrix-go.git
+	url = https://github.com/chain4travel/camino-matrix-go.git
 	
