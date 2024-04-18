@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded Timeout of")
+	ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded timeout of")
 )
 
 type Client struct {
