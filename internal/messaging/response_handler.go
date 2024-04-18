@@ -6,6 +6,7 @@
 package messaging
 
 import (
+	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 	"context"
 	"errors"
 	"fmt"
@@ -22,61 +23,85 @@ import (
 var _ ResponseHandler = (*TvmResponseHandler)(nil)
 
 type ResponseHandler interface {
-	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) error
+	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent)
 }
 type TvmResponseHandler struct {
 	tvmClient *tvm.Client
 	logger    *zap.SugaredLogger
 }
 
-func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) error {
+func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
 	switch msgType {
-	case MintRequest:
+	case MintRequest: // distributor will post-process a mint request to buy the returned NFT
+		if response.MintResponse.Header == nil {
+			response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
+		}
 		if response.MintTransactionId == "" {
-			return fmt.Errorf("missing mint transaction id")
+			addErrorToResponseHeader(response, "missing mint transaction id")
+			return
 		}
 		mintID, err := ids.FromString(response.MintTransactionId)
 		if err != nil {
-			return fmt.Errorf("error parsing mint transaction id: %w", err)
+			addErrorToResponseHeader(response, fmt.Sprintf("error parsing mint transaction id: %v", err))
+			return
 		}
+
 		success, txID, err := h.tvmClient.SendTxAndWait(ctx, transferNFTAction(h.tvmClient.Address(), mintID))
-		if errors.Is(err, context.DeadlineExceeded) {
-			return fmt.Errorf("%w: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
-		}
 		if err != nil {
-			return fmt.Errorf("error buying NFT: %v", err)
+			errMessage := fmt.Sprintf("error buying NFT: %v", err)
+			if errors.Is(err, context.DeadlineExceeded) {
+				errMessage = fmt.Sprintf("%v: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
+			}
+			addErrorToResponseHeader(response, errMessage)
+			return
 		}
 		if !success {
-			return fmt.Errorf("buying NFT failed")
+			addErrorToResponseHeader(response, "buying NFT failed")
+			return
 		}
-		h.logger.Infof("Bought NFT with ID: %s\n", txID)
+
+		h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintID)
 		response.BuyTransactionId = txID.String()
-		return nil
-	case MintResponse:
+	case MintResponse: // provider will act upon receiving a mint response by minting an NFT
 		owner := h.tvmClient.Address()
+		if response.MintResponse.Header == nil {
+			response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
+		}
 		buyer, err := codec.ParseAddressBech32(consts.HRP, request.MintRequest.BuyerAddress)
 		if err != nil {
-			return fmt.Errorf("error parsing buyer address: %w", err)
+			addErrorToResponseHeader(response, fmt.Sprintf("error parsing buyer address: %v", err))
+			return
 		}
 		price, err := strconv.Atoi(response.MintResponse.Price.Value)
 		if err != nil {
-			return fmt.Errorf("error parsing price value: %w", err)
+			addErrorToResponseHeader(response, fmt.Sprintf("error parsing price value: %v", err))
+			return
 		}
 		success, txID, err := h.tvmClient.SendTxAndWait(ctx, createNFTAction(owner, buyer, uint64(response.MintResponse.BuyableUntil.Seconds), uint64(price), response.MintResponse.MintId))
-		if errors.Is(err, context.DeadlineExceeded) {
-			return fmt.Errorf("%w: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
-		}
 		if err != nil {
-			return fmt.Errorf("error minting NFT: %v", err)
+			errMessage := fmt.Sprintf("error minting NFT: %v", err)
+			if errors.Is(err, context.DeadlineExceeded) {
+				errMessage = fmt.Sprintf("%v: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
+			}
+			addErrorToResponseHeader(response, errMessage)
+			return
 		}
 		if !success {
-			return fmt.Errorf("minting NFT tx failed")
+			addErrorToResponseHeader(response, "minting NFT tx failed")
+			return
 		}
 		h.logger.Infof("NFT minted with txID: %s\n", txID)
+		response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
 		response.MintTransactionId = txID.String()
-		return nil
 	}
-	return nil
+}
+
+func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
+	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_FAILURE
+	response.MintResponse.Header.Alerts = append(response.MintResponse.Header.Alerts, &typesv1alpha.Alert{
+		Message: errMessage,
+		Type:    typesv1alpha.AlertType_ALERT_TYPE_ERROR,
+	})
 }
 
 func NewResponseHandler(tvmClient *tvm.Client, logger *zap.SugaredLogger) *TvmResponseHandler {

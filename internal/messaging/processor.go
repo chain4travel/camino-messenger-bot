@@ -185,10 +185,7 @@ func (p *processor) Respond(msg Message) error {
 		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
 	}
 
-	err = p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, &response)
-	if err != nil {
-		return err //TODO handle error and return a response message
-	}
+	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, &response)
 	responseMsg := Message{
 		Type: msgType,
 		Content: MessageContent{

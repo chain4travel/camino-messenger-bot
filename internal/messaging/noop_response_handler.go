@@ -14,6 +14,5 @@ var _ ResponseHandler = (*NoopResponseHandler)(nil)
 type NoopResponseHandler struct {
 }
 
-func (n NoopResponseHandler) HandleResponse(context.Context, MessageType, *RequestContent, *ResponseContent) error {
-	return nil
+func (n NoopResponseHandler) HandleResponse(context.Context, MessageType, *RequestContent, *ResponseContent) {
 }
