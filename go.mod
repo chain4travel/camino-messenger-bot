@@ -7,7 +7,7 @@ require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.33.0-20240416134251-eea07d77749c.1
 	github.com/ava-labs/avalanchego v1.10.18
 	github.com/ava-labs/hypersdk v0.0.16
-	github.com/chain4travel/caminotravelvm v0.0.0-20240416095713-19b054e9e6ab
+	github.com/chain4travel/caminotravelvm v0.0.0-20240419161941-a32dadd85f51
 	github.com/chzyer/readline v1.5.1
 	github.com/google/uuid v1.4.0
 	github.com/klauspost/compress v1.17.3
@@ -117,7 +117,3 @@ require (
 )
 
 replace maunium.net/go/mautrix => ./camino-matrix-go
-
-replace github.com/ava-labs/hypersdk => ../c4t/hypersdk
-
-replace github.com/chain4travel/caminotravelvm => ../c4t/caminotravelvm

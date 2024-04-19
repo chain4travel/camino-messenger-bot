@@ -411,6 +411,8 @@ github.com/ava-labs/avalanche-network-runner v1.7.4-rc.0 h1:xNbCMNqenaDr0bb35j27
 github.com/ava-labs/avalanche-network-runner v1.7.4-rc.0/go.mod h1:B7Ynk/avkCk49CCIWbM4j1UrPlqIi0IHCPAB2MZNvLw=
 github.com/ava-labs/avalanchego v1.10.18 h1:ErJ+SJBtN9tVqk3OPRXffpf+MWeQnNZJlBNWQIgAg8A=
 github.com/ava-labs/avalanchego v1.10.18/go.mod h1:wqmokVcLXE+9Nfa8wHdGJtjEW35acVf8rkraSZPVBA4=
+github.com/ava-labs/hypersdk v0.0.16 h1:i06B0fwTgrzf0IzfI1WAhhCg5izln/4N94RM9Tesv9o=
+github.com/ava-labs/hypersdk v0.0.16/go.mod h1:zniwECGWXqI1Nvp8mdUoXU7MKr2VjB+Gm1QiSqgcxQg=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
@@ -443,6 +445,8 @@ github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghf
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj44=
 github.com/cespare/xxhash/v2 v2.2.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
+github.com/chain4travel/caminotravelvm v0.0.0-20240419161941-a32dadd85f51 h1:O2+LNsqPJqqieSAVNka4fKc1YH/aS3kY/BIBUt+lTPk=
+github.com/chain4travel/caminotravelvm v0.0.0-20240419161941-a32dadd85f51/go.mod h1:ROT4vaILMXiXjFgxlFD1MO3ZfjEpTnYLcx/GboBy8uY=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/logex v1.2.1 h1:XHDu3E6q+gdHgsdTPH6ImJMIp436vR6MPtH8gP05QzM=
 github.com/chzyer/logex v1.2.1/go.mod h1:JLbx6lG2kDbNRFnfkgvh4eRJRPX1QCoOIWomwysCBrQ=
