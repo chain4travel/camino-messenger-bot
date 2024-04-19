@@ -127,7 +127,7 @@ func (s *server) AccommodationSearch(ctx context.Context, request *accommodation
 }
 
 func (s *server) Ping(ctx context.Context, request *pingv1alpha.PingRequest) (*pingv1alpha.PingResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: *request})
+	response, err := s.processInternalRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: *request})
 	return &response.PingResponse, err
 }
 

@@ -8,12 +8,14 @@ package messaging
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
+	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
 	"context"
 	"errors"
+	"fmt"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"google.golang.org/grpc"
@@ -158,15 +160,11 @@ func (s networkService) Call(_ context.Context, request *RequestContent, _ ...gr
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
 
-	//TODO implement
-	response, err := &networkv1alpha.GetNetworkFeeResponse{
-		NetworkFee: &networkv1alpha.NetworkFee{Amount: 100000},
-	}, (error)(nil)
-	responseContent := ResponseContent{}
-	if err == nil {
-		responseContent.GetNetworkFeeResponse = *response // otherwise 	nil pointer dereference
-	}
-	return responseContent, GetNetworkFeeResponse, err
+	return ResponseContent{
+		GetNetworkFeeResponse: networkv1alpha.GetNetworkFeeResponse{
+			NetworkFee: &networkv1alpha.NetworkFee{Amount: 100000}, //TODO implement
+		},
+	}, GetNetworkFeeResponse, nil
 }
 
 type partnerService struct {
@@ -177,32 +175,32 @@ func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...gr
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
 
-	//TODO implement
-	response, err := &partnerv1alpha.GetPartnerConfigurationResponse{
-		PartnerConfiguration: nil,
-		CurrentBlockHeight:   0,
-	}, (error)(nil)
-	responseContent := ResponseContent{}
-	if err == nil {
-		responseContent.GetPartnerConfigurationResponse = *response // otherwise 	nil pointer dereference
-	}
-	return responseContent, GetPartnerConfigurationResponse, err
+	return ResponseContent{
+		GetPartnerConfigurationResponse: partnerv1alpha.GetPartnerConfigurationResponse{
+			PartnerConfiguration: nil, //TODO implement
+			CurrentBlockHeight:   0,
+		},
+	}, GetPartnerConfigurationResponse, nil
 }
 
 type pingService struct {
-	client *pingv1alphagrpc.PingServiceClient
 }
 
 func (s pingService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.PingRequest == nil {
 		return ResponseContent{}, "", ErrInvalidMessageType
 	}
-	response, err := (*s.client).Ping(ctx, &request.PingRequest, opts...)
-	responseContent := ResponseContent{}
-	if err == nil {
-		responseContent.PingResponse = *response // otherwise 	nil pointer dereference
+
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		return ResponseContent{}, PingResponse, err
 	}
-	return responseContent, PingResponse, err
+	return ResponseContent{PingResponse: pingv1alpha.PingResponse{
+		Header:      nil,
+		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
+		Timestamp:   nil,
+	}}, PingResponse, nil
 }
 
 type transportService struct {
