@@ -24,6 +24,7 @@ type messageAssembler struct {
 func NewMessageAssembler(logger *zap.SugaredLogger) MessageAssembler {
 	return &messageAssembler{logger: logger, partialMessages: make(map[string][]CaminoMatrixMessage)}
 }
+
 func (a *messageAssembler) AssembleMessage(msg CaminoMatrixMessage) (CaminoMatrixMessage, error, bool) {
 	if msg.Metadata.NumberOfChunks == 1 {
 		decompressedCaminoMsg, err := assembleAndDecompressCaminoMatrixMessages([]CaminoMatrixMessage{msg})

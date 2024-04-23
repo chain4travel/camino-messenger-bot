@@ -29,17 +29,17 @@ var (
 )
 
 type MsgHandler interface {
-	Request(ctx context.Context, msg Message) (Message, error)
-	Respond(msg Message) error
-	Forward(msg Message)
+	Request(ctx context.Context, msg *Message) (Message, error)
+	Respond(msg *Message) error
+	Forward(msg *Message)
 }
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
 	SetUserID(userID string)
 	Start(ctx context.Context)
-	ProcessInbound(message Message) error
-	ProcessOutbound(ctx context.Context, message Message) (Message, error)
+	ProcessInbound(message *Message) error
+	ProcessOutbound(ctx context.Context, message *Message) (Message, error)
 }
 
 type processor struct {
@@ -50,7 +50,7 @@ type processor struct {
 	timeout   time.Duration // timeout after which a request is considered failed
 
 	mu               sync.Mutex
-	responseChannels map[string]chan Message
+	responseChannels map[string]chan *Message
 	serviceRegistry  *ServiceRegistry
 	responseHandler  ResponseHandler
 }
@@ -69,7 +69,7 @@ func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.Pro
 		messenger:        messenger,
 		logger:           logger,
 		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels: make(map[string]chan Message),
+		responseChannels: make(map[string]chan *Message),
 		serviceRegistry:  registry,
 		responseHandler:  responseHandler,
 	}
@@ -81,7 +81,7 @@ func (p *processor) Start(ctx context.Context) {
 		case msgEvent := <-p.messenger.Inbound():
 			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
 			go func() {
-				err := p.ProcessInbound(msgEvent)
+				err := p.ProcessInbound(&msgEvent)
 				if err != nil {
 					p.logger.Warnf("could not process message: %v", err)
 				}
@@ -93,7 +93,7 @@ func (p *processor) Start(ctx context.Context) {
 	}
 }
 
-func (p *processor) ProcessInbound(msg Message) error {
+func (p *processor) ProcessInbound(msg *Message) error {
 	if p.userID == "" {
 		return ErrUserIDNotSet
 	}
@@ -112,7 +112,7 @@ func (p *processor) ProcessInbound(msg Message) error {
 	}
 }
 
-func (p *processor) ProcessOutbound(ctx context.Context, msg Message) (Message, error) {
+func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (Message, error) {
 	msg.Metadata.Sender = p.userID
 	if msg.Type.Category() == Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
@@ -122,9 +122,9 @@ func (p *processor) ProcessOutbound(ctx context.Context, msg Message) (Message, 
 	}
 }
 
-func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
+func (p *processor) Request(ctx context.Context, msg *Message) (Message, error) {
 	p.logger.Debug("Sending outbound request message")
-	responseChan := make(chan Message)
+	responseChan := make(chan *Message)
 	p.mu.Lock()
 	p.responseChannels[msg.Metadata.RequestID] = responseChan
 	p.mu.Unlock()
@@ -140,7 +140,7 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
 		return Message{}, ErrMissingRecipient
 	}
-	msg.Metadata.Cheques = nil //TODO issue and attach cheques
+	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	err := p.messenger.SendAsync(ctx, msg)
 	if err != nil {
 		return Message{}, err
@@ -151,16 +151,16 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 		case response := <-responseChan:
 			if response.Metadata.RequestID == msg.Metadata.RequestID {
 				p.responseHandler.HandleResponse(ctx, msg.Type, &msg.Content.RequestContent, &response.Content.ResponseContent)
-				return response, nil
+				return *response, nil
 			}
-			//p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
+			// p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
 		case <-ctx.Done():
 			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds for request: %s", p.timeout, msg.Metadata.RequestID)
 		}
 	}
 }
 
-func (p *processor) Respond(msg Message) error {
+func (p *processor) Respond(msg *Message) error {
 	var service Service
 	var supported bool
 	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
@@ -177,7 +177,7 @@ func (p *processor) Respond(msg Message) error {
 	var header grpc_metadata.MD
 	response, msgType, err := service.Call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
 	if err != nil {
-		return err //TODO handle error and return a response message
+		return err // TODO handle error and return a response message
 	}
 
 	err = md.FromGrpcMD(header)
@@ -186,7 +186,7 @@ func (p *processor) Respond(msg Message) error {
 	}
 
 	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, &response)
-	responseMsg := Message{
+	responseMsg := &Message{
 		Type: msgType,
 		Content: MessageContent{
 			ResponseContent: response,
@@ -196,7 +196,7 @@ func (p *processor) Respond(msg Message) error {
 	return p.messenger.SendAsync(ctx, responseMsg)
 }
 
-func (p *processor) Forward(msg Message) {
+func (p *processor) Forward(msg *Message) {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
 	p.mu.Lock()
 	responseChan, ok := p.responseChannels[msg.Metadata.RequestID]

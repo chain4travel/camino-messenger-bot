@@ -45,6 +45,7 @@ func (c *MatrixChunkingCompressor) Compress(msg messaging.Message) ([]CaminoMatr
 	// 3. Create CaminoMatrixMessage objects for each chunk
 	return splitCaminoMatrixMsg(msg, splitCompressedContent)
 }
+
 func (c *MatrixChunkingCompressor) split(bytes []byte) ([][]byte, error) {
 	splitCompressedContent := splitByteArray(bytes, c.maxChunkSize)
 
@@ -65,8 +66,9 @@ func compress(msg messaging.Message) ([]byte, error) {
 	}
 	return compression.Compress(bytes), nil
 }
+
 func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte) ([]CaminoMatrixMessage, error) {
-	var messages []CaminoMatrixMessage
+	messages := make([]CaminoMatrixMessage, len(splitCompressedContent))
 
 	// add first chunk to messages slice
 	{

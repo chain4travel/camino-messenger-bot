@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
@@ -58,6 +59,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		compressor:   &MatrixChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
 }
+
 func (m *messenger) Checkpoint() string {
 	return "messenger-gateway"
 }
@@ -100,7 +102,7 @@ func (m *messenger) StartReceiver() (string, error) {
 		}
 	})
 
-	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) //TODO refactor
+	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) // TODO refactor
 	if err != nil {
 		return "", err
 	}
@@ -145,6 +147,7 @@ func (m *messenger) StartReceiver() (string, error) {
 
 	return m.client.UserID.String(), nil
 }
+
 func (m *messenger) StopReceiver() error {
 	m.logger.Info("Stopping matrix syncer...")
 	if m.client.cancelSync != nil {
@@ -154,7 +157,7 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
+func (m *messenger) SendAsync(_ context.Context, msg *messaging.Message) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 
 	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
@@ -162,7 +165,7 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 		return err
 	}
 
-	messages, err := m.compressor.Compress(msg)
+	messages, err := m.compressor.Compress(*msg)
 	if err != nil {
 		return err
 	}
@@ -171,7 +174,7 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 }
 
 func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
-	//TODO add retry logic?
+	// TODO add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(roomID, eventType, msg)
 		if err != nil {

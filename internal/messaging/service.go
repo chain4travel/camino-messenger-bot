@@ -6,15 +6,17 @@
 package messaging
 
 import (
+	"context"
+	"errors"
+	"fmt"
+
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
-	"context"
-	"errors"
-	"fmt"
+
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
@@ -124,7 +126,6 @@ type mintService struct {
 }
 
 func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
-
 	if &request.MintRequest == nil {
 		return ResponseContent{}, "", ErrUnknownMessageType
 	}
@@ -152,8 +153,7 @@ func (v validationService) Call(ctx context.Context, request *RequestContent, op
 	return responseContent, ValidationResponse, err
 }
 
-type networkService struct {
-}
+type networkService struct{}
 
 func (s networkService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.GetNetworkFeeRequest == nil {
@@ -162,13 +162,12 @@ func (s networkService) Call(_ context.Context, request *RequestContent, _ ...gr
 
 	return ResponseContent{
 		GetNetworkFeeResponse: networkv1alpha.GetNetworkFeeResponse{
-			NetworkFee: &networkv1alpha.NetworkFee{Amount: 100000}, //TODO implement
+			NetworkFee: &networkv1alpha.NetworkFee{Amount: 100000}, // TODO implement
 		},
 	}, GetNetworkFeeResponse, nil
 }
 
-type partnerService struct {
-}
+type partnerService struct{}
 
 func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.GetPartnerConfigurationRequest == nil {
@@ -177,14 +176,13 @@ func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...gr
 
 	return ResponseContent{
 		GetPartnerConfigurationResponse: partnerv1alpha.GetPartnerConfigurationResponse{
-			PartnerConfiguration: nil, //TODO implement
+			PartnerConfiguration: nil, // TODO implement
 			CurrentBlockHeight:   0,
 		},
 	}, GetPartnerConfigurationResponse, nil
 }
 
-type pingService struct {
-}
+type pingService struct{}
 
 func (s pingService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.PingRequest == nil {

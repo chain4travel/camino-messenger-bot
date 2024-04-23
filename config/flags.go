@@ -6,7 +6,6 @@ func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
 	fs.BoolVar(&cfg.DeveloperMode, DeveloperMode, false, "Sets developer mode")
 	fs.Var(&cfg.SupportedRequestTypes, SupportedRequestTypesKey, "The list of supported request types")
 	flag.Parse()
-
 }
 
 func readMatrixConfig(cfg MatrixConfig, fs *flag.FlagSet) {
@@ -20,15 +19,13 @@ func readRPCServerConfig(cfg RPCServerConfig, fs *flag.FlagSet) {
 	fs.BoolVar(&cfg.Unencrypted, RPCUnencryptedKey, false, "Whether the RPC server should be unencrypted")
 	fs.StringVar(&cfg.ServerCertFile, RPCServerCertFileKey, "", "The server certificate file")
 	fs.StringVar(&cfg.ServerKeyFile, RPCServerKeyFileKey, "", "The server key file")
-
 }
 
-func readPartnerRpcServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {
+func readPartnerRPCServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.Host, PartnerPluginHostKey, "", "The partner plugin RPC server host")
 	fs.IntVar(&cfg.Port, PartnerPluginPortKey, 50051, "The partner plugin RPC server port")
 	fs.BoolVar(&cfg.Unencrypted, PartnerPluginUnencryptedKey, false, "Whether the RPC client should initiate an unencrypted connection with the server")
 	fs.StringVar(&cfg.CACertFile, PartnerPluginCAFileKey, "", "The partner plugin RPC server CA certificate file")
-
 }
 
 func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {

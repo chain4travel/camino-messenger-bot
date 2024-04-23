@@ -15,6 +15,7 @@ func LoadTLSCredentials(serverCertFile, serverKeyFile string) (credentials.Trans
 		return nil, err
 	}
 	config := &tls.Config{
+		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{serverCert},
 		ClientAuth:   tls.NoClientCert,
 	}
@@ -31,7 +32,8 @@ func LoadCATLSCredentials(caCertFile string) (credentials.TransportCredentials, 
 		return nil, fmt.Errorf("failed to add CA's certificate")
 	}
 	config := &tls.Config{
-		RootCAs: certPool,
+		MinVersion: tls.VersionTLS12,
+		RootCAs:    certPool,
 	}
 	return credentials.NewTLS(config), nil
 }

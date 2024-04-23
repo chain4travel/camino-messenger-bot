@@ -6,6 +6,8 @@
 package messaging
 
 import (
+	"sync"
+
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
@@ -13,20 +15,19 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
-	"sync"
 )
 
 type ServiceRegistry struct {
 	logger   *zap.SugaredLogger
 	services map[MessageType]Service
-	lock     sync.RWMutex
+	lock     *sync.RWMutex
 }
 
 func NewServiceRegistry(logger *zap.SugaredLogger) *ServiceRegistry {
 	return &ServiceRegistry{
 		logger:   logger,
 		services: make(map[MessageType]Service),
-		lock:     sync.RWMutex{},
+		lock:     &sync.RWMutex{},
 	}
 }
 
