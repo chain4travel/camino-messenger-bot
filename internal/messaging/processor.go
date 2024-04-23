@@ -121,10 +121,9 @@ func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (Message,
 	msg.Metadata.Sender = p.userID
 	if msg.Type.Category() == Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
-	} else {
-		p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
-		return Message{}, ErrOnlyRequestMessagesAllowed // ignore msg
 	}
+	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
+	return Message{}, ErrOnlyRequestMessagesAllowed // ignore msg
 }
 
 func (p *processor) Request(ctx context.Context, msg *Message) (Message, error) {
@@ -179,7 +178,7 @@ func (p *processor) Respond(msg *Message) error {
 	var service Service
 	var supported bool
 	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
-		return fmt.Errorf("%v: %s", ErrUnsupportedRequestType, msg.Type)
+		return fmt.Errorf("%w: %s", ErrUnsupportedRequestType, msg.Type)
 	}
 
 	md := &msg.Metadata
@@ -202,11 +201,11 @@ func (p *processor) Respond(msg *Message) error {
 		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
 	}
 
-	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, &response)
+	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, response)
 	responseMsg := &Message{
 		Type: msgType,
 		Content: MessageContent{
-			ResponseContent: response,
+			ResponseContent: *response,
 		},
 		Metadata: *md,
 	}

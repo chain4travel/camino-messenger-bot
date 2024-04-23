@@ -14,8 +14,8 @@ import (
 
 var ErrUnmarshalContent = fmt.Errorf("failed to unmarshal content")
 
-func assembleAndDecompressCaminoMatrixMessages(messages []CaminoMatrixMessage) (CaminoMatrixMessage, error) {
-	var compressedPayloads [][]byte
+func assembleAndDecompressCaminoMatrixMessages(messages []*CaminoMatrixMessage) (*CaminoMatrixMessage, error) {
+	compressedPayloads := make([][]byte, 0, len(messages))
 
 	// chunks have to be sorted
 	sort.Sort(ByChunkIndex(messages))
@@ -26,16 +26,16 @@ func assembleAndDecompressCaminoMatrixMessages(messages []CaminoMatrixMessage) (
 	// assemble chunks and decompress content
 	originalContent, err := assembleAndDecompress(compressedPayloads)
 	if err != nil {
-		return CaminoMatrixMessage{}, fmt.Errorf("failed to assemble and decompress camino matrix msg: %v", err)
+		return nil, fmt.Errorf("failed to assemble and decompress camino matrix msg: %w", err)
 	}
 
-	msg := CaminoMatrixMessage{
+	msg := &CaminoMatrixMessage{
 		MessageEventContent: messages[0].MessageEventContent,
 		Metadata:            messages[0].Metadata,
 	}
 	err = msg.UnmarshalContent(originalContent)
 	if err != nil {
-		return CaminoMatrixMessage{}, fmt.Errorf("%w: %w %v", ErrUnmarshalContent, err, msg.MsgType)
+		return nil, fmt.Errorf("%w: %w %v", ErrUnmarshalContent, err, msg.MsgType)
 	}
 
 	return msg, nil

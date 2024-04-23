@@ -3,7 +3,7 @@ package matrix
 import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"maunium.net/go/mautrix/event"
 )
 
@@ -15,7 +15,7 @@ type CaminoMatrixMessage struct {
 	Metadata          metadata.Metadata        `json:"metadata"`
 }
 
-type ByChunkIndex []CaminoMatrixMessage
+type ByChunkIndex []*CaminoMatrixMessage
 
 func (b ByChunkIndex) Len() int { return len(b) }
 func (b ByChunkIndex) Less(i, j int) bool {
