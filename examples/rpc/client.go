@@ -74,7 +74,6 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 	request := &accommodationv1alpha.AccommodationSearchRequest{
 		Header: nil,
 		SearchParametersGeneric: &typesv1alpha.SearchParameters{
-			Currency:   typesv1alpha.Currency_CURRENCY_EUR,
 			Language:   typesv1alpha.Language_LANGUAGE_UG,
 			Market:     1,
 			MaxOptions: 2,
@@ -82,7 +81,7 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 		Queries: []*accommodationv1alpha.AccommodationSearchQuery{
 			{
 				SearchParametersAccommodation: &accommodationv1alpha.AccommodationSearchParameters{
-					RatePlan: []*typesv1alpha.RatePlan{{RatePlan: "economy"}},
+					SupplierCodes: []*typesv1alpha.SupplierProductCode{{SupplierCode: "supplier1"}},
 				},
 			},
 		},

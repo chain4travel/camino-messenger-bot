@@ -8,12 +8,9 @@ require (
 	github.com/ava-labs/avalanchego v1.10.18
 	github.com/ava-labs/hypersdk v0.0.16
 	github.com/chain4travel/caminotravelvm v0.0.0-20240419161941-a32dadd85f51
-	github.com/chzyer/readline v1.5.1
 	github.com/google/uuid v1.4.0
 	github.com/klauspost/compress v1.17.3
 	github.com/mattn/go-sqlite3 v1.14.18
-	github.com/pierrec/lz4 v2.6.1+incompatible
-	github.com/rs/zerolog v1.31.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
@@ -30,6 +27,7 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.1.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/errors v1.9.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v0.0.0-20230224221607-fccb83b60d5c // indirect
@@ -67,6 +65,7 @@ require (
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
+	github.com/rs/zerolog v1.31.0 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
