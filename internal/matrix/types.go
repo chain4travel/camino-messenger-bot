@@ -70,6 +70,6 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	case messaging.TransportSearchResponse:
 		return proto.Unmarshal(src, &m.Content.ResponseContent.TransportSearchResponse)
 	default:
-		return messaging.ErrInvalidMessageType
+		return messaging.ErrUnknownMessageType
 	}
 }

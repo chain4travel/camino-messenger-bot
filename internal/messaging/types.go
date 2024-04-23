@@ -161,6 +161,6 @@ func (m *Message) MarshalContent() ([]byte, error) {
 	case TransportSearchResponse:
 		return proto.Marshal(&m.Content.TransportSearchResponse)
 	default:
-		return nil, ErrInvalidMessageType
+		return nil, ErrUnknownMessageType
 	}
 }

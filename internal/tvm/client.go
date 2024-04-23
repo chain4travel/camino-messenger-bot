@@ -23,9 +23,7 @@ import (
 	brpc "github.com/chain4travel/caminotravelvm/rpc"
 )
 
-var (
-	ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded timeout of")
-)
+var ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded timeout of")
 
 type Client struct {
 	cli         *rpc.JSONRPCClient

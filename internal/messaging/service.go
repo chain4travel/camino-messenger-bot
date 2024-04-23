@@ -33,7 +33,7 @@ var (
 	_                     Service = (*partnerService)(nil)
 	_                     Service = (*pingService)(nil)
 	_                     Service = (*transportService)(nil)
-	ErrInvalidMessageType         = errors.New("invalid message type")
+	ErrUnknownMessageType         = errors.New("unknown message type")
 )
 
 type Service interface {
@@ -45,7 +45,7 @@ type activityProductListService struct {
 
 func (a activityProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.ActivityProductListRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*a.client).ActivityProductList(ctx, &request.ActivityProductListRequest, opts...)
 	responseContent := ResponseContent{}
@@ -61,7 +61,7 @@ type activityService struct {
 
 func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.ActivitySearchRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*s.client).ActivitySearch(ctx, &request.ActivitySearchRequest, opts...)
 	responseContent := ResponseContent{}
@@ -77,7 +77,7 @@ type accommodationProductInfoService struct {
 
 func (a accommodationProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.AccommodationProductInfoRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*a.client).AccommodationProductInfo(ctx, &request.AccommodationProductInfoRequest, opts...)
 	responseContent := ResponseContent{}
@@ -93,7 +93,7 @@ type accommodationProductListService struct {
 
 func (a accommodationProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.AccommodationProductListRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*a.client).AccommodationProductList(ctx, &request.AccommodationProductListRequest, opts...)
 	responseContent := ResponseContent{}
@@ -109,7 +109,7 @@ type accommodationService struct {
 
 func (s accommodationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.AccommodationSearchRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*s.client).AccommodationSearch(ctx, &request.AccommodationSearchRequest, opts...)
 	responseContent := ResponseContent{}
@@ -126,7 +126,7 @@ type mintService struct {
 func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 
 	if &request.MintRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*m.client).Mint(ctx, &request.MintRequest, opts...)
 	responseContent := ResponseContent{}
@@ -142,7 +142,7 @@ type validationService struct {
 
 func (v validationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.ValidationRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*v.client).Validation(ctx, &request.ValidationRequest, opts...)
 	responseContent := ResponseContent{}
@@ -157,7 +157,7 @@ type networkService struct {
 
 func (s networkService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.GetNetworkFeeRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 
 	return ResponseContent{
@@ -172,7 +172,7 @@ type partnerService struct {
 
 func (s partnerService) Call(_ context.Context, request *RequestContent, _ ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.GetPartnerConfigurationRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 
 	return ResponseContent{
@@ -188,7 +188,7 @@ type pingService struct {
 
 func (s pingService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.PingRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 
 	md := metadata.Metadata{}
@@ -209,7 +209,7 @@ type transportService struct {
 
 func (s transportService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (ResponseContent, MessageType, error) {
 	if &request.TransportSearchRequest == nil {
-		return ResponseContent{}, "", ErrInvalidMessageType
+		return ResponseContent{}, "", ErrUnknownMessageType
 	}
 	response, err := (*s.client).TransportSearch(ctx, &request.TransportSearchRequest, opts...)
 	responseContent := ResponseContent{}
