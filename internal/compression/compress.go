@@ -19,6 +19,12 @@ const (
 
 var encoder, _ = zstd.NewWriter(nil)
 
+// Compressor interface defines basic compression functionality
+type Compressor[T any, R any] interface {
+	// Compress takes a byte array as input and returns the compressed data as a byte array
+	Compress(data T) (R, error)
+}
+
 func Compress(src []byte) []byte {
 	return encoder.EncodeAll(src, make([]byte, 0, len(src)))
 }

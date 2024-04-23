@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"reflect"
 	"sync"
 	"time"
@@ -39,6 +40,7 @@ type messenger struct {
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
+	compressor   compression.Compressor[messaging.Message, []CaminoMatrixMessage]
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenger {
@@ -53,6 +55,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		client:       client{Client: c},
 		roomHandler:  NewRoomHandler(c, logger),
 		msgAssembler: NewMessageAssembler(logger),
+		compressor:   &MatrixChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
 }
 func (m *messenger) Checkpoint() string {
@@ -159,7 +162,7 @@ func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 		return err
 	}
 
-	messages, err := compressAndSplitCaminoMatrixMsg(msg)
+	messages, err := m.compressor.Compress(msg)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@
 package matrix
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
@@ -14,29 +15,59 @@ import (
 	"maunium.net/go/mautrix/event"
 )
 
-func compressAndSplitCaminoMatrixMsg(msg messaging.Message) ([]CaminoMatrixMessage, error) {
-	var messages []CaminoMatrixMessage
+var (
+	_                              compression.Compressor[messaging.Message, []CaminoMatrixMessage] = (*MatrixChunkingCompressor)(nil)
+	ErrCompressionProducedNoChunks                                                                  = errors.New("compression produced no chunks")
+	ErrEncodingMsg                                                                                  = errors.New("error while encoding msg for compression")
+)
 
+// MatrixChunkingCompressor is a concrete implementation of Compressor with chunking functionality
+type MatrixChunkingCompressor struct {
+	maxChunkSize int
+}
+
+// Compress implements the Compressor interface for MatrixChunkingCompressor
+func (c *MatrixChunkingCompressor) Compress(msg messaging.Message) ([]CaminoMatrixMessage, error) {
+	var matrixMessages []CaminoMatrixMessage
+
+	// 1. Compress the message
+	compressedContent, err := compress(msg)
+	if err != nil {
+		return matrixMessages, err
+	}
+
+	// 2. Split the compressed content into chunks
+	splitCompressedContent, err := c.split(compressedContent)
+	if err != nil {
+		return matrixMessages, err
+	}
+
+	// 3. Create CaminoMatrixMessage objects for each chunk
+	return splitCaminoMatrixMsg(msg, splitCompressedContent)
+}
+func (c *MatrixChunkingCompressor) split(bytes []byte) ([][]byte, error) {
+	splitCompressedContent := splitByteArray(bytes, c.maxChunkSize)
+
+	if len(splitCompressedContent) == 0 {
+		return nil, ErrCompressionProducedNoChunks // should never happen
+	}
+	return splitCompressedContent, nil
+}
+
+func compress(msg messaging.Message) ([]byte, error) {
 	var (
 		bytes []byte
 		err   error
 	)
-	switch msg.Type.Category() {
-	case messaging.Request,
-		messaging.Response:
-		bytes, err = msg.MarshalContent()
-	default:
-		return nil, fmt.Errorf("could not categorize unknown message type: %v", msg.Type)
-	}
+	bytes, err = msg.MarshalContent()
 	if err != nil {
-		return nil, fmt.Errorf("error while encoding msg for compression: %v", err)
+		return nil, fmt.Errorf("%w: %w", ErrEncodingMsg, err)
 	}
+	return compression.Compress(bytes), nil
+}
+func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte) ([]CaminoMatrixMessage, error) {
+	var messages []CaminoMatrixMessage
 
-	splitCompressedContent := compressAndSplit(bytes)
-
-	if len(splitCompressedContent) == 0 {
-		return nil, fmt.Errorf("compression produced no chunks") // should never happen
-	}
 	// add first chunk to messages slice
 	{
 		caminoMatrixMsg := CaminoMatrixMessage{
@@ -59,10 +90,6 @@ func compressAndSplitCaminoMatrixMsg(msg messaging.Message) ([]CaminoMatrixMessa
 	}
 
 	return messages, nil
-}
-
-func compressAndSplit(bytes []byte) [][]byte {
-	return splitByteArray(compression.Compress(bytes), compression.MaxChunkSize)
 }
 
 func splitByteArray(src []byte, maxSize int) [][]byte {
