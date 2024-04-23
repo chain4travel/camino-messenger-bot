@@ -6,12 +6,13 @@
 package matrix
 
 import (
+	"testing"
+
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/stretchr/testify/require"
 	"maunium.net/go/mautrix/event"
-	"testing"
 )
 
 func TestMatrixChunkingCompressorCompress(t *testing.T) {

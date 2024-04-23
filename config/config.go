@@ -58,7 +58,7 @@ type TracingConfig struct {
 	KeyFile  string `mapstructure:"tracing_key_file"`
 }
 type Config struct {
-	AppConfig           `mapstructure:",squash"` //TODO use nested yaml structure
+	AppConfig           `mapstructure:",squash"` // TODO use nested yaml structure
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
@@ -86,7 +86,7 @@ func ReadConfig() (*Config, error) {
 	readAppConfig(cfg.AppConfig, fs)
 	readMatrixConfig(cfg.MatrixConfig, fs)
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
-	readPartnerRpcServerConfig(cfg.PartnerPluginConfig, fs)
+	readPartnerRPCServerConfig(cfg.PartnerPluginConfig, fs)
 	readMessengerConfig(cfg.ProcessorConfig, fs)
 	readTvmConfig(cfg.TvmConfig, fs)
 	readTracingConfig(cfg.TracingConfig, fs)
@@ -99,7 +99,7 @@ func ReadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	viper.ReadInConfig() // ignore config-file-reading-errors as we have env vars as fallback configuration
+	viper.ReadInConfig() //nolint:errcheck    // ignore config-file-reading-errors as we have env vars as fallback configuration
 
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, err
@@ -110,6 +110,7 @@ func ReadConfig() (*Config, error) {
 func (i *SupportedRequestTypesFlag) String() string {
 	return "[" + strings.Join(*i, ",") + "]"
 }
+
 func (i *SupportedRequestTypesFlag) Contains(requestType string) bool {
 	return slices.Contains(*i, requestType)
 }

@@ -2,9 +2,7 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log"
 	"net"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
@@ -48,13 +46,11 @@ var (
 	_ bookv1alphagrpc.ValidationServiceServer                        = (*server)(nil)
 	_ pingv1alphagrpc.PingServiceServer                              = (*server)(nil)
 	_ transportv1alphagrpc.TransportSearchServiceServer              = (*server)(nil)
-
-	errMissingRecipient = errors.New("missing recipient")
 )
 
 type Server interface {
 	metadata.Checkpoint
-	Start()
+	Start() error
 	Stop()
 }
 type server struct {
@@ -70,7 +66,7 @@ func (s *server) Checkpoint() string {
 	return "request-gateway"
 }
 
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tracing.Tracer, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) *server {
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tracing.Tracer, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) Server {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
@@ -102,12 +98,12 @@ func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOpti
 	return grpcServer
 }
 
-func (s *server) Start() {
+func (s *server) Start() error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.cfg.Port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		return fmt.Errorf("failed to listen: %w", err)
 	}
-	s.grpcServer.Serve(lis)
+	return s.grpcServer.Serve(lis)
 }
 
 func (s *server) Stop() {
@@ -127,7 +123,7 @@ func (s *server) AccommodationProductList(ctx context.Context, request *accommod
 
 func (s *server) AccommodationSearch(ctx context.Context, request *accommodationv1alpha.AccommodationSearchRequest) (*accommodationv1alpha.AccommodationSearchResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.AccommodationSearchRequest, &messaging.RequestContent{AccommodationSearchRequest: *request})
-	return &response.AccommodationSearchResponse, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+	return &response.AccommodationSearchResponse, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
 
 func (s *server) Ping(ctx context.Context, request *pingv1alpha.PingRequest) (*pingv1alpha.PingResponse, error) {
@@ -175,7 +171,7 @@ func (s *server) processInternalRequest(ctx context.Context, requestType messagi
 	defer span.End()
 	service, registered := s.serviceRegistry.GetService(requestType)
 	if !registered {
-		return messaging.ResponseContent{}, fmt.Errorf("%v: %s", messaging.ErrUnsupportedRequestType, requestType)
+		return messaging.ResponseContent{}, fmt.Errorf("%w: %s", messaging.ErrUnsupportedRequestType, requestType)
 	}
 	response, _, err := service.Call(ctx, request)
 	return response, err
@@ -184,9 +180,9 @@ func (s *server) processInternalRequest(ctx context.Context, requestType messagi
 func (s *server) processExternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processExternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
-	err, md := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
+	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
 	if err != nil {
-		return messaging.ResponseContent{}, fmt.Errorf("error processing metadata: %v", err)
+		return messaging.ResponseContent{}, fmt.Errorf("error processing metadata: %w", err)
 	}
 
 	m := &messaging.Message{
@@ -196,17 +192,16 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 		},
 		Metadata: md,
 	}
-	response, err := s.processor.ProcessOutbound(ctx, *m)
+	response, err := s.processor.ProcessOutbound(ctx, m)
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
-	grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
-	return response.Content.ResponseContent, err //TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
-}
+	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
+	return response.Content.ResponseContent, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 
-func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (error, metadata.Metadata) {
+func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadata.Metadata, error) {
 	md := metadata.Metadata{
 		RequestID: id.String(),
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "received"))
 	err := md.ExtractMetadata(ctx)
-	return err, md
+	return md, err
 }

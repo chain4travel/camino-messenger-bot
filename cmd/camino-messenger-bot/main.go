@@ -19,9 +19,11 @@ func main() {
 	defer stop()
 
 	app, err := app.NewApp(cfg)
+	if err != nil {
+		panic(err)
+	}
 	err = app.Run(ctx)
 	if err != nil {
 		panic(err)
 	}
-
 }

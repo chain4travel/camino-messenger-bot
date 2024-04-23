@@ -10,8 +10,9 @@ import (
 	"sort"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 )
+
+var ErrUnmarshalContent = fmt.Errorf("failed to unmarshal content")
 
 func assembleAndDecompressCaminoMatrixMessages(messages []CaminoMatrixMessage) (CaminoMatrixMessage, error) {
 	var compressedPayloads [][]byte
@@ -32,16 +33,14 @@ func assembleAndDecompressCaminoMatrixMessages(messages []CaminoMatrixMessage) (
 		MessageEventContent: messages[0].MessageEventContent,
 		Metadata:            messages[0].Metadata,
 	}
-	switch messaging.MessageType(msg.MsgType).Category() {
-	case messaging.Request,
-		messaging.Response:
-		msg.UnmarshalContent(originalContent)
-	default:
-		return CaminoMatrixMessage{}, fmt.Errorf("could not categorize unknown message type: %v", msg.MsgType)
+	err = msg.UnmarshalContent(originalContent)
+	if err != nil {
+		return CaminoMatrixMessage{}, fmt.Errorf("%w: %w %v", ErrUnmarshalContent, err, msg.MsgType)
 	}
 
 	return msg, nil
 }
+
 func assembleAndDecompress(src [][]byte) ([]byte, error) {
 	return compression.Decompress(assembleByteArray(src))
 }

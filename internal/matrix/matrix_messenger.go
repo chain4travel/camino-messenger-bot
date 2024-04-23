@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
+
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -65,6 +67,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		compressor:   &MatrixChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
 }
+
 func (m *messenger) Checkpoint() string {
 	return "messenger-gateway"
 }
@@ -114,7 +117,7 @@ func (m *messenger) StartReceiver() (string, error) {
 		}
 	})
 
-	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) //TODO refactor
+	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) // TODO refactor
 	if err != nil {
 		return "", err
 	}
@@ -159,6 +162,7 @@ func (m *messenger) StartReceiver() (string, error) {
 
 	return m.client.UserID.String(), nil
 }
+
 func (m *messenger) StopReceiver() error {
 	m.logger.Info("Stopping matrix syncer...")
 	if m.client.cancelSync != nil {
@@ -168,7 +172,7 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error {
+func (m *messenger) SendAsync(ctx context.Context, msg *messaging.Message) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -181,7 +185,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error 
 	roomSpan.End()
 
 	ctx, compressSpan := m.tracer.Start(ctx, "messenger.Compress", trace.WithAttributes(attribute.String("type", string(msg.Type))))
-	messages, err := m.compressor.Compress(msg)
+	messages, err := m.compressor.Compress(*msg)
 	if err != nil {
 		return err
 	}
@@ -191,7 +195,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error 
 }
 
 func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
-	//TODO add retry logic?
+	// TODO add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(ctx, roomID, eventType, msg)
 		if err != nil {

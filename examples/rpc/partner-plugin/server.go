@@ -98,6 +98,7 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, request *activityv1a
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+
 func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, request *accommodationv1alpha.AccommodationProductInfoRequest) (*accommodationv1alpha.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -113,6 +114,7 @@ func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, request *a
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+
 func (p *partnerPlugin) AccommodationProductList(ctx context.Context, request *accommodationv1alpha.AccommodationProductListRequest) (*accommodationv1alpha.AccommodationProductListResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -128,6 +130,7 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, request *a
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+
 func (p *partnerPlugin) AccommodationSearch(ctx context.Context, request *accommodationv1alpha.AccommodationSearchRequest) (*accommodationv1alpha.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -163,6 +166,7 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1alp
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+
 func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *partnerv1alpha.GetPartnerConfigurationRequest) (*partnerv1alpha.GetPartnerConfigurationResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -194,6 +198,7 @@ func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1alpha.PingReque
 		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
 	}, nil
 }
+
 func (p *partnerPlugin) TransportSearch(ctx context.Context, request *transportv1alpha.TransportSearchRequest) (*transportv1alpha.TransportSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2023, Chain4Travel AG. All rights reserved.
+ * Copyright (C) 2024, Chain4Travel AG. All rights reserved.
  * See the file LICENSE for licensing terms.
  */
 
@@ -11,8 +11,7 @@ import (
 
 var _ ResponseHandler = (*NoopResponseHandler)(nil)
 
-type NoopResponseHandler struct {
-}
+type NoopResponseHandler struct{}
 
 func (n NoopResponseHandler) HandleResponse(context.Context, MessageType, *RequestContent, *ResponseContent) {
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+//nolint:govet // struct can only contain on of the embedded types
 type RequestContent struct {
 	activityv1alpha.ActivityProductListRequest
 	activityv1alpha.ActivitySearchRequest
@@ -25,6 +26,8 @@ type RequestContent struct {
 	pingv1alpha.PingRequest
 	transportv1alpha.TransportSearchRequest
 }
+
+//nolint:govet // struct can only contain on of the embedded types
 type ResponseContent struct {
 	activityv1alpha.ActivityProductListResponse
 	activityv1alpha.ActivitySearchResponse
@@ -38,6 +41,8 @@ type ResponseContent struct {
 	pingv1alpha.PingResponse
 	transportv1alpha.TransportSearchResponse
 }
+
+//nolint:govet // struct can only contain on of the embedded types
 type MessageContent struct {
 	RequestContent
 	ResponseContent
@@ -50,8 +55,10 @@ type Message struct {
 	Metadata metadata.Metadata `json:"metadata"`
 }
 
-type MessageCategory byte
-type MessageType string
+type (
+	MessageCategory byte
+	MessageType     string
+)
 
 const (
 	// message categories
@@ -114,7 +121,6 @@ func (mt MessageType) Category() MessageCategory {
 }
 
 func (m *Message) MarshalContent() ([]byte, error) {
-
 	switch m.Type {
 	case ActivityProductListRequest:
 		return proto.Marshal(&m.Content.ActivityProductListRequest)

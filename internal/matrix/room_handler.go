@@ -28,7 +28,6 @@ func NewRoomHandler(client *mautrix.Client, logger *zap.SugaredLogger) RoomHandl
 }
 
 func (r *roomHandler) GetOrCreateRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error) {
-
 	// check if room already established with recipient
 	roomID, found := r.GetEncryptedRoomForRecipient(ctx, recipient)
 
@@ -105,6 +104,7 @@ func (r *roomHandler) fetchCachedRoom(recipient id.UserID) id.RoomID {
 	defer r.mu.RUnlock()
 	return r.rooms[recipient]
 }
+
 func (r *roomHandler) cacheRoom(recipient id.UserID, roomID id.RoomID) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

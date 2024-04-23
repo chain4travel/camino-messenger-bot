@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -52,13 +53,13 @@ func (a *App) Run(ctx context.Context) error {
 	serviceRegistry := messaging.NewServiceRegistry(a.logger)
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
 	if a.cfg.PartnerPluginConfig.Host != "" {
-		a.startRPCClient(g, *serviceRegistry, gCtx)
+		a.startRPCClient(gCtx, g, *serviceRegistry)
 	} else {
 		a.logger.Infof("No host for partner plugin provided, bot will serve as a distributor bot.")
 		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes, nil)
 	}
 	// start messenger (receiver)
-	messenger, userIDUpdatedChan := a.startMessenger(g, gCtx)
+	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
 	// initiate tvm client
 	responseHandler := a.initTVMClient()
@@ -75,7 +76,7 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	// start rpc server
-	a.startRPCServer(msgProcessor, serviceRegistry, g, gCtx)
+	a.startRPCServer(gCtx, msgProcessor, serviceRegistry, g)
 
 	if err := g.Wait(); err != nil {
 		a.logger.Error(err)
@@ -114,7 +115,7 @@ func (a *App) initTVMClient() messaging.ResponseHandler {
 	return responseHandler
 }
 
-func (a *App) startRPCClient(g *errgroup.Group, serviceRegistry messaging.ServiceRegistry, gCtx context.Context) {
+func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegistry messaging.ServiceRegistry) {
 	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC client...")
@@ -126,12 +127,12 @@ func (a *App) startRPCClient(g *errgroup.Group, serviceRegistry messaging.Servic
 		return nil
 	})
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		return rpcClient.Shutdown()
 	})
 }
 
-func (a *App) startMessenger(g *errgroup.Group, gCtx context.Context) (messaging.Messenger, chan string) {
+func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan string) {
 	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
 	userIDUpdatedChan := make(chan string) // Channel to pass the userID
 	g.Go(func() error {
@@ -144,21 +145,20 @@ func (a *App) startMessenger(g *errgroup.Group, gCtx context.Context) (messaging
 		return nil
 	})
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		return messenger.StopReceiver()
 	})
 	return messenger, userIDUpdatedChan
 }
 
-func (a *App) startRPCServer(msgProcessor messaging.Processor, serviceRegistry *messaging.ServiceRegistry, g *errgroup.Group, gCtx context.Context) {
+func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Processor, serviceRegistry *messaging.ServiceRegistry, g *errgroup.Group) {
 	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, a.tracer, msgProcessor, serviceRegistry)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC server...")
-		rpcServer.Start()
-		return nil
+		return rpcServer.Start()
 	})
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		rpcServer.Stop()
 		return nil
 	})
