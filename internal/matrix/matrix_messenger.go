@@ -20,7 +20,7 @@ import (
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" //nolint:revive
 )
 
 var _ messaging.Messenger = (*messenger)(nil)
@@ -41,10 +41,10 @@ type messenger struct {
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
-	compressor   compression.Compressor[messaging.Message, []CaminoMatrixMessage]
+	compressor   compression.Compressor[*messaging.Message, []*CaminoMatrixMessage]
 }
 
-func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenger {
+func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging.Messenger {
 	c, err := mautrix.NewClient(cfg.Host, "", "")
 	if err != nil {
 		panic(err)
@@ -56,7 +56,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		client:       client{Client: c},
 		roomHandler:  NewRoomHandler(c, logger),
 		msgAssembler: NewMessageAssembler(logger),
-		compressor:   &MatrixChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
+		compressor:   &ChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
 }
 
@@ -71,7 +71,7 @@ func (m *messenger) StartReceiver() (string, error) {
 	syncer.OnEventType(C4TMessage, func(source mautrix.EventSource, evt *event.Event) {
 		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
 		t := time.Now()
-		completeMsg, err, completed := m.msgAssembler.AssembleMessage(*msg)
+		completeMsg, completed, err := m.msgAssembler.AssembleMessage(msg)
 		if err != nil {
 			m.logger.Errorf("failed to assemble message: %v", err)
 			return
@@ -165,7 +165,7 @@ func (m *messenger) SendAsync(_ context.Context, msg *messaging.Message) error {
 		return err
 	}
 
-	messages, err := m.compressor.Compress(*msg)
+	messages, err := m.compressor.Compress(msg)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (m *messenger) SendAsync(_ context.Context, msg *messaging.Message) error {
 	return m.sendMessageEvents(roomID, C4TMessage, messages)
 }
 
-func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
+func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []*CaminoMatrixMessage) error {
 	// TODO add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(roomID, eventType, msg)

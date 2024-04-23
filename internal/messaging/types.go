@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	"errors"
+
 	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
@@ -8,9 +10,13 @@ import (
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
 	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
+
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/golang/protobuf/proto"
+
+	"google.golang.org/protobuf/proto"
 )
+
+var ErrUnknownMessageType = errors.New("unknown message type")
 
 //nolint:govet // struct can only contain on of the embedded types
 type RequestContent struct {

@@ -17,25 +17,25 @@ import (
 
 func TestMatrixChunkingCompressorCompress(t *testing.T) {
 	type args struct {
-		msg     messaging.Message
+		msg     *messaging.Message
 		maxSize int
 	}
 	tests := map[string]struct {
 		args args
-		want []CaminoMatrixMessage
+		want []*CaminoMatrixMessage
 		err  error
 	}{
 		"err: unknown message type": {
-			args: args{msg: messaging.Message{Type: "Unknown"}, maxSize: 5},
+			args: args{msg: &messaging.Message{Type: "Unknown"}, maxSize: 5},
 			err:  messaging.ErrUnknownMessageType,
 		},
 		"err: empty message": {
-			args: args{msg: messaging.Message{Type: messaging.ActivitySearchResponse}, maxSize: 5},
+			args: args{msg: &messaging.Message{Type: messaging.ActivitySearchResponse}, maxSize: 5},
 			err:  ErrCompressionProducedNoChunks,
 		},
 		"success: small message compressed without chunking (input<maxSize)": {
 			args: args{
-				msg: messaging.Message{
+				msg: &messaging.Message{
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
@@ -49,7 +49,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 100,
 			},
-			want: []CaminoMatrixMessage{
+			want: []*CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -63,7 +63,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 		},
 		"success: small message compressed without chunking (input=maxSize)": {
 			args: args{
-				msg: messaging.Message{
+				msg: &messaging.Message{
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
@@ -77,7 +77,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 23, // compressed size of msgType=ActivitySearchResponse and serviceCode="test"
 			},
-			want: []CaminoMatrixMessage{
+			want: []*CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -91,7 +91,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 		},
 		"success: large message compressed with chunking (input>maxSize)": {
 			args: args{
-				msg: messaging.Message{
+				msg: &messaging.Message{
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
@@ -105,7 +105,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 22, // < 23 = compressed size of msgType=ActivitySearchResponse and serviceCode="test"
 			},
-			want: []CaminoMatrixMessage{
+			want: []*CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -129,7 +129,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			c := &MatrixChunkingCompressor{tt.args.maxSize}
+			c := &ChunkingCompressor{tt.args.maxSize}
 			got, err := c.Compress(tt.args.msg)
 			require.ErrorIs(t, err, tt.err)
 			require.Equal(t, len(got), len(tt.want))

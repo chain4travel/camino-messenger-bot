@@ -163,19 +163,19 @@ func (s *server) TransportSearch(ctx context.Context, request *transportv1alpha.
 	return &response.TransportSearchResponse, err
 }
 
-func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
+func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {
 	service, registered := s.serviceRegistry.GetService(requestType)
 	if !registered {
-		return messaging.ResponseContent{}, fmt.Errorf("%w: %s", messaging.ErrUnsupportedRequestType, requestType)
+		return nil, fmt.Errorf("%w: %s", messaging.ErrUnsupportedRequestType, requestType)
 	}
 	response, _, err := service.Call(ctx, request)
 	return response, err
 }
 
-func (s *server) processExternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
+func (s *server) processExternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {
 	md, err := s.processMetadata(ctx)
 	if err != nil {
-		return messaging.ResponseContent{}, fmt.Errorf("error processing metadata: %w", err)
+		return nil, fmt.Errorf("error processing metadata: %w", err)
 	}
 
 	m := &messaging.Message{
@@ -188,7 +188,7 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 	response, err := s.processor.ProcessOutbound(ctx, m)
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
-	return response.Content.ResponseContent, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+	return &response.Content.ResponseContent, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
 
 func (s *server) processMetadata(ctx context.Context) (metadata.Metadata, error) {

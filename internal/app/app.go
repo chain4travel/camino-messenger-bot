@@ -36,7 +36,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		logger, _ = cfg.Build()
 	}
 	app.logger = logger.Sugar()
-	defer logger.Sync()
+	defer logger.Sync() //nolint:errcheck
 
 	return app, nil
 }

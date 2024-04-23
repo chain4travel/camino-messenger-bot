@@ -16,19 +16,19 @@ import (
 )
 
 var (
-	_                              compression.Compressor[messaging.Message, []CaminoMatrixMessage] = (*MatrixChunkingCompressor)(nil)
-	ErrCompressionProducedNoChunks                                                                  = errors.New("compression produced no chunks")
-	ErrEncodingMsg                                                                                  = errors.New("error while encoding msg for compression")
+	_                              compression.Compressor[*messaging.Message, []*CaminoMatrixMessage] = (*ChunkingCompressor)(nil)
+	ErrCompressionProducedNoChunks                                                                    = errors.New("compression produced no chunks")
+	ErrEncodingMsg                                                                                    = errors.New("error while encoding msg for compression")
 )
 
-// MatrixChunkingCompressor is a concrete implementation of Compressor with chunking functionality
-type MatrixChunkingCompressor struct {
+// ChunkingCompressor is a concrete implementation of Compressor with chunking functionality
+type ChunkingCompressor struct {
 	maxChunkSize int
 }
 
-// Compress implements the Compressor interface for MatrixChunkingCompressor
-func (c *MatrixChunkingCompressor) Compress(msg messaging.Message) ([]CaminoMatrixMessage, error) {
-	var matrixMessages []CaminoMatrixMessage
+// Compress implements the Compressor interface for ChunkingCompressor
+func (c *ChunkingCompressor) Compress(msg *messaging.Message) ([]*CaminoMatrixMessage, error) {
+	var matrixMessages []*CaminoMatrixMessage
 
 	// 1. Compress the message
 	compressedContent, err := compress(msg)
@@ -46,7 +46,7 @@ func (c *MatrixChunkingCompressor) Compress(msg messaging.Message) ([]CaminoMatr
 	return splitCaminoMatrixMsg(msg, splitCompressedContent)
 }
 
-func (c *MatrixChunkingCompressor) split(bytes []byte) ([][]byte, error) {
+func (c *ChunkingCompressor) split(bytes []byte) ([][]byte, error) {
 	splitCompressedContent := splitByteArray(bytes, c.maxChunkSize)
 
 	if len(splitCompressedContent) == 0 {
@@ -55,7 +55,7 @@ func (c *MatrixChunkingCompressor) split(bytes []byte) ([][]byte, error) {
 	return splitCompressedContent, nil
 }
 
-func compress(msg messaging.Message) ([]byte, error) {
+func compress(msg *messaging.Message) ([]byte, error) {
 	var (
 		bytes []byte
 		err   error
@@ -67,12 +67,12 @@ func compress(msg messaging.Message) ([]byte, error) {
 	return compression.Compress(bytes), nil
 }
 
-func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte) ([]CaminoMatrixMessage, error) {
-	messages := make([]CaminoMatrixMessage, len(splitCompressedContent))
+func splitCaminoMatrixMsg(msg *messaging.Message, splitCompressedContent [][]byte) ([]*CaminoMatrixMessage, error) {
+	messages := make([]*CaminoMatrixMessage, len(splitCompressedContent))
 
 	// add first chunk to messages slice
 	{
-		caminoMatrixMsg := CaminoMatrixMessage{
+		caminoMatrixMsg := &CaminoMatrixMessage{
 			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
 			Metadata:            msg.Metadata,
 		}
@@ -84,7 +84,7 @@ func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte
 
 	// if multiple chunks were produced upon compression, add them to messages slice
 	for i, chunk := range splitCompressedContent[1:] {
-		messages = append(messages, CaminoMatrixMessage{
+		messages = append(messages, &CaminoMatrixMessage{
 			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
 			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint(len(splitCompressedContent)), ChunkIndex: uint(i + 1)},
 			CompressedContent:   chunk,
