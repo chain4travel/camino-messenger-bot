@@ -124,7 +124,7 @@ func (s *server) AccommodationSearch(ctx context.Context, request *accommodation
 }
 
 func (s *server) Ping(ctx context.Context, request *pingv1alpha.PingRequest) (*pingv1alpha.PingResponse, error) {
-	response, err := s.processInternalRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: request})
+	response, err := s.processExternalRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: request})
 	return response.PingResponse, err
 }
 
@@ -187,7 +187,7 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 	}
 	response, err := s.processor.ProcessOutbound(ctx, m)
 	if err != nil {
-		return nil, fmt.Errorf("error processing outbound request: %w", err)
+		return &messaging.ResponseContent{}, fmt.Errorf("error processing outbound request: %w", err)
 	}
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
