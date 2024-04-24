@@ -63,7 +63,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging
 		tracer:       otel.GetTracerProvider().Tracer(""),
 		client:       client{Client: c},
 		roomHandler:  NewRoomHandler(c, logger),
-		msgAssembler: NewMessageAssembler(logger),
+		msgAssembler: NewMessageAssembler(),
 		compressor:   &ChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
 }

@@ -30,7 +30,7 @@ type ChunkingCompressor struct {
 func (c *ChunkingCompressor) Compress(msg messaging.Message) ([]CaminoMatrixMessage, error) {
 	var matrixMessages []CaminoMatrixMessage
 
-	// 1. Compress the message
+	// 1. CompressBytes the message
 	compressedContent, err := compress(msg)
 	if err != nil {
 		return matrixMessages, err
@@ -64,7 +64,7 @@ func compress(msg messaging.Message) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrEncodingMsg, err)
 	}
-	return compression.Compress(bytes), nil
+	return compression.CompressBytes(bytes), nil
 }
 
 func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte) ([]CaminoMatrixMessage, error) {
