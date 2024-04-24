@@ -18,37 +18,34 @@ import (
 
 var ErrUnknownMessageType = errors.New("unknown message type")
 
-//nolint:govet // struct can only contain on of the embedded types
 type RequestContent struct {
-	activityv1alpha.ActivityProductListRequest
-	activityv1alpha.ActivitySearchRequest
-	accommodationv1alpha.AccommodationProductInfoRequest
-	accommodationv1alpha.AccommodationProductListRequest
-	accommodationv1alpha.AccommodationSearchRequest
-	networkv1alpha.GetNetworkFeeRequest
-	partnerv1alpha.GetPartnerConfigurationRequest
-	bookv1alpha.MintRequest
-	bookv1alpha.ValidationRequest
-	pingv1alpha.PingRequest
-	transportv1alpha.TransportSearchRequest
+	*activityv1alpha.ActivityProductListRequest
+	*activityv1alpha.ActivitySearchRequest
+	*accommodationv1alpha.AccommodationProductInfoRequest
+	*accommodationv1alpha.AccommodationProductListRequest
+	*accommodationv1alpha.AccommodationSearchRequest
+	*networkv1alpha.GetNetworkFeeRequest
+	*partnerv1alpha.GetPartnerConfigurationRequest
+	*bookv1alpha.MintRequest
+	*bookv1alpha.ValidationRequest
+	*pingv1alpha.PingRequest
+	*transportv1alpha.TransportSearchRequest
 }
 
-//nolint:govet // struct can only contain on of the embedded types
 type ResponseContent struct {
-	activityv1alpha.ActivityProductListResponse
-	activityv1alpha.ActivitySearchResponse
-	accommodationv1alpha.AccommodationProductInfoResponse
-	accommodationv1alpha.AccommodationProductListResponse
-	accommodationv1alpha.AccommodationSearchResponse
-	networkv1alpha.GetNetworkFeeResponse
-	partnerv1alpha.GetPartnerConfigurationResponse
-	bookv1alpha.MintResponse
-	bookv1alpha.ValidationResponse
-	pingv1alpha.PingResponse
-	transportv1alpha.TransportSearchResponse
+	*activityv1alpha.ActivityProductListResponse
+	*activityv1alpha.ActivitySearchResponse
+	*accommodationv1alpha.AccommodationProductInfoResponse
+	*accommodationv1alpha.AccommodationProductListResponse
+	*accommodationv1alpha.AccommodationSearchResponse
+	*networkv1alpha.GetNetworkFeeResponse
+	*partnerv1alpha.GetPartnerConfigurationResponse
+	*bookv1alpha.MintResponse
+	*bookv1alpha.ValidationResponse
+	*pingv1alpha.PingResponse
+	*transportv1alpha.TransportSearchResponse
 }
 
-//nolint:govet // struct can only contain on of the embedded types
 type MessageContent struct {
 	RequestContent
 	ResponseContent
@@ -129,49 +126,49 @@ func (mt MessageType) Category() MessageCategory {
 func (m *Message) MarshalContent() ([]byte, error) {
 	switch m.Type {
 	case ActivityProductListRequest:
-		return proto.Marshal(&m.Content.ActivityProductListRequest)
+		return proto.Marshal(m.Content.ActivityProductListRequest)
 	case ActivityProductListResponse:
-		return proto.Marshal(&m.Content.ActivityProductListResponse)
+		return proto.Marshal(m.Content.ActivityProductListResponse)
 	case ActivitySearchRequest:
-		return proto.Marshal(&m.Content.ActivitySearchRequest)
+		return proto.Marshal(m.Content.ActivitySearchRequest)
 	case ActivitySearchResponse:
-		return proto.Marshal(&m.Content.ActivitySearchResponse)
+		return proto.Marshal(m.Content.ActivitySearchResponse)
 	case AccommodationProductInfoRequest:
-		return proto.Marshal(&m.Content.AccommodationProductInfoRequest)
+		return proto.Marshal(m.Content.AccommodationProductInfoRequest)
 	case AccommodationProductInfoResponse:
-		return proto.Marshal(&m.Content.AccommodationProductInfoResponse)
+		return proto.Marshal(m.Content.AccommodationProductInfoResponse)
 	case AccommodationProductListRequest:
-		return proto.Marshal(&m.Content.AccommodationProductListRequest)
+		return proto.Marshal(m.Content.AccommodationProductListRequest)
 	case AccommodationProductListResponse:
-		return proto.Marshal(&m.Content.AccommodationProductListResponse)
+		return proto.Marshal(m.Content.AccommodationProductListResponse)
 	case AccommodationSearchRequest:
-		return proto.Marshal(&m.Content.AccommodationSearchRequest)
+		return proto.Marshal(m.Content.AccommodationSearchRequest)
 	case AccommodationSearchResponse:
-		return proto.Marshal(&m.Content.AccommodationSearchResponse)
+		return proto.Marshal(m.Content.AccommodationSearchResponse)
 	case GetNetworkFeeRequest:
-		return proto.Marshal(&m.Content.GetNetworkFeeRequest)
+		return proto.Marshal(m.Content.GetNetworkFeeRequest)
 	case GetNetworkFeeResponse:
-		return proto.Marshal(&m.Content.GetNetworkFeeResponse)
+		return proto.Marshal(m.Content.GetNetworkFeeResponse)
 	case GetPartnerConfigurationRequest:
-		return proto.Marshal(&m.Content.GetPartnerConfigurationRequest)
+		return proto.Marshal(m.Content.GetPartnerConfigurationRequest)
 	case GetPartnerConfigurationResponse:
-		return proto.Marshal(&m.Content.GetPartnerConfigurationResponse)
+		return proto.Marshal(m.Content.GetPartnerConfigurationResponse)
 	case MintRequest:
-		return proto.Marshal(&m.Content.MintRequest)
+		return proto.Marshal(m.Content.MintRequest)
 	case MintResponse:
-		return proto.Marshal(&m.Content.MintResponse)
+		return proto.Marshal(m.Content.MintResponse)
 	case ValidationRequest:
-		return proto.Marshal(&m.Content.ValidationRequest)
+		return proto.Marshal(m.Content.ValidationRequest)
 	case ValidationResponse:
-		return proto.Marshal(&m.Content.ValidationResponse)
+		return proto.Marshal(m.Content.ValidationResponse)
 	case PingRequest:
-		return proto.Marshal(&m.Content.PingRequest)
+		return proto.Marshal(m.Content.PingRequest)
 	case PingResponse:
-		return proto.Marshal(&m.Content.PingResponse)
+		return proto.Marshal(m.Content.PingResponse)
 	case TransportSearchRequest:
-		return proto.Marshal(&m.Content.TransportSearchRequest)
+		return proto.Marshal(m.Content.TransportSearchRequest)
 	case TransportSearchResponse:
-		return proto.Marshal(&m.Content.TransportSearchResponse)
+		return proto.Marshal(m.Content.TransportSearchResponse)
 	default:
 		return nil, ErrUnknownMessageType
 	}

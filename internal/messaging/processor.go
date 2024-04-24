@@ -32,7 +32,7 @@ var (
 )
 
 type MsgHandler interface {
-	Request(ctx context.Context, msg *Message) (Message, error)
+	Request(ctx context.Context, msg *Message) (*Message, error)
 	Respond(msg *Message) error
 	Forward(msg *Message)
 }
@@ -42,7 +42,7 @@ type Processor interface {
 	SetUserID(userID string)
 	Start(ctx context.Context)
 	ProcessInbound(message *Message) error
-	ProcessOutbound(ctx context.Context, message *Message) (Message, error)
+	ProcessOutbound(ctx context.Context, message *Message) (*Message, error)
 }
 
 type processor struct {
@@ -117,16 +117,16 @@ func (p *processor) ProcessInbound(msg *Message) error {
 	}
 }
 
-func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (Message, error) {
+func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (*Message, error) {
 	msg.Metadata.Sender = p.userID
 	if msg.Type.Category() == Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	}
 	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
-	return Message{}, ErrOnlyRequestMessagesAllowed // ignore msg
+	return nil, ErrOnlyRequestMessagesAllowed // ignore msg
 }
 
-func (p *processor) Request(ctx context.Context, msg *Message) (Message, error) {
+func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error) {
 	p.logger.Debug("Sending outbound request message")
 	responseChan := make(chan *Message)
 	p.mu.Lock()
@@ -142,14 +142,14 @@ func (p *processor) Request(ctx context.Context, msg *Message) (Message, error) 
 	defer cancel()
 
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
-		return Message{}, ErrMissingRecipient
+		return nil, ErrMissingRecipient
 	}
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 	err := p.messenger.SendAsync(ctx, msg)
 	if err != nil {
-		return Message{}, err
+		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer responseSpan.End()
@@ -158,11 +158,11 @@ func (p *processor) Request(ctx context.Context, msg *Message) (Message, error) 
 		case response := <-responseChan:
 			if response.Metadata.RequestID == msg.Metadata.RequestID {
 				p.responseHandler.HandleResponse(ctx, msg.Type, &msg.Content.RequestContent, &response.Content.ResponseContent)
-				return *response, nil
+				return response, nil
 			}
 			// p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
 		case <-ctx.Done():
-			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds for request: %s", p.timeout, msg.Metadata.RequestID)
+			return nil, fmt.Errorf("response exceeded configured timeout of %v seconds for request: %s", p.timeout, msg.Metadata.RequestID)
 		}
 	}
 }

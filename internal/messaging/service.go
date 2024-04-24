@@ -44,10 +44,10 @@ type activityProductListService struct {
 }
 
 func (a activityProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*a.client).ActivityProductList(ctx, &request.ActivityProductListRequest, opts...)
+	response, err := (*a.client).ActivityProductList(ctx, request.ActivityProductListRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.ActivityProductListResponse = *response // otherwise nil pointer dereference
+		responseContent.ActivityProductListResponse = response // otherwise nil pointer dereference
 	}
 	return &responseContent, ActivityProductListResponse, err
 }
@@ -57,10 +57,10 @@ type activityService struct {
 }
 
 func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*s.client).ActivitySearch(ctx, &request.ActivitySearchRequest, opts...)
+	response, err := (*s.client).ActivitySearch(ctx, request.ActivitySearchRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.ActivitySearchResponse = *response // otherwise nil pointer dereference
+		responseContent.ActivitySearchResponse = response // otherwise nil pointer dereference
 	}
 	return &responseContent, ActivitySearchResponse, err
 }
@@ -70,10 +70,10 @@ type accommodationProductInfoService struct {
 }
 
 func (a accommodationProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*a.client).AccommodationProductInfo(ctx, &request.AccommodationProductInfoRequest, opts...)
+	response, err := (*a.client).AccommodationProductInfo(ctx, request.AccommodationProductInfoRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.AccommodationProductInfoResponse = *response // otherwise nil pointer dereference
+		responseContent.AccommodationProductInfoResponse = response // otherwise nil pointer dereference
 	}
 	return &responseContent, AccommodationProductInfoResponse, err
 }
@@ -83,10 +83,10 @@ type accommodationProductListService struct {
 }
 
 func (a accommodationProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*a.client).AccommodationProductList(ctx, &request.AccommodationProductListRequest, opts...)
+	response, err := (*a.client).AccommodationProductList(ctx, request.AccommodationProductListRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.AccommodationProductListResponse = *response // otherwise nil pointer dereference
+		responseContent.AccommodationProductListResponse = response // otherwise nil pointer dereference
 	}
 	return &responseContent, AccommodationProductListResponse, err
 }
@@ -96,10 +96,10 @@ type accommodationService struct {
 }
 
 func (s accommodationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*s.client).AccommodationSearch(ctx, &request.AccommodationSearchRequest, opts...)
+	response, err := (*s.client).AccommodationSearch(ctx, request.AccommodationSearchRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.AccommodationSearchResponse = *response // otherwise nil pointer dereference
+		responseContent.AccommodationSearchResponse = response // otherwise nil pointer dereference
 	}
 	return &responseContent, AccommodationSearchResponse, err
 }
@@ -109,10 +109,10 @@ type mintService struct {
 }
 
 func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*m.client).Mint(ctx, &request.MintRequest, opts...)
+	response, err := (*m.client).Mint(ctx, request.MintRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.MintResponse = *response // otherwise nil pointer dereference
+		responseContent.MintResponse = response // otherwise nil pointer dereference
 	}
 	return &responseContent, MintResponse, err
 }
@@ -122,10 +122,10 @@ type validationService struct {
 }
 
 func (v validationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*v.client).Validation(ctx, &request.ValidationRequest, opts...)
+	response, err := (*v.client).Validation(ctx, request.ValidationRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.ValidationResponse = *response // otherwise nil pointer dereference
+		responseContent.ValidationResponse = response // otherwise nil pointer dereference
 	}
 	return &responseContent, ValidationResponse, err
 }
@@ -134,7 +134,7 @@ type networkService struct{}
 
 func (s networkService) Call(_ context.Context, _ *RequestContent, _ ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 	return &ResponseContent{
-		GetNetworkFeeResponse: networkv1alpha.GetNetworkFeeResponse{
+		GetNetworkFeeResponse: &networkv1alpha.GetNetworkFeeResponse{
 			NetworkFee: &networkv1alpha.NetworkFee{Amount: 100000}, // TODO implement
 		},
 	}, GetNetworkFeeResponse, nil
@@ -144,7 +144,7 @@ type partnerService struct{}
 
 func (s partnerService) Call(_ context.Context, _ *RequestContent, _ ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 	return &ResponseContent{
-		GetPartnerConfigurationResponse: partnerv1alpha.GetPartnerConfigurationResponse{
+		GetPartnerConfigurationResponse: &partnerv1alpha.GetPartnerConfigurationResponse{
 			PartnerConfiguration: nil, // TODO implement
 			CurrentBlockHeight:   0,
 		},
@@ -159,7 +159,7 @@ func (s pingService) Call(ctx context.Context, request *RequestContent, _ ...grp
 	if err != nil {
 		return nil, PingResponse, err
 	}
-	return &ResponseContent{PingResponse: pingv1alpha.PingResponse{
+	return &ResponseContent{PingResponse: &pingv1alpha.PingResponse{
 		Header:      nil,
 		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
 		Timestamp:   nil,
@@ -171,10 +171,10 @@ type transportService struct {
 }
 
 func (s transportService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*s.client).TransportSearch(ctx, &request.TransportSearchRequest, opts...)
+	response, err := (*s.client).TransportSearch(ctx, request.TransportSearchRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
-		responseContent.TransportSearchResponse = *response // otherwise 	nil pointer dereference
+		responseContent.TransportSearchResponse = response // otherwise 	nil pointer dereference
 	}
 	return &responseContent, TransportSearchResponse, err
 }

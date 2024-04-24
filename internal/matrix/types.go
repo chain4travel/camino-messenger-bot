@@ -26,49 +26,49 @@ func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	switch messaging.MessageType(m.MsgType) {
 	case messaging.ActivityProductListRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.ActivityProductListRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.ActivityProductListRequest)
 	case messaging.ActivityProductListResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.ActivityProductListResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.ActivityProductListResponse)
 	case messaging.ActivitySearchRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.ActivitySearchRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.ActivitySearchRequest)
 	case messaging.ActivitySearchResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.ActivitySearchResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.ActivitySearchResponse)
 	case messaging.AccommodationProductInfoRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.AccommodationProductInfoRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.AccommodationProductInfoRequest)
 	case messaging.AccommodationProductInfoResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.AccommodationProductInfoResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.AccommodationProductInfoResponse)
 	case messaging.AccommodationProductListRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.AccommodationProductListRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.AccommodationProductListRequest)
 	case messaging.AccommodationProductListResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.AccommodationProductListResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.AccommodationProductListResponse)
 	case messaging.AccommodationSearchRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.AccommodationSearchRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.AccommodationSearchRequest)
 	case messaging.AccommodationSearchResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.AccommodationSearchResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.AccommodationSearchResponse)
 	case messaging.GetNetworkFeeRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.GetNetworkFeeRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.GetNetworkFeeRequest)
 	case messaging.GetNetworkFeeResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.GetNetworkFeeResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.GetNetworkFeeResponse)
 	case messaging.GetPartnerConfigurationRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.GetPartnerConfigurationRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.GetPartnerConfigurationRequest)
 	case messaging.GetPartnerConfigurationResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.GetPartnerConfigurationResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.GetPartnerConfigurationResponse)
 	case messaging.MintRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.MintRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.MintRequest)
 	case messaging.MintResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.MintResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.MintResponse)
 	case messaging.ValidationRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.ValidationRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.ValidationRequest)
 	case messaging.ValidationResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.ValidationResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.ValidationResponse)
 	case messaging.PingRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.PingRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.PingRequest)
 	case messaging.PingResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.PingResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.PingResponse)
 	case messaging.TransportSearchRequest:
-		return proto.Unmarshal(src, &m.Content.RequestContent.TransportSearchRequest)
+		return proto.Unmarshal(src, m.Content.RequestContent.TransportSearchRequest)
 	case messaging.TransportSearchResponse:
-		return proto.Unmarshal(src, &m.Content.ResponseContent.TransportSearchResponse)
+		return proto.Unmarshal(src, m.Content.ResponseContent.TransportSearchResponse)
 	default:
 		return messaging.ErrUnknownMessageType
 	}

@@ -31,7 +31,6 @@ linters:
     - misspell
     - nakedret
     - noctx
-    - nolintlint
     - prealloc
     - staticcheck
     - stylecheck

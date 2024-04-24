@@ -39,7 +39,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: activityv1alpha.ActivitySearchResponse{
+							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
 								Results: []*activityv1alpha.ActivitySearchResult{
 									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
 								},
@@ -67,7 +67,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: activityv1alpha.ActivitySearchResponse{
+							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
 								Results: []*activityv1alpha.ActivitySearchResult{
 									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
 								},
@@ -95,7 +95,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: activityv1alpha.ActivitySearchResponse{
+							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
 								Results: []*activityv1alpha.ActivitySearchResult{
 									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
 								},
