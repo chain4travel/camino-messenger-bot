@@ -68,7 +68,7 @@ func compress(msg messaging.Message) ([]byte, error) {
 }
 
 func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte) ([]CaminoMatrixMessage, error) {
-	messages := make([]CaminoMatrixMessage, len(splitCompressedContent))
+	messages := make([]CaminoMatrixMessage, 0, len(splitCompressedContent))
 
 	// add first chunk to messages slice
 	{
