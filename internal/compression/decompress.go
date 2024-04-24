@@ -11,6 +11,12 @@ import (
 
 var decoder, _ = zstd.NewReader(nil)
 
-func Decompress(src []byte) ([]byte, error) {
+type Decompressor interface {
+	Decompress(src []byte) ([]byte, error)
+}
+
+type ZSTDDecompressor struct{}
+
+func (d *ZSTDDecompressor) Decompress(src []byte) ([]byte, error) {
 	return decoder.DecodeAll(src, nil)
 }
