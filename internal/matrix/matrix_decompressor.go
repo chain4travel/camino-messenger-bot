@@ -29,7 +29,7 @@ func assembleAndDecompressCaminoMatrixMessages(messages []*CaminoMatrixMessage) 
 		return nil, fmt.Errorf("failed to assemble and decompress camino matrix msg: %w", err)
 	}
 
-	msg := &CaminoMatrixMessage{
+	msg := CaminoMatrixMessage{
 		MessageEventContent: messages[0].MessageEventContent,
 		Metadata:            messages[0].Metadata,
 	}
@@ -38,7 +38,7 @@ func assembleAndDecompressCaminoMatrixMessages(messages []*CaminoMatrixMessage) 
 		return nil, fmt.Errorf("%w: %w %v", ErrUnmarshalContent, err, msg.MsgType)
 	}
 
-	return msg, nil
+	return &msg, nil
 }
 
 func assembleAndDecompress(src [][]byte) ([]byte, error) {

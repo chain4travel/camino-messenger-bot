@@ -41,7 +41,7 @@ type messenger struct {
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
-	compressor   compression.Compressor[*messaging.Message, []*CaminoMatrixMessage]
+	compressor   compression.Compressor[messaging.Message, []CaminoMatrixMessage]
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging.Messenger {
@@ -157,7 +157,7 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(_ context.Context, msg *messaging.Message) error {
+func (m *messenger) SendAsync(_ context.Context, msg messaging.Message) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 
 	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(id.UserID(msg.Metadata.Recipient))
@@ -173,7 +173,7 @@ func (m *messenger) SendAsync(_ context.Context, msg *messaging.Message) error {
 	return m.sendMessageEvents(roomID, C4TMessage, messages)
 }
 
-func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []*CaminoMatrixMessage) error {
+func (m *messenger) sendMessageEvents(roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
 	// TODO add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(roomID, eventType, msg)
