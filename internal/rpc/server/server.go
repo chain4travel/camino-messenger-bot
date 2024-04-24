@@ -194,7 +194,7 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 	}
 	response, err := s.processor.ProcessOutbound(ctx, m)
 	if err != nil {
-		return nil, fmt.Errorf("error processing outbound request: %w", err)
+		return &messaging.ResponseContent{}, fmt.Errorf("error processing outbound request: %w", err)
 	}
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())

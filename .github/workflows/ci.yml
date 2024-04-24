@@ -45,9 +45,8 @@ jobs:
       - name: Install libolm
         run: sudo apt update && sudo apt-get install -y libolm-dev
       - name: GolangCI-Lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: v1.54
+        shell: bash
+        run: ./scripts/lint.sh
   go_mod_tidy:
     name: Check state of go.mod and go.sum
     runs-on: ubuntu-22.04
