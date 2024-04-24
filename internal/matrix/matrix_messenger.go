@@ -48,7 +48,7 @@ type messenger struct {
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
-	compressor   compression.Compressor[*messaging.Message, []*CaminoMatrixMessage]
+	compressor   compression.Compressor[messaging.Message, []CaminoMatrixMessage]
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging.Messenger {
@@ -172,7 +172,7 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg *messaging.Message) error {
+func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -194,7 +194,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg *messaging.Message) error
 	return m.sendMessageEvents(ctx, roomID, C4TMessage, messages)
 }
 
-func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []*CaminoMatrixMessage) error {
+func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
 	// TODO add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(ctx, roomID, eventType, msg)

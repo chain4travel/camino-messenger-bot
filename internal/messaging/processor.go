@@ -147,7 +147,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
-	err := p.messenger.SendAsync(ctx, msg)
+	err := p.messenger.SendAsync(ctx, *msg)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (p *processor) Respond(msg *Message) error {
 	}
 
 	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, response)
-	responseMsg := &Message{
+	responseMsg := Message{
 		Type: msgType,
 		Content: MessageContent{
 			ResponseContent: *response,
