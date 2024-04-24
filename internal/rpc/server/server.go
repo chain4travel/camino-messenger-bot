@@ -109,58 +109,58 @@ func (s *server) Stop() {
 }
 
 func (s *server) AccommodationProductInfo(ctx context.Context, request *accommodationv1alpha.AccommodationProductInfoRequest) (*accommodationv1alpha.AccommodationProductInfoResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductInfoRequest, &messaging.RequestContent{AccommodationProductInfoRequest: *request})
-	return &response.AccommodationProductInfoResponse, err
+	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductInfoRequest, &messaging.RequestContent{AccommodationProductInfoRequest: request})
+	return response.AccommodationProductInfoResponse, err
 }
 
 func (s *server) AccommodationProductList(ctx context.Context, request *accommodationv1alpha.AccommodationProductListRequest) (*accommodationv1alpha.AccommodationProductListResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductListRequest, &messaging.RequestContent{AccommodationProductListRequest: *request})
-	return &response.AccommodationProductListResponse, err
+	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductListRequest, &messaging.RequestContent{AccommodationProductListRequest: request})
+	return response.AccommodationProductListResponse, err
 }
 
 func (s *server) AccommodationSearch(ctx context.Context, request *accommodationv1alpha.AccommodationSearchRequest) (*accommodationv1alpha.AccommodationSearchResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.AccommodationSearchRequest, &messaging.RequestContent{AccommodationSearchRequest: *request})
-	return &response.AccommodationSearchResponse, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+	response, err := s.processExternalRequest(ctx, messaging.AccommodationSearchRequest, &messaging.RequestContent{AccommodationSearchRequest: request})
+	return response.AccommodationSearchResponse, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
 
 func (s *server) Ping(ctx context.Context, request *pingv1alpha.PingRequest) (*pingv1alpha.PingResponse, error) {
-	response, err := s.processInternalRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: *request})
-	return &response.PingResponse, err
+	response, err := s.processInternalRequest(ctx, messaging.PingRequest, &messaging.RequestContent{PingRequest: request})
+	return response.PingResponse, err
 }
 
 func (s *server) GetNetworkFee(ctx context.Context, request *networkv1alpha.GetNetworkFeeRequest) (*networkv1alpha.GetNetworkFeeResponse, error) {
-	response, err := s.processInternalRequest(ctx, messaging.GetNetworkFeeRequest, &messaging.RequestContent{GetNetworkFeeRequest: *request})
-	return &response.GetNetworkFeeResponse, err
+	response, err := s.processInternalRequest(ctx, messaging.GetNetworkFeeRequest, &messaging.RequestContent{GetNetworkFeeRequest: request})
+	return response.GetNetworkFeeResponse, err
 }
 
 func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv1alpha.GetPartnerConfigurationRequest) (*partnerv1alpha.GetPartnerConfigurationResponse, error) {
-	response, err := s.processInternalRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: *request})
-	return &response.GetPartnerConfigurationResponse, err
+	response, err := s.processInternalRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: request})
+	return response.GetPartnerConfigurationResponse, err
 }
 
 func (s *server) ActivityProductList(ctx context.Context, request *activityv1alpha.ActivityProductListRequest) (*activityv1alpha.ActivityProductListResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.ActivityProductListRequest, &messaging.RequestContent{ActivityProductListRequest: *request})
-	return &response.ActivityProductListResponse, err
+	response, err := s.processExternalRequest(ctx, messaging.ActivityProductListRequest, &messaging.RequestContent{ActivityProductListRequest: request})
+	return response.ActivityProductListResponse, err
 }
 
 func (s *server) ActivitySearch(ctx context.Context, request *activityv1alpha.ActivitySearchRequest) (*activityv1alpha.ActivitySearchResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.ActivitySearchRequest, &messaging.RequestContent{ActivitySearchRequest: *request})
-	return &response.ActivitySearchResponse, err
+	response, err := s.processExternalRequest(ctx, messaging.ActivitySearchRequest, &messaging.RequestContent{ActivitySearchRequest: request})
+	return response.ActivitySearchResponse, err
 }
 
 func (s *server) Mint(ctx context.Context, request *bookv1alpha.MintRequest) (*bookv1alpha.MintResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.MintRequest, &messaging.RequestContent{MintRequest: *request})
-	return &response.MintResponse, err
+	response, err := s.processExternalRequest(ctx, messaging.MintRequest, &messaging.RequestContent{MintRequest: request})
+	return response.MintResponse, err
 }
 
 func (s *server) Validation(ctx context.Context, request *bookv1alpha.ValidationRequest) (*bookv1alpha.ValidationResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.ValidationRequest, &messaging.RequestContent{ValidationRequest: *request})
-	return &response.ValidationResponse, err
+	response, err := s.processExternalRequest(ctx, messaging.ValidationRequest, &messaging.RequestContent{ValidationRequest: request})
+	return response.ValidationResponse, err
 }
 
 func (s *server) TransportSearch(ctx context.Context, request *transportv1alpha.TransportSearchRequest) (*transportv1alpha.TransportSearchResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.TransportSearchRequest, &messaging.RequestContent{TransportSearchRequest: *request})
-	return &response.TransportSearchResponse, err
+	response, err := s.processExternalRequest(ctx, messaging.TransportSearchRequest, &messaging.RequestContent{TransportSearchRequest: request})
+	return response.TransportSearchResponse, err
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {
@@ -186,6 +186,9 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 		Metadata: md,
 	}
 	response, err := s.processor.ProcessOutbound(ctx, m)
+	if err != nil {
+		return nil, fmt.Errorf("error processing outbound request: %w", err)
+	}
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
 	return &response.Content.ResponseContent, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
