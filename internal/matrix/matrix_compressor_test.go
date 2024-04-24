@@ -15,7 +15,7 @@ import (
 	"maunium.net/go/mautrix/event"
 )
 
-func TestMatrixChunkingCompressorCompress(t *testing.T) {
+func TestChunkingCompressorCompress(t *testing.T) {
 	type args struct {
 		msg     messaging.Message
 		maxSize int
@@ -132,7 +132,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 			c := &ChunkingCompressor{tt.args.maxSize}
 			got, err := c.Compress(tt.args.msg)
 			require.ErrorIs(t, err, tt.err)
-			require.Equal(t, len(got), len(tt.want))
+			require.Equal(t, len(tt.want), len(got))
 			for i, msg := range got {
 				require.Equal(t, msg.MessageEventContent.MsgType, tt.want[i].MsgType)
 				require.Equal(t, msg.Metadata.NumberOfChunks, tt.want[i].Metadata.NumberOfChunks)
