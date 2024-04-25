@@ -54,7 +54,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging
 		cfg:          cfg,
 		logger:       logger,
 		client:       client{Client: c},
-		roomHandler:  NewRoomHandler(c, logger),
+		roomHandler:  NewRoomHandler(NewClient(c), logger),
 		msgAssembler: NewMessageAssembler(),
 		compressor:   &ChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
@@ -127,7 +127,7 @@ func (m *messenger) StartReceiver() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Set the client crypto helper in order to automatically encrypt outgoing messages
+	// Set the wrappedClient crypto helper in order to automatically encrypt outgoing messages
 	m.client.Crypto = cryptoHelper
 	m.client.cryptoHelper = cryptoHelper // nikos: we need the struct cause stop method is not available on the interface level
 
