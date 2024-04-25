@@ -183,14 +183,14 @@ func TestAssembleMessage(t *testing.T) {
 			}
 			got, isComplete, err := a.AssembleMessage(tt.args.msg)
 			require.ErrorIs(t, err, tt.err)
-			require.Equal(t, tt.isComplete, isComplete, "AssembleMessage() isComplete = %v, want %v", isComplete, tt.isComplete)
+			require.Equal(t, tt.isComplete, isComplete, "AssembleMessage() isComplete = %v, expRoomID %v", isComplete, tt.isComplete)
 
 			// Reset the response content to avoid comparisons of pb fields like sizeCache
 			if tt.want != nil && got != nil {
 				tt.want.Content.ResponseContent.ActivitySearchResponse.Reset()
 				got.Content.ResponseContent.ActivitySearchResponse.Reset()
 			}
-			require.Equal(t, tt.want, got, "AssembleMessage() got = %v, want %v", got, tt.want)
+			require.Equal(t, tt.want, got, "AssembleMessage() got = %v, expRoomID %v", got, tt.want)
 		})
 	}
 }
