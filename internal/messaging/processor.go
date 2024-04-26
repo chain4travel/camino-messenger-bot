@@ -60,7 +60,7 @@ func (p *processor) SetUserID(userID string) {
 	p.userID = userID
 }
 
-func (p *processor) Checkpoint() string {
+func (*processor) Checkpoint() string {
 	return "processor"
 }
 
