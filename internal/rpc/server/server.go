@@ -59,14 +59,14 @@ type server struct {
 	logger          *zap.SugaredLogger
 	tracer          tracing.Tracer
 	processor       messaging.Processor
-	serviceRegistry *messaging.ServiceRegistry
+	serviceRegistry messaging.ServiceRegistry
 }
 
-func (s *server) Checkpoint() string {
+func (*server) Checkpoint() string {
 	return "request-gateway"
 }
 
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tracing.Tracer, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) Server {
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tracing.Tracer, processor messaging.Processor, serviceRegistry messaging.ServiceRegistry) Server {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")

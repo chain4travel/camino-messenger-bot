@@ -53,7 +53,7 @@ func (a *App) Run(ctx context.Context) error {
 	serviceRegistry := messaging.NewServiceRegistry(a.logger)
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
 	if a.cfg.PartnerPluginConfig.Host != "" {
-		a.startRPCClient(gCtx, g, *serviceRegistry)
+		a.startRPCClient(gCtx, g, serviceRegistry)
 	} else {
 		a.logger.Infof("No host for partner plugin provided, bot will serve as a distributor bot.")
 		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes, nil)
@@ -151,7 +151,7 @@ func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.
 	return messenger, userIDUpdatedChan
 }
 
-func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Processor, serviceRegistry *messaging.ServiceRegistry, g *errgroup.Group) {
+func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Processor, serviceRegistry messaging.ServiceRegistry, g *errgroup.Group) {
 	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, a.tracer, msgProcessor, serviceRegistry)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC server...")
@@ -164,7 +164,7 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry *messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
+func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
 	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
