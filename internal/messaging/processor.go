@@ -25,6 +25,7 @@ var (
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
 	ErrUnsupportedRequestType     = errors.New("unsupported request type")
 	ErrMissingRecipient           = errors.New("missing recipient")
+	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
 )
 
 type MsgHandler interface {
@@ -156,9 +157,8 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 				p.responseHandler.HandleResponse(ctx, msg.Type, &msg.Content.RequestContent, &response.Content.ResponseContent)
 				return response, nil
 			}
-			// p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
 		case <-ctx.Done():
-			return nil, fmt.Errorf("response exceeded configured timeout of %v seconds for request: %s", p.timeout, msg.Metadata.RequestID)
+			return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.timeout, msg.Metadata.RequestID)
 		}
 	}
 }

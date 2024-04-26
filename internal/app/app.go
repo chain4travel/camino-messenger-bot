@@ -62,7 +62,13 @@ func (a *App) Run(ctx context.Context) error {
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
 	// initiate tvm client
-	responseHandler := a.initTVMClient()
+	tvmClient, err := tvm.NewClient(a.cfg.TvmConfig) // TODO make client init conditional based on provided config
+	if err != nil {
+		a.logger.Warn(err)
+	}
+
+	// create response handler
+	responseHandler := a.newResponseHandler(tvmClient)
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
@@ -84,6 +90,13 @@ func (a *App) Run(ctx context.Context) error {
 	return nil
 }
 
+func (a *App) newResponseHandler(tvmClient *tvm.Client) messaging.ResponseHandler {
+	if tvmClient != nil {
+		return messaging.NewResponseHandler(tvmClient, a.logger)
+	}
+	return messaging.NoopResponseHandler{}
+}
+
 func (a *App) initTracer() tracing.Tracer {
 	var (
 		tracer tracing.Tracer
@@ -99,20 +112,6 @@ func (a *App) initTracer() tracing.Tracer {
 	}
 	a.tracer = tracer
 	return tracer
-}
-
-func (a *App) initTVMClient() messaging.ResponseHandler {
-	var responseHandler messaging.ResponseHandler
-	// TODO make client init conditional based on provided config
-	tvmClient, err := tvm.NewClient(a.cfg.TvmConfig)
-	if err != nil {
-		// do no return error here, let the bot continue
-		a.logger.Warnf("Failed to create tvm client: %v", err)
-		responseHandler = messaging.NoopResponseHandler{}
-	} else {
-		responseHandler = messaging.NewResponseHandler(tvmClient, a.logger)
-	}
-	return responseHandler
 }
 
 func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegistry messaging.ServiceRegistry) {

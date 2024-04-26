@@ -6,6 +6,7 @@
 package messaging
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -159,6 +160,143 @@ func TestProcessInbound(t *testing.T) {
 			if tt.assert != nil {
 				tt.assert(t, p.(*processor))
 			}
+		})
+	}
+}
+
+func TestProcessOutbound(t *testing.T) {
+	requestID := "requestID"
+	userID := "userID"
+	anotherUserID := "anotherUserID"
+	someError := errors.New("some error")
+	productListResponse := &Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID}}
+
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
+	mockMessenger := NewMockMessenger(mockCtrl)
+
+	type fields struct {
+		cfg             config.ProcessorConfig
+		messenger       Messenger
+		serviceRegistry ServiceRegistry
+		responseHandler ResponseHandler
+	}
+	type args struct {
+		msg *Message
+	}
+	tests := map[string]struct {
+		fields                 fields
+		args                   args
+		want                   *Message
+		err                    error
+		prepare                func(p *processor)
+		writeResponseToChannel func(p *processor)
+	}{
+		"err: non-request outbound message": {
+			fields: fields{
+				cfg:             config.ProcessorConfig{},
+				serviceRegistry: mockServiceRegistry,
+				responseHandler: NoopResponseHandler{},
+				messenger:       mockMessenger,
+			},
+			args: args{
+				msg: &Message{Type: ActivityProductListResponse},
+			},
+			err: ErrOnlyRequestMessagesAllowed,
+		},
+		"err: missing recipient": {
+			fields: fields{
+				cfg:             config.ProcessorConfig{},
+				serviceRegistry: mockServiceRegistry,
+				responseHandler: NoopResponseHandler{},
+				messenger:       mockMessenger,
+			},
+			args: args{
+				msg: &Message{Type: ActivityProductListRequest},
+			},
+			prepare: func(p *processor) {
+				p.SetUserID(userID)
+			},
+			err: ErrMissingRecipient,
+		},
+		"err: awaiting-response-timeout exceeded": {
+			fields: fields{
+				cfg:             config.ProcessorConfig{Timeout: 10}, // 10ms
+				serviceRegistry: mockServiceRegistry,
+				responseHandler: NoopResponseHandler{},
+				messenger:       mockMessenger,
+			},
+			args: args{
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
+			},
+			prepare: func(p *processor) {
+				p.SetUserID(userID)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			},
+			err: ErrExceededResponseTimeout,
+		},
+		"err: while sending request": {
+			fields: fields{
+				cfg:             config.ProcessorConfig{Timeout: 100}, // 10ms
+				serviceRegistry: mockServiceRegistry,
+				responseHandler: NoopResponseHandler{},
+				messenger:       mockMessenger,
+			},
+			args: args{
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
+			},
+			prepare: func(p *processor) {
+				p.SetUserID(userID)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(someError)
+			},
+			err: someError,
+		},
+		"success: response before timeout": {
+			fields: fields{
+				cfg:             config.ProcessorConfig{Timeout: 500}, // long enough timeout for response to be received
+				serviceRegistry: mockServiceRegistry,
+				responseHandler: NoopResponseHandler{},
+				messenger:       mockMessenger,
+			},
+			args: args{
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID}},
+			},
+			prepare: func(p *processor) {
+				p.SetUserID(userID)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			},
+			writeResponseToChannel: func(p *processor) {
+				done := func() bool {
+					// wait until the response channel is created
+					p.mu.Lock()
+					defer p.mu.Unlock()
+					if _, ok := p.responseChannels[requestID]; ok {
+						p.responseChannels[requestID] <- productListResponse
+						return true
+					}
+					return false
+				}
+				for !done() {
+				}
+			},
+			want: productListResponse,
+		},
+	}
+
+	for tc, tt := range tests {
+		t.Run(tc, func(t *testing.T) {
+			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler)
+			if tt.prepare != nil {
+				tt.prepare(p.(*processor))
+			}
+			if tt.writeResponseToChannel != nil {
+				go tt.writeResponseToChannel(p.(*processor))
+			}
+			got, err := p.ProcessOutbound(context.Background(), tt.args.msg)
+
+			require.ErrorIs(t, err, tt.err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
