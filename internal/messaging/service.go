@@ -40,11 +40,11 @@ type Service interface {
 	Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error)
 }
 type activityProductListService struct {
-	client *activityv1alphagrpc.ActivityProductListServiceClient
+	client activityv1alphagrpc.ActivityProductListServiceClient
 }
 
 func (a activityProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*a.client).ActivityProductList(ctx, request.ActivityProductListRequest, opts...)
+	response, err := a.client.ActivityProductList(ctx, request.ActivityProductListRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
 		responseContent.ActivityProductListResponse = response // otherwise nil pointer dereference

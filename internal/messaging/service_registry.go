@@ -17,21 +17,25 @@ import (
 	"go.uber.org/zap"
 )
 
-type ServiceRegistry struct {
+type ServiceRegistry interface {
+	RegisterServices(requestTypes config.SupportedRequestTypesFlag, rpcClient *client.RPCClient)
+	GetService(messageType MessageType) (Service, bool)
+}
+type serviceRegistry struct {
 	logger   *zap.SugaredLogger
 	services map[MessageType]Service
 	lock     *sync.RWMutex
 }
 
-func NewServiceRegistry(logger *zap.SugaredLogger) *ServiceRegistry {
-	return &ServiceRegistry{
+func NewServiceRegistry(logger *zap.SugaredLogger) ServiceRegistry {
+	return &serviceRegistry{
 		logger:   logger,
 		services: make(map[MessageType]Service),
 		lock:     &sync.RWMutex{},
 	}
 }
 
-func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestTypesFlag, rpcClient *client.RPCClient) {
+func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestTypesFlag, rpcClient *client.RPCClient) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -40,7 +44,7 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 		switch MessageType(requestType) {
 		case ActivityProductListRequest:
 			c := activityv1alphagrpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
-			service = activityProductListService{client: &c}
+			service = activityProductListService{client: c}
 		case ActivitySearchRequest:
 			c := activityv1alphagrpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
 			service = activityService{client: &c}
@@ -76,7 +80,7 @@ func (s *ServiceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 	}
 }
 
-func (s *ServiceRegistry) GetService(messageType MessageType) (Service, bool) {
+func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
 	service, ok := s.services[messageType]
 	return service, ok
 }

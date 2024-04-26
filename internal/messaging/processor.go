@@ -14,10 +14,6 @@ import (
 	grpc_metadata "google.golang.org/grpc/metadata"
 )
 
-type InvalidMessageError struct {
-	error
-}
-
 var (
 	_ Processor = (*processor)(nil)
 
@@ -51,7 +47,7 @@ type processor struct {
 
 	mu               sync.Mutex
 	responseChannels map[string]chan *Message
-	serviceRegistry  *ServiceRegistry
+	serviceRegistry  ServiceRegistry
 	responseHandler  ResponseHandler
 }
 
@@ -63,7 +59,7 @@ func (p *processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry *ServiceRegistry, responseHandler ResponseHandler) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler) Processor {
 	return &processor{
 		cfg:              cfg,
 		messenger:        messenger,
@@ -105,7 +101,7 @@ func (p *processor) ProcessInbound(msg *Message) error {
 			p.Forward(msg)
 			return nil
 		default:
-			return InvalidMessageError{ErrUnknownMessageCategory}
+			return ErrUnknownMessageCategory
 		}
 	} else {
 		return nil // ignore own outbound messages
@@ -198,10 +194,10 @@ func (p *processor) Respond(msg *Message) error {
 func (p *processor) Forward(msg *Message) {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
 	p.mu.Lock()
+	defer p.mu.Unlock()
 	responseChan, ok := p.responseChannels[msg.Metadata.RequestID]
 	if ok {
 		responseChan <- msg
 		close(responseChan)
 	}
-	p.mu.Unlock()
 }
