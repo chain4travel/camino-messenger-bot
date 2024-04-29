@@ -11,7 +11,7 @@ import (
 )
 
 type Client interface {
-	IsEncrypted(ctx context.Context, roomID id.RoomID) bool
+	IsEncrypted(ctx context.Context, roomID id.RoomID) (bool, error)
 	CreateRoom(ctx context.Context, req *mautrix.ReqCreateRoom) (*mautrix.RespCreateRoom, error)
 	SendStateEvent(ctx context.Context, roomID id.RoomID, eventType event.Type, stateKey string, content interface{}) (*mautrix.RespSendEvent, error)
 	JoinedRooms(ctx context.Context) (*mautrix.RespJoinedRooms, error)
@@ -23,7 +23,7 @@ type wrappedClient struct {
 	*mautrix.Client
 }
 
-func (c *wrappedClient) IsEncrypted(ctx context.Context, roomID id.RoomID) bool {
+func (c *wrappedClient) IsEncrypted(ctx context.Context, roomID id.RoomID) (bool, error) {
 	return c.StateStore.IsEncrypted(ctx, roomID)
 }
 
@@ -32,7 +32,7 @@ func NewClient(mautrixClient *mautrix.Client) Client {
 }
 
 type RoomHandler interface {
-	GetOrCreateRoomForRecipient(recipient id.UserID) (id.RoomID, error)
+	GetOrCreateRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error)
 }
 type roomHandler struct {
 	client Client
@@ -99,7 +99,7 @@ func (r *roomHandler) getEncryptedRoomForRecipient(ctx context.Context, recipien
 		return "", false
 	}
 	for _, roomID := range rooms.JoinedRooms {
-		if !r.client.IsEncrypted(ctx, roomID) {
+		if encrypted, err := r.client.IsEncrypted(ctx, roomID); err != nil || !encrypted {
 			continue
 		}
 		members, err := r.client.JoinedMembers(ctx, roomID)

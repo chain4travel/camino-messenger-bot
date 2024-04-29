@@ -10,6 +10,7 @@
 package matrix
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -42,75 +43,76 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // CreateRoom mocks base method.
-func (m *MockClient) CreateRoom(arg0 *mautrix.ReqCreateRoom) (*mautrix.RespCreateRoom, error) {
+func (m *MockClient) CreateRoom(arg0 context.Context, arg1 *mautrix.ReqCreateRoom) (*mautrix.RespCreateRoom, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRoom", arg0)
+	ret := m.ctrl.Call(m, "CreateRoom", arg0, arg1)
 	ret0, _ := ret[0].(*mautrix.RespCreateRoom)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateRoom indicates an expected call of CreateRoom.
-func (mr *MockClientMockRecorder) CreateRoom(arg0 any) *gomock.Call {
+func (mr *MockClientMockRecorder) CreateRoom(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoom", reflect.TypeOf((*MockClient)(nil).CreateRoom), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoom", reflect.TypeOf((*MockClient)(nil).CreateRoom), arg0, arg1)
 }
 
 // IsEncrypted mocks base method.
-func (m *MockClient) IsEncrypted(arg0 id.RoomID) bool {
+func (m *MockClient) IsEncrypted(arg0 context.Context, arg1 id.RoomID) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsEncrypted", arg0)
+	ret := m.ctrl.Call(m, "IsEncrypted", arg0, arg1)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // IsEncrypted indicates an expected call of IsEncrypted.
-func (mr *MockClientMockRecorder) IsEncrypted(arg0 any) *gomock.Call {
+func (mr *MockClientMockRecorder) IsEncrypted(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEncrypted", reflect.TypeOf((*MockClient)(nil).IsEncrypted), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEncrypted", reflect.TypeOf((*MockClient)(nil).IsEncrypted), arg0, arg1)
 }
 
 // JoinedMembers mocks base method.
-func (m *MockClient) JoinedMembers(arg0 id.RoomID) (*mautrix.RespJoinedMembers, error) {
+func (m *MockClient) JoinedMembers(arg0 context.Context, arg1 id.RoomID) (*mautrix.RespJoinedMembers, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "JoinedMembers", arg0)
+	ret := m.ctrl.Call(m, "JoinedMembers", arg0, arg1)
 	ret0, _ := ret[0].(*mautrix.RespJoinedMembers)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // JoinedMembers indicates an expected call of JoinedMembers.
-func (mr *MockClientMockRecorder) JoinedMembers(arg0 any) *gomock.Call {
+func (mr *MockClientMockRecorder) JoinedMembers(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JoinedMembers", reflect.TypeOf((*MockClient)(nil).JoinedMembers), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JoinedMembers", reflect.TypeOf((*MockClient)(nil).JoinedMembers), arg0, arg1)
 }
 
 // JoinedRooms mocks base method.
-func (m *MockClient) JoinedRooms() (*mautrix.RespJoinedRooms, error) {
+func (m *MockClient) JoinedRooms(arg0 context.Context) (*mautrix.RespJoinedRooms, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "JoinedRooms")
+	ret := m.ctrl.Call(m, "JoinedRooms", arg0)
 	ret0, _ := ret[0].(*mautrix.RespJoinedRooms)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // JoinedRooms indicates an expected call of JoinedRooms.
-func (mr *MockClientMockRecorder) JoinedRooms() *gomock.Call {
+func (mr *MockClientMockRecorder) JoinedRooms(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JoinedRooms", reflect.TypeOf((*MockClient)(nil).JoinedRooms))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JoinedRooms", reflect.TypeOf((*MockClient)(nil).JoinedRooms), arg0)
 }
 
 // SendStateEvent mocks base method.
-func (m *MockClient) SendStateEvent(arg0 id.RoomID, arg1 event.Type, arg2 string, arg3 any) (*mautrix.RespSendEvent, error) {
+func (m *MockClient) SendStateEvent(arg0 context.Context, arg1 id.RoomID, arg2 event.Type, arg3 string, arg4 any) (*mautrix.RespSendEvent, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendStateEvent", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "SendStateEvent", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*mautrix.RespSendEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SendStateEvent indicates an expected call of SendStateEvent.
-func (mr *MockClientMockRecorder) SendStateEvent(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockClientMockRecorder) SendStateEvent(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendStateEvent", reflect.TypeOf((*MockClient)(nil).SendStateEvent), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendStateEvent", reflect.TypeOf((*MockClient)(nil).SendStateEvent), arg0, arg1, arg2, arg3, arg4)
 }

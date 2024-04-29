@@ -8,7 +8,6 @@ require (
 	github.com/ava-labs/avalanchego v1.10.18
 	github.com/ava-labs/hypersdk v0.0.16
 	github.com/chain4travel/caminotravelvm v0.0.0-20240419161941-a32dadd85f51
-	github.com/google/uuid v1.4.0
 	github.com/klauspost/compress v1.17.3
 	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/spf13/pflag v1.0.5

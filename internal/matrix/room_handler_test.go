@@ -6,6 +6,7 @@
 package matrix
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -51,9 +52,9 @@ func TestGetOrCreateRoomForRecipient(t *testing.T) {
 				rooms: map[id.UserID]id.RoomID{},
 			},
 			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms().Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(roomID).Times(1).Return(false)
-				mockRoomClient.EXPECT().CreateRoom(&mautrix.ReqCreateRoom{
+				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
+				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(false, nil)
+				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
 					Visibility: "private",
 					Preset:     "private_chat",
 					Invite:     []id.UserID{userID},
@@ -67,14 +68,14 @@ func TestGetOrCreateRoomForRecipient(t *testing.T) {
 				rooms: map[id.UserID]id.RoomID{},
 			},
 			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms().Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(roomID).Times(1).Return(false)
-				mockRoomClient.EXPECT().CreateRoom(&mautrix.ReqCreateRoom{
+				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
+				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(false, nil)
+				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
 					Visibility: "private",
 					Preset:     "private_chat",
 					Invite:     []id.UserID{userID},
 				}).Times(1).Return(&mautrix.RespCreateRoom{RoomID: newRoomID}, nil)
-				mockRoomClient.EXPECT().SendStateEvent(newRoomID, event.StateEncryption, "",
+				mockRoomClient.EXPECT().SendStateEvent(gomock.Any(), newRoomID, event.StateEncryption, "",
 					event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1}).Times(1).Return(nil, errEnableEncryptionFailed)
 			},
 			args: args{recipient: userID},
@@ -92,9 +93,9 @@ func TestGetOrCreateRoomForRecipient(t *testing.T) {
 				rooms: map[id.UserID]id.RoomID{},
 			},
 			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms().Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(roomID).Times(1).Return(true)
-				mockRoomClient.EXPECT().JoinedMembers(roomID).Times(1).Return(&mautrix.RespJoinedMembers{Joined: map[id.UserID]mautrix.JoinedMember{userID: {}}}, nil)
+				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
+				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(true, nil)
+				mockRoomClient.EXPECT().JoinedMembers(gomock.Any(), roomID).Times(1).Return(&mautrix.RespJoinedMembers{Joined: map[id.UserID]mautrix.JoinedMember{userID: {}}}, nil)
 			},
 			args: args{recipient: userID},
 			want: roomID,
@@ -104,13 +105,13 @@ func TestGetOrCreateRoomForRecipient(t *testing.T) {
 				rooms: map[id.UserID]id.RoomID{},
 			},
 			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms().Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{}}, nil)
-				mockRoomClient.EXPECT().CreateRoom(&mautrix.ReqCreateRoom{
+				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{}}, nil)
+				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
 					Visibility: "private",
 					Preset:     "private_chat",
 					Invite:     []id.UserID{userID},
 				}).Times(1).Return(&mautrix.RespCreateRoom{RoomID: newRoomID}, nil)
-				mockRoomClient.EXPECT().SendStateEvent(newRoomID, event.StateEncryption, "",
+				mockRoomClient.EXPECT().SendStateEvent(gomock.Any(), newRoomID, event.StateEncryption, "",
 					event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1}).Times(1).Return(nil, nil)
 			},
 			args: args{recipient: userID},
@@ -121,14 +122,14 @@ func TestGetOrCreateRoomForRecipient(t *testing.T) {
 				rooms: map[id.UserID]id.RoomID{},
 			},
 			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms().Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(roomID).Times(1).Return(false)
-				mockRoomClient.EXPECT().CreateRoom(&mautrix.ReqCreateRoom{
+				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
+				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(false, nil)
+				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
 					Visibility: "private",
 					Preset:     "private_chat",
 					Invite:     []id.UserID{userID},
 				}).Times(1).Return(&mautrix.RespCreateRoom{RoomID: newRoomID}, nil)
-				mockRoomClient.EXPECT().SendStateEvent(newRoomID, event.StateEncryption, "",
+				mockRoomClient.EXPECT().SendStateEvent(gomock.Any(), newRoomID, event.StateEncryption, "",
 					event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1}).Times(1).Return(nil, nil)
 			},
 			args: args{recipient: userID},
@@ -146,7 +147,7 @@ func TestGetOrCreateRoomForRecipient(t *testing.T) {
 				tt.mocks(r)
 			}
 
-			got, err := r.GetOrCreateRoomForRecipient(tt.args.recipient)
+			got, err := r.GetOrCreateRoomForRecipient(context.Background(), tt.args.recipient)
 			require.ErrorIs(t, err, tt.err, "GetOrCreateRoomForRecipient() error = %w, wantErr %w", err, tt.err)
 			require.Equal(t, got, tt.want, "GetOrCreateRoomForRecipient() got = %v, expRoomID %v", got, tt.want)
 		})

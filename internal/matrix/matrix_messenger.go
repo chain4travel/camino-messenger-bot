@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"

@@ -34,6 +34,7 @@ type tracer struct {
 func (t *tracer) Start(ctx context.Context, spanName string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	return t.tp.Tracer("").Start(ctx, spanName, opts...)
 }
+
 func (t *tracer) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), tracerProviderShutdownTimeout)
 	defer cancel()

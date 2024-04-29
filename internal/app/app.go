@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
