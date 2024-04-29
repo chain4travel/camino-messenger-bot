@@ -2,13 +2,16 @@ package app
 
 import (
 	"context"
-	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
+	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
+	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
+	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
+	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -16,6 +19,7 @@ import (
 type App struct {
 	cfg    *config.Config
 	logger *zap.SugaredLogger
+	tracer tracing.Tracer
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -62,6 +66,14 @@ func (a *App) Run(ctx context.Context) error {
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
 
+	// init tracer
+	tracer := a.initTracer()
+	defer func() {
+		if err := tracer.Shutdown(); err != nil {
+			a.logger.Fatal("failed to shutdown tracer: %w", err)
+		}
+	}()
+
 	// start rpc server
 	a.startRPCServer(msgProcessor, serviceRegistry, g, gCtx)
 
@@ -69,6 +81,23 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Error(err)
 	}
 	return nil
+}
+
+func (a *App) initTracer() tracing.Tracer {
+	var (
+		tracer tracing.Tracer
+		err    error
+	)
+	if a.cfg.TracingConfig.Enabled {
+		tracer, err = tracing.NewTracer(&a.cfg.TracingConfig, fmt.Sprintf("%s:%d", constants.AppName, a.cfg.RPCServerConfig.Port))
+	} else {
+		tracer, err = tracing.NewNoOpTracer()
+	}
+	if err != nil {
+		a.logger.Fatal("failed to initialize tracer: %w", err)
+	}
+	a.tracer = tracer
+	return tracer
 }
 
 func (a *App) initTVMClient() messaging.ResponseHandler {
@@ -122,7 +151,7 @@ func (a *App) startMessenger(g *errgroup.Group, gCtx context.Context) (messaging
 }
 
 func (a *App) startRPCServer(msgProcessor messaging.Processor, serviceRegistry *messaging.ServiceRegistry, g *errgroup.Group, gCtx context.Context) {
-	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, msgProcessor, serviceRegistry)
+	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, a.tracer, msgProcessor, serviceRegistry)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC server...")
 		rpcServer.Start()

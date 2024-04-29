@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"sync"
 	"time"
 
@@ -47,6 +50,7 @@ type processor struct {
 	messenger Messenger
 	userID    string
 	logger    *zap.SugaredLogger
+	tracer    trace.Tracer
 	timeout   time.Duration // timeout after which a request is considered failed
 
 	mu               sync.Mutex
@@ -68,6 +72,7 @@ func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.Pro
 		cfg:              cfg,
 		messenger:        messenger,
 		logger:           logger,
+		tracer:           otel.GetTracerProvider().Tracer(""),
 		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
 		responseChannels: make(map[string]chan Message),
 		serviceRegistry:  registry,
@@ -141,11 +146,14 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 		return Message{}, ErrMissingRecipient
 	}
 	msg.Metadata.Cheques = nil //TODO issue and attach cheques
+	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	defer span.End()
 	err := p.messenger.SendAsync(ctx, msg)
 	if err != nil {
 		return Message{}, err
 	}
-
+	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	defer responseSpan.End()
 	for {
 		select {
 		case response := <-responseChan:
@@ -161,6 +169,13 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 }
 
 func (p *processor) Respond(msg Message) error {
+	traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
+	if err != nil {
+		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
+	}
+	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
+	ctx, span := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	defer span.End()
 	var service Service
 	var supported bool
 	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
@@ -173,9 +188,11 @@ func (p *processor) Respond(msg Message) error {
 	md.Sender = p.userID
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 
-	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
+	ctx = grpc_metadata.NewOutgoingContext(ctx, msg.Metadata.ToGrpcMD())
 	var header grpc_metadata.MD
+	ctx, cspan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	response, msgType, err := service.Call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
+	cspan.End()
 	if err != nil {
 		return err //TODO handle error and return a response message
 	}

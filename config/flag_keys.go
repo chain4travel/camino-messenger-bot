@@ -20,4 +20,10 @@ const (
 	TvmNetworkIDKey               = "tvm_network_id"
 	TvmChainIDKey                 = "tvm_chain_id"
 	TvmAwaitTxConfirmationTimeout = "tvm_await_tx_confirmation_timeout"
+	TracingEnabledKey             = "tracing_enabled"
+	TracingHostKey                = "tracing_host"
+	TracingPortKey                = "tracing_port"
+	TracingInsecureKey            = "tracing_insecure"
+	TracingCertFileKey            = "tracing_cert_file"
+	TracingKeyFileKey             = "tracing_key_file"
 )

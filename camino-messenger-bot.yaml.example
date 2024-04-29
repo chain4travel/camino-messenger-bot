@@ -29,3 +29,9 @@ tvm_private_key: PrivateKey-YOUR_PRIVATE_KEY # used for signing transactions on 
 tvm_network_id: 1002 # 1002 for devnet, 1001 for testnet, 1000 for mainnet
 tvm_chain_id: BLOCKCHAIN_ID # blockchain id of the t-chain
 tvm_await_tx_confirmation_timeout: 6000 # timeout in milliseconds for awaiting transaction confirmation
+tracing_enabled: true
+tracing_host: localhost
+tracing_port: 4317
+tracing_insecure: true
+tracing_cert_file: server-cert.pem
+tracing_key_file: server-key.pem
