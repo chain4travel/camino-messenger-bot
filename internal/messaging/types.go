@@ -2,6 +2,9 @@ package messaging
 
 import (
 	"errors"
+	"fmt"
+	"reflect"
+	"strings"
 
 	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
@@ -10,13 +13,12 @@ import (
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
 	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
+	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
 	"google.golang.org/protobuf/proto"
 )
-
-var ErrUnknownMessageType = errors.New("unknown message type")
 
 type RequestContent struct {
 	*activityv1alpha.ActivityProductListRequest
@@ -94,6 +96,100 @@ const (
 	TransportSearchResponse          MessageType = "TransportSearchResponse"
 )
 
+var (
+	ErrUnknownMessageType = errors.New("unknown message type")
+	types                 = []any{
+		activityv1alpha.ActivityProductListRequest{},
+		activityv1alpha.ActivityProductListResponse{},
+		activityv1alpha.ActivitySearchRequest{},
+		activityv1alpha.ActivitySearchResponse{},
+		accommodationv1alpha.AccommodationProductInfoRequest{},
+		accommodationv1alpha.AccommodationProductInfoResponse{},
+		accommodationv1alpha.AccommodationProductListRequest{},
+		accommodationv1alpha.AccommodationProductListResponse{},
+		accommodationv1alpha.AccommodationSearchRequest{},
+		accommodationv1alpha.AccommodationSearchResponse{},
+		transportv1alpha.TransportSearchRequest{},
+		transportv1alpha.TransportSearchResponse{},
+		bookv1alpha.MintRequest{},
+		bookv1alpha.MintResponse{},
+		bookv1alpha.ValidationRequest{},
+		bookv1alpha.ValidationResponse{},
+		networkv1alpha.GetNetworkFeeRequest{},
+		networkv1alpha.GetNetworkFeeResponse{},
+		partnerv1alpha.GetPartnerConfigurationRequest{},
+		partnerv1alpha.GetPartnerConfigurationResponse{},
+		pingv1alpha.PingRequest{},
+		pingv1alpha.PingResponse{},
+	}
+)
+var typeRegistry = make(map[string]reflect.Type)
+
+// Register a type with the given name
+func registerType(typeName string, t interface{}) {
+	typeRegistry[typeName] = reflect.TypeOf(t)
+}
+
+// Create a new instance of the given type name
+func createInstance(typeName string) (interface{}, error) {
+	if t, found := typeRegistry[typeName]; found {
+		if t.Kind() == reflect.Ptr {
+			return reflect.New(t.Elem()).Interface(), nil
+		}
+		return reflect.New(t).Interface(), nil
+	}
+	return nil, fmt.Errorf("type '%s' not found", typeName)
+}
+
+// createRequestContentWithErrHeader creates a request content with the given header. It returns an error if the request type is unknown.
+// The function uses reflection to assign the generic response header to the specific response type.
+func createResponseContentWithErrHeader(responseType MessageType, header typesv1alpha.ResponseHeader) (ResponseContent, error) {
+	responseContentSubtype, err := createInstance(string(responseType))
+	if err != nil {
+		return ResponseContent{}, err
+	}
+	setHeader(responseContentSubtype, &header)
+	rt := reflect.TypeOf(responseContentSubtype)
+	rc := reflect.ValueOf(responseContentSubtype)
+
+	responseContent := ResponseContent{}
+	val := reflect.ValueOf(&responseContent).Elem()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		if field.Type() == rt {
+			field.Set(rc)
+		}
+	}
+	return responseContent, nil
+}
+
+func init() {
+	// Register types
+	for _, t := range types {
+		fmt.Printf("Registering type name %s\n", reflect.TypeOf(t).Name())
+		fmt.Printf("Registering type %v\n", reflect.TypeOf(t))
+
+		registerType(reflect.TypeOf(t).Name(), t)
+	}
+}
+
+func setHeader(i interface{}, header *typesv1alpha.ResponseHeader) error {
+	headerField := reflect.Indirect(reflect.ValueOf(i)).FieldByName("Header")
+	if !headerField.IsValid() {
+		return fmt.Errorf("field 'Header' not found in type %T", i)
+	}
+	if !headerField.CanSet() {
+		return fmt.Errorf("field 'Header' in type %T is not settable", i)
+	}
+
+	if headerField.Kind() == reflect.Ptr {
+		headerField.Set(reflect.ValueOf(header))
+		return nil
+	}
+	return fmt.Errorf("field 'Header' in type %T is not a pointer", i)
+}
+
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
 	case ActivityProductListRequest,
@@ -121,6 +217,13 @@ func (mt MessageType) Category() MessageCategory {
 	default:
 		return Unknown
 	}
+}
+
+func (mt MessageType) ToResponse() (MessageType, error) {
+	if strings.HasSuffix(string(mt), "Request") {
+		return MessageType(strings.TrimSuffix(string(mt), "Request") + "Response"), nil
+	}
+	return "", fmt.Errorf("cannot convert %s to response", mt)
 }
 
 func (m *Message) MarshalContent() ([]byte, error) {

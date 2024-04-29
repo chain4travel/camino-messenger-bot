@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
+
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"go.uber.org/zap"
@@ -156,23 +158,31 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 }
 
 func (p *processor) Respond(msg *Message) error {
-	var service Service
-	var supported bool
-	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
-		return fmt.Errorf("%w: %s", ErrUnsupportedRequestType, msg.Type)
-	}
-
 	md := &msg.Metadata
 	// rewrite sender & recipient metadata
 	md.Recipient = md.Sender
 	md.Sender = p.userID
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
-
 	ctx := grpc_metadata.NewOutgoingContext(context.Background(), msg.Metadata.ToGrpcMD())
+
+	var service Service
+	var supported bool
+	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
+		responseMsg, err2 := newErrorResponse(msg, md, fmt.Errorf("%w: %s", ErrUnsupportedRequestType, msg.Type))
+		if err2 != nil {
+			return err2
+		}
+		return p.messenger.SendAsync(context.Background(), responseMsg)
+	}
+
 	var header grpc_metadata.MD
 	response, msgType, err := service.Call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
 	if err != nil {
-		return err // TODO handle error and return a response message
+		responseMsg, err2 := newErrorResponse(msg, md, err)
+		if err2 != nil {
+			return err2
+		}
+		return p.messenger.SendAsync(ctx, responseMsg)
 	}
 
 	err = md.FromGrpcMD(header)
@@ -189,6 +199,27 @@ func (p *processor) Respond(msg *Message) error {
 		Metadata: *md,
 	}
 	return p.messenger.SendAsync(ctx, responseMsg)
+}
+
+func newErrorResponse(msg *Message, md *metadata.Metadata, e error) (Message, error) {
+	header := typesv1alpha.ResponseHeader{
+		Status: typesv1alpha.StatusType_STATUS_TYPE_FAILURE,
+		Alerts: []*typesv1alpha.Alert{{Message: e.Error()}},
+	}
+	responseType, err := msg.Type.ToResponse()
+	if err != nil {
+		return Message{}, err
+	}
+	responseContent, err := createResponseContentWithErrHeader(responseType, header)
+	if err != nil {
+		return Message{}, err
+	}
+	responseMsg := Message{
+		Type:     responseType,
+		Content:  MessageContent{ResponseContent: responseContent},
+		Metadata: *md,
+	}
+	return responseMsg, nil
 }
 
 func (p *processor) Forward(msg *Message) {

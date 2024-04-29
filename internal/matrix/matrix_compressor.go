@@ -49,9 +49,9 @@ func (c *ChunkingCompressor) Compress(msg messaging.Message) ([]CaminoMatrixMess
 func (c *ChunkingCompressor) split(bytes []byte) ([][]byte, error) {
 	splitCompressedContent := splitByteArray(bytes, c.maxChunkSize)
 
-	if len(splitCompressedContent) == 0 {
-		return nil, ErrCompressionProducedNoChunks // should never happen
-	}
+	//if len(splitCompressedContent) == 0 {
+	//	return nil, ErrCompressionProducedNoChunks // should never happen
+	//}
 	return splitCompressedContent, nil
 }
 
@@ -78,10 +78,14 @@ func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte
 		}
 		caminoMatrixMsg.Metadata.NumberOfChunks = uint(len(splitCompressedContent))
 		caminoMatrixMsg.Metadata.ChunkIndex = 0
-		caminoMatrixMsg.CompressedContent = splitCompressedContent[0]
+		if len(splitCompressedContent) > 0 {
+			caminoMatrixMsg.CompressedContent = splitCompressedContent[0]
+		}
 		messages = append(messages, caminoMatrixMsg)
 	}
-
+	if len(splitCompressedContent) < 2 {
+		return messages, nil
+	}
 	// if multiple chunks were produced upon compression, add them to messages slice
 	for i, chunk := range splitCompressedContent[1:] {
 		messages = append(messages, CaminoMatrixMessage{

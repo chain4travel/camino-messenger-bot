@@ -34,7 +34,7 @@ func NewMessageAssembler() MessageAssembler {
 }
 
 func (a *messageAssembler) AssembleMessage(msg *CaminoMatrixMessage) (*CaminoMatrixMessage, bool, error) {
-	if msg.Metadata.NumberOfChunks == 1 {
+	if msg.Metadata.NumberOfChunks <= 1 {
 		decompressedCaminoMsg, err := a.assembleAndDecompressCaminoMatrixMessages([]*CaminoMatrixMessage{msg})
 		return decompressedCaminoMsg, err == nil, err
 	}
