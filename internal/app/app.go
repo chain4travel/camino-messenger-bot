@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
+	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -65,9 +66,24 @@ func (a *App) Run(ctx context.Context) error {
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
 
+	// init tracer
+	tracer := a.initTracer()
+	defer func() {
+		if err := tracer.Shutdown(); err != nil {
+			a.logger.Fatal("failed to shutdown tracer: %w", err)
+		}
+	}()
+
 	// start rpc server
 	a.startRPCServer(msgProcessor, serviceRegistry, g, gCtx)
 
+	if err := g.Wait(); err != nil {
+		a.logger.Error(err)
+	}
+	return nil
+}
+
+func (a *App) initTracer() tracing.Tracer {
 	var (
 		tracer tracing.Tracer
 		err    error
@@ -80,17 +96,8 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatal("failed to initialize tracer: %w", err)
 	}
-	defer func() {
-		if err := tracer.Shutdown(); err != nil {
-			a.logger.Fatal("failed to shutdown tracer: %w", err)
-		}
-	}()
 	a.tracer = tracer
-	
-	if err := g.Wait(); err != nil {
-		a.logger.Error(err)
-	}
-	return nil
+	return tracer
 }
 
 func (a *App) initTVMClient() messaging.ResponseHandler {
