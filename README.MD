@@ -89,3 +89,10 @@ Create a configuration YAML file based on the provided example "camino-messenger
 ```
 
 Feel free to explore and customize the application based on your specific requirements. If you encounter any issues or have questions, please refer to the documentation or open an issue in the repository.
+
+## Tracing
+The application supports tracing by providing an otel (OpenTelemetry) sdk implementation adding traces to all requests and responses. 
+Traces cross the boundaries of the application by using traceIDs and context propagation.
+The tracing configuration can be set in the configuration file.
+By default, tracing is disabled. For the moment the application uses a Jaeger exporter to send the traces to a Jaeger instance. 
+A future improvement could include an otel collector as the middle stop for traces and feed to them different tracing systems.
