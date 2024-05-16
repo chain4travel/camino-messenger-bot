@@ -22,7 +22,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 	}
 	tests := map[string]struct {
 		args args
-		want []*CaminoMatrixMessage
+		want []CaminoMatrixMessage
 		err  error
 	}{
 		"err: unknown message type": {
@@ -49,7 +49,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 100,
 			},
-			want: []*CaminoMatrixMessage{
+			want: []CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -58,6 +58,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 1,
 						ChunkIndex:     0,
 					},
+					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69, 66},
 				},
 			},
 		},
@@ -77,7 +78,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 23, // compressed size of msgType=ActivitySearchResponse and serviceCode="test"
 			},
-			want: []*CaminoMatrixMessage{
+			want: []CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -86,6 +87,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 1,
 						ChunkIndex:     0,
 					},
+					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69, 66},
 				},
 			},
 		},
@@ -105,7 +107,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 22, // < 23 = compressed size of msgType=ActivitySearchResponse and serviceCode="test"
 			},
-			want: []*CaminoMatrixMessage{
+			want: []CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -114,6 +116,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 2,
 						ChunkIndex:     0,
 					},
+					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69},
 				},
 				{
 					MessageEventContent: event.MessageEventContent{
@@ -123,6 +126,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 2,
 						ChunkIndex:     1,
 					},
+					CompressedContent: []byte{66},
 				},
 			},
 		},
@@ -132,13 +136,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 			c := &ChunkingCompressor{tt.args.maxSize}
 			got, err := c.Compress(tt.args.msg)
 			require.ErrorIs(t, err, tt.err)
-			require.Equal(t, len(tt.want), len(got))
-			for i, msg := range got {
-				require.Equal(t, msg.MessageEventContent.MsgType, tt.want[i].MsgType)
-				require.Equal(t, msg.Metadata.NumberOfChunks, tt.want[i].Metadata.NumberOfChunks)
-				require.Equal(t, msg.Metadata.ChunkIndex, tt.want[i].Metadata.ChunkIndex)
-				require.NotNil(t, msg.CompressedContent)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
