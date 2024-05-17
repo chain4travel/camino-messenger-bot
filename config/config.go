@@ -99,7 +99,12 @@ func ReadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	viper.ReadInConfig() //nolint:errcheck    // ignore config-file-reading-errors as we have env vars as fallback configuration
+	// read configuration file if provided, otherwise rely on env vars
+	if configFile != "" {
+		if err := viper.ReadInConfig(); err != nil {
+			return cfg, err
+		}
+	}
 
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, err
