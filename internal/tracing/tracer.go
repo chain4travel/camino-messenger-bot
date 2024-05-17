@@ -7,13 +7,14 @@ package tracing
 
 import (
 	"context"
+	"time"
+
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
-	"time"
 )
 
 const tracerProviderShutdownTimeout = exportTimeout + 5*time.Second
@@ -22,6 +23,7 @@ var _ Tracer = (*tracer)(nil)
 
 type Tracer interface {
 	trace.Tracer
+	TraceIDForSpan(trace.Span) trace.TraceID // TraceIDForSpan returns the trace ID of the given span.
 	Shutdown() error
 }
 
@@ -36,6 +38,10 @@ func (t *tracer) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), tracerProviderShutdownTimeout)
 	defer cancel()
 	return t.tp.Shutdown(ctx)
+}
+
+func (t *tracer) TraceIDForSpan(span trace.Span) trace.TraceID {
+	return span.SpanContext().TraceID()
 }
 
 func NewTracer(tracingConfig *config.TracingConfig, name string) (Tracer, error) {

@@ -7,6 +7,8 @@ import (
 	"log"
 	"net"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
+
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
@@ -59,7 +61,7 @@ type server struct {
 	grpcServer      *grpc.Server
 	cfg             *config.RPCServerConfig
 	logger          *zap.SugaredLogger
-	tracer          trace.Tracer
+	tracer          tracing.Tracer
 	processor       messaging.Processor
 	serviceRegistry *messaging.ServiceRegistry
 }
@@ -68,7 +70,7 @@ func (s *server) Checkpoint() string {
 	return "request-gateway"
 }
 
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer trace.Tracer, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) *server {
+func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tracing.Tracer, processor messaging.Processor, serviceRegistry *messaging.ServiceRegistry) *server {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
@@ -182,7 +184,7 @@ func (s *server) processInternalRequest(ctx context.Context, requestType messagi
 func (s *server) processExternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (messaging.ResponseContent, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processExternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
-	err, md := s.processMetadata(ctx, span.SpanContext().TraceID())
+	err, md := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
 	if err != nil {
 		return messaging.ResponseContent{}, fmt.Errorf("error processing metadata: %v", err)
 	}
