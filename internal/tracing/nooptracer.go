@@ -31,8 +31,8 @@ func (n *noopTracer) Shutdown() error {
 }
 
 // TraceIDForSpan returns a random trace ID in tha case of noopTracer. A non-empty trace ID is required for the span to be exported.
-func (n *noopTracer) TraceIDForSpan(trace.Span) trace.TraceID {
+func (n *noopTracer) TraceIDForSpan(_ trace.Span) trace.TraceID {
 	traceID := trace.TraceID{}
-	rand.Read(traceID[:])
+	_, _ = rand.Read(traceID[:])
 	return traceID
 }

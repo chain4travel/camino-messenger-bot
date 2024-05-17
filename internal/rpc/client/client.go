@@ -2,8 +2,9 @@ package client
 
 import (
 	"fmt"
-	"log"
 	"sync"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -38,11 +39,11 @@ func (rc *RPCClient) Start() error {
 
 	var opts []grpc.DialOption
 	if rc.cfg.Unencrypted {
-		opts = append(opts, grpc.WithInsecure())
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	} else {
 		tlsCreds, err := utils.LoadCATLSCredentials(rc.cfg.CACertFile)
 		if err != nil {
-			log.Fatalf("could not load TLS keys: %s", err)
+			return fmt.Errorf("could not load TLS keys: %w", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(tlsCreds))
 	}

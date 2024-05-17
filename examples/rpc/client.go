@@ -1,7 +1,6 @@
 package main
 
 import (
-	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 	"context"
 	"encoding/csv"
 	"flag"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
@@ -74,7 +75,6 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 	request := &accommodationv1alpha.AccommodationSearchRequest{
 		Header: nil,
 		SearchParametersGeneric: &typesv1alpha.SearchParameters{
-			Currency:   typesv1alpha.Currency_CURRENCY_EUR,
 			Language:   typesv1alpha.Language_LANGUAGE_UG,
 			Market:     1,
 			MaxOptions: 2,
@@ -82,7 +82,7 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 		Queries: []*accommodationv1alpha.AccommodationSearchQuery{
 			{
 				SearchParametersAccommodation: &accommodationv1alpha.AccommodationSearchParameters{
-					RatePlan: []*typesv1alpha.RatePlan{{RatePlan: "economy"}},
+					SupplierCodes: []*typesv1alpha.SupplierProductCode{{SupplierCode: "supplier1"}},
 				},
 			},
 		},
@@ -139,12 +139,11 @@ func addToDataset(counter int64, totalTime int64, resp *accommodationv1alpha.Acc
 
 		if entry.Key == "request-gateway-request" {
 			lastValue = entry.Value
-			continue //skip
+			continue // skip
 		}
 		if entry.Key == "processor-request" {
-
-			//lastValue = entry.Value
-			continue //skip
+			// lastValue = entry.Value
+			continue // skip
 		}
 		fmt.Printf("%d|%s|%s|%d|%.2f\n", entry.Value, entry.Key, resp.Metadata.SearchId.GetValue(), entry.Value-lastValue, float32(entry.Value-lastValue)/float32(totalTime))
 
@@ -156,6 +155,7 @@ func addToDataset(counter int64, totalTime int64, resp *accommodationv1alpha.Acc
 	loadTestData[counter] = data
 	mu.Unlock()
 }
+
 func persistToCSV(dataset [][]string) {
 	// Open a new CSV file
 	file, err := os.Create("load_test_data.csv")

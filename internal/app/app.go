@@ -39,7 +39,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		logger, _ = cfg.Build()
 	}
 	app.logger = logger.Sugar()
-	defer logger.Sync()
+	defer logger.Sync() //nolint:errcheck
 
 	return app, nil
 }
@@ -52,16 +52,22 @@ func (a *App) Run(ctx context.Context) error {
 	serviceRegistry := messaging.NewServiceRegistry(a.logger)
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
 	if a.cfg.PartnerPluginConfig.Host != "" {
-		a.startRPCClient(g, *serviceRegistry, gCtx)
+		a.startRPCClient(gCtx, g, serviceRegistry)
 	} else {
 		a.logger.Infof("No host for partner plugin provided, bot will serve as a distributor bot.")
 		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes, nil)
 	}
 	// start messenger (receiver)
-	messenger, userIDUpdatedChan := a.startMessenger(g, gCtx)
+	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
 	// initiate tvm client
-	responseHandler := a.initTVMClient()
+	tvmClient, err := tvm.NewClient(a.cfg.TvmConfig) // TODO make client init conditional based on provided config
+	if err != nil {
+		a.logger.Warn(err)
+	}
+
+	// create response handler
+	responseHandler := a.newResponseHandler(tvmClient)
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
@@ -75,12 +81,19 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	// start rpc server
-	a.startRPCServer(msgProcessor, serviceRegistry, g, gCtx)
+	a.startRPCServer(gCtx, msgProcessor, serviceRegistry, g)
 
 	if err := g.Wait(); err != nil {
 		a.logger.Error(err)
 	}
 	return nil
+}
+
+func (a *App) newResponseHandler(tvmClient *tvm.Client) messaging.ResponseHandler {
+	if tvmClient != nil {
+		return messaging.NewResponseHandler(tvmClient, a.logger)
+	}
+	return messaging.NoopResponseHandler{}
 }
 
 func (a *App) initTracer() tracing.Tracer {
@@ -100,21 +113,7 @@ func (a *App) initTracer() tracing.Tracer {
 	return tracer
 }
 
-func (a *App) initTVMClient() messaging.ResponseHandler {
-	var responseHandler messaging.ResponseHandler
-	// TODO make client init conditional based on provided config
-	tvmClient, err := tvm.NewClient(a.cfg.TvmConfig)
-	if err != nil {
-		// do no return error here, let the bot continue
-		a.logger.Warnf("Failed to create tvm client: %v", err)
-		responseHandler = messaging.NoopResponseHandler{}
-	} else {
-		responseHandler = messaging.NewResponseHandler(tvmClient, a.logger)
-	}
-	return responseHandler
-}
-
-func (a *App) startRPCClient(g *errgroup.Group, serviceRegistry messaging.ServiceRegistry, gCtx context.Context) {
+func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegistry messaging.ServiceRegistry) {
 	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC client...")
@@ -126,12 +125,12 @@ func (a *App) startRPCClient(g *errgroup.Group, serviceRegistry messaging.Servic
 		return nil
 	})
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		return rpcClient.Shutdown()
 	})
 }
 
-func (a *App) startMessenger(g *errgroup.Group, gCtx context.Context) (messaging.Messenger, chan string) {
+func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan string) {
 	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
 	userIDUpdatedChan := make(chan string) // Channel to pass the userID
 	g.Go(func() error {
@@ -144,27 +143,26 @@ func (a *App) startMessenger(g *errgroup.Group, gCtx context.Context) (messaging
 		return nil
 	})
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		return messenger.StopReceiver()
 	})
 	return messenger, userIDUpdatedChan
 }
 
-func (a *App) startRPCServer(msgProcessor messaging.Processor, serviceRegistry *messaging.ServiceRegistry, g *errgroup.Group, gCtx context.Context) {
+func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Processor, serviceRegistry messaging.ServiceRegistry, g *errgroup.Group) {
 	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, a.tracer, msgProcessor, serviceRegistry)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC server...")
-		rpcServer.Start()
-		return nil
+		return rpcServer.Start()
 	})
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		rpcServer.Stop()
 		return nil
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry *messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
+func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
 	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed

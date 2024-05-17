@@ -22,7 +22,7 @@ import (
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" //nolint:revive
 )
 
 var _ messaging.Messenger = (*messenger)(nil)
@@ -49,7 +49,7 @@ type messenger struct {
 	compressor   compression.Compressor[messaging.Message, []CaminoMatrixMessage]
 }
 
-func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenger {
+func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging.Messenger {
 	c, err := mautrix.NewClient(cfg.Host, "", "")
 	if err != nil {
 		panic(err)
@@ -60,11 +60,12 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) *messenge
 		logger:       logger,
 		tracer:       otel.GetTracerProvider().Tracer(""),
 		client:       client{Client: c},
-		roomHandler:  NewRoomHandler(c, logger),
-		msgAssembler: NewMessageAssembler(logger),
-		compressor:   &MatrixChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
+		roomHandler:  NewRoomHandler(NewClient(c), logger),
+		msgAssembler: NewMessageAssembler(),
+		compressor:   &ChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
 }
+
 func (m *messenger) Checkpoint() string {
 	return "messenger-gateway"
 }
@@ -83,7 +84,7 @@ func (m *messenger) StartReceiver() (string, error) {
 		_, span := m.tracer.Start(ctx, "messenger.OnC4TMessageReceive", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", evt.Type.Type)))
 		defer span.End()
 		t := time.Now()
-		completeMsg, err, completed := m.msgAssembler.AssembleMessage(*msg)
+		completeMsg, completed, err := m.msgAssembler.AssembleMessage(msg)
 		if err != nil {
 			m.logger.Errorf("failed to assemble message: %v", err)
 			return
@@ -114,7 +115,7 @@ func (m *messenger) StartReceiver() (string, error) {
 		}
 	})
 
-	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) //TODO refactor
+	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) // TODO refactor
 	if err != nil {
 		return "", err
 	}
@@ -139,7 +140,7 @@ func (m *messenger) StartReceiver() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Set the client crypto helper in order to automatically encrypt outgoing messages
+	// Set the wrappedClient crypto helper in order to automatically encrypt outgoing messages
 	m.client.Crypto = cryptoHelper
 	m.client.cryptoHelper = cryptoHelper // nikos: we need the struct cause stop method is not available on the interface level
 
@@ -159,6 +160,7 @@ func (m *messenger) StartReceiver() (string, error) {
 
 	return m.client.UserID.String(), nil
 }
+
 func (m *messenger) StopReceiver() error {
 	m.logger.Info("Stopping matrix syncer...")
 	if m.client.cancelSync != nil {
@@ -191,7 +193,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error 
 }
 
 func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
-	//TODO add retry logic?
+	// TODO add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(ctx, roomID, eventType, msg)
 		if err != nil {

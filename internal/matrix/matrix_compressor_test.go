@@ -6,15 +6,16 @@
 package matrix
 
 import (
+	"testing"
+
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/stretchr/testify/require"
 	"maunium.net/go/mautrix/event"
-	"testing"
 )
 
-func TestMatrixChunkingCompressorCompress(t *testing.T) {
+func TestChunkingCompressorCompress(t *testing.T) {
 	type args struct {
 		msg     messaging.Message
 		maxSize int
@@ -38,7 +39,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: activityv1alpha.ActivitySearchResponse{
+							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
 								Results: []*activityv1alpha.ActivitySearchResult{
 									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
 								},
@@ -57,6 +58,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 1,
 						ChunkIndex:     0,
 					},
+					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69, 66},
 				},
 			},
 		},
@@ -66,7 +68,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: activityv1alpha.ActivitySearchResponse{
+							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
 								Results: []*activityv1alpha.ActivitySearchResult{
 									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
 								},
@@ -85,6 +87,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 1,
 						ChunkIndex:     0,
 					},
+					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69, 66},
 				},
 			},
 		},
@@ -94,7 +97,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: activityv1alpha.ActivitySearchResponse{
+							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
 								Results: []*activityv1alpha.ActivitySearchResult{
 									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
 								},
@@ -113,6 +116,7 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 2,
 						ChunkIndex:     0,
 					},
+					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69},
 				},
 				{
 					MessageEventContent: event.MessageEventContent{
@@ -122,22 +126,17 @@ func TestMatrixChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 2,
 						ChunkIndex:     1,
 					},
+					CompressedContent: []byte{66},
 				},
 			},
 		},
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			c := &MatrixChunkingCompressor{tt.args.maxSize}
+			c := &ChunkingCompressor{tt.args.maxSize}
 			got, err := c.Compress(tt.args.msg)
 			require.ErrorIs(t, err, tt.err)
-			require.Equal(t, len(got), len(tt.want))
-			for i, msg := range got {
-				require.Equal(t, msg.MessageEventContent.MsgType, tt.want[i].MsgType)
-				require.Equal(t, msg.Metadata.NumberOfChunks, tt.want[i].Metadata.NumberOfChunks)
-				require.Equal(t, msg.Metadata.ChunkIndex, tt.want[i].Metadata.ChunkIndex)
-				require.NotNil(t, msg.CompressedContent)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

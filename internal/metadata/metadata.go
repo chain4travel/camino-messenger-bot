@@ -51,14 +51,14 @@ func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
 	if cheques, found := mdPairs["cheques"]; found {
 		chequesJSON := strings.Join(cheques, "")
 		if err := json.Unmarshal([]byte(chequesJSON), &m.Cheques); err != nil {
-			return fmt.Errorf("error unmarshalling cheques: %v", err)
+			return fmt.Errorf("error unmarshalling cheques: %w", err)
 		}
 	}
 
 	if timestamps, found := mdPairs["timestamps"]; found {
 		timestampsJSON := strings.Join(timestamps, "")
 		if err := json.Unmarshal([]byte(timestampsJSON), &m.Timestamps); err != nil {
-			return fmt.Errorf("error unmarshalling timestamps: %v", err)
+			return fmt.Errorf("error unmarshalling timestamps: %w", err)
 		}
 	}
 	if providerOperator, found := mdPairs["provider_operator"]; found {
@@ -66,6 +66,7 @@ func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
 	}
 	return nil
 }
+
 func (m *Metadata) ToGrpcMD() metadata.MD {
 	md := metadata.New(map[string]string{
 		"request_id": m.RequestID,
@@ -83,6 +84,7 @@ func (m *Metadata) ToGrpcMD() metadata.MD {
 	})
 	return md
 }
+
 func (m *Metadata) Stamp(checkpoint string) {
 	if m.Timestamps == nil {
 		m.Timestamps = make(map[string]int64)
@@ -90,6 +92,7 @@ func (m *Metadata) Stamp(checkpoint string) {
 	idx := len(m.Timestamps) // for analysis' sake, we want to know the order of the checkpoints
 	m.Timestamps[fmt.Sprintf("%d-%s", idx, checkpoint)] = time.Now().UnixMilli()
 }
+
 func (m *Metadata) StampOn(checkpoint string, t int64) {
 	if m.Timestamps == nil {
 		m.Timestamps = make(map[string]int64)

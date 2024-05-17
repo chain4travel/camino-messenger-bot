@@ -1,0 +1,57 @@
+# Copyright (C) 2024, Chain4Travel AG. All rights reserved.
+# See the file LICENSE for licensing terms.
+
+# https://golangci-lint.run/usage/configuration/
+run:
+  skip-dirs:
+    - camino-matrix-go
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - bodyclose
+#    - cyclop TODO enable
+    - depguard
+    - dupl
+    - errcheck
+    - errorlint
+    - exportloopref
+    - goconst
+    - gocritic
+    - gofmt
+    - gofumpt
+    - goimports
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - noctx
+    - prealloc
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+    - revive
+
+linters-settings:
+  depguard:
+    rules:
+      packages:
+        deny:
+          - pkg: "io/ioutil"
+            desc: io/ioutil is deprecated. Use package io or os instead.
+          - pkg: "github.com/stretchr/testify/assert"
+            desc: github.com/stretchr/testify/require should be used instead.
+          - pkg: "github.com/golang/mock/gomock"
+            desc: go.uber.org/mock/gomock should be used instead.
+issues:
+  # Maximum count of issues with the same text. Set to 0 to disable. Default: 3.
+  max-same-issues: 0

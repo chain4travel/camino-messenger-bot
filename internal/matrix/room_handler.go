@@ -10,47 +10,63 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
+type Client interface {
+	IsEncrypted(ctx context.Context, roomID id.RoomID) (bool, error)
+	CreateRoom(ctx context.Context, req *mautrix.ReqCreateRoom) (*mautrix.RespCreateRoom, error)
+	SendStateEvent(ctx context.Context, roomID id.RoomID, eventType event.Type, stateKey string, content interface{}) (*mautrix.RespSendEvent, error)
+	JoinedRooms(ctx context.Context) (*mautrix.RespJoinedRooms, error)
+	JoinedMembers(ctx context.Context, roomID id.RoomID) (*mautrix.RespJoinedMembers, error)
+}
+
+// wrappedClient is a wrapper around mautrix.Client to abstract away concrete implementations and thus facilitate testing and mocking
+type wrappedClient struct {
+	*mautrix.Client
+}
+
+func (c *wrappedClient) IsEncrypted(ctx context.Context, roomID id.RoomID) (bool, error) {
+	return c.StateStore.IsEncrypted(ctx, roomID)
+}
+
+func NewClient(mautrixClient *mautrix.Client) Client {
+	return &wrappedClient{mautrixClient}
+}
+
 type RoomHandler interface {
-	GetOrCreateRoomForRecipient(context.Context, id.UserID) (id.RoomID, error)
-	CreateRoomAndInviteUser(context.Context, id.UserID) (id.RoomID, error)
-	EnableEncryptionForRoom(context.Context, id.RoomID) error
-	GetEncryptedRoomForRecipient(context.Context, id.UserID) (id.RoomID, bool)
+	GetOrCreateRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error)
 }
 type roomHandler struct {
-	client *mautrix.Client
+	client Client
 	logger *zap.SugaredLogger
 	rooms  map[id.UserID]id.RoomID
 	mu     sync.RWMutex
 }
 
-func NewRoomHandler(client *mautrix.Client, logger *zap.SugaredLogger) RoomHandler {
+func NewRoomHandler(client Client, logger *zap.SugaredLogger) RoomHandler {
 	return &roomHandler{client: client, logger: logger, rooms: make(map[id.UserID]id.RoomID)}
 }
 
 func (r *roomHandler) GetOrCreateRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error) {
-
 	// check if room already established with recipient
-	roomID, found := r.GetEncryptedRoomForRecipient(ctx, recipient)
+	roomID, found := r.getEncryptedRoomForRecipient(ctx, recipient)
 
 	var err error
 	// if not create room and invite recipient
 	if !found {
-		roomID, err = r.CreateRoomAndInviteUser(ctx, recipient)
+		roomID, err = r.createRoomAndInviteUser(ctx, recipient)
 		if err != nil {
 			return "", err
 		}
 		// enable encryption for room
-		err = r.EnableEncryptionForRoom(ctx, roomID)
+		err = r.enableEncryptionForRoom(ctx, roomID)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	// return room id
 	return roomID, nil
 }
 
-func (r *roomHandler) CreateRoomAndInviteUser(ctx context.Context, userID id.UserID) (id.RoomID, error) {
+func (r *roomHandler) createRoomAndInviteUser(ctx context.Context, userID id.UserID) (id.RoomID, error) {
 	r.logger.Debugf("Creating room and inviting user %v", userID)
 	req := mautrix.ReqCreateRoom{
 		Visibility: "private",
@@ -65,15 +81,15 @@ func (r *roomHandler) CreateRoomAndInviteUser(ctx context.Context, userID id.Use
 	return resp.RoomID, nil
 }
 
-func (r *roomHandler) EnableEncryptionForRoom(ctx context.Context, roomID id.RoomID) error {
+func (r *roomHandler) enableEncryptionForRoom(ctx context.Context, roomID id.RoomID) error {
 	r.logger.Debugf("Enabling encryption for room %s", roomID)
 	_, err := r.client.SendStateEvent(ctx, roomID, event.StateEncryption, "",
 		event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1})
 	return err
 }
 
-func (r *roomHandler) GetEncryptedRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, bool) {
-	roomID := r.fetchCachedRoom(recipient)
+func (r *roomHandler) getEncryptedRoomForRecipient(ctx context.Context, recipient id.UserID) (roomID id.RoomID, found bool) {
+	roomID = r.fetchCachedRoom(recipient)
 	if roomID != "" {
 		return roomID, true
 	}
@@ -83,7 +99,7 @@ func (r *roomHandler) GetEncryptedRoomForRecipient(ctx context.Context, recipien
 		return "", false
 	}
 	for _, roomID := range rooms.JoinedRooms {
-		if encrypted, err := r.client.StateStore.IsEncrypted(ctx, roomID); err != nil || !encrypted {
+		if encrypted, err := r.client.IsEncrypted(ctx, roomID); err != nil || !encrypted {
 			continue
 		}
 		members, err := r.client.JoinedMembers(ctx, roomID)
@@ -105,6 +121,7 @@ func (r *roomHandler) fetchCachedRoom(recipient id.UserID) id.RoomID {
 	defer r.mu.RUnlock()
 	return r.rooms[recipient]
 }
+
 func (r *roomHandler) cacheRoom(recipient id.UserID, roomID id.RoomID) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

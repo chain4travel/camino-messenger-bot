@@ -4,22 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
 )
-
-type InvalidMessageError struct {
-	error
-}
 
 var (
 	_ Processor = (*processor)(nil)
@@ -29,20 +25,21 @@ var (
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
 	ErrUnsupportedRequestType     = errors.New("unsupported request type")
 	ErrMissingRecipient           = errors.New("missing recipient")
+	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
 )
 
 type MsgHandler interface {
-	Request(ctx context.Context, msg Message) (Message, error)
-	Respond(msg Message) error
-	Forward(msg Message)
+	Request(ctx context.Context, msg *Message) (*Message, error)
+	Respond(msg *Message) error
+	Forward(msg *Message)
 }
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
 	SetUserID(userID string)
 	Start(ctx context.Context)
-	ProcessInbound(message Message) error
-	ProcessOutbound(ctx context.Context, message Message) (Message, error)
+	ProcessInbound(message *Message) error
+	ProcessOutbound(ctx context.Context, message *Message) (*Message, error)
 }
 
 type processor struct {
@@ -54,8 +51,8 @@ type processor struct {
 	timeout   time.Duration // timeout after which a request is considered failed
 
 	mu               sync.Mutex
-	responseChannels map[string]chan Message
-	serviceRegistry  *ServiceRegistry
+	responseChannels map[string]chan *Message
+	serviceRegistry  ServiceRegistry
 	responseHandler  ResponseHandler
 }
 
@@ -63,18 +60,18 @@ func (p *processor) SetUserID(userID string) {
 	p.userID = userID
 }
 
-func (p *processor) Checkpoint() string {
+func (*processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry *ServiceRegistry, responseHandler ResponseHandler) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler) Processor {
 	return &processor{
 		cfg:              cfg,
 		messenger:        messenger,
 		logger:           logger,
 		tracer:           otel.GetTracerProvider().Tracer(""),
 		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels: make(map[string]chan Message),
+		responseChannels: make(map[string]chan *Message),
 		serviceRegistry:  registry,
 		responseHandler:  responseHandler,
 	}
@@ -86,7 +83,7 @@ func (p *processor) Start(ctx context.Context) {
 		case msgEvent := <-p.messenger.Inbound():
 			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
 			go func() {
-				err := p.ProcessInbound(msgEvent)
+				err := p.ProcessInbound(&msgEvent)
 				if err != nil {
 					p.logger.Warnf("could not process message: %v", err)
 				}
@@ -98,7 +95,7 @@ func (p *processor) Start(ctx context.Context) {
 	}
 }
 
-func (p *processor) ProcessInbound(msg Message) error {
+func (p *processor) ProcessInbound(msg *Message) error {
 	if p.userID == "" {
 		return ErrUserIDNotSet
 	}
@@ -110,26 +107,25 @@ func (p *processor) ProcessInbound(msg Message) error {
 			p.Forward(msg)
 			return nil
 		default:
-			return InvalidMessageError{ErrUnknownMessageCategory}
+			return ErrUnknownMessageCategory
 		}
 	} else {
 		return nil // ignore own outbound messages
 	}
 }
 
-func (p *processor) ProcessOutbound(ctx context.Context, msg Message) (Message, error) {
+func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (*Message, error) {
 	msg.Metadata.Sender = p.userID
 	if msg.Type.Category() == Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
-	} else {
-		p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
-		return Message{}, ErrOnlyRequestMessagesAllowed // ignore msg
 	}
+	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
+	return nil, ErrOnlyRequestMessagesAllowed // ignore msg
 }
 
-func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
+func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error) {
 	p.logger.Debug("Sending outbound request message")
-	responseChan := make(chan Message)
+	responseChan := make(chan *Message)
 	p.mu.Lock()
 	p.responseChannels[msg.Metadata.RequestID] = responseChan
 	p.mu.Unlock()
@@ -143,14 +139,14 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 	defer cancel()
 
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
-		return Message{}, ErrMissingRecipient
+		return nil, ErrMissingRecipient
 	}
-	msg.Metadata.Cheques = nil //TODO issue and attach cheques
+	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
-	err := p.messenger.SendAsync(ctx, msg)
+	err := p.messenger.SendAsync(ctx, *msg)
 	if err != nil {
-		return Message{}, err
+		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer responseSpan.End()
@@ -161,14 +157,13 @@ func (p *processor) Request(ctx context.Context, msg Message) (Message, error) {
 				p.responseHandler.HandleResponse(ctx, msg.Type, &msg.Content.RequestContent, &response.Content.ResponseContent)
 				return response, nil
 			}
-			//p.logger.Debugf("Ignoring response message with request id: %s, expecting: %s", response.Metadata.RequestID, msg.Metadata.RequestID)
 		case <-ctx.Done():
-			return Message{}, fmt.Errorf("response exceeded configured timeout of %v seconds for request: %s", p.timeout, msg.Metadata.RequestID)
+			return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.timeout, msg.Metadata.RequestID)
 		}
 	}
 }
 
-func (p *processor) Respond(msg Message) error {
+func (p *processor) Respond(msg *Message) error {
 	traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
 	if err != nil {
 		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
@@ -179,7 +174,7 @@ func (p *processor) Respond(msg Message) error {
 	var service Service
 	var supported bool
 	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
-		return fmt.Errorf("%v: %s", ErrUnsupportedRequestType, msg.Type)
+		return fmt.Errorf("%w: %s", ErrUnsupportedRequestType, msg.Type)
 	}
 
 	md := &msg.Metadata
@@ -194,7 +189,7 @@ func (p *processor) Respond(msg Message) error {
 	response, msgType, err := service.Call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
 	cspan.End()
 	if err != nil {
-		return err //TODO handle error and return a response message
+		return err // TODO handle error and return a response message
 	}
 
 	err = md.FromGrpcMD(header)
@@ -202,24 +197,24 @@ func (p *processor) Respond(msg Message) error {
 		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
 	}
 
-	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, &response)
+	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, response)
 	responseMsg := Message{
 		Type: msgType,
 		Content: MessageContent{
-			ResponseContent: response,
+			ResponseContent: *response,
 		},
 		Metadata: *md,
 	}
 	return p.messenger.SendAsync(ctx, responseMsg)
 }
 
-func (p *processor) Forward(msg Message) {
+func (p *processor) Forward(msg *Message) {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
 	p.mu.Lock()
+	defer p.mu.Unlock()
 	responseChan, ok := p.responseChannels[msg.Metadata.RequestID]
 	if ok {
 		responseChan <- msg
 		close(responseChan)
 	}
-	p.mu.Unlock()
 }
