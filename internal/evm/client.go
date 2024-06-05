@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2022-2023, Chain4Travel AG. All rights reserved.
+ * Copyright (C) 2022-2024, Chain4Travel AG. All rights reserved.
  * See the file LICENSE for licensing terms.
  */
-
-package tvm
+package evm
 
 import (
 	"context"
@@ -22,7 +21,6 @@ import (
 	"github.com/chain4travel/caminotravelvm/cmd/caminotravel-cli/cmd"
 	brpc "github.com/chain4travel/caminotravelvm/rpc"
 )
-
 var ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded timeout of")
 
 type Client struct {
@@ -41,7 +39,7 @@ func (c *Client) SendTxAndWait(ctx context.Context, action chain.Action) (bool, 
 	return cmd.SendAndWait(ctxWithTimeout, nil, action, c.cli, c.ws, c.tCli, c.authFactory, false)
 }
 
-func NewClient(cfg config.TvmConfig) (*Client, error) {
+func NewClient(cfg config.EvmConfig) (*Client, error) {
 	uri := fmt.Sprintf("%s/ext/bc/%s", cfg.NodeURI, cfg.ChainID)
 	chainID, err := ids.FromString(cfg.ChainID)
 	if err != nil {

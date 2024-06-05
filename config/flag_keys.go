@@ -2,6 +2,11 @@ package config
 
 const (
 	DeveloperMode                 = "developer_mode"
+	EvmNodeURIKey                 = "evm_node_uri"
+	EvmPrivateKeyKey              = "evm_private_key"
+	EvmNetworkIDKey               = "evm_network_id"
+	EvmChainIDKey                 = "evm_chain_id"
+	EvmAwaitTxConfirmationTimeout = "evm_await_tx_confirmation_timeout"
 	MatrixKey                     = "matrix_key"
 	MatrixHost                    = "matrix_host"
 	MatrixStore                   = "matrix_store"
@@ -15,11 +20,6 @@ const (
 	PartnerPluginCAFileKey        = "partner_plugin_ca_file"
 	MessengerTimeoutKey           = "response_timeout"
 	SupportedRequestTypesKey      = "supported_request_types"
-	TvmNodeURIKey                 = "tvm_node_uri"
-	TvmPrivateKeyKey              = "tvm_private_key"
-	TvmNetworkIDKey               = "tvm_network_id"
-	TvmChainIDKey                 = "tvm_chain_id"
-	TvmAwaitTxConfirmationTimeout = "tvm_await_tx_confirmation_timeout"
 	TracingEnabledKey             = "tracing_enabled"
 	TracingHostKey                = "tracing_host"
 	TracingPortKey                = "tracing_port"

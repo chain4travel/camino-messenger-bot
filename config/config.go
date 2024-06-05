@@ -41,12 +41,12 @@ type ProcessorConfig struct {
 	Timeout int `mapstructure:"response_timeout"` // in milliseconds
 }
 
-type TvmConfig struct {
-	NodeURI                    string `mapstructure:"tvm_node_uri"` // URI of the node to connect to
-	PrivateKey                 string `mapstructure:"tvm_private_key"`
-	NetworkID                  uint   `mapstructure:"tvm_network_id"`
-	ChainID                    string `mapstructure:"tvm_chain_id"`
-	AwaitTxConfirmationTimeout uint   `mapstructure:"tvm_await_tx_confirmation_timeout"` // in milliseconds"
+type EvmConfig struct {
+	NodeURI                    string `mapstructure:"evm_node_uri"` // URI of the node to connect to
+	PrivateKey                 string `mapstructure:"evm_private_key"`
+	NetworkID                  uint   `mapstructure:"evm_network_id"`
+	ChainID                    string `mapstructure:"evm_chain_id"`
+	AwaitTxConfirmationTimeout uint   `mapstructure:"evm_await_tx_confirmation_timeout"` // in milliseconds"
 }
 
 type TracingConfig struct {
@@ -59,11 +59,11 @@ type TracingConfig struct {
 }
 type Config struct {
 	AppConfig           `mapstructure:",squash"` // TODO use nested yaml structure
+	EvmConfig           `mapstructure:",squash"`
 	MatrixConfig        `mapstructure:",squash"`
 	RPCServerConfig     `mapstructure:",squash"`
 	PartnerPluginConfig `mapstructure:",squash"`
 	ProcessorConfig     `mapstructure:",squash"`
-	TvmConfig           `mapstructure:",squash"`
 	TracingConfig       `mapstructure:",squash"`
 }
 
@@ -88,7 +88,7 @@ func ReadConfig() (*Config, error) {
 	readRPCServerConfig(cfg.RPCServerConfig, fs)
 	readPartnerRPCServerConfig(cfg.PartnerPluginConfig, fs)
 	readMessengerConfig(cfg.ProcessorConfig, fs)
-	readTvmConfig(cfg.TvmConfig, fs)
+	readEvmConfig(cfg.EvmConfig, fs)
 	readTracingConfig(cfg.TracingConfig, fs)
 
 	// Parse command-line flags

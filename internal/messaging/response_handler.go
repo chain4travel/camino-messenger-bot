@@ -16,23 +16,23 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
-	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
+	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/caminotravelvm/actions"
 	"github.com/chain4travel/caminotravelvm/consts"
 	"go.uber.org/zap"
 )
 
-var _ ResponseHandler = (*TvmResponseHandler)(nil)
+var _ ResponseHandler = (*EvmResponseHandler)(nil)
 
 type ResponseHandler interface {
 	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent)
 }
-type TvmResponseHandler struct {
-	tvmClient *tvm.Client
+type EvmResponseHandler struct {
+	evmClient *evm.Client
 	logger    *zap.SugaredLogger
 }
 
-func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
+func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
 	switch msgType {
 	case MintRequest: // distributor will post-process a mint request to buy the returned NFT
 		if h.handleMintRequest(ctx, response) {
@@ -45,8 +45,8 @@ func (h *TvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 	}
 }
 
-func (h *TvmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
-	owner := h.tvmClient.Address()
+func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
+	owner := h.evmClient.Address()
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -60,11 +60,11 @@ func (h *TvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		addErrorToResponseHeader(response, fmt.Sprintf("error parsing price value: %v", err))
 		return true
 	}
-	success, txID, err := h.tvmClient.SendTxAndWait(ctx, createNFTAction(owner, buyer, uint64(response.MintResponse.BuyableUntil.Seconds), uint64(price), response.MintResponse.MintId))
+	success, txID, err := h.evmClient.SendTxAndWait(ctx, createNFTAction(owner, buyer, uint64(response.MintResponse.BuyableUntil.Seconds), uint64(price), response.MintResponse.MintId))
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		if errors.Is(err, context.DeadlineExceeded) {
-			errMessage = fmt.Sprintf("%v: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
+			errMessage = fmt.Sprintf("%v: %v", evm.ErrAwaitTxConfirmationTimeout, h.evmClient.Timeout)
 		}
 		addErrorToResponseHeader(response, errMessage)
 		return true
@@ -79,7 +79,7 @@ func (h *TvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	return false
 }
 
-func (h *TvmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
+func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -93,11 +93,11 @@ func (h *TvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		return true
 	}
 
-	success, txID, err := h.tvmClient.SendTxAndWait(ctx, transferNFTAction(h.tvmClient.Address(), mintID))
+	success, txID, err := h.evmClient.SendTxAndWait(ctx, transferNFTAction(h.evmClient.Address(), mintID))
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		if errors.Is(err, context.DeadlineExceeded) {
-			errMessage = fmt.Sprintf("%v: %v", tvm.ErrAwaitTxConfirmationTimeout, h.tvmClient.Timeout)
+			errMessage = fmt.Sprintf("%v: %v", evm.ErrAwaitTxConfirmationTimeout, h.evmClient.Timeout)
 		}
 		addErrorToResponseHeader(response, errMessage)
 		return true
@@ -120,8 +120,8 @@ func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
 	})
 }
 
-func NewResponseHandler(tvmClient *tvm.Client, logger *zap.SugaredLogger) *TvmResponseHandler {
-	return &TvmResponseHandler{tvmClient: tvmClient, logger: logger}
+func NewResponseHandler(evmClient *evm.Client, logger *zap.SugaredLogger) *EvmResponseHandler {
+	return &EvmResponseHandler{evmClient: evmClient, logger: logger}
 }
 
 func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {

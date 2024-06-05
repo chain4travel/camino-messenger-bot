@@ -32,12 +32,12 @@ func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 	fs.IntVar(&cfg.Timeout, MessengerTimeoutKey, 3000, "The messenger timeout (in milliseconds)")
 }
 
-func readTvmConfig(cfg TvmConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.NodeURI, TvmNodeURIKey, "", "The TVM node URI")
-	fs.StringVar(&cfg.PrivateKey, TvmPrivateKeyKey, "", "The TVM private key")
-	fs.UintVar(&cfg.NetworkID, TvmNetworkIDKey, 0, "The TVM network ID")
-	fs.StringVar(&cfg.ChainID, TvmChainIDKey, "", "The TVM chain ID")
-	fs.UintVar(&cfg.AwaitTxConfirmationTimeout, TvmAwaitTxConfirmationTimeout, 3000, "The TVM await transaction confirmation timeout (in milliseconds)")
+func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
+	fs.StringVar(&cfg.NodeURI, EvmNodeURIKey, "", "The EVM node URI")
+	fs.StringVar(&cfg.PrivateKey, EvmPrivateKeyKey, "", "The EVM private key")
+	fs.UintVar(&cfg.NetworkID, EvmNetworkIDKey, 0, "The EVM network ID")
+	fs.StringVar(&cfg.ChainID, EvmChainIDKey, "", "The EVM chain ID")
+	fs.UintVar(&cfg.AwaitTxConfirmationTimeout, EvmAwaitTxConfirmationTimeout, 3000, "The EVM await transaction confirmation timeout (in milliseconds)")
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {
