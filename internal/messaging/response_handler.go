@@ -7,6 +7,9 @@ package messaging
 
 import (
 	"context"
+	"errors"
+	"fmt"
+
 	//"crypto/ecdsa"
 
 	//"errors"
@@ -26,7 +29,9 @@ import (
 
 	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/caminotravelvm/actions"
+
 	//"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
@@ -58,43 +63,42 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
 	//TODO: alter to use booking token
 	/*
-	owner := h.evmClient.Address()
-	if response.MintResponse.Header == nil {
-		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
-	}
-	buyer, err := codec.ParseAddressBech32(consts.HRP, request.MintRequest.BuyerAddress)
-	if err != nil {
-		addErrorToResponseHeader(response, fmt.Sprintf("error parsing buyer address: %v", err))
-		return true
-	}
-	price, err := strconv.Atoi(response.MintResponse.Price.Value)
-	if err != nil {
-		addErrorToResponseHeader(response, fmt.Sprintf("error parsing price value: %v", err))
-		return true
-	}
-	success, txID, err := h.evmClient.SendTxAndWait(ctx, createNFTAction(owner, buyer, uint64(response.MintResponse.BuyableUntil.Seconds), uint64(price), response.MintResponse.MintId))
-	if err != nil {
-		errMessage := fmt.Sprintf("error minting NFT: %v", err)
-		if errors.Is(err, context.DeadlineExceeded) {
-			errMessage = fmt.Sprintf("%v: %v", evm.ErrAwaitTxConfirmationTimeout, h.evmClient.Timeout)
+		owner := h.ethClient.Address()
+		if response.MintResponse.Header == nil {
+			response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 		}
-		addErrorToResponseHeader(response, errMessage)
-		return true
-	}
-	if !success {
-		addErrorToResponseHeader(response, "minting NFT tx failed")
-		return true
-	}
-	h.logger.Infof("NFT minted with txID: %s\n", txID)
-	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
-	response.MintTransactionId = txID.String()
+		buyer, err := codec.ParseAddressBech32(consts.HRP, request.MintRequest.BuyerAddress)
+		if err != nil {
+			addErrorToResponseHeader(response, fmt.Sprintf("error parsing buyer address: %v", err))
+			return true
+		}
+		price, err := strconv.Atoi(response.MintResponse.Price.Value)
+		if err != nil {
+			addErrorToResponseHeader(response, fmt.Sprintf("error parsing price value: %v", err))
+			return true
+		}
+		success, txID, err := h.ethClient.SendTxAndWait(ctx, createNFTAction(owner, buyer, uint64(response.MintResponse.BuyableUntil.Seconds), uint64(price), response.MintResponse.MintId))
+		if err != nil {
+			errMessage := fmt.Sprintf("error minting NFT: %v", err)
+			if errors.Is(err, context.DeadlineExceeded) {
+				errMessage = fmt.Sprintf("%v: %v", evm.ErrAwaitTxConfirmationTimeout, h.ethClient.Timeout)
+			}
+			addErrorToResponseHeader(response, errMessage)
+			return true
+		}
+		if !success {
+			addErrorToResponseHeader(response, "minting NFT tx failed")
+			return true
+		}
+		h.logger.Infof("NFT minted with txID: %s\n", txID)
+		response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
+		response.MintTransactionId = txID.String()
 	*/
 	return false
 }
 
 func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
 	//TODO: alter to use booking token
-	/*
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -108,11 +112,11 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		return true
 	}
 
-	success, txID, err := h.evmClient.SendTxAndWait(ctx, transferNFTAction(h.evmClient.Address(), mintID))
+	success, txID, err := h.ethClient.SendTxAndWait(ctx, transferNFTAction(h.ethClient.Address(), mintID))
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		if errors.Is(err, context.DeadlineExceeded) {
-			errMessage = fmt.Sprintf("%v: %v", evm.ErrAwaitTxConfirmationTimeout, h.evmClient.Timeout)
+			errMessage = fmt.Sprintf("%v: %v", evm.ErrAwaitTxConfirmationTimeout, h.ethClient.Timeout)
 		}
 		addErrorToResponseHeader(response, errMessage)
 		return true
@@ -124,7 +128,6 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 
 	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintID)
 	response.BuyTransactionId = txID.String()
-	*/
 	return false
 }
 
