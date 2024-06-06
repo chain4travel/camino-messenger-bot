@@ -3,10 +3,11 @@ package config
 const (
 	DeveloperMode                 = "developer_mode"
 	EvmNodeURIKey                 = "evm_node_uri"
-	EvmPrivateKeyKey              = "evm_private_key"
+	EvmPrivateKey                 = "evm_private_key"
 	EvmNetworkIDKey               = "evm_network_id"
 	EvmChainIDKey                 = "evm_chain_id"
 	EvmAwaitTxConfirmationTimeout = "evm_await_tx_confirmation_timeout"
+	RpcURLKey                     = "rpc_url"
 	MatrixKey                     = "matrix_key"
 	MatrixHost                    = "matrix_host"
 	MatrixStore                   = "matrix_store"

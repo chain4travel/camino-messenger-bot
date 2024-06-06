@@ -7,19 +7,20 @@ package evm
 import (
 	"context"
 	"errors"
-	"fmt"
+	//"fmt"
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
-	"github.com/ava-labs/hypersdk/pubsub"
+	//"github.com/ava-labs/hypersdk/pubsub"
 	"github.com/ava-labs/hypersdk/rpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/caminotravelvm/auth"
 	"github.com/chain4travel/caminotravelvm/cmd/caminotravel-cli/cmd"
 	brpc "github.com/chain4travel/caminotravelvm/rpc"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 var ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded timeout of")
 
@@ -39,38 +40,52 @@ func (c *Client) SendTxAndWait(ctx context.Context, action chain.Action) (bool, 
 	return cmd.SendAndWait(ctxWithTimeout, nil, action, c.cli, c.ws, c.tCli, c.authFactory, false)
 }
 
-func NewClient(cfg config.EvmConfig) (*Client, error) {
-	uri := fmt.Sprintf("%s/ext/bc/%s", cfg.NodeURI, cfg.ChainID)
-	chainID, err := ids.FromString(cfg.ChainID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse chainID: %w", err)
-	}
+func NewClient(cfg config.EvmConfig) (*ethclient.Client, error) {
+	//return ethclient.Dial(viper.GetString("rpc_url"))
+	/*
+			uri := fmt.Sprintf("%s/ext/bc/%s/rpc", cfg.NodeURI, cfg.ChainID)
+		   	if uri == cfg.RpcURL {
+		   		return ethclient.Dial(uri)
+		   	}
+	*/
+	return ethclient.Dial(cfg.RpcURL)
 
-	cli := rpc.NewJSONRPCClient(uri)
-	ws, err := rpc.NewWebSocketClient(uri, rpc.DefaultHandshakeTimeout, pubsub.MaxPendingMessages, pubsub.MaxReadMessageSize)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create websocket client: %w", err)
-	}
-	tCli := brpc.NewJSONRPCClient(
-		uri,
-		uint32(cfg.NetworkID),
-		chainID,
-	)
-	pk, err := readPrivateKey(cfg.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read private key: %w", err)
-	}
-	factory := auth.NewSECP256K1Factory(*pk)
-
-	return &Client{
-		cli:         cli,
-		ws:          ws,
-		tCli:        tCli,
-		authFactory: factory,
-		pk:          pk,
-		Timeout:     time.Duration(cfg.AwaitTxConfirmationTimeout) * time.Millisecond,
-	}, nil
 }
+
+/*
+	func NewClient(cfg config.EvmConfig) (*Client, error) {
+		uri := fmt.Sprintf("%s/ext/bc/%s", cfg.NodeURI, cfg.ChainID)
+		chainID, err := ids.FromString(cfg.ChainID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse chainID: %w", err)
+		}
+
+		cli := rpc.NewJSONRPCClient(uri)
+		ws, err := rpc.NewWebSocketClient(uri, rpc.DefaultHandshakeTimeout, pubsub.MaxPendingMessages, pubsub.MaxReadMessageSize)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create websocket client: %w", err)
+		}
+		tCli := brpc.NewJSONRPCClient(
+			uri,
+			uint32(cfg.NetworkID),
+			chainID,
+		)
+		pk, err := readPrivateKey(cfg.PrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read private key: %w", err)
+		}
+		factory := auth.NewSECP256K1Factory(*pk)
+
+		return &Client{
+			cli:         cli,
+			ws:          ws,
+			tCli:        tCli,
+			authFactory: factory,
+			pk:          pk,
+			Timeout:     time.Duration(cfg.AwaitTxConfirmationTimeout) * time.Millisecond,
+		}, nil
+	}
+*/
 
 func (c *Client) Address() codec.Address {
 	return auth.NewSECP256K1Address(*c.pk.PublicKey())

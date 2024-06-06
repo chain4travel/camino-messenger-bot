@@ -47,6 +47,7 @@ type EvmConfig struct {
 	NetworkID                  uint   `mapstructure:"evm_network_id"`
 	ChainID                    string `mapstructure:"evm_chain_id"`
 	AwaitTxConfirmationTimeout uint   `mapstructure:"evm_await_tx_confirmation_timeout"` // in milliseconds"
+	RpcURL                     string `mapstructure:"rpc_url"`
 }
 
 type TracingConfig struct {

@@ -14,6 +14,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type App struct {
@@ -60,14 +62,12 @@ func (a *App) Run(ctx context.Context) error {
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
-	//initiate evm client
-	evmClient, err := evm.NewClient(a.cfg.EvmConfig) // TODO make client init conditional based on provided config
+	client, err := evm.NewClient(a.cfg.EvmConfig) // TODO make client init conditional based on provided config
 	if err != nil {
-		a.logger.Warn(err)
+		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
-
 	// create response handler
-	responseHandler := a.newResponseHandler(evmClient)
+	responseHandler := a.newResponseHandler(client)
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
@@ -89,9 +89,9 @@ func (a *App) Run(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) newResponseHandler(evmClient *evm.Client) messaging.ResponseHandler {
-	if evmClient != nil {
-		return messaging.NewResponseHandler(evmClient, a.logger)
+func (a *App) newResponseHandler(ethClient *ethclient.Client) messaging.ResponseHandler {
+	if ethClient != nil {
+		return messaging.NewResponseHandler(ethClient, a.logger)
 	}
 	return messaging.NoopResponseHandler{}
 }

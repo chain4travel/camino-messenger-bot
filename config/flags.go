@@ -34,10 +34,11 @@ func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 
 func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.NodeURI, EvmNodeURIKey, "", "The EVM node URI")
-	fs.StringVar(&cfg.PrivateKey, EvmPrivateKeyKey, "", "The EVM private key")
+	fs.StringVar(&cfg.PrivateKey, EvmPrivateKey, "", "The EVM private key")
 	fs.UintVar(&cfg.NetworkID, EvmNetworkIDKey, 0, "The EVM network ID")
 	fs.StringVar(&cfg.ChainID, EvmChainIDKey, "", "The EVM chain ID")
 	fs.UintVar(&cfg.AwaitTxConfirmationTimeout, EvmAwaitTxConfirmationTimeout, 3000, "The EVM await transaction confirmation timeout (in milliseconds)")
+	fs.StringVar(&cfg.RpcURL, RpcURLKey, "", "The EVM RPC URL")
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {

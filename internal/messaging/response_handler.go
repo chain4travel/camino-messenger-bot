@@ -7,18 +7,28 @@ package messaging
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"strconv"
+	//"crypto/ecdsa"
+
+	//"errors"
+	//"fmt"
+	//"math/big"
+
+	//"github.com/ethereum/go-ethereum/accounts/abi"
+	//"github.com/ethereum/go-ethereum/common"
+	//"github.com/ethereum/go-ethereum/core/types"
+	//"github.com/ethereum/go-ethereum/crypto"
 
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
-	"github.com/chain4travel/camino-messenger-bot/internal/evm"
+
+	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
+
 	"github.com/chain4travel/caminotravelvm/actions"
-	"github.com/chain4travel/caminotravelvm/consts"
+	//"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 )
 
@@ -28,7 +38,7 @@ type ResponseHandler interface {
 	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent)
 }
 type EvmResponseHandler struct {
-	evmClient *evm.Client
+	ethClient *ethclient.Client
 	logger    *zap.SugaredLogger
 }
 
@@ -46,6 +56,8 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 }
 
 func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
+	//TODO: alter to use booking token
+	/*
 	owner := h.evmClient.Address()
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
@@ -76,10 +88,13 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
 	response.MintTransactionId = txID.String()
+	*/
 	return false
 }
 
 func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
+	//TODO: alter to use booking token
+	/*
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -109,6 +124,7 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 
 	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintID)
 	response.BuyTransactionId = txID.String()
+	*/
 	return false
 }
 
@@ -120,8 +136,8 @@ func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
 	})
 }
 
-func NewResponseHandler(evmClient *evm.Client, logger *zap.SugaredLogger) *EvmResponseHandler {
-	return &EvmResponseHandler{evmClient: evmClient, logger: logger}
+func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger) *EvmResponseHandler {
+	return &EvmResponseHandler{ethClient: ethClient, logger: logger}
 }
 
 func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {
