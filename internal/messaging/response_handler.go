@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/spf13/viper"
 
 	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
@@ -130,7 +129,17 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		addErrorToResponseHeader(response, fmt.Sprintf("error parsing mint transaction id: %v", err))
 		return true
 	}
-	success, txID, err := h.ethClient.SendTxAndWait(ctx, transferNFTAction(h.ethClient.Address(), mintID))
+
+	abi, err := loadABI("/home/dev/Documents/Chain4Travel/camino-messenger-bot/abi")
+	if err != nil {
+		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
+		return true
+	}
+
+	value64 := uint64(response.BookingToken.TokenId)
+	tokenId := new(big.Int).SetUint64(value64)
+	txID, err := buy(h.ethClient, abi, h.pk.ToECDSA(), tokenId)
+
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -139,13 +148,15 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		addErrorToResponseHeader(response, errMessage)
 		return true
 	}
-	if !success {
-		addErrorToResponseHeader(response, "buying NFT failed")
-		return true
-	}
+	/*
+	   if txID == "" {
+	   		addErrorToResponseHeader(response, "buying NFT failed")
+	   		return true
+	   	}
+	*/
 
 	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintID)
-	response.BuyTransactionId = txID.String()
+	response.BuyTransactionId = txID
 	return false
 }
 
@@ -186,7 +197,7 @@ func mint(
 
 	gasLimit := uint64(600000)
 
-	tx := types.NewTransaction(nonce, common.HexToAddress(viper.GetString("booking_token_addr")), big.NewInt(0), gasLimit, gasPrice, packed)
+	tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
 
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
@@ -247,6 +258,57 @@ func mint(
 			fmt.Printf("Reserved For: %s\n", reservation.ReservedFor.Hex())
 			fmt.Printf("Expiration  : %s\n", reservation.ExpirationTimestamp.String())
 		}
+	}
+
+	return signedTx.Hash().Hex(), nil
+}
+
+// Buys a token with the buyer private key. Token must be reserved for the buyer address.
+func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenId *big.Int) (string, error) {
+	address := crypto.PubkeyToAddress(privateKey.PublicKey)
+	nonce, err := client.PendingNonceAt(context.Background(), address)
+	if err != nil {
+		return "", err
+	}
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return "", err
+	}
+
+	packed, err := contractABI.Pack("buy", tokenId)
+	if err != nil {
+		return "", err
+	}
+
+	gasLimit := uint64(80000)
+
+	tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
+
+	chainID, err := client.NetworkID(context.Background())
+	if err != nil {
+		return "", err
+	}
+
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	if err != nil {
+		return "", err
+	}
+
+	err = client.SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Printf("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
+
+	// Wait for transaction to be mined
+	receipt, err := waitTransaction(context.Background(), client, signedTx)
+	if err != nil {
+		if gasLimit == receipt.GasUsed {
+			fmt.Printf("Transaction Gas Limit reached. Please check your inputs.\n")
+		}
+		return "", err
 	}
 
 	return signedTx.Hash().Hex(), nil

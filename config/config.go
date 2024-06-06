@@ -48,6 +48,8 @@ type EvmConfig struct {
 	ChainID                    string `mapstructure:"evm_chain_id"`
 	AwaitTxConfirmationTimeout uint   `mapstructure:"evm_await_tx_confirmation_timeout"` // in milliseconds"
 	RpcURL                     string `mapstructure:"rpc_url"`
+	//TODO:
+	//BookingTokenAddress        string `mapstructure:"booking_token_address"`
 }
 
 type TracingConfig struct {
