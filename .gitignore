@@ -3,3 +3,7 @@ build
 .vscode
 .idea
 *.iml
+
+bot
+camino-messenger-bot.yaml
+mautrix.db

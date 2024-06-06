@@ -29,8 +29,6 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ava-labs/hypersdk/chain"
-	"github.com/ava-labs/hypersdk/codec"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -38,7 +36,6 @@ import (
 	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
-	"github.com/chain4travel/caminotravelvm/actions"
 
 	//"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -92,7 +89,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	// TODO @evlekht unhardocoded, figure out what it is at all
 	uri := "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
-	txID, err := mint(
+	txID, tokenId, err := mint(
 		h.ethClient,
 		abi,
 		h.pk.ToECDSA(),
@@ -103,7 +100,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		if errors.Is(err, context.DeadlineExceeded) {
-			errMessage = fmt.Sprintf("%v: %v", evm.ErrAwaitTxConfirmationTimeout)
+			errMessage = fmt.Sprintf("transaction deadline exceeded: %v", evm.ErrAwaitTxConfirmationTimeout)
 		}
 		addErrorToResponseHeader(response, errMessage)
 		return true
@@ -111,6 +108,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
+	response.MintResponse.BookingToken.TokenId = int32(tokenId.Int64())
 	response.MintTransactionId = txID
 	return false
 }
@@ -178,21 +176,21 @@ func mint(
 	reservedFor common.Address,
 	uri string,
 	expiration *big.Int,
-) (string, error) {
+) (string, *big.Int, error) {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	nonce, err := client.PendingNonceAt(context.Background(), address)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	packed, err := contractABI.Pack("safeMint", reservedFor, uri, expiration)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	gasLimit := uint64(600000)
@@ -201,17 +199,17 @@ func mint(
 
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	fmt.Printf("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
@@ -222,7 +220,7 @@ func mint(
 		if gasLimit == receipt.GasUsed {
 			fmt.Printf("Transaction Gas Limit reached. Please check your inputs.\n")
 		}
-		return "", err
+		return "", nil, err
 	}
 
 	// Define the TokenReservation structure
@@ -236,18 +234,20 @@ func mint(
 	event := contractABI.Events["TokenReservation"]
 	eventSignature := event.ID.Hex()
 
+	var tokenId *big.Int
+
 	// Iterate over the logs to find the event
 	for _, vLog := range receipt.Logs {
 		if vLog.Topics[0].Hex() == eventSignature {
 			// Decode indexed parameters
 			reservedFor := common.HexToAddress(vLog.Topics[1].Hex())
-			tokenId := new(big.Int).SetBytes(vLog.Topics[2].Bytes())
+			tokenId = new(big.Int).SetBytes(vLog.Topics[2].Bytes())
 
 			// Decode non-indexed parameters
 			var reservation TokenReservation
 			err := contractABI.UnpackIntoInterface(&reservation, "TokenReservation", vLog.Data)
 			if err != nil {
-				return "", err
+				return "", nil, err
 			}
 			reservation.ReservedFor = reservedFor
 			reservation.TokenID = tokenId
@@ -260,7 +260,7 @@ func mint(
 		}
 	}
 
-	return signedTx.Hash().Hex(), nil
+	return signedTx.Hash().Hex(), tokenId, nil
 }
 
 // Buys a token with the buyer private key. Token must be reserved for the buyer address.
@@ -345,24 +345,24 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 	return &EvmResponseHandler{ethClient: ethClient, logger: logger, pk: pk}
 }
 
-func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {
-	return &actions.CreateNFT{
-		Owner:                owner,
-		Issuer:               owner,
-		Buyer:                buyer,
-		PurchaseExpiration:   purchaseExpiration,
-		Asset:                ids.ID{},
-		Price:                price,
-		CancellationPolicies: actions.CancellationPolicies{},
-		Metadata:             []byte(metadata),
-	}
-}
+// func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {
+// 	return &actions.CreateNFT{
+// 		Owner:                owner,
+// 		Issuer:               owner,
+// 		Buyer:                buyer,
+// 		PurchaseExpiration:   purchaseExpiration,
+// 		Asset:                ids.ID{},
+// 		Price:                price,
+// 		CancellationPolicies: actions.CancellationPolicies{},
+// 		Metadata:             []byte(metadata),
+// 	}
+// }
 
-func transferNFTAction(newOwner codec.Address, nftID ids.ID) chain.Action {
-	return &actions.TransferNFT{
-		To:             newOwner,
-		ID:             nftID,
-		OnChainPayment: false, // TODO change based on tchain configuration
-		Memo:           nil,
-	}
-}
+// func transferNFTAction(newOwner codec.Address, nftID ids.ID) chain.Action {
+// 	return &actions.TransferNFT{
+// 		To:             newOwner,
+// 		ID:             nftID,
+// 		OnChainPayment: false, // TODO change based on tchain configuration
+// 		Memo:           nil,
+// 	}
+// }
