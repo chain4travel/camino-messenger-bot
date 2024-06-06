@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
@@ -66,8 +67,13 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
+
 	// create response handler
-	responseHandler := a.newResponseHandler(client)
+	var pk *secp256k1.PrivateKey
+	if err := pk.UnmarshalText([]byte(a.cfg.PrivateKey)); err != nil {
+		a.logger.Fatalf("Failed to parse private key: %v", err)
+	}
+	responseHandler := a.newResponseHandler(client, pk)
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
@@ -89,9 +95,9 @@ func (a *App) Run(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) newResponseHandler(ethClient *ethclient.Client) messaging.ResponseHandler {
+func (a *App) newResponseHandler(ethClient *ethclient.Client, pk *secp256k1.PrivateKey) messaging.ResponseHandler {
 	if ethClient != nil {
-		return messaging.NewResponseHandler(ethClient, a.logger)
+		return messaging.NewResponseHandler(ethClient, a.logger, pk)
 	}
 	return messaging.NoopResponseHandler{}
 }

@@ -6,6 +6,7 @@ require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.3.0-20240416134251-eea07d77749c.2
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.33.0-20240416134251-eea07d77749c.1
 	github.com/ava-labs/avalanchego v1.10.18
+	github.com/ava-labs/coreth v0.12.10-rc.5
 	github.com/ava-labs/hypersdk v0.0.16
 	github.com/chain4travel/caminotravelvm v0.0.0-20240419161941-a32dadd85f51
 	github.com/ethereum/go-ethereum v1.12.0
@@ -28,6 +29,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/DataDog/zstd v1.5.2 // indirect
+	github.com/VictoriaMetrics/fastcache v1.10.0 // indirect
 	github.com/ava-labs/avalanche-network-runner v1.7.4-rc.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
@@ -52,6 +54,7 @@ require (
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/renameio/v2 v2.0.0 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/rpc v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2 // indirect
@@ -96,6 +99,7 @@ require (
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/time v0.3.0 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
