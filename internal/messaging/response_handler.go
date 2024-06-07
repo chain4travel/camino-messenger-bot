@@ -74,20 +74,29 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 	}
 }
 
-func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
+func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *ResponseContent, request *RequestContent) bool {
 	//TODO: alter to use booking token
-
-	address := crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey)
-	packed, err := abi.ABI{}.Pack("getSupplierName", address)
+	if response.MintResponse.Header == nil {
+		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
+	}
+	bookingTokenABIFile := h.cfg.BookingTokenABIFile
+	abi, err := loadABI(bookingTokenABIFile)
 	if err != nil {
-		h.logger.Infof("Error getting supplire's Name: %v", err)
+		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
+		return true
+	}
+	address := crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey)
+
+	packed, err := abi.Pack("getSupplierName", address)
+	if err != nil {
+		h.logger.Infof("Error getting supplier's Name: %v", err)
 		//TODO: @VjeraTruk Check if supplire not registered emmits an error or not
 	}
 
 	supplierName := fmt.Sprintf("%x", packed)
 
 	if supplierName != viper.GetString("supplier_name") {
-		err := register(h.ethClient, abi.ABI{}, h.pk.ToECDSA(), viper.GetString("supplier_name"))
+		err := register(h.ethClient, abi, h.pk.ToECDSA(), viper.GetString("supplier_name"))
 		if err != nil {
 			addErrorToResponseHeader(response, fmt.Sprintf("error registering supplier: %v", err))
 			return true
@@ -105,8 +114,6 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	// 	return true
 	// }
 
-	bookingTokenABIFile := h.cfg.BookingTokenABIFile
-	abi, err := loadABI(bookingTokenABIFile)
 	if err != nil {
 		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
 		return true
@@ -155,7 +162,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	return false
 }
 
-func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
+func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *ResponseContent) bool {
 	//TODO: alter to use booking token
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}

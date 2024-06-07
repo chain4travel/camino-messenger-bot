@@ -5,44 +5,37 @@
 package evm
 
 import (
-	"context"
 	"errors"
 
 	//"fmt"
-	"time"
 
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ava-labs/hypersdk/chain"
-	"github.com/ava-labs/hypersdk/codec"
 	"github.com/spf13/viper"
 
 	//"github.com/ava-labs/hypersdk/pubsub"
-	"github.com/ava-labs/hypersdk/rpc"
-	brpc "github.com/ava-labs/hypersdk/rpc"
+
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/caminotravelvm/auth"
-	"github.com/chain4travel/caminotravelvm/cmd/caminotravel-cli/cmd"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 var ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded timeout of")
 
+/*
 type Client struct {
-	cli         *rpc.JSONRPCClient
-	ws          *rpc.WebSocketClient
-	tCli        *brpc.JSONRPCClient
+	cli *rpc.JSONRPCClient
+	ws  *rpc.WebSocketClient
+	//tCli        *brpc.JSONRPCClient
 	authFactory *auth.SECP256K1Factory
 	pk          *secp256k1.PrivateKey
 
 	Timeout time.Duration // milliseconds
 }
-
+*/
+/*
 func (c *Client) SendTxAndWait(ctx context.Context, action chain.Action) (bool, ids.ID, error) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
 	return cmd.SendAndWait(ctxWithTimeout, nil, action, c.cli, c.ws, c.tCli, c.authFactory, false)
-}
+} */
 
 func NewClient(cfg config.EvmConfig) (*ethclient.Client, error) {
 	//return ethclient.Dial(viper.GetString("rpc_url"))
@@ -95,14 +88,15 @@ func NewClient(cfg config.EvmConfig) (*ethclient.Client, error) {
 	}
 */
 
-func (c *Client) Address() codec.Address {
-	return auth.NewSECP256K1Address(*c.pk.PublicKey())
-}
-
-func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {
+/*
+	 func (c *Client) Address() codec.Address {
+		return auth.NewSECP256K1Address(*c.pk.PublicKey())
+	}
+*/
+/* func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {
 	key := new(secp256k1.PrivateKey)
 	if err := key.UnmarshalText([]byte("\"" + keyStr + "\"")); err != nil {
 		return nil, err
 	}
 	return key, nil
-}
+} */
