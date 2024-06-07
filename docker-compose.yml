@@ -40,6 +40,9 @@ services:
       CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
       CMB_RESPONSE_TIMEOUT: "6000"
       CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest,MintRequest,ValidateRequest"
+      CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
+      CMB_BOOKING_TOKEN_ABI_FILE: "abi/BookingTokenV0.abi"
+      CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
     ports:
       - "9092:9090"
   provider-plugin:
