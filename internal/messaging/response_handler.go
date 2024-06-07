@@ -35,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/spf13/viper"
 
 	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
@@ -75,6 +76,23 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 
 func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
 	//TODO: alter to use booking token
+
+	address := crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey)
+	packed, err := abi.ABI{}.Pack("getSupplierName", address)
+	if err != nil {
+		h.logger.Infof("Error getting supplire's Name: %v", err)
+		//TODO: @VjeraTruk Check if supplire not registered emmits an error or not
+	}
+
+	supplierName := fmt.Sprintf("%x", packed)
+
+	if supplierName != viper.GetString("supplier_name") {
+		err := register(h.ethClient, abi.ABI{}, h.pk.ToECDSA(), viper.GetString("supplier_name"))
+		if err != nil {
+			addErrorToResponseHeader(response, fmt.Sprintf("error registering supplier: %v", err))
+			return true
+		}
+	}
 	// owner := h.ethClient.Address()
 	// if response.MintResponse.Header == nil {
 	// 	response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
@@ -152,7 +170,7 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		return true
 	}
 
-	abi, err := loadABI("/home/dev/Documents/Chain4Travel/camino-messenger-bot/abi")
+	abi, err := loadABI(viper.GetString("abi_file"))
 	if err != nil {
 		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
 		return true
@@ -160,7 +178,12 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 
 	value64 := uint64(response.BookingToken.TokenId)
 	tokenId := new(big.Int).SetUint64(value64)
-	txID, err := buy(h.ethClient, abi, h.pk.ToECDSA(), tokenId)
+
+	txID, err := buy(
+		h.ethClient,
+		abi,
+		h.pk.ToECDSA(),
+		tokenId)
 
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
@@ -170,12 +193,6 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		addErrorToResponseHeader(response, errMessage)
 		return true
 	}
-	/*
-	   if txID == "" {
-	   		addErrorToResponseHeader(response, "buying NFT failed")
-	   		return true
-	   	}
-	*/
 
 	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintID)
 	response.BuyTransactionId = txID
@@ -189,6 +206,57 @@ func loadABI(filePath string) (abi.ABI, error) {
 		return abi.ABI{}, err
 	}
 	return abi.JSON(strings.NewReader(string(file)))
+}
+
+// Registers a new supplier with the BookingToken contract
+func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, supplierName string) error {
+	address := crypto.PubkeyToAddress(privateKey.PublicKey)
+	nonce, err := client.PendingNonceAt(context.Background(), address)
+	if err != nil {
+		return err
+	}
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return err
+	}
+
+	packed, err := contractABI.Pack("registerSupplier", supplierName)
+	if err != nil {
+		return err
+	}
+
+	gasLimit := uint64(170000)
+
+	tx := types.NewTransaction(nonce, common.HexToAddress(viper.GetString("booking_token_addr")), big.NewInt(0), gasLimit, gasPrice, packed)
+
+	chainID, err := client.NetworkID(context.Background())
+	if err != nil {
+		return err
+	}
+
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	if err != nil {
+		return err
+	}
+
+	err = client.SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
+
+	// Wait for transaction to be mined
+	receipt, err := waitTransaction(context.Background(), client, signedTx)
+	if err != nil {
+		if gasLimit == receipt.GasUsed {
+			fmt.Printf("Transaction Gas Limit reached. Please use shorter supplier name.\n")
+		}
+		return err
+	}
+
+	return nil
 }
 
 // Mints a BookingToken with the supplier private key and reserves it for the buyer address

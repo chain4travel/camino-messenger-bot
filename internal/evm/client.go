@@ -7,6 +7,7 @@ package evm
 import (
 	"context"
 	"errors"
+
 	//"fmt"
 	"time"
 
@@ -14,14 +15,17 @@ import (
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/hypersdk/chain"
 	"github.com/ava-labs/hypersdk/codec"
+	"github.com/spf13/viper"
+
 	//"github.com/ava-labs/hypersdk/pubsub"
 	"github.com/ava-labs/hypersdk/rpc"
+	brpc "github.com/ava-labs/hypersdk/rpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/caminotravelvm/auth"
 	"github.com/chain4travel/caminotravelvm/cmd/caminotravel-cli/cmd"
-	brpc "github.com/chain4travel/caminotravelvm/rpc"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
+
 var ErrAwaitTxConfirmationTimeout = errors.New("awaiting transaction confirmation exceeded timeout of")
 
 type Client struct {
@@ -48,6 +52,10 @@ func NewClient(cfg config.EvmConfig) (*ethclient.Client, error) {
 		   		return ethclient.Dial(uri)
 		   	}
 	*/
+	//TODO: @VjeraTurk set whole Config if this is a safe way - check app.go - but don't do it in run()
+	viper.SetDefault("supplier_name", cfg.SupplierName)
+	viper.SetDefault("booking_token_addr", cfg.BookingTokenAddress)
+	viper.SetDefault("booking_token_abi_file", cfg.BookingTokenABIFile)
 	return ethclient.Dial(cfg.RpcURL)
 
 }
