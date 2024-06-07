@@ -30,7 +30,6 @@ import (
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 
-	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -157,7 +156,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
-	response.MintResponse.BookingToken.TokenId = int32(tokenId.Int64())
+	response.MintResponse.BookingToken = &typesv1alpha.BookingToken{TokenId: int32(tokenId.Int64())}
 	response.MintTransactionId = txID
 	return false
 }
@@ -169,11 +168,6 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 	}
 	if response.MintTransactionId == "" {
 		addErrorToResponseHeader(response, "missing mint transaction id")
-		return true
-	}
-	mintID, err := ids.FromString(response.MintTransactionId)
-	if err != nil {
-		addErrorToResponseHeader(response, fmt.Sprintf("error parsing mint transaction id: %v", err))
 		return true
 	}
 
@@ -201,7 +195,7 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 		return true
 	}
 
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintID)
+	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, response.MintTransactionId)
 	response.BuyTransactionId = txID
 	return false
 }
