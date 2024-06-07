@@ -6,8 +6,6 @@ package evm
 import (
 	"errors"
 
-	"github.com/spf13/viper"
-
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
