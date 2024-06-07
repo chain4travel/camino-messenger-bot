@@ -1,0 +1,23 @@
+# Example config
+developer_mode: true
+matrix_key: PrivateKey-PRIVATE_KEY
+matrix_host: matrix.camino.network
+matrix_store: mautrix.distributor.db
+rpc_server_port: 9091
+rpc_unencrypted: true
+rpc_url: https://columbus.camino.network/ext/bc/C/rpc
+
+response_timeout: 6000
+supported_request_types:
+  - ActivitySearchRequest
+  - AccommodationSearchRequest
+  - GetNetworkFeeRequest
+  - GetPartnerConfigurationRequest
+  - PingRequest
+  - TransportSearchRequest
+  - MintRequest
+
+booking_token_addr: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"
+booking_token_abi_file: abi/BookingTokenV0.abi
+
+evm_private_key: PrivateKey-PRIVATE_KEY
