@@ -8,6 +8,8 @@ package messaging
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -25,6 +27,7 @@ import (
 	//"github.com/ethereum/go-ethereum/core/types"
 	//"github.com/ethereum/go-ethereum/crypto"
 
+	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -88,7 +91,18 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	}
 
 	// TODO @evlekht unhardocoded, figure out what it is at all
-	uri := "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
+	// uri := "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
+
+	// Get a Token URI for the token.
+	jsonPlain, uri, err := createTokenURIforMintResponse(response.MintResponse)
+	if err != nil {
+		addErrorToResponseHeader(response, fmt.Sprintf("error creating token URI: %v", err))
+		return true
+	}
+
+	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
+
+	// MINT TOKEN
 	txID, tokenId, err := mint(
 		h.ethClient,
 		abi,
@@ -331,6 +345,89 @@ func waitTransaction(ctx context.Context, b bind.DeployBackend, tx *types.Transa
 	fmt.Printf("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
+}
+
+type Attribute struct {
+	TraitType string `json:"trait_type"`
+	Value     string `json:"value"`
+}
+
+type HotelJSON struct {
+	Name        string      `json:"name"`
+	Description string      `json:"description,omitempty"`
+	Date        string      `json:"date,omitempty"`
+	ExternalURL string      `json:"external_url,omitempty"`
+	Image       string      `json:"image,omitempty"`
+	Attributes  []Attribute `json:"attributes,omitempty"`
+}
+
+func generateAndEncodeJSON(name, description, date, externalURL, image string, attributes []Attribute) (string, string, error) {
+	hotel := HotelJSON{
+		Name:        name,
+		Description: description,
+		Date:        date,
+		ExternalURL: externalURL,
+		Image:       image,
+		Attributes:  attributes,
+	}
+
+	jsonData, err := json.Marshal(hotel)
+	if err != nil {
+		return "", "", err
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(jsonData)
+	return string(jsonData), encoded, nil
+}
+
+// Generates a token data URI from a MintResponse object. Returns jsonPlain and a
+// data URI with base64 encoded json data.
+//
+// TODO: @havan: We need decide what data needs to be in the tokenURI JSON and add
+// those fields to the MintResponse. These will be shown in the UI of wallets,
+// explorers etc.
+func createTokenURIforMintResponse(mintResponse *bookv1alpha.MintResponse) (string, string, error) {
+	// TODO: What should we use for a token name? This will be shown in the UI of wallets, explorers etc.
+	name := "CM Booking Token"
+
+	// TODO: What should we use for a token description? This will be shown in the UI of wallets, explorers etc.
+	description := "This NFT represents the booking with the specified attributes."
+
+	// Dummy data
+	date := "2024-06-24"
+
+	externalURL := "https://camino.network"
+
+	// Placeholder Image
+	image := "https://camino.network/static/images/N9IkxmG-Sg-1800.webp"
+
+	attributes := []Attribute{
+		{
+			TraitType: "Mint ID",
+			Value:     mintResponse.GetMintId(),
+		},
+		{
+			TraitType: "Reference",
+			Value:     mintResponse.GetProviderBookingReference(),
+		},
+	}
+
+	jsonPlain, jsonEncoded, err := generateAndEncodeJSON(
+		name,
+		description,
+		date,
+		externalURL,
+		image,
+		attributes,
+	)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Add data URI scheme
+	tokenURI := "data:application/json;base64," + jsonEncoded
+
+	return jsonPlain, tokenURI, nil
 }
 
 func addErrorToResponseHeader(response *ResponseContent, errMessage string) {

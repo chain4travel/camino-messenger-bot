@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -68,11 +69,17 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
 
-	// create response handler
-	var pk *secp256k1.PrivateKey
-	if err := pk.UnmarshalText([]byte(a.cfg.PrivateKey)); err != nil {
+	pk := new(secp256k1.PrivateKey)
+	// UnmarshalText expects the private key in quotes
+	if err := pk.UnmarshalText([]byte("\"" + a.cfg.PrivateKey + "\"")); err != nil {
 		a.logger.Fatalf("Failed to parse private key: %v", err)
 	}
+
+	// Get Ethereum Address from private key
+	cAddress := crypto.PubkeyToAddress(pk.ToECDSA().PublicKey)
+	a.logger.Infof("C-Chain address: %s", cAddress)
+
+	// create response handler
 	responseHandler := a.newResponseHandler(client, pk)
 
 	// start msg processor
