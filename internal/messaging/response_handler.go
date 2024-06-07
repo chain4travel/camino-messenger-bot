@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/spf13/viper"
 
 	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
@@ -89,13 +88,15 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	packed, err := abi.Pack("getSupplierName", address)
 	if err != nil {
 		h.logger.Infof("Error getting supplier's Name: %v", err)
-		//TODO: @VjeraTruk Check if supplire not registered emmits an error or not
+		//TODO: @VjeraTruk Check if supplier not registered emmits an error or not
 	}
 
 	supplierName := fmt.Sprintf("%x", packed)
 
-	if supplierName != viper.GetString("supplier_name") {
-		err := register(h.ethClient, abi, h.pk.ToECDSA(), viper.GetString("supplier_name"))
+	bookingTokenAddress := common.HexToAddress(h.cfg.BookingTokenAddress)
+
+	if supplierName != h.cfg.SupplierName {
+		err := register(h.ethClient, abi, h.pk.ToECDSA(), h.cfg.SupplierName, bookingTokenAddress)
 		if err != nil {
 			addErrorToResponseHeader(response, fmt.Sprintf("error registering supplier: %v", err))
 			return true
@@ -171,7 +172,7 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 		return true
 	}
 
-	abi, err := loadABI(viper.GetString("booking_token_abi_file"))
+	abi, err := loadABI(h.cfg.BookingTokenABIFile)
 	if err != nil {
 		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
 		return true
@@ -210,7 +211,7 @@ func loadABI(filePath string) (abi.ABI, error) {
 }
 
 // Registers a new supplier with the BookingToken contract
-func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, supplierName string) error {
+func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, supplierName string, bookingTokenAddress common.Address) error {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	nonce, err := client.PendingNonceAt(context.Background(), address)
 	if err != nil {
@@ -229,7 +230,7 @@ func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.P
 
 	gasLimit := uint64(170000)
 
-	tx := types.NewTransaction(nonce, common.HexToAddress(viper.GetString("booking_token_addr")), big.NewInt(0), gasLimit, gasPrice, packed)
+	tx := types.NewTransaction(nonce, bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
 
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {

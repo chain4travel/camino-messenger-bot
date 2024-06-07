@@ -7,8 +7,10 @@ rpc_server_port: 9090
 rpc_unencrypted: false
 rpc_server_cert_file: server-cert.pem
 rpc_server_key_file: server-key.pem
+rpc_url: https://columbus.camino.network/ext/bc/C/rpc
+
 partner_plugin_host: localhost
-partner_plugin_port: 3000
+partner_plugin_port: 6000
 partner_plugin_unencrypted: false
 partner_plugin_ca_file: ca-cert.pem
 response_timeout: 10000 # in milliseconds
@@ -26,8 +28,6 @@ supported_request_types:
   - TransportSearchRequest
   - MintRequest
 
-rpc_url: https://columbus.camino.network/ext/bc/C/rpc
-booking_token_abi_file: abi/BookingTokenV0.abi
 supplier_name: SUPPLIER_NAME
 
 evm_node_uri: https://kopernikus.demo.camino.network # camino node uri
@@ -42,5 +42,6 @@ tracing_port: 4317
 tracing_insecure: true
 tracing_cert_file: server-cert.pem
 tracing_key_file: server-key.pem
+
+booking_token_abi_file: abi/BookingTokenV0.abi
 booking_token_address: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"
-booking_token_abi_file: "./abi/BookingTokenV0.abi"

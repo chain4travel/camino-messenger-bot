@@ -9,8 +9,6 @@ import (
 
 	//"fmt"
 
-	"github.com/spf13/viper"
-
 	//"github.com/ava-labs/hypersdk/pubsub"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -38,19 +36,7 @@ func (c *Client) SendTxAndWait(ctx context.Context, action chain.Action) (bool, 
 } */
 
 func NewClient(cfg config.EvmConfig) (*ethclient.Client, error) {
-	//return ethclient.Dial(viper.GetString("rpc_url"))
-	/*
-			uri := fmt.Sprintf("%s/ext/bc/%s/rpc", cfg.NodeURI, cfg.ChainID)
-		   	if uri == cfg.RpcURL {
-		   		return ethclient.Dial(uri)
-		   	}
-	*/
-	//TODO: @VjeraTurk set whole Config if this is a safe way - check app.go - but don't do it in run()
-	viper.SetDefault("supplier_name", cfg.SupplierName)
-	viper.SetDefault("booking_token_addr", cfg.BookingTokenAddress)
-	viper.SetDefault("booking_token_abi_file", cfg.BookingTokenABIFile)
 	return ethclient.Dial(cfg.RpcURL)
-
 }
 
 /*
