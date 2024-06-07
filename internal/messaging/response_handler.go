@@ -18,6 +18,7 @@ import (
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -69,23 +70,46 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	}
 	address := crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey)
 
-	packed, err := abi.Pack("getSupplierName", address)
-	if err != nil {
-		h.logger.Infof("Error getting supplier's Name: %v", err)
-		// TODO: @VjeraTruk Check if supplier not registered emmits an error or not
-	}
-
-	supplierName := fmt.Sprintf("%x", packed)
-
 	bookingTokenAddress := common.HexToAddress(h.cfg.BookingTokenAddress)
 
+	packedData, err := abi.Pack("getSupplierName", address)
+	if err != nil {
+		h.logger.Infof("Error packing data for getSupplierName: %v", err)
+		addErrorToResponseHeader(response, fmt.Sprintf("error packing data: %v", err))
+		return true
+	}
+
+	msg := ethereum.CallMsg{
+		To:   &bookingTokenAddress,
+		Data: packedData,
+	}
+	result, err := h.ethClient.CallContract(context.Background(), msg, nil)
+	if err != nil {
+		h.logger.Infof("Error calling contract: %v", err)
+		addErrorToResponseHeader(response, fmt.Sprintf("error calling contract: %v", err))
+		return true
+	}
+
+	// Unpack the result
+	var supplierName string
+	err = abi.UnpackIntoInterface(&supplierName, "getSupplierName", result)
+	if err != nil {
+		h.logger.Infof("Error unpacking result: %v", err)
+		addErrorToResponseHeader(response, fmt.Sprintf("error unpacking result: %v", err))
+		return true
+	}
+
 	if supplierName != h.cfg.SupplierName {
+		h.logger.Debugf("Registerring with supplierName: %v", h.cfg.SupplierName)
 		err := register(h.ethClient, abi, h.pk.ToECDSA(), h.cfg.SupplierName, bookingTokenAddress)
 		if err != nil {
 			addErrorToResponseHeader(response, fmt.Sprintf("error registering supplier: %v", err))
 			return true
 		}
+	} else {
+		h.logger.Debugf("Supplier is already registered with supplierName: %v", supplierName)
 	}
+
 	// owner := h.ethClient.Address()
 	// if response.MintResponse.Header == nil {
 	// 	response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
@@ -97,11 +121,6 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	// 	addErrorToResponseHeader(response, fmt.Sprintf("error parsing price value: %v", err))
 	// 	return true
 	// }
-
-	if err != nil {
-		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
-		return true
-	}
 
 	h.logger.Debugf("abi: %v", abi)
 

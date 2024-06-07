@@ -1,6 +1,7 @@
 package config
 
 const (
+	SupplierNameKey               = "supplier_name"
 	BookingTokenAddressKey        = "booking_token_address"
 	BookingTokenABIFileKey        = "booking_token_abi_file"
 	DeveloperMode                 = "developer_mode"
