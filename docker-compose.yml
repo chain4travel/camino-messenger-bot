@@ -16,7 +16,7 @@ services:
       CMB_PARTNER_PLUGIN_PORT: "50051"
       CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
       CMB_RESPONSE_TIMEOUT: "3000"
-      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest"
+      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest,MintRequest"
     ports:
       - "9090:9090"
   distributor-bot:
@@ -35,7 +35,7 @@ services:
       CMB_PARTNER_PLUGIN_PORT: "50052"
       CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
       CMB_RESPONSE_TIMEOUT: "3000"
-      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest"
+      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest,MintRequest"
     ports:
       - "9092:9090"
   provider-plugin:

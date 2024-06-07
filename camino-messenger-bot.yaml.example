@@ -24,6 +24,7 @@ supported_request_types:
   - ValidationRequest
   - PingRequest
   - TransportSearchRequest
+  - MintRequest
 
 rpc_url: https://columbus.camino.network/ext/bc/C/rpc
 booking_token_abi_file: abi/BookingTokenV0.abi
