@@ -1,7 +1,5 @@
-/*
- * Copyright (C) 2022-2023, Chain4Travel AG. All rights reserved.
- * See the file LICENSE for licensing terms.
- */
+//  Copyright (C) 2022-2024, Chain4Travel AG. All rights reserved.
+//  See the file LICENSE for licensing terms.
 
 package messaging
 
@@ -16,17 +14,6 @@ import (
 	"os"
 	"strings"
 
-	//"crypto/ecdsa"
-
-	//"errors"
-	//"fmt"
-	//"math/big"
-
-	//"github.com/ethereum/go-ethereum/accounts/abi"
-	//"github.com/ethereum/go-ethereum/common"
-	//"github.com/ethereum/go-ethereum/core/types"
-	//"github.com/ethereum/go-ethereum/crypto"
-
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 
@@ -35,12 +22,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
 
-	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
-
 	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
-	//"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -73,7 +57,7 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 }
 
 func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *ResponseContent, request *RequestContent) bool {
-	//TODO: alter to use booking token
+	// TODO: alter to use booking token
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -88,7 +72,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	packed, err := abi.Pack("getSupplierName", address)
 	if err != nil {
 		h.logger.Infof("Error getting supplier's Name: %v", err)
-		//TODO: @VjeraTruk Check if supplier not registered emmits an error or not
+		// TODO: @VjeraTruk Check if supplier not registered emmits an error or not
 	}
 
 	supplierName := fmt.Sprintf("%x", packed)
@@ -134,7 +118,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
 	// MINT TOKEN
-	txID, tokenId, err := mint(
+	txID, tokenID, err := mint(
 		h.ethClient,
 		bookingTokenAddress,
 		abi,
@@ -154,13 +138,13 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
-	response.MintResponse.BookingToken = &typesv1alpha.BookingToken{TokenId: int32(tokenId.Int64())}
+	response.MintResponse.BookingToken = &typesv1alpha.BookingToken{TokenId: int32(tokenID.Int64())}
 	response.MintTransactionId = txID
 	return false
 }
 
 func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *ResponseContent) bool {
-	//TODO: alter to use booking token
+	// TODO: alter to use booking token
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -176,14 +160,13 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 	}
 
 	value64 := uint64(response.BookingToken.TokenId)
-	tokenId := new(big.Int).SetUint64(value64)
+	tokenID := new(big.Int).SetUint64(value64)
 
 	txID, err := buy(
 		h.ethClient,
 		abi,
 		h.pk.ToECDSA(),
-		tokenId)
-
+		tokenID)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -288,7 +271,7 @@ func mint(
 	// Set safe gas limit for now
 	gasLimit := uint64(1200000)
 
-	//tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
+	// tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
 	tx := types.NewTransaction(nonce, bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
 
 	chainID, err := client.NetworkID(context.Background())
@@ -328,14 +311,14 @@ func mint(
 	event := contractABI.Events["TokenReservation"]
 	eventSignature := event.ID.Hex()
 
-	var tokenId *big.Int
+	var tokenID *big.Int
 
 	// Iterate over the logs to find the event
 	for _, vLog := range receipt.Logs {
 		if vLog.Topics[0].Hex() == eventSignature {
 			// Decode indexed parameters
 			reservedFor := common.HexToAddress(vLog.Topics[1].Hex())
-			tokenId = new(big.Int).SetBytes(vLog.Topics[2].Bytes())
+			tokenID = new(big.Int).SetBytes(vLog.Topics[2].Bytes())
 
 			// Decode non-indexed parameters
 			var reservation TokenReservation
@@ -344,7 +327,7 @@ func mint(
 				return "", nil, err
 			}
 			reservation.ReservedFor = reservedFor
-			reservation.TokenID = tokenId
+			reservation.TokenID = tokenID
 
 			// Print the reservation details
 			fmt.Printf("Reservation Details:\n")
@@ -354,11 +337,11 @@ func mint(
 		}
 	}
 
-	return signedTx.Hash().Hex(), tokenId, nil
+	return signedTx.Hash().Hex(), tokenID, nil
 }
 
 // Buys a token with the buyer private key. Token must be reserved for the buyer address.
-func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenId *big.Int) (string, error) {
+func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	nonce, err := client.PendingNonceAt(context.Background(), address)
 	if err != nil {
@@ -370,7 +353,7 @@ func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.Privat
 		return "", err
 	}
 
-	packed, err := contractABI.Pack("buy", tokenId)
+	packed, err := contractABI.Pack("buy", tokenID)
 	if err != nil {
 		return "", err
 	}
@@ -411,7 +394,6 @@ func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.Privat
 
 // Waits for a transaction to be mined
 func waitTransaction(ctx context.Context, b bind.DeployBackend, tx *types.Transaction) (receipt *types.Receipt, err error) {
-
 	fmt.Printf("Waiting for transaction to be mined...\n")
 
 	receipt, err = bind.WaitMined(ctx, b, tx)

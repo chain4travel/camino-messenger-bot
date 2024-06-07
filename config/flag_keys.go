@@ -9,7 +9,7 @@ const (
 	EvmNetworkIDKey               = "evm_network_id"
 	EvmChainIDKey                 = "evm_chain_id"
 	EvmAwaitTxConfirmationTimeout = "evm_await_tx_confirmation_timeout"
-	RpcURLKey                     = "rpc_url"
+	RPCURLKey                     = "rpc_url"
 	MatrixKey                     = "matrix_key"
 	MatrixHost                    = "matrix_host"
 	MatrixStore                   = "matrix_store"
