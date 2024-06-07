@@ -170,7 +170,7 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		return true
 	}
 
-	abi, err := loadABI(viper.GetString("abi_file"))
+	abi, err := loadABI(viper.GetString("booking_token_abi_file"))
 	if err != nil {
 		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
 		return true
