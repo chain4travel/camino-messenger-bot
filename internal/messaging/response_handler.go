@@ -100,6 +100,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	}
 
 	if supplierName != h.cfg.SupplierName {
+		h.logger.Debugf("Not registered with correct supplier name: %v != %v", supplierName, h.cfg.SupplierName)
 		h.logger.Debugf("Registerring with supplierName: %v", h.cfg.SupplierName)
 		err := register(h.ethClient, abi, h.pk.ToECDSA(), h.cfg.SupplierName, bookingTokenAddress)
 		if err != nil {
@@ -220,6 +221,13 @@ func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.P
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return err
+	}
+
+	// Check supplier name and set default if empty
+	if supplierName == "" {
+		defaultSupplierName := "Default Supplier"
+		fmt.Printf("Supplier name cannot be empty. Setting name to: %s \n", defaultSupplierName)
+		supplierName = defaultSupplierName
 	}
 
 	packed, err := contractABI.Pack("registerSupplier", supplierName)
