@@ -133,9 +133,6 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
-	// Get the booking token contract address from the config
-	bookingTokenAddress := common.HexToAddress(h.cfg.BookingTokenAddress)
-
 	// MINT TOKEN
 	txID, tokenId, err := mint(
 		h.ethClient,
