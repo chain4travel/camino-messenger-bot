@@ -104,7 +104,7 @@ func (a *App) Run(ctx context.Context) error {
 
 func (a *App) newResponseHandler(ethClient *ethclient.Client, pk *secp256k1.PrivateKey) messaging.ResponseHandler {
 	if ethClient != nil {
-		return messaging.NewResponseHandler(ethClient, a.logger, pk)
+		return messaging.NewResponseHandler(ethClient, a.logger, pk, &a.cfg.EvmConfig)
 	}
 	return messaging.NoopResponseHandler{}
 }

@@ -38,6 +38,7 @@ import (
 
 	//"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
+	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
 	//"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -56,6 +57,7 @@ type EvmResponseHandler struct {
 	ethClient *ethclient.Client
 	logger    *zap.SugaredLogger
 	pk        *secp256k1.PrivateKey
+	cfg       *config.EvmConfig
 }
 
 func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
@@ -84,11 +86,15 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	// 	addErrorToResponseHeader(response, fmt.Sprintf("error parsing price value: %v", err))
 	// 	return true
 	// }
-	abi, err := loadABI("/home/dev/Documents/Chain4Travel/camino-messenger-bot/abi")
+
+	bookingTokenABIFile := h.cfg.BookingTokenABIFile
+	abi, err := loadABI(bookingTokenABIFile)
 	if err != nil {
 		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
 		return true
 	}
+
+	h.logger.Debugf("abi: %v", abi)
 
 	// TODO @evlekht unhardocoded, figure out what it is at all
 	// uri := "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
@@ -102,9 +108,13 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
+	// Get the booking token contract address from the config
+	bookingTokenAddress := common.HexToAddress(h.cfg.BookingTokenAddress)
+
 	// MINT TOKEN
 	txID, tokenId, err := mint(
 		h.ethClient,
+		bookingTokenAddress,
 		abi,
 		h.pk.ToECDSA(),
 		buyer,
@@ -185,6 +195,7 @@ func loadABI(filePath string) (abi.ABI, error) {
 // For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
 func mint(
 	client *ethclient.Client,
+	bookingTokenAddress common.Address,
 	contractABI abi.ABI,
 	privateKey *ecdsa.PrivateKey,
 	reservedFor common.Address,
@@ -207,9 +218,11 @@ func mint(
 		return "", nil, err
 	}
 
-	gasLimit := uint64(600000)
+	// Set safe gas limit for now
+	gasLimit := uint64(1200000)
 
-	tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
+	//tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
+	tx := types.NewTransaction(nonce, bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
 
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
@@ -295,7 +308,8 @@ func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.Privat
 		return "", err
 	}
 
-	gasLimit := uint64(80000)
+	// Set safe gas limit for now
+	gasLimit := uint64(200000)
 
 	tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
 
@@ -438,8 +452,8 @@ func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
 	})
 }
 
-func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, pk *secp256k1.PrivateKey) *EvmResponseHandler {
-	return &EvmResponseHandler{ethClient: ethClient, logger: logger, pk: pk}
+func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, pk *secp256k1.PrivateKey, cfg *config.EvmConfig) *EvmResponseHandler {
+	return &EvmResponseHandler{ethClient: ethClient, logger: logger, pk: pk, cfg: cfg}
 }
 
 // func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {

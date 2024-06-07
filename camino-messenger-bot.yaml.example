@@ -36,4 +36,5 @@ tracing_port: 4317
 tracing_insecure: true
 tracing_cert_file: server-cert.pem
 tracing_key_file: server-key.pem
-booking_token_addr: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D" #TODO: @VjeraTurk use this!
+booking_token_address: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"
+booking_token_abi_file: "./abi/BookingTokenV0.abi"

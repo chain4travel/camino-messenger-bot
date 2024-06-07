@@ -39,6 +39,8 @@ func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.ChainID, EvmChainIDKey, "", "The EVM chain ID")
 	fs.UintVar(&cfg.AwaitTxConfirmationTimeout, EvmAwaitTxConfirmationTimeout, 3000, "The EVM await transaction confirmation timeout (in milliseconds)")
 	fs.StringVar(&cfg.RpcURL, RpcURLKey, "", "The EVM RPC URL")
+	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D", "BookingToken address")
+	fs.StringVar(&cfg.BookingTokenABIFile, BookingTokenABIFileKey, "./abi/BookingTokenV0.abi", "BookingToken ABI file")
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {

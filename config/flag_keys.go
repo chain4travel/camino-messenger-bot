@@ -1,6 +1,8 @@
 package config
 
 const (
+	BookingTokenAddressKey        = "booking_token_address"
+	BookingTokenABIFileKey        = "booking_token_abi_file"
 	DeveloperMode                 = "developer_mode"
 	EvmNodeURIKey                 = "evm_node_uri"
 	EvmPrivateKey                 = "evm_private_key"

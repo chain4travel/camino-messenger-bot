@@ -7,3 +7,4 @@ build
 bot
 camino-messenger-bot.yaml
 mautrix.db
+coverage.out
