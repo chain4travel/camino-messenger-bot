@@ -21,6 +21,7 @@ services:
       CMB_BOOKING_TOKEN_ABI_FILE: abi/BookingTokenV0.abi
       CMB_SUPPLIER_NAME: SUPPLIER_NAME
       CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_BUYABLE_UNTIL_DEFAULT: "600"
     ports:
       - "9090:9090"
   distributor-bot:
