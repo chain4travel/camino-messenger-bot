@@ -51,6 +51,7 @@ type EvmConfig struct {
 	SupplierName               string `mapstructure:"supplier_name"`
 	BookingTokenAddress        string `mapstructure:"booking_token_address"`
 	BookingTokenABIFile        string `mapstructure:"booking_token_abi_file"`
+	BuyableUntilDefault        uint64 `mapstructure:"buyable_until_default"`
 }
 
 type TracingConfig struct {
