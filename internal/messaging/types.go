@@ -9,6 +9,7 @@ import (
 	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
+	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
@@ -36,7 +37,8 @@ type RequestContent struct {
 	*accommodationv2.AccommodationProductInfoRequest
 	*accommodationv2.AccommodationProductListRequest
 	*accommodationv2.AccommodationSearchRequest
-	*partnerv2.GetPartnerConfigurationRequest
+	GetPartnerConfigurationRequestV1 *partnerv1.GetPartnerConfigurationRequest
+	GetPartnerConfigurationRequestV2 *partnerv2.GetPartnerConfigurationRequest
 	*bookv2.MintRequest
 	*bookv2.ValidationRequest
 	*transportv2.TransportSearchRequest
@@ -57,7 +59,8 @@ type ResponseContent struct {
 	*accommodationv2.AccommodationProductInfoResponse
 	*accommodationv2.AccommodationProductListResponse
 	*accommodationv2.AccommodationSearchResponse
-	*partnerv2.GetPartnerConfigurationResponse
+	GetPartnerConfigurationResponseV1 *partnerv1.GetPartnerConfigurationResponse
+	GetPartnerConfigurationResponseV2 *partnerv2.GetPartnerConfigurationResponse
 	*bookv2.MintResponse
 	*bookv2.ValidationResponse
 	*transportv2.TransportSearchResponse

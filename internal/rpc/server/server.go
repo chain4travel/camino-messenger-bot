@@ -25,7 +25,6 @@ import (
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
-	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -60,6 +59,10 @@ var (
 	_ insurancev1grpc.InsuranceSearchServiceServer              = (*server)(nil)
 )
 
+type externalRequestProcessor interface {
+	processExternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error)
+}
+
 type Server interface {
 	metadata.Checkpoint
 	Start() error
@@ -91,6 +94,8 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 	}
 	server := &server{cfg: cfg, logger: logger, tracer: tracer, processor: processor, serviceRegistry: serviceRegistry}
 	server.grpcServer = createGrpcServerAndRegisterServices(server, opts...)
+	NewPartnerSrv1(server.grpcServer, server)
+	NewPartnerSrv2(server.grpcServer, server)
 	return server
 }
 
@@ -102,7 +107,7 @@ func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOpti
 	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, server)
 	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
 	networkv1grpc.RegisterGetNetworkFeeServiceServer(grpcServer, server)
-	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, server)
+	// partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, server)
 	bookv2grpc.RegisterMintServiceServer(grpcServer, server)
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, server)
 	pingv1grpc.RegisterPingServiceServer(grpcServer, server)
@@ -155,10 +160,10 @@ func (s *server) GetNetworkFee(ctx context.Context, request *networkv1.GetNetwor
 	return response.GetNetworkFeeResponse, err
 }
 
-func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv2.GetPartnerConfigurationRequest) (*partnerv2.GetPartnerConfigurationResponse, error) {
-	response, err := s.processInternalRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: request})
-	return response.GetPartnerConfigurationResponse, err
-}
+// func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv2.GetPartnerConfigurationRequest) (*partnerv2.GetPartnerConfigurationResponse, error) {
+// 	response, err := s.processInternalRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: request})
+// 	return response.GetPartnerConfigurationResponse, err
+// }
 
 func (s *server) ActivityProductInfo(ctx context.Context, request *activityv2.ActivityProductInfoRequest) (*activityv2.ActivityProductInfoResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.ActivityProductInfoRequest, &messaging.RequestContent{ActivityProductInfoRequest: request})
