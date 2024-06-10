@@ -36,6 +36,7 @@ var _ ResponseHandler = (*EvmResponseHandler)(nil)
 
 type ResponseHandler interface {
 	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent)
+	HandleRequest(ctx context.Context, msgType MessageType, request *RequestContent) error
 }
 type EvmResponseHandler struct {
 	ethClient *ethclient.Client
@@ -55,6 +56,14 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 			return
 		}
 	}
+}
+
+func (h *EvmResponseHandler) HandleRequest(ctx context.Context, msgType MessageType, request *RequestContent) error {
+	switch msgType {
+	case MintRequest:
+		request.BuyerAddress = crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey).Hex()
+	}
+	return nil
 }
 
 func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *ResponseContent, request *RequestContent) bool {

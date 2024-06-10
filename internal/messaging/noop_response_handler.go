@@ -15,3 +15,7 @@ type NoopResponseHandler struct{}
 
 func (NoopResponseHandler) HandleResponse(context.Context, MessageType, *RequestContent, *ResponseContent) {
 }
+
+func (NoopResponseHandler) HandleRequest(ctx context.Context, msgType MessageType, request *RequestContent) error {
+	return nil
+}
