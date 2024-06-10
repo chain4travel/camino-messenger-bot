@@ -24,4 +24,5 @@ supported_request_types:
 booking_token_abi_file: abi/BookingTokenV0.abi
 supplier_name: SUPPLIER_NAME
 
+buyable_until_default: 600
 evm_private_key: PrivateKey-PRIVATE_KEY # used for signing transactions on the c-chain / can be the same as the matrix_key

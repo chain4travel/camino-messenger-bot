@@ -13,9 +13,11 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"time"
 
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum"
@@ -51,15 +53,15 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 		if h.handleMintRequest(ctx, response) {
 			return
 		}
-	case MintResponse: // provider will act upon receiving a mint response by minting an NFT
+	case MintResponse: // supplier will act upon receiving a mint response by minting an NFT
 		if h.handleMintResponse(ctx, response, request) {
 			return
 		}
 	}
 }
 
-func (h *EvmResponseHandler) HandleRequest(ctx context.Context, msgType MessageType, request *RequestContent) error {
-	switch msgType {
+func (h *EvmResponseHandler) HandleRequest(_ context.Context, msgType MessageType, request *RequestContent) error {
+	switch msgType { //nolint:gocritic
 	case MintRequest:
 		request.BuyerAddress = crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey).Hex()
 	}
@@ -146,6 +148,9 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
+	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
+		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(time.Second * time.Duration(h.cfg.BuyableUntilDefault)))
+	}
 	// MINT TOKEN
 	txID, tokenID, err := mint(
 		h.ethClient,
