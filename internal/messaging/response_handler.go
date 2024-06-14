@@ -69,7 +69,6 @@ func (h *EvmResponseHandler) HandleRequest(_ context.Context, msgType MessageTyp
 }
 
 func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *ResponseContent, request *RequestContent) bool {
-	// TODO: alter to use booking token
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -121,18 +120,8 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	} else {
 		h.logger.Debugf("Supplier is already registered with supplierName: %v", supplierName)
 	}
-
-	// owner := h.ethClient.Address()
-	// if response.MintResponse.Header == nil {
-	// 	response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
-	// }
 	// TODO @evlekht ensure that request.MintRequest.BuyerAddress is c-chain address format, not x/p/t chain
 	buyer := common.HexToAddress(request.MintRequest.BuyerAddress)
-	// price, err := strconv.Atoi(response.MintResponse.Price.Value)
-	// if err != nil {
-	// 	addErrorToResponseHeader(response, fmt.Sprintf("error parsing price value: %v", err))
-	// 	return true
-	// }
 
 	h.logger.Debugf("abi: %v", abi)
 
@@ -178,7 +167,6 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 }
 
 func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *ResponseContent) bool {
-	// TODO: alter to use booking token
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -196,8 +184,11 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 	value64 := uint64(response.BookingToken.TokenId)
 	tokenID := new(big.Int).SetUint64(value64)
 
+	bookingTokenAddress := common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D")
+
 	txID, err := buy(
 		h.ethClient,
+		bookingTokenAddress,
 		abi,
 		h.pk.ToECDSA(),
 		tokenID)
@@ -311,8 +302,6 @@ func mint(
 
 	// Set safe gas limit for now
 	gasLimit := uint64(1200000)
-
-	// tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
 	tx := types.NewTransaction(nonce, bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
 
 	chainID, err := client.NetworkID(context.Background())
@@ -382,7 +371,7 @@ func mint(
 }
 
 // Buys a token with the buyer private key. Token must be reserved for the buyer address.
-func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
+func buy(client *ethclient.Client, bookingTokenAddress common.Address, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	nonce, err := client.PendingNonceAt(context.Background(), address)
 	if err != nil {
@@ -402,7 +391,7 @@ func buy(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.Privat
 	// Set safe gas limit for now
 	gasLimit := uint64(200000)
 
-	tx := types.NewTransaction(nonce, common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"), big.NewInt(0), gasLimit, gasPrice, packed)
+	tx := types.NewTransaction(nonce, bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
 
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
@@ -545,25 +534,3 @@ func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
 func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, pk *secp256k1.PrivateKey, cfg *config.EvmConfig) *EvmResponseHandler {
 	return &EvmResponseHandler{ethClient: ethClient, logger: logger, pk: pk, cfg: cfg}
 }
-
-// func createNFTAction(owner, buyer codec.Address, purchaseExpiration, price uint64, metadata string) chain.Action {
-// 	return &actions.CreateNFT{
-// 		Owner:                owner,
-// 		Issuer:               owner,
-// 		Buyer:                buyer,
-// 		PurchaseExpiration:   purchaseExpiration,
-// 		Asset:                ids.ID{},
-// 		Price:                price,
-// 		CancellationPolicies: actions.CancellationPolicies{},
-// 		Metadata:             []byte(metadata),
-// 	}
-// }
-
-// func transferNFTAction(newOwner codec.Address, nftID ids.ID) chain.Action {
-// 	return &actions.TransferNFT{
-// 		To:             newOwner,
-// 		ID:             nftID,
-// 		OnChainPayment: false, // TODO change based on tchain configuration
-// 		Memo:           nil,
-// 	}
-// }
