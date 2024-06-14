@@ -42,10 +42,7 @@ type ProcessorConfig struct {
 }
 
 type EvmConfig struct {
-	NodeURI                    string `mapstructure:"evm_node_uri"` // URI of the node to connect to
 	PrivateKey                 string `mapstructure:"evm_private_key"`
-	NetworkID                  uint   `mapstructure:"evm_network_id"`
-	ChainID                    string `mapstructure:"evm_chain_id"`
 	AwaitTxConfirmationTimeout uint   `mapstructure:"evm_await_tx_confirmation_timeout"` // in milliseconds"
 	RPCURL                     string `mapstructure:"rpc_url"`
 	SupplierName               string `mapstructure:"supplier_name"`

@@ -30,10 +30,7 @@ supported_request_types:
 
 supplier_name: SUPPLIER_NAME
 
-evm_node_uri: https://kopernikus.demo.camino.network # camino node uri
 evm_private_key: PrivateKey-YOUR_PRIVATE_KEY # used for signing transactions on the c-chain / can be the same as the matrix_key
-evm_network_id: 1002 # 1002 for devnet, 1001 for testnet, 1000 for mainnet
-evm_chain_id: BLOCKCHAIN_ID # blockchain id of the c-chain  On Mainnet, the C-Chain uses 1000 and 500 for these values. On the Columbus Testnet, it uses 1001 and 501 for these values.
 evm_await_tx_confirmation_timeout: 6000 # timeout in milliseconds for awaiting transaction confirmation
 
 tracing_enabled: true
