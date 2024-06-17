@@ -126,7 +126,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 
 	h.logger.Debugf("abi: %v", abi)
 
-	// TODO @evlekht unhardocoded, figure out what it is at all
+	// TODO @evlekht unhardocoded, update the protocol to have those information in the mint response.
 	// uri := "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
 
 	// Get a Token URI for the token.
