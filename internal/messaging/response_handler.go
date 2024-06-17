@@ -74,7 +74,9 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	}
 	abi, err := loadABI(h.cfg.BookingTokenABIFile)
 	if err != nil {
-		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
+		errMsg := fmt.Sprintf("error loading ABI: %v", err)
+		h.logger.Errorf(errMsg)
+		addErrorToResponseHeader(response, errMsg)
 		return true
 	}
 	address := crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey)
@@ -105,8 +107,9 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	var supplierName string
 	err = abi.UnpackIntoInterface(&supplierName, "getSupplierName", result)
 	if err != nil {
-		h.logger.Infof("Error unpacking result: %v", err)
-		addErrorToResponseHeader(response, fmt.Sprintf("error unpacking result: %v", err))
+		errMsg := fmt.Sprintf("Error unpacking result: %v", err)
+		h.logger.Infof(errMsg)
+		addErrorToResponseHeader(response, errMsg)
 		return true
 	}
 
@@ -115,7 +118,9 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 		h.logger.Debugf("Registerring with supplierName: %v", h.cfg.SupplierName)
 		err := register(h.ethClient, h.logger, abi, h.pk.ToECDSA(), h.cfg.SupplierName, bookingTokenAddress)
 		if err != nil {
-			addErrorToResponseHeader(response, fmt.Sprintf("error registering supplier: %v", err))
+			errMsg := fmt.Sprintf("error registering supplier: %v", err)
+			h.logger.Debugf(errMsg)
+			addErrorToResponseHeader(response, errMsg)
 			return true
 		}
 	} else {
@@ -132,7 +137,9 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	// Get a Token URI for the token.
 	jsonPlain, uri, err := createTokenURIforMintResponse(response.MintResponse)
 	if err != nil {
-		addErrorToResponseHeader(response, fmt.Sprintf("error creating token URI: %v", err))
+		errMsg := fmt.Sprintf("error creating token URI: %v", err)
+		h.logger.Debugf(errMsg) // TODO: @VjeraTurk change to Error after we stop using mocked uri data
+		addErrorToResponseHeader(response, errMsg)
 		return true
 	}
 
@@ -157,6 +164,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 		if errors.Is(err, context.DeadlineExceeded) {
 			errMessage = fmt.Sprintf("transaction deadline exceeded: %v", evm.ErrAwaitTxConfirmationTimeout)
 		}
+		h.logger.Errorf(errMessage)
 		addErrorToResponseHeader(response, errMessage)
 		return true
 	}
@@ -179,7 +187,9 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 
 	abi, err := loadABI(h.cfg.BookingTokenABIFile)
 	if err != nil {
-		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
+		errMsg := fmt.Sprintf("error loading ABI: %v", err)
+		h.logger.Errorf(errMsg)
+		addErrorToResponseHeader(response, errMsg)
 		return true
 	}
 
@@ -200,6 +210,7 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 		if errors.Is(err, context.DeadlineExceeded) {
 			errMessage = fmt.Sprintf("%v", evm.ErrAwaitTxConfirmationTimeout)
 		}
+		h.logger.Errorf(errMessage)
 		addErrorToResponseHeader(response, errMessage)
 		return true
 	}
