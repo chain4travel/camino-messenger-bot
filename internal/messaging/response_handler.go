@@ -84,7 +84,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	packedData, err := abi.Pack("getSupplierName", address)
 	if err != nil {
 		errMsg := fmt.Sprintf("Error packing data: %v", err)
-		h.logger.Infof(errMsg)
+		h.logger.Errorf(errMsg)
 		addErrorToResponseHeader(response, errMsg)
 		return true
 	}
@@ -96,7 +96,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	result, err := h.ethClient.CallContract(context.Background(), msg, nil)
 	if err != nil {
 		errMsg := fmt.Sprintf("Error calling contract: %v", err)
-		h.logger.Infof(errMsg)
+		h.logger.Errorf(errMsg)
 		addErrorToResponseHeader(response, errMsg)
 		return true
 	}
