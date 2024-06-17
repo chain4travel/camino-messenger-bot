@@ -75,7 +75,7 @@ Note: The provided instructions assume a certain level of system familiarity. Ad
 ### Build
 
 ```bash
-go build -o bot cmd/camino-messenger-bot/main.go
+./script/build.sh
 ```
 
 ### Create Configuration
@@ -85,7 +85,7 @@ Create a configuration YAML file based on the provided example "camino-messenger
 ### Start the Application
 
 ```bash
-./bot --config camino-messenger-bot.yaml
+./build/bot --config camino-messenger-bot.yaml
 ```
 
 Feel free to explore and customize the application based on your specific requirements. If you encounter any issues or have questions, please refer to the documentation or open an issue in the repository.
