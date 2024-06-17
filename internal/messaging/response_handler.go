@@ -113,7 +113,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	if supplierName != h.cfg.SupplierName {
 		h.logger.Debugf("Not registered with correct supplier name: %v != %v", supplierName, h.cfg.SupplierName)
 		h.logger.Debugf("Registerring with supplierName: %v", h.cfg.SupplierName)
-		err := register(h.ethClient, abi, h.pk.ToECDSA(), h.cfg.SupplierName, bookingTokenAddress)
+		err := register(h.ethClient, h.logger, abi, h.pk.ToECDSA(), h.cfg.SupplierName, bookingTokenAddress)
 		if err != nil {
 			addErrorToResponseHeader(response, fmt.Sprintf("error registering supplier: %v", err))
 			return true
@@ -144,6 +144,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	// MINT TOKEN
 	txID, tokenID, err := mint(
 		h.ethClient,
+		h.logger,
 		bookingTokenAddress,
 		abi,
 		h.pk.ToECDSA(),
@@ -189,6 +190,7 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 
 	txID, err := buy(
 		h.ethClient,
+		h.logger,
 		bookingTokenAddress,
 		abi,
 		h.pk.ToECDSA(),
@@ -217,7 +219,7 @@ func loadABI(filePath string) (abi.ABI, error) {
 }
 
 // Registers a new supplier with the BookingToken contract
-func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, supplierName string, bookingTokenAddress common.Address) error {
+func register(client *ethclient.Client, logger *zap.SugaredLogger, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, supplierName string, bookingTokenAddress common.Address) error {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	nonce, err := client.PendingNonceAt(context.Background(), address)
 	if err != nil {
@@ -232,7 +234,7 @@ func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.P
 	// Check supplier name and set default if empty
 	if supplierName == "" {
 		defaultSupplierName := "Default Supplier"
-		fmt.Printf("Supplier name cannot be empty. Setting name to: %s \n", defaultSupplierName)
+		logger.Infof("Supplier name cannot be empty. Setting name to: %s \n", defaultSupplierName)
 		supplierName = defaultSupplierName
 	}
 
@@ -260,13 +262,13 @@ func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.P
 		return err
 	}
 
-	fmt.Printf("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
+	logger.Infof("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
 
 	// Wait for transaction to be mined
-	receipt, err := waitTransaction(context.Background(), client, signedTx)
+	receipt, err := waitTransaction(context.Background(), client, logger, signedTx)
 	if err != nil {
 		if gasLimit == receipt.GasUsed {
-			fmt.Printf("Transaction Gas Limit reached. Please use shorter supplier name.\n")
+			logger.Errorf("Transaction Gas Limit reached. Please use shorter supplier name.\n")
 		}
 		return err
 	}
@@ -278,6 +280,7 @@ func register(client *ethclient.Client, contractABI abi.ABI, privateKey *ecdsa.P
 // For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
 func mint(
 	client *ethclient.Client,
+	logger *zap.SugaredLogger,
 	bookingTokenAddress common.Address,
 	contractABI abi.ABI,
 	privateKey *ecdsa.PrivateKey,
@@ -320,13 +323,13 @@ func mint(
 		return "", nil, err
 	}
 
-	fmt.Printf("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
+	logger.Infof("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
 
 	// Wait for transaction to be mined
-	receipt, err := waitTransaction(context.Background(), client, signedTx)
+	receipt, err := waitTransaction(context.Background(), client, logger, signedTx)
 	if err != nil {
 		if gasLimit == receipt.GasUsed {
-			fmt.Printf("Transaction Gas Limit reached. Please check your inputs.\n")
+			logger.Infof("Transaction Gas Limit reached. Please check your inputs.\n")
 		}
 		return "", nil, err
 	}
@@ -361,10 +364,10 @@ func mint(
 			reservation.TokenID = tokenID
 
 			// Print the reservation details
-			fmt.Printf("Reservation Details:\n")
-			fmt.Printf("Token ID    : %s\n", reservation.TokenID.String())
-			fmt.Printf("Reserved For: %s\n", reservation.ReservedFor.Hex())
-			fmt.Printf("Expiration  : %s\n", reservation.ExpirationTimestamp.String())
+			logger.Infof("Reservation Details:\n")
+			logger.Infof("Token ID    : %s\n", reservation.TokenID.String())
+			logger.Infof("Reserved For: %s\n", reservation.ReservedFor.Hex())
+			logger.Infof("Expiration  : %s\n", reservation.ExpirationTimestamp.String())
 		}
 	}
 
@@ -372,7 +375,7 @@ func mint(
 }
 
 // Buys a token with the buyer private key. Token must be reserved for the buyer address.
-func buy(client *ethclient.Client, bookingTokenAddress common.Address, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
+func buy(client *ethclient.Client, logger *zap.SugaredLogger, bookingTokenAddress common.Address, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	nonce, err := client.PendingNonceAt(context.Background(), address)
 	if err != nil {
@@ -409,13 +412,13 @@ func buy(client *ethclient.Client, bookingTokenAddress common.Address, contractA
 		return "", err
 	}
 
-	fmt.Printf("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
+	logger.Infof("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
 
 	// Wait for transaction to be mined
-	receipt, err := waitTransaction(context.Background(), client, signedTx)
+	receipt, err := waitTransaction(context.Background(), client, logger, signedTx)
 	if err != nil {
 		if gasLimit == receipt.GasUsed {
-			fmt.Printf("Transaction Gas Limit reached. Please check your inputs.\n")
+			logger.Infof("Transaction Gas Limit reached. Please check your inputs.\n")
 		}
 		return "", err
 	}
@@ -424,8 +427,8 @@ func buy(client *ethclient.Client, bookingTokenAddress common.Address, contractA
 }
 
 // Waits for a transaction to be mined
-func waitTransaction(ctx context.Context, b bind.DeployBackend, tx *types.Transaction) (receipt *types.Receipt, err error) {
-	fmt.Printf("Waiting for transaction to be mined...\n")
+func waitTransaction(ctx context.Context, b bind.DeployBackend, logger *zap.SugaredLogger, tx *types.Transaction) (receipt *types.Receipt, err error) {
+	logger.Infof("Waiting for transaction to be mined...\n")
 
 	receipt, err = bind.WaitMined(ctx, b, tx)
 	if err != nil {
@@ -436,7 +439,7 @@ func waitTransaction(ctx context.Context, b bind.DeployBackend, tx *types.Transa
 		return receipt, fmt.Errorf("transaction failed: %v", receipt)
 	}
 
-	fmt.Printf("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
+	logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
 }
