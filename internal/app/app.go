@@ -67,7 +67,7 @@ func (a *App) Run(ctx context.Context) error {
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
-	client, err := evm.NewClient(a.cfg.EvmConfig) // TODO make client init conditional based on provided config
+	evmClient, err := evm.NewClient(a.cfg.EvmConfig)
 	if err != nil {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
@@ -83,7 +83,7 @@ func (a *App) Run(ctx context.Context) error {
 	a.logger.Infof("C-Chain address: %s", cAddress)
 
 	// create response handler
-	responseHandler := a.newResponseHandler(client, pk)
+	responseHandler := a.newResponseHandler(evmClient, pk)
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
