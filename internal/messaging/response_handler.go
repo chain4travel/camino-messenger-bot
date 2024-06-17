@@ -72,8 +72,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
-	bookingTokenABIFile := h.cfg.BookingTokenABIFile
-	abi, err := loadABI(bookingTokenABIFile)
+	abi, err := loadABI(h.cfg.BookingTokenABIFile)
 	if err != nil {
 		addErrorToResponseHeader(response, fmt.Sprintf("error loading ABI: %v", err))
 		return true
@@ -184,7 +183,7 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 	value64 := uint64(response.BookingToken.TokenId)
 	tokenID := new(big.Int).SetUint64(value64)
 
-	bookingTokenAddress := common.HexToAddress("0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D")
+	bookingTokenAddress := common.HexToAddress(h.cfg.BookingTokenAddress)
 
 	txID, err := buy(
 		h.ethClient,
