@@ -68,7 +68,7 @@ func (h *EvmResponseHandler) HandleRequest(_ context.Context, msgType MessageTyp
 	return nil
 }
 
-func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *ResponseContent, request *RequestContent) bool {
+func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -150,6 +150,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	}
 	// MINT TOKEN
 	txID, tokenID, err := mint(
+		ctx,
 		h.ethClient,
 		h.logger,
 		bookingTokenAddress,
@@ -176,7 +177,7 @@ func (h *EvmResponseHandler) handleMintResponse(_ context.Context, response *Res
 	return false
 }
 
-func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *ResponseContent) bool {
+func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
 	if response.MintResponse.Header == nil {
 		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
 	}
@@ -199,6 +200,7 @@ func (h *EvmResponseHandler) handleMintRequest(_ context.Context, response *Resp
 	bookingTokenAddress := common.HexToAddress(h.cfg.BookingTokenAddress)
 
 	txID, err := buy(
+		ctx,
 		h.ethClient,
 		h.logger,
 		bookingTokenAddress,
@@ -290,6 +292,7 @@ func register(client *ethclient.Client, logger *zap.SugaredLogger, contractABI a
 // Mints a BookingToken with the supplier private key and reserves it for the buyer address
 // For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
 func mint(
+	_ context.Context,
 	client *ethclient.Client,
 	logger *zap.SugaredLogger,
 	bookingTokenAddress common.Address,
@@ -385,8 +388,9 @@ func mint(
 	return signedTx.Hash().Hex(), tokenID, nil
 }
 
+// TODO @VjeraTurk code that creates and handls context should be improved, since its not doing job in separate goroutine,
 // Buys a token with the buyer private key. Token must be reserved for the buyer address.
-func buy(client *ethclient.Client, logger *zap.SugaredLogger, bookingTokenAddress common.Address, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
+func buy(_ context.Context, client *ethclient.Client, logger *zap.SugaredLogger, bookingTokenAddress common.Address, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	nonce, err := client.PendingNonceAt(context.Background(), address)
 	if err != nil {
