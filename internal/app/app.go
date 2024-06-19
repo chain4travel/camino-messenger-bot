@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
@@ -83,7 +84,7 @@ func (a *App) Run(ctx context.Context) error {
 	a.logger.Infof("C-Chain address: %s", cAddress)
 
 	// create response handler
-	responseHandler := a.newResponseHandler(evmClient, pk)
+	responseHandler := a.newResponseHandler(evmClient, pk.ToECDSA())
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
@@ -105,7 +106,7 @@ func (a *App) Run(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) newResponseHandler(ethClient *ethclient.Client, pk *secp256k1.PrivateKey) messaging.ResponseHandler {
+func (a *App) newResponseHandler(ethClient *ethclient.Client, pk *ecdsa.PrivateKey) messaging.ResponseHandler {
 	if ethClient != nil {
 		return messaging.NewResponseHandler(ethClient, a.logger, pk, &a.cfg.EvmConfig)
 	}

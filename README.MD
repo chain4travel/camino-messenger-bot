@@ -75,7 +75,7 @@ Note: The provided instructions assume a certain level of system familiarity. Ad
 ### Build
 
 ```bash
-./script/build.sh
+./scripts/build.sh
 ```
 
 ### Create Configuration

@@ -19,7 +19,6 @@ import (
 	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -43,7 +42,7 @@ type ResponseHandler interface {
 type EvmResponseHandler struct {
 	ethClient *ethclient.Client
 	logger    *zap.SugaredLogger
-	pk        *secp256k1.PrivateKey
+	pk        *ecdsa.PrivateKey
 	cfg       *config.EvmConfig
 }
 
@@ -63,7 +62,7 @@ func (h *EvmResponseHandler) HandleResponse(ctx context.Context, msgType Message
 func (h *EvmResponseHandler) HandleRequest(_ context.Context, msgType MessageType, request *RequestContent) error {
 	switch msgType { //nolint:gocritic
 	case MintRequest:
-		request.BuyerAddress = crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey).Hex()
+		request.BuyerAddress = crypto.PubkeyToAddress(h.pk.PublicKey).Hex()
 	}
 	return nil
 }
@@ -79,7 +78,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		addErrorToResponseHeader(response, errMsg)
 		return true
 	}
-	address := crypto.PubkeyToAddress(h.pk.ToECDSA().PublicKey)
+	address := crypto.PubkeyToAddress(h.pk.PublicKey)
 
 	bookingTokenAddress := common.HexToAddress(h.cfg.BookingTokenAddress)
 
@@ -116,7 +115,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	if supplierName != h.cfg.SupplierName {
 		h.logger.Debugf("Not registered with correct supplier name: %v != %v", supplierName, h.cfg.SupplierName)
 		h.logger.Debugf("Registerring with supplierName: %v", h.cfg.SupplierName)
-		err := register(h.ethClient, h.logger, abi, h.pk.ToECDSA(), h.cfg.SupplierName, bookingTokenAddress)
+		err := register(h.ethClient, h.logger, abi, h.pk, h.cfg.SupplierName, bookingTokenAddress)
 		if err != nil {
 			errMsg := fmt.Sprintf("error registering supplier: %v", err)
 			h.logger.Debugf(errMsg)
@@ -155,7 +154,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		h.logger,
 		bookingTokenAddress,
 		abi,
-		h.pk.ToECDSA(),
+		h.pk,
 		buyer,
 		uri,
 		big.NewInt(response.MintResponse.BuyableUntil.Seconds),
@@ -205,7 +204,7 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		h.logger,
 		bookingTokenAddress,
 		abi,
-		h.pk.ToECDSA(),
+		h.pk,
 		tokenID)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
@@ -550,6 +549,6 @@ func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
 	})
 }
 
-func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, pk *secp256k1.PrivateKey, cfg *config.EvmConfig) *EvmResponseHandler {
+func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, pk *ecdsa.PrivateKey, cfg *config.EvmConfig) *EvmResponseHandler {
 	return &EvmResponseHandler{ethClient: ethClient, logger: logger, pk: pk, cfg: cfg}
 }
