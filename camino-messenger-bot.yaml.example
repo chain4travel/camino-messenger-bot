@@ -29,7 +29,6 @@ supported_request_types:
   - ValidationRequest
   - PingRequest
   - TransportSearchRequest
-  - MintRequest
 
 supplier_name: SUPPLIER_NAME #required only for Supplier bot if supporting MintRequest
 
