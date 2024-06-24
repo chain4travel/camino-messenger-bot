@@ -4,6 +4,11 @@ build
 .idea
 *.iml
 
-camino-messenger-bot.yaml
+camino-messenger-bot-supplier.yaml
+camino-messenger-bot-distributor.yaml
+
 mautrix.db
+mautrix.supplier.db
+mautrix.distributor.db
+
 coverage.out

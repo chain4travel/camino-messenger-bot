@@ -21,8 +21,7 @@ Camino-Messenger-Bot is designed to facilitate communication through various mes
 ## Dependencies
 This application depends on the [camino-messenger-protocol](https://github.com/chain4travel/camino-messenger-protocol), which is a separate repository. The protocol defines the protobuf messages and services used for communication between the gRPC server and client.
 
-Version used: [release-2](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-2)
-
+Version used: [release-6](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-6)
 ## Examples and Docker Support
 
 The repository includes examples demonstrating the setup of gRPC servers and clients under the `examples` folder. Additionally, Dockerfiles and a docker-compose.yml file are provided to simplify the deployment of a provider, distributor bot, and a partner plugin application that mocks responses.
@@ -72,6 +71,8 @@ This command should print the installed `olm` version.
 
 Note: The provided instructions assume a certain level of system familiarity. Adjustments might be necessary based on your specific setup or if you encounter any issues during the installation process.
 
+## Running a single bot
+
 ### Build
 
 ```bash
@@ -80,7 +81,9 @@ Note: The provided instructions assume a certain level of system familiarity. Ad
 
 ### Create Configuration
 
-Create a configuration YAML file based on the provided example "camino-messenger-bot.yaml.example".
+Create a configuration YAML file (e.g. `camino-messenger-bot.yaml`) based on the provided example `camino-messenger-bot-supplier.yaml.example` or `camino-messenger-bot-distributor.yaml.example`.
+
+
 
 ### Start the Application
 
@@ -90,16 +93,8 @@ Create a configuration YAML file based on the provided example "camino-messenger
 
 Feel free to explore and customize the application based on your specific requirements. If you encounter any issues or have questions, please refer to the documentation or open an issue in the repository.
 
-## Tracing
-The application supports tracing by providing an otel (OpenTelemetry) sdk implementation adding traces to all requests and responses. 
-Traces cross the boundaries of the application by using traceIDs and context propagation.
-The tracing configuration can be set in the configuration file.
-By default, tracing is disabled. For the moment the application uses a Jaeger exporter to send the traces to a Jaeger instance. 
-A future improvement could include an otel collector as the middle stop for traces and feed to them different tracing systems.
-
-
 ## Running both Supplier and Distributor at the same time
-
+For development proposes, you may want to run both Supplier and Distributor bot at the same time.  
 ### Build 
 ```bash
 ./scripts/build_both.sh
@@ -107,19 +102,35 @@ A future improvement could include an otel collector as the middle stop for trac
 to build bots to different folders. 
 
 ### Create Configuration
-For development puroposes, you may want to run both Supplier and Distributor bot at the same time.  
-Use `camino-messenger-bot-distributor.yaml.example` and `camino-messenger-bot-supplier.yaml.example` files to create configuration YAML files and run
 
-
+Use `camino-messenger-bot-distributor.yaml.example` and `camino-messenger-bot-supplier.yaml.example` files to create configuration YAML files (e.g. `camino-messenger-bot-distributor.yaml` and `camino-messenger-bot-supplier.yaml`). 
 
 ### Start the Application
 
-To run the bots, in separate terminals run
-`./build/distributor/bot --config camino-messenger-bot-distributor.yaml`  
-`./build/supplier/bot --config camino-messenger-bot-supplier.yaml`
+To run the bots, in 2 separate terminals run:  
+```bash 
+./build/distributor/bot --config camino-messenger-bot-distributor.yaml
+```  
+
+```bash 
+./build/supplier/bot --config camino-messenger-bot-supplier.yaml
+```
 
 Or configure the launching file of your preferred IDE to do the same.
 
+⚠️ WARNING:  
+ YAML **configuration files** contain private keys and thus **should never be committed**. We suggest adding any configuration file names to [.git/info/exclude](`camino-messenger-bot-distributor.yaml.example`) to have git ignore them without modifying the .gitignore.
+
+
 ### Running partner plugin example
-Run the partner plugin, setting the `PRORT` env as defined in your supplier bot configuration  `partner_plugin_port`  
+Run the partner plugin, setting the `PORT` env as defined in your supplier bot configuration  `partner_plugin_port`  e.g.:  
 `PORT=50052 go run examples/rpc/partner-plugin/server.go`
+
+
+
+## Tracing
+The application supports tracing by providing an otel (OpenTelemetry) sdk implementation adding traces to all requests and responses. 
+Traces cross the boundaries of the application by using traceIDs and context propagation.
+The tracing configuration can be set in the configuration file.
+By default, tracing is disabled. For the moment the application uses a Jaeger exporter to send the traces to a Jaeger instance. 
+A future improvement could include an otel collector as the middle stop for traces and feed to them different tracing systems.
