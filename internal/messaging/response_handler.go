@@ -387,7 +387,7 @@ func mint(
 	return signedTx.Hash().Hex(), tokenID, nil
 }
 
-// TODO @VjeraTurk code that creates and handls context should be improved, since its not doing job in separate goroutine,
+// TODO @VjeraTurk code that creates and handles context should be improved, since its not doing job in separate goroutine,
 // Buys a token with the buyer private key. Token must be reserved for the buyer address.
 func buy(_ context.Context, client *ethclient.Client, logger *zap.SugaredLogger, bookingTokenAddress common.Address, contractABI abi.ABI, privateKey *ecdsa.PrivateKey, tokenID *big.Int) (string, error) {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
