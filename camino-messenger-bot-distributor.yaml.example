@@ -1,46 +1,73 @@
-# Example config for local development
+# Lower level logging for local development
 developer_mode: true
 
-matrix_key: PrivateKey-YOUR_PRIVATE_KEY
-matrix_host: matrix.camino.network
-matrix_store: mautrix.distributor.db
-
-rpc_server_port: 9091
-rpc_unencrypted: true
-rpc_server_cert_file: server-cert.pem                    #required if rpc_unencrypted: false
-rpc_server_key_file: server-key.pem                      #required if rpc_unencrypted: false
-rpc_url: https://columbus.camino.network/ext/bc/C/rpc    #required if supporting MintRequest
-
-partner_plugin_host: localhost
-partner_plugin_port: 50052
-partner_plugin_unencrypted: true
-partner_plugin_ca_file: ca-cert.pem     #required if partner_plugin_unencrypted: false
-
-response_timeout: 10000 # in milliseconds
-supported_request_types:
-  - ActivitySearchRequest
-  - ActivityProductListRequest
-  - AccommodationProductInfoRequest
-  - AccommodationProductListRequest
-  - AccommodationSearchRequest
-  - GetNetworkFeeRequest
-  - GetPartnerConfigurationRequest
-  - MintRequest
-  - ValidationRequest
-  - PingRequest
-  - TransportSearchRequest
-
-supplier_name: SUPPLIER_NAME #required only for Supplier bot if supporting MintRequest
-
-evm_private_key: PrivateKey-YOUR_PRIVATE_KEY # used for signing transactions on the c-chain / can be the same as the matrix_key
-evm_await_tx_confirmation_timeout: 6000 # timeout in milliseconds for awaiting transaction confirmation
-
-booking_token_abi_file: abi/BookingTokenV0.abi                        #required if supporting MintRequest
-booking_token_address: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"   #required if supporting MintRequest
-
+### Tracing
 #tracing_enabled: true
 #tracing_host: localhost
 #tracing_port: 4317
 #tracing_insecure: true
 #tracing_cert_file: server-cert.pem
 #tracing_key_file: server-key.pem
+
+### Matrix
+
+# Private key to be used to loging to Matrix Server
+matrix_key: PrivateKey-YOUR_PRIVATE_KEY
+
+# Hostname of the Matrix Server
+matrix_host: matrix.camino.network
+
+# Local DB file to store Matrix data
+matrix_store: distributor-matrix.db
+
+# Timeout in milliseconds to wait for responses on Matrix Server
+response_timeout: 10000
+
+### Bot RPC Configuration
+
+# Listen on this port for RPC requests from the partner plugin (or Postman during
+# development)
+rpc_server_port: 9090
+# TLS configuration
+rpc_unencrypted: true
+rpc_server_cert_file: server-cert.pem
+rpc_server_key_file: server-key.pem
+
+### Partner Plugin (NOT USED FOR DISTRIBUTOR BOT)
+# Partner Plugin hostname and port, should be reachable from this machine.
+#
+# Bot tries to connect to this host and port to relay messages that it receives from
+# the distributors through Matrix Server
+#partner_plugin_host: localhost
+#partner_plugin_port: 50051
+# TLS configuration
+#partner_plugin_unencrypted: true
+# Required if partner_plugin_unencrypted is false
+#partner_plugin_ca_file: ca-cert.pem
+
+### Supported Request Types for this distributor.
+# Only requests that does not talk to the partner plugin can be enabled here.
+supported_request_types:
+  - GetNetworkFeeRequest
+  - GetPartnerConfigurationRequest
+  - PingRequest
+
+### C-Chain (EVM)
+
+# Used for signing transactions on the c-chain, can be same as the matrix_key.
+# This address needs to have some funds to pay for transaction fees on the C-Chain.
+evm_private_key: PrivateKey-YOUR_PRIVATE_KEY
+
+# C-Chain RPC URL
+rpc_url: https://columbus.camino.network/ext/bc/C/rpc
+
+### Booking Token
+
+# Booking Token contract address. This address will be used for minting, buying of Booking Tokens
+booking_token_address: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"
+
+# ABI file that will be used during minting, buying of Booking Tokens
+booking_token_abi_file: abi/BookingTokenV0.abi
+# Supplier name to be used for registering to the BookingToken smart contract.
+# Should be a short name, it will be saved on-chain. Not used with distributor bot.
+#supplier_name: SUPPLIER_NAME

@@ -7,8 +7,7 @@ build
 camino-messenger-bot-supplier.yaml
 camino-messenger-bot-distributor.yaml
 
-mautrix.db
-mautrix.supplier.db
-mautrix.distributor.db
+distributor-matrix.db
+supplier-matrix.db
 
 coverage.out
