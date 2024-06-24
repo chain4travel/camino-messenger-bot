@@ -114,7 +114,7 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	if supplierName != h.cfg.SupplierName {
 		h.logger.Debugf("Not registered with correct supplier name: %v != %v", supplierName, h.cfg.SupplierName)
-		h.logger.Debugf("Registerring with supplierName: %v", h.cfg.SupplierName)
+		h.logger.Debugf("Registering with supplierName: %v", h.cfg.SupplierName)
 		err := register(h.ethClient, h.logger, abi, h.pk, h.cfg.SupplierName, bookingTokenAddress)
 		if err != nil {
 			errMsg := fmt.Sprintf("error registering supplier: %v", err)
