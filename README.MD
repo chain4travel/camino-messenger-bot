@@ -96,3 +96,30 @@ Traces cross the boundaries of the application by using traceIDs and context pro
 The tracing configuration can be set in the configuration file.
 By default, tracing is disabled. For the moment the application uses a Jaeger exporter to send the traces to a Jaeger instance. 
 A future improvement could include an otel collector as the middle stop for traces and feed to them different tracing systems.
+
+
+## Running both Supplier and Distributor at the same time
+
+### Build 
+```bash
+./scripts/build_both.sh
+```
+to build bots to different folders. 
+
+### Create Configuration
+For development puroposes, you may want to run both Supplier and Distributor bot at the same time.  
+Use `camino-messenger-bot-distributor.yaml.example` and `camino-messenger-bot-supplier.yaml.example` files to create configuration YAML files and run
+
+
+
+### Start the Application
+
+To run the bots, in separate terminals run
+`./build/distributor/bot --config camino-messenger-bot-distributor.yaml`  
+`./build/supplier/bot --config camino-messenger-bot-supplier.yaml`
+
+Or configure the launching file od your prefered IDE to do the same.
+
+### Running partner plugin example
+Run the partner plugin, setting the `PRORT` env as defined in your supplier bot configuration  `partner_plugin_port`  
+`PORT=50052 go run examples/rpc/partner-plugin/server.go`
