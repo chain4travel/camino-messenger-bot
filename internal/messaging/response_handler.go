@@ -8,7 +8,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -25,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -161,9 +159,6 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
-		if errors.Is(err, context.DeadlineExceeded) {
-			errMessage = fmt.Sprintf("transaction deadline exceeded: %v", evm.ErrAwaitTxConfirmationTimeout)
-		}
 		h.logger.Errorf(errMessage)
 		addErrorToResponseHeader(response, errMessage)
 		return true
@@ -208,9 +203,6 @@ func (h *EvmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		tokenID)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
-		if errors.Is(err, context.DeadlineExceeded) {
-			errMessage = fmt.Sprintf("%v", evm.ErrAwaitTxConfirmationTimeout)
-		}
 		h.logger.Errorf(errMessage)
 		addErrorToResponseHeader(response, errMessage)
 		return true

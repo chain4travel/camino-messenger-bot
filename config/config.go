@@ -42,13 +42,12 @@ type ProcessorConfig struct {
 }
 
 type EvmConfig struct {
-	PrivateKey                 string `mapstructure:"evm_private_key"`
-	AwaitTxConfirmationTimeout uint   `mapstructure:"evm_await_tx_confirmation_timeout"` // in milliseconds"
-	RPCURL                     string `mapstructure:"rpc_url"`
-	SupplierName               string `mapstructure:"supplier_name"`
-	BookingTokenAddress        string `mapstructure:"booking_token_address"`
-	BookingTokenABIFile        string `mapstructure:"booking_token_abi_file"`
-	BuyableUntilDefault        uint64 `mapstructure:"buyable_until_default"`
+	PrivateKey          string `mapstructure:"evm_private_key"`
+	RPCURL              string `mapstructure:"rpc_url"`
+	SupplierName        string `mapstructure:"supplier_name"`
+	BookingTokenAddress string `mapstructure:"booking_token_address"`
+	BookingTokenABIFile string `mapstructure:"booking_token_abi_file"`
+	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
 }
 
 type TracingConfig struct {
