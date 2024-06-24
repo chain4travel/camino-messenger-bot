@@ -118,7 +118,7 @@ To run the bots, in separate terminals run
 `./build/distributor/bot --config camino-messenger-bot-distributor.yaml`  
 `./build/supplier/bot --config camino-messenger-bot-supplier.yaml`
 
-Or configure the launching file od your prefered IDE to do the same.
+Or configure the launching file of your preferred IDE to do the same.
 
 ### Running partner plugin example
 Run the partner plugin, setting the `PRORT` env as defined in your supplier bot configuration  `partner_plugin_port`  
