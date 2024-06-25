@@ -141,8 +141,8 @@ To run the bots, in 2 separate terminals run:
 
 Or configure the launching file of your preferred IDE to do the same.
 
-⚠️ WARNING:  
- YAML **configuration files** contain private keys and thus **should never be committed**. We suggest adding any configuration file names to [.git/info/exclude](`camino-messenger-bot-distributor.yaml.example`) to have git ignore them without modifying the .gitignore.
+ YAML **configuration files** contain private keys and thus **should never be committed**. We suggest adding any configuration file names to [.git/info/exclude](https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files#excluding-local-files-without-creating-a-gitignore-file
+) to have git ignore them without modifying the .gitignore.
 
 ### Running partner plugin example
 
