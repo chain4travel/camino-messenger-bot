@@ -445,6 +445,7 @@ func loadABI(filePath string) (*abi.ABI, error) {
 	return &abi, nil
 }
 
+// TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg
 type Attribute struct {
 	TraitType string `json:"trait_type"`
 	Value     string `json:"value"`
