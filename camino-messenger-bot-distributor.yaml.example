@@ -11,7 +11,7 @@ developer_mode: true
 
 ### Matrix
 
-# Private key to be used to loging to Matrix Server
+# Private key to be used to login to Matrix Server
 matrix_key: PrivateKey-YOUR_PRIVATE_KEY
 
 # Hostname of the Matrix Server
