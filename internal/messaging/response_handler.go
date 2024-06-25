@@ -128,9 +128,6 @@ func (h *EvmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	h.logger.Debugf("abi: %v", abi)
 
-	// TODO @evlekht unhardocoded, update the protocol to have those information in the mint response.
-	// uri := "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
-
 	// Get a Token URI for the token.
 	jsonPlain, uri, err := createTokenURIforMintResponse(response.MintResponse)
 	if err != nil {
