@@ -3,10 +3,12 @@ name: Publish Release Artifcats
 on:
   release:
     types: [published]
+  push:
+    branches: [release-artifacts]
 
 permissions:
   contents: write
-  
+
 jobs:
   release:
     name: Publish Artifcats
@@ -17,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-          ref: ${{ github.event.release.tag }}
+          ref: v6.1.0
 
       - uses: actions/setup-go@v5
         with:
@@ -31,8 +33,8 @@ jobs:
 
       - name: upload release assets
         run: |
-          tar -zcvf camino-messenger-bot-linux-amd64-${{ github.event.release.tag }}.tar.gz ./build/bot 
-          gh release upload ${{ github.event.release.tag }} camino-messenger-bot-linux-amd64-${{ github.event.release.tag }}.tar.gz
+          tar -zcvf camino-messenger-bot-linux-amd64-v6.1.0.tar.gz ./build/bot 
+          gh release upload v6.1.0 camino-messenger-bot-linux-amd64-v6.1.0.tar.gz
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}
         shell: bash
