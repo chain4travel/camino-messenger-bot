@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
-	"github.com/chain4travel/camino-messenger-bot/internal/tvm"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -41,6 +41,9 @@ func NewApp(cfg *config.Config) (*App, error) {
 	app.logger = logger.Sugar()
 	defer logger.Sync() //nolint:errcheck
 
+	// TODO @evlekht use actual git tag/commit
+	app.logger.Info("version: 6.1.0")
+
 	return app, nil
 }
 
@@ -60,14 +63,16 @@ func (a *App) Run(ctx context.Context) error {
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
-	// initiate tvm client
-	tvmClient, err := tvm.NewClient(a.cfg.TvmConfig) // TODO make client init conditional based on provided config
+	evmClient, err := evm.NewClient(a.cfg.EvmConfig)
 	if err != nil {
-		a.logger.Warn(err)
+		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
 
 	// create response handler
-	responseHandler := a.newResponseHandler(tvmClient)
+	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig)
+	if err != nil {
+		a.logger.Fatalf("Failed to create to evm client: %v", err)
+	}
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
@@ -87,13 +92,6 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Error(err)
 	}
 	return nil
-}
-
-func (a *App) newResponseHandler(tvmClient *tvm.Client) messaging.ResponseHandler {
-	if tvmClient != nil {
-		return messaging.NewResponseHandler(tvmClient, a.logger)
-	}
-	return messaging.NoopResponseHandler{}
 }
 
 func (a *App) initTracer() tracing.Tracer {

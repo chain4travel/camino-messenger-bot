@@ -144,6 +144,11 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
+
+	if err := p.responseHandler.HandleRequest(ctx, msg.Type, &msg.Content.RequestContent); err != nil {
+		return nil, err
+	}
+
 	err := p.messenger.SendAsync(ctx, *msg)
 	if err != nil {
 		return nil, err
@@ -216,5 +221,7 @@ func (p *processor) Forward(msg *Message) {
 	if ok {
 		responseChan <- msg
 		close(responseChan)
+		return
 	}
+	p.logger.Warnf("Failed to forward message: no response channel for request (%s)", msg.Metadata.RequestID)
 }

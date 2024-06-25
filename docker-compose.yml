@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   provider-bot:
     image: c4tplatform/camino-messenger-bot
@@ -11,12 +11,17 @@ services:
       CMB_MATRIX_HOST: "matrix.camino.network"
       CMB_MATRIX_STORE: "mautrix-localhost.db"
       CMB_RPC_SERVER_PORT: "9090"
-      CMB_RPC_UNENCRYPTED: 'true'
+      CMB_RPC_UNENCRYPTED: "true"
       CMB_PARTNER_PLUGIN_HOST: "localhost"
       CMB_PARTNER_PLUGIN_PORT: "50051"
       CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
-      CMB_RESPONSE_TIMEOUT: "3000"
-      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest"
+      CMB_RESPONSE_TIMEOUT: "6000"
+      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest,MintRequest,ValidationRequest"
+      CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
+      CMB_BOOKING_TOKEN_ABI_FILE: abi/BookingTokenV0.abi
+      CMB_SUPPLIER_NAME: SUPPLIER_NAME
+      CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_BUYABLE_UNTIL_DEFAULT: "600"
     ports:
       - "9090:9090"
   distributor-bot:
@@ -34,8 +39,11 @@ services:
       CMB_PARTNER_PLUGIN_HOST: "localhost"
       CMB_PARTNER_PLUGIN_PORT: "50052"
       CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
-      CMB_RESPONSE_TIMEOUT: "3000"
-      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest"
+      CMB_RESPONSE_TIMEOUT: "6000"
+      CMB_SUPPORTED_REQUEST_TYPES: "ActivitySearchRequest,AccommodationSearchRequest,GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,TransportSearchRequest,MintRequest,ValidationRequest"
+      CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
+      CMB_BOOKING_TOKEN_ABI_FILE: "abi/BookingTokenV0.abi"
+      CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
     ports:
       - "9092:9090"
   provider-plugin:

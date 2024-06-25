@@ -32,12 +32,13 @@ func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 	fs.IntVar(&cfg.Timeout, MessengerTimeoutKey, 3000, "The messenger timeout (in milliseconds)")
 }
 
-func readTvmConfig(cfg TvmConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.NodeURI, TvmNodeURIKey, "", "The TVM node URI")
-	fs.StringVar(&cfg.PrivateKey, TvmPrivateKeyKey, "", "The TVM private key")
-	fs.UintVar(&cfg.NetworkID, TvmNetworkIDKey, 0, "The TVM network ID")
-	fs.StringVar(&cfg.ChainID, TvmChainIDKey, "", "The TVM chain ID")
-	fs.UintVar(&cfg.AwaitTxConfirmationTimeout, TvmAwaitTxConfirmationTimeout, 3000, "The TVM await transaction confirmation timeout (in milliseconds)")
+func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
+	fs.StringVar(&cfg.PrivateKey, EvmPrivateKey, "", "The EVM private key")
+	fs.StringVar(&cfg.RPCURL, RPCURLKey, "", "The EVM RPC URL")
+	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D", "BookingToken address")
+	fs.StringVar(&cfg.BookingTokenABIFile, BookingTokenABIFileKey, "./abi/BookingTokenV0.abi", "BookingToken ABI file")
+	fs.StringVar(&cfg.SupplierName, SupplierNameKey, "CM Supplier", "Supplier name for the Booking Token registration")
+	fs.Uint64Var(&cfg.BuyableUntilDefault, BuyableUntilDefaultKey, 600, "How log the Token is buyable in seconds")
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {
