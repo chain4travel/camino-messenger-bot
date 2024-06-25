@@ -111,39 +111,6 @@ Start the bot using the related config file depending on your need.
 
 Feel free to explore and customize the application based on your specific requirements. If you encounter any issues or have questions, please refer to the documentation or open an issue in the repository.
 
-## Running both Supplier and Distributor at the same time
-
-For development proposes, you may want to run both Supplier and Distributor bot at the same time.
-
-### Build
-
-```bash
-./scripts/build_both.sh
-```
-
-to build bots to different folders.
-
-### Create Configuration
-
-Use `camino-messenger-bot-distributor.yaml.example` and `camino-messenger-bot-supplier.yaml.example` files to create configuration YAML files (e.g. `camino-messenger-bot-distributor.yaml` and `camino-messenger-bot-supplier.yaml`).
-
-### Start the Application
-
-To run the bots, in 2 separate terminals run:
-
-```bash
-./build/distributor/bot --config camino-messenger-bot-distributor.yaml
-```
-
-```bash
-./build/supplier/bot --config camino-messenger-bot-supplier.yaml
-```
-
-Or configure the launching file of your preferred IDE to do the same.
-
- YAML **configuration files** contain private keys and thus **should never be committed**. We suggest adding any configuration file names to [.git/info/exclude](https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files#excluding-local-files-without-creating-a-gitignore-file
-) to have git ignore them without modifying the .gitignore.
-
 ### Running partner plugin example
 
 Run the partner plugin, setting the `PORT` env as defined in your supplier bot
