@@ -2,10 +2,8 @@ package app
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"fmt"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
@@ -16,9 +14,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type App struct {
@@ -73,19 +68,11 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
 
-	pk := new(secp256k1.PrivateKey)
-	// UnmarshalText expects the private key in quotes
-	if err := pk.UnmarshalText([]byte("\"" + a.cfg.PrivateKey + "\"")); err != nil {
-		a.logger.Fatalf("Failed to parse private key: %v", err)
-	}
-	ecdsaPk := pk.ToECDSA()
-
-	// Get Ethereum Address from private key
-	cAddress := crypto.PubkeyToAddress(ecdsaPk.PublicKey)
-	a.logger.Infof("C-Chain address: %s", cAddress)
-
 	// create response handler
-	responseHandler := a.newResponseHandler(evmClient, ecdsaPk)
+	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig)
+	if err != nil {
+		a.logger.Fatalf("Failed to create to evm client: %v", err)
+	}
 
 	// start msg processor
 	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
@@ -105,13 +92,6 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Error(err)
 	}
 	return nil
-}
-
-func (a *App) newResponseHandler(ethClient *ethclient.Client, pk *ecdsa.PrivateKey) messaging.ResponseHandler {
-	if ethClient != nil {
-		return messaging.NewResponseHandler(ethClient, a.logger, pk, &a.cfg.EvmConfig)
-	}
-	return messaging.NoopResponseHandler{}
 }
 
 func (a *App) initTracer() tracing.Tracer {
