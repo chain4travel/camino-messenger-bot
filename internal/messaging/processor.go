@@ -221,5 +221,7 @@ func (p *processor) Forward(msg *Message) {
 	if ok {
 		responseChan <- msg
 		close(responseChan)
+		return
 	}
+	p.logger.Warnf("Failed to forward message: no response channel for request (%s)", msg.Metadata.RequestID)
 }

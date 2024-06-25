@@ -44,7 +44,6 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugf("abi: %v", abi)
 
 	pk := new(secp256k1.PrivateKey)
 	// UnmarshalText expects the private key in quotes
