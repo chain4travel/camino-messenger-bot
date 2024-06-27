@@ -71,3 +71,10 @@ booking_token_abi_file: abi/BookingTokenV0.abi
 # Supplier name to be used for registering to the BookingToken smart contract.
 # Should be a short name, it will be saved on-chain. Not used with distributor bot.
 #supplier_name: SUPPLIER_NAME
+
+# Default expiration time (in seconds) for BookingToken mints.
+#
+# The supplier bot creates booking tokens and sets an expiration timestamp on each token.
+# Once this time has passed, the token is no longer available for purchase by the distributor.
+# The default value is 600 seconds.
+#buyable_until_default: 600
