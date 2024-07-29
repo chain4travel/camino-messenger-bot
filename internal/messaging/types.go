@@ -9,6 +9,7 @@ import (
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
+	seat_mapv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1alpha"
 	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -30,6 +31,7 @@ type RequestContent struct {
 	*bookv1alpha.ValidationRequest
 	*pingv1alpha.PingRequest
 	*transportv1alpha.TransportSearchRequest
+	*seat_mapv1alpha.SeatMapRequest
 }
 
 type ResponseContent struct {
@@ -44,6 +46,7 @@ type ResponseContent struct {
 	*bookv1alpha.ValidationResponse
 	*pingv1alpha.PingResponse
 	*transportv1alpha.TransportSearchResponse
+	*seat_mapv1alpha.SeatMapResponse
 }
 
 type MessageContent struct {
@@ -92,6 +95,8 @@ const (
 	PingResponse                     MessageType = "PingResponse"
 	TransportSearchRequest           MessageType = "TransportSearchRequest"
 	TransportSearchResponse          MessageType = "TransportSearchResponse"
+	SeatMapRequest                   MessageType = "SeatMapRequest"
+	SeatMapResponse                  MessageType = "SeatMapResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
@@ -104,7 +109,8 @@ func (mt MessageType) Category() MessageCategory {
 		MintRequest,
 		ValidationRequest,
 		PingRequest,
-		TransportSearchRequest:
+		TransportSearchRequest,
+		SeatMapRequest:
 		return Request
 	case ActivityProductListResponse,
 		ActivitySearchResponse,
@@ -116,7 +122,8 @@ func (mt MessageType) Category() MessageCategory {
 		MintResponse,
 		ValidationResponse,
 		PingResponse,
-		TransportSearchResponse:
+		TransportSearchResponse,
+		SeatMapResponse:
 		return Response
 	default:
 		return Unknown
@@ -169,6 +176,10 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.TransportSearchRequest)
 	case TransportSearchResponse:
 		return proto.Marshal(m.Content.TransportSearchResponse)
+	case SeatMapRequest:
+		return proto.Marshal(m.Content.SeatMapRequest)
+	case SeatMapResponse:
+		return proto.Marshal(m.Content.SeatMapResponse)
 	default:
 		return nil, ErrUnknownMessageType
 	}

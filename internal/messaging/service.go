@@ -11,7 +11,9 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1alpha/seat_mapv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
+
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
@@ -34,6 +36,7 @@ var (
 	_ Service = (*partnerService)(nil)
 	_ Service = (*pingService)(nil)
 	_ Service = (*transportService)(nil)
+	_ Service = (*seat_mapService)(nil)
 )
 
 type Service interface {
@@ -177,4 +180,17 @@ func (s transportService) Call(ctx context.Context, request *RequestContent, opt
 		responseContent.TransportSearchResponse = response // otherwise 	nil pointer dereference
 	}
 	return &responseContent, TransportSearchResponse, err
+}
+
+type seat_mapService struct {
+	client *seat_mapv1alphagrpc.SeatMapServiceClient
+}
+
+func (s seat_mapService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).SeatMap(ctx, request.SeatMapRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.SeatMapResponse = response
+	}
+	return &responseContent, SeatMapResponse, err
 }

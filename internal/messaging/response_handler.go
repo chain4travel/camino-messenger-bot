@@ -503,7 +503,7 @@ func createTokenURIforMintResponse(mintResponse *bookv1alpha.MintResponse) (stri
 	attributes := []Attribute{
 		{
 			TraitType: "Mint ID",
-			Value:     mintResponse.GetMintId(),
+			Value:     mintResponse.GetMintId().Value,
 		},
 		{
 			TraitType: "Reference",

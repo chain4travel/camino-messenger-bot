@@ -59,6 +59,7 @@ supported_request_types:
   - ValidationRequest
   - PingRequest
   - TransportSearchRequest
+  - SiteMapRequest
 
 ### C-Chain (EVM)
 

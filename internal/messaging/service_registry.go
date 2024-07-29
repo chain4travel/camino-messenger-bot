@@ -11,6 +11,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1alpha/seat_mapv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -72,6 +73,9 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 		case TransportSearchRequest:
 			c := transportv1alphagrpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
 			service = transportService{client: &c}
+		case SeatMapRequest:
+			c := seat_mapv1alphagrpc.NewSeatMapServiceClient(rpcClient.ClientConn)
+			service = seat_mapService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)
 			continue

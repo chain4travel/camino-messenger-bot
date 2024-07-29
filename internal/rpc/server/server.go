@@ -9,7 +9,9 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1alpha/seat_mapv1alphagrpc"
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
+	seat_mapv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1alpha"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha/networkv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha/partnerv1alphagrpc"
@@ -46,6 +48,7 @@ var (
 	_ bookv1alphagrpc.ValidationServiceServer                        = (*server)(nil)
 	_ pingv1alphagrpc.PingServiceServer                              = (*server)(nil)
 	_ transportv1alphagrpc.TransportSearchServiceServer              = (*server)(nil)
+	_ seat_mapv1alphagrpc.SeatMapServiceServer                       = (*server)(nil)
 )
 
 type Server interface {
@@ -95,6 +98,7 @@ func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOpti
 	bookv1alphagrpc.RegisterValidationServiceServer(grpcServer, server)
 	pingv1alphagrpc.RegisterPingServiceServer(grpcServer, server)
 	transportv1alphagrpc.RegisterTransportSearchServiceServer(grpcServer, server)
+	seat_mapv1alphagrpc.RegisterSeatMapServiceServer(grpcServer, server)
 	return grpcServer
 }
 
@@ -164,6 +168,11 @@ func (s *server) Validation(ctx context.Context, request *bookv1alpha.Validation
 func (s *server) TransportSearch(ctx context.Context, request *transportv1alpha.TransportSearchRequest) (*transportv1alpha.TransportSearchResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.TransportSearchRequest, &messaging.RequestContent{TransportSearchRequest: request})
 	return response.TransportSearchResponse, err
+}
+
+func (s *server) SeatMap(ctx context.Context, request *seat_mapv1alpha.SeatMapRequest) (*seat_mapv1alpha.SeatMapResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.SeatMapRequest, &messaging.RequestContent{SeatMapRequest: request})
+	return response.SeatMapResponse, err
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {
