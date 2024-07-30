@@ -318,6 +318,8 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 				Description: "Due to high risk of being in contact with Malaria virus one must be vaccinated against it",
 				Language:    typesv1alpha.Language_LANGUAGE_UG,
 			}},
+			LastSignificantUpdate: timestamppb.New(time.Now()),
+			Status:                infov1alpha.ItemStatus_ITEM_STATUS_TRUE,
 		}},
 	}
 	return &response, nil
