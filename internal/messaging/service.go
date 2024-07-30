@@ -37,7 +37,7 @@ var (
 	_ Service = (*partnerService)(nil)
 	_ Service = (*pingService)(nil)
 	_ Service = (*transportService)(nil)
-	_ Service = (*seat_mapService)(nil)
+	_ Service = (*seatMapService)(nil)
 )
 
 type Service interface {
@@ -183,11 +183,11 @@ func (s transportService) Call(ctx context.Context, request *RequestContent, opt
 	return &responseContent, TransportSearchResponse, err
 }
 
-type seat_mapService struct {
+type seatMapService struct {
 	client *seat_mapv1alphagrpc.SeatMapServiceClient
 }
 
-func (s seat_mapService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+func (s seatMapService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 	response, err := (*s.client).SeatMap(ctx, request.SeatMapRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
@@ -196,11 +196,11 @@ func (s seat_mapService) Call(ctx context.Context, request *RequestContent, opts
 	return &responseContent, SeatMapResponse, err
 }
 
-type seat_mapAvailabilityService struct {
+type seatMapAvailabilityService struct {
 	client *seat_mapv1alphagrpc.SeatMapAvailabilityServiceClient
 }
 
-func (s seat_mapAvailabilityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+func (s seatMapAvailabilityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 
 	response, err := (*s.client).SeatMapAvailability(ctx, request.SeatMapAvailabilityRequest, opts...)
 	responseContent := ResponseContent{}

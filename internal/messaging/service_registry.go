@@ -76,10 +76,10 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 			service = transportService{client: &c}
 		case SeatMapRequest:
 			c := seat_mapv1alphagrpc.NewSeatMapServiceClient(rpcClient.ClientConn)
-			service = seat_mapService{client: &c}
+			service = seatMapService{client: &c}
 		case SeatMapAvailabilityRequest:
 			c := seat_mapv1alphagrpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
-			service = seat_mapAvailabilityService{client: &c}
+			service = seatMapAvailabilityService{client: &c}
 		case CountryEntryRequirementsRequest:
 			c := infov1alphagrpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
 			service = countryEntryRequirementsService{client: &c}
