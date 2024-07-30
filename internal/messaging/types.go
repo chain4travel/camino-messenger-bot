@@ -197,7 +197,7 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.SeatMapAvailabilityRequest)
 	case SeatMapAvailabilityResponse:
 		return proto.Marshal(m.Content.SeatMapAvailabilityResponse)
-    case CountryEntryRequirementsRequest:
+	case CountryEntryRequirementsRequest:
 		return proto.Marshal(m.Content.CountryEntryRequirementsRequest)
 	case CountryEntryRequirementsResponse:
 		return proto.Marshal(m.Content.CountryEntryRequirementsResponse)

@@ -201,7 +201,6 @@ type seatMapAvailabilityService struct {
 }
 
 func (s seatMapAvailabilityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-
 	response, err := (*s.client).SeatMapAvailability(ctx, request.SeatMapAvailabilityRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {
@@ -216,7 +215,6 @@ type countryEntryRequirementsService struct {
 }
 
 func (s countryEntryRequirementsService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-
 	response, err := (*s.client).CountryEntryRequirements(ctx, request.CountryEntryRequirementsRequest, opts...)
 	ResponseContent := ResponseContent{}
 	if err == nil {
