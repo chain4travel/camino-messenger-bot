@@ -12,6 +12,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1alpha/infov1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha/networkv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha/partnerv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
@@ -21,10 +22,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
+	infov1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1alpha"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
@@ -43,6 +46,8 @@ type partnerPlugin struct {
 	pingv1alphagrpc.PingServiceServer
 	transportv1alphagrpc.TransportSearchServiceServer
 	seat_mapv1alphagrpc.SeatMapServiceServer
+	seat_mapv1alphagrpc.SeatMapAvailabilityServiceServer
+	infov1alphagrpc.CountryEntryRequirementsServiceServer
 }
 
 func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1alpha.MintRequest) (*bookv1alpha.MintResponse, error) {
@@ -228,10 +233,8 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	// TODO: @VjeraTurk fake data:
 	response := seat_mapv1alpha.SeatMapResponse{
 		Header: nil,
-		//SeatMap: &typesv1alpha.SeatMap{Id : md.RequestID}},
 		SeatMap: &typesv1alpha.SeatMap{
 			Id: md.RequestID,
 			Sections: []*typesv1alpha.Section{{
@@ -267,6 +270,58 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_mapv1alpha.SeatMapAvailabilityRequest) (*seat_mapv1alpha.SeatMapAvailabilityResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := seat_mapv1alpha.SeatMapAvailabilityResponse{
+		Header: nil,
+		SeatMap: &typesv1alpha.SeatMapInventory{
+			Id: "A",
+			Sections: []*typesv1alpha.SectionInventory{{
+				Id:       "A21",
+				SeatInfo: &typesv1alpha.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 20}},
+			}},
+		},
+	}
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *infov1alpha.CountryEntryRequirementsRequest) (*infov1alpha.CountryEntryRequirementsResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	response := infov1alpha.CountryEntryRequirementsResponse{
+		Header: nil,
+		Categories: []*infov1alpha.CountryEntryRequirementCategory{{
+			Names: []*typesv1alpha.LocalizedString{{
+				Text:     "Medical",
+				Language: typesv1alpha.Language_LANGUAGE_UG,
+			}},
+		}},
+		Items: []*infov1alpha.CountryEntryRequirementItem{{
+			Info: []*infov1alpha.LocalizedItemInfo{{
+				Name:        "Malaria Vaccination",
+				Description: "Due to high risk of being in contact with Malaria virus one must be vaccinated against it",
+				Language:    typesv1alpha.Language_LANGUAGE_UG,
+			}},
+		}},
+	}
+	return &response, nil
+}
 func main() {
 	grpcServer := grpc.NewServer()
 	activityv1alphagrpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
@@ -280,6 +335,8 @@ func main() {
 	pingv1alphagrpc.RegisterPingServiceServer(grpcServer, &partnerPlugin{})
 	transportv1alphagrpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv1alphagrpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
+	seat_mapv1alphagrpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
+	infov1alphagrpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
 	port := 55555
 	var err error
 	p, found := os.LookupEnv("PORT")

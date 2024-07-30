@@ -60,6 +60,8 @@ supported_request_types:
   - PingRequest
   - TransportSearchRequest
   - SiteMapRequest
+  - SiteMapAvailabilityRequest
+  - CountryEntryRequirementsRequest
 
 ### C-Chain (EVM)
 

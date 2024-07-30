@@ -6,6 +6,7 @@ import (
 	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
+	infov1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1alpha"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
@@ -32,6 +33,8 @@ type RequestContent struct {
 	*pingv1alpha.PingRequest
 	*transportv1alpha.TransportSearchRequest
 	*seat_mapv1alpha.SeatMapRequest
+	*seat_mapv1alpha.SeatMapAvailabilityRequest
+	*infov1alpha.CountryEntryRequirementsRequest
 }
 
 type ResponseContent struct {
@@ -47,6 +50,8 @@ type ResponseContent struct {
 	*pingv1alpha.PingResponse
 	*transportv1alpha.TransportSearchResponse
 	*seat_mapv1alpha.SeatMapResponse
+	*seat_mapv1alpha.SeatMapAvailabilityResponse
+	*infov1alpha.CountryEntryRequirementsResponse
 }
 
 type MessageContent struct {
@@ -97,6 +102,10 @@ const (
 	TransportSearchResponse          MessageType = "TransportSearchResponse"
 	SeatMapRequest                   MessageType = "SeatMapRequest"
 	SeatMapResponse                  MessageType = "SeatMapResponse"
+	SeatMapAvailabilityRequest       MessageType = "SeatMapAvailabilityRequest"
+	SeatMapAvailabilityResponse      MessageType = "SeatMapAvailabilityResponse"
+	CountryEntryRequirementsRequest  MessageType = "CountryEntryRequirementsRequest"
+	CountryEntryRequirementsResponse MessageType = "CountryEntryRequirementsResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
@@ -110,7 +119,9 @@ func (mt MessageType) Category() MessageCategory {
 		ValidationRequest,
 		PingRequest,
 		TransportSearchRequest,
-		SeatMapRequest:
+		SeatMapRequest,
+		SeatMapAvailabilityRequest,
+		CountryEntryRequirementsRequest:
 		return Request
 	case ActivityProductListResponse,
 		ActivitySearchResponse,
@@ -123,7 +134,9 @@ func (mt MessageType) Category() MessageCategory {
 		ValidationResponse,
 		PingResponse,
 		TransportSearchResponse,
-		SeatMapResponse:
+		SeatMapResponse,
+		SeatMapAvailabilityResponse,
+		CountryEntryRequirementsResponse:
 		return Response
 	default:
 		return Unknown
@@ -180,6 +193,14 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.SeatMapRequest)
 	case SeatMapResponse:
 		return proto.Marshal(m.Content.SeatMapResponse)
+	case SeatMapAvailabilityRequest:
+		return proto.Marshal(m.Content.SeatMapAvailabilityRequest)
+	case SeatMapAvailabilityResponse:
+		return proto.Marshal(m.Content.SeatMapAvailabilityResponse)
+    case CountryEntryRequirementsRequest:
+		return proto.Marshal(m.Content.CountryEntryRequirementsRequest)
+	case CountryEntryRequirementsResponse:
+		return proto.Marshal(m.Content.CountryEntryRequirementsResponse)
 	default:
 		return nil, ErrUnknownMessageType
 	}
