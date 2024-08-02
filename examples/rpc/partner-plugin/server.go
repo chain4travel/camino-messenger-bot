@@ -345,11 +345,19 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 	response := seat_mapv1alpha.SeatMapAvailabilityResponse{
 		Header: nil,
 		SeatMap: &typesv1alpha.SeatMapInventory{
-			Id: "A",
-			Sections: []*typesv1alpha.SectionInventory{{
-				Id:       "A21",
-				SeatInfo: &typesv1alpha.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 20}},
-			}},
+			Id: "123ST",
+			Sections: []*typesv1alpha.SectionInventory{
+				{
+					Id: "A",
+					SeatInfo: &typesv1alpha.SectionInventory_SeatList{
+						SeatList: &typesv1alpha.SeatInventory{
+							Ids: []string{"1A", "1B"},
+						},
+					}},
+				{
+					Id:       "B",
+					SeatInfo: &typesv1alpha.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 32}},
+				}},
 		},
 	}
 
