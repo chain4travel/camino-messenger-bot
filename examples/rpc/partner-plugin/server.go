@@ -238,20 +238,37 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 		SeatMap: &typesv1alpha.SeatMap{
 			Id: md.RequestID,
 			Sections: []*typesv1alpha.Section{{
-				Id:   "A",
-				Name: "Amphitheatre",
+				Id:   "123ST",
+				Name: "North Stand",
 				SeatInfo: &typesv1alpha.Section_SeatList{
 					SeatList: &typesv1alpha.SeatList{
 						Seats: []*typesv1alpha.Seat{{
-							Id:       "A1",
-							Location: &typesv1alpha.SeatLocation{},
-						}},
+							Id: "1A",
+							Location: &typesv1alpha.SeatLocation{
+								Location: &typesv1alpha.SeatLocation_Vector{
+									Vector: &typesv1alpha.VectorSeatLocation{
+										Label: "section-North-Stand-26-34-2-label",
+									},
+								},
+							},
+						},
+							{
+								Id: "2A",
+								Location: &typesv1alpha.SeatLocation{
+									Location: &typesv1alpha.SeatLocation_Vector{
+										Vector: &typesv1alpha.VectorSeatLocation{
+											Label: "section-North-Stand-26-34-2-label",
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 				Image: &typesv1alpha.Image{
 					File: &typesv1alpha.File{
 						Name:         "String",
-						Url:          "https://camino.network/static/images/6HibYS9gzR-1800.webp",
+						Url:          "https://camino.network/static/images/6HibYS9gzR-1800.webp", //TODO: replace with an actual image
 						LastModified: timestamppb.New(time.Now()),
 					},
 					Width:  50,
@@ -265,6 +282,52 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 					}},
 				},
 			},
+				{
+					Id:   "124ST",
+					Name: "East Stand",
+					SeatInfo: &typesv1alpha.Section_SeatList{
+						SeatList: &typesv1alpha.SeatList{
+							Seats: []*typesv1alpha.Seat{
+								{
+									Id: "31F",
+									Location: &typesv1alpha.SeatLocation{
+										Location: &typesv1alpha.SeatLocation_Vector{
+											Vector: &typesv1alpha.VectorSeatLocation{
+												Label: "section-East-Stand-26-34-2-label",
+											},
+										},
+									},
+								},
+								{
+									Id: "32F",
+									Location: &typesv1alpha.SeatLocation{
+										Location: &typesv1alpha.SeatLocation_Vector{
+											Vector: &typesv1alpha.VectorSeatLocation{
+												Label: "section-East-Stand-26-34-2-label",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Image: &typesv1alpha.Image{
+						File: &typesv1alpha.File{
+							Name:         "String",
+							Url:          "https://camino.network/static/images/6HibYS9gzR-1800.webp",
+							LastModified: timestamppb.New(time.Now()),
+						},
+						Width:  50,
+						Height: 50,
+					},
+					LocalizedDescriptionSet: &typesv1alpha.LocalizedDescriptionSet{
+						Language: typesv1alpha.Language_LANGUAGE_UG,
+						Descriptions: []*typesv1alpha.Description{{
+							Category: "General",
+							Text:     "Seats",
+						}},
+					},
+				},
 			}},
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
