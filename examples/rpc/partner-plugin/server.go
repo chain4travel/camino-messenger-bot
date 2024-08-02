@@ -274,6 +274,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 					Width:  50,
 					Height: 50,
 				},
+				//TODO: fix in proto required
 				LocalizedDescriptionSet: &typesv1alpha.LocalizedDescriptionSet{
 					Language: typesv1alpha.Language_LANGUAGE_UG,
 					Descriptions: []*typesv1alpha.Description{{
@@ -378,20 +379,76 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	response := infov1alpha.CountryEntryRequirementsResponse{
 		Header: nil,
 		Categories: []*infov1alpha.CountryEntryRequirementCategory{{
+			Key: "entry",
 			Names: []*typesv1alpha.LocalizedString{{
-				Text:     "Medical",
-				Language: typesv1alpha.Language_LANGUAGE_UG,
+				Text:     "Entry",
+				Language: typesv1alpha.Language_LANGUAGE_EN,
+			}, {
+				Text:     "Einreise",
+				Language: typesv1alpha.Language_LANGUAGE_DE,
+			}},
+			SubCategories: []*infov1alpha.CountryEntryRequirementCategory{{
+				Key: "entry_documents",
+				Names: []*typesv1alpha.LocalizedString{{
+					Text:     "Required entry forms and documents",
+					Language: typesv1alpha.Language_LANGUAGE_EN,
+				}, {
+					Text:     "Erforderliche Formulare und Dokumente für die Einreise",
+					Language: typesv1alpha.Language_LANGUAGE_DE,
+				}},
+				//TODO: fix in proto required
+				Items: &infov1alpha.CountryEntryRequirementItem{
+					Key: "ErVisaText",
+					Info: []*infov1alpha.LocalizedItemInfo{{
+						Name:        "Visa required for stay",
+						Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
+						Language:    typesv1alpha.Language_LANGUAGE_EN,
+					}, {
+						Name:        "Visum erforderlich für Aufenthalt",
+						Description: "<div><p>Es ist ein Visum für den Aufenthalt erforderlich. Dieses kann als e-Visum oder bei Ankunft als \"Visa on Arrival\" beantragt werden. </p></div><div><div>Reisende mit eVisa dürfen sich bis zu 30 Tage im Land aufhalten.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visumgebühren</a></p><div>Die Visumgebühren sind in Euro oder US-Dollar bar zu zahlen.</div>",
+						Language:    typesv1alpha.Language_LANGUAGE_DE,
+					}},
+					LastSignificantUpdate: timestamppb.New(time.Now()),
+					Status:                infov1alpha.ItemStatus_ITEM_STATUS_TRUE,
+				},
 			}},
 		}},
-		Items: []*infov1alpha.CountryEntryRequirementItem{{
-			Info: []*infov1alpha.LocalizedItemInfo{{
-				Name:        "Malaria Vaccination",
-				Description: "Due to high risk of being in contact with Malaria virus one must be vaccinated against it",
-				Language:    typesv1alpha.Language_LANGUAGE_UG,
-			}},
-			LastSignificantUpdate: timestamppb.New(time.Now()),
-			Status:                infov1alpha.ItemStatus_ITEM_STATUS_TRUE,
-		}},
+		Items: []*infov1alpha.CountryEntryRequirementItem{
+			{
+				Key: "EntryDocumentsRequired",
+				Info: []*infov1alpha.LocalizedItemInfo{
+					{
+						Name:        "Entry forms",
+						Description: "<div><p>Individuals must fill out a <a href=\"https://www.egyptair.com/en/about-egyptair/news-and-press/Documents/%D8%A7%D9%84%D8%A7%D9%95%D9%82%D8%B1%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B5%D8%AD%D9%8A%20%D9%84%D8%BA%D9%8A%D8%B1%20%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A%D9%8A%D9%86%20%28%D8%A7%D9%84%D8%A7%D9%94%D8%AC%D8%A7%D9%86%D8%A8%29.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">health form</a> upon entry, which they can complete either at the airport, on the plane, or beforehand.</p></div>",
+						Language:    typesv1alpha.Language_LANGUAGE_EN,
+					},
+					{
+						Name:        "Einreiseformulare",
+						Description: "<div><div><p>Personen müssen bei Einreise ein <a href=\"https://www.egyptair.com/en/about-egyptair/news-and-press/Documents/%D8%A7%D9%84%D8%A7%D9%95%D9%82%D8%B1%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B5%D8%AD%D9%8A%20%D9%84%D8%BA%D9%8A%D8%B1%20%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A%D9%8A%D9%86%20%28%D8%A7%D9%84%D8%A7%D9%94%D8%AC%D8%A7%D9%86%D8%A8%29.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Gesundheitsformular</a> abgeben, welches entweder am Flughafen, im Flugzeug oder vor Antritt der Reise ausfüllen.</p></div></div>",
+						Language:    typesv1alpha.Language_LANGUAGE_DE,
+					},
+				},
+				LastSignificantUpdate: timestamppb.New(time.Now()),
+				Status:                infov1alpha.ItemStatus_ITEM_STATUS_FALSE,
+			},
+			{
+				Key: "ErVisaText",
+				Info: []*infov1alpha.LocalizedItemInfo{
+					{
+						Name:        "Visa required for stay",
+						Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
+						Language:    typesv1alpha.Language_LANGUAGE_EN,
+					},
+					{
+						Name:        "Visum erforderlich für Aufenthalt",
+						Description: "<div><p>Es ist ein Visum für den Aufenthalt erforderlich. Dieses kann als e-Visum oder bei Ankunft als \"Visa on Arrival\" beantragt werden. </p></div><div><div>Reisende mit eVisa dürfen sich bis zu 30 Tage im Land aufhalten.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visumgebühren</a></p><div>Die Visumgebühren sind in Euro oder US-Dollar bar zu zahlen.</div>",
+						Language:    typesv1alpha.Language_LANGUAGE_DE,
+					},
+				},
+				LastSignificantUpdate: timestamppb.New(time.Now()),
+				Status:                infov1alpha.ItemStatus_ITEM_STATUS_TRUE,
+			},
+		},
 	}
 	return &response, nil
 }
