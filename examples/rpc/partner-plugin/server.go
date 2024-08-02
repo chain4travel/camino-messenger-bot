@@ -242,16 +242,17 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 				Name: "North Stand",
 				SeatInfo: &typesv1alpha.Section_SeatList{
 					SeatList: &typesv1alpha.SeatList{
-						Seats: []*typesv1alpha.Seat{{
-							Id: "1A",
-							Location: &typesv1alpha.SeatLocation{
-								Location: &typesv1alpha.SeatLocation_Vector{
-									Vector: &typesv1alpha.VectorSeatLocation{
-										Label: "section-North-Stand-26-34-2-label",
+						Seats: []*typesv1alpha.Seat{
+							{
+								Id: "1A",
+								Location: &typesv1alpha.SeatLocation{
+									Location: &typesv1alpha.SeatLocation_Vector{
+										Vector: &typesv1alpha.VectorSeatLocation{
+											Label: "section-North-Stand-26-34-2-label",
+										},
 									},
 								},
 							},
-						},
 							{
 								Id: "2A",
 								Location: &typesv1alpha.SeatLocation{
@@ -259,6 +260,19 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 										Vector: &typesv1alpha.VectorSeatLocation{
 											Label: "section-North-Stand-26-34-2-label",
 										},
+									},
+								},
+								Restrictions: []*typesv1alpha.SeatAttribute{
+									{
+										Name:        "Restricted Vision",
+										Description: "Seat behind a column",
+									},
+								},
+								Features: []*typesv1alpha.SeatAttribute{
+									{
+										Name:        "Discount",
+										Description: "Discount due to restricted vision up to 80%",
+										Value:       int32(80),
 									},
 								},
 							},
@@ -321,6 +335,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 						Width:  50,
 						Height: 50,
 					},
+					//TODO: Fix in proto required
 					LocalizedDescriptionSet: &typesv1alpha.LocalizedDescriptionSet{
 						Language: typesv1alpha.Language_LANGUAGE_UG,
 						Descriptions: []*typesv1alpha.Description{{
