@@ -41,13 +41,18 @@ type ProcessorConfig struct {
 	Timeout int `mapstructure:"response_timeout"` // in milliseconds
 }
 
+// should MessengerCashier related config be here?
 type EvmConfig struct {
-	PrivateKey          string `mapstructure:"evm_private_key"`
-	RPCURL              string `mapstructure:"rpc_url"`
-	SupplierName        string `mapstructure:"supplier_name"`
-	BookingTokenAddress string `mapstructure:"booking_token_address"`
-	BookingTokenABIFile string `mapstructure:"booking_token_abi_file"`
-	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
+	PrivateKey              string `mapstructure:"evm_private_key"`
+	RPCURL                  string `mapstructure:"rpc_url"`
+	SupplierName            string `mapstructure:"supplier_name"`
+	BookingTokenAddress     string `mapstructure:"booking_token_address"`
+	BookingTokenABIFile     string `mapstructure:"booking_token_abi_file"`
+	BuyableUntilDefault     uint64 `mapstructure:"buyable_until_default"`
+	MessengerCashierAddress string `mapstructure:"messenger_cashier_address"`
+	MessengerCashierABIFile string `mapstructure:"messenger_cashier_abi_file"`
+	DomainName              string `mapstructure:"domain_name"`
+	DomainVersion           uint64 `mapstructure:"domain_version"`
 }
 
 type TracingConfig struct {

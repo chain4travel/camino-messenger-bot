@@ -54,6 +54,7 @@ type processor struct {
 	responseChannels map[string]chan *Message
 	serviceRegistry  ServiceRegistry
 	responseHandler  ResponseHandler
+	chequeHandler 	 ChequeHandler
 }
 
 func (p *processor) SetUserID(userID string) {
@@ -67,6 +68,7 @@ func (*processor) Checkpoint() string {
 func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler) Processor {
 	return &processor{
 		cfg:              cfg,
+		chequeHandler:    chequeHandler,
 		messenger:        messenger,
 		logger:           logger,
 		tracer:           otel.GetTracerProvider().Tracer(""),
@@ -141,6 +143,15 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
 		return nil, ErrMissingRecipient
 	}
+
+	if msg.Metadata.Cheques == nil 
+		cheque, err := p.chequeHandler.issueCheque(msg.Metadata.Sender, msg.Metadata.Recipient, msg.Metadata.Recipient, big.NewInt(0))
+	}
+	
+	if err != nil {
+		return nil, fmt.Errorf("failed to issue cheques: %w", err)
+	}
+
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
