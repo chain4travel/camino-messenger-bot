@@ -74,8 +74,14 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
+	// instantiate new cheque Handler
+	chequeHandler, err := messaging.NewChequeHandler(evmClient, a.logger, &a.cfg.EvmConfig)
+	if err != nil {
+		a.logger.Fatalf("Failed to create cheque handler: %v", err)
+	}
+
 	// start msg processor
-	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
+	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, chequeHandler, g, userIDUpdatedChan)
 
 	// init tracer
 	tracer := a.initTracer()
@@ -160,8 +166,8 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
-	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler)
+func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, cheque messaging.ChequeHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
+	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, chequeHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

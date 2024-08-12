@@ -43,16 +43,16 @@ type ProcessorConfig struct {
 
 // should MessengerCashier related config be here?
 type EvmConfig struct {
-	PrivateKey              string `mapstructure:"evm_private_key"`
-	RPCURL                  string `mapstructure:"rpc_url"`
-	SupplierName            string `mapstructure:"supplier_name"`
-	BookingTokenAddress     string `mapstructure:"booking_token_address"`
-	BookingTokenABIFile     string `mapstructure:"booking_token_abi_file"`
-	BuyableUntilDefault     uint64 `mapstructure:"buyable_until_default"`
-	MessengerCashierAddress string `mapstructure:"messenger_cashier_address"`
-	MessengerCashierABIFile string `mapstructure:"messenger_cashier_abi_file"`
-	DomainName              string `mapstructure:"domain_name"`
-	DomainVersion           uint64 `mapstructure:"domain_version"`
+	PrivateKey          string `mapstructure:"evm_private_key"`
+	RPCURL              string `mapstructure:"rpc_url"`
+	SupplierName        string `mapstructure:"supplier_name"`
+	BookingTokenAddress string `mapstructure:"booking_token_address"`
+	BookingTokenABIFile string `mapstructure:"booking_token_abi_file"`
+	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
+	CMAccountAddress    string `mapstructure:"cm_account_address"`
+	CMAccountABIFile    string `mapstructure:"cm_account_abi_file"`
+	DomainName          string `mapstructure:"domain_name"`
+	DomainVersion       uint64 `mapstructure:"domain_version"`
 }
 
 type TracingConfig struct {
