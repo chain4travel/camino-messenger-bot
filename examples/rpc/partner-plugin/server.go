@@ -238,8 +238,16 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 		SeatMap: &typesv1alpha.SeatMap{
 			Id: md.RequestID,
 			Sections: []*typesv1alpha.Section{{
-				Id:   "123ST",
-				Name: "North Stand",
+				Id: "123ST",
+				Names: []*typesv1alpha.LocalizedString{{
+					Language: typesv1alpha.Language_LANGUAGE_EN,
+					Text:     "North Stand",
+				},
+					{
+						Language: typesv1alpha.Language_LANGUAGE_DE,
+						Text:     "Nordtribüne",
+					},
+				},
 				SeatInfo: &typesv1alpha.Section_SeatList{
 					SeatList: &typesv1alpha.SeatList{
 						Seats: []*typesv1alpha.Seat{
@@ -262,17 +270,37 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 										},
 									},
 								},
-								Restrictions: []*typesv1alpha.SeatAttribute{
+								Restrictions: []*typesv1alpha.LocalizedSeatAttributeSet{
 									{
-										Name:        "Restricted Vision",
-										Description: "Seat behind a column",
+										Language: typesv1alpha.Language_LANGUAGE_EN,
+										SeatAttributes: []*typesv1alpha.SeatAttribute{
+											{
+												Name:        "Restricted Vision",
+												Description: "Seat behind a column",
+											},
+										},
 									},
 								},
-								Features: []*typesv1alpha.SeatAttribute{
+								Features: []*typesv1alpha.LocalizedSeatAttributeSet{
 									{
-										Name:        "Discount",
-										Description: "Discount due to restricted vision up to 80%",
-										Value:       int32(80),
+										Language: typesv1alpha.Language_LANGUAGE_EN,
+										SeatAttributes: []*typesv1alpha.SeatAttribute{
+											{
+												Name:        "Discount",
+												Description: "Discount due to restricted vision up to 80%",
+												Value:       int32(80),
+											},
+										},
+									},
+									{
+										Language: typesv1alpha.Language_LANGUAGE_DE,
+										SeatAttributes: []*typesv1alpha.SeatAttribute{
+											{
+												Name:        "Rabatt",
+												Description: "Hinter der Säule - bis zu 80% Rabatt",
+												Value:       int32(80),
+											},
+										},
 									},
 								},
 							},
@@ -288,18 +316,24 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 					Width:  50,
 					Height: 50,
 				},
-				//TODO: fix in proto required
-				LocalizedDescriptionSet: &typesv1alpha.LocalizedDescriptionSet{
-					Language: typesv1alpha.Language_LANGUAGE_UG,
+				LocalizedDescriptions: []*typesv1alpha.LocalizedDescriptionSet{{
+					Language: typesv1alpha.Language_LANGUAGE_EN,
 					Descriptions: []*typesv1alpha.Description{{
 						Category: "General",
 						Text:     "Leather Seats",
 					}},
 				},
+				},
 			},
 				{
-					Id:   "124ST",
-					Name: "East Stand",
+					Id: "124ST",
+					Names: []*typesv1alpha.LocalizedString{{
+						Language: typesv1alpha.Language_LANGUAGE_EN,
+						Text:     "East Stand",
+					}, {
+						Language: typesv1alpha.Language_LANGUAGE_DE,
+						Text:     "Osttribüne",
+					}},
 					SeatInfo: &typesv1alpha.Section_SeatList{
 						SeatList: &typesv1alpha.SeatList{
 							Seats: []*typesv1alpha.Seat{
@@ -335,13 +369,19 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1alpha.Se
 						Width:  50,
 						Height: 50,
 					},
-					//TODO: Fix in proto required
-					LocalizedDescriptionSet: &typesv1alpha.LocalizedDescriptionSet{
-						Language: typesv1alpha.Language_LANGUAGE_UG,
+					LocalizedDescriptions: []*typesv1alpha.LocalizedDescriptionSet{{
+						Language: typesv1alpha.Language_LANGUAGE_EN,
 						Descriptions: []*typesv1alpha.Description{{
 							Category: "General",
 							Text:     "Seats",
 						}},
+					}, {
+						Language: typesv1alpha.Language_LANGUAGE_DE,
+						Descriptions: []*typesv1alpha.Description{{
+							Category: "Allgemein",
+							Text:     "Sitz",
+						}},
+					},
 					},
 				},
 			}},
@@ -411,8 +451,7 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 					Text:     "Erforderliche Formulare und Dokumente für die Einreise",
 					Language: typesv1alpha.Language_LANGUAGE_DE,
 				}},
-				//TODO: fix in proto required
-				Items: &infov1alpha.CountryEntryRequirementItem{
+				Items: []*infov1alpha.CountryEntryRequirementItem{{
 					Key: "ErVisaText",
 					Info: []*infov1alpha.LocalizedItemInfo{{
 						Name:        "Visa required for stay",
@@ -425,6 +464,7 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 					}},
 					LastSignificantUpdate: timestamppb.New(time.Now()),
 					Status:                infov1alpha.ItemStatus_ITEM_STATUS_TRUE,
+				},
 				},
 			}},
 		}},

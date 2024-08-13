@@ -42,7 +42,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 	defer logger.Sync() //nolint:errcheck
 
 	// TODO @evlekht use actual git tag/commit
-	app.logger.Info("version: 7.0.0")
+	app.logger.Info("version: 8.0.0")
 
 	return app, nil
 }
