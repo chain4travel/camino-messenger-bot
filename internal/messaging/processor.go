@@ -146,11 +146,30 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	}
 
 	if msg.Metadata.Cheques == nil {
-		cheque, err := p.chequeHandler.issueCheque(msg.Metadata.Sender, msg.Metadata.Recipient, msg.Metadata.Recipient, big.NewInt(0))
+
+		messengerFee := big.NewInt(1000)
+
+		messengerFeeCheque, err := p.chequeHandler.issueCheque(ctx, msg.Metadata.Sender, msg.Metadata.Sender, msg.Metadata.Recipient, messengerFee)
 		if err != nil {
-			return nil, fmt.Errorf("failed to issue cheques: %w", err)
+			return nil, fmt.Errorf("failed to issue messenger fee cheque: %w", err)
 		}
-		msg.Metadata.Cheques = append(msg.Metadata.Cheques, cheque)
+
+		msg.Metadata.Cheques = append(msg.Metadata.Cheques, messengerFeeCheque)
+
+		serviceName := "AccommodationSearchService"
+		// serviceFee
+		serviceFee, err := p.chequeHandler.getServiceFeeByName(serviceName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get service fee: %w", err)
+		}
+		serviceFeeCheque, err := p.chequeHandler.issueCheque(msg.Metadata.Sender, msg.Metadata.Recipient, msg.Metadata.Recipient, serviceFee)
+		if err != nil {
+			return nil, fmt.Errorf("failed to issue service fee cheque: %w", err)
+		}
+
+		// check from PartnerConfiguration the service fee
+
+		msg.Content.RequestContent.ServiceFeeCheque = serviceFeeCheque
 	}
 
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))

@@ -166,7 +166,7 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, cheque messaging.ChequeHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
+func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, chequeHandler messaging.ChequeHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
 	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, chequeHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed

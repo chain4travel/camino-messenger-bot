@@ -20,6 +20,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ ChequeHandler = (*evmChequeHandler)(nil)
+
 type Cheque struct {
 	fromCMAccount common.Address
 	toCMAccount   common.Address
@@ -41,14 +43,15 @@ type evmChequeHandler struct {
 	logger           *zap.SugaredLogger
 	domainVersion    uint64
 	domainName       string
+	cfg              *config.EvmConfig
 }
 
 type ChequeHandler interface {
-	issueCheque(fromCMAccount string, toCMAccount string, toBot string, amount *big.Int) (*types.Transaction, error)
-	verifyCheque()
-	calculateDomainSeparator(cfg *config.EvmConfig) (common.Hash, error)
-	calculateChequeHash(domainSeparator common.Hash, cheque Cheque) common.Hash
-	getLastCashIn(fromBot common.Address, toBot common.Address)
+	issueCheque(ctx context.Context, fromCMAccount string, toCMAccount string, toBot string, amount *big.Int) ([]byte, error)
+	signCheque(ctx context.Context, cheque Cheque) ([]byte, error)
+	getLastCashIn(ctx context.Context, fromBot common.Address, toBot common.Address) (*LastCashIn, error)
+	verifyCheque(ctx context.Context, cheque Cheque, signature []byte) (*ChequeVerifiedEvent, error)
+	getServiceFeeByName(serviceName string) (*big.Int, error)
 }
 
 type LastCashIn struct {
@@ -68,7 +71,7 @@ type LastCashIn struct {
 // 1. verify  signature - with SC
 // 2. verify amount and count locally
 
-func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (*evmChequeHandler, error) {
+func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ChequeHandler, error) {
 	abi, err := loadABI(cfg.CMAccountABIFile)
 	if err != nil {
 		return nil, err
@@ -96,10 +99,11 @@ func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cf
 		logger:           logger,
 		domainVersion:    cfg.DomainVersion,
 		domainName:       cfg.DomainName,
+		cfg:              cfg,
 	}, nil
 }
 
-func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount, toCMAccount, toBot common.Address, amount *big.Int) ([]byte, error) {
+func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount string, toCMAccount string, toBot string, amount *big.Int) ([]byte, error) {
 	// Prepare the cheque data
 	// amount
 	// counter should be persistent from db
@@ -107,8 +111,11 @@ func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount, toCM
 	// amount -> total amount that was paid to this recipient from this sender overall (get previous amount and increment by new value)
 	// counter total amount of messages (sender/recipient)
 
+	_fromCMAccount := common.HexToAddress(fromCMAccount)
+	_toCMAccount := common.HexToAddress(toCMAccount)
+	_toBot := common.HexToAddress(toBot)
 	// get last cash in from smart contract
-	lastCashIn, err := cm.getLastCashIn(ctx, fromCMAccount, toBot)
+	lastCashIn, err := cm.getLastCashIn(ctx, _fromCMAccount, _toBot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get last cash in: %v", err)
 	}
@@ -120,9 +127,9 @@ func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount, toCM
 	// check if there is newer info in database
 
 	cheque := Cheque{
-		fromCMAccount: fromCMAccount,
-		toCMAccount:   toCMAccount,
-		toBot:         toBot,
+		fromCMAccount: _fromCMAccount,
+		toCMAccount:   _toCMAccount,
+		toBot:         _toBot,
 		counter:       _counter, // Assuming this is the first cheque
 		amount:        _amount,
 		createdAt:     time.Now(),
@@ -130,7 +137,7 @@ func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount, toCM
 	}
 
 	// Sign the cheque hash
-	signature, err := signCheque(ctx, cm, cheque)
+	signature, err := cm.signCheque(ctx, cheque)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign hash: %v", err)
 	}
@@ -142,15 +149,15 @@ func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount, toCM
 	return signature, nil
 }
 
-func signCheque(ctx context.Context, handler *evmChequeHandler, cheque Cheque) ([]byte, error) {
+func (cm *evmChequeHandler) signCheque(ctx context.Context, cheque Cheque) ([]byte, error) {
 	// Get the chain ID
-	chainID, err := handler.ethClient.NetworkID(ctx)
+	chainID, err := cm.ethClient.NetworkID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get chain ID: %v", err)
 	}
 
 	// Calculate domain separator
-	domainSeparator, err := calculateDomainSeparator(handler.domainName, handler.domainVersion, chainID)
+	domainSeparator, err := calculateDomainSeparator(cm.domainName, cm.domainVersion, chainID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate domain separator: %v", err)
 	}
@@ -165,7 +172,7 @@ func signCheque(ctx context.Context, handler *evmChequeHandler, cheque Cheque) (
 	finalHash := calculateTypedDataHash(domainSeparator, chequeHash)
 
 	// Sign the hash
-	signature, err := crypto.Sign(finalHash.Bytes(), handler.privateKey)
+	signature, err := crypto.Sign(finalHash.Bytes(), cm.privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign the hash: %v", err)
 	}
@@ -173,16 +180,16 @@ func signCheque(ctx context.Context, handler *evmChequeHandler, cheque Cheque) (
 	return signature, nil
 }
 
-func (cm *evmChequeHandler) getLastCashIn(ctx context.Context, fromBot, toBot common.Address) (*LastCashIn, error) {
+func (cm *evmChequeHandler) getLastCashIn(ctx context.Context, fromBot common.Address, toBot common.Address) (*LastCashIn, error) {
 	// Pack the method call with parameters
-	input, err := cm.messengerCashierABI.Pack("getLastCashIn", fromBot, toBot)
+	input, err := cm.CMAccountABI.Pack("getLastCashIn", fromBot, toBot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack arguments: %v", err)
 	}
 
 	// Call the contract using ethclient.Client
 	output, err := cm.ethClient.CallContract(ctx, ethereum.CallMsg{
-		To:   &cm.messengerCashierAddress,
+		To:   &cm.CMAccountAddress,
 		Data: input,
 	}, nil)
 	if err != nil {
@@ -191,7 +198,7 @@ func (cm *evmChequeHandler) getLastCashIn(ctx context.Context, fromBot, toBot co
 
 	// Unpack the result into a LastCashIn struct
 	var cashIn LastCashIn
-	err = cm.messengerCashierABI.UnpackIntoInterface(&cashIn, "getLastCashIn", output)
+	err = cm.CMAccountABI.UnpackIntoInterface(&cashIn, "getLastCashIn", output)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unpack result: %v", err)
 	}
@@ -341,4 +348,14 @@ func (cm *evmChequeHandler) getChequeVerifiedEvent(txHash common.Hash) (*ChequeV
 	}
 
 	return nil, fmt.Errorf("no ChequeVerified event found in transaction logs")
+}
+
+func (cm *evmChequeHandler) getServiceFeeByName(serviceName string) (*big.Int, error) {
+
+	input, err := cm.CMAccountABI.Pack("getServiceFeeByName", serviceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack arguments: %v", err)
+	}
+	return nil, nil
+
 }
