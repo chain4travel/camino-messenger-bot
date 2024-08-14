@@ -59,8 +59,8 @@ supported_request_types:
   - ValidationRequest
   - PingRequest
   - TransportSearchRequest
-  - SiteMapRequest
-  - SiteMapAvailabilityRequest
+  - SeatMapRequest
+  - SeatMapAvailabilityRequest
   - CountryEntryRequirementsRequest
 
 ### C-Chain (EVM)
