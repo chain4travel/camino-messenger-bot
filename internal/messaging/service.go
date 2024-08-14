@@ -38,6 +38,8 @@ var (
 	_ Service = (*pingService)(nil)
 	_ Service = (*transportService)(nil)
 	_ Service = (*seatMapService)(nil)
+	_ Service = (*seatMapAvailabilityService)(nil)
+	_ Service = (*seatMapAvailabilityService)(nil)
 )
 
 type Service interface {
