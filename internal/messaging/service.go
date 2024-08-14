@@ -40,7 +40,7 @@ var (
 	_ Service = (*seatMapService)(nil)
 	_ Service = (*seatMapAvailabilityService)(nil)
 	_ Service = (*seatMapAvailabilityService)(nil)
-	_ Service =(*countryEntryRequirementsService)(nil)
+	_ Service = (*countryEntryRequirementsService)(nil)
 )
 
 type Service interface {
