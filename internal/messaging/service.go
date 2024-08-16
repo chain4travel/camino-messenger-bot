@@ -11,7 +11,10 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1alpha/infov1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1alpha/seat_mapv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
+
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
@@ -34,6 +37,9 @@ var (
 	_ Service = (*partnerService)(nil)
 	_ Service = (*pingService)(nil)
 	_ Service = (*transportService)(nil)
+	_ Service = (*seatMapService)(nil)
+	_ Service = (*seatMapAvailabilityService)(nil)
+	_ Service = (*countryEntryRequirementsService)(nil)
 )
 
 type Service interface {
@@ -177,4 +183,45 @@ func (s transportService) Call(ctx context.Context, request *RequestContent, opt
 		responseContent.TransportSearchResponse = response // otherwise 	nil pointer dereference
 	}
 	return &responseContent, TransportSearchResponse, err
+}
+
+type seatMapService struct {
+	client *seat_mapv1alphagrpc.SeatMapServiceClient
+}
+
+func (s seatMapService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).SeatMap(ctx, request.SeatMapRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.SeatMapResponse = response
+	}
+	return &responseContent, SeatMapResponse, err
+}
+
+type seatMapAvailabilityService struct {
+	client *seat_mapv1alphagrpc.SeatMapAvailabilityServiceClient
+}
+
+func (s seatMapAvailabilityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).SeatMapAvailability(ctx, request.SeatMapAvailabilityRequest, opts...)
+	responseContent := ResponseContent{}
+	if err == nil {
+		responseContent.SeatMapAvailabilityResponse = response
+	}
+
+	return &responseContent, SeatMapAvailabilityResponse, err
+}
+
+type countryEntryRequirementsService struct {
+	client *infov1alphagrpc.CountryEntryRequirementsServiceClient
+}
+
+func (s countryEntryRequirementsService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).CountryEntryRequirements(ctx, request.CountryEntryRequirementsRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.CountryEntryRequirementsResponse = response
+	}
+
+	return &ResponseContent, CountryEntryRequirementsResponse, err
 }

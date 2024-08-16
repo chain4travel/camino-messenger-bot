@@ -9,20 +9,23 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1alpha/infov1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1alpha/seat_mapv1alphagrpc"
 	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
+	seat_mapv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1alpha"
 
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1alpha/networkv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1alpha/partnerv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1alpha/pingv1alphagrpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
+	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
+	infov1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1alpha"
 	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
 	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
 	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
 	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
-
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
-	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -46,6 +49,9 @@ var (
 	_ bookv1alphagrpc.ValidationServiceServer                        = (*server)(nil)
 	_ pingv1alphagrpc.PingServiceServer                              = (*server)(nil)
 	_ transportv1alphagrpc.TransportSearchServiceServer              = (*server)(nil)
+	_ seat_mapv1alphagrpc.SeatMapServiceServer                       = (*server)(nil)
+	_ seat_mapv1alphagrpc.SeatMapAvailabilityServiceServer           = (*server)(nil)
+	_ infov1alphagrpc.CountryEntryRequirementsServiceServer          = (*server)(nil)
 )
 
 type Server interface {
@@ -95,6 +101,9 @@ func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOpti
 	bookv1alphagrpc.RegisterValidationServiceServer(grpcServer, server)
 	pingv1alphagrpc.RegisterPingServiceServer(grpcServer, server)
 	transportv1alphagrpc.RegisterTransportSearchServiceServer(grpcServer, server)
+	seat_mapv1alphagrpc.RegisterSeatMapServiceServer(grpcServer, server)
+	seat_mapv1alphagrpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, server)
+	infov1alphagrpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, server)
 	return grpcServer
 }
 
@@ -164,6 +173,21 @@ func (s *server) Validation(ctx context.Context, request *bookv1alpha.Validation
 func (s *server) TransportSearch(ctx context.Context, request *transportv1alpha.TransportSearchRequest) (*transportv1alpha.TransportSearchResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.TransportSearchRequest, &messaging.RequestContent{TransportSearchRequest: request})
 	return response.TransportSearchResponse, err
+}
+
+func (s *server) SeatMap(ctx context.Context, request *seat_mapv1alpha.SeatMapRequest) (*seat_mapv1alpha.SeatMapResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.SeatMapRequest, &messaging.RequestContent{SeatMapRequest: request})
+	return response.SeatMapResponse, err
+}
+
+func (s *server) SeatMapAvailability(ctx context.Context, request *seat_mapv1alpha.SeatMapAvailabilityRequest) (*seat_mapv1alpha.SeatMapAvailabilityResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.SeatMapAvailabilityRequest, &messaging.RequestContent{SeatMapAvailabilityRequest: request})
+	return response.SeatMapAvailabilityResponse, err
+}
+
+func (s *server) CountryEntryRequirements(ctx context.Context, request *infov1alpha.CountryEntryRequirementsRequest) (*infov1alpha.CountryEntryRequirementsResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.CountryEntryRequirementsRequest, &messaging.RequestContent{CountryEntryRequirementsRequest: request})
+	return response.CountryEntryRequirementsResponse, err
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {

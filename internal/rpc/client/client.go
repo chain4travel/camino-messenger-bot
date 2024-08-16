@@ -48,7 +48,7 @@ func (rc *RPCClient) Start() error {
 		opts = append(opts, grpc.WithTransportCredentials(tlsCreds))
 	}
 
-	cc, err := grpc.Dial(fmt.Sprintf("%s:%d", rc.cfg.Host, rc.cfg.Port), opts...)
+	cc, err := grpc.NewClient(fmt.Sprintf("%s:%d", rc.cfg.Host, rc.cfg.Port), opts...)
 	if err != nil {
 		return nil
 	}
