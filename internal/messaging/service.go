@@ -39,7 +39,6 @@ var (
 	_ Service = (*transportService)(nil)
 	_ Service = (*seatMapService)(nil)
 	_ Service = (*seatMapAvailabilityService)(nil)
-	_ Service = (*seatMapAvailabilityService)(nil)
 	_ Service = (*countryEntryRequirementsService)(nil)
 )
 
