@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-          ref: ${{ github.event.release.tag }}
+          ref: ${{ github.event.release.tag_name }}
 
       - uses: actions/setup-go@v5
         with:
@@ -32,8 +32,8 @@ jobs:
       - name: upload release assets
         run: |
           cp ./build/bot ./camino-messenger-bot
-          tar -zcvf camino-messenger-bot-linux-amd64-${{ github.event.release.tag }}.tar.gz ./camino-messenger-bot 
-          gh release upload ${{ github.event.release.tag }} camino-messenger-bot-linux-amd64-${{ github.event.release.tag }}.tar.gz
+          tar -zcvf camino-messenger-bot-linux-amd64-${{ github.event.release.tag_name }}.tar.gz ./camino-messenger-bot 
+          gh release upload ${{ github.event.release.tag_name }} camino-messenger-bot-linux-amd64-${{ github.event.release.tag_name }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}
         shell: bash
