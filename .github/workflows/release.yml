@@ -31,7 +31,8 @@ jobs:
 
       - name: upload release assets
         run: |
-          tar -zcvf camino-messenger-bot-linux-amd64-${{ github.event.release.tag }}.tar.gz ./build/bot 
+          cp ./build/bot ./camino-messenger-bot
+          tar -zcvf camino-messenger-bot-linux-amd64-${{ github.event.release.tag }}.tar.gz ./camino-messenger-bot 
           gh release upload ${{ github.event.release.tag }} camino-messenger-bot-linux-amd64-${{ github.event.release.tag }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}
