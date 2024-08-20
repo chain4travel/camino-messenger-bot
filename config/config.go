@@ -51,6 +51,7 @@ type EvmConfig struct {
 	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
 	CMAccountAddress    string `mapstructure:"cm_account_address"`
 	CMAccountABIFile    string `mapstructure:"cm_account_abi_file"`
+	CMNetworkFee        uint64 `mapstructure:"cm_network_fee"`
 	DomainName          string `mapstructure:"domain_name"`
 	DomainVersion       uint64 `mapstructure:"domain_version"`
 }
