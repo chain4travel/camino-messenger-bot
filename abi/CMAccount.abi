@@ -1,4 +1,4 @@
-[
+ [
     {
       "inputs": [],
       "stateMutability": "nonpayable",
@@ -200,6 +200,17 @@
     {
       "inputs": [
         {
+          "internalType": "uint8",
+          "name": "use",
+          "type": "uint8"
+        }
+      ],
+      "name": "InvalidPublicKeyUseType",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "toCMAccount",
           "type": "address"
@@ -227,6 +238,28 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "PaymentTokenAlreadyExists",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "PaymentTokenDoesNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "withdrawableAmount",
           "type": "uint256"
@@ -246,6 +279,50 @@
       "type": "error"
     },
     {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "pubKeyAddress",
+          "type": "address"
+        }
+      ],
+      "name": "PublicKeyAlreadyExists",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "pubKeyAddress",
+          "type": "address"
+        }
+      ],
+      "name": "PublicKeyDoesNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "ServiceAlreadyExists",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "ServiceDoesNotExist",
+      "type": "error"
+    },
+    {
       "inputs": [],
       "name": "UUPSUnauthorizedCallContext",
       "type": "error"
@@ -259,6 +336,60 @@
         }
       ],
       "name": "UUPSUnsupportedProxiableUUID",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "WantedServiceAlreadyExists",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "WantedServiceDoesNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "WithdrawalLimitExceeded",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "WithdrawalLimitExceededForPeriod",
       "type": "error"
     },
     {
@@ -315,7 +446,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "amount",
+          "name": "paid",
           "type": "uint256"
         },
         {
@@ -400,6 +531,51 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
+          "internalType": "address",
+          "name": "withdrawer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "GasMoneyWithdrawal",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "GasMoneyWithdrawalLimitUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "period",
+          "type": "uint256"
+        }
+      ],
+      "name": "GasMoneyWithdrawalPeriodUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": false,
           "internalType": "uint64",
           "name": "version",
@@ -411,8 +587,117 @@
     },
     {
       "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "bot",
+          "type": "address"
+        }
+      ],
+      "name": "MessengerBotAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "bot",
+          "type": "address"
+        }
+      ],
+      "name": "MessengerBotRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
       "inputs": [],
       "name": "NothingToPay",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "supportsOffChainPayment",
+          "type": "bool"
+        }
+      ],
+      "name": "OffChainPaymentSupportUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "PaymentTokenAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "PaymentTokenRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "pubKeyAddress",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "enum PartnerConfiguration.PublicKeyUseType",
+              "name": "_use",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes",
+              "name": "_data",
+              "type": "bytes"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct PartnerConfiguration.PublicKey",
+          "name": "publicKey",
+          "type": "tuple"
+        }
+      ],
+      "name": "PublicKeyAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "pubKeyAddress",
+          "type": "address"
+        }
+      ],
+      "name": "PublicKeyRemoved",
       "type": "event"
     },
     {
@@ -494,6 +779,121 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "ServiceAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "ServiceCapabilitiesUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "capability",
+          "type": "string"
+        }
+      ],
+      "name": "ServiceCapabilityAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "capability",
+          "type": "string"
+        }
+      ],
+      "name": "ServiceCapabilityRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "ServiceFeeUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "ServiceRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "restrictedRate",
+          "type": "bool"
+        }
+      ],
+      "name": "ServiceRestrictedRateUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": true,
           "internalType": "address",
           "name": "implementation",
@@ -501,6 +901,32 @@
         }
       ],
       "name": "Upgraded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "WantedServiceAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "WantedServiceRemoved",
       "type": "event"
     },
     {
@@ -525,6 +951,19 @@
     {
       "inputs": [],
       "name": "BOOKING_OPERATOR_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "BOT_ADMIN_ROLE",
       "outputs": [
         {
           "internalType": "bytes32",
@@ -576,7 +1015,33 @@
     },
     {
       "inputs": [],
+      "name": "GAS_WITHDRAWER_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "MESSENGER_CHEQUE_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "SERVICE_ADMIN_ROLE",
       "outputs": [
         {
           "internalType": "bytes32",
@@ -648,6 +1113,150 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "bot",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "gasMoney",
+          "type": "uint256"
+        }
+      ],
+      "name": "addMessengerBot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "bot",
+          "type": "address"
+        }
+      ],
+      "name": "addMessengerBot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "pubKeyAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint8",
+          "name": "use",
+          "type": "uint8"
+        }
+      ],
+      "name": "addPublicKey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "restrictedRate",
+          "type": "bool"
+        },
+        {
+          "internalType": "string[]",
+          "name": "capabilities",
+          "type": "string[]"
+        }
+      ],
+      "name": "addService",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "capability",
+          "type": "string"
+        }
+      ],
+      "name": "addServiceCapability",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "capability",
+          "type": "string"
+        }
+      ],
+      "name": "addServiceCapability",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_supportedToken",
+          "type": "address"
+        }
+      ],
+      "name": "addSupportedToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "serviceNames",
+          "type": "string[]"
+        }
+      ],
+      "name": "addWantedServices",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -752,6 +1361,32 @@
     },
     {
       "inputs": [],
+      "name": "getAllServiceHashes",
+      "outputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "serviceHashes",
+          "type": "bytes32[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getBookingTokenAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "getDeveloperFeeBp",
       "outputs": [
         {
@@ -784,6 +1419,70 @@
           "internalType": "bytes32",
           "name": "",
           "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGasMoneyWithdrawalLimit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGasMoneyWithdrawalPeriod",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "getGasMoneyWithdrawalPeriodStart",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "getGasMoneyWithdrawnAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -843,6 +1542,49 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPrefundAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPublicKeys",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "pubKeyAddresses",
+          "type": "address[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "enum PartnerConfiguration.PublicKeyUseType",
+              "name": "_use",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes",
+              "name": "_data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct PartnerConfiguration.PublicKey[]",
+          "name": "publicKeys",
+          "type": "tuple[]"
         }
       ],
       "stateMutability": "view",
@@ -913,6 +1655,204 @@
     {
       "inputs": [
         {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getService",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "_fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "_restrictedRate",
+              "type": "bool"
+            },
+            {
+              "internalType": "string[]",
+              "name": "_capabilities",
+              "type": "string[]"
+            }
+          ],
+          "internalType": "struct PartnerConfiguration.Service",
+          "name": "service",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        }
+      ],
+      "name": "getServiceCapabilities",
+      "outputs": [
+        {
+          "internalType": "string[]",
+          "name": "capabilities",
+          "type": "string[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getServiceCapabilities",
+      "outputs": [
+        {
+          "internalType": "string[]",
+          "name": "capabilities",
+          "type": "string[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        }
+      ],
+      "name": "getServiceFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getServiceFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getServiceRestrictedRate",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "restrictedRate",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        }
+      ],
+      "name": "getServiceRestrictedRate",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "restrictedRate",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getSupportedServices",
+      "outputs": [
+        {
+          "internalType": "string[]",
+          "name": "serviceNames",
+          "type": "string[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "_fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "_restrictedRate",
+              "type": "bool"
+            },
+            {
+              "internalType": "string[]",
+              "name": "_capabilities",
+              "type": "string[]"
+            }
+          ],
+          "internalType": "struct PartnerConfiguration.Service[]",
+          "name": "services",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getSupportedTokens",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "tokens",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
@@ -937,6 +1877,32 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getWantedServiceHashes",
+      "outputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "serviceHashes",
+          "type": "bytes32[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getWantedServices",
+      "outputs": [
+        {
+          "internalType": "string[]",
+          "name": "serviceNames",
+          "type": "string[]"
         }
       ],
       "stateMutability": "view",
@@ -1177,6 +2143,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "offChainPaymentSupported",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -1287,6 +2266,120 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "bot",
+          "type": "address"
+        }
+      ],
+      "name": "removeMessengerBot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "pubKeyAddress",
+          "type": "address"
+        }
+      ],
+      "name": "removePublicKey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "removeService",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        }
+      ],
+      "name": "removeService",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "capability",
+          "type": "string"
+        }
+      ],
+      "name": "removeServiceCapability",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "capability",
+          "type": "string"
+        }
+      ],
+      "name": "removeServiceCapability",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_supportedToken",
+          "type": "address"
+        }
+      ],
+      "name": "removeSupportedToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "serviceNames",
+          "type": "string[]"
+        }
+      ],
+      "name": "removeWantedServices",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "bytes32",
           "name": "role",
           "type": "bytes32"
@@ -1316,6 +2409,153 @@
         }
       ],
       "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "setGasMoneyWithdrawalLimit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "period",
+          "type": "uint256"
+        }
+      ],
+      "name": "setGasMoneyWithdrawalPeriod",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_isSupported",
+          "type": "bool"
+        }
+      ],
+      "name": "setOffChainPaymentSupported",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        },
+        {
+          "internalType": "string[]",
+          "name": "capabilities",
+          "type": "string[]"
+        }
+      ],
+      "name": "setServiceCapabilities",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string[]",
+          "name": "capabilities",
+          "type": "string[]"
+        }
+      ],
+      "name": "setServiceCapabilities",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setServiceFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setServiceFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "serviceHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "restrictedRate",
+          "type": "bool"
+        }
+      ],
+      "name": "setServiceRestrictedRate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "serviceName",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "restrictedRate",
+          "type": "bool"
+        }
+      ],
+      "name": "setServiceRestrictedRate",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1437,6 +2677,19 @@
         }
       ],
       "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawGasMoney",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

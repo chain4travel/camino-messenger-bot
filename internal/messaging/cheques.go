@@ -6,6 +6,10 @@ import (
 	"math/big"
 	"time"
 
+	config "github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"golang.org/x/crypto/sha3"
+
 	"fmt"
 
 	"github.com/ethereum/go-ethereum"
@@ -16,7 +20,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/chain4travel/camino-messenger-bot/config"
+	// "github.com/chain4travel/camino-messenger-bot/config"
+	// "github.com/chain4travel/camino-messenger-bot/internal/events"
 	"go.uber.org/zap"
 )
 
@@ -44,14 +49,15 @@ type evmChequeHandler struct {
 	domainVersion    uint64
 	domainName       string
 	cfg              *config.EvmConfig
+	eventListener    *events.EventListener
 }
 
 type ChequeHandler interface {
-	issueCheque(ctx context.Context, fromCMAccount string, toCMAccount string, toBot string, amount *big.Int) ([]byte, error)
+	issueCheque(ctx context.Context, fromCMAccount common.Address, toCMAccount common.Address, toBot common.Address, amount *big.Int) ([]byte, error)
 	signCheque(ctx context.Context, cheque Cheque) ([]byte, error)
 	getLastCashIn(ctx context.Context, fromBot common.Address, toBot common.Address) (*LastCashIn, error)
 	verifyCheque(ctx context.Context, cheque Cheque, signature []byte) (*ChequeVerifiedEvent, error)
-	getServiceFeeByName(serviceName string) (*big.Int, error)
+	getServiceFeeByName(serviceName string, CMAccountAddress common.Address) (*big.Int, error)
 }
 
 type LastCashIn struct {
@@ -61,17 +67,10 @@ type LastCashIn struct {
 	expiresAt *big.Int
 }
 
-// vms/touristicvm/txs/cashout_cheque_tx.go
-// each cheque received need to verify with local data, amount >= previous_am
-// verify signature / cache of cmAccount
-// on each received cheque call smart contract
-// verify locally the count/amount because its more uptodate than smart contract
-//  skip check if data is newer than smart contract >= sc
-
 // 1. verify  signature - with SC
 // 2. verify amount and count locally
 
-func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ChequeHandler, error) {
+func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig, eventListener events.EventListener) (ChequeHandler, error) {
 	abi, err := loadABI(cfg.CMAccountABIFile)
 	if err != nil {
 		return nil, err
@@ -100,22 +99,21 @@ func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cf
 		domainVersion:    cfg.DomainVersion,
 		domainName:       cfg.DomainName,
 		cfg:              cfg,
+		eventListener:    eventListener,
 	}, nil
 }
 
-func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount string, toCMAccount string, toBot string, amount *big.Int) ([]byte, error) {
-	// Prepare the cheque data
-	// amount
-	// counter should be persistent from db
-	// on check creation increment value +1
-	// amount -> total amount that was paid to this recipient from this sender overall (get previous amount and increment by new value)
-	// counter total amount of messages (sender/recipient)
+func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount common.Address, toCMAccount common.Address, toBot common.Address, amount *big.Int) ([]byte, error) {
+	// get count from db and increment
+	counter := 0
 
-	_fromCMAccount := common.HexToAddress(fromCMAccount)
-	_toCMAccount := common.HexToAddress(toCMAccount)
-	_toBot := common.HexToAddress(toBot)
+	chainID, err := cm.ethClient.NetworkID(ctx)
+	if err != nil {
+		return err
+	}
+
 	// get last cash in from smart contract
-	lastCashIn, err := cm.getLastCashIn(ctx, _fromCMAccount, _toBot)
+	lastCashIn, err := cm.getLastCashIn(ctx, fromCMAccount, toBot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get last cash in: %v", err)
 	}
@@ -127,9 +125,9 @@ func (cm *evmChequeHandler) issueCheque(ctx context.Context, fromCMAccount strin
 	// check if there is newer info in database
 
 	cheque := Cheque{
-		fromCMAccount: _fromCMAccount,
-		toCMAccount:   _toCMAccount,
-		toBot:         _toBot,
+		fromCMAccount: fromCMAccount,
+		toCMAccount:   toCMAccount,
+		toBot:         toBot,
 		counter:       _counter, // Assuming this is the first cheque
 		amount:        _amount,
 		createdAt:     time.Now(),
@@ -350,12 +348,88 @@ func (cm *evmChequeHandler) getChequeVerifiedEvent(txHash common.Hash) (*ChequeV
 	return nil, fmt.Errorf("no ChequeVerified event found in transaction logs")
 }
 
-func (cm *evmChequeHandler) getServiceFeeByName(serviceName string) (*big.Int, error) {
+func (cm *evmChequeHandler) getServiceFeeByName(serviceName string, CMAccountAddress common.Address) (*big.Int, error) {
+	serviceHash := serviceNameToHash(serviceName)
 
-	input, err := cm.CMAccountABI.Pack("getServiceFeeByName", serviceName)
+	// call contract getServiceFee(serviceHash)
+	getSupportedServices := cm.CMAccountABI.Methods["getSupportedServices"]
+
+	getRegisteredServiceHashByName := cm.CMAccountABI.Methods["getRegisteredServiceHashByName"]
+
+	serviceFee, err := cm.getServiceFee(serviceHash)
+
+	return serviceFee, err
+
+	serviceHashes := cm.eventListener.Listen("ServiceAdded", CMAccountAddress, cm.CMAccountABI)
+	// get service name from hash
+	// call get getServiceFee(hash)
+	//input, err := cm.CMAccountABI.Pack("getServiceFeeByName", serviceName)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to pack arguments: %v", err)
+	//}
+	return nil, nil
+
+}
+func serviceNameToHash(serviceName string) string {
+	// Convert string to UTF-8 bytes
+	serviceNameBytes := []byte(serviceName)
+
+	// Compute the Keccak256 hash
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(serviceNameBytes)
+	serviceHash := hash.Sum(nil)
+
+	// Convert the hash to a hex string
+	serviceHashHex := hexutil.Encode(serviceHash)
+
+	fmt.Printf("Service hash: %s\n", serviceHashHex)
+	return serviceHashHex
+}
+
+func (cm *evmChequeHandler) getServiceFee(serviceHash string) (big.Int, error) {
+	serviceFee, err := cm.CMAccountABI.Pack("getServiceFee", serviceHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack arguments: %v", err)
 	}
-	return nil, nil
+	return serviceFee, nil
+}
 
+func (cm *evmChequeHandler) isBotAllowed() {
+	// call contract isBotAllowed
+	// get bot address from private key
+	botAddress, err := getAddressFromECDSAPrivateKey(cm.privateKey)
+
+	data, err := cm.CMAccountABI.Pack("isBotAllowed", botAddress)
+	if err != nil {
+		fmt.Errorf("Failed to pack contract data: %v", err)
+	}
+
+	callMsg := ethereum.CallMsg{
+		To:   &cm.CMAccountAddress,
+		Data: data,
+	}
+
+	result, err := cm.ethClient.CallContract(context.Background(), callMsg, nil)
+	if err != nil {
+		fmt.Errorf("Failed to call contract function: %v", err)
+	}
+
+	var isAllowed bool
+	err = cm.CMAccountABI.UnpackIntoInterface(&isAllowed, "isBotAllowed", result)
+	if err != nil {
+		fmt.Errorf("Failed to unpack result: %v", err)
+	}
+}
+
+func getAddressFromECDSAPrivateKey(privateKey *ecdsa.PrivateKey) (common.Address, error) {
+	publicKey := privateKey.Public()
+
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return common.Address{}, fmt.Errorf("failed to cast public key to ECDSA")
+	}
+
+	address := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	return address, nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/events"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
@@ -74,8 +75,14 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
-	// instantiate new cheque Handler
-	chequeHandler, err := messaging.NewChequeHandler(evmClient, a.logger, &a.cfg.EvmConfig)
+	// create event listener
+	eventListener, err := events.NewEventListener(evmClient, &a.cfg.EvmConfig)
+	if err != nil {
+		a.logger.Fatalf("Failed to initialize event listener: %v", err)
+	}
+
+	// create cheque handler
+	chequeHandler, err := messaging.NewChequeHandler(evmClient, a.logger, &a.cfg.EvmConfig, &eventListener)
 	if err != nil {
 		a.logger.Fatalf("Failed to create cheque handler: %v", err)
 	}

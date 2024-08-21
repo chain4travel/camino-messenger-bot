@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
 	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -146,19 +146,37 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	}
 
 	if msg.Metadata.Cheques == nil {
+		// number of chunks -> for each chunk a cheque is created?
+		// msg.Metadata.NumberOfChunks
+		// https://excalidraw.com/
 
-		messengerFee := big.NewInt(1000)
+		// todo sqlite db for storing cheque count
+		messengerFee := uint64(1200000)
+		// todo: @havan fetch from Smart Contract for network fees
 
-		messengerFeeCheque, err := p.chequeHandler.issueCheque(ctx, msg.Metadata.Sender, msg.Metadata.Sender, msg.Metadata.Recipient, messengerFee)
+		// shut down bot if he is not added as allowed on the CMAccount as CHEQUE_OPERATOR_ROLE
+		// call contract isBotAllowed ? if not, return error
+		allowed, err := p.chequeHandler.isBotAllowed()
+		if err != nil {
+			return nil, fmt.Errorf("Bot is not allowed to issue cheques: %w", err)
+		}
+
+		var fromCMAccount = common.HexToAddress(config.CMAccountAddressKey)
+		var toCMAccount = common.HexToAddress(msg.Metadata.Recipient)
+
+		var toBot = common.HexToAddress(config.CMAccountAddressKey)
+
+		messengerFeeCheque, err := p.chequeHandler.issueCheque(ctx, fromCMAccount, toCMAccount, toBot, messengerFee)
 		if err != nil {
 			return nil, fmt.Errorf("failed to issue messenger fee cheque: %w", err)
 		}
 
 		msg.Metadata.Cheques = append(msg.Metadata.Cheques, messengerFeeCheque)
 
-		serviceName := "AccommodationSearchService"
-		// serviceFee
-		serviceFee, err := p.chequeHandler.getServiceFeeByName(serviceName)
+		serviceName := "AccommodationSearchService" // hardcoded for now, fetch from the message
+
+		serviceFee, err := p.chequeHandler.getServiceFeeByName(serviceName, msg.Metadata.Recipient)
+		// cache the service fee
 		if err != nil {
 			return nil, fmt.Errorf("failed to get service fee: %w", err)
 		}
@@ -169,7 +187,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 		// check from PartnerConfiguration the service fee
 
-		msg.Content.RequestContent.ServiceFeeCheque = serviceFeeCheque
+		// msg.Content.RequestContent.ServiceFeeCheque = serviceFeeCheque
 	}
 
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))

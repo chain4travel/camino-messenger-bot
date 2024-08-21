@@ -1,4 +1,4 @@
-package contracts
+package events
 
 import (
 	"context"
@@ -13,15 +13,18 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// EventListener contains fields to listen for events
-type EventListener struct {
+type eventListener struct {
 	ethClient *ethclient.Client
 	cfg       *config.EvmConfig
 }
 
+type EventListener interface {
+	Listen(eventName string, contractAddress common.Address, ABIFilePath string) (*event, error)
+}
+
 // NewEventListener initializes the event listener with the provided details
-func NewEventListener(client *ethclient.Client, cfg *config.EvmConfig) (*EventListener, error) {
-	return &EventListener{
+func NewEventListener(client *ethclient.Client, cfg *config.EvmConfig) (eventListener, error) {
+	return eventListener{
 		ethClient: client,
 		cfg:       cfg,
 	}, nil
@@ -32,7 +35,7 @@ type event struct {
 	Data        map[string]interface{}
 }
 
-func (el *EventListener) Listen(eventName string, contractAddress common.Address, ABIFilePath string) (*event, error) {
+func (el *eventListener) Listen(eventName string, contractAddress common.Address, ABIFilePath string) (*event, error) {
 	// Load the ABI from file
 	contractABI, err := loadABI(ABIFilePath)
 	if err != nil {
@@ -45,7 +48,6 @@ func (el *EventListener) Listen(eventName string, contractAddress common.Address
 		return nil, fmt.Errorf("event %s not found in ABI", eventName)
 	}
 
-	// Prepare a filter query to get logs from the contract
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{contractAddress},
 		Topics:    [][]common.Hash{{eventABI.ID}}, // Filter for the event using its ID (signature)
