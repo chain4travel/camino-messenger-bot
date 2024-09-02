@@ -9,19 +9,19 @@ import (
 	"context"
 	"fmt"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1alpha/infov1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1alpha/seat_mapv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 
-	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
-	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
-	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
+	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
+	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"google.golang.org/grpc"
 )
 
@@ -46,7 +46,7 @@ type Service interface {
 	Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error)
 }
 type activityProductListService struct {
-	client activityv1alphagrpc.ActivityProductListServiceClient
+	client activityv1grpc.ActivityProductListServiceClient
 }
 
 func (a activityProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -59,7 +59,7 @@ func (a activityProductListService) Call(ctx context.Context, request *RequestCo
 }
 
 type activityService struct {
-	client *activityv1alphagrpc.ActivitySearchServiceClient
+	client *activityv1grpc.ActivitySearchServiceClient
 }
 
 func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -72,7 +72,7 @@ func (s activityService) Call(ctx context.Context, request *RequestContent, opts
 }
 
 type accommodationProductInfoService struct {
-	client *accommodationv1alphagrpc.AccommodationProductInfoServiceClient
+	client *accommodationv1grpc.AccommodationProductInfoServiceClient
 }
 
 func (a accommodationProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -85,7 +85,7 @@ func (a accommodationProductInfoService) Call(ctx context.Context, request *Requ
 }
 
 type accommodationProductListService struct {
-	client *accommodationv1alphagrpc.AccommodationProductListServiceClient
+	client *accommodationv1grpc.AccommodationProductListServiceClient
 }
 
 func (a accommodationProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -98,7 +98,7 @@ func (a accommodationProductListService) Call(ctx context.Context, request *Requ
 }
 
 type accommodationService struct {
-	client *accommodationv1alphagrpc.AccommodationSearchServiceClient
+	client *accommodationv1grpc.AccommodationSearchServiceClient
 }
 
 func (s accommodationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -111,7 +111,7 @@ func (s accommodationService) Call(ctx context.Context, request *RequestContent,
 }
 
 type mintService struct {
-	client *bookv1alphagrpc.MintServiceClient
+	client *bookv1grpc.MintServiceClient
 }
 
 func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -124,7 +124,7 @@ func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...
 }
 
 type validationService struct {
-	client *bookv1alphagrpc.ValidationServiceClient
+	client *bookv1grpc.ValidationServiceClient
 }
 
 func (v validationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -140,8 +140,8 @@ type networkService struct{}
 
 func (s networkService) Call(_ context.Context, _ *RequestContent, _ ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 	return &ResponseContent{
-		GetNetworkFeeResponse: &networkv1alpha.GetNetworkFeeResponse{
-			NetworkFee: &networkv1alpha.NetworkFee{Amount: 100000}, // TODO implement
+		GetNetworkFeeResponse: &networkv1.GetNetworkFeeResponse{
+			NetworkFee: &networkv1.NetworkFee{Amount: 100000}, // TODO implement
 		},
 	}, GetNetworkFeeResponse, nil
 }
@@ -150,7 +150,7 @@ type partnerService struct{}
 
 func (s partnerService) Call(_ context.Context, _ *RequestContent, _ ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 	return &ResponseContent{
-		GetPartnerConfigurationResponse: &partnerv1alpha.GetPartnerConfigurationResponse{
+		GetPartnerConfigurationResponse: &partnerv1.GetPartnerConfigurationResponse{
 			PartnerConfiguration: nil, // TODO implement
 			CurrentBlockHeight:   0,
 		},
@@ -165,7 +165,7 @@ func (s pingService) Call(ctx context.Context, request *RequestContent, _ ...grp
 	if err != nil {
 		return nil, PingResponse, err
 	}
-	return &ResponseContent{PingResponse: &pingv1alpha.PingResponse{
+	return &ResponseContent{PingResponse: &pingv1.PingResponse{
 		Header:      nil,
 		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
 		Timestamp:   nil,
@@ -173,7 +173,7 @@ func (s pingService) Call(ctx context.Context, request *RequestContent, _ ...grp
 }
 
 type transportService struct {
-	client *transportv1alphagrpc.TransportSearchServiceClient
+	client *transportv1grpc.TransportSearchServiceClient
 }
 
 func (s transportService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -186,7 +186,7 @@ func (s transportService) Call(ctx context.Context, request *RequestContent, opt
 }
 
 type seatMapService struct {
-	client *seat_mapv1alphagrpc.SeatMapServiceClient
+	client *seat_mapv1grpc.SeatMapServiceClient
 }
 
 func (s seatMapService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -199,7 +199,7 @@ func (s seatMapService) Call(ctx context.Context, request *RequestContent, opts 
 }
 
 type seatMapAvailabilityService struct {
-	client *seat_mapv1alphagrpc.SeatMapAvailabilityServiceClient
+	client *seat_mapv1grpc.SeatMapAvailabilityServiceClient
 }
 
 func (s seatMapAvailabilityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -213,7 +213,7 @@ func (s seatMapAvailabilityService) Call(ctx context.Context, request *RequestCo
 }
 
 type countryEntryRequirementsService struct {
-	client *infov1alphagrpc.CountryEntryRequirementsServiceClient
+	client *infov1grpc.CountryEntryRequirementsServiceClient
 }
 
 func (s countryEntryRequirementsService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
