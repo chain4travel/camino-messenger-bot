@@ -52,6 +52,7 @@ var (
 	_ seat_mapv1grpc.SeatMapServiceServer                       = (*server)(nil)
 	_ seat_mapv1grpc.SeatMapAvailabilityServiceServer           = (*server)(nil)
 	_ infov1grpc.CountryEntryRequirementsServiceServer          = (*server)(nil)
+	_ activityv1grpc.ActivityProductInfoServiceServer           = (*server)(nil)
 )
 
 type Server interface {
@@ -104,6 +105,7 @@ func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOpti
 	seat_mapv1grpc.RegisterSeatMapServiceServer(grpcServer, server)
 	seat_mapv1grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, server)
 	infov1grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, server)
+	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, server)
 	return grpcServer
 }
 
@@ -188,6 +190,11 @@ func (s *server) SeatMapAvailability(ctx context.Context, request *seat_mapv1.Se
 func (s *server) CountryEntryRequirements(ctx context.Context, request *infov1.CountryEntryRequirementsRequest) (*infov1.CountryEntryRequirementsResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.CountryEntryRequirementsRequest, &messaging.RequestContent{CountryEntryRequirementsRequest: request})
 	return response.CountryEntryRequirementsResponse, err
+}
+
+func (s *server) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.ActivityProductInfoRequest, &messaging.RequestContent{ActivityProductInfoRequest: request})
+	return response.ActivityProductInfoResponse, err
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {

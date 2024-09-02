@@ -35,6 +35,7 @@ type RequestContent struct {
 	*seat_mapv1.SeatMapRequest
 	*seat_mapv1.SeatMapAvailabilityRequest
 	*infov1.CountryEntryRequirementsRequest
+	*activityv1.ActivityProductInfoRequest
 }
 
 type ResponseContent struct {
@@ -52,6 +53,7 @@ type ResponseContent struct {
 	*seat_mapv1.SeatMapResponse
 	*seat_mapv1.SeatMapAvailabilityResponse
 	*infov1.CountryEntryRequirementsResponse
+	*activityv1.ActivityProductInfoResponse
 }
 
 type MessageContent struct {
@@ -106,6 +108,8 @@ const (
 	SeatMapAvailabilityResponse      MessageType = "SeatMapAvailabilityResponse"
 	CountryEntryRequirementsRequest  MessageType = "CountryEntryRequirementsRequest"
 	CountryEntryRequirementsResponse MessageType = "CountryEntryRequirementsResponse"
+	ActivityProductInfoRequest       MessageType = "ActivityProductInfoRequest"
+	ActivityProductInfoResponse      MessageType = "ActivityProductInfoResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
@@ -121,7 +125,8 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchRequest,
 		SeatMapRequest,
 		SeatMapAvailabilityRequest,
-		CountryEntryRequirementsRequest:
+		CountryEntryRequirementsRequest,
+		ActivityProductInfoRequest:
 		return Request
 	case ActivityProductListResponse,
 		ActivitySearchResponse,
@@ -136,7 +141,8 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchResponse,
 		SeatMapResponse,
 		SeatMapAvailabilityResponse,
-		CountryEntryRequirementsResponse:
+		CountryEntryRequirementsResponse,
+		ActivityProductInfoResponse:
 		return Response
 	default:
 		return Unknown
@@ -201,6 +207,10 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.CountryEntryRequirementsRequest)
 	case CountryEntryRequirementsResponse:
 		return proto.Marshal(m.Content.CountryEntryRequirementsResponse)
+	case ActivityProductInfoRequest:
+		return proto.Marshal(m.Content.ActivityProductInfoRequest)
+	case ActivityProductInfoResponse:
+		return proto.Marshal(m.Content.ActivityProductInfoResponse)
 	default:
 		return nil, ErrUnknownMessageType
 	}

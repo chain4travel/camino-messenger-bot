@@ -48,6 +48,7 @@ type partnerPlugin struct {
 	seat_mapv1grpc.SeatMapServiceServer
 	seat_mapv1grpc.SeatMapAvailabilityServiceServer
 	infov1grpc.CountryEntryRequirementsServiceServer
+	activityv1grpc.ActivityProductInfoServiceServer
 }
 
 func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv1.MintResponse, error) {
@@ -507,6 +508,39 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	}
 	return &response, nil
 }
+func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	response := activityv1.ActivityProductInfoResponse{
+		Header: nil,
+		Activities: []*activityv1.ActivityExtendedInfo{
+			{
+				Activity: &activityv1.Activity{
+					Context:      "DE123456789",
+					LastModified: timestamppb.New(time.Now()),
+				},
+				Units:        []*activityv1.ActivityUnit{},
+				Services:     []*activityv1.ActivityService{},
+				Zones:        []*activityv1.TransferZone{},
+				Descriptions: []*typesv1.LocalizedDescriptionSet{},
+				Location:     &activityv1.ActivityLocation{},
+				Features:     []*activityv1.ActivityFeature{},
+				Tags:         []*activityv1.ActivityTag{},
+				Images:       []*typesv1.Image{},
+				//TODO: @VjeraTurk add representative example
+			},
+		},
+	}
+	return &response, nil
+}
+
 func main() {
 	grpcServer := grpc.NewServer()
 	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
@@ -522,6 +556,7 @@ func main() {
 	seat_mapv1grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv1grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov1grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
+	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
 	port := 55555
 	var err error
 	p, found := os.LookupEnv("PORT")
