@@ -38,6 +38,12 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	case messaging.ActivityProductListResponse:
 		m.Content.ResponseContent.ActivityProductListResponse = &activityv1.ActivityProductListResponse{}
 		return proto.Unmarshal(src, m.Content.ResponseContent.ActivityProductListResponse)
+	case messaging.ActivityProductInfoRequest:
+		m.Content.RequestContent.ActivityProductInfoRequest = &activityv1.ActivityProductInfoRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.ActivityProductInfoRequest)
+	case messaging.ActivityProductInfoResponse:
+		m.Content.ResponseContent.ActivityProductInfoResponse = &activityv1.ActivityProductInfoResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.ActivityProductInfoResponse)
 	case messaging.ActivitySearchRequest:
 		m.Content.RequestContent.ActivitySearchRequest = &activityv1.ActivitySearchRequest{}
 		return proto.Unmarshal(src, m.Content.RequestContent.ActivitySearchRequest)
