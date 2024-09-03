@@ -34,18 +34,18 @@ func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
 func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	switch messaging.MessageType(m.MsgType) {
-	case messaging.ActivityProductListRequest:
-		m.Content.RequestContent.ActivityProductListRequest = &activityv1.ActivityProductListRequest{}
-		return proto.Unmarshal(src, m.Content.RequestContent.ActivityProductListRequest)
-	case messaging.ActivityProductListResponse:
-		m.Content.ResponseContent.ActivityProductListResponse = &activityv1.ActivityProductListResponse{}
-		return proto.Unmarshal(src, m.Content.ResponseContent.ActivityProductListResponse)
 	case messaging.ActivityProductInfoRequest:
 		m.Content.RequestContent.ActivityProductInfoRequest = &activityv1.ActivityProductInfoRequest{}
 		return proto.Unmarshal(src, m.Content.RequestContent.ActivityProductInfoRequest)
 	case messaging.ActivityProductInfoResponse:
 		m.Content.ResponseContent.ActivityProductInfoResponse = &activityv1.ActivityProductInfoResponse{}
 		return proto.Unmarshal(src, m.Content.ResponseContent.ActivityProductInfoResponse)
+	case messaging.ActivityProductListRequest:
+		m.Content.RequestContent.ActivityProductListRequest = &activityv1.ActivityProductListRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.ActivityProductListRequest)
+	case messaging.ActivityProductListResponse:
+		m.Content.ResponseContent.ActivityProductListResponse = &activityv1.ActivityProductListResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.ActivityProductListResponse)
 	case messaging.ActivitySearchRequest:
 		m.Content.RequestContent.ActivitySearchRequest = &activityv1.ActivitySearchRequest{}
 		return proto.Unmarshal(src, m.Content.RequestContent.ActivitySearchRequest)

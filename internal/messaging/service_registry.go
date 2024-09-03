@@ -44,6 +44,9 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 	for _, requestType := range requestTypes {
 		var service Service
 		switch MessageType(requestType) {
+		case ActivityProductInfoRequest:
+			c := activityv1grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
+			service = activityProductInfoService{client: &c}
 		case ActivityProductListRequest:
 			c := activityv1grpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
 			service = activityProductListService{client: c}
@@ -83,9 +86,6 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 		case CountryEntryRequirementsRequest:
 			c := infov1grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
 			service = countryEntryRequirementsService{client: &c}
-		case ActivityProductInfoRequest:
-			c := activityv1grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
-			service = activityProductInfoService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)
 			continue

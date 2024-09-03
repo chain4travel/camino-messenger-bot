@@ -21,6 +21,7 @@ import (
 var ErrUnknownMessageType = errors.New("unknown message type")
 
 type RequestContent struct {
+	*activityv1.ActivityProductInfoRequest
 	*activityv1.ActivityProductListRequest
 	*activityv1.ActivitySearchRequest
 	*accommodationv1.AccommodationProductInfoRequest
@@ -35,10 +36,10 @@ type RequestContent struct {
 	*seat_mapv1.SeatMapRequest
 	*seat_mapv1.SeatMapAvailabilityRequest
 	*infov1.CountryEntryRequirementsRequest
-	*activityv1.ActivityProductInfoRequest
 }
 
 type ResponseContent struct {
+	*activityv1.ActivityProductInfoResponse
 	*activityv1.ActivityProductListResponse
 	*activityv1.ActivitySearchResponse
 	*accommodationv1.AccommodationProductInfoResponse
@@ -53,7 +54,6 @@ type ResponseContent struct {
 	*seat_mapv1.SeatMapResponse
 	*seat_mapv1.SeatMapAvailabilityResponse
 	*infov1.CountryEntryRequirementsResponse
-	*activityv1.ActivityProductInfoResponse
 }
 
 type MessageContent struct {
@@ -80,6 +80,8 @@ const (
 	Unknown
 
 	// message types
+	ActivityProductInfoRequest       MessageType = "ActivityProductInfoRequest"
+	ActivityProductInfoResponse      MessageType = "ActivityProductInfoResponse"
 	ActivityProductListRequest       MessageType = "ActivityProductListRequest"
 	ActivityProductListResponse      MessageType = "ActivityProductListResponse"
 	ActivitySearchRequest            MessageType = "ActivitySearchRequest"
@@ -108,8 +110,6 @@ const (
 	SeatMapAvailabilityResponse      MessageType = "SeatMapAvailabilityResponse"
 	CountryEntryRequirementsRequest  MessageType = "CountryEntryRequirementsRequest"
 	CountryEntryRequirementsResponse MessageType = "CountryEntryRequirementsResponse"
-	ActivityProductInfoRequest       MessageType = "ActivityProductInfoRequest"
-	ActivityProductInfoResponse      MessageType = "ActivityProductInfoResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {

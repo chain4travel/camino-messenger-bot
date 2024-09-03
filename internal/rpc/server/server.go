@@ -152,6 +152,11 @@ func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv1
 	return response.GetPartnerConfigurationResponse, err
 }
 
+func (s *server) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.ActivityProductInfoRequest, &messaging.RequestContent{ActivityProductInfoRequest: request})
+	return response.ActivityProductInfoResponse, err
+}
+
 func (s *server) ActivityProductList(ctx context.Context, request *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.ActivityProductListRequest, &messaging.RequestContent{ActivityProductListRequest: request})
 	return response.ActivityProductListResponse, err
@@ -190,11 +195,6 @@ func (s *server) SeatMapAvailability(ctx context.Context, request *seat_mapv1.Se
 func (s *server) CountryEntryRequirements(ctx context.Context, request *infov1.CountryEntryRequirementsRequest) (*infov1.CountryEntryRequirementsResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.CountryEntryRequirementsRequest, &messaging.RequestContent{CountryEntryRequirementsRequest: request})
 	return response.CountryEntryRequirementsResponse, err
-}
-
-func (s *server) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
-	response, err := s.processExternalRequest(ctx, messaging.ActivityProductInfoRequest, &messaging.RequestContent{ActivityProductInfoRequest: request})
-	return response.ActivityProductInfoResponse, err
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {

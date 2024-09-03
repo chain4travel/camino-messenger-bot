@@ -92,7 +92,7 @@ func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv1.ValidationRequ
 	return &response, nil
 }
 
-func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
+func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -101,14 +101,54 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.Activi
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := activityv1.ActivitySearchResponse{
-		Header:   nil,
-		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
-	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
+	response := activityv1.ActivityProductInfoResponse{
+		Header: nil,
+		Activities: []*activityv1.ActivityExtendedInfo{
+			{
+				Activity: &activityv1.Activity{
+					Context:           "ActivityTest", //context
+					LastModified:      timestamppb.New(time.Now()),
+					ExternalSessionId: "23456", //external_session_id
+					ProductCode: &typesv1.ProductCode{
+						Code: "XPTFAOH15O", //supplier_code
+					},
+					UnitCode:    "ActivityTest", //supplier_unit_code
+					ServiceCode: "TRF",          //service_code
+					Bookability: &typesv1.Bookability{
+						Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
+						ConfirmationTime: &typesv1.Time{
+							Hours:   18,
+							Minutes: 00,
+						},
+					},
+				},
+				Units: []*activityv1.ActivityUnit{
+					{
+						Schedule: &typesv1.DateTimeRange{
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, nil)),
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 00, 0, 0, nil)),
+						},
+						Code:        "TK0001H1",                               //unit_code
+						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
+						Description: "starts at 11h00",                        //descriptive_text
+					},
+				},
+				Services:     []*activityv1.ActivityService{},
+				Zones:        []*activityv1.TransferZone{},
+				Descriptions: []*typesv1.LocalizedDescriptionSet{},
+				Location:     &activityv1.ActivityLocation{},
+				Features:     []*activityv1.ActivityFeature{},
+				Tags:         []*activityv1.ActivityTag{},
+				Images:       []*typesv1.Image{},
+				Videos:       []*typesv1.Video{},
+
+				//TODO: @VjeraTurk add representative example
+			},
+		},
+	}
 	return &response, nil
 }
-
 // TODO: @VjeraTurk add example for ActivityProductList
 func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
 	md := metadata.Metadata{}
@@ -126,6 +166,22 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.A
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 
+}
+func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := activityv1.ActivitySearchResponse{
+		Header:   nil,
+		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
 }
 
 func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv1.AccommodationProductInfoRequest) (*accommodationv1.AccommodationProductInfoResponse, error) {
@@ -527,66 +583,10 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	}
 	return &response, nil
 }
-func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	response := activityv1.ActivityProductInfoResponse{
-		Header: nil,
-		Activities: []*activityv1.ActivityExtendedInfo{
-			{
-				Activity: &activityv1.Activity{
-					Context:           "ActivityTest", //context
-					LastModified:      timestamppb.New(time.Now()),
-					ExternalSessionId: "23456", //external_session_id
-					ProductCode: &typesv1.ProductCode{
-						Code: "XPTFAOH15O", //supplier_code
-					},
-					UnitCode:    "ActivityTest", //supplier_unit_code
-					ServiceCode: "TRF",          //service_code
-					Bookability: &typesv1.Bookability{
-						Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
-						ConfirmationTime: &typesv1.Time{
-							Hours:   18,
-							Minutes: 00,
-						},
-					},
-				},
-				Units: []*activityv1.ActivityUnit{
-					{
-						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, nil)),
-							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 00, 0, 0, nil)),
-						},
-						Code:        "TK0001H1",                               //unit_code
-						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
-						Description: "starts at 11h00",                        //descriptive_text
-					},
-				},
-				Services:     []*activityv1.ActivityService{},
-				Zones:        []*activityv1.TransferZone{},
-				Descriptions: []*typesv1.LocalizedDescriptionSet{},
-				Location:     &activityv1.ActivityLocation{},
-				Features:     []*activityv1.ActivityFeature{},
-				Tags:         []*activityv1.ActivityTag{},
-				Images:       []*typesv1.Image{},
-				Videos:       []*typesv1.Video{},
-
-				//TODO: @VjeraTurk add representative example
-			},
-		},
-	}
-	return &response, nil
-}
 
 func main() {
 	grpcServer := grpc.NewServer()
+	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
 	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
 	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
 	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
@@ -600,7 +600,6 @@ func main() {
 	seat_mapv1grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv1grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov1grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
-	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
 	port := 55555
 	var err error
 	p, found := os.LookupEnv("PORT")

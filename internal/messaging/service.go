@@ -26,6 +26,7 @@ import (
 )
 
 var (
+	_ Service = (*activityProductInfoService)(nil)
 	_ Service = (*activityProductListService)(nil)
 	_ Service = (*activityService)(nil)
 	_ Service = (*accommodationProductInfoService)(nil)
@@ -40,12 +41,24 @@ var (
 	_ Service = (*seatMapService)(nil)
 	_ Service = (*seatMapAvailabilityService)(nil)
 	_ Service = (*countryEntryRequirementsService)(nil)
-	_ Service = (*activityProductInfoService)(nil)
 )
 
 type Service interface {
 	Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error)
 }
+type activityProductInfoService struct {
+	client *activityv1grpc.ActivityProductInfoServiceClient
+}
+
+func (s activityProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).ActivityProductInfo(ctx, request.ActivityProductInfoRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.ActivityProductInfoResponse = response
+	}
+	return &ResponseContent, ActivityProductInfoResponse, err
+}
+
 type activityProductListService struct {
 	client activityv1grpc.ActivityProductListServiceClient
 }
@@ -225,17 +238,4 @@ func (s countryEntryRequirementsService) Call(ctx context.Context, request *Requ
 	}
 
 	return &ResponseContent, CountryEntryRequirementsResponse, err
-}
-
-type activityProductInfoService struct {
-	client *activityv1grpc.ActivityProductInfoServiceClient
-}
-
-func (s activityProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*s.client).ActivityProductInfo(ctx, request.ActivityProductInfoRequest, opts...)
-	ResponseContent := ResponseContent{}
-	if err == nil {
-		ResponseContent.ActivityProductInfoResponse = response
-	}
-	return &ResponseContent, ActivityProductInfoResponse, err
 }
