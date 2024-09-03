@@ -114,7 +114,8 @@ const (
 
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
-	case ActivityProductListRequest,
+	case ActivityProductInfoRequest,
+		ActivityProductListRequest,
 		ActivitySearchRequest,
 		AccommodationProductInfoRequest,
 		AccommodationProductListRequest,
@@ -127,10 +128,10 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchRequest,
 		SeatMapRequest,
 		SeatMapAvailabilityRequest,
-		CountryEntryRequirementsRequest,
-		ActivityProductInfoRequest:
+		CountryEntryRequirementsRequest:
 		return Request
-	case ActivityProductListResponse,
+	case ActivityProductInfoResponse,
+		ActivityProductListResponse,
 		ActivitySearchResponse,
 		AccommodationProductInfoResponse,
 		AccommodationProductListResponse,
@@ -143,8 +144,7 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchResponse,
 		SeatMapResponse,
 		SeatMapAvailabilityResponse,
-		CountryEntryRequirementsResponse,
-		ActivityProductInfoResponse:
+		CountryEntryRequirementsResponse:
 		return Response
 	default:
 		return Unknown
@@ -161,6 +161,10 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.ActivitySearchRequest)
 	case ActivitySearchResponse:
 		return proto.Marshal(m.Content.ActivitySearchResponse)
+	case ActivityProductInfoRequest:
+		return proto.Marshal(m.Content.ActivityProductInfoRequest)
+	case ActivityProductInfoResponse:
+		return proto.Marshal(m.Content.ActivityProductInfoResponse)
 	case AccommodationProductInfoRequest:
 		return proto.Marshal(m.Content.AccommodationProductInfoRequest)
 	case AccommodationProductInfoResponse:
@@ -209,10 +213,6 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.CountryEntryRequirementsRequest)
 	case CountryEntryRequirementsResponse:
 		return proto.Marshal(m.Content.CountryEntryRequirementsResponse)
-	case ActivityProductInfoRequest:
-		return proto.Marshal(m.Content.ActivityProductInfoRequest)
-	case ActivityProductInfoResponse:
-		return proto.Marshal(m.Content.ActivityProductInfoResponse)
 	default:
 		return nil, ErrUnknownMessageType
 	}
