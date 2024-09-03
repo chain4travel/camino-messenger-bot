@@ -121,6 +121,8 @@ func (mt MessageType) Category() MessageCategory {
 		AccommodationSearchRequest,
 		MintRequest,
 		ValidationRequest,
+		GetNetworkFeeRequest,
+		GetPartnerConfigurationRequest,
 		PingRequest,
 		TransportSearchRequest,
 		SeatMapRequest,

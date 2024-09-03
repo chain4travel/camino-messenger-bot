@@ -48,21 +48,21 @@ partner_plugin_ca_file: ca-cert.pem
 
 ### Supported Request Types for this supplier.
 supported_request_types:
-  - ActivitySearchRequest
-  - ActivityProductListRequest
-  - AccommodationProductInfoRequest
-  - AccommodationProductListRequest
-  - AccommodationSearchRequest
   - GetNetworkFeeRequest
   - GetPartnerConfigurationRequest
+  - PingRequest
+  - AccommodationProductListRequest
+  - AccommodationProductInfoRequest
+  - AccommodationSearchRequest
+  - ActivityProductListRequest
+  - ActivityProductInfoRequest
+  - ActivitySearchRequest
+  - TransportSearchRequest
   - MintRequest
   - ValidationRequest
-  - PingRequest
-  - TransportSearchRequest
   - SeatMapRequest
   - SeatMapAvailabilityRequest
   - CountryEntryRequirementsRequest
-  - ActivityProductInfoRequest
 
 ### C-Chain (EVM)
 

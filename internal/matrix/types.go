@@ -4,9 +4,11 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
+	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
 	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	seat_mapv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -104,6 +106,24 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	case messaging.TransportSearchResponse:
 		m.Content.ResponseContent.TransportSearchResponse = &transportv1.TransportSearchResponse{}
 		return proto.Unmarshal(src, m.Content.ResponseContent.TransportSearchResponse)
+	case messaging.SeatMapRequest:
+		m.Content.RequestContent.SeatMapRequest = &seat_mapv1.SeatMapRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.SeatMapRequest)
+	case messaging.SeatMapResponse:
+		m.Content.ResponseContent.SeatMapResponse = &seat_mapv1.SeatMapResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.SeatMapResponse)
+	case messaging.SeatMapAvailabilityRequest:
+		m.Content.RequestContent.SeatMapAvailabilityRequest = &seat_mapv1.SeatMapAvailabilityRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.SeatMapAvailabilityRequest)
+	case messaging.SeatMapAvailabilityResponse:
+		m.Content.ResponseContent.SeatMapAvailabilityResponse = &seat_mapv1.SeatMapAvailabilityResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.SeatMapResponse)
+	case messaging.CountryEntryRequirementsRequest:
+		m.Content.RequestContent.CountryEntryRequirementsRequest = &infov1.CountryEntryRequirementsRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.CountryEntryRequirementsRequest)
+	case messaging.CountryEntryRequirementsResponse:
+		m.Content.ResponseContent.CountryEntryRequirementsResponse = &infov1.CountryEntryRequirementsResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.CountryEntryRequirementsResponse)
 	default:
 		return messaging.ErrUnknownMessageType
 	}

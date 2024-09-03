@@ -109,6 +109,25 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.Activi
 	return &response, nil
 }
 
+// TODO: @VjeraTurk add example for ActivityProductList
+func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := activityv1.ActivityProductListResponse{
+		Header:     nil,
+		Activities: []*activityv1.Activity{},
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+
+}
+
 func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv1.AccommodationProductInfoRequest) (*accommodationv1.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -523,10 +542,33 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 		Activities: []*activityv1.ActivityExtendedInfo{
 			{
 				Activity: &activityv1.Activity{
-					Context:      "DE123456789",
-					LastModified: timestamppb.New(time.Now()),
+					Context:           "ActivityTest", //context
+					LastModified:      timestamppb.New(time.Now()),
+					ExternalSessionId: "23456", //external_session_id
+					ProductCode: &typesv1.ProductCode{
+						Code: "XPTFAOH15O", //supplier_code
+					},
+					UnitCode:    "ActivityTest", //supplier_unit_code
+					ServiceCode: "TRF",          //service_code
+					Bookability: &typesv1.Bookability{
+						Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
+						ConfirmationTime: &typesv1.Time{
+							Hours:   18,
+							Minutes: 00,
+						},
+					},
 				},
-				Units:        []*activityv1.ActivityUnit{},
+				Units: []*activityv1.ActivityUnit{
+					{
+						Schedule: &typesv1.DateTimeRange{
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, nil)),
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 00, 0, 0, nil)),
+						},
+						Code:        "TK0001H1",                               //unit_code
+						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
+						Description: "starts at 11h00",                        //descriptive_text
+					},
+				},
 				Services:     []*activityv1.ActivityService{},
 				Zones:        []*activityv1.TransferZone{},
 				Descriptions: []*typesv1.LocalizedDescriptionSet{},
@@ -534,6 +576,8 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 				Features:     []*activityv1.ActivityFeature{},
 				Tags:         []*activityv1.ActivityTag{},
 				Images:       []*typesv1.Image{},
+				Videos:       []*typesv1.Video{},
+
 				//TODO: @VjeraTurk add representative example
 			},
 		},
