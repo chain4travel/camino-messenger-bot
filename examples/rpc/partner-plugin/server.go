@@ -267,7 +267,6 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 	return &response, nil
 }
 
-// TODO: @VjeraTurk add example for ActivityProductList
 func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -278,8 +277,26 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.A
 	log.Printf("Responding to request: %s", md.RequestID)
 
 	response := activityv1.ActivityProductListResponse{
-		Header:     nil,
-		Activities: []*activityv1.Activity{},
+		Header: nil,
+		Activities: []*activityv1.Activity{
+			{
+				Context:           "ActivityTest", //context
+				LastModified:      timestamppb.New(time.Now()),
+				ExternalSessionId: "23456", //external_session_id
+				ProductCode: &typesv1.ProductCode{
+					Code: "XPTFAOH15O", //supplier_code
+				},
+				UnitCode:    "ActivityTest", //supplier_unit_code
+				ServiceCode: "TRF",          //service_code
+				Bookability: &typesv1.Bookability{
+					Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
+					ConfirmationTime: &typesv1.Time{
+						Hours:   18,
+						Minutes: 00,
+					},
+				},
+			},
+		},
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
