@@ -126,29 +126,147 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 				Units: []*activityv1.ActivityUnit{
 					{
 						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, nil)),
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, nil)), //summary.start
 							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 00, 0, 0, nil)),
 						},
 						Code:        "TK0001H1",                               //unit_code
 						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
 						Description: "starts at 11h00",                        //descriptive_text
 					},
+					{
+						Schedule: &typesv1.DateTimeRange{
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 9, 30, 0, 0, nil)), //summary.start
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 10, 30, 0, 0, nil)),
+						},
+						Code:        "TK0001H0",                               //unit_code
+						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
+						Description: "starts at 09h30",                        //descriptive_text
+					},
+					{
+						Schedule: &typesv1.DateTimeRange{
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, nil)), //summary.start
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 17, 30, 0, 0, nil)),
+						},
+						Code:        "TK0001H2",                               //unit_code
+						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [2]", //unit_code_description
+						Description: "starts at 16h30",                        //descriptive_text
+					},
 				},
-				Services:     []*activityv1.ActivityService{},
-				Zones:        []*activityv1.TransferZone{},
-				Descriptions: []*typesv1.LocalizedDescriptionSet{},
-				Location:     &activityv1.ActivityLocation{},
-				Features:     []*activityv1.ActivityFeature{},
-				Tags:         []*activityv1.ActivityTag{},
-				Images:       []*typesv1.Image{},
-				Videos:       []*typesv1.Video{},
-
-				//TODO: @VjeraTurk add representative example
+				Services: []*activityv1.ActivityService{
+					{
+						Code:        "TRF",
+						Name:        "incl. pickUp & dropOff",
+						Description: "incl. pickUp & dropOff",
+						Included:    []string{"Exclusive English or Italian-speaking Musement guide", "Skip-the-line entrance to Leonardo da Vinci's Last Supper"},
+						Excluded:    []string{},
+					},
+				},
+				Zones: []*activityv1.TransferZone{
+					{
+						Code: "ALT", //zone_code
+						GeoTree: &typesv1.GeoTree{
+							Country:      typesv1.Country_COUNTRY_PT,
+							Region:       "Algarve",
+							CityOrResort: "Albufeira",
+						},
+						PickupDropoffEvents: []*activityv1.PickupDropoffEvent{
+							{
+								LocationCode:    "AMTSPT0026",
+								LocationName:    "HOTELENTRANCE / HotelEntrance",
+								PickupIndicator: true,
+								OtherInfo:       "HOTELENTRANCE",
+								DateTime:        timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, nil)),
+								Coordinates: &typesv1.Coordinates{
+									Latitude:  37.08472,
+									Longitude: -8.31469,
+								},
+							},
+						},
+					},
+				},
+				Descriptions: []*typesv1.LocalizedDescriptionSet{
+					{
+						Language: typesv1.Language_LANGUAGE_EN,
+						Descriptions: []*typesv1.Description{{
+							Category: "Tours",
+							Text:     "Albufeira Tuk Tuk Experiences offers a range of exciting tours and experiences in the beautiful city of Albufeira.\n\nEmbark on a city tour aboard our comfortable and stylish Tuk Tuks. Explore the vibrant city of Albufeira in a fun and unique way with our City Tour.\n\nLearn about the Albufeira's fascinating past. Our knowledgeable and friendly guides will take you on a journey through the city's charming neighborhoods, the narrow streets of the old town, traditional architecture, local culture and iconic landmarks.\n\nIf you are a tourist visiting Albufeira or a local looking for a new perspective, our tours are designed to provide you with an immersive and memorable experience. \nGet ready to capture stunning photos and create lasting memories.\n\n- City Tour duration: \nChoose how much time you want to spend 1h, 2h or 3h.\n\nIMPORTANT NOTES:\n- Minimum 1  - Maximum 6 people.\n- Price is per vehicle and not per person.\n- Minors must be accompanied by an adult. \n- Reservations can be cancelled free of charge up to 24h before the tour starts. Less than 24h no refund. No shows are not refundable.\n\nNOT RECOMMENDED TO:\n- It\u00b4s not recommended for pregnant women and intoxicated people.\n- Not recommended to mentally or physically incapacitated people.",
+						}},
+					},
+				},
+				Location: &activityv1.ActivityLocation{},
+				Features: []*activityv1.ActivityFeature{
+					{
+						Description: "Difficulty|Easy|",
+						Code:        "EX_DIFFIC|EX_DIF_1",
+					},
+					{
+						Description: "What`s included|Hotel pickup and drop-off|",
+						Code:        "EX_INCL|EX_INCL_HPD",
+					},
+					{
+						Description: "English, Spanish, Russian, Portuguese, Romanian",
+						Code:        "Languages:",
+					},
+					{
+						Description: "We invite you to discover Albufeira  by Tuk Tuk!\nEmbark on our City Tour and explore the vibrant streets and rich history of Albufeira.\nGet ready to capture stunning photos and create lasting memories.",
+						Code:        "EN Description",
+					},
+				},
+				Tags: []*activityv1.ActivityTag{
+					{
+						Active: true,
+						Id:     111,
+						Name:   "Guided Tour",
+						Slug:   "guided-tour",
+					},
+					{
+						Active: true,
+						Id:     2,
+						Name:   "Entrance Tickets",
+						Slug:   "entrance-tickets",
+					},
+				},
+				Languages: []typesv1.Language{
+					typesv1.Language_LANGUAGE_EN,
+					typesv1.Language_LANGUAGE_IT,
+				},
+				ContactInfo: &typesv1.ContactInfo{
+					Address: []*typesv1.Address{
+						{
+							Line_1:  "Calle Sant Joan 38",
+							Line_2:  "Quarter La Vileta",
+							ZipCode: "07008",
+							GeoTree: &typesv1.GeoTree{
+								Country:      typesv1.Country_COUNTRY_ES,
+								Region:       "Mallorca",
+								CityOrResort: "Palma",
+							},
+						},
+					},
+				},
+				Images: []*typesv1.Image{},
+				Videos: []*typesv1.Video{
+					{
+						File: &typesv1.File{
+							Name:         "Tuk Tuk Experiences",
+							Url:          "video_url",
+							LastModified: timestamppb.New(time.Now()),
+						},
+						Codec:       "codec",
+						Bitrate:     90,
+						Framerate:   90,
+						AspectRatio: "16:90",
+						Resolution:  "720p",
+						Format:      "mp4",
+						Category:    "Commercial",
+					},
+				},
 			},
 		},
 	}
 	return &response, nil
 }
+
 // TODO: @VjeraTurk add example for ActivityProductList
 func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
 	md := metadata.Metadata{}
