@@ -126,8 +126,8 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 				Units: []*activityv1.ActivityUnit{
 					{
 						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, nil)), //summary.start
-							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 00, 0, 0, nil)),
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, time.UTC)), //summary.start
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 00, 0, 0, time.UTC)),
 						},
 						Code:        "TK0001H1",                               //unit_code
 						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
@@ -135,8 +135,8 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 					},
 					{
 						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 9, 30, 0, 0, nil)), //summary.start
-							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 10, 30, 0, 0, nil)),
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 9, 30, 0, 0, time.UTC)), //summary.start
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 10, 30, 0, 0, time.UTC)),
 						},
 						Code:        "TK0001H0",                               //unit_code
 						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
@@ -144,8 +144,8 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 					},
 					{
 						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, nil)), //summary.start
-							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 17, 30, 0, 0, nil)),
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)), //summary.start
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 17, 30, 0, 0, time.UTC)),
 						},
 						Code:        "TK0001H2",                               //unit_code
 						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [2]", //unit_code_description
@@ -175,7 +175,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 								LocationName:    "HOTELENTRANCE / HotelEntrance",
 								PickupIndicator: true,
 								OtherInfo:       "HOTELENTRANCE",
-								DateTime:        timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, nil)),
+								DateTime:        timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)),
 								Coordinates: &typesv1.Coordinates{
 									Latitude:  37.08472,
 									Longitude: -8.31469,
