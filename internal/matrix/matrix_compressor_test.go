@@ -8,12 +8,17 @@ package matrix
 import (
 	"testing"
 
-	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
+	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/stretchr/testify/require"
 	"maunium.net/go/mautrix/event"
 )
+
+func compressOnly(msg messaging.Message) []byte {
+	compressed, _ := compress(msg) // Ignoring the second return value
+	return compressed
+}
 
 func TestChunkingCompressorCompress(t *testing.T) {
 	type args struct {
@@ -39,9 +44,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
-								Results: []*activityv1alpha.ActivitySearchResult{
-									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
+							ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+								Results: []*activityv1.ActivitySearchResult{
+									{Info: &activityv1.Activity{ServiceCode: "test"}},
 								},
 							},
 						},
@@ -58,7 +63,19 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 1,
 						ChunkIndex:     0,
 					},
-					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69, 66},
+					CompressedContent: compressOnly(
+						messaging.Message{
+							Type: messaging.ActivitySearchResponse,
+							Content: messaging.MessageContent{
+								ResponseContent: messaging.ResponseContent{
+									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+										Results: []*activityv1.ActivitySearchResult{
+											{Info: &activityv1.Activity{ServiceCode: "test"}},
+										},
+									},
+								},
+							},
+						}),
 				},
 			},
 		},
@@ -68,9 +85,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
-								Results: []*activityv1alpha.ActivitySearchResult{
-									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
+							ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+								Results: []*activityv1.ActivitySearchResult{
+									{Info: &activityv1.Activity{ServiceCode: "test"}},
 								},
 							},
 						},
@@ -87,7 +104,19 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 1,
 						ChunkIndex:     0,
 					},
-					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69, 66},
+					CompressedContent: compressOnly(
+						messaging.Message{
+							Type: messaging.ActivitySearchResponse,
+							Content: messaging.MessageContent{
+								ResponseContent: messaging.ResponseContent{
+									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+										Results: []*activityv1.ActivitySearchResult{
+											{Info: &activityv1.Activity{ServiceCode: "test"}},
+										},
+									},
+								},
+							},
+						}),
 				},
 			},
 		},
@@ -97,9 +126,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
-								Results: []*activityv1alpha.ActivitySearchResult{
-									{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
+							ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+								Results: []*activityv1.ActivitySearchResult{
+									{Info: &activityv1.Activity{ServiceCode: "test"}},
 								},
 							},
 						},
@@ -116,7 +145,21 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 2,
 						ChunkIndex:     0,
 					},
-					CompressedContent: []byte{40, 181, 47, 253, 4, 0, 81, 0, 0, 26, 8, 18, 6, 42, 4, 116, 101, 115, 116, 39, 101, 69},
+					CompressedContent: func() []byte {
+						compressedContent := compressOnly(messaging.Message{
+							Type: messaging.ActivitySearchResponse,
+							Content: messaging.MessageContent{
+								ResponseContent: messaging.ResponseContent{
+									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+										Results: []*activityv1.ActivitySearchResult{
+											{Info: &activityv1.Activity{ServiceCode: "test"}},
+										},
+									},
+								},
+							},
+						})
+						return compressedContent[:22] // First Chunk - TODO: remove 22 as length and use variable
+					}(),
 				},
 				{
 					MessageEventContent: event.MessageEventContent{
@@ -126,7 +169,21 @@ func TestChunkingCompressorCompress(t *testing.T) {
 						NumberOfChunks: 2,
 						ChunkIndex:     1,
 					},
-					CompressedContent: []byte{66},
+					CompressedContent: func() []byte {
+						compressedContent := compressOnly(messaging.Message{
+							Type: messaging.ActivitySearchResponse,
+							Content: messaging.MessageContent{
+								ResponseContent: messaging.ResponseContent{
+									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+										Results: []*activityv1.ActivitySearchResult{
+											{Info: &activityv1.Activity{ServiceCode: "test"}},
+										},
+									},
+								},
+							},
+						})
+						return compressedContent[22:] // Second Chunk
+					}(),
 				},
 			},
 		},

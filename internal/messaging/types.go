@@ -3,15 +3,15 @@ package messaging
 import (
 	"errors"
 
-	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
-	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
-	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
-	infov1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1alpha"
-	networkv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1alpha"
-	partnerv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1alpha"
-	pingv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1alpha"
-	seat_mapv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1alpha"
-	transportv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1alpha"
+	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
+	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
+	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
+	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
+	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
+	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	seat_mapv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
+	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
@@ -21,37 +21,39 @@ import (
 var ErrUnknownMessageType = errors.New("unknown message type")
 
 type RequestContent struct {
-	*activityv1alpha.ActivityProductListRequest
-	*activityv1alpha.ActivitySearchRequest
-	*accommodationv1alpha.AccommodationProductInfoRequest
-	*accommodationv1alpha.AccommodationProductListRequest
-	*accommodationv1alpha.AccommodationSearchRequest
-	*networkv1alpha.GetNetworkFeeRequest
-	*partnerv1alpha.GetPartnerConfigurationRequest
-	*bookv1alpha.MintRequest
-	*bookv1alpha.ValidationRequest
-	*pingv1alpha.PingRequest
-	*transportv1alpha.TransportSearchRequest
-	*seat_mapv1alpha.SeatMapRequest
-	*seat_mapv1alpha.SeatMapAvailabilityRequest
-	*infov1alpha.CountryEntryRequirementsRequest
+	*activityv1.ActivityProductInfoRequest
+	*activityv1.ActivityProductListRequest
+	*activityv1.ActivitySearchRequest
+	*accommodationv1.AccommodationProductInfoRequest
+	*accommodationv1.AccommodationProductListRequest
+	*accommodationv1.AccommodationSearchRequest
+	*networkv1.GetNetworkFeeRequest
+	*partnerv1.GetPartnerConfigurationRequest
+	*bookv1.MintRequest
+	*bookv1.ValidationRequest
+	*pingv1.PingRequest
+	*transportv1.TransportSearchRequest
+	*seat_mapv1.SeatMapRequest
+	*seat_mapv1.SeatMapAvailabilityRequest
+	*infov1.CountryEntryRequirementsRequest
 }
 
 type ResponseContent struct {
-	*activityv1alpha.ActivityProductListResponse
-	*activityv1alpha.ActivitySearchResponse
-	*accommodationv1alpha.AccommodationProductInfoResponse
-	*accommodationv1alpha.AccommodationProductListResponse
-	*accommodationv1alpha.AccommodationSearchResponse
-	*networkv1alpha.GetNetworkFeeResponse
-	*partnerv1alpha.GetPartnerConfigurationResponse
-	*bookv1alpha.MintResponse
-	*bookv1alpha.ValidationResponse
-	*pingv1alpha.PingResponse
-	*transportv1alpha.TransportSearchResponse
-	*seat_mapv1alpha.SeatMapResponse
-	*seat_mapv1alpha.SeatMapAvailabilityResponse
-	*infov1alpha.CountryEntryRequirementsResponse
+	*activityv1.ActivityProductInfoResponse
+	*activityv1.ActivityProductListResponse
+	*activityv1.ActivitySearchResponse
+	*accommodationv1.AccommodationProductInfoResponse
+	*accommodationv1.AccommodationProductListResponse
+	*accommodationv1.AccommodationSearchResponse
+	*networkv1.GetNetworkFeeResponse
+	*partnerv1.GetPartnerConfigurationResponse
+	*bookv1.MintResponse
+	*bookv1.ValidationResponse
+	*pingv1.PingResponse
+	*transportv1.TransportSearchResponse
+	*seat_mapv1.SeatMapResponse
+	*seat_mapv1.SeatMapAvailabilityResponse
+	*infov1.CountryEntryRequirementsResponse
 }
 
 type MessageContent struct {
@@ -78,6 +80,8 @@ const (
 	Unknown
 
 	// message types
+	ActivityProductInfoRequest       MessageType = "ActivityProductInfoRequest"
+	ActivityProductInfoResponse      MessageType = "ActivityProductInfoResponse"
 	ActivityProductListRequest       MessageType = "ActivityProductListRequest"
 	ActivityProductListResponse      MessageType = "ActivityProductListResponse"
 	ActivitySearchRequest            MessageType = "ActivitySearchRequest"
@@ -110,20 +114,24 @@ const (
 
 func (mt MessageType) Category() MessageCategory {
 	switch mt {
-	case ActivityProductListRequest,
+	case ActivityProductInfoRequest,
+		ActivityProductListRequest,
 		ActivitySearchRequest,
 		AccommodationProductInfoRequest,
 		AccommodationProductListRequest,
 		AccommodationSearchRequest,
 		MintRequest,
 		ValidationRequest,
+		GetNetworkFeeRequest,
+		GetPartnerConfigurationRequest,
 		PingRequest,
 		TransportSearchRequest,
 		SeatMapRequest,
 		SeatMapAvailabilityRequest,
 		CountryEntryRequirementsRequest:
 		return Request
-	case ActivityProductListResponse,
+	case ActivityProductInfoResponse,
+		ActivityProductListResponse,
 		ActivitySearchResponse,
 		AccommodationProductInfoResponse,
 		AccommodationProductListResponse,
@@ -153,6 +161,10 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.ActivitySearchRequest)
 	case ActivitySearchResponse:
 		return proto.Marshal(m.Content.ActivitySearchResponse)
+	case ActivityProductInfoRequest:
+		return proto.Marshal(m.Content.ActivityProductInfoRequest)
+	case ActivityProductInfoResponse:
+		return proto.Marshal(m.Content.ActivityProductInfoResponse)
 	case AccommodationProductInfoRequest:
 		return proto.Marshal(m.Content.AccommodationProductInfoRequest)
 	case AccommodationProductInfoResponse:

@@ -8,12 +8,12 @@ package messaging
 import (
 	"sync"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1alpha/activityv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1alpha/bookv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1alpha/infov1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1alpha/seat_mapv1alphagrpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1alpha/transportv1alphagrpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"go.uber.org/zap"
@@ -44,44 +44,47 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 	for _, requestType := range requestTypes {
 		var service Service
 		switch MessageType(requestType) {
+		case ActivityProductInfoRequest:
+			c := activityv1grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
+			service = activityProductInfoService{client: &c}
 		case ActivityProductListRequest:
-			c := activityv1alphagrpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
+			c := activityv1grpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
 			service = activityProductListService{client: c}
 		case ActivitySearchRequest:
-			c := activityv1alphagrpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
+			c := activityv1grpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
 			service = activityService{client: &c}
 		case AccommodationProductInfoRequest:
-			c := accommodationv1alphagrpc.NewAccommodationProductInfoServiceClient(rpcClient.ClientConn)
+			c := accommodationv1grpc.NewAccommodationProductInfoServiceClient(rpcClient.ClientConn)
 			service = accommodationProductInfoService{client: &c}
 		case AccommodationProductListRequest:
-			c := accommodationv1alphagrpc.NewAccommodationProductListServiceClient(rpcClient.ClientConn)
+			c := accommodationv1grpc.NewAccommodationProductListServiceClient(rpcClient.ClientConn)
 			service = accommodationProductListService{client: &c}
 		case AccommodationSearchRequest:
-			c := accommodationv1alphagrpc.NewAccommodationSearchServiceClient(rpcClient.ClientConn)
+			c := accommodationv1grpc.NewAccommodationSearchServiceClient(rpcClient.ClientConn)
 			service = accommodationService{client: &c}
 		case GetNetworkFeeRequest:
 			service = networkService{} // this service does not talk to partner plugin
 		case GetPartnerConfigurationRequest:
 			service = partnerService{} // this service does not talk to partner plugin
 		case MintRequest:
-			c := bookv1alphagrpc.NewMintServiceClient(rpcClient.ClientConn)
+			c := bookv1grpc.NewMintServiceClient(rpcClient.ClientConn)
 			service = mintService{client: &c}
 		case ValidationRequest:
-			c := bookv1alphagrpc.NewValidationServiceClient(rpcClient.ClientConn)
+			c := bookv1grpc.NewValidationServiceClient(rpcClient.ClientConn)
 			service = validationService{client: &c}
 		case PingRequest:
 			service = pingService{} // this service does not talk to partner plugin
 		case TransportSearchRequest:
-			c := transportv1alphagrpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
+			c := transportv1grpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
 			service = transportService{client: &c}
 		case SeatMapRequest:
-			c := seat_mapv1alphagrpc.NewSeatMapServiceClient(rpcClient.ClientConn)
+			c := seat_mapv1grpc.NewSeatMapServiceClient(rpcClient.ClientConn)
 			service = seatMapService{client: &c}
 		case SeatMapAvailabilityRequest:
-			c := seat_mapv1alphagrpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
+			c := seat_mapv1grpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
 			service = seatMapAvailabilityService{client: &c}
 		case CountryEntryRequirementsRequest:
-			c := infov1alphagrpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
+			c := infov1grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
 			service = countryEntryRequirementsService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)
