@@ -37,7 +37,7 @@ func main() {
 	times := flag.Int("requests", 1, "Repeat the request n times")
 	host := flag.String("host", "127.0.0.1", "Distributor bot host")
 	port := flag.Int("port", 9092, "Distributor bot port")
-	recipient := flag.String("recipient", "@t-kopernikus1tyewqsap6v8r8wghg7qn7dyfzg2prtcrw04ke3:matrix.camino.network", "Recipient address (format: @t-kopernikus[...]:matrix.camino.network")
+	recipient := flag.String("recipient", "@0xeb3D6560a5eCf3e00b68a4b2899FEc93419F06B9:matrix.camino.network", "Recipient c-chain address (format: @[...]:matrix.camino.network")
 	caCertFile := flag.String("ca-cert-file", "", "CA certificate file (optional)")
 	flag.Parse()
 
