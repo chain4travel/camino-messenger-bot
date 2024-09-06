@@ -43,6 +43,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 	// TODO @evlekht use actual git tag/commit
 	app.logger.Info("version: 9.0.0")
+	// fmt.Println("Version:\t", Version)
 
 	return app, nil
 }
