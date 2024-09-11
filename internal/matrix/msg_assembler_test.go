@@ -10,7 +10,7 @@ import (
 
 	"maunium.net/go/mautrix/event"
 
-	activityv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1alpha"
+	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -23,9 +23,9 @@ func TestAssembleMessage(t *testing.T) {
 		Type: messaging.ActivitySearchResponse,
 		Content: messaging.MessageContent{
 			ResponseContent: messaging.ResponseContent{
-				ActivitySearchResponse: &activityv1alpha.ActivitySearchResponse{
-					Results: []*activityv1alpha.ActivitySearchResult{
-						{Info: &activityv1alpha.Activity{ServiceCode: "test"}},
+				ActivitySearchResponse: &activityv1.ActivitySearchResponse{
+					Results: []*activityv1.ActivitySearchResult{
+						{Info: &activityv1.Activity{ServiceCode: "test"}},
 					},
 				},
 			},

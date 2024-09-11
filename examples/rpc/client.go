@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1alpha/accommodationv1alphagrpc"
-	accommodationv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1alpha"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
+	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	internalmetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -72,17 +72,17 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 		fmt.Errorf("error starting client: %v", err)
 		return
 	}
-	request := &accommodationv1alpha.AccommodationSearchRequest{
+	request := &accommodationv1.AccommodationSearchRequest{
 		Header: nil,
-		SearchParametersGeneric: &typesv1alpha.SearchParameters{
-			Language:   typesv1alpha.Language_LANGUAGE_UG,
+		SearchParametersGeneric: &typesv1.SearchParameters{
+			Language:   typesv1.Language_LANGUAGE_UG,
 			Market:     1,
 			MaxOptions: 2,
 		},
-		Queries: []*accommodationv1alpha.AccommodationSearchQuery{
+		Queries: []*accommodationv1.AccommodationSearchQuery{
 			{
-				SearchParametersAccommodation: &accommodationv1alpha.AccommodationSearchParameters{
-					SupplierCodes: []*typesv1alpha.SupplierProductCode{{SupplierCode: "supplier1"}},
+				SearchParametersAccommodation: &accommodationv1.AccommodationSearchParameters{
+					SupplierCodes: []*typesv1.SupplierProductCode{{SupplierCode: "supplier1"}},
 				},
 			},
 		},
@@ -93,7 +93,7 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 	})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	ass := accommodationv1alphagrpc.NewAccommodationSearchServiceClient(c.ClientConn)
+	ass := accommodationv1grpc.NewAccommodationSearchServiceClient(c.ClientConn)
 	begin := time.Now()
 	var header metadata.MD
 	resp, err := ass.AccommodationSearch(ctx, request, grpc.Header(&header))
@@ -114,7 +114,7 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 	c.Shutdown()
 }
 
-func addToDataset(counter int64, totalTime int64, resp *accommodationv1alpha.AccommodationSearchResponse, metadata *internalmetadata.Metadata, loadTestData [][]string, mu sync.Mutex) {
+func addToDataset(counter int64, totalTime int64, resp *accommodationv1.AccommodationSearchResponse, metadata *internalmetadata.Metadata, loadTestData [][]string, mu sync.Mutex) {
 	var data []string
 	var entries []struct {
 		Key   string

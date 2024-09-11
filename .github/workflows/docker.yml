@@ -1,8 +1,8 @@
 name: Publish Docker image
 
 on:
-  push:
-    branches: [c4t]
+  release:
+    types: [published]
 
 jobs:
   push_to_dockerhub:
@@ -10,8 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out the repo
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+          ref: ${{ github.event.release.tag_name }}
       
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -26,4 +30,4 @@ jobs:
           push: true
           tags: |
             c4tplatform/camino-messenger-bot:latest
-            c4tplatform/camino-messenger-bot:${{ github.sha }}
+            c4tplatform/camino-messenger-bot:${{ github.event.release.tag_name }}

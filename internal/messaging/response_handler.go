@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	bookv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1alpha"
-	typesv1alpha "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1alpha"
+	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
@@ -109,7 +109,7 @@ func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType MessageTyp
 
 func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
 	if response.MintResponse.Header == nil {
-		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
+		response.MintResponse.Header = &typesv1.ResponseHeader{}
 	}
 
 	packedData, err := h.tokenABI.Pack("getSupplierName", h.cChainAddress)
@@ -188,15 +188,15 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	}
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
-	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_SUCCESS
-	response.MintResponse.BookingToken = &typesv1alpha.BookingToken{TokenId: int32(tokenID.Int64())}
+	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
+	response.MintResponse.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())}
 	response.MintTransactionId = txID
 	return false
 }
 
 func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
 	if response.MintResponse.Header == nil {
-		response.MintResponse.Header = &typesv1alpha.ResponseHeader{}
+		response.MintResponse.Header = &typesv1.ResponseHeader{}
 	}
 	if response.MintTransactionId == "" {
 		addErrorToResponseHeader(response, "missing mint transaction id")
@@ -485,7 +485,7 @@ func generateAndEncodeJSON(name, description, date, externalURL, image string, a
 // TODO: @havan: We need decide what data needs to be in the tokenURI JSON and add
 // those fields to the MintResponse. These will be shown in the UI of wallets,
 // explorers etc.
-func createTokenURIforMintResponse(mintResponse *bookv1alpha.MintResponse) (string, string, error) {
+func createTokenURIforMintResponse(mintResponse *bookv1.MintResponse) (string, string, error) {
 	// TODO: What should we use for a token name? This will be shown in the UI of wallets, explorers etc.
 	name := "CM Booking Token"
 
@@ -503,7 +503,7 @@ func createTokenURIforMintResponse(mintResponse *bookv1alpha.MintResponse) (stri
 	attributes := []Attribute{
 		{
 			TraitType: "Mint ID",
-			Value:     mintResponse.GetMintId(),
+			Value:     mintResponse.GetMintId().Value,
 		},
 		{
 			TraitType: "Reference",
@@ -530,9 +530,9 @@ func createTokenURIforMintResponse(mintResponse *bookv1alpha.MintResponse) (stri
 }
 
 func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
-	response.MintResponse.Header.Status = typesv1alpha.StatusType_STATUS_TYPE_FAILURE
-	response.MintResponse.Header.Alerts = append(response.MintResponse.Header.Alerts, &typesv1alpha.Alert{
+	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_FAILURE
+	response.MintResponse.Header.Alerts = append(response.MintResponse.Header.Alerts, &typesv1.Alert{
 		Message: errMessage,
-		Type:    typesv1alpha.AlertType_ALERT_TYPE_ERROR,
+		Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 	})
 }
