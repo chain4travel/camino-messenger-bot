@@ -35,10 +35,12 @@ func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.PrivateKey, EvmPrivateKey, "", "The EVM private key")
 	fs.StringVar(&cfg.RPCURL, RPCURLKey, "", "The EVM RPC URL")
-	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D", "BookingToken address")
+	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address")
 	fs.StringVar(&cfg.BookingTokenABIFile, BookingTokenABIFileKey, "./abi/BookingTokenV0.abi", "BookingToken ABI file")
 	fs.StringVar(&cfg.SupplierName, SupplierNameKey, "CM Supplier", "Supplier name for the Booking Token registration")
 	fs.Uint64Var(&cfg.BuyableUntilDefault, BuyableUntilDefaultKey, 600, "How log the Token is buyable in seconds")
+	fs.StringVar(&cfg.CMAccountABIFile, CMAccountABIFileKey, "./abi/CMAccount.abi", "CMAccount ABI")
+	fs.StringVar(&cfg.CMAccountAddress, CMAccountAddressKey, "", "CMAccount address")
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {

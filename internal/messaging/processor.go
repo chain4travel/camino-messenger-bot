@@ -9,6 +9,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -25,6 +26,8 @@ var (
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
 	ErrUnsupportedRequestType     = errors.New("unsupported request type")
 	ErrMissingRecipient           = errors.New("missing recipient")
+	ErrMissingCMAccountRecipient  = errors.New("missing CM Account recipient")
+	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
 )
 
@@ -50,10 +53,11 @@ type processor struct {
 	tracer    trace.Tracer
 	timeout   time.Duration // timeout after which a request is considered failed
 
-	mu               sync.Mutex
-	responseChannels map[string]chan *Message
-	serviceRegistry  ServiceRegistry
-	responseHandler  ResponseHandler
+	mu                    sync.Mutex
+	responseChannels      map[string]chan *Message
+	serviceRegistry       ServiceRegistry
+	responseHandler       ResponseHandler
+	identificationHandler IdentificationHandler
 }
 
 func (p *processor) SetUserID(userID string) {
@@ -64,16 +68,17 @@ func (*processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
 	return &processor{
-		cfg:              cfg,
-		messenger:        messenger,
-		logger:           logger,
-		tracer:           otel.GetTracerProvider().Tracer(""),
-		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels: make(map[string]chan *Message),
-		serviceRegistry:  registry,
-		responseHandler:  responseHandler,
+		cfg:                   cfg,
+		messenger:             messenger,
+		logger:                logger,
+		tracer:                otel.GetTracerProvider().Tracer(""),
+		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
+		responseChannels:      make(map[string]chan *Message),
+		serviceRegistry:       registry,
+		responseHandler:       responseHandler,
+		identificationHandler: identificationHandler,
 	}
 }
 
@@ -137,9 +142,28 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
-
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
-		return nil, ErrMissingRecipient
+		if msg.Metadata.RecipientCMAccount == "" {
+			return nil, ErrMissingCMAccountRecipient
+		}
+
+		// lookup for CM Account -> bot
+		botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)]
+
+		if botAddress == "" {
+			// if not in mapping, fetch 1 bot from CM Account
+			botAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.RecipientCMAccount))
+			if err != nil {
+				return nil, err
+			}
+			CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)] = botAddress
+			msg.Metadata.Recipient = botAddress
+			// TODO: @VjeraTurk forward the message to the correct bot?
+		} else {
+			msg.Metadata.Recipient = botAddress
+			// TODO: @VjeraTurk forward the message to the correct bot?
+		}
+		// return nil, ErrMissingRecipient
 	}
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))

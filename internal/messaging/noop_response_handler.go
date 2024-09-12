@@ -7,6 +7,8 @@ package messaging
 
 import (
 	"context"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var _ ResponseHandler = (*NoopResponseHandler)(nil)
@@ -18,4 +20,16 @@ func (NoopResponseHandler) HandleResponse(context.Context, MessageType, *Request
 
 func (NoopResponseHandler) HandleRequest(context.Context, MessageType, *RequestContent) error {
 	return nil
+}
+
+func (NoopResponseHandler) getAllBotAddressesFromCMAccountAddress(common.Address) ([]string, error) {
+	return nil, nil
+}
+
+func (NoopResponseHandler) getSingleBotFromCMAccountAddress(common.Address) (string, error) {
+	return "", nil
+}
+
+func (NoopResponseHandler) isMyCMAccount(common.Address) bool {
+	return false
 }
