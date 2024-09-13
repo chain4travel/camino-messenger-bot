@@ -14,6 +14,11 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
 
+type SignedCheque struct {
+	Cheque    `json:"cheque"`
+	Signature []byte `json:"signature"`
+}
+
 type Cheque struct {
 	FromCMAccount common.Address `json:"fromCMAccount"`
 	ToCMAccount   common.Address `json:"toCMAccount"`
@@ -76,7 +81,7 @@ func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*chequeSig
 	}, nil
 }
 
-func (cs *chequeSigner) SignCheque(cheque *Cheque) ([]byte, error) {
+func (cs *chequeSigner) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 	message := apitypes.TypedDataMessage{
 		"fromCMAccount": cheque.FromCMAccount.Hex(),
 		"toCMAccount":   cheque.ToCMAccount.Hex(),
@@ -111,5 +116,8 @@ func (cs *chequeSigner) SignCheque(cheque *Cheque) ([]byte, error) {
 		return nil, fmt.Errorf("failed to sign the hash: %v", err)
 	}
 
-	return signature, nil
+	return &SignedCheque{
+		Cheque:    *cheque,
+		Signature: signature,
+	}, nil
 }
