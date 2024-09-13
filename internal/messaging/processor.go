@@ -157,11 +157,11 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 				return nil, err
 			}
 			CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)] = botAddress
-			msg.Metadata.Recipient = botAddress
-			// TODO: @VjeraTurk forward the message to the correct bot?
+			msg.Metadata.Recipient = "@" + botAddress + ":" + "dev.matrix.camino.network"
+			// TODO: @VjeraTurk forward the message to the correct bot
 		} else {
-			msg.Metadata.Recipient = botAddress
-			// TODO: @VjeraTurk forward the message to the correct bot?
+			msg.Metadata.Recipient = "@" + botAddress + ":" + "dev.matrix.camino.network"
+			// TODO: @VjeraTurk forward the message to the correct bot
 		}
 		// return nil, ErrMissingRecipient
 	}

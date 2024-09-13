@@ -19,6 +19,7 @@ type Metadata struct {
 	NumberOfChunks     uint                     `json:"number_of_chunks"`
 	ChunkIndex         uint                     `json:"chunk_index"`
 	RecipientCMAccount string                   `json:"recipient_cm_account"`
+	SenderCMAccount    string                   `json:"sender_cm_account"`
 	// Deprecated: this metadata serves only as a temp solution and should be removed and addressed on the protocol level
 	ProviderOperator string `json:"provider_operator"`
 }
@@ -67,6 +68,10 @@ func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
 
 	if recipientCmAccount, found := mdPairs["recipient_cm_account"]; found {
 		m.RecipientCMAccount = recipientCmAccount[0]
+	}
+
+	if senderCmAccount, found := mdPairs["sender_cm_account"]; found {
+		m.SenderCMAccount = senderCmAccount[0]
 	}
 	return nil
 }
