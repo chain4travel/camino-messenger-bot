@@ -6,12 +6,15 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
+	"github.com/chain4travel/camino-messenger-bot/internal/evm/events"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
+	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -66,6 +69,26 @@ func (a *App) Run(ctx context.Context) error {
 	evmClient, err := evm.NewClient(a.cfg.EvmConfig)
 	if err != nil {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
+	}
+
+	// create and start event listener
+	bookingTokenAddr := common.HexToAddress(a.cfg.BookingTokenAddress)
+
+	eventListener, err := events.NewEventListener(evmClient, a.logger, bookingTokenAddr)
+	if err != nil {
+		a.logger.Fatalf("Failed to create event listener: %v", err)
+	}
+
+	// Register an event handler for the BookingToken "TokenBought" event
+	eventListener.RegisterHandler(bookingTokenAddr, "TokenReserved", func(event interface{}) {
+		e := event.(*bookingtoken.BookingtokenTokenReserved)
+		a.logger.Infof("📅 TokenReserved event: TokenId %s, Reserved For %s by Supplier %s\n", e.TokenId.String(), e.ReservedFor.Hex(), e.Supplier.Hex())
+	})
+
+	// Start listening for events in the background
+	err = eventListener.StartListening()
+	if err != nil {
+		a.logger.Fatalf("Failed to start event listener: %v", err)
 	}
 
 	// create response handler
