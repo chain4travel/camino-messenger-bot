@@ -1,17 +1,13 @@
 package cheques
 
 import (
-	"math/big"
-	"time"
-
-	"crypto/ecdsa"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 type SignedCheque struct {
@@ -25,99 +21,69 @@ type Cheque struct {
 	ToBot         common.Address `json:"toBot"`
 	Counter       *big.Int       `json:"counter"`
 	Amount        *big.Int       `json:"amount"`
-	CreatedAt     time.Time      `json:"createdAt"`
-	ExpiresAt     time.Time      `json:"expiresAt"`
+	CreatedAt     *big.Int       `json:"createdAt"`
+	ExpiresAt     *big.Int       `json:"expiresAt"`
 }
 
-var (
-	types = apitypes.Types{
-		"EIP712Domain": {
-			{Name: "name", Type: "string"},
-			{Name: "version", Type: "string"},
-			{Name: "chainId", Type: "uint256"},
+type signedChequeJSON struct {
+	Cheque    chequeJSON `json:"cheque"`
+	Signature string     `json:"signature"`
+}
+
+type chequeJSON struct {
+	FromCMAccount string `json:"fromCMAccount"`
+	ToCMAccount   string `json:"toCMAccount"`
+	ToBot         string `json:"toBot"`
+	Counter       string `json:"counter"`
+	Amount        string `json:"amount"`
+	CreatedAt     uint64 `json:"createdAt"`
+	ExpiresAt     uint64 `json:"expiresAt"`
+}
+
+func (sc *SignedCheque) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&signedChequeJSON{
+		Cheque: chequeJSON{
+			FromCMAccount: sc.Cheque.FromCMAccount.Hex(),
+			ToCMAccount:   sc.Cheque.ToCMAccount.Hex(),
+			ToBot:         sc.Cheque.ToBot.Hex(),
+			Counter:       hexutil.EncodeBig(sc.Cheque.Counter),
+			Amount:        hexutil.EncodeBig(sc.Cheque.Amount),
+			CreatedAt:     sc.Cheque.CreatedAt.Uint64(),
+			ExpiresAt:     sc.Cheque.ExpiresAt.Uint64(),
 		},
-		"Cheque": {
-			{Name: "fromCMAccount", Type: "address"},
-			{Name: "toCMAccount", Type: "address"},
-			{Name: "toBot", Type: "address"},
-			{Name: "counter", Type: "uint256"},
-			{Name: "amount", Type: "uint256"},
-			{Name: "createdAt", Type: "uint256"},
-			{Name: "expiresAt", Type: "uint256"},
-		},
-	}
-)
-
-type chequeSigner struct {
-	privateKey *ecdsa.PrivateKey
-	domainHash []byte
+		Signature: hex.EncodeToString(sc.Signature),
+	})
 }
 
-func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*chequeSigner, error) {
-	domain := apitypes.TypedDataDomain{
-		Name:    "CaminoMessenger",
-		Version: "1",
-		ChainId: (*math.HexOrDecimal256)(chainID),
+func (sc *SignedCheque) UnmarshalJSON(data []byte) error {
+	var raw signedChequeJSON
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
 	}
 
-	domainData := apitypes.TypedData{
-		Domain: domain,
-		Types:  types,
-	}
-	domainMessage := apitypes.TypedDataMessage{
-		"name":    domain.Name,
-		"version": domain.Version,
-		"chainId": domain.ChainId,
-	}
-
-	domainHash, err := domainData.HashStruct("EIP712Domain", domainMessage)
+	counter, err := hexutil.DecodeBig(raw.Cheque.Counter)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	sc.Cheque.Counter = counter
 
-	return &chequeSigner{
-		privateKey: privateKey,
-		domainHash: domainHash,
-	}, nil
-}
-
-func (cs *chequeSigner) SignCheque(cheque *Cheque) (*SignedCheque, error) {
-	message := apitypes.TypedDataMessage{
-		"fromCMAccount": cheque.FromCMAccount.Hex(),
-		"toCMAccount":   cheque.ToCMAccount.Hex(),
-		"toBot":         cheque.ToBot.Hex(),
-		"counter":       cheque.Counter,
-		"amount":        cheque.Amount,
-		"createdAt":     cheque.CreatedAt.Unix(),
-		"expiresAt":     cheque.ExpiresAt.Unix(),
-	}
-
-	data := apitypes.TypedData{
-		Types:       types,
-		Message:     message,
-		PrimaryType: "Cheque",
-	}
-
-	messageHash, err := data.HashStruct(data.PrimaryType, message)
+	amount, err := hexutil.DecodeBig(raw.Cheque.Amount)
 	if err != nil {
-		return nil, fmt.Errorf("failed to hash struct: %v", err)
+		return err
 	}
+	sc.Cheque.Amount = amount
 
-	// Calculate the final hash (EIP-712 final hash: keccak256("\x19\x01", domainHash, messageHash))
-	finalHash := crypto.Keccak256(
-		[]byte{0x19, 0x01},
-		cs.domainHash,
-		messageHash,
-	)
-
-	// Sign the final hash
-	signature, err := crypto.Sign(finalHash, cs.privateKey)
+	signatureBytes, err := hex.DecodeString(raw.Signature)
 	if err != nil {
-		return nil, fmt.Errorf("failed to sign the hash: %v", err)
+		return fmt.Errorf("invalid signature hex string: %w", err)
 	}
+	sc.Signature = signatureBytes
 
-	return &SignedCheque{
-		Cheque:    *cheque,
-		Signature: signature,
-	}, nil
+	sc.Cheque.FromCMAccount = common.HexToAddress(raw.Cheque.FromCMAccount)
+	sc.Cheque.ToCMAccount = common.HexToAddress(raw.Cheque.ToCMAccount)
+	sc.Cheque.ToBot = common.HexToAddress(raw.Cheque.ToBot)
+	sc.Cheque.CreatedAt = big.NewInt(0).SetUint64(raw.Cheque.CreatedAt)
+	sc.Cheque.ExpiresAt = big.NewInt(0).SetUint64(raw.Cheque.ExpiresAt)
+
+	return nil
 }

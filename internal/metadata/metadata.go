@@ -17,8 +17,8 @@ type Metadata struct {
 	Recipient      string                 `json:"recipient"`
 	Cheques        []cheques.SignedCheque `json:"cheques"`
 	Timestamps     map[string]int64       `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
-	NumberOfChunks uint                   `json:"number_of_chunks"`
-	ChunkIndex     uint                   `json:"chunk_index"`
+	NumberOfChunks uint64                 `json:"number_of_chunks"`
+	ChunkIndex     uint64                 `json:"chunk_index"`
 
 	// Deprecated: this metadata serves only as a temp solution and should be removed and addressed on the protocol level
 	ProviderOperator string `json:"provider_operator"`
