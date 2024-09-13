@@ -33,3 +33,7 @@ func (NoopResponseHandler) getSingleBotFromCMAccountAddress(common.Address) (str
 func (NoopResponseHandler) isMyCMAccount(common.Address) bool {
 	return false
 }
+
+func (NoopResponseHandler) getMatrixHost() string {
+	return ""
+}

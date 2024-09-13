@@ -75,7 +75,7 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
-	identificationHandler, err := messaging.NewIdentificationHandler(evmClient, a.logger, &a.cfg.EvmConfig)
+	identificationHandler, err := messaging.NewIdentificationHandler(evmClient, a.logger, &a.cfg.EvmConfig, &a.cfg.MatrixConfig)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}

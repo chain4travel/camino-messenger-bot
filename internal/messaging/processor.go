@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -156,14 +157,12 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 			if err != nil {
 				return nil, err
 			}
+			botAddress = "@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
 			CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)] = botAddress
-			msg.Metadata.Recipient = "@" + botAddress + ":" + "dev.matrix.camino.network"
-			// TODO: @VjeraTurk forward the message to the correct bot
+			msg.Metadata.Recipient = botAddress
 		} else {
-			msg.Metadata.Recipient = "@" + botAddress + ":" + "dev.matrix.camino.network"
-			// TODO: @VjeraTurk forward the message to the correct bot
+			msg.Metadata.Recipient = botAddress
 		}
-		// return nil, ErrMissingRecipient
 	}
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))

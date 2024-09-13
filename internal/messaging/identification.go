@@ -24,12 +24,18 @@ type evmIdentificationHandler struct {
 	ethClient    *ethclient.Client
 	CMAccountABI *abi.ABI
 	cfg          *config.EvmConfig
+	matrixHost   string
 }
 
 type IdentificationHandler interface {
 	getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]string, error)
 	getSingleBotFromCMAccountAddress(cmAccountAddress common.Address) (string, error)
 	isMyCMAccount(cmAccountAddress common.Address) bool
+	getMatrixHost() string
+}
+
+func (cm *evmIdentificationHandler) getMatrixHost() string {
+	return cm.matrixHost
 }
 
 // Add configuration to the bot to configure to which CM-Account it belongs (to prevent that they're part of multiple CM-Accounts)
@@ -37,7 +43,7 @@ func (cm *evmIdentificationHandler) isMyCMAccount(cmAccountAddress common.Addres
 	return cmAccountAddress == common.HexToAddress(cm.cfg.CMAccountAddress)
 }
 
-func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig) (IdentificationHandler, error) {
+func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig, mCfg *config.MatrixConfig) (IdentificationHandler, error) {
 	abi, err := loadABI(cfg.CMAccountABIFile)
 	if err != nil {
 		return nil, err
@@ -47,6 +53,7 @@ func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger,
 		ethClient:    ethClient,
 		CMAccountABI: abi,
 		cfg:          cfg,
+		matrixHost:   mCfg.Host,
 	}, nil
 }
 
