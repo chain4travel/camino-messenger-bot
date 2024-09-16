@@ -10,15 +10,20 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
 
+const (
+	domainType = "EIP712Domain"
+	chequeType = "MessengerCheque"
+)
+
 var (
 	hashPrefix = []byte{0x19, 0x01}
 	types      = apitypes.Types{
-		"EIP712Domain": {
+		domainType: {
 			{Name: "name", Type: "string"},
 			{Name: "version", Type: "string"},
 			{Name: "chainId", Type: "uint256"},
 		},
-		"Cheque": {
+		chequeType: {
 			{Name: "fromCMAccount", Type: "address"},
 			{Name: "toCMAccount", Type: "address"},
 			{Name: "toBot", Type: "address"},
@@ -31,9 +36,10 @@ var (
 )
 
 type chequeSigner struct {
-	privateKey *ecdsa.PrivateKey
-	domainHash []byte
-	domain     *apitypes.TypedDataDomain
+	privateKey      *ecdsa.PrivateKey
+	domainSeparator []byte
+	chequeTypeHash  []byte
+	domain          *apitypes.TypedDataDomain
 }
 
 func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*chequeSigner, error) {
@@ -43,25 +49,25 @@ func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*chequeSig
 		ChainId: (*math.HexOrDecimal256)(chainID),
 	}
 
-	domainData := apitypes.TypedData{
+	data := apitypes.TypedData{
 		Domain: domain,
 		Types:  types,
 	}
-	domainMessage := apitypes.TypedDataMessage{
+
+	domainSeparator, err := data.HashStruct(domainType, apitypes.TypedDataMessage{
 		"name":    domain.Name,
 		"version": domain.Version,
 		"chainId": domain.ChainId,
-	}
-
-	domainHash, err := domainData.HashStruct("EIP712Domain", domainMessage)
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &chequeSigner{
-		privateKey: privateKey,
-		domainHash: domainHash,
-		domain:     &domain,
+		privateKey:      privateKey,
+		domainSeparator: domainSeparator,
+		chequeTypeHash:  data.TypeHash(chequeType),
+		domain:          &domain,
 	}, nil
 }
 
@@ -76,30 +82,31 @@ func (cs *chequeSigner) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 		"expiresAt":     cheque.ExpiresAt,
 	}
 
-	data := apitypes.TypedData{
+	data := &apitypes.TypedData{
 		Types:       types,
 		Domain:      *cs.domain,
 		Message:     message,
-		PrimaryType: "Cheque",
+		PrimaryType: chequeType,
 	}
 
-	messageHash, err := data.HashStruct(data.PrimaryType, message)
+	typedDataHash, err := hashStructWithTypeHash(data, chequeType, cs.chequeTypeHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash struct: %v", err)
 	}
 
-	// Calculate the final hash (EIP-712 final hash: keccak256("\x19\x01", domainHash, messageHash))
 	finalHash := crypto.Keccak256(
 		hashPrefix,
-		cs.domainHash,
-		messageHash,
+		cs.domainSeparator,
+		typedDataHash,
 	)
 
-	// Sign the final hash
 	signature, err := crypto.Sign(finalHash, cs.privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign the hash: %v", err)
 	}
+
+	// adjust recovery byte for compatibility
+	signature[64] += 27
 
 	return &SignedCheque{
 		Cheque:    *cheque,
