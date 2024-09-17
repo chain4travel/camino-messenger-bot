@@ -1,3 +1,5 @@
+// listener.go
+
 package events
 
 import (
@@ -5,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"sync"
+	"time"
 
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
@@ -22,7 +25,17 @@ type EventHandler func(event interface{})
 // ListenerHandle is a handle returned when registering an event handler,
 // which can be used to stop listening to that event
 type ListenerHandle interface {
-	Stop()
+	Unsubscribe()
+}
+
+// subscriptionInfo holds information about a subscription
+type subscriptionInfo struct {
+	subID       string
+	sub         event.Subscription
+	contract    common.Address
+	closeChan   func()
+	handler     EventHandler
+	unsubscribe context.CancelFunc // Used to cancel the resubscription
 }
 
 // EventListener listens for events from CMAccount and BookingToken contracts
@@ -32,7 +45,7 @@ type EventListener struct {
 	mu            sync.Mutex
 	cmAccounts    map[common.Address]*cmaccount.Cmaccount
 	btContracts   map[common.Address]*bookingtoken.Bookingtoken
-	subscriptions map[string]event.Subscription // Keyed by unique IDs
+	subscriptions map[string]*subscriptionInfo // Keyed by unique IDs
 }
 
 // NewEventListener creates a new EventListener instance
@@ -42,314 +55,8 @@ func NewEventListener(client *ethclient.Client, logger *zap.SugaredLogger) *Even
 		logger:        logger,
 		cmAccounts:    make(map[common.Address]*cmaccount.Cmaccount),
 		btContracts:   make(map[common.Address]*bookingtoken.Bookingtoken),
-		subscriptions: make(map[string]event.Subscription),
+		subscriptions: make(map[string]*subscriptionInfo),
 	}
-}
-
-// RegisterServiceAddedHandler registers a handler for the ServiceAdded event on a CMAccount
-func (el *EventListener) RegisterServiceAddedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (ListenerHandle, error) {
-	el.mu.Lock()
-	defer el.mu.Unlock()
-
-	// Get or create CMAccount instance
-	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create channel for events
-	eventChan := make(chan *cmaccount.CmaccountServiceAdded)
-	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
-
-	// Subscribe to ServiceAdded event
-	sub, err := cmAccount.WatchServiceAdded(opts, eventChan, serviceName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to ServiceAdded events: %w", err)
-	}
-
-	// Generate a unique key for this subscription
-	subID := uuid.New().String()
-	el.subscriptions[subID] = sub
-
-	// Start goroutine to listen for events
-	go func() {
-		for {
-			select {
-			case event := <-eventChan:
-				handler(event)
-			case err := <-sub.Err():
-				el.logger.Errorf("Error in ServiceAdded subscription: %v", err)
-				el.unsubscribe(subID)
-				return
-			}
-		}
-	}()
-
-	el.logger.Infof("Listening for ServiceAdded events on CMAccount %s", cmAccountAddr.Hex())
-	el.logger.Debugf("Subscription ID: %s", subID)
-	el.logger.Debugf("Filters: %v", serviceName)
-
-	// Return handle to stop listening
-	return &listenerHandle{
-		unsubscribe: func() {
-			el.unsubscribe(subID)
-		},
-	}, nil
-}
-
-// RegisterServiceFeeUpdatedHandler registers a handler for the ServiceFeeUpdated event on a CMAccount
-func (el *EventListener) RegisterServiceFeeUpdatedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (ListenerHandle, error) {
-	el.mu.Lock()
-	defer el.mu.Unlock()
-
-	// Get or create CMAccount instance
-	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create channel for events
-	eventChan := make(chan *cmaccount.CmaccountServiceFeeUpdated)
-	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
-
-	// Subscribe to ServiceFeeUpdated event
-	sub, err := cmAccount.WatchServiceFeeUpdated(opts, eventChan, serviceName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to ServiceFeeUpdated events: %w", err)
-	}
-
-	// Generate a unique key for this subscription
-	subID := uuid.New().String()
-	el.subscriptions[subID] = sub
-
-	// Start goroutine to listen for events
-	go func() {
-		for {
-			select {
-			case event := <-eventChan:
-				handler(event)
-			case err := <-sub.Err():
-				el.logger.Errorf("Error in ServiceFeeUpdated subscription: %v", err)
-				el.unsubscribe(subID)
-				return
-			}
-		}
-	}()
-
-	el.logger.Infof("Listening for ServiceFeeUpdated events on CMAccount: %s", cmAccountAddr.Hex())
-	el.logger.Debugf("Subscription ID: %s", subID)
-	el.logger.Debugf("Filters: %v", serviceName)
-
-	// Return handle to stop listening
-	return &listenerHandle{
-		unsubscribe: func() {
-			el.unsubscribe(subID)
-		},
-	}, nil
-}
-
-// RegisterServiceRemovedHandler registers a handler for the ServiceRemoved event on a CMAccount
-func (el *EventListener) RegisterServiceRemovedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (ListenerHandle, error) {
-	el.mu.Lock()
-	defer el.mu.Unlock()
-
-	// Get or create CMAccount instance
-	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create channel for events
-	eventChan := make(chan *cmaccount.CmaccountServiceRemoved)
-	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
-
-	// Subscribe to ServiceRemoved event
-	sub, err := cmAccount.WatchServiceRemoved(opts, eventChan, serviceName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to ServiceRemoved events: %w", err)
-	}
-
-	// Generate a unique key for this subscription
-	subID := uuid.New().String()
-	el.subscriptions[subID] = sub
-
-	// Start goroutine to listen for events
-	go func() {
-		for {
-			select {
-			case event := <-eventChan:
-				handler(event)
-			case err := <-sub.Err():
-				el.logger.Errorf("Error in ServiceRemoved subscription: %v", err)
-				el.unsubscribe(subID)
-				return
-			}
-		}
-	}()
-
-	el.logger.Infof("Listening for ServiceRemoved events on CMAccount: %s", cmAccountAddr.String())
-	el.logger.Debugf("Subscription ID: %s", subID)
-	el.logger.Debugf("Filters: %v", serviceName)
-
-	// Return handle to stop listening
-	return &listenerHandle{
-		unsubscribe: func() {
-			el.unsubscribe(subID)
-		},
-	}, nil
-}
-
-// RegisterCMAccountUpgradedHandler registers a handler for the CMAccountUpgraded event on a CMAccount
-func (el *EventListener) RegisterCMAccountUpgradedHandler(cmAccountAddr common.Address, oldImplementation []common.Address, newImplementation []common.Address, handler EventHandler) (ListenerHandle, error) {
-	el.mu.Lock()
-	defer el.mu.Unlock()
-
-	// Get or create CMAccount instance
-	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create channel for events
-	eventChan := make(chan *cmaccount.CmaccountCMAccountUpgraded)
-	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
-
-	// Subscribe to CMAccountUpgraded event
-	sub, err := cmAccount.WatchCMAccountUpgraded(opts, eventChan, oldImplementation, newImplementation)
-	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to CMAccountUpgraded events: %w", err)
-	}
-
-	// Generate a unique key for this subscription
-	subID := uuid.New().String()
-	el.subscriptions[subID] = sub
-
-	// Start goroutine to listen for events
-	go func() {
-		for {
-			select {
-			case event := <-eventChan:
-				handler(event)
-			case err := <-sub.Err():
-				el.logger.Errorf("Error in CMAccountUpgraded subscription: %v", err)
-				el.unsubscribe(subID)
-				return
-			}
-		}
-	}()
-
-	el.logger.Infof("Listening for CMAccountUpgraded events on CMAccount: %s", cmAccountAddr.Hex())
-	el.logger.Debugf("Subscription ID: %s", subID)
-	el.logger.Debugf("Filters: oldImplementation: %s, newImplementation: %s", oldImplementation, newImplementation)
-
-	// Return handle to stop listening
-	return &listenerHandle{
-		unsubscribe: func() {
-			el.unsubscribe(subID)
-		},
-	}, nil
-}
-
-// RegisterTokenBoughtHandler registers a handler for TokenBought events on a BookingToken contract, filtered by tokenId and buyer
-func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, tokenId []*big.Int, buyer []common.Address, handler EventHandler) (ListenerHandle, error) {
-	el.mu.Lock()
-	defer el.mu.Unlock()
-
-	// Get or create BookingToken instance
-	btContract, err := el.getOrCreateBookingToken(btAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create channel for events
-	eventChan := make(chan *bookingtoken.BookingtokenTokenBought)
-	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
-
-	// Subscribe to TokenBought event with filters
-	sub, err := btContract.WatchTokenBought(opts, eventChan, tokenId, buyer)
-	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to TokenBought events: %w", err)
-	}
-
-	// Generate a unique key for the subscription
-	subID := uuid.New().String()
-	el.subscriptions[subID] = sub
-
-	// Start goroutine to listen for events
-	go func() {
-		for {
-			select {
-			case event := <-eventChan:
-				handler(event)
-			case err := <-sub.Err():
-				el.logger.Errorf("Error in TokenBought subscription: %v", err)
-				el.unsubscribe(subID)
-				return
-			}
-		}
-	}()
-
-	el.logger.Infof("Listening for TokenBought events on BookingToken (%s)", btAddress.Hex())
-	el.logger.Debugf("Subscription ID: %s", subID)
-	el.logger.Debugf("Filters: tokenId: %v, buyer: %v", tokenId, buyer)
-
-	// Return handle to stop listening
-	return &listenerHandle{
-		unsubscribe: func() {
-			el.unsubscribe(subID)
-		},
-	}, nil
-}
-
-// RegisterTokenReservedHandler registers a handler for TokenReserved events on a BookingToken contract, filtered by tokenId, reservedFor, and supplier
-func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, tokenId []*big.Int, reservedFor []common.Address, supplier []common.Address, handler EventHandler) (ListenerHandle, error) {
-	el.mu.Lock()
-	defer el.mu.Unlock()
-
-	// Get or create BookingToken instance
-	btContract, err := el.getOrCreateBookingToken(btAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create channel for events
-	eventChan := make(chan *bookingtoken.BookingtokenTokenReserved)
-	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
-
-	// Subscribe to TokenReserved event with filters
-	sub, err := btContract.WatchTokenReserved(opts, eventChan, tokenId, reservedFor, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to TokenReserved events: %w", err)
-	}
-
-	// Generate a unique key for the subscription
-	subID := uuid.New().String()
-	el.subscriptions[subID] = sub
-
-	// Start goroutine to listen for events
-	go func() {
-		for {
-			select {
-			case event := <-eventChan:
-				handler(event)
-			case err := <-sub.Err():
-				el.logger.Errorf("Error in TokenReserved subscription: %v", err)
-				el.unsubscribe(subID)
-				return
-			}
-		}
-	}()
-
-	el.logger.Infof("Listening for TokenReserved events on BookingToken (%s)", btAddress.Hex())
-	el.logger.Debugf("Subscription ID: %s", subID)
-	el.logger.Debugf("Filters: TokenId: %s, ReservedFor: %s, Supplier: %s", tokenId, reservedFor, supplier)
-
-	// Return handle to stop listening
-	return &listenerHandle{
-		unsubscribe: func() {
-			el.unsubscribe(subID)
-		},
-	}, nil
 }
 
 // getOrCreateCMAccount gets or creates a CMAccount instance
@@ -378,14 +85,23 @@ func (el *EventListener) getOrCreateBookingToken(addr common.Address) (*bookingt
 	return bt, nil
 }
 
-// unsubscribe removes a subscription from the subscriptions map
+// unsubscribe removes a subscription from the subscriptions map and closes the event channel
 func (el *EventListener) unsubscribe(subID string) {
 	el.mu.Lock()
 	defer el.mu.Unlock()
-	if sub, exists := el.subscriptions[subID]; exists {
-		sub.Unsubscribe()
+	if subInfo, exists := el.subscriptions[subID]; exists {
+		// Cancel the context to stop resubscription
+		subInfo.unsubscribe()
+		// Unsubscribe from the event
+		if subInfo.sub != nil {
+			subInfo.sub.Unsubscribe()
+		}
+		// Close the event channel
+		if subInfo.closeChan != nil {
+			subInfo.closeChan()
+		}
 		delete(el.subscriptions, subID)
-		el.logger.Debugf("Unsubscribed subID %s ", subID)
+		el.logger.Debugf("Unsubscribed subID %s", subID)
 	}
 }
 
@@ -395,6 +111,609 @@ type listenerHandle struct {
 }
 
 // Stop stops the event listener
-func (h *listenerHandle) Stop() {
+func (h *listenerHandle) Unsubscribe() {
 	h.unsubscribe()
+}
+
+// RegisterServiceAddedHandler registers a handler for the ServiceAdded event on a CMAccount
+func (el *EventListener) RegisterServiceAddedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	subID := uuid.New().String()
+
+	// Get or create CMAccount instance
+	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a context with cancellation
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Store subscription info
+	subInfo := &subscriptionInfo{
+		subID:       subID,
+		contract:    cmAccountAddr,
+		handler:     handler,
+		unsubscribe: cancel,
+	}
+	el.subscriptions[subID] = subInfo
+
+	// Start the resubscription
+	go el.resubscribeServiceAdded(ctx, subID, cmAccount, serviceName)
+
+	// Return handle to stop listening
+	return &listenerHandle{
+		unsubscribe: func() {
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
+// resubscribeServiceAdded handles resubscription for ServiceAdded events
+func (el *EventListener) resubscribeServiceAdded(ctx context.Context, subID string, cmAccount *cmaccount.Cmaccount, serviceName []string) {
+	backoffMax := 2 * time.Minute // Maximum backoff time between retries
+
+	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
+		eventChan := make(chan *cmaccount.CmaccountServiceAdded)
+
+		// Subscribe to the event
+		sub, err := cmAccount.WatchServiceAdded(&bind.WatchOpts{Context: ctx}, eventChan, serviceName)
+		if err != nil {
+			el.logger.Errorf("Failed to subscribe to ServiceAdded events: %v", err)
+			return nil, err
+		}
+
+		el.mu.Lock()
+		subInfo, exists := el.subscriptions[subID]
+		if !exists {
+			el.mu.Unlock()
+			sub.Unsubscribe()
+			return nil, fmt.Errorf("subscription %s no longer exists", subID)
+		}
+		subInfo.sub = sub
+		subInfo.closeChan = func() {
+			close(eventChan)
+		}
+		el.mu.Unlock()
+
+		go el.listenForServiceAddedEvents(subID, eventChan)
+
+		el.logger.Infof("Subscribed for ServiceAdded events on CMAccount %s", subInfo.contract)
+		el.logger.Debugf("Subscription ID: %s", subID)
+		el.logger.Debugf("Filters: %v", serviceName)
+
+		return sub, nil
+	}
+
+	// Start resubscribing
+	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
+
+	// Wait until context is canceled
+	select {
+	case <-ctx.Done():
+		sub.Unsubscribe()
+	}
+}
+
+// listenForServiceAddedEvents listens for ServiceAdded events
+func (el *EventListener) listenForServiceAddedEvents(subID string, eventChan chan *cmaccount.CmaccountServiceAdded) {
+	el.mu.Lock()
+	subInfo, exists := el.subscriptions[subID]
+	el.mu.Unlock()
+	if !exists {
+		return
+	}
+	handler := subInfo.handler
+
+	for {
+		select {
+		case event, ok := <-eventChan:
+			if !ok {
+				// Channel closed, exit goroutine
+				return
+			}
+			handler(event)
+		}
+	}
+}
+
+// RegisterServiceFeeUpdatedHandler registers a handler for the ServiceFeeUpdated event on a CMAccount
+func (el *EventListener) RegisterServiceFeeUpdatedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	subID := uuid.New().String()
+
+	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	subInfo := &subscriptionInfo{
+		subID:       subID,
+		contract:    cmAccountAddr,
+		handler:     handler,
+		unsubscribe: cancel,
+	}
+	el.subscriptions[subID] = subInfo
+
+	go el.resubscribeServiceFeeUpdated(ctx, subID, cmAccount, serviceName)
+
+	return &listenerHandle{
+		unsubscribe: func() {
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
+// resubscribeServiceFeeUpdated handles resubscription for ServiceFeeUpdated events
+func (el *EventListener) resubscribeServiceFeeUpdated(ctx context.Context, subID string, cmAccount *cmaccount.Cmaccount, serviceName []string) {
+	backoffMax := 2 * time.Minute
+
+	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
+		eventChan := make(chan *cmaccount.CmaccountServiceFeeUpdated)
+
+		sub, err := cmAccount.WatchServiceFeeUpdated(&bind.WatchOpts{Context: ctx}, eventChan, serviceName)
+		if err != nil {
+			el.logger.Errorf("Failed to subscribe to ServiceFeeUpdated events: %v", err)
+			return nil, err
+		}
+
+		el.mu.Lock()
+		subInfo, exists := el.subscriptions[subID]
+		if !exists {
+			el.mu.Unlock()
+			sub.Unsubscribe()
+			return nil, fmt.Errorf("subscription %s no longer exists", subID)
+		}
+		subInfo.sub = sub
+		subInfo.closeChan = func() {
+			close(eventChan)
+		}
+		el.mu.Unlock()
+
+		go el.listenForServiceFeeUpdatedEvents(subID, eventChan)
+
+		el.logger.Infof("Subscribed for ServiceFeeUpdated events on CMAccount %s", subInfo.contract)
+		el.logger.Debugf("Subscription ID: %s", subID)
+		el.logger.Debugf("Filters: %v", serviceName)
+
+		return sub, nil
+	}
+
+	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
+
+	select {
+	case <-ctx.Done():
+		sub.Unsubscribe()
+	}
+}
+
+// listenForServiceFeeUpdatedEvents listens for ServiceFeeUpdated events
+func (el *EventListener) listenForServiceFeeUpdatedEvents(subID string, eventChan chan *cmaccount.CmaccountServiceFeeUpdated) {
+	el.mu.Lock()
+	subInfo, exists := el.subscriptions[subID]
+	el.mu.Unlock()
+	if !exists {
+		return
+	}
+	handler := subInfo.handler
+
+	for {
+		select {
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
+			handler(event)
+		}
+	}
+}
+
+// RegisterServiceRemovedHandler registers a handler for the ServiceRemoved event on a CMAccount
+func (el *EventListener) RegisterServiceRemovedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	subID := uuid.New().String()
+
+	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	subInfo := &subscriptionInfo{
+		subID:       subID,
+		contract:    cmAccountAddr,
+		handler:     handler,
+		unsubscribe: cancel,
+	}
+	el.subscriptions[subID] = subInfo
+
+	go el.resubscribeServiceRemoved(ctx, subID, cmAccount, serviceName)
+
+	return &listenerHandle{
+		unsubscribe: func() {
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
+// resubscribeServiceRemoved handles resubscription for ServiceRemoved events
+func (el *EventListener) resubscribeServiceRemoved(ctx context.Context, subID string, cmAccount *cmaccount.Cmaccount, serviceName []string) {
+	backoffMax := 2 * time.Minute
+
+	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
+		eventChan := make(chan *cmaccount.CmaccountServiceRemoved)
+
+		sub, err := cmAccount.WatchServiceRemoved(&bind.WatchOpts{Context: ctx}, eventChan, serviceName)
+		if err != nil {
+			el.logger.Errorf("Failed to subscribe to ServiceRemoved events: %v", err)
+			return nil, err
+		}
+
+		el.mu.Lock()
+		subInfo, exists := el.subscriptions[subID]
+		if !exists {
+			el.mu.Unlock()
+			sub.Unsubscribe()
+			return nil, fmt.Errorf("subscription %s no longer exists", subID)
+		}
+		subInfo.sub = sub
+		subInfo.closeChan = func() {
+			close(eventChan)
+		}
+		el.mu.Unlock()
+
+		go el.listenForServiceRemovedEvents(subID, eventChan)
+
+		el.logger.Infof("Subscribed for ServiceRemoved events on CMAccount %s", subInfo.contract)
+		el.logger.Debugf("Subscription ID: %s", subID)
+		el.logger.Debugf("Filters: %v", serviceName)
+
+		return sub, nil
+	}
+
+	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
+
+	select {
+	case <-ctx.Done():
+		sub.Unsubscribe()
+	}
+}
+
+// listenForServiceRemovedEvents listens for ServiceRemoved events
+func (el *EventListener) listenForServiceRemovedEvents(subID string, eventChan chan *cmaccount.CmaccountServiceRemoved) {
+	el.mu.Lock()
+	subInfo, exists := el.subscriptions[subID]
+	el.mu.Unlock()
+	if !exists {
+		return
+	}
+	handler := subInfo.handler
+
+	for {
+		select {
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
+			handler(event)
+		}
+	}
+}
+
+// RegisterCMAccountUpgradedHandler registers a handler for the CMAccountUpgraded event on a CMAccount
+func (el *EventListener) RegisterCMAccountUpgradedHandler(cmAccountAddr common.Address, oldImplementation []common.Address, newImplementation []common.Address, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	subID := uuid.New().String()
+
+	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	subInfo := &subscriptionInfo{
+		subID:       subID,
+		contract:    cmAccountAddr,
+		handler:     handler,
+		unsubscribe: cancel,
+	}
+	el.subscriptions[subID] = subInfo
+
+	go el.resubscribeCMAccountUpgraded(ctx, subID, cmAccount, oldImplementation, newImplementation)
+
+	return &listenerHandle{
+		unsubscribe: func() {
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
+// resubscribeCMAccountUpgraded handles resubscription for CMAccountUpgraded events
+func (el *EventListener) resubscribeCMAccountUpgraded(ctx context.Context, subID string, cmAccount *cmaccount.Cmaccount, oldImplementation []common.Address, newImplementation []common.Address) {
+	backoffMax := 2 * time.Minute
+
+	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
+		eventChan := make(chan *cmaccount.CmaccountCMAccountUpgraded)
+
+		sub, err := cmAccount.WatchCMAccountUpgraded(&bind.WatchOpts{Context: ctx}, eventChan, oldImplementation, newImplementation)
+		if err != nil {
+			el.logger.Errorf("Failed to subscribe to CMAccountUpgraded events: %v", err)
+			return nil, err
+		}
+
+		el.mu.Lock()
+		subInfo, exists := el.subscriptions[subID]
+		if !exists {
+			el.mu.Unlock()
+			sub.Unsubscribe()
+			return nil, fmt.Errorf("subscription %s no longer exists", subID)
+		}
+		subInfo.sub = sub
+		subInfo.closeChan = func() {
+			close(eventChan)
+		}
+		el.mu.Unlock()
+
+		go el.listenForCMAccountUpgradedEvents(subID, eventChan)
+
+		el.logger.Infof("Subscribed for CMAccountUpgraded events on CMAccount %s", subInfo.contract)
+		el.logger.Debugf("Subscription ID: %s", subID)
+		el.logger.Debugf("Filters: oldImplementation: %v, newImplementation: %v", oldImplementation, newImplementation)
+
+		return sub, nil
+	}
+
+	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
+
+	select {
+	case <-ctx.Done():
+		sub.Unsubscribe()
+	}
+}
+
+// listenForCMAccountUpgradedEvents listens for CMAccountUpgraded events
+func (el *EventListener) listenForCMAccountUpgradedEvents(subID string, eventChan chan *cmaccount.CmaccountCMAccountUpgraded) {
+	el.mu.Lock()
+	subInfo, exists := el.subscriptions[subID]
+	el.mu.Unlock()
+	if !exists {
+		return
+	}
+	handler := subInfo.handler
+
+	for {
+		select {
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
+			handler(event)
+		}
+	}
+}
+
+// RegisterTokenBoughtHandler registers a handler for TokenBought events on a BookingToken contract
+func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, tokenId []*big.Int, buyer []common.Address, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	subID := uuid.New().String()
+
+	btContract, err := el.getOrCreateBookingToken(btAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	subInfo := &subscriptionInfo{
+		subID:       subID,
+		contract:    btAddress,
+		handler:     handler,
+		unsubscribe: cancel,
+	}
+	el.subscriptions[subID] = subInfo
+
+	go el.resubscribeTokenBought(ctx, subID, btContract, tokenId, buyer)
+
+	return &listenerHandle{
+		unsubscribe: func() {
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
+// resubscribeTokenBought handles resubscription for TokenBought events
+func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenId []*big.Int, buyer []common.Address) {
+	backoffMax := 2 * time.Minute
+
+	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
+		eventChan := make(chan *bookingtoken.BookingtokenTokenBought)
+
+		sub, err := btContract.WatchTokenBought(&bind.WatchOpts{Context: ctx}, eventChan, tokenId, buyer)
+		if err != nil {
+			el.logger.Errorf("Failed to subscribe to TokenBought events: %v", err)
+			return nil, err
+		}
+
+		el.mu.Lock()
+		subInfo, exists := el.subscriptions[subID]
+		if !exists {
+			el.mu.Unlock()
+			sub.Unsubscribe()
+			return nil, fmt.Errorf("subscription %s no longer exists", subID)
+		}
+		subInfo.sub = sub
+		subInfo.closeChan = func() {
+			close(eventChan)
+		}
+		el.mu.Unlock()
+
+		go el.listenForTokenBoughtEvents(subID, eventChan)
+
+		el.logger.Infof("Subscribed for TokenBought events on BookingToken %s", subInfo.contract)
+		el.logger.Debugf("Subscription ID: %s", subID)
+		el.logger.Debugf("Filters: tokenId: %v, buyer: %v", tokenId, buyer)
+
+		return sub, nil
+	}
+
+	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
+
+	select {
+	case <-ctx.Done():
+		sub.Unsubscribe()
+	}
+}
+
+// listenForTokenBoughtEvents listens for TokenBought events
+func (el *EventListener) listenForTokenBoughtEvents(subID string, eventChan chan *bookingtoken.BookingtokenTokenBought) {
+	el.mu.Lock()
+	subInfo, exists := el.subscriptions[subID]
+	el.mu.Unlock()
+	if !exists {
+		return
+	}
+	handler := subInfo.handler
+
+	for {
+		select {
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
+			handler(event)
+		}
+	}
+}
+
+// RegisterTokenReservedHandler registers a handler for TokenReserved events on a BookingToken contract
+func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, tokenId []*big.Int, reservedFor []common.Address, supplier []common.Address, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	subID := uuid.New().String()
+
+	btContract, err := el.getOrCreateBookingToken(btAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	subInfo := &subscriptionInfo{
+		subID:       subID,
+		contract:    btAddress,
+		handler:     handler,
+		unsubscribe: cancel,
+	}
+	el.subscriptions[subID] = subInfo
+
+	go el.resubscribeTokenReserved(ctx, subID, btContract, tokenId, reservedFor, supplier)
+
+	return &listenerHandle{
+		unsubscribe: func() {
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
+// resubscribeTokenReserved handles resubscription for TokenReserved events
+func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenId []*big.Int, reservedFor []common.Address, supplier []common.Address) {
+	backoffMax := 2 * time.Minute
+
+	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
+		eventChan := make(chan *bookingtoken.BookingtokenTokenReserved)
+
+		sub, err := btContract.WatchTokenReserved(&bind.WatchOpts{Context: ctx}, eventChan, tokenId, reservedFor, supplier)
+		if err != nil {
+			el.logger.Errorf("Failed to subscribe to TokenReserved events: %v", err)
+			return nil, err
+		}
+
+		el.mu.Lock()
+		subInfo, exists := el.subscriptions[subID]
+		if !exists {
+			el.mu.Unlock()
+			sub.Unsubscribe()
+			return nil, fmt.Errorf("subscription %s no longer exists", subID)
+		}
+		subInfo.sub = sub
+		subInfo.closeChan = func() {
+			close(eventChan)
+		}
+		el.mu.Unlock()
+
+		go el.listenForTokenReservedEvents(subID, eventChan)
+
+		el.logger.Infof("Subscribed for TokenReserved events on BookingToken %s", subInfo.contract)
+		el.logger.Debugf("Subscription ID: %s", subID)
+		el.logger.Debugf("Filters: tokenId: %v, reservedFor: %v, supplier: %v", tokenId, reservedFor, supplier)
+
+		return sub, nil
+	}
+
+	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
+
+	select {
+	case <-ctx.Done():
+		sub.Unsubscribe()
+	}
+}
+
+// listenForTokenReservedEvents listens for TokenReserved events
+func (el *EventListener) listenForTokenReservedEvents(subID string, eventChan chan *bookingtoken.BookingtokenTokenReserved) {
+	el.mu.Lock()
+	subInfo, exists := el.subscriptions[subID]
+	el.mu.Unlock()
+	if !exists {
+		return
+	}
+	handler := subInfo.handler
+
+	for {
+		select {
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
+			handler(event)
+		}
+	}
 }

@@ -109,9 +109,17 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	// Register an event handler for CMAccount's ServiceRemoved event for any service name
-	_, err = eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
+	removeHandle, err := eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
 		e := event.(*cmaccount.CmaccountServiceRemoved)
 		a.logger.Infof("ServiceRemoved event: ServiceHash %s", e.ServiceName)
+	})
+
+	// Register an event handler for CMAccount's ServiceRemoved event for any service name
+	_, err = eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
+		e := event.(*cmaccount.CmaccountServiceRemoved)
+		a.logger.Infof("#2 ServiceRemoved event: ServiceHash %s", e.ServiceName)
+		// Unsubscribe #1 when we receive a remove event
+		removeHandle.Unsubscribe()
 	})
 
 	if err != nil {
