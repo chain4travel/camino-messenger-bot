@@ -84,10 +84,14 @@ func (a *App) Run(ctx context.Context) error {
 	a.logger.Info("Event listener created")
 
 	// Register an event handler for the BookingToken "TokenBought" event
-	eventListener.RegisterTokenReservedHandler(bookingTokenAddr, nil, nil, nil, func(event interface{}) {
+	_, err = eventListener.RegisterTokenReservedHandler(bookingTokenAddr, nil, nil, nil, func(event interface{}) {
 		e := event.(*bookingtoken.BookingtokenTokenReserved)
 		a.logger.Infof("TokenReserved event: TokenId %s, Reserved For %s by Supplier %s", e.TokenId.String(), e.ReservedFor.Hex(), e.Supplier.Hex())
 	})
+
+	if err != nil {
+		a.logger.Fatalf("Failed to register TokenReserved handler: %v", err)
+	}
 
 	cmAccountAddr := common.HexToAddress("0xd41786599F2B225A5A1eA35cDc4A2a6Fa9E92BeA")
 
@@ -95,16 +99,24 @@ func (a *App) Run(ctx context.Context) error {
 	serviceName := []string{"cmp.services.ping.v1.PingService"}
 
 	// Register an event handler for CMAccount's ServiceAdded event only for service name: "cmp.services.ping.v1.PingService"
-	eventListener.RegisterServiceAddedHandler(cmAccountAddr, serviceName, func(event interface{}) {
+	_, err = eventListener.RegisterServiceAddedHandler(cmAccountAddr, serviceName, func(event interface{}) {
 		e := event.(*cmaccount.CmaccountServiceAdded)
 		a.logger.Infof("ServiceAdded event: ServiceHash %s", e.ServiceName)
 	})
 
+	if err != nil {
+		a.logger.Fatalf("Failed to register ServiceAdded handler: %v", err)
+	}
+
 	// Register an event handler for CMAccount's ServiceRemoved event for any service name
-	eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
+	_, err = eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
 		e := event.(*cmaccount.CmaccountServiceRemoved)
 		a.logger.Infof("ServiceRemoved event: ServiceHash %s", e.ServiceName)
 	})
+
+	if err != nil {
+		a.logger.Fatalf("Failed to register ServiceRemoved handler: %v", err)
+	}
 
 	//
 	// FIXME END: REMOVE AFTER DEVELOPMENT

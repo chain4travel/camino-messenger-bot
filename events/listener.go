@@ -92,7 +92,6 @@ func (el *EventListener) RegisterServiceAddedHandler(cmAccountAddr common.Addres
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
-			sub.Unsubscribe()
 			el.unsubscribe(subID)
 		},
 	}, nil
@@ -144,7 +143,6 @@ func (el *EventListener) RegisterServiceFeeUpdatedHandler(cmAccountAddr common.A
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
-			sub.Unsubscribe()
 			el.unsubscribe(subID)
 		},
 	}, nil
@@ -196,7 +194,6 @@ func (el *EventListener) RegisterServiceRemovedHandler(cmAccountAddr common.Addr
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
-			sub.Unsubscribe()
 			el.unsubscribe(subID)
 		},
 	}, nil
@@ -248,7 +245,6 @@ func (el *EventListener) RegisterCMAccountUpgradedHandler(cmAccountAddr common.A
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
-			sub.Unsubscribe()
 			el.unsubscribe(subID)
 		},
 	}, nil
@@ -300,7 +296,6 @@ func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, to
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
-			sub.Unsubscribe()
 			el.unsubscribe(subID)
 		},
 	}, nil
@@ -352,7 +347,6 @@ func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, 
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
-			sub.Unsubscribe()
 			el.unsubscribe(subID)
 		},
 	}, nil
@@ -391,6 +385,7 @@ func (el *EventListener) unsubscribe(subID string) {
 	if sub, exists := el.subscriptions[subID]; exists {
 		sub.Unsubscribe()
 		delete(el.subscriptions, subID)
+		el.logger.Debugf("Unsubscribed subID %s ", subID)
 	}
 }
 
