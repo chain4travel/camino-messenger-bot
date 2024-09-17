@@ -24,16 +24,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# TODO: @VjeraTurk make bot build aware of the tag and commit
 # Camino-messenger-bot root folder
 CAMINOBOT_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )"; cd .. && pwd )
 # Load the constants
 source "$CAMINOBOT_PATH"/scripts/constants.sh
 
-#LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/app/app.GitCommit=$git_commit"
 LDFLAGS="-X main.GitCommit=$git_commit"
 LDFLAGS="$LDFLAGS -X main.Version=$git_tag"
-LDFLAGS="$LDFLAGS $static_ld_flags"
 
 # Build the Go application
 echo "Building camino-messenger-bot..."

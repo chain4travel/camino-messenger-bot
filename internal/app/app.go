@@ -41,10 +41,6 @@ func NewApp(cfg *config.Config) (*App, error) {
 	app.logger = logger.Sugar()
 	defer logger.Sync() //nolint:errcheck
 
-	// TODO @evlekht use actual git tag/commit
-	app.logger.Info("version: 9.0.0")
-	// fmt.Println("Version:\t", Version)
-
 	return app, nil
 }
 

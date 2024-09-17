@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os/signal"
 	"syscall"
 
@@ -9,7 +10,17 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/app"
 )
 
+var (
+	// these variables are set by go build -ldflags
+	// TODO: @VjeraTurk make this work when multiple bots are ran with launch.json
+	Version   string = "unknown"
+	GitCommit string = "unknown"
+)
+
 func main() {
+	fmt.Println("Version\t", Version)
+	fmt.Println("GitCommit\t", GitCommit)
+
 	cfg, err := config.ReadConfig()
 	if err != nil {
 		panic(err)
