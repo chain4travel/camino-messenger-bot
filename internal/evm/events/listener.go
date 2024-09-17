@@ -85,6 +85,10 @@ func (el *EventListener) RegisterServiceAddedHandler(cmAccountAddr common.Addres
 		}
 	}()
 
+	el.logger.Infof("Listening for ServiceAdded events on CMAccount %s", cmAccountAddr.Hex())
+	el.logger.Debugf("Subscription ID: %s", subID)
+	el.logger.Debugf("Filters: %v", serviceName)
+
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
@@ -132,6 +136,10 @@ func (el *EventListener) RegisterServiceFeeUpdatedHandler(cmAccountAddr common.A
 			}
 		}
 	}()
+
+	el.logger.Infof("Listening for ServiceFeeUpdated events on CMAccount: %s", cmAccountAddr.Hex())
+	el.logger.Debugf("Subscription ID: %s", subID)
+	el.logger.Debugf("Filters: %v", serviceName)
 
 	// Return handle to stop listening
 	return &listenerHandle{
@@ -181,6 +189,10 @@ func (el *EventListener) RegisterServiceRemovedHandler(cmAccountAddr common.Addr
 		}
 	}()
 
+	el.logger.Infof("Listening for ServiceRemoved events on CMAccount: %s", cmAccountAddr.String())
+	el.logger.Debugf("Subscription ID: %s", subID)
+	el.logger.Debugf("Filters: %v", serviceName)
+
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
@@ -228,6 +240,10 @@ func (el *EventListener) RegisterCMAccountUpgradedHandler(cmAccountAddr common.A
 			}
 		}
 	}()
+
+	el.logger.Infof("Listening for CMAccountUpgraded events on CMAccount: %s", cmAccountAddr.Hex())
+	el.logger.Debugf("Subscription ID: %s", subID)
+	el.logger.Debugf("Filters: oldImplementation: %s, newImplementation: %s", oldImplementation, newImplementation)
 
 	// Return handle to stop listening
 	return &listenerHandle{
@@ -277,6 +293,10 @@ func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, to
 		}
 	}()
 
+	el.logger.Infof("Listening for TokenBought events on BookingToken (%s)", btAddress.Hex())
+	el.logger.Debugf("Subscription ID: %s", subID)
+	el.logger.Debugf("Filters: tokenId: %v, buyer: %v", tokenId, buyer)
+
 	// Return handle to stop listening
 	return &listenerHandle{
 		unsubscribe: func() {
@@ -324,6 +344,10 @@ func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, 
 			}
 		}
 	}()
+
+	el.logger.Infof("Listening for TokenReserved events on BookingToken (%s)", btAddress.Hex())
+	el.logger.Debugf("Subscription ID: %s", subID)
+	el.logger.Debugf("Filters: TokenId: %s, ReservedFor: %s, Supplier: %s", tokenId, reservedFor, supplier)
 
 	// Return handle to stop listening
 	return &listenerHandle{
