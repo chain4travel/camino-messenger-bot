@@ -206,6 +206,17 @@ func (p *processor) Respond(msg *Message) error {
 	}
 
 	md := &msg.Metadata
+
+	/* TODO: @VjeraTurk
+	    Get info from cheque
+	   * Check if the TO CM-Account is correct
+	   * Lookup the FROM CM-Account which is in the
+	   cheque
+	   * Verify that the sending bot is part of this FROM
+	   CM-Account
+	   If any of this fails => reject the message*/
+	// md.Sender = p.identificationHandler.getMyCMAccountAddress()
+
 	// rewrite sender & recipient metadata
 	md.Recipient = md.Sender
 	md.Sender = p.userID

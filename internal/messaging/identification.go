@@ -31,11 +31,16 @@ type IdentificationHandler interface {
 	getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]string, error)
 	getSingleBotFromCMAccountAddress(cmAccountAddress common.Address) (string, error)
 	isMyCMAccount(cmAccountAddress common.Address) bool
+	getMyCMAccountAddress() string
 	getMatrixHost() string
 }
 
 func (cm *evmIdentificationHandler) getMatrixHost() string {
 	return cm.matrixHost
+}
+
+func (cm *evmIdentificationHandler) getMyCMAccountAddress() string {
+	return cm.cfg.CMAccountAddress
 }
 
 // Add configuration to the bot to configure to which CM-Account it belongs (to prevent that they're part of multiple CM-Accounts)

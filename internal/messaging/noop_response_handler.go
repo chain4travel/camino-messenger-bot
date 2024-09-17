@@ -34,6 +34,10 @@ func (NoopResponseHandler) isMyCMAccount(common.Address) bool {
 	return false
 }
 
+func (NoopResponseHandler) getMyCMAccountAddress() string {
+	return ""
+}
+
 func (NoopResponseHandler) getMatrixHost() string {
 	return ""
 }
