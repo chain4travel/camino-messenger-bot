@@ -14,6 +14,8 @@ import (
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/proto"
 	"maunium.net/go/mautrix/event"
 )
@@ -135,4 +137,13 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	default:
 		return messaging.ErrUnknownMessageType
 	}
+}
+
+func (m *CaminoMatrixMessage) GetChequeFor(addr common.Address) *cheques.SignedCheque {
+	for _, cheque := range m.Metadata.Cheques {
+		if cheque.Cheque.ToCMAccount == addr {
+			return &cheque
+		}
+	}
+	return nil
 }
