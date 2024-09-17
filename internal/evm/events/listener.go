@@ -142,6 +142,102 @@ func (el *EventListener) RegisterServiceFeeUpdatedHandler(cmAccountAddr common.A
 	}, nil
 }
 
+// RegisterServiceRemovedHandler registers a handler for the ServiceRemoved event on a CMAccount
+func (el *EventListener) RegisterServiceRemovedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	// Get or create CMAccount instance
+	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create channel for events
+	eventChan := make(chan *cmaccount.CmaccountServiceRemoved)
+	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
+
+	// Subscribe to ServiceRemoved event
+	sub, err := cmAccount.WatchServiceRemoved(opts, eventChan, serviceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to subscribe to ServiceRemoved events: %w", err)
+	}
+
+	// Generate a unique key for this subscription
+	subID := uuid.New().String()
+	el.subscriptions[subID] = sub
+
+	// Start goroutine to listen for events
+	go func() {
+		for {
+			select {
+			case event := <-eventChan:
+				handler(event)
+			case err := <-sub.Err():
+				el.logger.Errorf("Error in ServiceRemoved subscription: %v", err)
+				el.unsubscribe(subID)
+				return
+			}
+		}
+	}()
+
+	// Return handle to stop listening
+	return &listenerHandle{
+		unsubscribe: func() {
+			sub.Unsubscribe()
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
+// RegisterCMAccountUpgradedHandler registers a handler for the CMAccountUpgraded event on a CMAccount
+func (el *EventListener) RegisterCMAccountUpgradedHandler(cmAccountAddr common.Address, oldImplementation []common.Address, newImplementation []common.Address, handler EventHandler) (ListenerHandle, error) {
+	el.mu.Lock()
+	defer el.mu.Unlock()
+
+	// Get or create CMAccount instance
+	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create channel for events
+	eventChan := make(chan *cmaccount.CmaccountCMAccountUpgraded)
+	opts := &bind.WatchOpts{Context: context.Background(), Start: nil}
+
+	// Subscribe to CMAccountUpgraded event
+	sub, err := cmAccount.WatchCMAccountUpgraded(opts, eventChan, oldImplementation, newImplementation)
+	if err != nil {
+		return nil, fmt.Errorf("failed to subscribe to CMAccountUpgraded events: %w", err)
+	}
+
+	// Generate a unique key for this subscription
+	subID := uuid.New().String()
+	el.subscriptions[subID] = sub
+
+	// Start goroutine to listen for events
+	go func() {
+		for {
+			select {
+			case event := <-eventChan:
+				handler(event)
+			case err := <-sub.Err():
+				el.logger.Errorf("Error in CMAccountUpgraded subscription: %v", err)
+				el.unsubscribe(subID)
+				return
+			}
+		}
+	}()
+
+	// Return handle to stop listening
+	return &listenerHandle{
+		unsubscribe: func() {
+			sub.Unsubscribe()
+			el.unsubscribe(subID)
+		},
+	}, nil
+}
+
 // RegisterTokenBoughtHandler registers a handler for TokenBought events on a BookingToken contract, filtered by tokenId and buyer
 func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, tokenId []*big.Int, buyer []common.Address, handler EventHandler) (ListenerHandle, error) {
 	el.mu.Lock()
