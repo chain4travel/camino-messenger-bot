@@ -6,8 +6,9 @@ require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20240902074016-adcea0949c54.1
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.34.2-20240902074016-adcea0949c54.2
 	github.com/ava-labs/avalanchego v1.10.18
-	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20240912140839-74f994884a74
+	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20240915004532-6efedb934417
 	github.com/ethereum/go-ethereum v1.14.8
+	github.com/google/uuid v1.6.0
 	github.com/klauspost/compress v1.17.3
 	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/spf13/pflag v1.0.5
@@ -40,7 +41,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/google/renameio/v2 v2.0.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2 // indirect
 	github.com/holiman/uint256 v1.3.1 // indirect
