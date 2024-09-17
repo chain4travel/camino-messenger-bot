@@ -7,18 +7,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"google.golang.org/grpc/metadata"
 )
 
 type Metadata struct {
-	RequestID      string                   `json:"request_id"`
-	Sender         string                   `json:"sender"`
-	Recipient      string                   `json:"recipient"`
-	Cheques        []map[string]interface{} `json:"cheques"`
-	Timestamps     map[string]int64         `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
-	NumberOfChunks uint                     `json:"number_of_chunks"`
-	ChunkIndex     uint                     `json:"chunk_index"`
-
+	RequestID          string                 `json:"request_id"`
+	Sender             string                 `json:"sender"`
+	Recipient          string                 `json:"recipient"`
+	Cheques            []cheques.SignedCheque `json:"cheques"`
+	Timestamps         map[string]int64       `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
+	NumberOfChunks     uint64                 `json:"number_of_chunks"`
+	ChunkIndex         uint64                 `json:"chunk_index"`
+	RecipientCMAccount string                 `json:"recipient_cm_account"`
+	SenderCMAccount    string                 `json:"sender_cm_account"`
 	// Deprecated: this metadata serves only as a temp solution and should be removed and addressed on the protocol level
 	ProviderOperator string `json:"provider_operator"`
 }
@@ -63,6 +65,14 @@ func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
 	}
 	if providerOperator, found := mdPairs["provider_operator"]; found {
 		m.ProviderOperator = providerOperator[0]
+	}
+
+	if recipientCmAccount, found := mdPairs["recipient_cm_account"]; found {
+		m.RecipientCMAccount = recipientCmAccount[0]
+	}
+
+	if senderCmAccount, found := mdPairs["sender_cm_account"]; found {
+		m.SenderCMAccount = senderCmAccount[0]
 	}
 	return nil
 }

@@ -40,10 +40,11 @@ func TestProcessInbound(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
-		cfg             config.ProcessorConfig
-		messenger       Messenger
-		serviceRegistry ServiceRegistry
-		responseHandler ResponseHandler
+		cfg                   config.ProcessorConfig
+		messenger             Messenger
+		serviceRegistry       ServiceRegistry
+		responseHandler       ResponseHandler
+		identificationHandler IdentificationHandler
 	}
 	type args struct {
 		msg *Message
@@ -101,10 +102,11 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"err: process request message failed": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -119,10 +121,11 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"success: process request message": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -136,10 +139,11 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"success: process response message": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
 				p.responseChannels[requestID] = make(chan *Message, 1)
@@ -156,7 +160,7 @@ func TestProcessInbound(t *testing.T) {
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler)
+			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.identificationHandler)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
 			}
@@ -179,10 +183,11 @@ func TestProcessOutbound(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
-		cfg             config.ProcessorConfig
-		messenger       Messenger
-		serviceRegistry ServiceRegistry
-		responseHandler ResponseHandler
+		cfg                   config.ProcessorConfig
+		messenger             Messenger
+		serviceRegistry       ServiceRegistry
+		responseHandler       ResponseHandler
+		identificationHandler IdentificationHandler
 	}
 	type args struct {
 		msg *Message
@@ -197,10 +202,11 @@ func TestProcessOutbound(t *testing.T) {
 	}{
 		"err: non-request outbound message": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListResponse},
@@ -209,10 +215,11 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: missing recipient": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest},
@@ -224,10 +231,11 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: awaiting-response-timeout exceeded": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{Timeout: 10}, // 10ms
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{Timeout: 10}, // 10ms
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
@@ -240,10 +248,11 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: while sending request": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{Timeout: 100}, // 10ms
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{Timeout: 100}, // 10ms
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
@@ -256,10 +265,11 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"success: response before timeout": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{Timeout: 500}, // long enough timeout for response to be received
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{Timeout: 500}, // long enough timeout for response to be received
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopResponseHandler{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID}},
@@ -291,7 +301,7 @@ func TestProcessOutbound(t *testing.T) {
 
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler)
+			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.identificationHandler)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
 			}
@@ -324,6 +334,7 @@ func TestStart(t *testing.T) {
 		cfg := config.ProcessorConfig{}
 		serviceRegistry := mockServiceRegistry
 		responseHandler := NoopResponseHandler{}
+		identificationHandler := NoopResponseHandler{}
 		messenger := mockMessenger
 
 		ch := make(chan Message, 5)
@@ -350,7 +361,7 @@ func TestStart(t *testing.T) {
 		mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, serviceRegistry, responseHandler)
+		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, serviceRegistry, responseHandler, identificationHandler)
 		p.SetUserID(userID)
 		go p.Start(ctx)
 

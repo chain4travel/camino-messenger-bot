@@ -101,6 +101,8 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
+	md.Recipient = md.Sender
+
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	response := activityv1.ActivityProductInfoResponse{
 		Header: nil,
@@ -364,6 +366,10 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 		Header:   nil,
 		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
 	}
+	sender := md.Sender
+	//md.Sender = md.Recipient
+	md.Recipient = sender
+
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }

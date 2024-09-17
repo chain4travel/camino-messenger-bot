@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/events"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
@@ -42,9 +41,6 @@ func NewApp(cfg *config.Config) (*App, error) {
 	app.logger = logger.Sugar()
 	defer logger.Sync() //nolint:errcheck
 
-	// TODO @evlekht use actual git tag/commit
-	app.logger.Info("version: 9.0.0")
-
 	return app, nil
 }
 
@@ -75,20 +71,13 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
-	// create event listener
-	eventListener, err := events.NewEventListener(evmClient, &a.cfg.EvmConfig)
+	identificationHandler, err := messaging.NewIdentificationHandler(evmClient, a.logger, &a.cfg.EvmConfig, &a.cfg.MatrixConfig)
 	if err != nil {
-		a.logger.Fatalf("Failed to initialize event listener: %v", err)
-	}
-
-	// create cheque handler
-	chequeHandler, err := messaging.NewChequeHandler(evmClient, a.logger, &a.cfg.EvmConfig, &eventListener)
-	if err != nil {
-		a.logger.Fatalf("Failed to create cheque handler: %v", err)
+		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
 	// start msg processor
-	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, chequeHandler, g, userIDUpdatedChan)
+	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, identificationHandler, g, userIDUpdatedChan)
 
 	// init tracer
 	tracer := a.initTracer()
@@ -173,8 +162,8 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, chequeHandler messaging.ChequeHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
-	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, chequeHandler)
+func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, identificationHandler messaging.IdentificationHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
+	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, identificationHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

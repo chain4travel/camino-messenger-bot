@@ -35,7 +35,7 @@ func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
 func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.PrivateKey, EvmPrivateKey, "", "The EVM private key")
 	fs.StringVar(&cfg.RPCURL, RPCURLKey, "", "The EVM RPC URL")
-	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D", "BookingToken address")
+	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address")
 	fs.StringVar(&cfg.BookingTokenABIFile, BookingTokenABIFileKey, "./abi/BookingTokenV0.abi", "BookingToken ABI file")
 	fs.StringVar(&cfg.DomainName, DomainName, "CM", "Domain name for the Cheque Handler (Messenger Cashier) registration")
 	fs.Uint64Var(&cfg.DomainVersion, DomainVersion, 1, "Domain version for the Cheque Handler (Messenger Cashier) registration")

@@ -11,6 +11,7 @@ import (
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/stretchr/testify/require"
 	"maunium.net/go/mautrix/event"
 )
@@ -27,7 +28,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 	}
 	tests := map[string]struct {
 		args args
-		want []CaminoMatrixMessage
+		want []matrix.CaminoMatrixMessage
 		err  error
 	}{
 		"err: unknown message type": {
@@ -54,7 +55,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 100,
 			},
-			want: []CaminoMatrixMessage{
+			want: []matrix.CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -95,7 +96,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 23, // compressed size of msgType=ActivitySearchResponse and serviceCode="test"
 			},
-			want: []CaminoMatrixMessage{
+			want: []matrix.CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -136,7 +137,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				},
 				maxSize: 22, // < 23 = compressed size of msgType=ActivitySearchResponse and serviceCode="test"
 			},
-			want: []CaminoMatrixMessage{
+			want: []matrix.CaminoMatrixMessage{
 				{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
@@ -158,7 +159,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 								},
 							},
 						})
-						return compressedContent[:22] // First Chunk - TODO: remove 22 as length and use variable
+						return compressedContent[:22] // First Chunk
 					}(),
 				},
 				{
