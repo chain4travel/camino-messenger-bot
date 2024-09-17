@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"sync"
 	"time"
 
@@ -27,8 +26,6 @@ import (
 )
 
 var _ messaging.Messenger = (*messenger)(nil)
-
-var C4TMessage = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
 
 type client struct {
 	*mautrix.Client
@@ -73,9 +70,8 @@ func (m *messenger) Checkpoint() string {
 
 func (m *messenger) StartReceiver() (string, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
-	event.TypeMap[C4TMessage] = reflect.TypeOf(matrix.CaminoMatrixMessage{}) // custom message event types have to be registered properly
 
-	syncer.OnEventType(C4TMessage, func(ctx context.Context, evt *event.Event) {
+	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
 		msg := evt.Content.Parsed.(*matrix.CaminoMatrixMessage)
 		traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
 		if err != nil {
@@ -190,7 +186,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error 
 	}
 	compressSpan.End()
 
-	return m.sendMessageEvents(ctx, roomID, C4TMessage, messages)
+	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, messages)
 }
 
 func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []matrix.CaminoMatrixMessage) error {

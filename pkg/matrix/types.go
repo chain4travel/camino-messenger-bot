@@ -1,6 +1,8 @@
 package matrix
 
 import (
+	"reflect"
+
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
@@ -15,6 +17,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"maunium.net/go/mautrix/event"
 )
+
+var EventTypeC4TMessage = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
+
+func init() {
+	event.TypeMap[EventTypeC4TMessage] = reflect.TypeOf(CaminoMatrixMessage{})
+}
 
 // CaminoMatrixMessage is a matrix-specific message format used for communication between the messenger and the service
 type CaminoMatrixMessage struct {

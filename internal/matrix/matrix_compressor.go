@@ -77,7 +77,7 @@ func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte
 			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
 			Metadata:            msg.Metadata,
 		}
-		caminoMatrixMsg.Metadata.NumberOfChunks = uint(len(splitCompressedContent))
+		caminoMatrixMsg.Metadata.NumberOfChunks = uint64(len(splitCompressedContent))
 		caminoMatrixMsg.Metadata.ChunkIndex = 0
 		caminoMatrixMsg.CompressedContent = splitCompressedContent[0]
 		messages = append(messages, caminoMatrixMsg)
@@ -87,7 +87,7 @@ func splitCaminoMatrixMsg(msg messaging.Message, splitCompressedContent [][]byte
 	for i, chunk := range splitCompressedContent[1:] {
 		messages = append(messages, matrix.CaminoMatrixMessage{
 			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
-			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint(len(splitCompressedContent)), ChunkIndex: uint(i + 1)},
+			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint64(len(splitCompressedContent)), ChunkIndex: uint64(i + 1)},
 			CompressedContent:   chunk,
 		})
 	}
