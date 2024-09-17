@@ -13,8 +13,8 @@ import (
 var (
 	// these variables are set by go build -ldflags
 	// TODO: @VjeraTurk make this work when multiple bots are ran with launch.json
-	Version   string = "unknown"
-	GitCommit string = "unknown"
+	Version   string
+	GitCommit string
 )
 
 func main() {
