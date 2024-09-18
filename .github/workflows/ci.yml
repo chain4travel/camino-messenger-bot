@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  go_version: '~1.20.12'
+  go_version: "~1.23.1"
 
 jobs:
   unit:
@@ -63,4 +63,3 @@ jobs:
       - name: Check Clean Branch
         shell: bash
         run: .github/workflows/check-clean-branch.sh
-
