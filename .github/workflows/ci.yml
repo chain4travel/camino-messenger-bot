@@ -16,6 +16,14 @@ concurrency:
 env:
   go_version: "~1.23.1"
 
+permissions:
+  # Required: allow read access to the content for analysis.
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  pull-requests: read
+  # Optional: allow write access to checks to allow the action to annotate code in the PR.
+  checks: write
+
 jobs:
   unit:
     name: Unit Tests
@@ -47,6 +55,18 @@ jobs:
       - name: GolangCI-Lint
         shell: bash
         run: ./scripts/lint.sh
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.go_version }}
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
   go_mod_tidy:
     name: Check state of go.mod and go.sum
     runs-on: ubuntu-22.04
