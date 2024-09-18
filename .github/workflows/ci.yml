@@ -40,7 +40,7 @@ jobs:
   # When the golangci-lint version is updated here, also update it in scripts/lint.sh
   lint:
     name: Static Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Update dependencies
