@@ -88,7 +88,6 @@ func (a *App) Run(ctx context.Context) error {
 		e := event.(*bookingtoken.BookingtokenTokenReserved)
 		a.logger.Infof("TokenReserved event: TokenId %s, Reserved For %s by Supplier %s", e.TokenId.String(), e.ReservedFor.Hex(), e.Supplier.Hex())
 	})
-
 	if err != nil {
 		a.logger.Fatalf("Failed to register TokenReserved handler: %v", err)
 	}
@@ -103,7 +102,6 @@ func (a *App) Run(ctx context.Context) error {
 		e := event.(*cmaccount.CmaccountServiceAdded)
 		a.logger.Infof("ServiceAdded event: ServiceHash %s", e.ServiceName)
 	})
-
 	if err != nil {
 		a.logger.Fatalf("Failed to register ServiceAdded handler: %v", err)
 	}
@@ -113,6 +111,9 @@ func (a *App) Run(ctx context.Context) error {
 		e := event.(*cmaccount.CmaccountServiceRemoved)
 		a.logger.Infof("ServiceRemoved event: ServiceHash %s", e.ServiceName)
 	})
+	if err != nil {
+		a.logger.Fatalf("Failed to register ServiceRemoved handler: %v", err)
+	}
 
 	// Register an event handler for CMAccount's ServiceRemoved event for any service name
 	_, err = eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
@@ -121,7 +122,6 @@ func (a *App) Run(ctx context.Context) error {
 		// Unsubscribe #1 when we receive a remove event
 		removeHandle.Unsubscribe()
 	})
-
 	if err != nil {
 		a.logger.Fatalf("Failed to register ServiceRemoved handler: %v", err)
 	}

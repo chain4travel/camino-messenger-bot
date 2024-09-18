@@ -195,10 +195,8 @@ func (el *EventListener) resubscribeServiceAdded(ctx context.Context, subID stri
 	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
 
 	// Wait until context is canceled
-	select {
-	case <-ctx.Done():
-		sub.Unsubscribe()
-	}
+	<-ctx.Done()
+	sub.Unsubscribe()
 }
 
 // listenForServiceAddedEvents listens for ServiceAdded events
@@ -211,15 +209,8 @@ func (el *EventListener) listenForServiceAddedEvents(subID string, eventChan cha
 	}
 	handler := subInfo.handler
 
-	for {
-		select {
-		case event, ok := <-eventChan:
-			if !ok {
-				// Channel closed, exit goroutine
-				return
-			}
-			handler(event)
-		}
+	for event := range eventChan {
+		handler(event)
 	}
 }
 
@@ -295,10 +286,9 @@ func (el *EventListener) resubscribeServiceFeeUpdated(ctx context.Context, subID
 
 	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
 
-	select {
-	case <-ctx.Done():
-		sub.Unsubscribe()
-	}
+	// Wait until context is canceled
+	<-ctx.Done()
+	sub.Unsubscribe()
 }
 
 // listenForServiceFeeUpdatedEvents listens for ServiceFeeUpdated events
@@ -311,14 +301,8 @@ func (el *EventListener) listenForServiceFeeUpdatedEvents(subID string, eventCha
 	}
 	handler := subInfo.handler
 
-	for {
-		select {
-		case event, ok := <-eventChan:
-			if !ok {
-				return
-			}
-			handler(event)
-		}
+	for event := range eventChan {
+		handler(event)
 	}
 }
 
@@ -394,10 +378,9 @@ func (el *EventListener) resubscribeServiceRemoved(ctx context.Context, subID st
 
 	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
 
-	select {
-	case <-ctx.Done():
-		sub.Unsubscribe()
-	}
+	// Wait until context is canceled
+	<-ctx.Done()
+	sub.Unsubscribe()
 }
 
 // listenForServiceRemovedEvents listens for ServiceRemoved events
@@ -410,14 +393,8 @@ func (el *EventListener) listenForServiceRemovedEvents(subID string, eventChan c
 	}
 	handler := subInfo.handler
 
-	for {
-		select {
-		case event, ok := <-eventChan:
-			if !ok {
-				return
-			}
-			handler(event)
-		}
+	for event := range eventChan {
+		handler(event)
 	}
 }
 
@@ -493,10 +470,9 @@ func (el *EventListener) resubscribeCMAccountUpgraded(ctx context.Context, subID
 
 	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
 
-	select {
-	case <-ctx.Done():
-		sub.Unsubscribe()
-	}
+	// Wait until context is canceled
+	<-ctx.Done()
+	sub.Unsubscribe()
 }
 
 // listenForCMAccountUpgradedEvents listens for CMAccountUpgraded events
@@ -509,19 +485,13 @@ func (el *EventListener) listenForCMAccountUpgradedEvents(subID string, eventCha
 	}
 	handler := subInfo.handler
 
-	for {
-		select {
-		case event, ok := <-eventChan:
-			if !ok {
-				return
-			}
-			handler(event)
-		}
+	for event := range eventChan {
+		handler(event)
 	}
 }
 
 // RegisterTokenBoughtHandler registers a handler for TokenBought events on a BookingToken contract
-func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, tokenId []*big.Int, buyer []common.Address, handler EventHandler) (ListenerHandle, error) {
+func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, tokenID []*big.Int, buyer []common.Address, handler EventHandler) (ListenerHandle, error) {
 	el.mu.Lock()
 	defer el.mu.Unlock()
 
@@ -542,7 +512,7 @@ func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, to
 	}
 	el.subscriptions[subID] = subInfo
 
-	go el.resubscribeTokenBought(ctx, subID, btContract, tokenId, buyer)
+	go el.resubscribeTokenBought(ctx, subID, btContract, tokenID, buyer)
 
 	return &listenerHandle{
 		unsubscribe: func() {
@@ -552,7 +522,7 @@ func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, to
 }
 
 // resubscribeTokenBought handles resubscription for TokenBought events
-func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenId []*big.Int, buyer []common.Address) {
+func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenID []*big.Int, buyer []common.Address) {
 	backoffMax := 2 * time.Minute
 
 	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
@@ -562,7 +532,7 @@ func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID strin
 
 		eventChan := make(chan *bookingtoken.BookingtokenTokenBought)
 
-		sub, err := btContract.WatchTokenBought(&bind.WatchOpts{Context: ctx}, eventChan, tokenId, buyer)
+		sub, err := btContract.WatchTokenBought(&bind.WatchOpts{Context: ctx}, eventChan, tokenID, buyer)
 		if err != nil {
 			el.logger.Errorf("Failed to subscribe to TokenBought events: %v", err)
 			return nil, err
@@ -585,17 +555,16 @@ func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID strin
 
 		el.logger.Infof("Subscribed for TokenBought events on BookingToken %s", subInfo.contract)
 		el.logger.Debugf("Subscription ID: %s", subID)
-		el.logger.Debugf("Filters: tokenId: %v, buyer: %v", tokenId, buyer)
+		el.logger.Debugf("Filters: tokenID: %v, buyer: %v", tokenID, buyer)
 
 		return sub, nil
 	}
 
 	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
 
-	select {
-	case <-ctx.Done():
-		sub.Unsubscribe()
-	}
+	// Wait until context is canceled
+	<-ctx.Done()
+	sub.Unsubscribe()
 }
 
 // listenForTokenBoughtEvents listens for TokenBought events
@@ -608,19 +577,13 @@ func (el *EventListener) listenForTokenBoughtEvents(subID string, eventChan chan
 	}
 	handler := subInfo.handler
 
-	for {
-		select {
-		case event, ok := <-eventChan:
-			if !ok {
-				return
-			}
-			handler(event)
-		}
+	for event := range eventChan {
+		handler(event)
 	}
 }
 
 // RegisterTokenReservedHandler registers a handler for TokenReserved events on a BookingToken contract
-func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, tokenId []*big.Int, reservedFor []common.Address, supplier []common.Address, handler EventHandler) (ListenerHandle, error) {
+func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, tokenID []*big.Int, reservedFor []common.Address, supplier []common.Address, handler EventHandler) (ListenerHandle, error) {
 	el.mu.Lock()
 	defer el.mu.Unlock()
 
@@ -641,7 +604,7 @@ func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, 
 	}
 	el.subscriptions[subID] = subInfo
 
-	go el.resubscribeTokenReserved(ctx, subID, btContract, tokenId, reservedFor, supplier)
+	go el.resubscribeTokenReserved(ctx, subID, btContract, tokenID, reservedFor, supplier)
 
 	return &listenerHandle{
 		unsubscribe: func() {
@@ -651,7 +614,7 @@ func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, 
 }
 
 // resubscribeTokenReserved handles resubscription for TokenReserved events
-func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenId []*big.Int, reservedFor []common.Address, supplier []common.Address) {
+func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenID []*big.Int, reservedFor []common.Address, supplier []common.Address) {
 	backoffMax := 2 * time.Minute
 
 	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
@@ -661,7 +624,7 @@ func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID str
 
 		eventChan := make(chan *bookingtoken.BookingtokenTokenReserved)
 
-		sub, err := btContract.WatchTokenReserved(&bind.WatchOpts{Context: ctx}, eventChan, tokenId, reservedFor, supplier)
+		sub, err := btContract.WatchTokenReserved(&bind.WatchOpts{Context: ctx}, eventChan, tokenID, reservedFor, supplier)
 		if err != nil {
 			el.logger.Errorf("Failed to subscribe to TokenReserved events: %v", err)
 			return nil, err
@@ -684,17 +647,16 @@ func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID str
 
 		el.logger.Infof("Subscribed for TokenReserved events on BookingToken %s", subInfo.contract)
 		el.logger.Debugf("Subscription ID: %s", subID)
-		el.logger.Debugf("Filters: tokenId: %v, reservedFor: %v, supplier: %v", tokenId, reservedFor, supplier)
+		el.logger.Debugf("Filters: tokenID: %v, reservedFor: %v, supplier: %v", tokenID, reservedFor, supplier)
 
 		return sub, nil
 	}
 
 	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
 
-	select {
-	case <-ctx.Done():
-		sub.Unsubscribe()
-	}
+	// Wait until context is canceled
+	<-ctx.Done()
+	sub.Unsubscribe()
 }
 
 // listenForTokenReservedEvents listens for TokenReserved events
@@ -707,13 +669,7 @@ func (el *EventListener) listenForTokenReservedEvents(subID string, eventChan ch
 	}
 	handler := subInfo.handler
 
-	for {
-		select {
-		case event, ok := <-eventChan:
-			if !ok {
-				return
-			}
-			handler(event)
-		}
+	for event := range eventChan {
+		handler(event)
 	}
 }
