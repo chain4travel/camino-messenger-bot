@@ -60,6 +60,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Update dependencies
+        run: git submodule update --init
+      - name: Install libolm
+        run: sudo apt update && sudo apt-get install -y libolm-dev
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.go_version }}
@@ -67,6 +71,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.60
+          only-new-issues: true
   go_mod_tidy:
     name: Check state of go.mod and go.sum
     runs-on: ubuntu-22.04
