@@ -72,8 +72,8 @@ github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghf
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
-github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20240915004532-6efedb934417 h1:mM4wmvaAwCzUsH+b/bzS+2271fchz++P1n0bWB/4ecM=
-github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20240915004532-6efedb934417/go.mod h1:omB9wucNB40bnXBQY9YXkgCT4wtCG9/PagvYntX9bDM=
+github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20240918114804-fbc75cbe60fc h1:G4sK9VsBD90gCRBuyhzltXa1Ib9zsJPfcNHmf1XTRh8=
+github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20240918114804-fbc75cbe60fc/go.mod h1:omB9wucNB40bnXBQY9YXkgCT4wtCG9/PagvYntX9bDM=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
