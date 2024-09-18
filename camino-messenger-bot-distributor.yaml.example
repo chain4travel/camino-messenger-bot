@@ -59,7 +59,7 @@ supported_request_types:
 evm_private_key: PrivateKey-YOUR_PRIVATE_KEY
 
 # C-Chain RPC URL
-rpc_url: https://columbus.camino.network/ext/bc/C/rpc
+rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 
 ### Booking Token
 

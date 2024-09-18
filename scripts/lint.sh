@@ -10,7 +10,7 @@ golangci_lint_installed() {
 # Function to install golangci-lint on Ubuntu
 install_golangci_lint() {
     echo "Installing golangci-lint..."
-    go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.1
+    go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60
 }
 
 # Check if golangci-lint is installed
