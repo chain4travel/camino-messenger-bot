@@ -26,10 +26,10 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update dependencies
         run: git submodule update --init
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.go_version }}
       - name: Install libolm
@@ -59,10 +59,10 @@ jobs:
     name: Check state of go.mod and go.sum
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update dependencies
         run: git submodule update --init
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.go_version }}
       - name: Go Mod Tidy
