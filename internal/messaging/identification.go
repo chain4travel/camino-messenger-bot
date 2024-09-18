@@ -1,13 +1,14 @@
 package messaging
 
 import (
-	"context"
 	"log"
 	"math/big"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/ethereum/go-ethereum"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -21,10 +22,11 @@ var CMAccountBotMap = map[common.Address]string{}
 var _ IdentificationHandler = (*evmIdentificationHandler)(nil)
 
 type evmIdentificationHandler struct {
-	ethClient    *ethclient.Client
-	CMAccountABI *abi.ABI
-	cfg          *config.EvmConfig
-	matrixHost   string
+	cmAccountManager cmaccountmanager.Cmaccountmanager
+	ethClient        *ethclient.Client
+	CMAccountABI     *abi.ABI
+	cfg              *config.EvmConfig
+	matrixHost       string
 }
 
 type IdentificationHandler interface {
@@ -64,30 +66,16 @@ func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger,
 
 func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]string, error) {
 	roleHash := crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
-	data, err := cm.CMAccountABI.Pack("getRoleMemberCount", roleHash)
-	if err != nil {
-		log.Fatalf("Failed to pack contract function call: %v", err)
-	}
 
-	callMsg := ethereum.CallMsg{
-		To:   &cmAccountAddress,
-		Data: data,
-	}
-
+	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, cm.ethClient)
 	if err != nil {
+		log.Fatalf("Failed to get cm Account: %v", err)
 		return nil, err
 	}
 
-	result, err := cm.ethClient.CallContract(context.Background(), callMsg, nil)
+	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{}, roleHash)
 	if err != nil {
 		log.Fatalf("Failed to call contract function: %v", err)
-		return nil, err
-	}
-
-	var countBig *big.Int
-	err = cm.CMAccountABI.UnpackIntoInterface(&countBig, "getRoleMemberCount", result)
-	if err != nil {
-		log.Fatalf("Failed to unpack result: %v", err)
 		return nil, err
 	}
 
@@ -96,27 +84,9 @@ func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAcc
 	count := int(countBig.Int64())
 	if count > 0 {
 		for i := 0; i < count; i++ {
-			data, err := cm.CMAccountABI.Pack("getRoleMember", roleHash, big.NewInt(int64(i)))
-			if err != nil {
-				log.Fatalf("Failed to pack contract function call: %v", err)
-			}
-
-			callMsg := ethereum.CallMsg{
-				To:   &cmAccountAddress,
-				Data: data,
-			}
-
-			result, err := cm.ethClient.CallContract(context.Background(), callMsg, nil)
+			address, err := cmAccount.GetRoleMember(&bind.CallOpts{}, roleHash, big.NewInt(int64(i)))
 			if err != nil {
 				log.Fatalf("Failed to call contract function: %v", err)
-				return nil, err
-			}
-
-			var address common.Address
-			err = cm.CMAccountABI.UnpackIntoInterface(&address, "getRoleMember", result)
-			if err != nil {
-				log.Fatalf("Failed to unpack result: %v", err)
-				return nil, err
 			}
 			bots = append(bots, address.Hex())
 		}

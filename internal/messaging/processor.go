@@ -58,6 +58,7 @@ type processor struct {
 	responseChannels      map[string]chan *Message
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
+	chequeHandler         ChequeHandler
 	identificationHandler IdentificationHandler
 }
 
@@ -69,7 +70,7 @@ func (*processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, chequeHandler ChequeHandler, identificationHandler IdentificationHandler) Processor {
 	return &processor{
 		cfg:                   cfg,
 		messenger:             messenger,
@@ -79,6 +80,7 @@ func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.Pro
 		responseChannels:      make(map[string]chan *Message),
 		serviceRegistry:       registry,
 		responseHandler:       responseHandler,
+		chequeHandler:         chequeHandler,
 		identificationHandler: identificationHandler,
 	}
 }
@@ -164,7 +166,52 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 			msg.Metadata.Recipient = botAddress
 		}
 	}
-	msg.Metadata.Cheques = nil // TODO issue and attach cheques
+
+	if msg.Metadata.Cheques == nil {
+		// number of chunks -> for each chunk a cheque is created?
+		// msg.Metadata.NumberOfChunks
+		// https://excalidraw.com/
+
+		// todo sqlite db for storing cheque count
+		messengerFee := uint64(1200000)
+		// todo: @havan fetch from Smart Contract for network fees
+
+		// shut down bot if he is not added as allowed on the CMAccount as CHEQUE_OPERATOR_ROLE
+		// call contract isBotAllowed ? if not, return error
+		allowed, err := p.chequeHandler.isBotAllowed()
+
+		if err != nil {
+			return nil, fmt.Errorf("Bot is not allowed to issue cheques: %w", err)
+		}
+
+		var fromCMAccount = common.HexToAddress(config.CMAccountAddressKey)
+		var toCMAccount = common.HexToAddress(msg.Metadata.Recipient)
+
+		var toBot = common.HexToAddress(config.CMAccountAddressKey)
+
+		messengerFeeCheque, err := p.chequeHandler.issueCheque(ctx, fromCMAccount, toCMAccount, toBot, messengerFee)
+		if err != nil {
+			return nil, fmt.Errorf("failed to issue messenger fee cheque: %w", err)
+			msg.Metadata.Cheques = append(msg.Metadata.Cheques, messengerFeeCheque)
+			serviceName := "AccommodationSearchService" // hardcoded for now, fetch from the message
+
+			serviceFee, err := p.chequeHandler.getServiceFeeByName(serviceName, msg.Metadata.Recipient)
+			// cache the service fee
+			if err != nil {
+				return nil, fmt.Errorf("failed to get service fee: %w", err)
+			}
+			serviceFeeCheque, err := p.chequeHandler.issueCheque(msg.Metadata.Sender, msg.Metadata.Recipient, msg.Metadata.Recipient, serviceFee)
+			if err != nil {
+				return nil, fmt.Errorf("failed to issue service fee cheque: %w", err)
+
+				// check from PartnerConfiguration the service fee
+
+				// msg.Content.RequestContent.ServiceFeeCheque = serviceFeeCheque
+			}
+		}
+
+	}
+
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 

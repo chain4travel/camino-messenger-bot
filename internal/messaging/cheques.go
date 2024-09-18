@@ -49,7 +49,6 @@ type evmChequeHandler struct {
 	domainVersion    uint64
 	domainName       string
 	cfg              *config.EvmConfig
-	eventListener    *events.EventListener
 }
 
 type ChequeHandler interface {
@@ -68,7 +67,7 @@ type LastCashIn struct {
 	expiresAt *big.Int
 }
 
-func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig, eventListener events.EventListener) (ChequeHandler, error) {
+func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ChequeHandler, error) {
 	abi, err := loadABI(cfg.CMAccountABIFile)
 	if err != nil {
 		return nil, err
@@ -97,7 +96,6 @@ func NewChequeHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cf
 		domainVersion:    cfg.DomainVersion,
 		domainName:       cfg.DomainName,
 		cfg:              cfg,
-		eventListener:    eventListener,
 	}, nil
 }
 
@@ -344,18 +342,19 @@ func (cm *evmChequeHandler) getChequeVerifiedEvent(txHash common.Hash) (*ChequeV
 }
 
 func (cm *evmChequeHandler) getServiceFeeByName(serviceName string, CMAccountAddress common.Address) (*big.Int, error) {
-	serviceHash := serviceNameToHash(serviceName)
+	//serviceHash := serviceNameToHash(serviceName)
 
 	// call contract getServiceFee(serviceHash)
-	getSupportedServices := cm.CMAccountABI.Methods["getSupportedServices"]
+	//getSupportedServices := cm.CMAccountABI.Methods["getSupportedServices"]
 
-	getRegisteredServiceHashByName := cm.CMAccountABI.Methods["getRegisteredServiceHashByName"]
+	//getRegisteredServiceHashByName := cm.CMAccountABI.Methods["getRegisteredServiceHashByName"]
 
-	serviceFee, err := cm.getServiceFee(serviceHash)
+	//serviceFee, err := cm.getServiceFee(serviceHash)
 
-	return serviceFee, err
+	//return serviceFee, err
 
-	serviceHashes := cm.eventListener.Listen("ServiceAdded", CMAccountAddress, cm.CMAccountABI)
+	//serviceHashes := cm.eventListener.Listen("ServiceAdded", CMAccountAddress, cm.CMAccountABI)
+
 	// get service name from hash
 	// call get getServiceFee(hash)
 	//input, err := cm.CMAccountABI.Pack("getServiceFeeByName", serviceName)
