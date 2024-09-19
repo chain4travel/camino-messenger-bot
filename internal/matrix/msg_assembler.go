@@ -47,8 +47,6 @@ func (a *messageAssembler) AssembleMessage(msg *matrix.CaminoMatrixMessage) (*ma
 	}
 
 	a.partialMessages[id] = append(a.partialMessages[id], msg)
-	// TODO: I believe it's safe to assume the number of chunks will not overflow
-	// #nosec G115
 	if len(a.partialMessages[id]) == int(msg.Metadata.NumberOfChunks) {
 		decompressedCaminoMsg, err := a.assembleAndDecompressCaminoMatrixMessages(a.partialMessages[id])
 		delete(a.partialMessages, id)

@@ -35,14 +35,18 @@ var (
 	}
 )
 
-type chequeSigner struct {
+type Signer interface {
+	SignCheque(cheque *Cheque) (*SignedCheque, error)
+}
+
+type signer struct {
 	privateKey      *ecdsa.PrivateKey
 	domainSeparator []byte
 	chequeTypeHash  []byte
 	domain          *apitypes.TypedDataDomain
 }
 
-func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*chequeSigner, error) {
+func NewSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (Signer, error) {
 	domain := apitypes.TypedDataDomain{
 		Name:    "CaminoMessenger",
 		Version: "1",
@@ -63,7 +67,7 @@ func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*chequeSig
 		return nil, err
 	}
 
-	return &chequeSigner{
+	return &signer{
 		privateKey:      privateKey,
 		domainSeparator: domainSeparator,
 		chequeTypeHash:  data.TypeHash(chequeType),
@@ -71,7 +75,7 @@ func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*chequeSig
 	}, nil
 }
 
-func (cs *chequeSigner) SignCheque(cheque *Cheque) (*SignedCheque, error) {
+func (cs *signer) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 	message := apitypes.TypedDataMessage{
 		"fromCMAccount": cheque.FromCMAccount.Hex(),
 		"toCMAccount":   cheque.ToCMAccount.Hex(),
@@ -91,7 +95,7 @@ func (cs *chequeSigner) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 
 	typedDataHash, err := hashStructWithTypeHash(data, chequeType, cs.chequeTypeHash)
 	if err != nil {
-		return nil, fmt.Errorf("failed to hash struct: %v", err)
+		return nil, fmt.Errorf("failed to hash struct: %w", err)
 	}
 
 	finalHash := crypto.Keccak256(
@@ -102,7 +106,7 @@ func (cs *chequeSigner) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 
 	signature, err := crypto.Sign(finalHash, cs.privateKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to sign the hash: %v", err)
+		return nil, fmt.Errorf("failed to sign the hash: %w", err)
 	}
 
 	// adjust recovery byte for compatibility
