@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/events"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
@@ -13,9 +12,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
-	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -71,65 +67,6 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
-
-	//
-	// FIXME: REMOVE AFTER DEVELOPMENT
-	//
-
-	// get booking token address
-	bookingTokenAddr := common.HexToAddress(a.cfg.BookingTokenAddress)
-
-	// create and start event listener
-	eventListener := events.NewEventListener(evmClient, a.logger)
-	a.logger.Info("Event listener created")
-
-	// Register an event handler for the BookingToken "TokenBought" event
-	_, err = eventListener.RegisterTokenReservedHandler(bookingTokenAddr, nil, nil, nil, func(event interface{}) {
-		e := event.(*bookingtoken.BookingtokenTokenReserved)
-		a.logger.Infof("TokenReserved event: TokenId %s, Reserved For %s by Supplier %s", e.TokenId.String(), e.ReservedFor.Hex(), e.Supplier.Hex())
-	})
-	if err != nil {
-		a.logger.Fatalf("Failed to register TokenReserved handler: %v", err)
-	}
-
-	cmAccountAddr := common.HexToAddress("0xd41786599F2B225A5A1eA35cDc4A2a6Fa9E92BeA")
-
-	// Test filtering
-	serviceName := []string{"cmp.services.ping.v1.PingService"}
-
-	// Register an event handler for CMAccount's ServiceAdded event only for service name: "cmp.services.ping.v1.PingService"
-	_, err = eventListener.RegisterServiceAddedHandler(cmAccountAddr, serviceName, func(event interface{}) {
-		e := event.(*cmaccount.CmaccountServiceAdded)
-		a.logger.Infof("ServiceAdded event: ServiceHash %s", e.ServiceName)
-	})
-	if err != nil {
-		a.logger.Fatalf("Failed to register ServiceAdded handler: %v", err)
-	}
-
-	// Register an event handler for CMAccount's ServiceRemoved event for any service name
-	unsubServiceRemoved1, err := eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
-		e := event.(*cmaccount.CmaccountServiceRemoved)
-		a.logger.Infof("#1 ServiceRemoved event: ServiceHash %s", e.ServiceName)
-	})
-	if err != nil {
-		a.logger.Fatalf("Failed to register ServiceRemoved handler: %v", err)
-	}
-
-	// Register an event handler for CMAccount's ServiceRemoved event for any service name
-	_, err = eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
-		e := event.(*cmaccount.CmaccountServiceRemoved)
-		a.logger.Infof("#2 ServiceRemoved event: ServiceHash %s", e.ServiceName)
-		// Unsubscribe #1 when we receive a remove event
-		a.logger.Debug("Unsubscribing #1")
-		unsubServiceRemoved1()
-	})
-	if err != nil {
-		a.logger.Fatalf("Failed to register ServiceRemoved handler: %v", err)
-	}
-
-	//
-	// FIXME END: REMOVE AFTER DEVELOPMENT
-	//
 
 	// create response handler
 	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig)
