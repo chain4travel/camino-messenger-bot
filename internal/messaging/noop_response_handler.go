@@ -41,3 +41,7 @@ func (NoopResponseHandler) getMyCMAccountAddress() string {
 func (NoopResponseHandler) getMatrixHost() string {
 	return ""
 }
+
+func (NoopResponseHandler) isBotInCMAccount(string, common.Address) (bool, error) {
+	return false, nil
+}

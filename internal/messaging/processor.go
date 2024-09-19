@@ -218,6 +218,26 @@ func (p *processor) Respond(msg *Message) error {
 	// md.Sender = p.identificationHandler.getMyCMAccountAddress()
 
 	// rewrite sender & recipient metadata
+	/*
+		for i := 0; i < len(md.Cheques); i++ {
+
+			if !p.identificationHandler.isMyCMAccount(md.Cheques[0].ToCMAccount) {
+				return fmt.Errorf("Incorrect CMAccount")
+			}
+
+			isInCmAccount, err := p.identificationHandler.isBotInCMAccount(msg.Metadata.Sender, md.Cheques[i].FromCMAccount)
+
+			if err != nil {
+				return fmt.Errorf("Bot not in CMAccount")
+			}
+
+			if !isInCmAccount {
+				return fmt.Errorf("Bot not part of CMAccount")
+			}
+
+		}
+	*/
+
 	md.Recipient = md.Sender
 	md.Sender = p.userID
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
