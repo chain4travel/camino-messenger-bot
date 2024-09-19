@@ -27,7 +27,6 @@ var (
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
 	ErrUnsupportedRequestType     = errors.New("unsupported request type")
 	ErrMissingRecipient           = errors.New("missing recipient")
-	ErrMissingCMAccountRecipient  = errors.New("missing CM Account recipient")
 	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
 )
@@ -143,27 +142,27 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
+
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
-		if msg.Metadata.RecipientCMAccount == "" {
-			return nil, ErrMissingCMAccountRecipient
-		}
-
-		// lookup for CM Account -> bot
-		botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)]
-
-		if botAddress == "" {
-			// if not in mapping, fetch 1 bot from CM Account
-			botAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.RecipientCMAccount))
-			if err != nil {
-				return nil, err
-			}
-			botAddress = "@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
-			CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)] = botAddress
-			msg.Metadata.Recipient = botAddress
-		} else {
-			msg.Metadata.Recipient = botAddress
-		}
+		return nil, ErrMissingRecipient
 	}
+
+	// lookup for CM Account -> bot
+	botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)]
+
+	if botAddress == "" {
+		// if not in mapping, fetch 1 bot from CM Account
+		botAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+		if err != nil {
+			return nil, err
+		}
+		botAddress = "@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
+		CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)] = botAddress
+		msg.Metadata.Recipient = botAddress
+	} else {
+		msg.Metadata.Recipient = botAddress
+	}
+
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
