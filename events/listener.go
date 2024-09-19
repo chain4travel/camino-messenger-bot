@@ -126,13 +126,6 @@ func (el *EventListener) addSubscriptionInfo(subID string, subInfo *subscription
 	el.subscriptions[subID] = subInfo
 }
 
-// removeSubscription removes a subscription from the subscriptions map
-func (el *EventListener) removeSubscriptionInfo(subID string) {
-	el.mu.Lock()
-	defer el.mu.Unlock()
-	delete(el.subscriptions, subID)
-}
-
 // addSubAndCloseChan adds a subscription and a close channel to the subscriptions map
 func (el *EventListener) addSubAndCloseChan(subInfo *subscriptionInfo, sub event.Subscription, closeChan func()) {
 	el.mu.Lock()
@@ -144,7 +137,6 @@ func (el *EventListener) addSubAndCloseChan(subInfo *subscriptionInfo, sub event
 
 // RegisterServiceAddedHandler registers a handler for the ServiceAdded event on a CMAccount
 func (el *EventListener) RegisterServiceAddedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (func(), error) {
-
 	subID := uuid.New().String()
 
 	// Get or create CMAccount instance
@@ -233,7 +225,6 @@ func (el *EventListener) listenForServiceAddedEvents(subID string, eventChan cha
 
 // RegisterServiceFeeUpdatedHandler registers a handler for the ServiceFeeUpdated event on a CMAccount
 func (el *EventListener) RegisterServiceFeeUpdatedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (func(), error) {
-
 	subID := uuid.New().String()
 
 	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
@@ -315,7 +306,6 @@ func (el *EventListener) listenForServiceFeeUpdatedEvents(subID string, eventCha
 
 // RegisterServiceRemovedHandler registers a handler for the ServiceRemoved event on a CMAccount
 func (el *EventListener) RegisterServiceRemovedHandler(cmAccountAddr common.Address, serviceName []string, handler EventHandler) (func(), error) {
-
 	subID := uuid.New().String()
 
 	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
@@ -397,7 +387,6 @@ func (el *EventListener) listenForServiceRemovedEvents(subID string, eventChan c
 
 // RegisterCMAccountUpgradedHandler registers a handler for the CMAccountUpgraded event on a CMAccount
 func (el *EventListener) RegisterCMAccountUpgradedHandler(cmAccountAddr common.Address, oldImplementation []common.Address, newImplementation []common.Address, handler EventHandler) (func(), error) {
-
 	subID := uuid.New().String()
 
 	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
@@ -479,7 +468,6 @@ func (el *EventListener) listenForCMAccountUpgradedEvents(subID string, eventCha
 
 // RegisterTokenBoughtHandler registers a handler for TokenBought events on a BookingToken contract
 func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, tokenID []*big.Int, buyer []common.Address, handler EventHandler) (func(), error) {
-
 	subID := uuid.New().String()
 
 	btContract, err := el.getOrCreateBookingToken(btAddress)
