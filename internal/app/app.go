@@ -107,9 +107,9 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	// Register an event handler for CMAccount's ServiceRemoved event for any service name
-	removeHandle, err := eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
+	unsubServiceRemoved1, err := eventListener.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
 		e := event.(*cmaccount.CmaccountServiceRemoved)
-		a.logger.Infof("ServiceRemoved event: ServiceHash %s", e.ServiceName)
+		a.logger.Infof("#1 ServiceRemoved event: ServiceHash %s", e.ServiceName)
 	})
 	if err != nil {
 		a.logger.Fatalf("Failed to register ServiceRemoved handler: %v", err)
@@ -120,7 +120,8 @@ func (a *App) Run(ctx context.Context) error {
 		e := event.(*cmaccount.CmaccountServiceRemoved)
 		a.logger.Infof("#2 ServiceRemoved event: ServiceHash %s", e.ServiceName)
 		// Unsubscribe #1 when we receive a remove event
-		removeHandle.Unsubscribe()
+		a.logger.Debug("Unsubscribing #1")
+		unsubServiceRemoved1()
 	})
 	if err != nil {
 		a.logger.Fatalf("Failed to register ServiceRemoved handler: %v", err)
