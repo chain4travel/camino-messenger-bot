@@ -41,6 +41,7 @@ type ResponseHandler interface {
 }
 
 func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ResponseHandler, error) {
+	//TODO @VjeraTurk deprecated, remove after migration
 	abi, err := loadABI(cfg.BookingTokenABIFile)
 	if err != nil {
 		return nil, err
@@ -57,13 +58,11 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 	cChainAddress := crypto.PubkeyToAddress(ecdsaPk.PublicKey)
 	logger.Infof("C-Chain address: %s", cChainAddress)
 
-	// Check supplier name and set default if empty
-	supplierName := cfg.SupplierName
-	if supplierName == "" {
-		supplierName = "Default Supplier"
-		logger.Infof("Supplier name cannot be empty. Setting name to: %s \n", supplierName)
+	bookingToken, err := bookingtoken.NewBookingtoken(common.HexToAddress(cfg.CMAccountAddress), ethClient)
+	if err != nil {
+		log.Fatalf("Failed to get booking token: %v", err)
+		return nil, err
 	}
-
 	return &evmResponseHandler{
 		ethClient:           ethClient,
 		logger:              logger,
@@ -72,7 +71,7 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 		cChainAddress:       cChainAddress,
 		cmAccountAddress:    common.HexToAddress(cfg.CMAccountAddress),
 		bookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
-		supplierName:        supplierName,
+		bookingToken:        bookingToken,
 		// Disable Linter: This code will be removed with the new BookingToken implementation
 		buyableUntilDefault: time.Second * time.Duration(cfg.BuyableUntilDefault), // #nosec G115
 	}, nil
@@ -83,10 +82,10 @@ type evmResponseHandler struct {
 	logger              *zap.SugaredLogger
 	pk                  *ecdsa.PrivateKey
 	tokenABI            *abi.ABI
+	bookingToken        *bookingtoken.Bookingtoken
 	cChainAddress       common.Address
 	bookingTokenAddress common.Address
 	cmAccountAddress    common.Address
-	supplierName        string
 	buyableUntilDefault time.Duration
 }
 
@@ -205,12 +204,6 @@ func (h *evmResponseHandler) mint(
 	expiration *big.Int,
 ) (string, *big.Int, error) {
 
-	bookingToken, err := bookingtoken.NewBookingtoken(h.cmAccountAddress, h.ethClient)
-	if err != nil {
-		log.Fatalf("Failed to get booking token: %v", err)
-		return "", nil, err
-	}
-
 	nonce, err := h.ethClient.PendingNonceAt(ctx, h.cChainAddress)
 	if err != nil {
 		return "", nil, err
@@ -222,25 +215,15 @@ func (h *evmResponseHandler) mint(
 	}
 
 	// Set safe gas limit for now
+	//TODO: increase?
 	gasLimit := uint64(1200000)
 
 	zeroAddress := common.Address{}
 
 	chainID, err := h.ethClient.NetworkID(ctx)
-	/*
-	   bookingToken.connect().mintBookingToken(
-
-	   	reservedFor,
-	   	uri,
-	   	expiration,
-	   	&big.Int{},
-	   	zeroAddress,
-
-	   )
-	*/
 	signerFn := createSignerFn(h.pk, chainID)
 
-	tx, err := bookingToken.SafeMintWithReservation(
+	tx, err := h.bookingToken.SafeMintWithReservation(
 		&bind.TransactOpts{
 			GasPrice: gasPrice,
 			GasLimit: gasLimit,
@@ -296,7 +279,7 @@ func (h *evmResponseHandler) mint(
 			reservedFor := common.HexToAddress(vLog.Topics[1].Hex())
 			tokenID = new(big.Int).SetBytes(vLog.Topics[2].Bytes())
 			vLogT := &types.Log{Data: vLog.Data}
-			reservation, err := bookingToken.ParseTokenReserved(*vLogT)
+			reservation, err := h.bookingToken.ParseTokenReserved(*vLogT)
 			if err != nil {
 				return "", nil, err
 			}
@@ -327,12 +310,10 @@ func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string,
 		return "", err
 	}
 
-	bookingToken, err := bookingtoken.NewBookingtoken(h.cmAccountAddress, h.ethClient)
-
 	// Set safe gas limit for now
 	gasLimit := uint64(200000)
 
-	tx, err := bookingToken.BuyReservedToken(&bind.TransactOpts{
+	tx, err := h.bookingToken.BuyReservedToken(&bind.TransactOpts{
 		Nonce:    new(big.Int).SetUint64(nonce),
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
