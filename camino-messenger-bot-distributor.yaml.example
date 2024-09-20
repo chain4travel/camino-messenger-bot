@@ -66,11 +66,6 @@ rpc_url: https://columbus.camino.network/ext/bc/C/rpc
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
 booking_token_address: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"
 
-# ABI file that will be used during minting, buying of Booking Tokens
-booking_token_abi_file: abi/BookingTokenV0.abi
-
-# ABI file that will be used for accessing CM Account
-cm_account_abi_file:  abi/CMAccount.abi
 # Address of the CM Account that the bot belongs to
 cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
 

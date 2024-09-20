@@ -12,7 +12,6 @@ const (
 	MatrixHost                  = "matrix_host"
 	MatrixStore                 = "matrix_store"
 	CMAccountAddressKey         = "cm_account_address"
-	CMAccountABIFileKey         = "cm_account_abi_file"
 	CMNetworkFeeKey             = "cm_network_fee"
 	RPCServerPortKey            = "rpc_server_port"
 	RPCUnencryptedKey           = "rpc_unencrypted"
