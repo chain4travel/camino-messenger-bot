@@ -244,7 +244,7 @@ func (h *evmResponseHandler) mint(
 		&bind.TransactOpts{
 			GasPrice: gasPrice,
 			GasLimit: gasLimit,
-			Nonce:    new(big.Int).SetUint64(nonce + 4),
+			Nonce:    new(big.Int).SetUint64(nonce),
 			Signer:   signerFn,
 		},
 		reservedFor,
