@@ -86,6 +86,17 @@ func main() {
 	//not applicable
 	//cmAccount.mintBookingToken(reservedFor, uri, expirationTimestamp, price, zeroAddress)
 	//cmAccount.MintBookingToken(reservedFor, uri, expirationTimestamp, price, zeroAddress)
+
+	/*
+			Javascript test example
+			 await supplierCMAccount.connect(signers.btAdmin).mintBookingToken(
+		                    distributorCMAccount.getAddress(), // set reservedFor address to distributor CMAccount
+		                    tokenURI, // tokenURI
+		                    expirationTimestamp, // expiration
+		                    price, // price
+		                    ethers.ZeroAddress, // zero address
+		                ),
+	*/
 	defer stop()
 }
 
