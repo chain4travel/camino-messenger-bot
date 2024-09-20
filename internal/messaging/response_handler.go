@@ -73,7 +73,8 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 		cmAccountAddress:    common.HexToAddress(cfg.CMAccountAddress),
 		bookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
 		supplierName:        supplierName,
-		buyableUntilDefault: time.Second * time.Duration(cfg.BuyableUntilDefault),
+		// Disable Linter: This code will be removed with the new BookingToken implementation
+		buyableUntilDefault: time.Second * time.Duration(cfg.BuyableUntilDefault), // #nosec G115
 	}, nil
 }
 
@@ -150,7 +151,8 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
-	response.MintResponse.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())}
+	// Disable Linter: This code will be removed with the new mint logic and protocol
+	response.MintResponse.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())} // #nosec G115
 	response.MintTransactionId = txID
 	return false
 }

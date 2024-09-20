@@ -14,6 +14,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -32,11 +33,11 @@ func TestAssembleMessage(t *testing.T) {
 		},
 	}
 	type fields struct {
-		partialMessages map[string][]*CaminoMatrixMessage
+		partialMessages map[string][]*matrix.CaminoMatrixMessage
 	}
 
 	type args struct {
-		msg *CaminoMatrixMessage
+		msg *matrix.CaminoMatrixMessage
 	}
 
 	// mocks
@@ -47,13 +48,13 @@ func TestAssembleMessage(t *testing.T) {
 		fields     fields
 		args       args
 		prepare    func()
-		want       *CaminoMatrixMessage
+		want       *matrix.CaminoMatrixMessage
 		isComplete bool
 		err        error
 	}{
 		"err: decoder failed to decompress": {
 			args: args{
-				msg: &CaminoMatrixMessage{
+				msg: &matrix.CaminoMatrixMessage{
 					Metadata: metadata.Metadata{
 						RequestID:      "test",
 						NumberOfChunks: 1,
@@ -68,7 +69,7 @@ func TestAssembleMessage(t *testing.T) {
 		},
 		"err: unknown message type": {
 			args: args{
-				msg: &CaminoMatrixMessage{
+				msg: &matrix.CaminoMatrixMessage{
 					Metadata: metadata.Metadata{
 						RequestID:      "test",
 						NumberOfChunks: 1,
@@ -83,20 +84,20 @@ func TestAssembleMessage(t *testing.T) {
 		},
 		"empty input": {
 			fields: fields{
-				partialMessages: map[string][]*CaminoMatrixMessage{},
+				partialMessages: map[string][]*matrix.CaminoMatrixMessage{},
 			},
 			args: args{
-				msg: &CaminoMatrixMessage{},
+				msg: &matrix.CaminoMatrixMessage{},
 			},
 			isComplete: false,
 			err:        nil,
 		},
 		"partial message delivery [metadata number fo chunks do not match provided messages]": {
 			fields: fields{
-				partialMessages: map[string][]*CaminoMatrixMessage{},
+				partialMessages: map[string][]*matrix.CaminoMatrixMessage{},
 			},
 			args: args{
-				msg: &CaminoMatrixMessage{
+				msg: &matrix.CaminoMatrixMessage{
 					Metadata: metadata.Metadata{
 						RequestID:      "test",
 						NumberOfChunks: 2,
@@ -108,10 +109,10 @@ func TestAssembleMessage(t *testing.T) {
 		},
 		"success: single chunk message": {
 			fields: fields{
-				partialMessages: map[string][]*CaminoMatrixMessage{},
+				partialMessages: map[string][]*matrix.CaminoMatrixMessage{},
 			},
 			args: args{
-				msg: &CaminoMatrixMessage{
+				msg: &matrix.CaminoMatrixMessage{
 					MessageEventContent: event.MessageEventContent{
 						MsgType: event.MessageType(messaging.ActivitySearchResponse),
 					},
@@ -127,7 +128,7 @@ func TestAssembleMessage(t *testing.T) {
 				require.NoError(t, err)
 				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
 			},
-			want: &CaminoMatrixMessage{
+			want: &matrix.CaminoMatrixMessage{
 				Metadata: metadata.Metadata{
 					RequestID:      "id",
 					NumberOfChunks: 1,
@@ -142,14 +143,14 @@ func TestAssembleMessage(t *testing.T) {
 		},
 		"success: multi-chunk message": {
 			fields: fields{
-				partialMessages: map[string][]*CaminoMatrixMessage{"id": {
+				partialMessages: map[string][]*matrix.CaminoMatrixMessage{"id": {
 					// only 2 chunks because the last one is passed as the last argument triggering the call of AssembleMessage
 					// msgType is necessary only for 1st chunk
 					{MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(messaging.ActivitySearchResponse)}}, {},
 				}},
 			},
 			args: args{
-				msg: &CaminoMatrixMessage{
+				msg: &matrix.CaminoMatrixMessage{
 					Metadata: metadata.Metadata{
 						RequestID:      "id",
 						NumberOfChunks: 3,
@@ -162,7 +163,7 @@ func TestAssembleMessage(t *testing.T) {
 				require.NoError(t, err)
 				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
 			},
-			want: &CaminoMatrixMessage{
+			want: &matrix.CaminoMatrixMessage{
 				MessageEventContent: event.MessageEventContent{
 					MsgType: event.MessageType(messaging.ActivitySearchResponse),
 				},

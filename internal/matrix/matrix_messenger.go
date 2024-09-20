@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"sync"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -26,8 +26,6 @@ import (
 )
 
 var _ messaging.Messenger = (*messenger)(nil)
-
-var C4TMessage = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
 
 type client struct {
 	*mautrix.Client
@@ -46,7 +44,7 @@ type messenger struct {
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
-	compressor   compression.Compressor[messaging.Message, []CaminoMatrixMessage]
+	compressor   compression.Compressor[messaging.Message, []matrix.CaminoMatrixMessage]
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging.Messenger {
@@ -72,10 +70,9 @@ func (m *messenger) Checkpoint() string {
 
 func (m *messenger) StartReceiver() (string, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
-	event.TypeMap[C4TMessage] = reflect.TypeOf(CaminoMatrixMessage{}) // custom message event types have to be registered properly
 
-	syncer.OnEventType(C4TMessage, func(ctx context.Context, evt *event.Event) {
-		msg := evt.Content.Parsed.(*CaminoMatrixMessage)
+	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
+		msg := evt.Content.Parsed.(*matrix.CaminoMatrixMessage)
 		traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
 		if err != nil {
 			m.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
@@ -189,10 +186,10 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error 
 	}
 	compressSpan.End()
 
-	return m.sendMessageEvents(ctx, roomID, C4TMessage, messages)
+	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, messages)
 }
 
-func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []CaminoMatrixMessage) error {
+func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []matrix.CaminoMatrixMessage) error {
 	// TODO add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(ctx, roomID, eventType, msg)
