@@ -340,7 +340,7 @@ func TestStart(t *testing.T) {
 	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(dummyService{}, true)
 	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
-	t.Run("start processor and accept messages", func(t *testing.T) {
+	t.Run("start processor and accept messages", func(*testing.T) {
 		cfg := config.ProcessorConfig{}
 		serviceRegistry := mockServiceRegistry
 		responseHandler := NoopResponseHandler{}

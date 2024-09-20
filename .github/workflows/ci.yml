@@ -2,9 +2,6 @@ name: CI
 
 on:
   pull_request:
-    tags-ignore: ["*"]
-    branches: [c4t, dev]
-  push:
     branches: [c4t, dev]
   workflow_dispatch:
 
@@ -29,10 +26,10 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update dependencies
         run: git submodule update --init
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.go_version }}
       - name: Install libolm
@@ -40,24 +37,10 @@ jobs:
       - name: build_test
         shell: bash
         run: ./scripts/build_test.sh
+  # When the golangci-lint version is updated here, also update it in scripts/lint.sh
   lint:
     name: Static Analysis
     runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Update dependencies
-        run: git submodule update --init
-      - uses: actions/setup-go@v3
-        with:
-          go-version: ${{ env.go_version }}
-      - name: Install libolm
-        run: sudo apt update && sudo apt-get install -y libolm-dev
-      - name: GolangCI-Lint
-        shell: bash
-        run: ./scripts/lint.sh
-  golangci:
-    name: lint
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Update dependencies
@@ -76,10 +59,10 @@ jobs:
     name: Check state of go.mod and go.sum
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update dependencies
         run: git submodule update --init
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.go_version }}
       - name: Go Mod Tidy

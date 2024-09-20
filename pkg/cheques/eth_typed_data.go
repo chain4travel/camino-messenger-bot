@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
 
-// TODO@ code was copy-pasted from eth; does it need license header?
+// TODO@ code was copy-pasted (with small modifications) from eth; does it need license header?
 
 func hashStructWithTypeHash(typedData *apitypes.TypedData, dataType string, typeHash []byte) ([]byte, error) {
 	if exp, got := len(typedData.Types[dataType]), len(typedData.Message); exp < got {
@@ -24,7 +24,8 @@ func hashStructWithTypeHash(typedData *apitypes.TypedData, dataType string, type
 	for _, field := range typedData.Types[chequeType] {
 		encType := field.Type
 		encValue := typedData.Message[field.Name]
-		if encType[len(encType)-1:] == "]" {
+		switch {
+		case encType[len(encType)-1:] == "]":
 			arrayValue, err := convertDataToSlice(encValue)
 			if err != nil {
 				return nil, dataMismatchError(encType, encValue)
@@ -53,7 +54,7 @@ func hashStructWithTypeHash(typedData *apitypes.TypedData, dataType string, type
 			}
 
 			buffer.Write(crypto.Keccak256(arrayBuffer.Bytes()))
-		} else if typedData.Types[field.Type] != nil {
+		case typedData.Types[field.Type] != nil:
 			mapValue, ok := encValue.(map[string]interface{})
 			if !ok {
 				return nil, dataMismatchError(encType, encValue)
@@ -63,7 +64,7 @@ func hashStructWithTypeHash(typedData *apitypes.TypedData, dataType string, type
 				return nil, err
 			}
 			buffer.Write(crypto.Keccak256(encodedData))
-		} else {
+		default:
 			byteValue, err := typedData.EncodePrimitiveValue(encType, encValue, depth)
 			if err != nil {
 				return nil, err

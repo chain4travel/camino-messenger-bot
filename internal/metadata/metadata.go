@@ -12,15 +12,14 @@ import (
 )
 
 type Metadata struct {
-	RequestID          string                 `json:"request_id"`
-	Sender             string                 `json:"sender"`
-	Recipient          string                 `json:"recipient"`
-	Cheques            []cheques.SignedCheque `json:"cheques"`
-	Timestamps         map[string]int64       `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
-	NumberOfChunks     uint64                 `json:"number_of_chunks"`
-	ChunkIndex         uint64                 `json:"chunk_index"`
-	RecipientCMAccount string                 `json:"recipient_cm_account"`
-	SenderCMAccount    string                 `json:"sender_cm_account"`
+	RequestID      string                 `json:"request_id"`
+	Sender         string                 `json:"sender"`
+	Recipient      string                 `json:"recipient"`
+	Cheques        []cheques.SignedCheque `json:"cheques"`
+	Timestamps     map[string]int64       `json:"timestamps"` // map of checkpoints to timestamps in unix milliseconds
+	NumberOfChunks uint64                 `json:"number_of_chunks"`
+	ChunkIndex     uint64                 `json:"chunk_index"`
+
 	// Deprecated: this metadata serves only as a temp solution and should be removed and addressed on the protocol level
 	ProviderOperator string `json:"provider_operator"`
 }

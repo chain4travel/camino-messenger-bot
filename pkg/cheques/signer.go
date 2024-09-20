@@ -35,14 +35,18 @@ var (
 	}
 )
 
-type ChequeSigner struct {
+type Signer interface {
+	SignCheque(cheque *Cheque) (*SignedCheque, error)
+}
+
+type signer struct {
 	privateKey      *ecdsa.PrivateKey
 	domainSeparator []byte
 	chequeTypeHash  []byte
 	domain          *apitypes.TypedDataDomain
 }
 
-func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*ChequeSigner, error) {
+func NewSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (Signer, error) {
 	domain := apitypes.TypedDataDomain{
 		Name:    "CaminoMessenger",
 		Version: "1",
@@ -63,7 +67,7 @@ func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*ChequeSig
 		return nil, err
 	}
 
-	return &ChequeSigner{
+	return &signer{
 		privateKey:      privateKey,
 		domainSeparator: domainSeparator,
 		chequeTypeHash:  data.TypeHash(chequeType),
@@ -71,7 +75,7 @@ func NewChequeSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (*ChequeSig
 	}, nil
 }
 
-func (cs *ChequeSigner) SignCheque(cheque *Cheque) (*SignedCheque, error) {
+func (cs *signer) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 	message := apitypes.TypedDataMessage{
 		"fromCMAccount": cheque.FromCMAccount.Hex(),
 		"toCMAccount":   cheque.ToCMAccount.Hex(),
