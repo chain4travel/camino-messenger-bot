@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -18,7 +19,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -45,11 +46,11 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 		return nil, err
 	}
 
-	pk := new(secp256k1.PrivateKey)
-	// UnmarshalText expects the private key in quotes
-	if err := pk.UnmarshalText([]byte("\"" + cfg.PrivateKey + "\"")); err != nil {
-		logger.Fatalf("Failed to parse private key: %v", err)
+	privateKeyBytes, err := hex.DecodeString(cfg.PrivateKey)
+	if err != nil {
+		return nil, err
 	}
+	pk := secp256k1.PrivKeyFromBytes(privateKeyBytes)
 	ecdsaPk := pk.ToECDSA()
 
 	// Get Ethereum Address from private key

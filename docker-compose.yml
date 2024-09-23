@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     environment:
       CMB_DEVELOPER_MODE: "true"
-      CMB_MATRIX_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_MATRIX_KEY: "PRIVATE_KEY_HEX"
       CMB_MATRIX_HOST: "matrix.camino.network"
       CMB_MATRIX_STORE: "supplier-matrix.db"
       CMB_RPC_SERVER_PORT: "9090"
@@ -20,7 +20,7 @@ services:
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
       CMB_BOOKING_TOKEN_ABI_FILE: abi/BookingTokenV0.abi
       CMB_SUPPLIER_NAME: SUPPLIER_NAME
-      CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
       CMB_BUYABLE_UNTIL_DEFAULT: "600"
     ports:
       - "9090:9090"
@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile
     environment:
       CMB_DEVELOPER_MODE: "true"
-      CMB_MATRIX_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_MATRIX_KEY: "PRIVATE_KEY_HEX"
       CMB_MATRIX_HOST: "matrix.camino.network"
       CMB_MATRIX_STORE: "distributor-matrix.db"
       CMB_RPC_SERVER_PORT: "9090"
@@ -40,7 +40,7 @@ services:
       CMB_SUPPORTED_REQUEST_TYPES: "GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest"
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
       CMB_BOOKING_TOKEN_ABI_FILE: "abi/BookingTokenV0.abi"
-      CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
     ports:
       - "9092:9090"
   provider-plugin:

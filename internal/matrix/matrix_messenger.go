@@ -2,17 +2,20 @@ package matrix
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -205,25 +208,49 @@ func (m *messenger) Inbound() chan messaging.Message {
 }
 
 func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {
-	key := new(secp256k1.PrivateKey)
-	if err := key.UnmarshalText([]byte("\"" + keyStr + "\"")); err != nil {
+	privateKeyBytes, err := hex.DecodeString(keyStr)
+	if err != nil {
 		return nil, err
 	}
-	return key, nil
+
+	return secp256k1.PrivKeyFromBytes(privateKeyBytes), nil
 }
 
 func signPublicKey(key *secp256k1.PrivateKey) (signature string, message string, err error) {
-	signatureBytes, err := key.Sign(key.PublicKey().Bytes())
+	pubKeyBytes := key.PubKey().SerializeCompressed()
+	signatureBytes := sign(pubKeyBytes, key)
+	signature, err = hexWithChecksum(signatureBytes)
 	if err != nil {
 		return "", "", err
 	}
-	signature, err = formatting.Encode(formatting.Hex, signatureBytes)
-	if err != nil {
-		return "", "", err
-	}
-	message, err = formatting.Encode(formatting.Hex, key.PublicKey().Bytes())
+	message, err = hexWithChecksum(pubKeyBytes)
 	if err != nil {
 		return "", "", err
 	}
 	return signature, message, nil
+}
+
+func sign(msg []byte, key *secp256k1.PrivateKey) []byte {
+	hash := sha256.Sum256(msg)
+	signature := ecdsa.SignCompact(key, hash[:], false)
+
+	// fix signature format
+	recoveryCode := signature[0]
+	copy(signature, signature[1:])
+	signature[len(signature)-1] = recoveryCode - 27
+	return signature
+}
+
+func hexWithChecksum(bytes []byte) (string, error) {
+	const checksumLen = 4
+	bytesLen := len(bytes)
+	if bytesLen > math.MaxInt32-checksumLen {
+		return "", errors.New("encoding overflow")
+	}
+	checked := make([]byte, bytesLen+checksumLen)
+	copy(checked, bytes)
+	hash := sha256.Sum256(bytes)
+	copy(checked[len(bytes):], hash[len(hash)-checksumLen:])
+	bytes = checked
+	return fmt.Sprintf("0x%x", bytes), nil
 }
