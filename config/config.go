@@ -46,7 +46,6 @@ type EvmConfig struct {
 	RPCURL              string `mapstructure:"rpc_url"`
 	SupplierName        string `mapstructure:"supplier_name"`
 	BookingTokenAddress string `mapstructure:"booking_token_address"`
-	BookingTokenABIFile string `mapstructure:"booking_token_abi_file"`
 	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
 	CMAccountAddress    string `mapstructure:"cm_account_address"`
 	CMNetworkFee        uint64 `mapstructure:"cm_network_fee"`

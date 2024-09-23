@@ -36,8 +36,6 @@ func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.PrivateKey, EvmPrivateKey, "", "The EVM private key")
 	fs.StringVar(&cfg.RPCURL, RPCURLKey, "", "The EVM RPC URL")
 	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address")
-	fs.StringVar(&cfg.BookingTokenABIFile, BookingTokenABIFileKey, "./abi/BookingTokenV0.abi", "BookingToken ABI file")
-	fs.StringVar(&cfg.SupplierName, SupplierNameKey, "CM Supplier", "Supplier name for the Booking Token registration")
 	fs.Uint64Var(&cfg.BuyableUntilDefault, BuyableUntilDefaultKey, 600, "How log the Token is buyable in seconds")
 	fs.StringVar(&cfg.CMAccountAddress, CMAccountAddressKey, "", "CMAccount address")
 }
