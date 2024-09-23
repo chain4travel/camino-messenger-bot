@@ -80,3 +80,14 @@ booking_token_abi_file: abi/BookingTokenV0.abi
 # Once this time has passed, the token is no longer available for purchase by the distributor.
 # The default value is 600 seconds.
 #buyable_until_default: 600
+
+### Database
+
+# Database name.
+db_name: camino_messenger_bot
+
+# Path to database file.
+db_path: distributor-bot.db
+
+# Path to migrations dir with sql up/down scripts. Schema is mandatory.
+migrations_path: file://./migrations
