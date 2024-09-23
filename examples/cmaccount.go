@@ -2,18 +2,18 @@ package main
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"fmt"
 	"log"
 	"math/big"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -24,7 +24,7 @@ func main() {
 
 	reservedFor := common.HexToAddress("0xB682106bEbf1017D8a147959Ed508768670a3162")
 	uri := "TOKEN_URI"
-	expirationTimestamp := big.NewInt(1)
+	expirationTimestamp := big.NewInt(time.Now().Add(time.Hour).Unix())
 	price := &big.Int{}
 
 	// Set BookingToken address here
@@ -44,21 +44,7 @@ func main() {
 		log.Fatalf("Failed to instance: %v", err)
 	}
 
-	// TODO: @VjeraTurk how to call the mintBookingToken
-
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-
-	nonce, err := client.PendingNonceAt(ctx, cmAccountAddr)
-	if err != nil {
-		return
-	}
-
-	gasPrice, err := client.SuggestGasPrice(ctx)
-	if err != nil {
-		return
-	}
-
-	gasLimit := uint64(1200000)
 
 	zeroAddress := common.Address{}
 
@@ -71,45 +57,39 @@ func main() {
 	}
 	ecdsaPk := pk.ToECDSA()
 
-	signerFn := createSignerFn(ecdsaPk, chainID)
-	tx, err := cmAccount.MintBookingToken(&bind.TransactOpts{
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-		Nonce:    new(big.Int).SetUint64(nonce),
-		Signer:   signerFn,
-	}, reservedFor, uri, expirationTimestamp, price, zeroAddress)
+	transactOpts, err := bind.NewKeyedTransactorWithChainID(ecdsaPk, chainID)
+	//fmt.Print("%s", pk)
+	if err != nil {
+		log.Fatalf("failed to create transactor")
+	}
+	tx, err := cmAccount.MintBookingToken(
+		transactOpts,
+		reservedFor,
+		uri,
+		expirationTimestamp,
+		price,
+		zeroAddress)
 	if err != nil {
 		log.Fatalf("Failed Minting: %v", err)
 	}
 	fmt.Printf("Transaction sent: %s", tx.Hash().Hex())
 
-	//not applicable
-	//cmAccount.mintBookingToken(reservedFor, uri, expirationTimestamp, price, zeroAddress)
-	//cmAccount.MintBookingToken(reservedFor, uri, expirationTimestamp, price, zeroAddress)
+	bt, err := bookingtoken.NewBookingtoken(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
 
-	/*
-			Javascript test example
-			 await supplierCMAccount.connect(signers.btAdmin).mintBookingToken(
-		                    distributorCMAccount.getAddress(), // set reservedFor address to distributor CMAccount
-		                    tokenURI, // tokenURI
-		                    expirationTimestamp, // expiration
-		                    price, // price
-		                    ethers.ZeroAddress, // zero address
-		                ),
-	*/
-	defer stop()
-}
-
-func createSignerFn(privateKey *ecdsa.PrivateKey, chainID *big.Int) bind.SignerFn {
-	// Initialize EIP155Signer with the chain ID
-	signer := types.NewEIP155Signer(chainID)
-
-	return func(address common.Address, tx *types.Transaction) (*types.Transaction, error) {
-		// Sign the transaction using the private key and EIP155Signer
-		signedTx, err := types.SignTx(tx, signer, privateKey)
-		if err != nil {
-			return nil, err
-		}
-		return signedTx, nil
+	mintReceipt, err := bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatalf("Failed to wait for mint transaction to be mined: %v", err)
 	}
+
+	tokenID := big.NewInt(0)
+
+	for _, mLog := range mintReceipt.Logs {
+		event, err := bt.ParseTokenReserved(*mLog)
+		if err == nil {
+			tokenID = event.TokenId
+			fmt.Printf("[TokenReserved] TokenID: %s ReservedFor: %s Price: %s, PaymentToken: %s", event.TokenId, event.ReservedFor, event.Price, event.PaymentToken)
+		}
+	}
+	log.Print(tokenID)
+	defer stop()
 }
