@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/chain4travel/camino-messenger-bot/events"
+	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/common"
