@@ -44,7 +44,6 @@ func TestProcessInbound(t *testing.T) {
 		messenger             Messenger
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
-		chequeHandler         ChequeHandler
 		identificationHandler IdentificationHandler
 	}
 	type args struct {
@@ -107,7 +106,6 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
@@ -127,7 +125,6 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
@@ -146,7 +143,6 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
@@ -191,7 +187,6 @@ func TestProcessOutbound(t *testing.T) {
 		messenger             Messenger
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
-		chequeHandler         ChequeHandler
 		identificationHandler IdentificationHandler
 	}
 	type args struct {
@@ -211,7 +206,6 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -225,7 +219,6 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -242,7 +235,6 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -260,7 +252,6 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -278,7 +269,6 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopResponseHandler{},
-				chequeHandler:         NoopResponseHandler{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -345,7 +335,6 @@ func TestStart(t *testing.T) {
 		serviceRegistry := mockServiceRegistry
 		responseHandler := NoopResponseHandler{}
 		identificationHandler := NoopResponseHandler{}
-		chequeHandler := NoopResponseHandler{}
 		messenger := mockMessenger
 
 		ch := make(chan Message, 5)
@@ -372,7 +361,7 @@ func TestStart(t *testing.T) {
 		mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, serviceRegistry, responseHandler, chequeHandler, identificationHandler)
+		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, serviceRegistry, responseHandler, identificationHandler)
 		p.SetUserID(userID)
 		go p.Start(ctx)
 

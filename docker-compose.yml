@@ -18,8 +18,6 @@ services:
       CMB_RESPONSE_TIMEOUT: "10000"
       CMB_SUPPORTED_REQUEST_TYPES: "GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,AccommodationProductListRequest,AccommodationProductInfoRequest,AccommodationSearchRequest,ActivityProductListRequest,ActivityProductInfoRequest,ActivitySearchRequest,TransportSearchRequest,MintRequest,ValidationRequest,SeatMapRequest,SeatMapAvailabilityRequest,CountryEntryRequirementsRequest"
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
-      CMB_BOOKING_TOKEN_ABI_FILE: abi/BookingTokenV0.abi
-      CMB_SUPPLIER_NAME: SUPPLIER_NAME
       CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
       CMB_BUYABLE_UNTIL_DEFAULT: "600"
     ports:
@@ -39,7 +37,6 @@ services:
       CMB_RESPONSE_TIMEOUT: "10000"
       CMB_SUPPORTED_REQUEST_TYPES: "GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest"
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
-      CMB_BOOKING_TOKEN_ABI_FILE: "abi/BookingTokenV0.abi"
       CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
     ports:
       - "9092:9090"

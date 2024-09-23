@@ -27,7 +27,10 @@ var (
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
 	ErrUnsupportedRequestType     = errors.New("unsupported request type")
 	ErrMissingRecipient           = errors.New("missing recipient")
+<<<<<<< HEAD
 	ErrMissingCMAccountRecipient  = errors.New("missing CM Account recipient")
+=======
+>>>>>>> origin/VjeraTurk/bot-discoverability
 	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
 )
@@ -58,7 +61,10 @@ type processor struct {
 	responseChannels      map[string]chan *Message
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
+<<<<<<< HEAD
 	chequeHandler         ChequeHandler
+=======
+>>>>>>> origin/VjeraTurk/bot-discoverability
 	identificationHandler IdentificationHandler
 }
 
@@ -70,7 +76,11 @@ func (*processor) Checkpoint() string {
 	return "processor"
 }
 
+<<<<<<< HEAD
 func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, chequeHandler ChequeHandler, identificationHandler IdentificationHandler) Processor {
+=======
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
+>>>>>>> origin/VjeraTurk/bot-discoverability
 	return &processor{
 		cfg:                   cfg,
 		messenger:             messenger,
@@ -80,7 +90,10 @@ func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.Pro
 		responseChannels:      make(map[string]chan *Message),
 		serviceRegistry:       registry,
 		responseHandler:       responseHandler,
+<<<<<<< HEAD
 		chequeHandler:         chequeHandler,
+=======
+>>>>>>> origin/VjeraTurk/bot-discoverability
 		identificationHandler: identificationHandler,
 	}
 }
@@ -167,6 +180,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		}
 	}
 
+<<<<<<< HEAD
 	if msg.Metadata.Cheques == nil {
 		// number of chunks -> for each chunk a cheque is created?
 		// msg.Metadata.NumberOfChunks
@@ -212,6 +226,25 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 	}
 
+=======
+	// lookup for CM Account -> bot
+	botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)]
+
+	if botAddress == "" {
+		// if not in mapping, fetch 1 bot from CM Account
+		botAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+		if err != nil {
+			return nil, err
+		}
+		botAddress = "@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
+		CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)] = botAddress
+		msg.Metadata.Recipient = botAddress
+	} else {
+		msg.Metadata.Recipient = botAddress
+	}
+
+	msg.Metadata.Cheques = nil // TODO issue and attach cheques
+>>>>>>> origin/VjeraTurk/bot-discoverability
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
@@ -265,6 +298,26 @@ func (p *processor) Respond(msg *Message) error {
 	// md.Sender = p.identificationHandler.getMyCMAccountAddress()
 
 	// rewrite sender & recipient metadata
+	/*
+		for i := 0; i < len(md.Cheques); i++ {
+
+			if !p.identificationHandler.isMyCMAccount(md.Cheques[0].ToCMAccount) {
+				return fmt.Errorf("Incorrect CMAccount")
+			}
+
+			isInCmAccount, err := p.identificationHandler.isBotInCMAccount(msg.Metadata.Sender, md.Cheques[i].FromCMAccount)
+
+			if err != nil {
+				return fmt.Errorf("Bot not in CMAccount")
+			}
+
+			if !isInCmAccount {
+				return fmt.Errorf("Bot not part of CMAccount")
+			}
+
+		}
+	*/
+
 	md.Recipient = md.Sender
 	md.Sender = p.userID
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))

@@ -132,8 +132,8 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
-
-	chequeHandler, err := messaging.NewChequeHandler(evmClient, a.logger, &a.cfg.EvmConfig)
+	chainId, err := evmClient.NetworkID(ctx)
+	chequeHandler, err := messaging.NewChequeHandler(evmClient, a.logger, &a.cfg.EvmConfig, chainId)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}

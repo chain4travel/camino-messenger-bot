@@ -41,9 +41,13 @@ func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.Uint64Var(&cfg.DomainVersion, DomainVersion, 1, "Domain version for the Cheque Handler (Messenger Cashier) registration")
 	fs.StringVar(&cfg.SupplierName, SupplierNameKey, "CM Supplier", "Supplier name for the Booking Token registration")
 	fs.Uint64Var(&cfg.BuyableUntilDefault, BuyableUntilDefaultKey, 600, "How log the Token is buyable in seconds")
+<<<<<<< HEAD
 	fs.StringVar(&cfg.CMAccountAddress, CMAccountAddressKey, "0x0", "CMAccount address of the CMBot")
 	fs.StringVar(&cfg.CMAccountABIFile, CMAccountABIFileKey, "./abi/CMAccount.abi", "CMAccount ABI file")
 	fs.Uint64Var(&cfg.CMNetworkFee, CMNetworkFeeKey, 100, "CM Network Operation Fee (nCAM)")
+=======
+	fs.StringVar(&cfg.CMAccountAddress, CMAccountAddressKey, "", "CMAccount address")
+>>>>>>> origin/VjeraTurk/bot-discoverability
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {

@@ -7,7 +7,6 @@ import (
 	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -24,7 +23,6 @@ var _ IdentificationHandler = (*evmIdentificationHandler)(nil)
 type evmIdentificationHandler struct {
 	cmAccountManager cmaccountmanager.Cmaccountmanager
 	ethClient        *ethclient.Client
-	CMAccountABI     *abi.ABI
 	cfg              *config.EvmConfig
 	matrixHost       string
 }
@@ -35,6 +33,7 @@ type IdentificationHandler interface {
 	isMyCMAccount(cmAccountAddress common.Address) bool
 	getMyCMAccountAddress() string
 	getMatrixHost() string
+	isBotInCMAccount(string, common.Address) (bool, error)
 }
 
 func (cm *evmIdentificationHandler) getMatrixHost() string {
@@ -51,16 +50,11 @@ func (cm *evmIdentificationHandler) isMyCMAccount(cmAccountAddress common.Addres
 }
 
 func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig, mCfg *config.MatrixConfig) (IdentificationHandler, error) {
-	abi, err := loadABI(cfg.CMAccountABIFile)
-	if err != nil {
-		return nil, err
-	}
 
 	return &evmIdentificationHandler{
-		ethClient:    ethClient,
-		CMAccountABI: abi,
-		cfg:          cfg,
-		matrixHost:   mCfg.Host,
+		ethClient:  ethClient,
+		cfg:        cfg,
+		matrixHost: mCfg.Host,
 	}, nil
 }
 
@@ -103,4 +97,19 @@ func (cm *evmIdentificationHandler) getSingleBotFromCMAccountAddress(cmAccountAd
 		return "", err
 	}
 	return bots[0], nil
+}
+
+func (cm *evmIdentificationHandler) isBotInCMAccount(bot string, cmAccountAddress common.Address) (bool, error) {
+	/*
+		TODO: @VjeraTurk check on contract level if bot is in CM account
+			cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, cm.ethClient)
+			if err != nil {
+				return false, err
+			}
+	*/
+	if !(CMAccountBotMap[cmAccountAddress] == bot) {
+		return false, nil
+	}
+
+	return true, nil
 }

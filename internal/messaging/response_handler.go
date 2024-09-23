@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"strings"
@@ -19,12 +20,12 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -40,6 +41,7 @@ type ResponseHandler interface {
 }
 
 func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ResponseHandler, error) {
+	//TODO @VjeraTurk deprecated, remove after migration
 	abi, err := loadABI(cfg.BookingTokenABIFile)
 	if err != nil {
 		return nil, err
@@ -56,21 +58,20 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 	cChainAddress := crypto.PubkeyToAddress(ecdsaPk.PublicKey)
 	logger.Infof("C-Chain address: %s", cChainAddress)
 
-	// Check supplier name and set default if empty
-	supplierName := cfg.SupplierName
-	if supplierName == "" {
-		supplierName = "Default Supplier"
-		logger.Infof("Supplier name cannot be empty. Setting name to: %s \n", supplierName)
+	bookingToken, err := bookingtoken.NewBookingtoken(common.HexToAddress(cfg.CMAccountAddress), ethClient)
+	if err != nil {
+		log.Fatalf("Failed to get booking token: %v", err)
+		return nil, err
 	}
-
 	return &evmResponseHandler{
 		ethClient:           ethClient,
 		logger:              logger,
 		pk:                  ecdsaPk,
 		tokenABI:            abi,
 		cChainAddress:       cChainAddress,
+		cmAccountAddress:    common.HexToAddress(cfg.CMAccountAddress),
 		bookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
-		supplierName:        supplierName,
+		bookingToken:        bookingToken,
 		// Disable Linter: This code will be removed with the new BookingToken implementation
 		buyableUntilDefault: time.Second * time.Duration(cfg.BuyableUntilDefault), // #nosec G115
 	}, nil
@@ -81,9 +82,10 @@ type evmResponseHandler struct {
 	logger              *zap.SugaredLogger
 	pk                  *ecdsa.PrivateKey
 	tokenABI            *abi.ABI
+	bookingToken        *bookingtoken.Bookingtoken
 	cChainAddress       common.Address
 	bookingTokenAddress common.Address
-	supplierName        string
+	cmAccountAddress    common.Address
 	buyableUntilDefault time.Duration
 }
 
@@ -113,49 +115,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		response.MintResponse.Header = &typesv1.ResponseHeader{}
 	}
 
-	packedData, err := h.tokenABI.Pack("getSupplierName", h.cChainAddress)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error packing data: %v", err)
-		h.logger.Errorf(errMsg)
-		addErrorToResponseHeader(response, errMsg)
-		return true
-	}
-
-	msg := ethereum.CallMsg{
-		To:   &h.bookingTokenAddress,
-		Data: packedData,
-	}
-	result, err := h.ethClient.CallContract(ctx, msg, nil)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error calling contract: %v", err)
-		h.logger.Errorf(errMsg)
-		addErrorToResponseHeader(response, errMsg)
-		return true
-	}
-
-	// Unpack the result
-	var supplierName string
-	err = h.tokenABI.UnpackIntoInterface(&supplierName, "getSupplierName", result)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error unpacking result: %v", err)
-		h.logger.Infof(errMsg)
-		addErrorToResponseHeader(response, errMsg)
-		return true
-	}
-
-	if supplierName != h.supplierName {
-		h.logger.Debugf("Not registered with correct supplier name: %v != %v", supplierName, h.supplierName)
-		h.logger.Debugf("Registering with supplierName: %v", h.supplierName)
-		err := h.register(ctx)
-		if err != nil {
-			errMsg := fmt.Sprintf("error registering supplier: %v", err)
-			h.logger.Debugf(errMsg)
-			addErrorToResponseHeader(response, errMsg)
-			return true
-		}
-	} else {
-		h.logger.Debugf("Supplier is already registered with supplierName: %v", supplierName)
-	}
+	//Instead of supplier name, the check if CMAccounts in processor
 
 	// TODO @evlekht ensure that request.MintRequest.BuyerAddress is c-chain address format, not x/p/t chain
 	buyerAddress := common.HexToAddress(request.MintRequest.BuyerAddress)
@@ -221,54 +181,18 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 	return false
 }
 
-// Registers a new supplier with the BookingToken contract
-func (h *evmResponseHandler) register(ctx context.Context) error {
-	nonce, err := h.ethClient.PendingNonceAt(ctx, h.cChainAddress)
-	if err != nil {
-		return err
-	}
+func createSignerFn(privateKey *ecdsa.PrivateKey, chainID *big.Int) bind.SignerFn {
+	// Initialize EIP155Signer with the chain ID
+	signer := types.NewEIP155Signer(chainID)
 
-	gasPrice, err := h.ethClient.SuggestGasPrice(ctx)
-	if err != nil {
-		return err
-	}
-
-	packed, err := h.tokenABI.Pack("registerSupplier", h.supplierName)
-	if err != nil {
-		return err
-	}
-
-	gasLimit := uint64(170000)
-
-	tx := types.NewTransaction(nonce, h.bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
-
-	chainID, err := h.ethClient.NetworkID(ctx)
-	if err != nil {
-		return err
-	}
-
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), h.pk)
-	if err != nil {
-		return err
-	}
-
-	err = h.ethClient.SendTransaction(ctx, signedTx)
-	if err != nil {
-		return err
-	}
-
-	h.logger.Infof("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
-
-	// Wait for transaction to be mined
-	receipt, err := h.waitTransaction(ctx, signedTx)
-	if err != nil {
-		if gasLimit == receipt.GasUsed {
-			h.logger.Errorf("Transaction Gas Limit reached. Please use shorter supplier name.\n")
+	return func(address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+		// Sign the transaction using the private key and EIP155Signer
+		signedTx, err := types.SignTx(tx, signer, privateKey)
+		if err != nil {
+			return nil, err
 		}
-		return err
+		return signedTx, nil
 	}
-
-	return nil
 }
 
 // Mints a BookingToken with the supplier private key and reserves it for the buyer address
@@ -279,6 +203,7 @@ func (h *evmResponseHandler) mint(
 	uri string,
 	expiration *big.Int,
 ) (string, *big.Int, error) {
+
 	nonce, err := h.ethClient.PendingNonceAt(ctx, h.cChainAddress)
 	if err != nil {
 		return "", nil, err
@@ -289,16 +214,33 @@ func (h *evmResponseHandler) mint(
 		return "", nil, err
 	}
 
-	packed, err := h.tokenABI.Pack("safeMint", reservedFor, uri, expiration)
+	// Set safe gas limit for now
+	//TODO: increase?
+	gasLimit := uint64(1200000)
+
+	zeroAddress := common.Address{}
+
+	chainID, err := h.ethClient.NetworkID(ctx)
+	signerFn := createSignerFn(h.pk, chainID)
+
+	tx, err := h.bookingToken.SafeMintWithReservation(
+		&bind.TransactOpts{
+			GasPrice: gasPrice,
+			GasLimit: gasLimit,
+			Nonce:    new(big.Int).SetUint64(nonce),
+			Signer:   signerFn,
+		},
+		reservedFor,
+		uri,
+		expiration,
+		&big.Int{},
+		zeroAddress)
+
 	if err != nil {
 		return "", nil, err
 	}
+	//tx := types.NewTransaction(nonce, h.bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
 
-	// Set safe gas limit for now
-	gasLimit := uint64(1200000)
-	tx := types.NewTransaction(nonce, h.bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
-
-	chainID, err := h.ethClient.NetworkID(ctx)
 	if err != nil {
 		return "", nil, err
 	}
@@ -323,39 +265,30 @@ func (h *evmResponseHandler) mint(
 		}
 		return "", nil, err
 	}
-
-	// Define the TokenReservation structure
-	type TokenReservation struct {
-		ReservedFor         common.Address
-		TokenID             *big.Int
-		ExpirationTimestamp *big.Int
-	}
-
 	// Get the event signature hash
 	event := h.tokenABI.Events["TokenReservation"]
 	eventSignature := event.ID.Hex()
 
 	var tokenID *big.Int
 
+	//TODO: @VjeraTurk switch to Event Listener
 	// Iterate over the logs to find the event
 	for _, vLog := range receipt.Logs {
 		if vLog.Topics[0].Hex() == eventSignature {
 			// Decode indexed parameters
 			reservedFor := common.HexToAddress(vLog.Topics[1].Hex())
 			tokenID = new(big.Int).SetBytes(vLog.Topics[2].Bytes())
-
-			// Decode non-indexed parameters
-			var reservation TokenReservation
-			err := h.tokenABI.UnpackIntoInterface(&reservation, "TokenReservation", vLog.Data)
+			vLogT := &types.Log{Data: vLog.Data}
+			reservation, err := h.bookingToken.ParseTokenReserved(*vLogT)
 			if err != nil {
 				return "", nil, err
 			}
 			reservation.ReservedFor = reservedFor
-			reservation.TokenID = tokenID
+			reservation.TokenId = tokenID
 
 			// Print the reservation details
 			h.logger.Infof("Reservation Details:\n")
-			h.logger.Infof("Token ID    : %s\n", reservation.TokenID.String())
+			h.logger.Infof("Token ID    : %s\n", reservation.TokenId.String())
 			h.logger.Infof("Reserved For: %s\n", reservation.ReservedFor.Hex())
 			h.logger.Infof("Expiration  : %s\n", reservation.ExpirationTimestamp.String())
 		}
@@ -377,15 +310,17 @@ func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string,
 		return "", err
 	}
 
-	packed, err := h.tokenABI.Pack("buy", tokenID)
-	if err != nil {
-		return "", err
-	}
-
 	// Set safe gas limit for now
 	gasLimit := uint64(200000)
 
-	tx := types.NewTransaction(nonce, h.bookingTokenAddress, big.NewInt(0), gasLimit, gasPrice, packed)
+	tx, err := h.bookingToken.BuyReservedToken(&bind.TransactOpts{
+		Nonce:    new(big.Int).SetUint64(nonce),
+		GasPrice: gasPrice,
+		GasLimit: gasLimit,
+	}, tokenID)
+	if err != nil {
+		return "", err
+	}
 
 	chainID, err := h.ethClient.NetworkID(ctx)
 	if err != nil {
