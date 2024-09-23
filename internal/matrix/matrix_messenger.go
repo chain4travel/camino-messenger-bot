@@ -2,8 +2,8 @@ package matrix
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
@@ -14,8 +14,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
+	"github.com/ethereum/go-ethereum/crypto"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -120,12 +119,12 @@ func (m *messenger) StartReceiver() (string, error) {
 		return "", err
 	}
 
-	camioPrivateKey, err := readPrivateKey(m.cfg.Key)
+	caminoPrivateKey, err := crypto.HexToECDSA(m.cfg.Key)
 	if err != nil {
 		return "", err
 	}
 
-	signature, message, err := signPublicKey(camioPrivateKey)
+	signature, message, err := signPublicKey(caminoPrivateKey)
 	if err != nil {
 		return "", err
 	}
@@ -207,18 +206,13 @@ func (m *messenger) Inbound() chan messaging.Message {
 	return m.msgChannel
 }
 
-func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {
-	privateKeyBytes, err := hex.DecodeString(keyStr)
+func signPublicKey(key *ecdsa.PrivateKey) (signature string, message string, err error) {
+	pubKeyBytes := crypto.FromECDSAPub(&key.PublicKey)
+	signatureBytes, err := sign(pubKeyBytes, key)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
-	return secp256k1.PrivKeyFromBytes(privateKeyBytes), nil
-}
-
-func signPublicKey(key *secp256k1.PrivateKey) (signature string, message string, err error) {
-	pubKeyBytes := key.PubKey().SerializeCompressed()
-	signatureBytes := sign(pubKeyBytes, key)
 	signature, err = hexWithChecksum(signatureBytes)
 	if err != nil {
 		return "", "", err
@@ -230,15 +224,15 @@ func signPublicKey(key *secp256k1.PrivateKey) (signature string, message string,
 	return signature, message, nil
 }
 
-func sign(msg []byte, key *secp256k1.PrivateKey) []byte {
-	hash := sha256.Sum256(msg)
-	signature := ecdsa.SignCompact(key, hash[:], false)
+func sign(msg []byte, key *ecdsa.PrivateKey) ([]byte, error) {
+	hash256 := sha256.Sum256(msg)
 
-	// fix signature format
-	recoveryCode := signature[0]
-	copy(signature, signature[1:])
-	signature[len(signature)-1] = recoveryCode - 27
-	return signature
+	signature, err := crypto.Sign(hash256[:], key)
+	if err != nil {
+		return nil, err
+	}
+
+	return signature, nil
 }
 
 func hexWithChecksum(bytes []byte) (string, error) {
