@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/events"
+	"github.com/chain4travel/camino-messenger-bot/pkg/events"
+
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"

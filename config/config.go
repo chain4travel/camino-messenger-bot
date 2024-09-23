@@ -50,13 +50,7 @@ type EvmConfig struct {
 	BookingTokenABIFile string `mapstructure:"booking_token_abi_file"`
 	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
 	CMAccountAddress    string `mapstructure:"cm_account_address"`
-<<<<<<< HEAD
-	CMAccountABIFile    string `mapstructure:"cm_account_abi_file"`
-=======
->>>>>>> origin/VjeraTurk/bot-discoverability
 	CMNetworkFee        uint64 `mapstructure:"cm_network_fee"`
-	DomainName          string `mapstructure:"domain_name"`
-	DomainVersion       uint64 `mapstructure:"domain_version"`
 }
 
 type TracingConfig struct {

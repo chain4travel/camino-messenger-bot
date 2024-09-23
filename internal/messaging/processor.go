@@ -27,10 +27,6 @@ var (
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
 	ErrUnsupportedRequestType     = errors.New("unsupported request type")
 	ErrMissingRecipient           = errors.New("missing recipient")
-<<<<<<< HEAD
-	ErrMissingCMAccountRecipient  = errors.New("missing CM Account recipient")
-=======
->>>>>>> origin/VjeraTurk/bot-discoverability
 	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
 )
@@ -61,10 +57,6 @@ type processor struct {
 	responseChannels      map[string]chan *Message
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
-<<<<<<< HEAD
-	chequeHandler         ChequeHandler
-=======
->>>>>>> origin/VjeraTurk/bot-discoverability
 	identificationHandler IdentificationHandler
 }
 
@@ -76,11 +68,7 @@ func (*processor) Checkpoint() string {
 	return "processor"
 }
 
-<<<<<<< HEAD
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, chequeHandler ChequeHandler, identificationHandler IdentificationHandler) Processor {
-=======
 func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
->>>>>>> origin/VjeraTurk/bot-discoverability
 	return &processor{
 		cfg:                   cfg,
 		messenger:             messenger,
@@ -90,10 +78,6 @@ func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.Pro
 		responseChannels:      make(map[string]chan *Message),
 		serviceRegistry:       registry,
 		responseHandler:       responseHandler,
-<<<<<<< HEAD
-		chequeHandler:         chequeHandler,
-=======
->>>>>>> origin/VjeraTurk/bot-discoverability
 		identificationHandler: identificationHandler,
 	}
 }
@@ -158,75 +142,11 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
+
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
-		if msg.Metadata.RecipientCMAccount == "" {
-			return nil, ErrMissingCMAccountRecipient
-		}
-
-		// lookup for CM Account -> bot
-		botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)]
-
-		if botAddress == "" {
-			// if not in mapping, fetch 1 bot from CM Account
-			botAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.RecipientCMAccount))
-			if err != nil {
-				return nil, err
-			}
-			botAddress = "@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
-			CMAccountBotMap[common.HexToAddress(msg.Metadata.RecipientCMAccount)] = botAddress
-			msg.Metadata.Recipient = botAddress
-		} else {
-			msg.Metadata.Recipient = botAddress
-		}
+		return nil, ErrMissingRecipient
 	}
 
-<<<<<<< HEAD
-	if msg.Metadata.Cheques == nil {
-		// number of chunks -> for each chunk a cheque is created?
-		// msg.Metadata.NumberOfChunks
-		// https://excalidraw.com/
-
-		// todo sqlite db for storing cheque count
-		messengerFee := uint64(1200000)
-		// todo: @havan fetch from Smart Contract for network fees
-
-		// shut down bot if he is not added as allowed on the CMAccount as CHEQUE_OPERATOR_ROLE
-		// call contract isBotAllowed ? if not, return error
-		allowed, err := p.chequeHandler.isBotAllowed()
-
-		if err != nil {
-			return nil, fmt.Errorf("Bot is not allowed to issue cheques: %w", err)
-		}
-
-		var fromCMAccount = common.HexToAddress(config.CMAccountAddressKey)
-		var toCMAccount = common.HexToAddress(msg.Metadata.Recipient)
-
-		var toBot = common.HexToAddress(config.CMAccountAddressKey)
-
-		messengerFeeCheque, err := p.chequeHandler.issueCheque(ctx, fromCMAccount, toCMAccount, toBot, messengerFee)
-		if err != nil {
-			return nil, fmt.Errorf("failed to issue messenger fee cheque: %w", err)
-			msg.Metadata.Cheques = append(msg.Metadata.Cheques, messengerFeeCheque)
-			serviceName := "AccommodationSearchService" // hardcoded for now, fetch from the message
-
-			serviceFee, err := p.chequeHandler.getServiceFeeByName(serviceName, msg.Metadata.Recipient)
-			// cache the service fee
-			if err != nil {
-				return nil, fmt.Errorf("failed to get service fee: %w", err)
-			}
-			serviceFeeCheque, err := p.chequeHandler.issueCheque(msg.Metadata.Sender, msg.Metadata.Recipient, msg.Metadata.Recipient, serviceFee)
-			if err != nil {
-				return nil, fmt.Errorf("failed to issue service fee cheque: %w", err)
-
-				// check from PartnerConfiguration the service fee
-
-				// msg.Content.RequestContent.ServiceFeeCheque = serviceFeeCheque
-			}
-		}
-
-	}
-
-=======
 	// lookup for CM Account -> bot
 	botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)]
 
@@ -244,7 +164,6 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	}
 
 	msg.Metadata.Cheques = nil // TODO issue and attach cheques
->>>>>>> origin/VjeraTurk/bot-discoverability
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 

@@ -65,14 +65,6 @@ func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
 	if providerOperator, found := mdPairs["provider_operator"]; found {
 		m.ProviderOperator = providerOperator[0]
 	}
-
-	if recipientCmAccount, found := mdPairs["recipient_cm_account"]; found {
-		m.RecipientCMAccount = recipientCmAccount[0]
-	}
-
-	if senderCmAccount, found := mdPairs["sender_cm_account"]; found {
-		m.SenderCMAccount = senderCmAccount[0]
-	}
 	return nil
 }
 
