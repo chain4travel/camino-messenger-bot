@@ -627,3 +627,90 @@ func (el *EventListener) listenForTokenReservedEvents(subID string, eventChan ch
 		handler(event)
 	}
 }
+
+// RegisterChequeCashedInHandler registers a handler for the ChequeCashedIn event on a CMAccount
+func (el *EventListener) RegisterChequeCashedInHandler(cmAccountAddr common.Address, fromAccounts, toAccounts []common.Address, handler EventHandler) (func(), error) {
+	subID := uuid.New().String()
+
+	// Get or create CMAccount instance
+	cmAccount, err := el.getOrCreateCMAccount(cmAccountAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a context with cancellation
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Store subscription info
+	subInfo := &subscriptionInfo{
+		subID:       subID,
+		contract:    cmAccountAddr,
+		handler:     handler,
+		unsubscribe: cancel,
+	}
+	el.addSubscriptionInfo(subID, subInfo)
+
+	// Start the resubscription
+	go el.resubscribeChequeCashedIn(ctx, subID, cmAccount, fromAccounts, toAccounts)
+
+	// Return an unsubscribe function to stop listening
+	return func() {
+		el.unsubscribe(subID)
+	}, nil
+}
+
+// resubscribeChequeCashedIn handles resubscription for ChequeCashedIn events
+func (el *EventListener) resubscribeChequeCashedIn(ctx context.Context, subID string, cmAccount *cmaccount.Cmaccount, fromAccounts, toAccounts []common.Address) {
+	backoffMax := 2 * time.Minute // Maximum backoff time between retries
+
+	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
+		eventChan := make(chan *cmaccount.CmaccountChequeCashedIn)
+
+		subInfo, exists := el.getSubscriptionInfo(subID)
+		if !exists {
+			return nil, fmt.Errorf("subscription %s no longer exists", subID)
+		}
+
+		// Subscribe to the event
+		sub, err := cmAccount.WatchChequeCashedIn(&bind.WatchOpts{Context: ctx}, eventChan, fromAccounts, toAccounts)
+		if err != nil {
+			el.logger.Errorf("Failed to subscribe to ChequeCashedIn events: %v", err)
+			return nil, err
+		}
+
+		el.addSubAndCloseChan(subInfo, sub, func() {
+			close(eventChan)
+		})
+
+		go el.listenForChequeCashedInEvents(subID, eventChan)
+
+		el.logger.Infof("[SUB][ChequeCashedIn] CMAccount: %s SubID: %s [Filters] (fromAccounts, toAccounts): (%v, %v)", subInfo.contract, subID, fromAccounts, toAccounts)
+
+		return sub, nil
+	}
+
+	// Start resubscribing
+	sub := event.ResubscribeErr(backoffMax, resubscribeFn)
+
+	// Wait until context is canceled
+	<-ctx.Done()
+	sub.Unsubscribe()
+}
+
+// listenForChequeCashedInEvents listens for ChequeCashedIn events
+func (el *EventListener) listenForChequeCashedInEvents(subID string, eventChan chan *cmaccount.CmaccountChequeCashedIn) {
+	subInfo, exists := el.getSubscriptionInfo(subID)
+	if !exists {
+		return
+	}
+
+	handler := subInfo.handler
+
+	for event := range eventChan {
+		handler(event)
+	}
+}
