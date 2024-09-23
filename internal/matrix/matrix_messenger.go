@@ -225,6 +225,7 @@ func signPublicKey(key *ecdsa.PrivateKey) (signature string, message string, err
 }
 
 func sign(msg []byte, key *ecdsa.PrivateKey) ([]byte, error) {
+	// TODO: Why don't we use crypto.keccak256 both on ASB and here?
 	hash256 := sha256.Sum256(msg)
 
 	signature, err := crypto.Sign(hash256[:], key)
