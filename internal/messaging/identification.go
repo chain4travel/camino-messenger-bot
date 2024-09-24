@@ -3,10 +3,10 @@ package messaging
 import (
 	"log"
 	"math/big"
+	"strings"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -21,10 +21,9 @@ var CMAccountBotMap = map[common.Address]string{}
 var _ IdentificationHandler = (*evmIdentificationHandler)(nil)
 
 type evmIdentificationHandler struct {
-	cmAccountManager cmaccountmanager.Cmaccountmanager
-	ethClient        *ethclient.Client
-	cfg              *config.EvmConfig
-	matrixHost       string
+	ethClient  *ethclient.Client
+	cfg        *config.EvmConfig
+	matrixHost string
 }
 
 type IdentificationHandler interface {
@@ -34,6 +33,17 @@ type IdentificationHandler interface {
 	getMyCMAccountAddress() string
 	getMatrixHost() string
 	isBotInCMAccount(string, common.Address) (bool, error)
+	findCmAccount(string) (common.Address, bool)
+	addToMap(common.Address, string)
+}
+
+func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig, mCfg *config.MatrixConfig) (IdentificationHandler, error) {
+
+	return &evmIdentificationHandler{
+		ethClient:  ethClient,
+		cfg:        cfg,
+		matrixHost: mCfg.Host,
+	}, nil
 }
 
 func (cm *evmIdentificationHandler) getMatrixHost() string {
@@ -47,15 +57,6 @@ func (cm *evmIdentificationHandler) getMyCMAccountAddress() string {
 // Add configuration to the bot to configure to which CM-Account it belongs (to prevent that they're part of multiple CM-Accounts)
 func (cm *evmIdentificationHandler) isMyCMAccount(cmAccountAddress common.Address) bool {
 	return cmAccountAddress == common.HexToAddress(cm.cfg.CMAccountAddress)
-}
-
-func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig, mCfg *config.MatrixConfig) (IdentificationHandler, error) {
-
-	return &evmIdentificationHandler{
-		ethClient:  ethClient,
-		cfg:        cfg,
-		matrixHost: mCfg.Host,
-	}, nil
 }
 
 func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]string, error) {
@@ -99,17 +100,31 @@ func (cm *evmIdentificationHandler) getSingleBotFromCMAccountAddress(cmAccountAd
 	return bots[0], nil
 }
 
-func (cm *evmIdentificationHandler) isBotInCMAccount(bot string, cmAccountAddress common.Address) (bool, error) {
-	/*
-		TODO: @VjeraTurk check on contract level if bot is in CM account
-			cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, cm.ethClient)
-			if err != nil {
-				return false, err
-			}
-	*/
-	if !(CMAccountBotMap[cmAccountAddress] == bot) {
-		return false, nil
+func (cm *evmIdentificationHandler) isBotInCMAccount(botAddress string, cmAccountAddress common.Address) (bool, error) {
+	bots, err := cm.getAllBotAddressesFromCMAccountAddress(cmAccountAddress)
+	if err != nil {
+		return false, err
 	}
+	for _, b := range bots {
+		if strings.ToUpper(b) == strings.ToUpper(botAddress) {
+			return true, nil
+		}
+	}
+	if CMAccountBotMap[cmAccountAddress] == "@"+botAddress+cm.getMatrixHost() {
+		delete(CMAccountBotMap, cmAccountAddress)
+	}
+	return false, nil
+}
 
-	return true, nil
+func (cm *evmIdentificationHandler) findCmAccount(bot string) (common.Address, bool) {
+	for key, b := range CMAccountBotMap {
+		if b == bot {
+			return key, true
+		}
+	}
+	return common.Address{}, false
+}
+
+func (cm *evmIdentificationHandler) addToMap(cmaccount common.Address, botId string) {
+	CMAccountBotMap[cmaccount] = botId
 }

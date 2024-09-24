@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-	"os"
-	"strings"
 	"time"
 
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
@@ -20,7 +18,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
 
@@ -249,19 +246,6 @@ func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Tran
 	h.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
-}
-
-// Loads an ABI file
-func loadABI(filePath string) (*abi.ABI, error) {
-	file, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, err
-	}
-	abi, err := abi.JSON(strings.NewReader(string(file)))
-	if err != nil {
-		return nil, err
-	}
-	return &abi, nil
 }
 
 // TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg

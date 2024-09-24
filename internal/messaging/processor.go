@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -29,6 +31,7 @@ var (
 	ErrMissingRecipient           = errors.New("missing recipient")
 	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
+	ErrMissingCheques             = errors.New("Missing cheeques in metadata")
 )
 
 type MsgHandler interface {
@@ -147,6 +150,9 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		return nil, ErrMissingRecipient
 	}
 
+	p.logger.Infof("Distributor: CMAccount %s received a request", msg.Metadata.Recipient)
+	var cmAccountRecipient = msg.Metadata.Recipient
+
 	// lookup for CM Account -> bot
 	botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)]
 
@@ -163,14 +169,29 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		msg.Metadata.Recipient = botAddress
 	}
 
-	msg.Metadata.Cheques = nil // TODO issue and attach cheques
+	// Mocked data for testing TODO: @VjeraTurkremove after real Cheque impelmentation
+	msg.Metadata.Cheques = []cheques.SignedCheque{
+		{
+			Cheque: cheques.Cheque{
+				FromCMAccount: common.HexToAddress(p.identificationHandler.getMyCMAccountAddress()),
+				ToCMAccount:   common.HexToAddress(cmAccountRecipient),
+				ToBot:         common.HexToAddress(msg.Metadata.Recipient[1:41]),
+				Counter:       big.NewInt(1),
+				Amount:        big.NewInt(1),
+				CreatedAt:     big.NewInt(time.Now().Unix()),
+				ExpiresAt:     big.NewInt(time.Now().Add(50 * 24 * time.Hour).Unix()),
+			},
+			Signature: []byte{0x1, 0x2, 0x3},
+		}}
+
+	// TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
 	if err := p.responseHandler.HandleRequest(ctx, msg.Type, &msg.Content.RequestContent); err != nil {
 		return nil, err
 	}
-
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Metadata.Sender, msg.Metadata.Recipient, cmAccountRecipient)
 	err := p.messenger.SendAsync(ctx, *msg)
 	if err != nil {
 		return nil, err
@@ -195,6 +216,7 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
 	}
+	p.logger.Infof("Supplier: BOT %s received request from BOT %s", msg.Metadata.Recipient, msg.Metadata.Sender)
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
 	ctx, span := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -206,39 +228,46 @@ func (p *processor) Respond(msg *Message) error {
 
 	md := &msg.Metadata
 
-	/* TODO: @VjeraTurk
-	    Get info from cheque
-	   * Check if the TO CM-Account is correct
-	   * Lookup the FROM CM-Account which is in the
-	   cheque
-	   * Verify that the sending bot is part of this FROM
-	   CM-Account
-	   If any of this fails => reject the message*/
-	// md.Sender = p.identificationHandler.getMyCMAccountAddress()
+	mybotAddress := md.Recipient
 
-	// rewrite sender & recipient metadata
-	/*
-		for i := 0; i < len(md.Cheques); i++ {
+	/// TODO: Uncomment after Chewques implementation
+	// No message shoudl be without cheque?
+	if md.Cheques == nil {
+		return fmt.Errorf("%w: %s", ErrMissingCheques, msg.Type)
+	}
 
-			if !p.identificationHandler.isMyCMAccount(md.Cheques[0].ToCMAccount) {
-				return fmt.Errorf("Incorrect CMAccount")
-			}
+	for i := 0; i < len(md.Cheques); i++ {
 
-			isInCmAccount, err := p.identificationHandler.isBotInCMAccount(msg.Metadata.Sender, md.Cheques[i].FromCMAccount)
-
-			if err != nil {
-				return fmt.Errorf("Bot not in CMAccount")
-			}
-
-			if !isInCmAccount {
-				return fmt.Errorf("Bot not part of CMAccount")
-			}
-
+		// Get info from cheque
+		// Check if the TO CM-Account is correct
+		if !p.identificationHandler.isMyCMAccount(md.Cheques[0].ToCMAccount) {
+			return fmt.Errorf("Incorrect CMAccount")
 		}
-	*/
 
-	md.Recipient = md.Sender
-	md.Sender = p.userID
+		//Lookup the FROM CM-Account which is in the cheque
+		//Verify that the sending bot is part of this FROM
+		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(md.Sender[1:43], md.Cheques[i].FromCMAccount)
+		if err != nil {
+			return fmt.Errorf("Bot not in CMAccount v%", err)
+		}
+
+		if !isInCmAccount {
+			return fmt.Errorf("Bot not part of CMAccount")
+		}
+		cmAccount, ok := p.identificationHandler.findCmAccount(md.Sender)
+		if ok {
+			md.Recipient = cmAccount.Hex()
+		} else {
+			p.identificationHandler.addToMap(md.Cheques[i].FromCMAccount, md.Sender)
+			cmAccount, ok := p.identificationHandler.findCmAccount(md.Sender)
+			if ok {
+				md.Recipient = cmAccount.Hex()
+			}
+		}
+	}
+
+	md.Sender = p.identificationHandler.getMyCMAccountAddress()
+
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 
 	ctx = grpc_metadata.NewOutgoingContext(ctx, msg.Metadata.ToGrpcMD())
@@ -254,7 +283,7 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
 	}
-
+	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", md.Sender, md.Recipient)
 	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, response)
 	responseMsg := Message{
 		Type: msgType,
@@ -263,6 +292,15 @@ func (p *processor) Respond(msg *Message) error {
 		},
 		Metadata: *md,
 	}
+
+	recipientBotAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(responseMsg.Metadata.Recipient))
+	if err != nil {
+		return err
+	}
+	responseMsg.Metadata.Sender = "@" + strings.ToLower(recipientBotAddress) + ":" + "dev.matrix.camino.network"
+	responseMsg.Metadata.Recipient = mybotAddress
+	p.logger.Infof("Supplier: Bot %s responding to BOT %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
+
 	return p.messenger.SendAsync(ctx, responseMsg)
 }
 

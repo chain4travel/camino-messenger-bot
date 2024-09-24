@@ -45,3 +45,10 @@ func (NoopResponseHandler) getMatrixHost() string {
 func (NoopResponseHandler) isBotInCMAccount(string, common.Address) (bool, error) {
 	return false, nil
 }
+
+func (NoopResponseHandler) addToMap(cmaccount common.Address, botId string) {
+}
+
+func (NoopResponseHandler) findCmAccount(bot string) (common.Address, bool) {
+	return common.Address{}, false
+}

@@ -70,6 +70,11 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv
 			Decimals: 9,
 		},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -88,6 +93,11 @@ func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv1.ValidationRequ
 		ValidationId:     &typesv1.UUID{Value: md.RequestID},
 		ValidationObject: nil,
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -101,9 +111,6 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	md.Recipient = md.Sender
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
 	response := activityv1.ActivityProductInfoResponse{
 		Header: nil,
 		Activities: []*activityv1.ActivityExtendedInfo{
@@ -266,6 +273,12 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 			},
 		},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
+	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
 
@@ -300,6 +313,11 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.A
 			},
 		},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 
@@ -317,6 +335,11 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.Activi
 		Header:   nil,
 		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -333,6 +356,11 @@ func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommo
 	response := accommodationv1.AccommodationProductInfoResponse{
 		Properties: []*accommodationv1.PropertyExtendedInfo{{PaymentType: "cash"}},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -349,6 +377,12 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommo
 	response := accommodationv1.AccommodationProductListResponse{
 		Properties: []*accommodationv1.Property{{Name: "Hotel"}},
 	}
+
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -404,10 +438,11 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 			Nationality: typesv1.Country_COUNTRY_DE,
 		}},
 	}
-	sender := md.Sender
-	//md.Sender = md.Recipient
-	md.Recipient = sender
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -427,6 +462,11 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1.Ge
 		},
 		CurrentBlockHeight: request.BlockHeight,
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -444,6 +484,11 @@ func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *pa
 		PartnerConfiguration: &partnerv1.PartnerConfiguration{},
 		CurrentBlockHeight:   request.GetBlockHeight(),
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -457,6 +502,9 @@ func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1.PingRequest) (
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	return &pingv1.PingResponse{
 		Header:      nil,
 		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
@@ -476,6 +524,11 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv1.Tran
 		Header:   nil,
 		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -641,6 +694,11 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 				},
 			}},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -672,6 +730,11 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 		},
 	}
 
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
@@ -685,7 +748,6 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
 	response := infov1.CountryEntryRequirementsResponse{
 		Header: nil,
 		Categories: []*infov1.CountryEntryRequirementCategory{{
@@ -760,6 +822,12 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 			},
 		},
 	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	sender := md.Sender
+	md.Sender = md.Recipient
+	md.Recipient = sender
+	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
 
