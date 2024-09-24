@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     environment:
       CMB_DEVELOPER_MODE: "true"
-      CMB_MATRIX_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_MATRIX_KEY: "PRIVATE_KEY_HEX"
       CMB_MATRIX_HOST: "matrix.camino.network"
       CMB_MATRIX_STORE: "supplier-matrix.db"
       CMB_RPC_SERVER_PORT: "9090"
@@ -18,8 +18,13 @@ services:
       CMB_RESPONSE_TIMEOUT: "10000"
       CMB_SUPPORTED_REQUEST_TYPES: "GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,AccommodationProductListRequest,AccommodationProductInfoRequest,AccommodationSearchRequest,ActivityProductListRequest,ActivityProductInfoRequest,ActivitySearchRequest,TransportSearchRequest,MintRequest,ValidationRequest,SeatMapRequest,SeatMapAvailabilityRequest,CountryEntryRequirementsRequest"
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
-      CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_BOOKING_TOKEN_ABI_FILE: abi/BookingTokenV0.abi
+      CMB_SUPPLIER_NAME: SUPPLIER_NAME
+      CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
       CMB_BUYABLE_UNTIL_DEFAULT: "600"
+      CMB_DB_NAME: "camino_messenger_bot"
+      CMB_DB_PATH: "db.db"
+      CMB_MIGRATIONS_PATH: "file://./migrations"
     ports:
       - "9090:9090"
   distributor-bot:
@@ -29,7 +34,7 @@ services:
       dockerfile: Dockerfile
     environment:
       CMB_DEVELOPER_MODE: "true"
-      CMB_MATRIX_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_MATRIX_KEY: "PRIVATE_KEY_HEX"
       CMB_MATRIX_HOST: "matrix.camino.network"
       CMB_MATRIX_STORE: "distributor-matrix.db"
       CMB_RPC_SERVER_PORT: "9090"
@@ -37,7 +42,11 @@ services:
       CMB_RESPONSE_TIMEOUT: "10000"
       CMB_SUPPORTED_REQUEST_TYPES: "GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest"
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
-      CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
+      CMB_BOOKING_TOKEN_ABI_FILE: "abi/BookingTokenV0.abi"
+      CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
+      CMB_DB_NAME: "camino_messenger_bot"
+      CMB_DB_PATH: "db.db"
+      CMB_MIGRATIONS_PATH: "file://./migrations"
     ports:
       - "9092:9090"
   provider-plugin:

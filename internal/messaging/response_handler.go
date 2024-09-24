@@ -18,7 +18,6 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -45,12 +44,10 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 		return nil, err
 	}
 
-	pk := new(secp256k1.PrivateKey)
-	// UnmarshalText expects the private key in quotes
-	if err := pk.UnmarshalText([]byte("\"" + cfg.PrivateKey + "\"")); err != nil {
-		logger.Fatalf("Failed to parse private key: %v", err)
+	ecdsaPk, err := crypto.HexToECDSA(cfg.PrivateKey)
+	if err != nil {
+		return nil, err
 	}
-	ecdsaPk := pk.ToECDSA()
 
 	// Get Ethereum Address from private key
 	cChainAddress := crypto.PubkeyToAddress(ecdsaPk.PublicKey)

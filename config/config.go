@@ -53,6 +53,12 @@ type EvmConfig struct {
 	CMNetworkFee        uint64 `mapstructure:"cm_network_fee"`
 }
 
+type DBConfig struct {
+	DBPath         string `mapstructure:"db_path"`
+	DBName         string `mapstructure:"db_name"`
+	MigrationsPath string `mapstructure:"migrations_path"`
+}
+
 type TracingConfig struct {
 	Enabled  bool   `mapstructure:"tracing_enabled"`
 	Host     string `mapstructure:"tracing_host"`
@@ -69,6 +75,7 @@ type Config struct {
 	PartnerPluginConfig `mapstructure:",squash"`
 	ProcessorConfig     `mapstructure:",squash"`
 	TracingConfig       `mapstructure:",squash"`
+	DBConfig            `mapstructure:",squash"`
 }
 
 func ReadConfig() (*Config, error) {
@@ -94,6 +101,7 @@ func ReadConfig() (*Config, error) {
 	readMessengerConfig(cfg.ProcessorConfig, fs)
 	readEvmConfig(cfg.EvmConfig, fs)
 	readTracingConfig(cfg.TracingConfig, fs)
+	readDBConfig(cfg.DBConfig, fs)
 
 	// Parse command-line flags
 	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)

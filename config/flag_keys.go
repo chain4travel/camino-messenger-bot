@@ -31,4 +31,7 @@ const (
 	TracingInsecureKey          = "tracing_insecure"
 	TracingCertFileKey          = "tracing_cert_file"
 	TracingKeyFileKey           = "tracing_key_file"
+	DBNameKey                   = "db_name"
+	DBPathKey                   = "db_path"
+	MigrationsPathKey           = "migrations_path"
 )

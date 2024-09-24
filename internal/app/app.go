@@ -12,6 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
+	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
@@ -53,6 +54,11 @@ func (a *App) Run(ctx context.Context) error {
 	g, gCtx := errgroup.WithContext(ctx)
 
 	// TODO do proper DI with FX
+
+	_, err := storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
+	if err != nil {
+		a.logger.Fatalf("Failed to create storage: %v", err)
+	}
 
 	serviceRegistry := messaging.NewServiceRegistry(a.logger)
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
