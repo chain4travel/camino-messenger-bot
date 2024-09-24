@@ -11,8 +11,9 @@ developer_mode: true
 
 ### Matrix
 
-# Private key to be used to login to Matrix Server
-matrix_key: PrivateKey-YOUR_PRIVATE_KEY
+# Private key to be used to login to Matrix Server. This should be in hex format
+# without the 0x prefix.
+matrix_key: YOUR_PRIVATE_KEY_HEX
 
 # Hostname of the Matrix Server
 matrix_host: matrix.camino.network
@@ -66,9 +67,10 @@ supported_request_types:
 
 ### C-Chain (EVM)
 
-# Used for signing transactions on the c-chain, can be same as the matrix_key.
-# This address needs to have some funds to pay for transaction fees on the C-Chain.
-evm_private_key: PrivateKey-YOUR_PRIVATE_KEY
+# Used for signing transactions on the c-chain, can be same as the matrix_key. This
+# address needs to have some funds to pay for transaction fees on the C-Chain. This
+# should be in hex format without the 0x prefix.
+evm_private_key: YOUR_PRIVATE_KEY_HEX
 
 # C-Chain RPC URL
 rpc_url: wss://columbus.camino.network/ext/bc/C/ws

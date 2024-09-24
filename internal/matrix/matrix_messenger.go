@@ -2,17 +2,19 @@ package matrix
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/sha256"
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
+	"github.com/ethereum/go-ethereum/crypto"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -117,12 +119,12 @@ func (m *messenger) StartReceiver() (string, error) {
 		return "", err
 	}
 
-	camioPrivateKey, err := readPrivateKey(m.cfg.Key)
+	caminoPrivateKey, err := crypto.HexToECDSA(m.cfg.Key)
 	if err != nil {
 		return "", err
 	}
 
-	signature, message, err := signPublicKey(camioPrivateKey)
+	signature, message, err := signPublicKey(caminoPrivateKey)
 	if err != nil {
 		return "", err
 	}
@@ -204,26 +206,46 @@ func (m *messenger) Inbound() chan messaging.Message {
 	return m.msgChannel
 }
 
-func readPrivateKey(keyStr string) (*secp256k1.PrivateKey, error) {
-	key := new(secp256k1.PrivateKey)
-	if err := key.UnmarshalText([]byte("\"" + keyStr + "\"")); err != nil {
-		return nil, err
+func signPublicKey(key *ecdsa.PrivateKey) (signature string, message string, err error) {
+	pubKeyBytes := crypto.FromECDSAPub(&key.PublicKey)
+	signatureBytes, err := sign(pubKeyBytes, key)
+	if err != nil {
+		return "", "", err
 	}
-	return key, nil
-}
 
-func signPublicKey(key *secp256k1.PrivateKey) (signature string, message string, err error) {
-	signatureBytes, err := key.Sign(key.PublicKey().Bytes())
+	signature, err = hexWithChecksum(signatureBytes)
 	if err != nil {
 		return "", "", err
 	}
-	signature, err = formatting.Encode(formatting.Hex, signatureBytes)
-	if err != nil {
-		return "", "", err
-	}
-	message, err = formatting.Encode(formatting.Hex, key.PublicKey().Bytes())
+	message, err = hexWithChecksum(pubKeyBytes)
 	if err != nil {
 		return "", "", err
 	}
 	return signature, message, nil
+}
+
+func sign(msg []byte, key *ecdsa.PrivateKey) ([]byte, error) {
+	// TODO: Why don't we use crypto.keccak256 both on ASB and here?
+	hash256 := sha256.Sum256(msg)
+
+	signature, err := crypto.Sign(hash256[:], key)
+	if err != nil {
+		return nil, err
+	}
+
+	return signature, nil
+}
+
+func hexWithChecksum(bytes []byte) (string, error) {
+	const checksumLen = 4
+	bytesLen := len(bytes)
+	if bytesLen > math.MaxInt32-checksumLen {
+		return "", errors.New("encoding overflow")
+	}
+	checked := make([]byte, bytesLen+checksumLen)
+	copy(checked, bytes)
+	hash := sha256.Sum256(bytes)
+	copy(checked[len(bytes):], hash[len(hash)-checksumLen:])
+	bytes = checked
+	return fmt.Sprintf("0x%x", bytes), nil
 }
