@@ -363,8 +363,46 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 	log.Printf("Responding to request: %s", md.RequestID)
 
 	response := accommodationv1.AccommodationSearchResponse{
-		Header:   nil,
-		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
+		Header: nil,
+		Metadata: &typesv1.SearchResponseMetadata{
+			SearchId: &typesv1.UUID{Value: md.RequestID},
+		},
+		Results: []*accommodationv1.AccommodationSearchResult{{
+			ResultId: 0,
+			QueryId:  0,
+			Units: []*accommodationv1.Unit{{
+				Type:             *accommodationv1.UnitType_UNIT_TYPE_ROOM.Enum(),
+				SupplierRoomCode: "RMSDDB0000",
+				SupplierRoomName: "Double Standard Room",
+				OriginalRoomName: "Room with a view",
+				TravelPeriod:     &typesv1.TravelPeriod{},
+				// TravellerIds:
+			}},
+			TotalPriceDetail: &typesv1.PriceDetail{
+				Price: &typesv1.Price{
+					Currency: &typesv1.Currency{
+						Currency: &typesv1.Currency_NativeToken{},
+					},
+					Value:    "199",
+					Decimals: 99,
+				},
+				Binding:        false,
+				LocallyPayable: true,
+				Description:    "Off season price",
+				Type: &typesv1.PriceBreakdownType{
+					Code: "POS",
+				},
+			},
+			RateRules:    []*typesv1.RateRule{{}},
+			CancelPolicy: &typesv1.CancelPolicy{},
+			Bookability:  &typesv1.Bookability{},
+			Remarks:      "A remark",
+		}},
+		Travellers: []*typesv1.BasicTraveller{{
+			Type:        typesv1.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
+			Birthdate:   &typesv1.Date{},
+			Nationality: typesv1.Country_COUNTRY_DE,
+		}},
 	}
 	sender := md.Sender
 	//md.Sender = md.Recipient
