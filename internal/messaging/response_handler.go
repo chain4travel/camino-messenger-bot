@@ -215,58 +215,6 @@ func (h *evmResponseHandler) mint(
 	//
 }
 
-func (h *evmResponseHandler) OLDbuy(ctx context.Context, tokenID *big.Int) (string, error) {
-	nonce, err := h.ethClient.PendingNonceAt(ctx, h.cmAccountAddress)
-	if err != nil {
-		return "", err
-	}
-
-	gasPrice, err := h.ethClient.SuggestGasPrice(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	// Set safe gas limit for now
-	gasLimit := uint64(200000)
-
-	tx, err := h.bookingToken.BuyReservedToken(&bind.TransactOpts{
-		Nonce:    new(big.Int).SetUint64(nonce),
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-	}, tokenID)
-	if err != nil {
-		return "", err
-	}
-
-	chainID, err := h.ethClient.NetworkID(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), h.pk)
-	if err != nil {
-		return "", err
-	}
-
-	err = h.ethClient.SendTransaction(ctx, signedTx)
-	if err != nil {
-		return "", err
-	}
-
-	h.logger.Infof("Transaction sent!\nTransaction hash: %s\n", signedTx.Hash().Hex())
-
-	// Wait for transaction to be mined
-	receipt, err := h.waitTransaction(ctx, signedTx)
-	if err != nil {
-		if gasLimit == receipt.GasUsed {
-			h.logger.Infof("Transaction Gas Limit reached. Please check your inputs.\n")
-		}
-		return "", err
-	}
-
-	return signedTx.Hash().Hex(), nil
-}
-
 // TODO @VjeraTurk code that creates and handles context should be improved, since its not doing job in separate goroutine,
 // Buys a token with the buyer private key. Token must be reserved for the buyer address.
 func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string, error) {

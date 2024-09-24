@@ -12,6 +12,9 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -47,9 +50,26 @@ func NewApp(cfg *config.Config) (*App, error) {
 func (a *App) Run(ctx context.Context) error {
 	g, gCtx := errgroup.WithContext(ctx)
 
+	evmClient, err := evm.NewClient(a.cfg.EvmConfig)
+	if err != nil {
+		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
+	}
+
+	cmAccount, err := cmaccount.NewCmaccount(common.HexToAddress(a.cfg.CMAccountAddress), evmClient)
+	if err != nil {
+		a.logger.Fatalf("Failed to fetch CM account: %v", err)
+	}
+
+	supportedServices, err := cmAccount.GetSupportedServices(&bind.CallOpts{})
+	if err != nil {
+		a.logger.Fatalf("Failed to fetch Registered services: %v", err)
+	}
+	a.logger.Infof("supportedServices %v", supportedServices)
+	// create response handler
+
 	// TODO do proper DI with FX
 
-	serviceRegistry := messaging.NewServiceRegistry(a.logger)
+	serviceRegistry := messaging.NewServiceRegistry(supportedServices, a.logger)
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
 	if a.cfg.PartnerPluginConfig.Host != "" {
 		a.startRPCClient(gCtx, g, serviceRegistry)
@@ -60,12 +80,6 @@ func (a *App) Run(ctx context.Context) error {
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
-	evmClient, err := evm.NewClient(a.cfg.EvmConfig)
-	if err != nil {
-		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
-	}
-
-	// create response handler
 	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)

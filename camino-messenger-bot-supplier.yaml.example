@@ -47,6 +47,7 @@ partner_plugin_unencrypted: true
 partner_plugin_ca_file: ca-cert.pem
 
 ### Supported Request Types for this supplier.
+### Requires according services to be registered in the CM Account
 supported_request_types:
   - GetNetworkFeeRequest
   - GetPartnerConfigurationRequest
@@ -76,7 +77,7 @@ rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 ### Booking Token
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
-booking_token_address: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"
+booking_token_address: "0x1B9dac1f224DAEA0bB1Ee5e01Eb51E4551CEb7AB"
 
 # Address of the CM Account that the bot belongs to
 cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
