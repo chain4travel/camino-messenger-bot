@@ -7,7 +7,9 @@ require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.34.2-20240902074016-adcea0949c54.2
 	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20240918114804-fbc75cbe60fc
 	github.com/ethereum/go-ethereum v1.14.9
+	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/uuid v1.6.0
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/klauspost/compress v1.17.10
 	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/spf13/pflag v1.0.5
@@ -45,6 +47,8 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/holiman/uint256 v1.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -69,6 +73,7 @@ require (
 	go.mau.fi/util v0.3.0 // indirect
 	go.opentelemetry.io/otel/metric v1.30.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect

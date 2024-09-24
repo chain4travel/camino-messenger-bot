@@ -49,3 +49,9 @@ func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.CertFile, TracingCertFileKey, "", "The tracing certificate file")
 	fs.StringVar(&cfg.KeyFile, TracingKeyFileKey, "", "The tracing key file")
 }
+
+func readDBConfig(cfg DBConfig, fs *flag.FlagSet) {
+	fs.StringVar(&cfg.DBName, DBNameKey, "camino_messenger_bot", "database name")
+	fs.StringVar(&cfg.DBPath, DBPathKey, "db.db", "path to database")
+	fs.StringVar(&cfg.MigrationsPath, MigrationsPathKey, "file://./migrations", "path to migration scripts")
+}

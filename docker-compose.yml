@@ -22,6 +22,9 @@ services:
       CMB_SUPPLIER_NAME: SUPPLIER_NAME
       CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
       CMB_BUYABLE_UNTIL_DEFAULT: "600"
+      CMB_DB_NAME: "camino_messenger_bot"
+      CMB_DB_PATH: "db.db"
+      CMB_MIGRATIONS_PATH: "file://./migrations"
     ports:
       - "9090:9090"
   distributor-bot:
@@ -41,6 +44,9 @@ services:
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
       CMB_BOOKING_TOKEN_ABI_FILE: "abi/BookingTokenV0.abi"
       CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
+      CMB_DB_NAME: "camino_messenger_bot"
+      CMB_DB_PATH: "db.db"
+      CMB_MIGRATIONS_PATH: "file://./migrations"
     ports:
       - "9092:9090"
   provider-plugin:
