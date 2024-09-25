@@ -29,14 +29,16 @@ type ServiceRegistry interface {
 	GetService(messageType MessageType) (Service, bool)
 }
 
+type supportedServices struct {
+	ServiceNames []string
+	Services     []cmaccount.PartnerConfigurationService
+}
+
 type serviceRegistry struct {
 	logger            *zap.SugaredLogger
 	services          map[MessageType]Service
-	supportedServices struct {
-		ServiceNames []string
-		Services     []cmaccount.PartnerConfigurationService
-	}
-	lock *sync.RWMutex
+	supportedServices supportedServices
+	lock              *sync.RWMutex
 }
 type Key struct {
 	serviceName    string
@@ -45,10 +47,8 @@ type Key struct {
 
 var supported map[Key]cmaccount.PartnerConfigurationService
 
-func NewServiceRegistry(supportedServices struct {
-	ServiceNames []string
-	Services     []cmaccount.PartnerConfigurationService
-},
+func NewServiceRegistry(
+	supportedServices supportedServices,
 	logger *zap.SugaredLogger) ServiceRegistry {
 	supported = make(map[Key]cmaccount.PartnerConfigurationService)
 
