@@ -24,8 +24,7 @@ var (
 type ChequesStorage interface {
 	GetNotCashedChequeRecords(ctx context.Context) ([]*models.ChequeRecord, error)
 	GetChequeRecordsWithPendingTxs(ctx context.Context) ([]*models.ChequeRecord, error)
-	GetChequesByBotPair(ctx context.Context, fromBot common.Address, toBot common.Address) ([]*models.ChequeRecord, error)
-	GetLatestChequeRecordFromBotPair(ctx context.Context, fromBot common.Address, toBot common.Address) (*models.ChequeRecord, error)
+	GetLatestChequeRecord(ctx context.Context, chequeRecordID common.Hash) (*models.ChequeRecord, error)
 	GetChequeRecord(ctx context.Context, chequeRecordID common.Hash) (*models.ChequeRecord, error)
 	GetChequeRecordByTxID(ctx context.Context, txID common.Hash) (*models.ChequeRecord, error)
 	UpsertChequeRecord(ctx context.Context, chequeRecord *models.ChequeRecord) error
@@ -114,47 +113,15 @@ func (s *session) GetChequeRecordByTxID(ctx context.Context, txID common.Hash) (
 	return modelFromChequeRecord(chequeRecord)
 }
 
-func (s *session) GetLatestChequeRecordFromBotPair(ctx context.Context, fromBot common.Address, toBot common.Address) (*models.ChequeRecord, error) {
+func (s *session) GetLatestChequeRecord(ctx context.Context, chequeRecordID common.Hash) (*models.ChequeRecord, error) {
 	chequeRecord := &chequeRecord{}
-	if err := s.tx.StmtxContext(ctx, s.storage.getLatestChequeByBotPair).GetContext(ctx, chequeRecord, fromBot, toBot); err != nil {
+	if err := s.tx.StmtxContext(ctx, s.storage.getLatestChequeRecord).GetContext(ctx, chequeRecordID); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			s.logger.Error(err)
 		}
 		return nil, upgradeError(err)
 	}
 	return modelFromChequeRecord(chequeRecord)
-}
-
-func (s *session) GetChequesByBotPair(ctx context.Context, fromBot common.Address, toBot common.Address) ([]*models.ChequeRecord, error) {
-	cheques := []*models.ChequeRecord{}
-
-	rows, err := s.tx.StmtxContext(ctx, s.storage.getChequesByBotPair).QueryxContext(ctx, fromBot, toBot)
-	if err != nil {
-		s.logger.Error("Failed to execute getChequesByBotPair query:", err)
-		return nil, upgradeError(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		chequeRecord := &chequeRecord{}
-		if err := rows.StructScan(chequeRecord); err != nil {
-			s.logger.Errorf("Failed to scan chequeRecord from db: %v", err)
-			continue
-		}
-		model, err := modelFromChequeRecord(chequeRecord)
-		if err != nil {
-			s.logger.Errorf("Failed to parse chequeRecord: %v", err)
-			continue
-		}
-		cheques = append(cheques, model)
-	}
-
-	if err := rows.Err(); err != nil {
-		s.logger.Error("Row iteration error:", err)
-		return nil, upgradeError(err)
-	}
-
-	return cheques, nil
 }
 
 func (s *session) UpsertChequeRecord(ctx context.Context, chequeRecord *models.ChequeRecord) error {
@@ -176,8 +143,7 @@ func (s *session) UpsertChequeRecord(ctx context.Context, chequeRecord *models.C
 type chequeRecordsStatements struct {
 	getNotCashedChequeRecords, getChequeRecordsWithPendingTxs *sqlx.Stmt
 	getChequeByChequeRecordID, getChequeByTxID                *sqlx.Stmt
-	getLatestChequeByBotPair                                  *sqlx.Stmt
-	getChequesByBotPair                                       *sqlx.Stmt
+	getLatestChequeRecord                                     *sqlx.Stmt
 	upsertChequeRecord                                        *sqlx.NamedStmt
 }
 
@@ -222,27 +188,17 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 	}
 	s.getChequeByTxID = getChequeByTxID
 
-	getChequeByBotPair, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
-    SELECT * FROM %s
-    WHERE from_bot = $1 AND to_bot = $2
-    ORDER BY counter DESC
-    LIMIT 1
-	`, chequeRecordsTableName))
-	if err != nil {
-		s.logger.Error(err)
-		return err
-	}
-	s.getLatestChequeByBotPair = getChequeByBotPair
-
-	getChequesByBotPair, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
+	getLatestChequeRecord, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
-		WHERE from_bot = $1 AND to_bot = $2
+		WHERE cheque_record_id = ?
+		ORDER BY counter DESC
+		LIMIT 1
 	`, chequeRecordsTableName))
 	if err != nil {
 		s.logger.Error(err)
 		return err
 	}
-	s.getChequesByBotPair = getChequesByBotPair
+	s.getLatestChequeRecord = getLatestChequeRecord
 
 	upsertChequeRecord, err := s.db.PrepareNamedContext(ctx, fmt.Sprintf(`
 		INSERT INTO %s (

@@ -9,11 +9,14 @@ import (
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/chain4travel/camino-messenger-bot/config"
+
+	// "github.com/chain4travel/camino-messenger-bot/internal/models"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 )
@@ -29,7 +32,6 @@ type evmChequeHandler struct {
 	chainID           *big.Int
 	privateKey        *ecdsa.PrivateKey
 
-	cfg     *config.EvmConfig
 	storage storage.Storage
 }
 
@@ -78,8 +80,9 @@ func (cm *evmChequeHandler) IssueCheque(ctx context.Context, fromCMAccount commo
 	if err != nil {
 		return cheques.SignedCheque{}, fmt.Errorf("failed to create session: %w", err)
 	}
-
-	previousChequeModel, err := session.GetLatestChequeRecordFromBotPair(ctx, fromBot, toBot)
+	// chequeRecordID is a hash of fromBot, toBot and toCmAccount
+	chequeRecordID := chequeRecordID(fromBot, toBot, toCMAccount)
+	previousChequeModel, err := session.GetLatestChequeRecord(ctx, chequeRecordID)
 	if err != nil {
 		return cheques.SignedCheque{}, fmt.Errorf("failed to get previous cheque: %w", err)
 	}
@@ -94,24 +97,31 @@ func (cm *evmChequeHandler) IssueCheque(ctx context.Context, fromCMAccount commo
 		return cheques.SignedCheque{}, fmt.Errorf("invalid cheque counter: counter is less than last cash in counter from sc")
 	}
 
-	bigIntAmount := new(big.Int)
-	bigIntAmount.SetUint64(amount)
+	bigIntAmount := new(big.Int).SetUint64(amount)
+	totalAmount := new(big.Int).Add(previousChequeModel.Amount, bigIntAmount)
 
-	totalAmount, err := cm.GetTotalAmountFromBotPair(ctx, fromBot, toBot)
-	totalAmount = totalAmount.Add(totalAmount, bigIntAmount)
+	if totalAmount.Cmp(lastCashIn.LastAmount) < 0 {
+		// Return an error indicating that the amount is invalid
+		return cheques.SignedCheque{}, fmt.Errorf("total amount (%s) is smaller than last cash-in amount (%s)", totalAmount.String(), lastCashIn.LastAmount.String())
+	}
 
 	newCheque := &cheques.Cheque{
 		FromCMAccount: fromCMAccount,
 		ToCMAccount:   toCMAccount,
 		ToBot:         toBot,
 		Counter:       counter,
-		Amount:        totalAmount,
+		Amount:        bigIntAmount,
 		CreatedAt:     big.NewInt(time.Now().Unix()),
 		ExpiresAt:     big.NewInt(0),
 	}
 	signer, err := cheques.NewSigner(cm.privateKey, cm.chainID)
+	if err != nil {
+		return cheques.SignedCheque{}, fmt.Errorf("failed to create signer: %v", err)
+	}
 	signedCheque, err := signer.SignCheque(newCheque)
-
+	if err != nil {
+		return cheques.SignedCheque{}, fmt.Errorf("failed to sign cheque: %v", err)
+	}
 	previousCheque := &cheques.Cheque{
 		FromCMAccount: previousChequeModel.FromCMAccount,
 		ToCMAccount:   previousChequeModel.ToCMAccount,
@@ -123,17 +133,63 @@ func (cm *evmChequeHandler) IssueCheque(ctx context.Context, fromCMAccount commo
 	}
 
 	previousChequeSigned, err := signer.SignCheque(previousCheque)
+	if err != nil {
+		return cheques.SignedCheque{}, fmt.Errorf("failed to sign previous cheque: %v", err)
+	}
 
 	verified := cheques.VerifyCheque(previousChequeSigned, signedCheque, big.NewInt(time.Now().Unix()), big.NewInt(0))
 	if verified != nil {
 		return cheques.SignedCheque{}, fmt.Errorf("failed to verify cheque: %v", verified)
 	}
 
+	sc, err := cm.verifyWithSmartContract(ctx, *signedCheque)
+	if err != nil {
+		return cheques.SignedCheque{}, fmt.Errorf("failed to verify cheque with smart contract: %v", err)
+	}
+
+	// insert into db
+	// UpsertChequeRecord(ctx, models.ChequeRecord{
+	// 	ChequeRecordID: chequeRecordID,
+	// 	TxID:           nil,
+	// 	Status:         ChequeTxStatusPending,
+	// 	signedCheque:   signedCheque,
+	// })
+
 	return *signedCheque, nil
 }
 
+func (cm *evmChequeHandler) verifyWithSmartContract(ctx context.Context, signedCheque cheques.SignedCheque) (struct {
+	Signer        common.Address
+	PaymentAmount *big.Int
+}, error) {
+	result, err := cm.cmAccountInstance.VerifyCheque(
+		&bind.CallOpts{Context: ctx},
+		signedCheque.Cheque.FromCMAccount,
+		signedCheque.Cheque.ToCMAccount,
+		signedCheque.Cheque.ToBot,
+		signedCheque.Cheque.Counter,
+		signedCheque.Cheque.Amount,
+		signedCheque.Cheque.CreatedAt,
+		signedCheque.Cheque.ExpiresAt,
+		signedCheque.Signature,
+	)
+
+	if err != nil {
+		if err.Error() == "execution reverted" {
+			return struct {
+				Signer        common.Address
+				PaymentAmount *big.Int
+			}{}, nil
+		}
+		return struct {
+			Signer        common.Address
+			PaymentAmount *big.Int
+		}{}, err
+	}
+	return result, nil
+}
+
 func (cm *evmChequeHandler) getLastCashIn(ctx context.Context, fromBot common.Address, toBot common.Address) (*LastCashIn, error) {
-	// Use contract binding to interact with the contract
 	callOpts := &bind.CallOpts{
 		Context: ctx,
 	}
@@ -143,43 +199,12 @@ func (cm *evmChequeHandler) getLastCashIn(ctx context.Context, fromBot common.Ad
 		return nil, fmt.Errorf("failed to get last cash in: %w", err)
 	}
 
-	// Return as LastCashIn struct
 	return &LastCashIn{
 		Counter:   cashIn.LastCounter,
 		Amount:    cashIn.LastAmount,
 		CreatedAt: cashIn.LastCreatedAt,
 		ExpiresAt: cashIn.LastExpiresAt,
 	}, nil
-}
-
-func (cm *evmChequeHandler) buildTransactOpts(ctx context.Context) (*bind.TransactOpts, error) {
-	auth, err := bind.NewKeyedTransactorWithChainID(cm.privateKey, cm.chainID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create keyed transactor: %v", err)
-	}
-	auth.Context = ctx
-	auth.GasLimit = uint64(300000) // You can adjust the gas limit accordingly
-
-	return auth, nil
-}
-
-func (cm *evmChequeHandler) GetTotalAmountFromBotPair(ctx context.Context, fromBot common.Address, toBot common.Address) (*big.Int, error) {
-	session, err := cm.newStorageSession(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create new storage session: %w", err)
-	}
-	cheques, err := session.GetChequesByBotPair(ctx, fromBot, toBot)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get cheques by bot pair: %w", err)
-	}
-
-	totalAmount := big.NewInt(0)
-
-	for _, cheque := range cheques {
-		totalAmount.Add(totalAmount, cheque.Amount)
-	}
-
-	return totalAmount, nil
 }
 
 func (cm *evmChequeHandler) newStorageSession(ctx context.Context) (storage.Session, error) {
@@ -209,4 +234,12 @@ func (cm *evmChequeHandler) IsBotAllowed(ctx context.Context, fromBot common.Add
 	}
 
 	return isAllowed, nil
+}
+
+func chequeRecordID(fromBot common.Address, toBot common.Address, toCmAccount common.Address) common.Hash {
+	return crypto.Keccak256Hash(
+		fromBot.Bytes(),
+		toBot.Bytes(),
+		toCmAccount.Bytes(),
+	)
 }

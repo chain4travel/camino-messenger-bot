@@ -22,14 +22,14 @@ import (
 var (
 	_ Processor = (*processor)(nil)
 
-	ErrUserIDNotSet               = errors.New("user id not set")
-	ErrUnknownMessageCategory     = errors.New("unknown message category")
-	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
-	ErrUnsupportedRequestType     = errors.New("unsupported request type")
-	ErrMissingRecipient           = errors.New("missing recipient")
-	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
-	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
-	ErrBotMissingCashierRole      = errors.New("Bot missing permission")
+	ErrUserIDNotSet                 = errors.New("user id not set")
+	ErrUnknownMessageCategory       = errors.New("unknown message category")
+	ErrOnlyRequestMessagesAllowed   = errors.New("only request messages allowed")
+	ErrUnsupportedRequestType       = errors.New("unsupported request type")
+	ErrMissingRecipient             = errors.New("missing recipient")
+	ErrForeignCMAccount             = errors.New("foreign or Invalid CM Account")
+	ErrExceededResponseTimeout      = errors.New("response exceeded configured timeout")
+	ErrBotMissingChequeOperatorRole = errors.New("bot missing permission")
 )
 
 type MsgHandler interface {
@@ -173,9 +173,9 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 			return nil, err
 		}
 		if !isBotAllowed {
-			return nil, ErrBotMissingCashierRole
+			return nil, ErrBotMissingChequeOperatorRole
 		}
-		networkFee := p.evmConfig.CMNetworkFee
+		networkFee := p.evmConfig.CMNetworkFee * msg.Metadata.NumberOfChunks
 
 		networkFeeCheque, err := p.chequeHandler.IssueCheque(ctx, common.HexToAddress(msg.Metadata.Sender), common.HexToAddress(msg.Metadata.Recipient), common.HexToAddress(msg.Metadata.Sender), common.HexToAddress(msg.Metadata.Recipient), networkFee)
 		if err != nil && p.chequeHandler.IsEmptyCheque(networkFeeCheque) {
