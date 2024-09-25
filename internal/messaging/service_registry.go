@@ -47,11 +47,8 @@ type Key struct {
 
 var supported map[Key]cmaccount.PartnerConfigurationService
 
-func NewServiceRegistry(
-	supportedServices supportedServices,
-	logger *zap.SugaredLogger) ServiceRegistry {
+func NewServiceRegistry(supportedServices supportedServices, logger *zap.SugaredLogger) ServiceRegistry {
 	supported = make(map[Key]cmaccount.PartnerConfigurationService)
-
 	// TODO: @VjeraTurk support multiple versions
 	for i, serviceName := range supportedServices.ServiceNames {
 		// Split each service name by "."
