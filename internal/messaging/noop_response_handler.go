@@ -46,7 +46,7 @@ func (NoopResponseHandler) isBotInCMAccount(string, common.Address) (bool, error
 	return false, nil
 }
 
-func (NoopResponseHandler) addToMap(_ common.Address, botID string) {
+func (NoopResponseHandler) addToMap(_ common.Address, _ string) {
 }
 
 func (NoopResponseHandler) findCmAccount(_ string) (common.Address, bool) {

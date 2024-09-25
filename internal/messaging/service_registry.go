@@ -7,6 +7,7 @@ package messaging
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -114,6 +115,12 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 			if isServiceVersionRegistered("MintService", uint64(1)) {
 				c := bookv1grpc.NewMintServiceClient(rpcClient.ClientConn)
 				service = mintService{client: &c}
+			}
+			// WIP - support multiple version - otherwise linter complains
+			if isServiceVersionRegistered("MintService", uint64(2)) {
+				//c := bookv2grpc.NewMintServiceClient(rpcClient.ClientConn)
+				//services[2] = mintService{client: &c}
+				log.Print("supports MintService 2")
 			}
 
 		case ValidationRequest:

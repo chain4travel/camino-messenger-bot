@@ -172,7 +172,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 	// Mocked data for testing TODO: @VjeraTurk remove after real Cheque impelmentations
 	msg.Metadata.Cheques = []cheques.SignedCheque{
-		//Uncomment for Supplier side to work
+		// Uncomment for Supplier side to work
 		/*
 			{
 				Cheque: cheques.Cheque{
@@ -236,13 +236,12 @@ func (p *processor) Respond(msg *Message) error {
 	mybotAddress := md.Recipient
 
 	/// TODO: Uncomment after Chewques implementation
-	// No message shoudl be without cheque?
+	// No message should be without cheque?
 	if md.Cheques == nil {
 		return fmt.Errorf("%w: %s", ErrMissingCheques, msg.Type)
 	}
 
 	for i := 0; i < len(md.Cheques); i++ {
-
 		// Get info from cheque
 		// Check if the TO CM-Account is correct
 		if !p.identificationHandler.isMyCMAccount(md.Cheques[0].ToCMAccount) {
