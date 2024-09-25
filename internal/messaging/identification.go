@@ -106,7 +106,7 @@ func (cm *evmIdentificationHandler) isBotInCMAccount(botAddress string, cmAccoun
 		return false, err
 	}
 	for _, b := range bots {
-		if strings.ToUpper(b) == strings.ToUpper(botAddress) {
+		if strings.EqualFold(strings.ToUpper(b), strings.ToUpper(botAddress)) {
 			return true, nil
 		}
 	}
@@ -125,6 +125,6 @@ func (cm *evmIdentificationHandler) findCmAccount(bot string) (common.Address, b
 	return common.Address{}, false
 }
 
-func (cm *evmIdentificationHandler) addToMap(cmaccount common.Address, botId string) {
-	CMAccountBotMap[cmaccount] = botId
+func (cm *evmIdentificationHandler) addToMap(cmaccount common.Address, botID string) {
+	CMAccountBotMap[cmaccount] = botID
 }

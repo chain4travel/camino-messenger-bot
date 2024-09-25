@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -171,20 +170,24 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		msg.Metadata.Recipient = botAddress
 	}
 
-	// Mocked data for testing TODO: @VjeraTurkremove after real Cheque impelmentation
+	// Mocked data for testing TODO: @VjeraTurk remove after real Cheque impelmentations
 	msg.Metadata.Cheques = []cheques.SignedCheque{
-		{
-			Cheque: cheques.Cheque{
-				FromCMAccount: common.HexToAddress(p.identificationHandler.getMyCMAccountAddress()),
-				ToCMAccount:   common.HexToAddress(cmAccountRecipient),
-				ToBot:         common.HexToAddress(msg.Metadata.Recipient[1:41]),
-				Counter:       big.NewInt(1),
-				Amount:        big.NewInt(1),
-				CreatedAt:     big.NewInt(time.Now().Unix()),
-				ExpiresAt:     big.NewInt(time.Now().Add(50 * 24 * time.Hour).Unix()),
+		//Uncomment for Supplier side to work
+		/*
+			{
+				Cheque: cheques.Cheque{
+					FromCMAccount: common.HexToAddress(p.identificationHandler.getMyCMAccountAddress()),
+					ToCMAccount:   common.HexToAddress(cmAccountRecipient),
+					ToBot:         common.HexToAddress(msg.Metadata.Recipient[1:41]),
+					Counter:       big.NewInt(1),
+					Amount:        big.NewInt(1),
+					CreatedAt:     big.NewInt(time.Now().Unix()),
+					ExpiresAt:     big.NewInt(time.Now().Add(50 * 24 * time.Hour).Unix()),
+				},
+				Signature: []byte{0x1, 0x2, 0x3},
 			},
-			Signature: []byte{0x1, 0x2, 0x3},
-		}}
+		*/
+	}
 
 	// TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -246,11 +249,11 @@ func (p *processor) Respond(msg *Message) error {
 			return fmt.Errorf("incorrect CMAccount")
 		}
 
-		//Lookup the FROM CM-Account which is in the cheque
-		//Verify that the sending bot is part of this FROM
+		// Lookup the FROM CM-Account which is in the cheque
+		// Verify that the sending bot is part of this FROM
 		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(md.Sender[1:43], md.Cheques[i].FromCMAccount)
 		if err != nil {
-			return fmt.Errorf("%v: w%, %s", ErrCheckingCmAccount, err, md.Cheques[i].FromCMAccount)
+			return fmt.Errorf("%w: %w, %s", ErrCheckingCmAccount, err, md.Cheques[i].FromCMAccount)
 		}
 
 		if !isInCmAccount {
