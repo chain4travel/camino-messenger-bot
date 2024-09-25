@@ -15,6 +15,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -161,6 +162,16 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 				c := infov1grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
 				service = countryEntryRequirementsService{client: &c}
 			}
+		case InsuranceProductInfoRequest:
+			c := insurancev1grpc.NewInsuranceProductInfoServiceClient(rpcClient.ClientConn)
+			service = insuranceProductInfoService{client: &c}
+		case InsuranceProductListRequest:
+			c := insurancev1grpc.NewInsuranceProductListServiceClient(rpcClient.ClientConn)
+			service = insuranceProductListService{client: &c}
+		case InsuranceSearchRequest:
+			c := insurancev1grpc.NewInsuranceSearchServiceClient(rpcClient.ClientConn)
+			service = insuranceSearchService{client: &c}
+
 		case GetNetworkFeeRequest:
 			service = networkService{} // this service does not talk to partner plugin
 		case GetPartnerConfigurationRequest:

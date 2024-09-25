@@ -7,6 +7,7 @@ import (
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
+	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
 	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
@@ -37,6 +38,9 @@ type RequestContent struct {
 	*seat_mapv1.SeatMapRequest
 	*seat_mapv1.SeatMapAvailabilityRequest
 	*infov1.CountryEntryRequirementsRequest
+	*insurancev1.InsuranceProductInfoRequest
+	*insurancev1.InsuranceProductListRequest
+	*insurancev1.InsuranceSearchRequest
 }
 
 type ResponseContent struct {
@@ -55,6 +59,9 @@ type ResponseContent struct {
 	*seat_mapv1.SeatMapResponse
 	*seat_mapv1.SeatMapAvailabilityResponse
 	*infov1.CountryEntryRequirementsResponse
+	*insurancev1.InsuranceProductInfoResponse
+	*insurancev1.InsuranceProductListResponse
+	*insurancev1.InsuranceSearchResponse
 }
 
 type MessageContent struct {
@@ -112,6 +119,12 @@ const (
 	SeatMapAvailabilityResponse      MessageType = "SeatMapAvailabilityResponse"
 	CountryEntryRequirementsRequest  MessageType = "CountryEntryRequirementsRequest"
 	CountryEntryRequirementsResponse MessageType = "CountryEntryRequirementsResponse"
+	InsuranceProductInfoRequest      MessageType = "InsuranceProductInfoRequest"
+	InsuranceProductInfoResponse     MessageType = "InsuranceProductInfoResponse"
+	InsuranceProductListRequest      MessageType = "InsuranceProductListRequest"
+	InsuranceProductListResponse     MessageType = "InsuranceProductListResponse"
+	InsuranceSearchRequest           MessageType = "InsuranceSearchRequest"
+	InsuranceSearchResponse          MessageType = "InsuranceSearchResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
@@ -130,7 +143,10 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchRequest,
 		SeatMapRequest,
 		SeatMapAvailabilityRequest,
-		CountryEntryRequirementsRequest:
+		CountryEntryRequirementsRequest,
+		InsuranceProductInfoRequest,
+		InsuranceProductListRequest,
+		InsuranceSearchRequest:
 		return Request
 	case ActivityProductInfoResponse,
 		ActivityProductListResponse,
@@ -146,7 +162,10 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchResponse,
 		SeatMapResponse,
 		SeatMapAvailabilityResponse,
-		CountryEntryRequirementsResponse:
+		CountryEntryRequirementsResponse,
+		InsuranceProductInfoResponse,
+		InsuranceProductListResponse,
+		InsuranceSearchResponse:
 		return Response
 	default:
 		return Unknown
@@ -215,6 +234,19 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.CountryEntryRequirementsRequest)
 	case CountryEntryRequirementsResponse:
 		return proto.Marshal(m.Content.CountryEntryRequirementsResponse)
+	case InsuranceProductInfoRequest:
+		return proto.Marshal(m.Content.InsuranceProductInfoRequest)
+	case InsuranceProductInfoResponse:
+		return proto.Marshal(m.Content.InsuranceProductInfoResponse)
+	case InsuranceProductListRequest:
+		return proto.Marshal(m.Content.InsuranceProductListRequest)
+	case InsuranceProductListResponse:
+		return proto.Marshal(m.Content.InsuranceProductListResponse)
+	case InsuranceSearchRequest:
+		return proto.Marshal(m.Content.InsuranceSearchRequest)
+	case InsuranceSearchResponse:
+		return proto.Marshal(m.Content.InsuranceSearchResponse)
+
 	default:
 		return nil, ErrUnknownMessageType
 	}
