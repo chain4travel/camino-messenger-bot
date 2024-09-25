@@ -168,7 +168,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	}
 
 	if msg.Metadata.Cheques == nil && msg.Metadata.ChunkIndex == 0 {
-		isBotAllowed, err := p.chequeHandler.IsBotAllowed(common.HexToAddress(botAddress))
+		isBotAllowed, err := p.chequeHandler.IsBotAllowed(ctx, common.HexToAddress(botAddress))
 		if err != nil {
 			return nil, err
 		}

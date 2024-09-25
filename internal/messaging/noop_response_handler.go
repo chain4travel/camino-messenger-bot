@@ -55,7 +55,7 @@ func (NoopResponseHandler) getLastCashIn(context.Context, common.Address, common
 	return nil, nil
 }
 
-func (NoopResponseHandler) IsBotAllowed(common.Address) (bool, error) {
+func (NoopResponseHandler) IsBotAllowed(context.Context, common.Address) (bool, error) {
 	return false, nil
 }
 
