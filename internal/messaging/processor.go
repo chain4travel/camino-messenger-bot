@@ -31,7 +31,9 @@ var (
 	ErrMissingRecipient           = errors.New("missing recipient")
 	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
-	ErrMissingCheques             = errors.New("Missing cheeques in metadata")
+	ErrMissingCheques             = errors.New("missing cheques in metadata")
+	ErrBotNotInCMAccount          = errors.New("bot not in Cm Account")
+	ErrCheckingCmAccount          = errors.New("problem calling contract")
 )
 
 type MsgHandler interface {
@@ -241,18 +243,18 @@ func (p *processor) Respond(msg *Message) error {
 		// Get info from cheque
 		// Check if the TO CM-Account is correct
 		if !p.identificationHandler.isMyCMAccount(md.Cheques[0].ToCMAccount) {
-			return fmt.Errorf("Incorrect CMAccount")
+			return fmt.Errorf("incorrect CMAccount")
 		}
 
 		//Lookup the FROM CM-Account which is in the cheque
 		//Verify that the sending bot is part of this FROM
 		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(md.Sender[1:43], md.Cheques[i].FromCMAccount)
 		if err != nil {
-			return fmt.Errorf("Bot not in CMAccount v%", err)
+			return fmt.Errorf("%v: w%, %s", ErrCheckingCmAccount, err, md.Cheques[i].FromCMAccount)
 		}
 
 		if !isInCmAccount {
-			return fmt.Errorf("Bot not part of CMAccount")
+			return fmt.Errorf("bot %s not part of CMAccount %s", md.Sender[1:43], md.Cheques[i].FromCMAccount)
 		}
 		cmAccount, ok := p.identificationHandler.findCmAccount(md.Sender)
 		if ok {
