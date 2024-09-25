@@ -55,7 +55,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	// TODO do proper DI with FX
 
-	_, err := storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
+	storage, err := storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
 	if err != nil {
 		a.logger.Fatalf("Failed to create storage: %v", err)
 	}
@@ -140,7 +140,7 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 	chainId, err := evmClient.NetworkID(ctx)
-	chequeHandler, err := messaging.NewChequeHandler(evmClient, a.logger, &a.cfg.EvmConfig, chainId)
+	chequeHandler, err := messaging.NewChequeHandler(a.logger, evmClient, &a.cfg.EvmConfig, chainId, storage)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
@@ -237,7 +237,7 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 }
 
 func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, chequeHandler messaging.ChequeHandler, identificationHandler messaging.IdentificationHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
-	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, chequeHandler, identificationHandler)
+	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, a.cfg.EvmConfig, serviceRegistry, responseHandler, chequeHandler, identificationHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

@@ -29,6 +29,7 @@ var (
 	ErrMissingRecipient           = errors.New("missing recipient")
 	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
+	ErrBotMissingCashierRole      = errors.New("Bot missing permission")
 )
 
 type MsgHandler interface {
@@ -47,6 +48,7 @@ type Processor interface {
 
 type processor struct {
 	cfg       config.ProcessorConfig
+	evmConfig config.EvmConfig
 	messenger Messenger
 	userID    string
 	logger    *zap.SugaredLogger
@@ -57,6 +59,7 @@ type processor struct {
 	responseChannels      map[string]chan *Message
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
+	chequeHandler         ChequeHandler
 	identificationHandler IdentificationHandler
 }
 
@@ -68,9 +71,10 @@ func (*processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, evmConfig config.EvmConfig, registry ServiceRegistry, responseHandler ResponseHandler, chequeHandler ChequeHandler, identificationHandler IdentificationHandler) Processor {
 	return &processor{
 		cfg:                   cfg,
+		evmConfig:             evmConfig,
 		messenger:             messenger,
 		logger:                logger,
 		tracer:                otel.GetTracerProvider().Tracer(""),
@@ -163,7 +167,26 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		msg.Metadata.Recipient = botAddress
 	}
 
-	msg.Metadata.Cheques = nil // TODO issue and attach cheques
+	if msg.Metadata.Cheques == nil && msg.Metadata.ChunkIndex == 0 {
+		isBotAllowed, err := p.chequeHandler.IsBotAllowed(common.HexToAddress(botAddress))
+		if err != nil {
+			return nil, err
+		}
+		if !isBotAllowed {
+			return nil, ErrBotMissingCashierRole
+		}
+		networkFee := p.evmConfig.CMNetworkFee
+
+		networkFeeCheque, err := p.chequeHandler.IssueCheque(ctx, common.HexToAddress(msg.Metadata.Sender), common.HexToAddress(msg.Metadata.Recipient), common.HexToAddress(msg.Metadata.Sender), common.HexToAddress(msg.Metadata.Recipient), networkFee)
+		if err != nil && p.chequeHandler.IsEmptyCheque(networkFeeCheque) {
+			return nil, err
+		}
+
+		// get service fee and issue cheque
+		// serviceFeeCheque, err := p.chequeHandler.issueCheque(ctx, common.HexToAddress(msg.Metadata.Sender), common.HexToAddress(msg.Metadata.Recipient), common.HexToAddress(msg.Metadata.Sender), common.HexToAddress(msg.Metadata.Recipient), serviceFee)
+		msg.Metadata.Cheques = append(msg.Metadata.Cheques, networkFeeCheque)
+		// msg.Metadata.Cheques = append(msg.Metadata.Cheques, serviceFeeCheque)
+	}
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 

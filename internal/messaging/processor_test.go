@@ -41,9 +41,11 @@ func TestProcessInbound(t *testing.T) {
 
 	type fields struct {
 		cfg                   config.ProcessorConfig
+		evmConfig             config.EvmConfig
 		messenger             Messenger
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
+		chequeHandler         ChequeHandler
 		identificationHandler IdentificationHandler
 	}
 	type args struct {
@@ -160,7 +162,7 @@ func TestProcessInbound(t *testing.T) {
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.identificationHandler)
+			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.evmConfig, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.chequeHandler, tt.fields.identificationHandler)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
 			}
@@ -184,9 +186,11 @@ func TestProcessOutbound(t *testing.T) {
 
 	type fields struct {
 		cfg                   config.ProcessorConfig
+		evmConfig             config.EvmConfig
 		messenger             Messenger
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
+		chequeHandler         ChequeHandler
 		identificationHandler IdentificationHandler
 	}
 	type args struct {
@@ -301,7 +305,7 @@ func TestProcessOutbound(t *testing.T) {
 
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.identificationHandler)
+			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.evmConfig, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.chequeHandler, tt.fields.identificationHandler)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
 			}
@@ -332,9 +336,11 @@ func TestStart(t *testing.T) {
 
 	t.Run("start processor and accept messages", func(*testing.T) {
 		cfg := config.ProcessorConfig{}
+		evmConfig := config.EvmConfig{}
 		serviceRegistry := mockServiceRegistry
 		responseHandler := NoopResponseHandler{}
 		identificationHandler := NoopResponseHandler{}
+		chequeHandler := NoopResponseHandler{}
 		messenger := mockMessenger
 
 		ch := make(chan Message, 5)
@@ -361,7 +367,7 @@ func TestStart(t *testing.T) {
 		mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, serviceRegistry, responseHandler, identificationHandler)
+		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, evmConfig, serviceRegistry, responseHandler, chequeHandler, identificationHandler)
 		p.SetUserID(userID)
 		go p.Start(ctx)
 

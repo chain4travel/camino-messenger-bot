@@ -8,6 +8,7 @@ package messaging
 import (
 	"context"
 
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -44,4 +45,20 @@ func (NoopResponseHandler) getMatrixHost() string {
 
 func (NoopResponseHandler) isBotInCMAccount(string, common.Address) (bool, error) {
 	return false, nil
+}
+
+func (NoopResponseHandler) IssueCheque(context.Context, common.Address, common.Address, common.Address, common.Address, uint64) (cheques.SignedCheque, error) {
+	return cheques.SignedCheque{}, nil
+}
+
+func (NoopResponseHandler) getLastCashIn(context.Context, common.Address, common.Address) (*LastCashIn, error) {
+	return nil, nil
+}
+
+func (NoopResponseHandler) IsBotAllowed(common.Address) (bool, error) {
+	return false, nil
+}
+
+func (NoopResponseHandler) IsEmptyCheque(cheques.SignedCheque) bool {
+	return false
 }
