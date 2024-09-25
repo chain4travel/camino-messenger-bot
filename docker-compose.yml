@@ -41,7 +41,6 @@ services:
       CMB_SUPPORTED_REQUEST_TYPES: "GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest"
       CMB_RPC_URL: "https://columbus.camino.network/ext/bc/C/rpc"
       CMB_EVM_PRIVATE_KEY: "PrivateKey-THE_REST_OF_THE_KEY"
-      CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
       CMB_DB_NAME: "camino_messenger_bot"
       CMB_DB_PATH: "db.db"
       CMB_MIGRATIONS_PATH: "file://./migrations"
