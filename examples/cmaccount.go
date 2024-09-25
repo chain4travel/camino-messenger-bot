@@ -20,9 +20,9 @@ import (
 func main() {
 
 	// Set your CM Account address here
-	cmAccountAddr := common.HexToAddress("0x1B9dac1f224DAEA0bB1Ee5e01Eb51E4551CEb7AB")
+	cmAccountAddr := common.HexToAddress("<CM_ACCOUNT_ADDRESS>")
 
-	reservedFor := common.HexToAddress("0xB682106bEbf1017D8a147959Ed508768670a3162")
+	reservedFor := common.HexToAddress("<CM_ACCOUNT_ADDRESS>")
 	uri := "TOKEN_URI"
 	expirationTimestamp := big.NewInt(time.Now().Add(time.Hour).Unix())
 	price := &big.Int{}
@@ -50,7 +50,7 @@ func main() {
 
 	chainID, err := client.NetworkID(ctx)
 
-	ecdsaPk, err := crypto.HexToECDSA("0b37fecbb1e397c3deeb6a8c4f97684c2e2b7c27ba6fdaedab6de06ddaa1fb66")
+	ecdsaPk, err := crypto.HexToECDSA("<PRIVATE_KEY_HEX>")
 	if err != nil {
 		log.Fatalf("Failed to convert private key: %v", err)
 	}
