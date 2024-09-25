@@ -10,20 +10,23 @@ import (
 	"crypto/rand"
 
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/embedded"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 var _ Tracer = (*noopTracer)(nil)
 
 type noopTracer struct {
-	tp trace.TracerProvider
+	embedded.Tracer
+	trace.TracerProvider
 }
 
 func NewNoOpTracer() (Tracer, error) {
-	return &noopTracer{tp: trace.NewNoopTracerProvider()}, nil
+	return &noopTracer{TracerProvider: noop.NewTracerProvider()}, nil
 }
 
 func (n *noopTracer) Start(ctx context.Context, spanName string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
-	return n.tp.Tracer("").Start(ctx, spanName, opts...)
+	return n.TracerProvider.Tracer("").Start(ctx, spanName, opts...)
 }
 
 func (n *noopTracer) Shutdown() error {
