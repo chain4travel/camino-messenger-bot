@@ -47,25 +47,6 @@ partner_plugin_unencrypted: true
 # Required if partner_plugin_unencrypted is false
 partner_plugin_ca_file: ca-cert.pem
 
-### Supported Request Types for this supplier.
-### Requires according services to be registered in the CM Account
-supported_request_types:
-  - GetNetworkFeeRequest
-  - GetPartnerConfigurationRequest
-  - PingRequest
-  - AccommodationProductListRequest
-  - AccommodationProductInfoRequest
-  - AccommodationSearchRequest
-  - ActivityProductListRequest
-  - ActivityProductInfoRequest
-  - ActivitySearchRequest
-  - TransportSearchRequest
-  - MintRequest
-  - ValidationRequest
-  - SeatMapRequest
-  - SeatMapAvailabilityRequest
-  - CountryEntryRequirementsRequest
-
 ### C-Chain (EVM)
 
 # Used for signing transactions on the c-chain, can be same as the matrix_key. This

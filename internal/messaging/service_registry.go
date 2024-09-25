@@ -48,7 +48,8 @@ var supported map[Key]cmaccount.PartnerConfigurationService
 func NewServiceRegistry(supportedServices struct {
 	ServiceNames []string
 	Services     []cmaccount.PartnerConfigurationService
-}, logger *zap.SugaredLogger) ServiceRegistry {
+},
+	logger *zap.SugaredLogger) ServiceRegistry {
 	supported = make(map[Key]cmaccount.PartnerConfigurationService)
 
 	// TODO: @VjeraTurk support multiple versions

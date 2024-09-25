@@ -46,13 +46,6 @@ rpc_server_key_file: server-key.pem
 # Required if partner_plugin_unencrypted is false
 #partner_plugin_ca_file: ca-cert.pem
 
-### Supported Request Types for this distributor.
-# Only requests that does not talk to the partner plugin can be enabled here.
-supported_request_types:
-  - GetNetworkFeeRequest
-  - GetPartnerConfigurationRequest
-  - PingRequest
-
 ### C-Chain (EVM)
 
 # Used for signing transactions on the c-chain, can be same as the matrix_key. This

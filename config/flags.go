@@ -4,7 +4,7 @@ import "flag"
 
 func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
 	fs.BoolVar(&cfg.DeveloperMode, DeveloperMode, false, "Sets developer mode")
-	fs.Var(&cfg.SupportedRequestTypes, SupportedRequestTypesKey, "The list of supported request types")
+	fs.Var(&cfg.SupportedRequestTypes, "GetNetworkFeeRequest,GetPartnerConfigurationRequest,PingRequest,AccommodationProductListRequest,AccommodationProductInfoRequest,AccommodationSearchRequest,ActivityProductListRequest,ActivityProductInfoRequest,ActivitySearchRequest,TransportSearchRequest,MintRequest,ValidationRequest,SeatMapRequest,SeatMapAvailabilityRequest,CountryEntryRequirementsRequest", "The list of supported request types")
 	flag.Parse()
 }
 

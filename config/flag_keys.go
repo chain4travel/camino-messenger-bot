@@ -19,7 +19,6 @@ const (
 	PartnerPluginUnencryptedKey = "partner_plugin_unencrypted"
 	PartnerPluginCAFileKey      = "partner_plugin_ca_file"
 	MessengerTimeoutKey         = "response_timeout"
-	SupportedRequestTypesKey    = "supported_request_types"
 	TracingEnabledKey           = "tracing_enabled"
 	TracingHostKey              = "tracing_host"
 	TracingPortKey              = "tracing_port"
