@@ -104,7 +104,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		response.MintResponse.Header = &typesv1.ResponseHeader{}
 	}
 
-	//TODO: @VjeraTurk check if CMAccount exists
+	// TODO: @VjeraTurk check if CMAccount exists
 	// TODO @evlekht ensure that request.MintRequest.BuyerAddress is c-chain address format, not x/p/t chain
 	buyerAddress := common.HexToAddress(request.MintRequest.BuyerAddress)
 

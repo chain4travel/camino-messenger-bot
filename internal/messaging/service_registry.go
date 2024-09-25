@@ -51,7 +51,7 @@ func NewServiceRegistry(supportedServices struct {
 }, logger *zap.SugaredLogger) ServiceRegistry {
 	supported = make(map[Key]cmaccount.PartnerConfigurationService)
 
-	//TODO: @VjeraTurk support multiple versions
+	// TODO: @VjeraTurk support multiple versions
 	for i, serviceName := range supportedServices.ServiceNames {
 		// Split each service name by "."
 		servicePath := strings.Split(serviceName, ".")
@@ -118,8 +118,8 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 			}
 			// WIP - support multiple version - otherwise linter complains
 			if isServiceVersionRegistered("MintService", uint64(2)) {
-				//c := bookv2grpc.NewMintServiceClient(rpcClient.ClientConn)
-				//services[2] = mintService{client: &c}
+				// c := bookv2grpc.NewMintServiceClient(rpcClient.ClientConn)
+				// services[2] = mintService{client: &c}
 				log.Print("supports MintService 2")
 			}
 
