@@ -120,6 +120,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
 	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
+		// TODO @VjeraTurk should refuse to mint?
 		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(h.buyableUntilDefault))
 	}
 	// MINT TOKEN
