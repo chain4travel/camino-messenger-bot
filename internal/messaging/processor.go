@@ -299,7 +299,7 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		return err
 	}
-	responseMsg.Metadata.Sender = "@" + strings.ToLower(recipientBotAddress) + ":" + "dev.matrix.camino.network"
+	responseMsg.Metadata.Sender = "@" + strings.ToLower(recipientBotAddress) + ":" + p.identificationHandler.getMatrixHost()
 	responseMsg.Metadata.Recipient = mybotAddress
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 
