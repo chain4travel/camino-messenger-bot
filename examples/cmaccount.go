@@ -9,11 +9,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -50,12 +50,10 @@ func main() {
 
 	chainID, err := client.NetworkID(ctx)
 
-	pk := new(secp256k1.PrivateKey)
-	// UnmarshalText expects the private key in quotes
-	if err := pk.UnmarshalText([]byte("\"" + "PrivateKey-5wZusnKXrKjXYHA2XW35LoX8P7oVusc2kqjpecbwEsXx6Aygc" + "\"")); err != nil {
-		log.Fatalf("Failed to parse private key: %v", err)
+	ecdsaPk, err := crypto.HexToECDSA("0b37fecbb1e397c3deeb6a8c4f97684c2e2b7c27ba6fdaedab6de06ddaa1fb66")
+	if err != nil {
+		log.Fatalf("Failed to convert private key: %v", err)
 	}
-	ecdsaPk := pk.ToECDSA()
 
 	transactOpts, err := bind.NewKeyedTransactorWithChainID(ecdsaPk, chainID)
 	//fmt.Print("%s", pk)
