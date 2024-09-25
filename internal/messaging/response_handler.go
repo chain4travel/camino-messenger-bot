@@ -17,9 +17,9 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
@@ -38,12 +38,11 @@ type ResponseHandler interface {
 }
 
 func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ResponseHandler, error) {
-	pk := new(secp256k1.PrivateKey)
 	// UnmarshalText expects the private key in quotes
-	if err := pk.UnmarshalText([]byte("\"" + cfg.PrivateKey + "\"")); err != nil {
-		logger.Fatalf("Failed to parse private key: %v", err)
+	ecdsaPk, err := crypto.HexToECDSA(cfg.PrivateKey)
+	if err != nil {
+		return nil, err
 	}
-	ecdsaPk := pk.ToECDSA()
 	bookingService, err := booking.NewService(common.HexToAddress(cfg.CMAccountAddress), ecdsaPk, ethClient, logger)
 	if err != nil {
 		log.Fatalf("%v", err)
