@@ -12,6 +12,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 
@@ -41,6 +42,9 @@ var (
 	_ Service = (*seatMapService)(nil)
 	_ Service = (*seatMapAvailabilityService)(nil)
 	_ Service = (*countryEntryRequirementsService)(nil)
+	_ Service = (*insuranceProductInfoService)(nil)
+	_ Service = (*insuranceProductListService)(nil)
+	_ Service = (*insuranceSearchService)(nil)
 )
 
 type Service interface {
@@ -238,4 +242,46 @@ func (s countryEntryRequirementsService) Call(ctx context.Context, request *Requ
 	}
 
 	return &ResponseContent, CountryEntryRequirementsResponse, err
+}
+
+type insuranceProductInfoService struct {
+	client *insurancev1grpc.InsuranceProductInfoServiceClient
+}
+
+func (s insuranceProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).InsuranceProductInfo(ctx, request.InsuranceProductInfoRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.InsuranceProductInfoResponse = response
+	}
+
+	return &ResponseContent, InsuranceProductInfoResponse, err
+}
+
+type insuranceProductListService struct {
+	client *insurancev1grpc.InsuranceProductListServiceClient
+}
+
+func (s insuranceProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).InsuranceProductList(ctx, request.InsuranceProductListRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.InsuranceProductListResponse = response
+	}
+
+	return &ResponseContent, InsuranceProductListResponse, err
+}
+
+type insuranceSearchService struct {
+	client *insurancev1grpc.InsuranceSearchServiceClient
+}
+
+func (s insuranceSearchService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).InsuranceSearch(ctx, request.InsuranceSearchRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.InsuranceSearchResponse = response
+	}
+
+	return &ResponseContent, InsuranceSearchResponse, err
 }

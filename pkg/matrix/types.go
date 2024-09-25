@@ -7,6 +7,7 @@ import (
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
+	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
 	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
@@ -134,6 +135,24 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	case messaging.CountryEntryRequirementsResponse:
 		m.Content.ResponseContent.CountryEntryRequirementsResponse = &infov1.CountryEntryRequirementsResponse{}
 		return proto.Unmarshal(src, m.Content.ResponseContent.CountryEntryRequirementsResponse)
+	case messaging.InsuranceProductInfoRequest:
+		m.Content.RequestContent.InsuranceProductInfoRequest = &insurancev1.InsuranceProductInfoRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.InsuranceProductInfoRequest)
+	case messaging.InsuranceProductInfoResponse:
+		m.Content.ResponseContent.InsuranceProductInfoResponse = &insurancev1.InsuranceProductInfoResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.InsuranceProductInfoResponse)
+	case messaging.InsuranceProductListRequest:
+		m.Content.RequestContent.InsuranceProductListRequest = &insurancev1.InsuranceProductListRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.InsuranceProductListRequest)
+	case messaging.InsuranceProductListResponse:
+		m.Content.ResponseContent.InsuranceProductListResponse = &insurancev1.InsuranceProductListResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.InsuranceProductListResponse)
+	case messaging.InsuranceSearchRequest:
+		m.Content.RequestContent.InsuranceSearchRequest = &insurancev1.InsuranceSearchRequest{}
+		return proto.Unmarshal(src, m.Content.RequestContent.InsuranceSearchRequest)
+	case messaging.InsuranceSearchResponse:
+		m.Content.ResponseContent.InsuranceSearchResponse = &insurancev1.InsuranceSearchResponse{}
+		return proto.Unmarshal(src, m.Content.ResponseContent.InsuranceSearchResponse)
 	default:
 		return messaging.ErrUnknownMessageType
 	}

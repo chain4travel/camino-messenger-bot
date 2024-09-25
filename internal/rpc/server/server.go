@@ -10,8 +10,10 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
+	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	seat_mapv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
@@ -53,6 +55,9 @@ var (
 	_ seat_mapv1grpc.SeatMapAvailabilityServiceServer           = (*server)(nil)
 	_ infov1grpc.CountryEntryRequirementsServiceServer          = (*server)(nil)
 	_ activityv1grpc.ActivityProductInfoServiceServer           = (*server)(nil)
+	_ insurancev1grpc.InsuranceProductInfoServiceServer         = (*server)(nil)
+	_ insurancev1grpc.InsuranceProductListServiceServer         = (*server)(nil)
+	_ insurancev1grpc.InsuranceSearchServiceServer              = (*server)(nil)
 )
 
 type Server interface {
@@ -106,6 +111,9 @@ func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOpti
 	seat_mapv1grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, server)
 	infov1grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, server)
 	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, server)
+	insurancev1grpc.RegisterInsuranceProductInfoServiceServer(grpcServer, server)
+	insurancev1grpc.RegisterInsuranceProductListServiceServer(grpcServer, server)
+	insurancev1grpc.RegisterInsuranceSearchServiceServer(grpcServer, server)
 	return grpcServer
 }
 
@@ -195,6 +203,21 @@ func (s *server) SeatMapAvailability(ctx context.Context, request *seat_mapv1.Se
 func (s *server) CountryEntryRequirements(ctx context.Context, request *infov1.CountryEntryRequirementsRequest) (*infov1.CountryEntryRequirementsResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.CountryEntryRequirementsRequest, &messaging.RequestContent{CountryEntryRequirementsRequest: request})
 	return response.CountryEntryRequirementsResponse, err
+}
+
+func (s *server) InsuranceProductInfo(ctx context.Context, request *insurancev1.InsuranceProductInfoRequest) (*insurancev1.InsuranceProductInfoResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.InsuranceProductInfoRequest, &messaging.RequestContent{InsuranceProductInfoRequest: request})
+	return response.InsuranceProductInfoResponse, err
+}
+
+func (s *server) InsuranceProductList(ctx context.Context, request *insurancev1.InsuranceProductListRequest) (*insurancev1.InsuranceProductListResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.InsuranceProductListRequest, &messaging.RequestContent{InsuranceProductListRequest: request})
+	return response.InsuranceProductListResponse, err
+}
+
+func (s *server) InsuranceSearch(ctx context.Context, request *insurancev1.InsuranceSearchRequest) (*insurancev1.InsuranceSearchResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.InsuranceSearchRequest, &messaging.RequestContent{InsuranceSearchRequest: request})
+	return response.InsuranceSearchResponse, err
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {
