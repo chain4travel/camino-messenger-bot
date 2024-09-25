@@ -70,7 +70,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	// TODO do proper DI with FX
 
-	_, err := storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
+	_, err = storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
 	if err != nil {
 		a.logger.Fatalf("Failed to create storage: %v", err)
 	}
