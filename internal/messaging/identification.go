@@ -38,7 +38,6 @@ type IdentificationHandler interface {
 }
 
 func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig, mCfg *config.MatrixConfig) (IdentificationHandler, error) {
-
 	return &evmIdentificationHandler{
 		ethClient:  ethClient,
 		cfg:        cfg,
