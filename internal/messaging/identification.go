@@ -64,13 +64,13 @@ func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAcc
 
 	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, cm.ethClient)
 	if err != nil {
-		log.Fatalf("Failed to get cm Account: %v", err)
+		log.Printf("Failed to get cm Account: %v", err)
 		return nil, err
 	}
 
 	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{}, roleHash)
 	if err != nil {
-		log.Fatalf("Failed to call contract function: %v", err)
+		log.Printf("Failed to call contract function: %v", err)
 		return nil, err
 	}
 
@@ -81,7 +81,7 @@ func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAcc
 		for i := 0; i < count; i++ {
 			address, err := cmAccount.GetRoleMember(&bind.CallOpts{}, roleHash, big.NewInt(int64(i)))
 			if err != nil {
-				log.Fatalf("Failed to call contract function: %v", err)
+				log.Printf("Failed to call contract function: %v", err)
 			}
 			bots = append(bots, address.Hex())
 		}

@@ -152,7 +152,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		return nil, ErrMissingRecipient
 	}
 
-	p.logger.Infof("Distributor: CMAccount %s received a request", msg.Metadata.Recipient)
+	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	var cmAccountRecipient = msg.Metadata.Recipient
 
 	// lookup for CM Account -> bot

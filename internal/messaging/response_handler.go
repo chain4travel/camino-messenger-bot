@@ -45,13 +45,13 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 	}
 	bookingService, err := booking.NewService(common.HexToAddress(cfg.CMAccountAddress), ecdsaPk, ethClient, logger)
 	if err != nil {
-		log.Fatalf("%v", err)
+		log.Printf("%v", err)
 		return nil, err
 	}
 
 	bookingToken, err := bookingtoken.NewBookingtoken(common.HexToAddress(cfg.BookingTokenAddress), ethClient)
 	if err != nil {
-		log.Fatalf("%v", err)
+		log.Printf("%v", err)
 		return nil, err
 	}
 	return &evmResponseHandler{

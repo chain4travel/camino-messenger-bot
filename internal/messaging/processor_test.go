@@ -16,6 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 
 	"github.com/stretchr/testify/require"
 
@@ -31,7 +32,7 @@ var (
 )
 
 func TestProcessInbound(t *testing.T) {
-	responseMessage := Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID}}
+	responseMessage := Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -70,7 +71,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 			},
 			args: args{
-				msg: &Message{Type: "invalid", Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: "invalid", Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
 			err: ErrUnknownMessageCategory,
 		},
@@ -84,7 +85,7 @@ func TestProcessInbound(t *testing.T) {
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(nil, false)
 			},
 			args: args{
-				msg: &Message{Type: ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
 			err: ErrUnsupportedRequestType,
 		},
@@ -115,7 +116,7 @@ func TestProcessInbound(t *testing.T) {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			args: args{
-				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
 			err: errSomeError,
 		},
@@ -134,7 +135,7 @@ func TestProcessInbound(t *testing.T) {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			args: args{
-				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
 		},
 		"success: process response message": {
@@ -345,16 +346,16 @@ func TestStart(t *testing.T) {
 			// msg with sender == userID
 			ch <- Message{Metadata: metadata.Metadata{Sender: userID}}
 			// msg with sender == userID but without valid msgType
-			ch <- Message{Metadata: metadata.Metadata{Sender: anotherUserID}}
+			ch <- Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
 			// msg with sender == userID and valid msgType
 			ch <- Message{
 				Type:     ActivityProductListRequest,
-				Metadata: metadata.Metadata{Sender: anotherUserID},
+				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}},
 			}
 			// 2nd msg with sender == userID and valid msgType
 			ch <- Message{
 				Type:     ActivitySearchRequest,
-				Metadata: metadata.Metadata{Sender: anotherUserID},
+				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}},
 			}
 		}
 		// mocks
