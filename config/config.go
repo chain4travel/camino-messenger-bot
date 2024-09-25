@@ -48,7 +48,6 @@ type EvmConfig struct {
 	BookingTokenAddress string `mapstructure:"booking_token_address"`
 	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
 	CMAccountAddress    string `mapstructure:"cm_account_address"`
-	CMNetworkFee        uint64 `mapstructure:"cm_network_fee"`
 	DomainName          string `mapstructure:"domain_name"`
 	DomainVersion       uint64 `mapstructure:"domain_version"`
 }
