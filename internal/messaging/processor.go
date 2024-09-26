@@ -281,9 +281,9 @@ func (p *processor) Respond(msg *Message) error {
 	if !ok {
 		// if not in mapping, fetch 1 bot from CM Account
 		botAddress, err := p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 		botUserID = id.NewUserID(strings.ToLower(botAddress), p.identificationHandler.getMatrixHost())
 		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botUserID)
 	}
