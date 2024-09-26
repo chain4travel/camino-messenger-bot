@@ -159,7 +159,7 @@ func TestChunkingCompressorCompress(t *testing.T) {
 								},
 							},
 						})
-						return compressedContent[:22] // First Chunk
+						return compressedContent[:22] //  // First Chunk - TODO: @VjeraTurk remove 22 as length and use variable
 					}(),
 				},
 				{

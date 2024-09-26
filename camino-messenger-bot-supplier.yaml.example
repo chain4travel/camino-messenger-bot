@@ -60,7 +60,7 @@ rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 ### Booking Token
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
-booking_token_address: "0x1B9dac1f224DAEA0bB1Ee5e01Eb51E4551CEb7AB"
+booking_token_address: "0xe2b8c92B6519d1A2020dA0A5fBbA99a43A2c0922"
 
 # Address of the CM Account that the bot belongs to
 cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
