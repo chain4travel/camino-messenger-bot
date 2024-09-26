@@ -248,7 +248,7 @@ func (p *processor) Respond(msg *Message) error {
 
 		// Lookup the FROM CM-Account which is in the cheque
 		// Verify that the sending bot is part of this FROM
-		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(md.Sender[1:43], md.Cheques[i].FromCMAccount)
+		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(id.UserID(md.Sender).Localpart(), md.Cheques[i].FromCMAccount)
 		if err != nil {
 			return fmt.Errorf("%w: %w, %s", ErrCheckingCmAccount, err, md.Cheques[i].FromCMAccount)
 		}
@@ -299,7 +299,7 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		return err
 	}
-	responseMsg.Metadata.Sender = "@" + strings.ToLower(recipientBotAddress) + ":" + p.identificationHandler.getMatrixHost()
+	responseMsg.Metadata.Sender = string(id.NewUserID(strings.ToLower(recipientBotAddress), p.identificationHandler.getMatrixHost()))
 	responseMsg.Metadata.Recipient = myBotAddress
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 

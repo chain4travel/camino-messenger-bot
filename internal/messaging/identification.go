@@ -76,7 +76,7 @@ func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAcc
 	bots := []string{}
 	count := countBig.Int64()
 	for i := int64(0); i < count; i++ {
-		address, err := cmAccount.GetRoleMember(&bind.CallOpts{}, roleHash, big.NewInt(int64(i)))
+		address, err := cmAccount.GetRoleMember(&bind.CallOpts{}, roleHash, big.NewInt(i))
 		if err != nil {
 			log.Printf("Failed to call contract function: %v", err)
 		}
@@ -129,5 +129,4 @@ func (cm *evmIdentificationHandler) getBotFromMap(cmaccount common.Address) (boo
 		return false, ""
 	}
 	return true, bot
-
 }
