@@ -1,3 +1,5 @@
+# This example is made for development purposes- for production see docker-compose.yml
+
 # Lower level logging for local development
 developer_mode: true
 
@@ -16,7 +18,7 @@ developer_mode: true
 matrix_key: YOUR_PRIVATE_KEY_HEX
 
 # Hostname of the Matrix Server
-matrix_host: matrix.camino.network
+matrix_host: dev.matrix.camino.network
 
 # Local DB file to store Matrix data
 matrix_store: distributor-matrix.db
@@ -59,21 +61,11 @@ rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 ### Booking Token
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
-booking_token_address: "0xe2b8c92B6519d1A2020dA0A5fBbA99a43A2c0922"
+booking_token_address: "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"
 
 # Address of the CM Account that the bot belongs to
 cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
 
-# Supplier name to be used for registering to the BookingToken smart contract.
-# Should be a short name, it will be saved on-chain. Not used with distributor bot.
-#supplier_name: SUPPLIER_NAME
-
-# Default expiration time (in seconds) for BookingToken mints.
-#
-# The supplier bot creates booking tokens and sets an expiration timestamp on each token.
-# Once this time has passed, the token is no longer available for purchase by the distributor.
-# The default value is 600 seconds.
-#buyable_until_default: 600
 
 ### Database
 
