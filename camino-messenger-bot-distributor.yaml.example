@@ -1,4 +1,4 @@
-# This example is made for development purposes- for production see docker-compose.yml
+# This example is made for development purposes - for production see docker-compose.yml
 
 # Lower level logging for local development
 developer_mode: true

@@ -1,7 +1,6 @@
 package config
 
 const (
-	BuyableUntilDefaultKey      = "buyable_until_default"
 	BookingTokenAddressKey      = "booking_token_address"
 	DeveloperMode               = "developer_mode"
 	EvmPrivateKey               = "evm_private_key"

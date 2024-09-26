@@ -62,8 +62,6 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 		bookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
 		bookingService:      *bookingService,
 		bookingToken:        *bookingToken,
-		// Disable Linter: This code will be removed with the new BookingToken implementation
-		buyableUntilDefault: time.Second * time.Duration(cfg.BuyableUntilDefault), // #nosec G115
 	}, nil
 }
 
@@ -75,7 +73,6 @@ type evmResponseHandler struct {
 	bookingTokenAddress common.Address
 	bookingService      booking.Service
 	bookingToken        bookingtoken.Bookingtoken
-	buyableUntilDefault time.Duration
 }
 
 func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
@@ -120,8 +117,9 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
 	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
-		// TODO @VjeraTurk should refuse to mint?
-		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(h.buyableUntilDefault))
+		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(300 * time.Second))
+	} else if timestamppb.New(time.Now()).Seconds - response.MintResponse.BuyableUntil.Seconds < 70  {
+		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(70 * time.Second))
 	}
 	// MINT TOKEN
 	txID, tokenID, err := h.mint(
