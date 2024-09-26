@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+	"maunium.net/go/mautrix/id"
 )
 
 var _ ResponseHandler = (*NoopResponseHandler)(nil)
@@ -46,16 +47,16 @@ func (NoopResponseHandler) isBotInCMAccount(string, common.Address) (bool, error
 	return false, nil
 }
 
-func (NoopResponseHandler) addToMap(_ common.Address, _ string) {
+func (NoopResponseHandler) addToMap(_ common.Address, _ id.UserID) {
 }
 
-func (NoopResponseHandler) getCmAccount(_ string) (common.Address, bool) {
+func (NoopResponseHandler) getCmAccount(_ id.UserID) (common.Address, bool) {
 	return common.Address{}, false
 }
 
 func (NoopResponseHandler) removeFromMap(cmaccount common.Address) {
 }
 
-func (NoopResponseHandler) getBotFromMap(cmaccount common.Address) (bool, string) {
+func (NoopResponseHandler) getBotFromMap(cmaccount common.Address) (bool, id.UserID) {
 	return false, ""
 }

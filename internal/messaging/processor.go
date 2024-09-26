@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
+	//"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +19,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
+	"maunium.net/go/mautrix/id"
 )
 
 var (
@@ -154,36 +155,35 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	cmAccountRecipient := msg.Metadata.Recipient
 	// lookup for CM Account -> bot
-	ok, botAddress := p.identificationHandler.getBotFromMap(common.HexToAddress(msg.Metadata.Recipient))
+	ok, botUserID := p.identificationHandler.getBotFromMap(common.HexToAddress(msg.Metadata.Recipient))
 
 	if !ok {
 		// if not in mapping, fetch 1 bot from CM Account
-		var err error
-		botAddress, err = p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+		botAddress, err := p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
 		if err != nil {
 			return nil, err
 		}
-		botAddress = "@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
-		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botAddress)
+		botUserID = id.NewUserID(strings.ToLower(botAddress), p.identificationHandler.getMatrixHost()) //"@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
+		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botUserID)
 	}
-	msg.Metadata.Recipient = botAddress
+	msg.Metadata.Recipient = string(botUserID)
 
 	// Mocked data for testing TODO: @VjeraTurk remove after real Cheque impelmentations
 	msg.Metadata.Cheques = []cheques.SignedCheque{
 		// Uncomment for Supplier side to work
 		/*
-			{
-				Cheque: cheques.Cheque{
-					FromCMAccount: common.HexToAddress(p.identificationHandler.getMyCMAccountAddress()),
-					ToCMAccount:   common.HexToAddress(cmAccountRecipient),
-					ToBot:         common.HexToAddress(msg.Metadata.Recipient[1:41]),
-					Counter:       big.NewInt(1),
-					Amount:        big.NewInt(1),
-					CreatedAt:     big.NewInt(time.Now().Unix()),
-					ExpiresAt:     big.NewInt(time.Now().Add(50 * 24 * time.Hour).Unix()),
-				},
-				Signature: []byte{0x1, 0x2, 0x3},
+		{
+			Cheque: cheques.Cheque{
+				FromCMAccount: common.HexToAddress(p.identificationHandler.getMyCMAccountAddress()),
+				ToCMAccount:   common.HexToAddress(cmAccountRecipient),
+				ToBot:         common.HexToAddress(msg.Metadata.Recipient[1:41]),
+				Counter:       big.NewInt(1),
+				Amount:        big.NewInt(1),
+				CreatedAt:     big.NewInt(time.Now().Unix()),
+				ExpiresAt:     big.NewInt(time.Now().Add(50 * 24 * time.Hour).Unix()),
 			},
+			Signature: []byte{0x1, 0x2, 0x3},
+		},
 		*/
 	}
 
@@ -256,12 +256,12 @@ func (p *processor) Respond(msg *Message) error {
 		if !isInCmAccount {
 			return fmt.Errorf("bot %s not part of CMAccount %s", md.Sender[1:43], md.Cheques[i].FromCMAccount)
 		}
-		cmAccount, ok := p.identificationHandler.getCmAccount(md.Sender)
+		cmAccount, ok := p.identificationHandler.getCmAccount(id.UserID(md.Sender))
 		if ok {
 			md.Recipient = cmAccount.Hex()
 		} else {
-			p.identificationHandler.addToMap(md.Cheques[i].FromCMAccount, md.Sender)
-			cmAccount, ok := p.identificationHandler.getCmAccount(md.Sender)
+			p.identificationHandler.addToMap(md.Cheques[i].FromCMAccount, id.UserID(md.Sender))
+			cmAccount, ok := p.identificationHandler.getCmAccount(id.UserID(md.Sender))
 			if ok {
 				md.Recipient = cmAccount.Hex()
 			}

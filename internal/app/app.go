@@ -141,7 +141,7 @@ func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegi
 		if err != nil {
 			panic(err)
 		}
-		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes, rpcClient)
+		serviceRegistry.RegisterServices(rpcClient)
 		return nil
 	})
 	g.Go(func() error {

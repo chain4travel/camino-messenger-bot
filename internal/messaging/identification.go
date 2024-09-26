@@ -12,15 +12,18 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
+	"maunium.net/go/mautrix/id"
 )
 
 var _ IdentificationHandler = (*evmIdentificationHandler)(nil)
+
+var roleHash = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
 
 type evmIdentificationHandler struct {
 	ethClient       *ethclient.Client
 	cfg             *config.EvmConfig
 	matrixHost      string
-	cmAccountBotMap map[common.Address]string
+	cmAccountBotMap map[common.Address]id.UserID
 }
 
 type IdentificationHandler interface {
@@ -30,9 +33,9 @@ type IdentificationHandler interface {
 	getMyCMAccountAddress() string
 	getMatrixHost() string
 	isBotInCMAccount(string, common.Address) (bool, error)
-	getCmAccount(string) (common.Address, bool)
-	addToMap(common.Address, string)
-	getBotFromMap(common.Address) (bool, string)
+	getCmAccount(id.UserID) (common.Address, bool)
+	addToMap(common.Address, id.UserID)
+	getBotFromMap(common.Address) (bool, id.UserID)
 }
 
 func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig, mCfg *config.MatrixConfig) (IdentificationHandler, error) {
@@ -40,7 +43,7 @@ func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger,
 		ethClient:       ethClient,
 		cfg:             cfg,
 		matrixHost:      mCfg.Host,
-		cmAccountBotMap: make(map[common.Address]string),
+		cmAccountBotMap: make(map[common.Address]id.UserID),
 	}, nil
 }
 
@@ -58,7 +61,6 @@ func (cm *evmIdentificationHandler) isMyCMAccount(cmAccountAddress common.Addres
 }
 
 func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]string, error) {
-	roleHash := crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
 
 	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, cm.ethClient)
 	if err != nil {
@@ -106,13 +108,13 @@ func (cm *evmIdentificationHandler) isBotInCMAccount(botAddress string, cmAccoun
 			return true, nil
 		}
 	}
-	if cm.cmAccountBotMap[cmAccountAddress] == "@"+botAddress+cm.getMatrixHost() {
+	if cm.cmAccountBotMap[cmAccountAddress] == id.NewUserID(botAddress, cm.getMatrixHost()) {
 		delete(cm.cmAccountBotMap, cmAccountAddress)
 	}
 	return false, nil
 }
 
-func (cm *evmIdentificationHandler) getCmAccount(bot string) (common.Address, bool) {
+func (cm *evmIdentificationHandler) getCmAccount(bot id.UserID) (common.Address, bool) {
 	for key, b := range cm.cmAccountBotMap {
 		if b == bot {
 			return key, true
@@ -121,7 +123,7 @@ func (cm *evmIdentificationHandler) getCmAccount(bot string) (common.Address, bo
 	return common.Address{}, false
 }
 
-func (cm *evmIdentificationHandler) addToMap(cmaccount common.Address, botID string) {
+func (cm *evmIdentificationHandler) addToMap(cmaccount common.Address, botID id.UserID) {
 	cm.cmAccountBotMap[cmaccount] = botID
 }
 
@@ -129,7 +131,7 @@ func (cm *evmIdentificationHandler) removeFromMap(cmaccount common.Address) {
 	delete(cm.cmAccountBotMap, cmaccount)
 }
 
-func (cm *evmIdentificationHandler) getBotFromMap(cmaccount common.Address) (bool, string) {
+func (cm *evmIdentificationHandler) getBotFromMap(cmaccount common.Address) (bool, id.UserID) {
 	bot := cm.cmAccountBotMap[cmaccount]
 
 	if cm.cmAccountBotMap[cmaccount] == "" {
