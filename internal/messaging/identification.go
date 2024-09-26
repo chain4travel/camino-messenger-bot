@@ -100,7 +100,7 @@ func (cm *evmIdentificationHandler) isBotInCMAccount(botAddress string, cmAccoun
 		return false, err
 	}
 	for _, b := range bots {
-		if strings.EqualFold(strings.ToUpper(b), strings.ToUpper(botAddress)) {
+		if common.HexToAddress(b) == common.HexToAddress(botAddress) {
 			return true, nil
 		}
 	}
