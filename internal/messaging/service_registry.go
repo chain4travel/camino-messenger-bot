@@ -52,9 +52,12 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 		// Split each service name by "."
 		servicePath := strings.Split(serviceName, ".")
 
-		currentVersionString := servicePath[3]
-		currentVersionString = currentVersionString[1:]
-		num, err := strconv.ParseUint(currentVersionString, 10, 64)
+		if len(servicePath) <= 4 {
+			logger.Errorf("Unidentified service %s ", serviceName)
+		}
+		serviceVersion := servicePath[3]
+		serviceVersion = serviceVersion[1:]
+		num, err := strconv.ParseUint(serviceVersion, 10, 64)
 		if err != nil {
 			logger.Errorf("Error:", err)
 		}
@@ -95,68 +98,68 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 		var service Service
 		switch MessageType(requestType) {
 		case ActivityProductInfoRequest:
-			if isServiceVersionRegistered("ActivityProductInfoService", uint64(1)) {
+			if isServiceVersionSupported("ActivityProductInfoService", uint64(1)) {
 				c := activityv1grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
 				service = activityProductInfoService{client: &c}
 			}
 		case ActivityProductListRequest:
-			if isServiceVersionRegistered("ActivityProductListService", uint64(1)) {
+			if isServiceVersionSupported("ActivityProductListService", uint64(1)) {
 				c := activityv1grpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
 				service = activityProductListService{client: c}
 			}
 		case ActivitySearchRequest:
-			if isServiceVersionRegistered("ActivitySearchService", uint64(1)) {
+			if isServiceVersionSupported("ActivitySearchService", uint64(1)) {
 				c := activityv1grpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
 				service = activityService{client: &c}
 			}
 		case AccommodationProductInfoRequest:
-			if isServiceVersionRegistered("AccommodationProductInfoService", uint64(1)) {
+			if isServiceVersionSupported("AccommodationProductInfoService", uint64(1)) {
 				c := accommodationv1grpc.NewAccommodationProductInfoServiceClient(rpcClient.ClientConn)
 				service = accommodationProductInfoService{client: &c}
 			}
 		case AccommodationProductListRequest:
-			if isServiceVersionRegistered("AccommodationProductListService", uint64(1)) {
+			if isServiceVersionSupported("AccommodationProductListService", uint64(1)) {
 				c := accommodationv1grpc.NewAccommodationProductListServiceClient(rpcClient.ClientConn)
 				service = accommodationProductListService{client: &c}
 			}
 		case AccommodationSearchRequest:
-			if isServiceVersionRegistered("AccommodationSearchService", uint64(1)) {
+			if isServiceVersionSupported("AccommodationSearchService", uint64(1)) {
 				c := accommodationv1grpc.NewAccommodationSearchServiceClient(rpcClient.ClientConn)
 				service = accommodationSearchService{client: &c}
 			}
 		case MintRequest:
-			if isServiceVersionRegistered("MintService", uint64(1)) {
+			if isServiceVersionSupported("MintService", uint64(1)) {
 				c := bookv1grpc.NewMintServiceClient(rpcClient.ClientConn)
 				service = mintService{client: &c}
 			}
 			// WIP - support multiple version - otherwise linter complains
-			if isServiceVersionRegistered("MintService", uint64(2)) {
+			if isServiceVersionSupported("MintService", uint64(2)) {
 				// c := bookv2grpc.NewMintServiceClient(rpcClient.ClientConn)
 				// services[2] = mintService{client: &c}
 				log.Print("supports MintService 2")
 			}
 		case ValidationRequest:
-			if isServiceVersionRegistered("ValidationService", uint64(1)) {
+			if isServiceVersionSupported("ValidationService", uint64(1)) {
 				c := bookv1grpc.NewValidationServiceClient(rpcClient.ClientConn)
 				service = validationService{client: &c}
 			}
 		case TransportSearchRequest:
-			if isServiceVersionRegistered("TransportSearchService", uint64(1)) {
+			if isServiceVersionSupported("TransportSearchService", uint64(1)) {
 				c := transportv1grpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
 				service = transportService{client: &c}
 			}
 		case SeatMapRequest:
-			if isServiceVersionRegistered("SeatMapService", uint64(1)) {
+			if isServiceVersionSupported("SeatMapService", uint64(1)) {
 				c := seat_mapv1grpc.NewSeatMapServiceClient(rpcClient.ClientConn)
 				service = seatMapService{client: &c}
 			}
 		case SeatMapAvailabilityRequest:
-			if isServiceVersionRegistered("SeatMapAvailabilityService", uint64(1)) {
+			if isServiceVersionSupported("SeatMapAvailabilityService", uint64(1)) {
 				c := seat_mapv1grpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
 				service = seatMapAvailabilityService{client: &c}
 			}
 		case CountryEntryRequirementsRequest:
-			if isServiceVersionRegistered("CountryEntryRequirementsService", uint64(1)) {
+			if isServiceVersionSupported("CountryEntryRequirementsService", uint64(1)) {
 				c := infov1grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
 				service = countryEntryRequirementsService{client: &c}
 			}
@@ -181,7 +184,7 @@ func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
 	return service, ok
 }
 
-func isServiceVersionRegistered(name string, version uint64) bool {
+func isServiceVersionSupported(name string, version uint64) bool {
 	_, ok := supported[ServiceIdentifier{serviceName: name, serviceVersion: version}]
 	return ok
 }

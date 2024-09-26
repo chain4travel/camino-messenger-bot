@@ -30,6 +30,7 @@ import (
 	"go.uber.org/zap"
 )
 
+var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
 var _ ResponseHandler = (*evmResponseHandler)(nil)
 
 type ResponseHandler interface {
@@ -38,7 +39,6 @@ type ResponseHandler interface {
 }
 
 func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ResponseHandler, error) {
-	// UnmarshalText expects the private key in quotes
 	ecdsaPk, err := crypto.HexToECDSA(cfg.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
 		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(300 * time.Second))
-	} else if timestamppb.New(time.Now()).Seconds - response.MintResponse.BuyableUntil.Seconds < 70  {
+	} else if timestamppb.New(time.Now()).Seconds-response.MintResponse.BuyableUntil.Seconds < 70 {
 		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(70 * time.Second))
 	}
 	// MINT TOKEN
@@ -177,8 +177,6 @@ func (h *evmResponseHandler) mint(
 	expiration *big.Int,
 ) (string, *big.Int, error) {
 
-	zeroAddress := common.HexToAddress("0x0000000000000000000000000000000000000000")
-
 	tx, err := h.bookingService.MintBookingToken(
 		reservedFor,
 		uri,
@@ -222,7 +220,10 @@ func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string,
 	if err != nil {
 		return "", err
 	}
-	h.logger.Infof("Gass %v", receipt)
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return "", fmt.Errorf("transaction failed: %v", receipt)
+	}
+
 	h.logger.Infof("Transaction sent!\nTransaction hash: %s\n", tx.Hash().Hex())
 
 	return tx.Hash().Hex(), nil
