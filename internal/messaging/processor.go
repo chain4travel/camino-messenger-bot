@@ -229,7 +229,7 @@ func (p *processor) Respond(msg *Message) error {
 
 		// Lookup the FROM CM-Account which is in the cheque
 		// Verify that the sending bot is part of this FROM
-		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(id.UserID(md.Sender).Localpart(), md.Cheques[i].FromCMAccount)
+		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(common.HexToAddress(id.UserID(md.Sender).Localpart()), md.Cheques[i].FromCMAccount)
 		if err != nil {
 			return fmt.Errorf("%w: %w, %s", ErrCheckingCmAccount, err, md.Cheques[i].FromCMAccount)
 		}
@@ -249,7 +249,7 @@ func (p *processor) Respond(msg *Message) error {
 		}
 	}
 
-	md.Sender = p.identificationHandler.getMyCMAccountAddress()
+	md.Sender = p.identificationHandler.getMyCMAccountAddress().Hex()
 
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 
@@ -276,11 +276,19 @@ func (p *processor) Respond(msg *Message) error {
 		Metadata: *md,
 	}
 
-	recipientBotAddress, err := p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(responseMsg.Metadata.Recipient))
+	ok, botUserID := p.identificationHandler.getBotFromMap(common.HexToAddress(msg.Metadata.Recipient))
+
+	if !ok {
+		// if not in mapping, fetch 1 bot from CM Account
+		botAddress, err := p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
 	if err != nil {
 		return err
 	}
-	responseMsg.Metadata.Sender = string(id.NewUserID(strings.ToLower(recipientBotAddress), p.identificationHandler.getMatrixHost()))
+		botUserID = id.NewUserID(strings.ToLower(botAddress), p.identificationHandler.getMatrixHost())
+		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botUserID)
+	}
+
+	responseMsg.Metadata.Sender = string(botUserID)
 	responseMsg.Metadata.Recipient = myBotAddress
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 

@@ -29,9 +29,9 @@ type IdentificationHandler interface {
 	getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]string, error)
 	getFirstBotFromCMAccountAddress(cmAccountAddress common.Address) (string, error)
 	isMyCMAccount(cmAccountAddress common.Address) bool
-	getMyCMAccountAddress() string
+	getMyCMAccountAddress() common.Address
 	getMatrixHost() string
-	isBotInCMAccount(string, common.Address) (bool, error)
+	isBotInCMAccount(common.Address, common.Address) (bool, error)
 	getCmAccount(id.UserID) (common.Address, bool)
 	addToMap(common.Address, id.UserID)
 	getBotFromMap(common.Address) (bool, id.UserID)
@@ -50,8 +50,8 @@ func (cm *evmIdentificationHandler) getMatrixHost() string {
 	return cm.matrixHost
 }
 
-func (cm *evmIdentificationHandler) getMyCMAccountAddress() string {
-	return cm.cfg.CMAccountAddress
+func (cm *evmIdentificationHandler) getMyCMAccountAddress() common.Address {
+	return common.HexToAddress(cm.cfg.CMAccountAddress)
 }
 
 // Add configuration to the bot to configure to which CM-Account it belongs (to prevent that they're part of multiple CM-Accounts)
@@ -93,17 +93,17 @@ func (cm *evmIdentificationHandler) getFirstBotFromCMAccountAddress(cmAccountAdd
 	return bots[0], nil
 }
 
-func (cm *evmIdentificationHandler) isBotInCMAccount(botAddress string, cmAccountAddress common.Address) (bool, error) {
+func (cm *evmIdentificationHandler) isBotInCMAccount(botAddress common.Address, cmAccountAddress common.Address) (bool, error) {
 	bots, err := cm.getAllBotAddressesFromCMAccountAddress(cmAccountAddress)
 	if err != nil {
 		return false, err
 	}
 	for _, b := range bots {
-		if common.HexToAddress(b) == common.HexToAddress(botAddress) {
+		if common.HexToAddress(b) == botAddress {
 			return true, nil
 		}
 	}
-	if cm.cmAccountBotMap[cmAccountAddress] == id.NewUserID(botAddress, cm.getMatrixHost()) {
+	if cm.cmAccountBotMap[cmAccountAddress] == id.NewUserID(botAddress.Hex(), cm.getMatrixHost()) {
 		delete(cm.cmAccountBotMap, cmAccountAddress)
 	}
 	return false, nil

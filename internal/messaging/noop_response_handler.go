@@ -35,15 +35,15 @@ func (NoopResponseHandler) isMyCMAccount(common.Address) bool {
 	return false
 }
 
-func (NoopResponseHandler) getMyCMAccountAddress() string {
-	return ""
+func (NoopResponseHandler) getMyCMAccountAddress() common.Address {
+	return common.Address{}
 }
 
 func (NoopResponseHandler) getMatrixHost() string {
 	return ""
 }
 
-func (NoopResponseHandler) isBotInCMAccount(string, common.Address) (bool, error) {
+func (NoopResponseHandler) isBotInCMAccount(common.Address, common.Address) (bool, error) {
 	return false, nil
 }
 
