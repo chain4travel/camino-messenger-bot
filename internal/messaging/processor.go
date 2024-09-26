@@ -223,7 +223,7 @@ func (p *processor) Respond(msg *Message) error {
 	for i := 0; i < len(md.Cheques); i++ {
 		// Get info from cheque
 		// Check if the TO CM-Account is correct
-		if !p.identificationHandler.isMyCMAccount(md.Cheques[0].ToCMAccount) {
+		if !p.identificationHandler.isMyCMAccount(md.Cheques[i].ToCMAccount) {
 			return fmt.Errorf("incorrect CMAccount")
 		}
 
