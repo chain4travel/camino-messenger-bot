@@ -41,6 +41,7 @@ type serviceRegistry struct {
 type ServiceIdentifier struct {
 	serviceName    string
 	serviceVersion uint64
+	servicePath    string
 }
 
 var supported map[ServiceIdentifier]cmaccount.PartnerConfigurationService
@@ -48,12 +49,12 @@ var supported map[ServiceIdentifier]cmaccount.PartnerConfigurationService
 func NewServiceRegistry(supportedServices supportedServices, logger *zap.SugaredLogger) ServiceRegistry {
 	supported = make(map[ServiceIdentifier]cmaccount.PartnerConfigurationService)
 	// TODO: @VjeraTurk support multiple versions
-	for i, serviceName := range supportedServices.ServiceNames {
+	for i, serviceFullName := range supportedServices.ServiceNames {
 		// Split each service name by "."
-		servicePath := strings.Split(serviceName, ".")
+		servicePath := strings.Split(serviceFullName, ".")
 
 		if len(servicePath) <= 4 {
-			logger.Errorf("Unidentified service %s ", serviceName)
+			logger.Errorf("Unidentified service %s ", serviceFullName)
 		}
 		serviceVersion := servicePath[3]
 		serviceVersion = serviceVersion[1:]
@@ -62,7 +63,7 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 			logger.Errorf("Error:", err)
 		}
 		logger.Infof(servicePath[4], "registered version:", num)
-		supported[ServiceIdentifier{serviceName: servicePath[4], serviceVersion: num}] = supportedServices.Services[i]
+		supported[ServiceIdentifier{serviceName: servicePath[4], serviceVersion: num, servicePath: serviceFullName}] = supportedServices.Services[i]
 	}
 
 	return &serviceRegistry{
