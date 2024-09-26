@@ -54,9 +54,6 @@ func (NoopResponseHandler) getCmAccount(_ id.UserID) (common.Address, bool) {
 	return common.Address{}, false
 }
 
-func (NoopResponseHandler) removeFromMap(cmaccount common.Address) {
-}
-
-func (NoopResponseHandler) getBotFromMap(cmaccount common.Address) (bool, id.UserID) {
+func (NoopResponseHandler) getBotFromMap(_ common.Address) (bool, id.UserID) {
 	return false, ""
 }

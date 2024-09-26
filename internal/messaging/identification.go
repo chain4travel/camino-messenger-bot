@@ -61,7 +61,6 @@ func (cm *evmIdentificationHandler) isMyCMAccount(cmAccountAddress common.Addres
 }
 
 func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]string, error) {
-
 	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, cm.ethClient)
 	if err != nil {
 		log.Printf("Failed to get cm Account: %v", err)
@@ -75,16 +74,13 @@ func (cm *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAcc
 	}
 
 	bots := []string{}
-	// Check if count is greater than 0
-	count := int(countBig.Int64())
-	if count > 0 {
-		for i := 0; i < count; i++ {
-			address, err := cmAccount.GetRoleMember(&bind.CallOpts{}, roleHash, big.NewInt(int64(i)))
-			if err != nil {
-				log.Printf("Failed to call contract function: %v", err)
-			}
-			bots = append(bots, address.Hex())
+	count := countBig.Int64()
+	for i := int64(0); i < count; i++ {
+		address, err := cmAccount.GetRoleMember(&bind.CallOpts{}, roleHash, big.NewInt(int64(i)))
+		if err != nil {
+			log.Printf("Failed to call contract function: %v", err)
 		}
+		bots = append(bots, address.Hex())
 	}
 
 	return bots, nil
@@ -127,13 +123,8 @@ func (cm *evmIdentificationHandler) addToMap(cmaccount common.Address, botID id.
 	cm.cmAccountBotMap[cmaccount] = botID
 }
 
-func (cm *evmIdentificationHandler) removeFromMap(cmaccount common.Address) {
-	delete(cm.cmAccountBotMap, cmaccount)
-}
-
 func (cm *evmIdentificationHandler) getBotFromMap(cmaccount common.Address) (bool, id.UserID) {
 	bot := cm.cmAccountBotMap[cmaccount]
-
 	if cm.cmAccountBotMap[cmaccount] == "" {
 		return false, ""
 	}

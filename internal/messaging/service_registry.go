@@ -181,6 +181,8 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 }
 
 func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	service, ok := s.services[messageType]
 	return service, ok
 }
@@ -188,16 +190,4 @@ func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
 func (s *serviceRegistry) isServiceVersionSupported(name string, version uint64, path string) bool {
 	_, ok := s.supported[ServiceIdentifier{serviceName: name, serviceVersion: version, servicePath: path}]
 	return ok
-}
-
-func (s *serviceRegistry) GetServiceByName(serviceName string) (cmaccount.PartnerConfigurationService, bool) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-
-	for identifier, service := range s.supported {
-		if identifier.serviceName == serviceName {
-			return service, true
-		}
-	}
-	return cmaccount.PartnerConfigurationService{}, false
 }

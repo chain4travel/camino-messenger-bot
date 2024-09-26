@@ -163,7 +163,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		if err != nil {
 			return nil, err
 		}
-		botUserID = id.NewUserID(strings.ToLower(botAddress), p.identificationHandler.getMatrixHost()) //"@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
+		botUserID = id.NewUserID(strings.ToLower(botAddress), p.identificationHandler.getMatrixHost())
 		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botUserID)
 	}
 	msg.Metadata.Recipient = string(botUserID)
