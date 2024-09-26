@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +27,7 @@ var (
 	ErrUserIDNotSet               = errors.New("user id not set")
 	ErrUnknownMessageCategory     = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
-	ErrUnsupportedRequestType     = errors.New("unsupported request type")
+	ErrUnsupportedService         = errors.New("unsupported service")
 	ErrMissingRecipient           = errors.New("missing recipient")
 	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
@@ -153,20 +154,19 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	cmAccountRecipient := msg.Metadata.Recipient
 	// lookup for CM Account -> bot
-	botAddress := CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)]
+	ok, botAddress := p.identificationHandler.getBotFromMap(common.HexToAddress(msg.Metadata.Recipient))
 
-	if botAddress == "" {
+	if !ok {
 		// if not in mapping, fetch 1 bot from CM Account
-		botAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+		var err error
+		botAddress, err = p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
 		if err != nil {
 			return nil, err
 		}
 		botAddress = "@" + strings.ToLower(botAddress) + ":" + p.identificationHandler.getMatrixHost()
-		CMAccountBotMap[common.HexToAddress(msg.Metadata.Recipient)] = botAddress
-		msg.Metadata.Recipient = botAddress
-	} else {
-		msg.Metadata.Recipient = botAddress
+		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botAddress)
 	}
+	msg.Metadata.Recipient = botAddress
 
 	// Mocked data for testing TODO: @VjeraTurk remove after real Cheque impelmentations
 	msg.Metadata.Cheques = []cheques.SignedCheque{
@@ -226,12 +226,12 @@ func (p *processor) Respond(msg *Message) error {
 	var service Service
 	var supported bool
 	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
-		return fmt.Errorf("%w: %s", ErrUnsupportedRequestType, msg.Type)
+		return fmt.Errorf("%w: %s", ErrUnsupportedService, msg.Type)
 	}
 
 	md := &msg.Metadata
 
-	mybotAddress := md.Recipient
+	myBotAddress := md.Recipient
 
 	/// TODO: Uncomment after Chewques implementation
 	// No message should be without cheque?
@@ -256,12 +256,12 @@ func (p *processor) Respond(msg *Message) error {
 		if !isInCmAccount {
 			return fmt.Errorf("bot %s not part of CMAccount %s", md.Sender[1:43], md.Cheques[i].FromCMAccount)
 		}
-		cmAccount, ok := p.identificationHandler.findCmAccount(md.Sender)
+		cmAccount, ok := p.identificationHandler.getCmAccount(md.Sender)
 		if ok {
 			md.Recipient = cmAccount.Hex()
 		} else {
 			p.identificationHandler.addToMap(md.Cheques[i].FromCMAccount, md.Sender)
-			cmAccount, ok := p.identificationHandler.findCmAccount(md.Sender)
+			cmAccount, ok := p.identificationHandler.getCmAccount(md.Sender)
 			if ok {
 				md.Recipient = cmAccount.Hex()
 			}
@@ -295,12 +295,12 @@ func (p *processor) Respond(msg *Message) error {
 		Metadata: *md,
 	}
 
-	recipientBotAddress, err := p.identificationHandler.getSingleBotFromCMAccountAddress(common.HexToAddress(responseMsg.Metadata.Recipient))
+	recipientBotAddress, err := p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(responseMsg.Metadata.Recipient))
 	if err != nil {
 		return err
 	}
 	responseMsg.Metadata.Sender = "@" + strings.ToLower(recipientBotAddress) + ":" + p.identificationHandler.getMatrixHost()
-	responseMsg.Metadata.Recipient = mybotAddress
+	responseMsg.Metadata.Recipient = myBotAddress
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 
 	return p.messenger.SendAsync(ctx, responseMsg)

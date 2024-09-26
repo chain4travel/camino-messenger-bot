@@ -81,7 +81,7 @@ func (a *App) Run(ctx context.Context) error {
 		a.startRPCClient(gCtx, g, serviceRegistry)
 	} else {
 		a.logger.Infof("No host for partner plugin provided, bot will serve as a distributor bot.")
-		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes, nil)
+		serviceRegistry.RegisterServices(nil)
 	}
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)

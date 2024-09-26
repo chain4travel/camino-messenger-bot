@@ -87,7 +87,7 @@ func TestProcessInbound(t *testing.T) {
 			args: args{
 				msg: &Message{Type: ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
-			err: ErrUnsupportedRequestType,
+			err: ErrUnsupportedService,
 		},
 		"ignore own outbound messages": {
 			fields: fields{

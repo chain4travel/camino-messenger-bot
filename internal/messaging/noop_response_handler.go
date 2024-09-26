@@ -26,7 +26,7 @@ func (NoopResponseHandler) getAllBotAddressesFromCMAccountAddress(common.Address
 	return nil, nil
 }
 
-func (NoopResponseHandler) getSingleBotFromCMAccountAddress(common.Address) (string, error) {
+func (NoopResponseHandler) getFirstBotFromCMAccountAddress(common.Address) (string, error) {
 	return "", nil
 }
 
@@ -49,6 +49,13 @@ func (NoopResponseHandler) isBotInCMAccount(string, common.Address) (bool, error
 func (NoopResponseHandler) addToMap(_ common.Address, _ string) {
 }
 
-func (NoopResponseHandler) findCmAccount(_ string) (common.Address, bool) {
+func (NoopResponseHandler) getCmAccount(_ string) (common.Address, bool) {
 	return common.Address{}, false
+}
+
+func (NoopResponseHandler) removeFromMap(cmaccount common.Address) {
+}
+
+func (NoopResponseHandler) getBotFromMap(cmaccount common.Address) (bool, string) {
+	return false, ""
 }

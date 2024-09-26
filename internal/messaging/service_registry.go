@@ -6,7 +6,6 @@
 package messaging
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -18,14 +17,13 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"go.uber.org/zap"
 )
 
 type ServiceRegistry interface {
-	RegisterServices(requestTypes config.SupportedRequestTypesFlag, rpcClient *client.RPCClient)
+	RegisterServices(rpcClient *client.RPCClient)
 	GetService(messageType MessageType) (Service, bool)
 }
 
@@ -40,15 +38,15 @@ type serviceRegistry struct {
 	supportedServices supportedServices
 	lock              *sync.RWMutex
 }
-type Key struct {
+type ServiceIdentifier struct {
 	serviceName    string
 	serviceVersion uint64
 }
 
-var supported map[Key]cmaccount.PartnerConfigurationService
+var supported map[ServiceIdentifier]cmaccount.PartnerConfigurationService
 
 func NewServiceRegistry(supportedServices supportedServices, logger *zap.SugaredLogger) ServiceRegistry {
-	supported = make(map[Key]cmaccount.PartnerConfigurationService)
+	supported = make(map[ServiceIdentifier]cmaccount.PartnerConfigurationService)
 	// TODO: @VjeraTurk support multiple versions
 	for i, serviceName := range supportedServices.ServiceNames {
 		// Split each service name by "."
@@ -58,10 +56,10 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 		currentVersionString = currentVersionString[1:]
 		num, err := strconv.ParseUint(currentVersionString, 10, 64)
 		if err != nil {
-			fmt.Println("Error:", err)
+			logger.Errorf("Error:", err)
 		}
-		fmt.Println(servicePath[4], "registered version:", num)
-		supported[Key{serviceName: servicePath[4], serviceVersion: num}] = supportedServices.Services[i]
+		logger.Infof(servicePath[4], "registered version:", num)
+		supported[ServiceIdentifier{serviceName: servicePath[4], serviceVersion: num}] = supportedServices.Services[i]
 	}
 
 	return &serviceRegistry{
@@ -72,10 +70,27 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 	}
 }
 
-func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestTypesFlag, rpcClient *client.RPCClient) {
+func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	requestTypes := []string{
+		"GetNetworkFeeRequest",
+		"GetPartnerConfigurationRequest",
+		"PingRequest",
+		"AccommodationProductListRequest",
+		"AccommodationProductInfoRequest",
+		"AccommodationSearchRequest",
+		"ActivityProductListRequest",
+		"ActivityProductInfoRequest",
+		"ActivitySearchRequest",
+		"TransportSearchRequest",
+		"MintRequest",
+		"ValidationRequest",
+		"SeatMapRequest",
+		"SeatMapAvailabilityRequest",
+		"CountryEntryRequirementsRequest",
+	}
 	for _, requestType := range requestTypes {
 		var service Service
 		switch MessageType(requestType) {
@@ -120,7 +135,6 @@ func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestT
 				// services[2] = mintService{client: &c}
 				log.Print("supports MintService 2")
 			}
-
 		case ValidationRequest:
 			if isServiceVersionRegistered("ValidationService", uint64(1)) {
 				c := bookv1grpc.NewValidationServiceClient(rpcClient.ClientConn)
@@ -168,6 +182,6 @@ func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
 }
 
 func isServiceVersionRegistered(name string, version uint64) bool {
-	_, ok := supported[Key{serviceName: name, serviceVersion: version}]
+	_, ok := supported[ServiceIdentifier{serviceName: name, serviceVersion: version}]
 	return ok
 }

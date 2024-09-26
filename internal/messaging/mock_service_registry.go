@@ -12,7 +12,6 @@ package messaging
 import (
 	reflect "reflect"
 
-	config "github.com/chain4travel/camino-messenger-bot/config"
 	client "github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -56,9 +55,9 @@ func (mr *MockServiceRegistryMockRecorder) GetService(arg0 any) *gomock.Call {
 }
 
 // RegisterServices mocks base method.
-func (m *MockServiceRegistry) RegisterServices(arg0 config.SupportedRequestTypesFlag, arg1 *client.RPCClient) {
+func (m *MockServiceRegistry) RegisterServices(arg0 *client.RPCClient) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "RegisterServices", arg0, arg1)
+	m.ctrl.Call(m, "RegisterServices", arg0)
 }
 
 // RegisterServices indicates an expected call of RegisterServices.
