@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	//"math/big"
+
 	"strings"
 	"sync"
 	"time"
@@ -167,25 +167,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botUserID)
 	}
 	msg.Metadata.Recipient = string(botUserID)
-
-	// Mocked data for testing TODO: @VjeraTurk remove after real Cheque impelmentations
-	msg.Metadata.Cheques = []cheques.SignedCheque{
-		// Uncomment for Supplier side to work
-		/*
-		{
-			Cheque: cheques.Cheque{
-				FromCMAccount: common.HexToAddress(p.identificationHandler.getMyCMAccountAddress()),
-				ToCMAccount:   common.HexToAddress(cmAccountRecipient),
-				ToBot:         common.HexToAddress(msg.Metadata.Recipient[1:41]),
-				Counter:       big.NewInt(1),
-				Amount:        big.NewInt(1),
-				CreatedAt:     big.NewInt(time.Now().Unix()),
-				ExpiresAt:     big.NewInt(time.Now().Add(50 * 24 * time.Hour).Unix()),
-			},
-			Signature: []byte{0x1, 0x2, 0x3},
-		},
-		*/
-	}
+	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
 	// TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))

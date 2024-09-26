@@ -3,7 +3,6 @@ package messaging
 import (
 	"log"
 	"math/big"
-	"strings"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
