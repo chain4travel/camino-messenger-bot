@@ -106,7 +106,7 @@ func TestProcessInbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
@@ -125,7 +125,7 @@ func TestProcessInbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
@@ -143,7 +143,7 @@ func TestProcessInbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
@@ -206,7 +206,7 @@ func TestProcessOutbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -219,7 +219,7 @@ func TestProcessOutbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -235,7 +235,7 @@ func TestProcessOutbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{Timeout: 10}, // 10ms
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -252,7 +252,7 @@ func TestProcessOutbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{Timeout: 100}, // 10ms
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -269,7 +269,7 @@ func TestProcessOutbound(t *testing.T) {
 				cfg:                   config.ProcessorConfig{Timeout: 500}, // long enough timeout for response to be received
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
-				identificationHandler: NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
 			},
 			args: args{
@@ -335,7 +335,7 @@ func TestStart(t *testing.T) {
 		cfg := config.ProcessorConfig{}
 		serviceRegistry := mockServiceRegistry
 		responseHandler := NoopResponseHandler{}
-		identificationHandler := NoopResponseHandler{}
+		identificationHandler := NoopIdentification{}
 		messenger := mockMessenger
 
 		ch := make(chan Message, 5)

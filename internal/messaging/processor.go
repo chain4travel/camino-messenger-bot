@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -63,10 +62,12 @@ type processor struct {
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
+	myBotAddress          common.Address
 }
 
 func (p *processor) SetUserID(userID string) {
 	p.userID = userID
+	p.myBotAddress = common.HexToAddress(id.UserID(userID).Localpart())
 }
 
 func (*processor) Checkpoint() string {
@@ -154,17 +155,11 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	cmAccountRecipient := msg.Metadata.Recipient
 	// lookup for CM Account -> bot
-	ok, botUserID := p.identificationHandler.getBotFromMap(common.HexToAddress(msg.Metadata.Recipient))
-
-	if !ok {
-		// if not in mapping, fetch 1 bot from CM Account
-		botAddress, err := p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
-		if err != nil {
-			return nil, err
-		}
-		botUserID = id.NewUserID(strings.ToLower(botAddress), p.identificationHandler.getMatrixHost())
-		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botUserID)
+	botUserID, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+	if err != nil {
+		return nil, err
 	}
+
 	msg.Metadata.Recipient = string(botUserID)
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
@@ -176,8 +171,8 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		return nil, err
 	}
 	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Metadata.Sender, msg.Metadata.Recipient, cmAccountRecipient)
-	err := p.messenger.SendAsync(ctx, *msg)
-	if err != nil {
+
+	if err := p.messenger.SendAsync(ctx, *msg); err != nil {
 		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -214,41 +209,24 @@ func (p *processor) Respond(msg *Message) error {
 
 	myBotAddress := md.Recipient
 
-	/// TODO: Uncomment after Chewques implementation
+	/// TODO: Uncomment after Cheques implementation
 	// No message should be without cheque?
 	if md.Cheques == nil {
 		return fmt.Errorf("%w: %s", ErrMissingCheques, msg.Type)
 	}
 
-	for i := 0; i < len(md.Cheques); i++ {
-		// Get info from cheque
-		// Check if the TO CM-Account is correct
-		if !p.identificationHandler.isMyCMAccount(md.Cheques[i].ToCMAccount) {
-			return fmt.Errorf("incorrect CMAccount")
-		}
-
-		// Lookup the FROM CM-Account which is in the cheque
-		// Verify that the sending bot is part of this FROM
-		isInCmAccount, err := p.identificationHandler.isBotInCMAccount(common.HexToAddress(id.UserID(md.Sender).Localpart()), md.Cheques[i].FromCMAccount)
-		if err != nil {
-			return fmt.Errorf("%w: %w, %s", ErrCheckingCmAccount, err, md.Cheques[i].FromCMAccount)
-		}
-
-		if !isInCmAccount {
-			return fmt.Errorf("bot %s not part of CMAccount %s", md.Sender[1:43], md.Cheques[i].FromCMAccount)
-		}
-		cmAccount, ok := p.identificationHandler.getCmAccount(id.UserID(md.Sender))
-		if ok {
-			md.Recipient = cmAccount.Hex()
-		} else {
-			p.identificationHandler.addToMap(md.Cheques[i].FromCMAccount, id.UserID(md.Sender))
-			cmAccount, ok := p.identificationHandler.getCmAccount(id.UserID(md.Sender))
-			if ok {
-				md.Recipient = cmAccount.Hex()
-			}
-		}
+	// TODO@ should be part of cheque verification
+	cheque := p.getChequeForThisBot(md.Cheques)
+	if cheque == nil {
+		// return err // TODO@ even if service fee is 0, we should still have a cheque with increased counter
 	}
 
+	// if id.UserID(md.Sender).Localpart() != cheque.FromBot { // we need to ensure that sender is the one who signed cheque
+	// 	return err // TODO@
+	// }
+
+	originalSender := md.Sender
+	md.Recipient = cheque.FromCMAccount.Hex()
 	md.Sender = p.identificationHandler.getMyCMAccountAddress().Hex()
 
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
@@ -276,19 +254,8 @@ func (p *processor) Respond(msg *Message) error {
 		Metadata: *md,
 	}
 
-	ok, botUserID := p.identificationHandler.getBotFromMap(common.HexToAddress(msg.Metadata.Recipient))
-
-	if !ok {
-		// if not in mapping, fetch 1 bot from CM Account
-		botAddress, err := p.identificationHandler.getFirstBotFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
-		if err != nil {
-			return err
-		}
-		botUserID = id.NewUserID(strings.ToLower(botAddress), p.identificationHandler.getMatrixHost())
-		p.identificationHandler.addToMap(common.HexToAddress(msg.Metadata.Recipient), botUserID)
-	}
-
-	responseMsg.Metadata.Sender = string(botUserID)
+	// TODO@ who is who in response? should sender be original sender or actual sender (this bot)
+	responseMsg.Metadata.Sender = originalSender
 	responseMsg.Metadata.Recipient = myBotAddress
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 
@@ -306,4 +273,13 @@ func (p *processor) Forward(msg *Message) {
 		return
 	}
 	p.logger.Warnf("Failed to forward message: no response channel for request (%s)", msg.Metadata.RequestID)
+}
+
+func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques.SignedCheque {
+	for _, cheque := range cheques {
+		if cheque.ToBot == p.myBotAddress && cheque.ToCMAccount == p.identificationHandler.getMyCMAccountAddress() {
+			return &cheque
+		}
+	}
+	return nil
 }

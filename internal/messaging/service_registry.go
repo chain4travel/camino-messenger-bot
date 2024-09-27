@@ -33,11 +33,10 @@ type supportedServices struct {
 }
 
 type serviceRegistry struct {
-	logger            *zap.SugaredLogger
-	services          map[MessageType]Service
-	supportedServices supportedServices
-	lock              *sync.RWMutex
-	supported         map[ServiceIdentifier]cmaccount.PartnerConfigurationService
+	logger    *zap.SugaredLogger
+	services  map[MessageType]Service
+	lock      *sync.RWMutex
+	supported map[ServiceIdentifier]cmaccount.PartnerConfigurationService
 }
 type ServiceIdentifier struct {
 	serviceName    string
@@ -66,11 +65,10 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 	}
 
 	return &serviceRegistry{
-		logger:            logger,
-		services:          make(map[MessageType]Service),
-		supportedServices: supportedServices,
-		lock:              &sync.RWMutex{},
-		supported:         supported,
+		logger:    logger,
+		services:  make(map[MessageType]Service),
+		lock:      &sync.RWMutex{},
+		supported: supported,
 	}
 }
 
@@ -97,6 +95,7 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	}
 	for _, requestType := range requestTypes {
 		var service Service
+		// TODO @evlekht refactor: move if before switch, use map for requestType to service name if needed
 		switch MessageType(requestType) {
 		case ActivityProductInfoRequest:
 			if s.isServiceVersionSupported("ActivityProductInfoService", uint64(1), "cmp.services.activity.v1.ActivityProductInfoService") {
