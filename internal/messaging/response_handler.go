@@ -117,20 +117,22 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
+	currentTime := time.Now()
+
 	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
 		// BuyableUntil not set
-		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(300 * time.Second))
-	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(time.Now()).Seconds {
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(300 * time.Second))
+	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds {
 		// BuyableUntil in the past
 		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", response.MintResponse.BuyableUntil)
 		addErrorToResponseHeader(response, errMsg)
 		return true
-	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(time.Now().Add(70*time.Second)).Seconds {
+	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(70*time.Second)).Seconds {
 		// BuyableUntil too early
-		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(70 * time.Second))
-	} else if response.MintResponse.BuyableUntil.Seconds > timestamppb.New(time.Now().Add(600*time.Second)).Seconds {
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(70 * time.Second))
+	} else if response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(600*time.Second)).Seconds {
 		// BuyableUntil too late
-		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(600 * time.Second))
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(600 * time.Second))
 	}
 
 	// MINT TOKEN
