@@ -5,46 +5,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      CMB_DEVELOPER_MODE: "true"
-      CMB_MATRIX_KEY: "PRIVATE_KEY_HEX"
-      CMB_MATRIX_HOST: "messenger.chain4travel.com"
-      CMB_MATRIX_STORE: "supplier-matrix.db"
-      CMB_RPC_SERVER_PORT: "9090"
-      CMB_RPC_UNENCRYPTED: "true"
-      CMB_PARTNER_PLUGIN_HOST: "localhost"
-      CMB_PARTNER_PLUGIN_PORT: "50051"
-      CMB_PARTNER_PLUGIN_UNENCRYPTED: "true"
-      CMB_RESPONSE_TIMEOUT: "10000"
-      CMB_RPC_URL: "wss://camino.network/ext/bc/C/rpc"
-      CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
-      CMB__BOOKING_TOKEN_ADDRESS: "0xe2b8c92B6519d1A2020dA0A5fBbA99a43A2c0922"
-      CMB_DB_NAME: "camino_messenger_bot"
-      CMB_DB_PATH: "db.db"
-      CMB_MIGRATIONS_PATH: "file://./migrations"
+    volumes:
+      - ./examples/config:/cmb-config
     ports:
       - "9090:9090"
+    command: ["--config", "/cmb-config/config-supplier.yaml"]
   distributor-bot:
     image: c4tplatform/camino-messenger-bot
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      CMB_DEVELOPER_MODE: "true"
-      CMB_MATRIX_KEY: "PRIVATE_KEY_HEX"
-      CMB_MATRIX_HOST: "messenger.chain4travel.com"
-      CMB_MATRIX_STORE: "distributor-matrix.db"
-      CMB_RPC_SERVER_PORT: "9090"
-      CMB_RPC_UNENCRYPTED: "true"
-      CMB_RESPONSE_TIMEOUT: "10000"
-      CMB_RPC_URL: "wss://camino.network/ext/bc/C/rpc"
-      CMB_EVM_PRIVATE_KEY: "PRIVATE_KEY_HEX"
-      CMB__BOOKING_TOKEN_ADDRESS: "0xe2b8c92B6519d1A2020dA0A5fBbA99a43A2c0922"
-      CMB_DB_NAME: "camino_messenger_bot"
-      CMB_DB_PATH: "db.db"
-      CMB_MIGRATIONS_PATH: "file://./migrations"
+    volumes:
+      - ./examples/config:/cmb-config
     ports:
       - "9092:9090"
+    command: ["--config", "/cmb-config/config-distributor.yaml"]
   provider-plugin:
     image: c4tplatform/camino-messenger-bot-plugin
     build:
