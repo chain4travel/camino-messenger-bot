@@ -8,6 +8,7 @@ package messaging
 import (
 	"context"
 	"errors"
+	"math/big"
 	"testing"
 	"time"
 
@@ -33,6 +34,19 @@ var (
 
 func TestProcessInbound(t *testing.T) {
 	responseMessage := Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
+
+	dummyCheque := cheques.SignedCheque{
+		Cheque: cheques.Cheque{
+			FromCMAccount: zeroAddress,
+			ToCMAccount:   zeroAddress,
+			ToBot:         zeroAddress,
+			Counter:       big.NewInt(0),
+			Amount:        big.NewInt(0),
+			CreatedAt:     big.NewInt(0),
+			ExpiresAt:     big.NewInt(0),
+		},
+		Signature: []byte("signature"),
+	}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -116,7 +130,7 @@ func TestProcessInbound(t *testing.T) {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			args: args{
-				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
 			},
 			err: errSomeError,
 		},
@@ -135,7 +149,7 @@ func TestProcessInbound(t *testing.T) {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			args: args{
-				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
 			},
 		},
 		"success: process response message": {
