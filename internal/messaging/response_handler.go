@@ -15,6 +15,7 @@ import (
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
 	// "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
@@ -109,16 +110,16 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	// TODO @evlekht ensure that request.MintRequest.BuyerAddress is c-chain address format, not x/p/t chain
 	buyerAddress := common.HexToAddress(request.MintRequest.BuyerAddress)
 
-	// Get a Token URI for the token.
-	jsonPlain, tokenURI, err := createTokenURIforMintResponse(response.MintResponse)
-	if err != nil {
-		errMsg := fmt.Sprintf("error creating token URI: %v", err)
-		h.logger.Debugf(errMsg) // TODO: @VjeraTurk change to Error after we stop using mocked uri data
-		addErrorToResponseHeader(response, errMsg)
-		return true
-	}
+	tokenURI := response.MintResponse.BookingTokenUri
 
-	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
+	var jsonPlain string
+	if tokenURI == "" {
+		// Get a Token URI for the token.
+		jsonPlain, tokenURI, _ = createTokenURIforMintResponse(response.MintResponse)
+		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
+	} else {
+		h.logger.Debugf("Token URI: %s\n", tokenURI)
+	}
 
 	currentTime := time.Now()
 
@@ -144,6 +145,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		buyerAddress,
 		tokenURI,
 		big.NewInt(response.MintResponse.BuyableUntil.Seconds),
+		response.MintResponse.Price,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
@@ -192,8 +194,10 @@ func (h *evmResponseHandler) mint(
 	reservedFor common.Address,
 	uri string,
 	expiration *big.Int,
+	_ *typesv2.Price,
 ) (string, *big.Int, error) {
 
+	// TODO: VjeTurk: handle price and paymentToken
 	tx, err := h.bookingService.MintBookingToken(
 		reservedFor,
 		uri,
