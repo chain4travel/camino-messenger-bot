@@ -54,14 +54,12 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 		if len(servicePath) < 4 {
 			logger.Errorf("Unidentified service: %s ", serviceFullName)
 		}
-		serviceVersion := servicePath[3]
-		serviceVersion = serviceVersion[1:]
-		num, err := strconv.ParseUint(serviceVersion, 10, 64)
+		serviceVersion, err := strconv.ParseUint(servicePath[3][1:], 10, 64)
 		if err != nil {
 			logger.Errorf("Error:", err)
 		}
-		logger.Info(servicePath[4], " registered version:", num)
-		supported[ServiceIdentifier{serviceName: servicePath[4], serviceVersion: num, servicePath: serviceFullName}] = supportedServices.Services[i]
+		logger.Info(servicePath[4], " registered version:", serviceVersion)
+		supported[ServiceIdentifier{serviceName: servicePath[4], serviceVersion: serviceVersion, servicePath: serviceFullName}] = supportedServices.Services[i]
 	}
 
 	return &serviceRegistry{
