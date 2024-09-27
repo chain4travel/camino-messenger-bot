@@ -13,8 +13,11 @@ import (
 	"math/big"
 	"time"
 
-	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+
+	// "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -150,9 +153,10 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	}
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
+	// Header is of typev1
 	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	// Disable Linter: This code will be removed with the new mint logic and protocol
-	response.MintResponse.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())} // #nosec G115
+	response.MintResponse.BookingTokenId = uint64(tokenID.Int64()) // #nosec G115
 	response.MintTransactionId = txID
 	return false
 }
@@ -166,8 +170,7 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		return true
 	}
 
-	value64 := uint64(response.BookingToken.TokenId)
-	tokenID := new(big.Int).SetUint64(value64)
+	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
 
 	txID, err := h.buy(ctx, tokenID)
 	if err != nil {
@@ -301,7 +304,7 @@ func generateAndEncodeJSON(name, description, date, externalURL, image string, a
 // TODO: @havan: We need decide what data needs to be in the tokenURI JSON and add
 // those fields to the MintResponse. These will be shown in the UI of wallets,
 // explorers etc.
-func createTokenURIforMintResponse(mintResponse *bookv1.MintResponse) (string, string, error) {
+func createTokenURIforMintResponse(mintResponse *bookv2.MintResponse) (string, string, error) {
 	// TODO: What should we use for a token name? This will be shown in the UI of wallets, explorers etc.
 	name := "CM Booking Token"
 
@@ -309,7 +312,7 @@ func createTokenURIforMintResponse(mintResponse *bookv1.MintResponse) (string, s
 	description := "This NFT represents the booking with the specified attributes."
 
 	// Dummy data
-	date := "2024-06-24"
+	date := "2024-09-27"
 
 	externalURL := "https://camino.network"
 
