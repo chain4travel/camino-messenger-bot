@@ -228,7 +228,6 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 		return &messaging.ResponseContent{}, fmt.Errorf("error processing outbound request: %w", err)
 	}
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
-	// TODO@ maybe swap sender/recipient?
 	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
 	return &response.Content.ResponseContent, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
