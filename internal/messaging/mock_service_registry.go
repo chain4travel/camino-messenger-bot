@@ -61,7 +61,7 @@ func (m *MockServiceRegistry) RegisterServices(arg0 *client.RPCClient) {
 }
 
 // RegisterServices indicates an expected call of RegisterServices.
-func (mr *MockServiceRegistryMockRecorder) RegisterServices(arg0, arg1 any) *gomock.Call {
+func (mr *MockServiceRegistryMockRecorder) RegisterServices(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterServices", reflect.TypeOf((*MockServiceRegistry)(nil).RegisterServices), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterServices", reflect.TypeOf((*MockServiceRegistry)(nil).RegisterServices), arg0)
 }

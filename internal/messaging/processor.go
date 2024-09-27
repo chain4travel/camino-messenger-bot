@@ -43,7 +43,7 @@ type MsgHandler interface {
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
-	SetUserID(userID string)
+	SetUserID(userID id.UserID)
 	Start(ctx context.Context)
 	ProcessInbound(message *Message) error
 	ProcessOutbound(ctx context.Context, message *Message) (*Message, error)
@@ -52,7 +52,7 @@ type Processor interface {
 type processor struct {
 	cfg       config.ProcessorConfig
 	messenger Messenger
-	userID    string
+	userID    id.UserID
 	logger    *zap.SugaredLogger
 	tracer    trace.Tracer
 	timeout   time.Duration // timeout after which a request is considered failed
@@ -65,9 +65,9 @@ type processor struct {
 	myBotAddress          common.Address
 }
 
-func (p *processor) SetUserID(userID string) {
+func (p *processor) SetUserID(userID id.UserID) {
 	p.userID = userID
-	p.myBotAddress = common.HexToAddress(id.UserID(userID).Localpart())
+	p.myBotAddress = common.HexToAddress(userID.Localpart())
 }
 
 func (*processor) Checkpoint() string {
@@ -110,7 +110,7 @@ func (p *processor) ProcessInbound(msg *Message) error {
 	if p.userID == "" {
 		return ErrUserIDNotSet
 	}
-	if msg.Metadata.Sender != p.userID { // outbound messages = messages sent by own ext system
+	if msg.Sender != p.userID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case Request:
 			return p.Respond(msg)
@@ -126,7 +126,7 @@ func (p *processor) ProcessInbound(msg *Message) error {
 }
 
 func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (*Message, error) {
-	msg.Metadata.Sender = p.userID
+	msg.Sender = p.userID
 	if msg.Type.Category() == Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	}
@@ -153,14 +153,12 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		return nil, ErrMissingRecipient
 	}
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
-	cmAccountRecipient := msg.Metadata.Recipient
 	// lookup for CM Account -> bot
-	botUserID, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
 	if err != nil {
 		return nil, err
 	}
 
-	msg.Metadata.Recipient = botUserID.String()
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
 	// TODO issue and attach cheques
@@ -170,9 +168,9 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	if err := p.responseHandler.HandleRequest(ctx, msg.Type, &msg.Content.RequestContent); err != nil {
 		return nil, err
 	}
-	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Metadata.Sender, msg.Metadata.Recipient, cmAccountRecipient)
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBot, msg.Metadata.Recipient)
 
-	if err := p.messenger.SendAsync(ctx, *msg); err != nil {
+	if err := p.messenger.SendAsync(ctx, *msg, recipientBot); err != nil {
 		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -195,7 +193,6 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
 	}
-	p.logger.Infof("Supplier: BOT %s received request from BOT %s", msg.Metadata.Recipient, msg.Metadata.Sender)
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
 	ctx, span := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -207,18 +204,14 @@ func (p *processor) Respond(msg *Message) error {
 
 	md := &msg.Metadata
 
-	myBotAddress := md.Recipient
-
 	cheque := p.getChequeForThisBot(md.Cheques)
 	if cheque == nil {
 		return ErrMissingCheques
 	}
 
-	originalSender := md.Sender
-	md.Recipient = cheque.FromCMAccount.Hex()
-	md.Sender = p.identificationHandler.getMyCMAccountAddress().Hex()
-
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
+
+	md.Sender = cheque.FromCMAccount.Hex()
 
 	ctx = grpc_metadata.NewOutgoingContext(ctx, msg.Metadata.ToGrpcMD())
 	var header grpc_metadata.MD
@@ -243,12 +236,9 @@ func (p *processor) Respond(msg *Message) error {
 		Metadata: *md,
 	}
 
-	// TODO@ who is who in response? should sender be original sender or actual sender (this bot)
-	responseMsg.Metadata.Sender = originalSender
-	responseMsg.Metadata.Recipient = myBotAddress
-	p.logger.Infof("Supplier: Bot %s responding to BOT %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
+	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, msg.Sender)
 
-	return p.messenger.SendAsync(ctx, responseMsg)
+	return p.messenger.SendAsync(ctx, responseMsg, msg.Sender)
 }
 
 func (p *processor) Forward(msg *Message) {

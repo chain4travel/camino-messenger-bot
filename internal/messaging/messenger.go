@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"maunium.net/go/mautrix/id"
 )
 
 type APIMessageResponse struct {
@@ -17,8 +18,8 @@ type APIMessageResponse struct {
 }
 type Messenger interface {
 	metadata.Checkpoint
-	StartReceiver() (string, error)                 // start receiving messages. Returns the user id
-	StopReceiver() error                            // stop receiving messages
-	SendAsync(ctx context.Context, m Message) error // asynchronous call (fire and forget)
-	Inbound() chan Message                          // channel where incoming messages are written
+	StartReceiver() (id.UserID, error)                                // start receiving messages. Returns the user id
+	StopReceiver() error                                              // stop receiving messages
+	SendAsync(ctx context.Context, m Message, sendTo id.UserID) error // asynchronous call (fire and forget)
+	Inbound() chan Message                                            // channel where incoming messages are written
 }

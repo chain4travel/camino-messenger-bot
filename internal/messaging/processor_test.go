@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"maunium.net/go/mautrix/id"
 
 	"go.uber.org/mock/gomock"
 
@@ -26,7 +27,7 @@ import (
 )
 
 var (
-	userID        = "userID"
+	userID        = id.UserID("userID")
 	anotherUserID = "anotherUserID"
 	requestID     = "requestID"
 	errSomeError  = errors.New("some error")
@@ -111,7 +112,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 			},
 			args: args{
-				msg: &Message{Metadata: metadata.Metadata{Sender: userID}},
+				msg: &Message{Metadata: metadata.Metadata{}, Sender: userID},
 			},
 			err: nil, // no error, msg will be just ignored
 		},
@@ -127,7 +128,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 				mockActivityProductListServiceClient.EXPECT().ActivityProductList(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(activityProductListService{client: mockActivityProductListServiceClient}, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
@@ -146,7 +147,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 				mockActivityProductListServiceClient.EXPECT().ActivityProductList(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(activityProductListService{client: mockActivityProductListServiceClient}, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
@@ -257,7 +258,7 @@ func TestProcessOutbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			err: ErrExceededResponseTimeout,
 		},
@@ -274,7 +275,7 @@ func TestProcessOutbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			err: errSomeError,
 		},
@@ -291,7 +292,7 @@ func TestProcessOutbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			writeResponseToChannel: func(p *processor) {
 				done := func() bool {
@@ -343,7 +344,7 @@ func TestStart(t *testing.T) {
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
 	mockMessenger := NewMockMessenger(mockCtrl)
 	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(dummyService{}, true)
-	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(2).Return(nil)
+	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
 	t.Run("start processor and accept messages", func(*testing.T) {
 		cfg := config.ProcessorConfig{}
@@ -358,7 +359,7 @@ func TestStart(t *testing.T) {
 			// msg without sender
 			ch <- Message{Metadata: metadata.Metadata{}}
 			// msg with sender == userID
-			ch <- Message{Metadata: metadata.Metadata{Sender: userID}}
+			ch <- Message{Metadata: metadata.Metadata{}, Sender: userID}
 			// msg with sender == userID but without valid msgType
 			ch <- Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
 			// msg with sender == userID and valid msgType

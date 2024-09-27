@@ -70,7 +70,7 @@ func (m *messenger) Checkpoint() string {
 	return "messenger-gateway"
 }
 
-func (m *messenger) StartReceiver() (string, error) {
+func (m *messenger) StartReceiver() (id.UserID, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
 
 	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
@@ -97,6 +97,7 @@ func (m *messenger) StartReceiver() (string, error) {
 			Metadata: completeMsg.Metadata,
 			Content:  completeMsg.Content,
 			Type:     messaging.MessageType(msg.MsgType),
+			Sender:   evt.Sender,
 		}
 	})
 	syncer.OnEventType(event.StateMember, func(ctx context.Context, evt *event.Event) {
@@ -143,7 +144,7 @@ func (m *messenger) StartReceiver() (string, error) {
 	m.client.Crypto = cryptoHelper
 	m.client.cryptoHelper = cryptoHelper // nikos: we need the struct cause stop method is not available on the interface level
 
-	m.logger.Infof("Successfully logged in as: %s", m.client.UserID.String())
+	m.logger.Infof("Successfully logged in as: %s", m.client.UserID)
 	syncCtx, cancelSync := context.WithCancel(context.Background())
 	m.client.ctx = syncCtx
 	m.client.cancelSync = cancelSync
@@ -157,7 +158,7 @@ func (m *messenger) StartReceiver() (string, error) {
 		}
 	}()
 
-	return m.client.UserID.String(), nil
+	return m.client.UserID, nil
 }
 
 func (m *messenger) StopReceiver() error {
@@ -169,13 +170,13 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message) error {
+func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message, sendTo id.UserID) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
 	ctx, roomSpan := m.tracer.Start(ctx, "roomHandler.GetOrCreateRoom", trace.WithAttributes(attribute.String("type", string(msg.Type))))
-	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(ctx, id.UserID(msg.Metadata.Recipient))
+	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(ctx, sendTo)
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"maunium.net/go/mautrix/id"
 )
 
 type App struct {
@@ -150,9 +151,9 @@ func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegi
 	})
 }
 
-func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan string) {
+func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan id.UserID) {
 	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
-	userIDUpdatedChan := make(chan string) // Channel to pass the userID
+	userIDUpdatedChan := make(chan id.UserID) // Channel to pass the userID
 	g.Go(func() error {
 		a.logger.Info("Starting message receiver...")
 		userID, err := messenger.StartReceiver()
@@ -182,7 +183,7 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, identificationHandler messaging.IdentificationHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
+func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, identificationHandler messaging.IdentificationHandler, g *errgroup.Group, userIDUpdated chan id.UserID) messaging.Processor {
 	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, identificationHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
