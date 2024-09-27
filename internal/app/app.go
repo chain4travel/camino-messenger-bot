@@ -85,10 +85,10 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatalf("Failed to fetch CM account Manager: %v", err)
 	}
-	allAvailableServices, err := manager.GetAllRegisteredServiceNames(&bind.CallOpts{
-		From: common.HexToAddress(a.cfg.EvmConfig.CMAccountAddress),
-	})
-
+	allAvailableServices, err := manager.GetAllRegisteredServiceNames(
+		&bind.CallOpts{
+			From: common.HexToAddress(a.cfg.EvmConfig.CMAccountAddress),
+		})
 	if err != nil {
 		a.logger.Infof("Failed to fetch all registered services: %v", err)
 	}
