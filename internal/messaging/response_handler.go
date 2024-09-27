@@ -119,7 +119,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
 		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(300 * time.Second))
-	} else if response.MintResponse.BuyableUntil.Seconds-timestamppb.New(time.Now()).Seconds < 70 {
+	} else if response.MintResponse.BuyableUntil.Seconds-timestamppb.New(time.Now()).Seconds < 70 && response.MintResponse.BuyableUntil.Seconds-timestamppb.New(time.Now()).Seconds > 0 {
 		response.MintResponse.BuyableUntil = timestamppb.New(time.Now().Add(70 * time.Second))
 	}
 	// MINT TOKEN
