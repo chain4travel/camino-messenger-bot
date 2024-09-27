@@ -14,14 +14,6 @@ var _ IdentificationHandler = (*NoopIdentification)(nil)
 
 type NoopIdentification struct{}
 
-func (NoopIdentification) getAllBotAddressesFromCMAccountAddress(common.Address) ([]common.Address, error) {
-	return nil, nil
-}
-
-func (NoopIdentification) getFirstBotFromCMAccountAddress(common.Address) (common.Address, error) {
-	return common.Address{}, nil
-}
-
 func (NoopIdentification) getMyCMAccountAddress() common.Address {
 	return common.Address{}
 }

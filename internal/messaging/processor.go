@@ -209,15 +209,10 @@ func (p *processor) Respond(msg *Message) error {
 
 	myBotAddress := md.Recipient
 
-	// TODO@ should be part of cheque verification
 	cheque := p.getChequeForThisBot(md.Cheques)
 	if cheque == nil {
-		// return err // TODO@ even if service fee is 0, we should still have a cheque with increased counter
+		return ErrMissingCheques
 	}
-
-	// if id.UserID(md.Sender).Localpart() != cheque.FromBot { // we need to ensure that sender is the one who signed cheque
-	// 	return err // TODO@
-	// }
 
 	originalSender := md.Sender
 	md.Recipient = cheque.FromCMAccount.Hex()
