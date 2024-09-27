@@ -63,6 +63,9 @@ supported_request_types:
   - SeatMapRequest
   - SeatMapAvailabilityRequest
   - CountryEntryRequirementsRequest
+  - InsuranceProductInfo
+  - InsuranceProductList
+  - InsuranceSearch
 
 ### C-Chain (EVM)
 

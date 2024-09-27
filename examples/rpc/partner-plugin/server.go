@@ -13,6 +13,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1/networkv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1/partnerv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
@@ -28,6 +29,7 @@ import (
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
+	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
 	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
@@ -49,6 +51,9 @@ type partnerPlugin struct {
 	seat_mapv1grpc.SeatMapAvailabilityServiceServer
 	infov1grpc.CountryEntryRequirementsServiceServer
 	activityv1grpc.ActivityProductInfoServiceServer
+	insurancev1grpc.InsuranceProductInfoServiceClient
+	insurancev1grpc.InsuranceProductListServiceClient
+	insurancev1grpc.InsuranceSearchServiceServer
 }
 
 func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv1.MintResponse, error) {
@@ -719,6 +724,54 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	return &response, nil
 }
 
+func (p *partnerPlugin) InsuranceProductInfo(ctx context.Context, request *insurancev1.InsuranceProductInfoRequest) (*insurancev1.InsuranceProductInfoResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := insurancev1.InsuranceProductInfoResponse{
+		// TODO: add an example
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) InsuranceProductList(ctx context.Context, request *insurancev1.InsuranceProductListRequest) (*insurancev1.InsuranceProductListResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := insurancev1.InsuranceProductListResponse{
+		// TODO: add an example
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) InsuranceSearch(ctx context.Context, request *insurancev1.InsuranceSearchRequest) (*insurancev1.InsuranceSearchResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := insurancev1.InsuranceSearchResponse{
+		// TODO: add an example
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
 func main() {
 	grpcServer := grpc.NewServer()
 	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
@@ -735,6 +788,9 @@ func main() {
 	seat_mapv1grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv1grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov1grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
+	insurancev1grpc.RegisterInsuranceProductInfoServiceServer(grpcServer, &partnerPlugin{})
+	insurancev1grpc.RegisterInsuranceProductListServiceServer(grpcServer, &partnerPlugin{})
+	insurancev1grpc.RegisterInsuranceSearchServiceServer(grpcServer, &partnerPlugin{})
 	port := 55555
 	var err error
 	p, found := os.LookupEnv("PORT")
