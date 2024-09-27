@@ -160,7 +160,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		return nil, err
 	}
 
-	msg.Metadata.Recipient = string(botUserID)
+	msg.Metadata.Recipient = botUserID.String()
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
 	// TODO issue and attach cheques
