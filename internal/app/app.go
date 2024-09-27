@@ -14,6 +14,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
@@ -71,11 +72,23 @@ func (a *App) Run(ctx context.Context) error {
 
 	// TODO do proper DI with FX
 
-	_, err = storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
+
+	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{})
 	if err != nil {
-		a.logger.Fatalf("Failed to create storage: %v", err)
+		a.logger.Fatalf("Failed to fetch CM account Manager Address: %s", err)
 	}
-	serviceRegistry := messaging.NewServiceRegistry(supportedServices, a.logger)
+	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, evmClient)
+	if err != nil {
+		a.logger.Fatalf("Failed to fetch CM account Manager: %v", err)
+	}
+	allAvailableServices, err := manager.GetAllRegisteredServiceNames(&bind.CallOpts{
+		From: common.HexToAddress(a.cfg.EvmConfig.CMAccountAddress),
+	})
+
+	if err != nil {
+		a.logger.Infof("Failed to fetch all registered services: %v", err)
+	}
+	serviceRegistry := messaging.NewServiceRegistry(allAvailableServices, supportedServices, a.logger)
 
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
 	if a.cfg.PartnerPluginConfig.Host != "" {
