@@ -8,14 +8,17 @@ package messaging
 import (
 	"context"
 	"errors"
+	"math/big"
 	"testing"
 	"time"
 
 	"google.golang.org/grpc"
+	"maunium.net/go/mautrix/id"
 
 	"go.uber.org/mock/gomock"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 
 	"github.com/stretchr/testify/require"
 
@@ -24,14 +27,27 @@ import (
 )
 
 var (
-	userID        = "userID"
+	userID        = id.UserID("userID")
 	anotherUserID = "anotherUserID"
 	requestID     = "requestID"
 	errSomeError  = errors.New("some error")
+
+	dummyCheque = cheques.SignedCheque{
+		Cheque: cheques.Cheque{
+			FromCMAccount: zeroAddress,
+			ToCMAccount:   zeroAddress,
+			ToBot:         zeroAddress,
+			Counter:       big.NewInt(0),
+			Amount:        big.NewInt(0),
+			CreatedAt:     big.NewInt(0),
+			ExpiresAt:     big.NewInt(0),
+		},
+		Signature: []byte("signature"),
+	}
 )
 
 func TestProcessInbound(t *testing.T) {
-	responseMessage := Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID}}
+	responseMessage := Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -40,10 +56,11 @@ func TestProcessInbound(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
-		cfg             config.ProcessorConfig
-		messenger       Messenger
-		serviceRegistry ServiceRegistry
-		responseHandler ResponseHandler
+		cfg                   config.ProcessorConfig
+		messenger             Messenger
+		serviceRegistry       ServiceRegistry
+		responseHandler       ResponseHandler
+		identificationHandler IdentificationHandler
 	}
 	type args struct {
 		msg *Message
@@ -69,7 +86,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 			},
 			args: args{
-				msg: &Message{Type: "invalid", Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: "invalid", Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
 			err: ErrUnknownMessageCategory,
 		},
@@ -83,9 +100,9 @@ func TestProcessInbound(t *testing.T) {
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(nil, false)
 			},
 			args: args{
-				msg: &Message{Type: ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
-			err: ErrUnsupportedRequestType,
+			err: ErrUnsupportedService,
 		},
 		"ignore own outbound messages": {
 			fields: fields{
@@ -95,51 +112,54 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 			},
 			args: args{
-				msg: &Message{Metadata: metadata.Metadata{Sender: userID}},
+				msg: &Message{Metadata: metadata.Metadata{}, Sender: userID},
 			},
 			err: nil, // no error, msg will be just ignored
 		},
 		"err: process request message failed": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
 				mockActivityProductListServiceClient.EXPECT().ActivityProductList(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(activityProductListService{client: mockActivityProductListServiceClient}, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			args: args{
-				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
 			},
 			err: errSomeError,
 		},
 		"success: process request message": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
 				mockActivityProductListServiceClient.EXPECT().ActivityProductList(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(activityProductListService{client: mockActivityProductListServiceClient}, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			args: args{
-				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID}},
+				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
 			},
 		},
 		"success: process response message": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			prepare: func(p *processor) {
 				p.responseChannels[requestID] = make(chan *Message, 1)
@@ -156,7 +176,7 @@ func TestProcessInbound(t *testing.T) {
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler)
+			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.identificationHandler)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
 			}
@@ -179,10 +199,11 @@ func TestProcessOutbound(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
-		cfg             config.ProcessorConfig
-		messenger       Messenger
-		serviceRegistry ServiceRegistry
-		responseHandler ResponseHandler
+		cfg                   config.ProcessorConfig
+		messenger             Messenger
+		serviceRegistry       ServiceRegistry
+		responseHandler       ResponseHandler
+		identificationHandler IdentificationHandler
 	}
 	type args struct {
 		msg *Message
@@ -197,10 +218,11 @@ func TestProcessOutbound(t *testing.T) {
 	}{
 		"err: non-request outbound message": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListResponse},
@@ -209,10 +231,11 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: missing recipient": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{},
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest},
@@ -224,49 +247,52 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: awaiting-response-timeout exceeded": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{Timeout: 10}, // 10ms
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{Timeout: 10}, // 10ms
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			err: ErrExceededResponseTimeout,
 		},
 		"err: while sending request": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{Timeout: 100}, // 10ms
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{Timeout: 100}, // 10ms
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			err: errSomeError,
 		},
 		"success: response before timeout": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{Timeout: 500}, // long enough timeout for response to be received
-				serviceRegistry: mockServiceRegistry,
-				responseHandler: NoopResponseHandler{},
-				messenger:       mockMessenger,
+				cfg:                   config.ProcessorConfig{Timeout: 500}, // long enough timeout for response to be received
+				serviceRegistry:       mockServiceRegistry,
+				responseHandler:       NoopResponseHandler{},
+				identificationHandler: NoopIdentification{},
+				messenger:             mockMessenger,
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			writeResponseToChannel: func(p *processor) {
 				done := func() bool {
@@ -291,7 +317,7 @@ func TestProcessOutbound(t *testing.T) {
 
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler)
+			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.identificationHandler)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
 			}
@@ -318,12 +344,13 @@ func TestStart(t *testing.T) {
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
 	mockMessenger := NewMockMessenger(mockCtrl)
 	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(dummyService{}, true)
-	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any()).Times(2).Return(nil)
+	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
 	t.Run("start processor and accept messages", func(*testing.T) {
 		cfg := config.ProcessorConfig{}
 		serviceRegistry := mockServiceRegistry
 		responseHandler := NoopResponseHandler{}
+		identificationHandler := NoopIdentification{}
 		messenger := mockMessenger
 
 		ch := make(chan Message, 5)
@@ -332,25 +359,25 @@ func TestStart(t *testing.T) {
 			// msg without sender
 			ch <- Message{Metadata: metadata.Metadata{}}
 			// msg with sender == userID
-			ch <- Message{Metadata: metadata.Metadata{Sender: userID}}
+			ch <- Message{Metadata: metadata.Metadata{}, Sender: userID}
 			// msg with sender == userID but without valid msgType
-			ch <- Message{Metadata: metadata.Metadata{Sender: anotherUserID}}
+			ch <- Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
 			// msg with sender == userID and valid msgType
 			ch <- Message{
 				Type:     ActivityProductListRequest,
-				Metadata: metadata.Metadata{Sender: anotherUserID},
+				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 			// 2nd msg with sender == userID and valid msgType
 			ch <- Message{
 				Type:     ActivitySearchRequest,
-				Metadata: metadata.Metadata{Sender: anotherUserID},
+				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 		}
 		// mocks
 		mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, serviceRegistry, responseHandler)
+		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, serviceRegistry, responseHandler, identificationHandler)
 		p.SetUserID(userID)
 		go p.Start(ctx)
 

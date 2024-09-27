@@ -9,12 +9,15 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
+	"maunium.net/go/mautrix/id"
 )
 
 var (
@@ -23,9 +26,13 @@ var (
 	ErrUserIDNotSet               = errors.New("user id not set")
 	ErrUnknownMessageCategory     = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
-	ErrUnsupportedRequestType     = errors.New("unsupported request type")
+	ErrUnsupportedService         = errors.New("unsupported service")
 	ErrMissingRecipient           = errors.New("missing recipient")
+	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
+	ErrMissingCheques             = errors.New("missing cheques in metadata")
+	ErrBotNotInCMAccount          = errors.New("bot not in Cm Account")
+	ErrCheckingCmAccount          = errors.New("problem calling contract")
 )
 
 type MsgHandler interface {
@@ -36,7 +43,7 @@ type MsgHandler interface {
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
-	SetUserID(userID string)
+	SetUserID(userID id.UserID)
 	Start(ctx context.Context)
 	ProcessInbound(message *Message) error
 	ProcessOutbound(ctx context.Context, message *Message) (*Message, error)
@@ -45,35 +52,39 @@ type Processor interface {
 type processor struct {
 	cfg       config.ProcessorConfig
 	messenger Messenger
-	userID    string
+	userID    id.UserID
 	logger    *zap.SugaredLogger
 	tracer    trace.Tracer
 	timeout   time.Duration // timeout after which a request is considered failed
 
-	mu               sync.Mutex
-	responseChannels map[string]chan *Message
-	serviceRegistry  ServiceRegistry
-	responseHandler  ResponseHandler
+	mu                    sync.Mutex
+	responseChannels      map[string]chan *Message
+	serviceRegistry       ServiceRegistry
+	responseHandler       ResponseHandler
+	identificationHandler IdentificationHandler
+	myBotAddress          common.Address
 }
 
-func (p *processor) SetUserID(userID string) {
+func (p *processor) SetUserID(userID id.UserID) {
 	p.userID = userID
+	p.myBotAddress = common.HexToAddress(userID.Localpart())
 }
 
 func (*processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler) Processor {
+func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
 	return &processor{
-		cfg:              cfg,
-		messenger:        messenger,
-		logger:           logger,
-		tracer:           otel.GetTracerProvider().Tracer(""),
-		timeout:          time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels: make(map[string]chan *Message),
-		serviceRegistry:  registry,
-		responseHandler:  responseHandler,
+		cfg:                   cfg,
+		messenger:             messenger,
+		logger:                logger,
+		tracer:                otel.GetTracerProvider().Tracer(""),
+		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
+		responseChannels:      make(map[string]chan *Message),
+		serviceRegistry:       registry,
+		responseHandler:       responseHandler,
+		identificationHandler: identificationHandler,
 	}
 }
 
@@ -99,7 +110,7 @@ func (p *processor) ProcessInbound(msg *Message) error {
 	if p.userID == "" {
 		return ErrUserIDNotSet
 	}
-	if msg.Metadata.Sender != p.userID { // outbound messages = messages sent by own ext system
+	if msg.Sender != p.userID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case Request:
 			return p.Respond(msg)
@@ -115,7 +126,7 @@ func (p *processor) ProcessInbound(msg *Message) error {
 }
 
 func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (*Message, error) {
-	msg.Metadata.Sender = p.userID
+	msg.Sender = p.userID
 	if msg.Type.Category() == Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	}
@@ -141,16 +152,25 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
 		return nil, ErrMissingRecipient
 	}
-	msg.Metadata.Cheques = nil // TODO issue and attach cheques
+	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
+	// lookup for CM Account -> bot
+	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+	if err != nil {
+		return nil, err
+	}
+
+	msg.Metadata.Cheques = []cheques.SignedCheque{}
+
+	// TODO issue and attach cheques
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
 	if err := p.responseHandler.HandleRequest(ctx, msg.Type, &msg.Content.RequestContent); err != nil {
 		return nil, err
 	}
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBot, msg.Metadata.Recipient)
 
-	err := p.messenger.SendAsync(ctx, *msg)
-	if err != nil {
+	if err := p.messenger.SendAsync(ctx, *msg, recipientBot); err != nil {
 		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -179,14 +199,19 @@ func (p *processor) Respond(msg *Message) error {
 	var service Service
 	var supported bool
 	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
-		return fmt.Errorf("%w: %s", ErrUnsupportedRequestType, msg.Type)
+		return fmt.Errorf("%w: %s", ErrUnsupportedService, msg.Type)
 	}
 
 	md := &msg.Metadata
-	// rewrite sender & recipient metadata
-	md.Recipient = md.Sender
-	md.Sender = p.userID
+
+	cheque := p.getChequeForThisBot(md.Cheques)
+	if cheque == nil {
+		return ErrMissingCheques
+	}
+
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
+
+	md.Sender = cheque.FromCMAccount.Hex()
 
 	ctx = grpc_metadata.NewOutgoingContext(ctx, msg.Metadata.ToGrpcMD())
 	var header grpc_metadata.MD
@@ -201,7 +226,7 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
 	}
-
+	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", md.Sender, md.Recipient)
 	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, response)
 	responseMsg := Message{
 		Type: msgType,
@@ -210,7 +235,10 @@ func (p *processor) Respond(msg *Message) error {
 		},
 		Metadata: *md,
 	}
-	return p.messenger.SendAsync(ctx, responseMsg)
+
+	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, msg.Sender)
+
+	return p.messenger.SendAsync(ctx, responseMsg, msg.Sender)
 }
 
 func (p *processor) Forward(msg *Message) {
@@ -224,4 +252,13 @@ func (p *processor) Forward(msg *Message) {
 		return
 	}
 	p.logger.Warnf("Failed to forward message: no response channel for request (%s)", msg.Metadata.RequestID)
+}
+
+func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques.SignedCheque {
+	for _, cheque := range cheques {
+		if cheque.ToBot == p.myBotAddress && cheque.ToCMAccount == p.identificationHandler.getMyCMAccountAddress() {
+			return &cheque
+		}
+	}
+	return nil
 }

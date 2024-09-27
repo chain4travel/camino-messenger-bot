@@ -12,6 +12,7 @@ import (
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
+	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
@@ -66,6 +67,7 @@ type Message struct {
 	Type     MessageType       `json:"msgtype"`
 	Content  MessageContent    `json:"content"`
 	Metadata metadata.Metadata `json:"metadata"`
+	Sender   id.UserID
 }
 
 type (

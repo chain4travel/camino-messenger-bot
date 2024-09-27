@@ -31,7 +31,7 @@ var (
 	_ Service = (*activityService)(nil)
 	_ Service = (*accommodationProductInfoService)(nil)
 	_ Service = (*accommodationProductListService)(nil)
-	_ Service = (*accommodationService)(nil)
+	_ Service = (*accommodationSearchService)(nil)
 	_ Service = (*mintService)(nil)
 	_ Service = (*validationService)(nil)
 	_ Service = (*networkService)(nil)
@@ -111,11 +111,11 @@ func (a accommodationProductListService) Call(ctx context.Context, request *Requ
 	return &responseContent, AccommodationProductListResponse, err
 }
 
-type accommodationService struct {
+type accommodationSearchService struct {
 	client *accommodationv1grpc.AccommodationSearchServiceClient
 }
 
-func (s accommodationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+func (s accommodationSearchService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 	response, err := (*s.client).AccommodationSearch(ctx, request.AccommodationSearchRequest, opts...)
 	responseContent := ResponseContent{}
 	if err == nil {

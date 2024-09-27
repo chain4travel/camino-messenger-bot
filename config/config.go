@@ -2,11 +2,9 @@ package config
 
 import (
 	"flag"
-	"strings"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"golang.org/x/exp/slices"
 )
 
 const (
@@ -14,11 +12,8 @@ const (
 	configFlagKey = "config"
 )
 
-type SupportedRequestTypesFlag []string
-
 type AppConfig struct {
-	DeveloperMode         bool                      `mapstructure:"developer_mode"`
-	SupportedRequestTypes SupportedRequestTypesFlag `mapstructure:"supported_request_types"`
+	DeveloperMode bool `mapstructure:"developer_mode"`
 }
 type MatrixConfig struct {
 	Key   string `mapstructure:"matrix_key"` // TODO @evlekht I'd suggest to add some parsed config, so we'll see on config read if some fields are invalid
@@ -46,8 +41,7 @@ type EvmConfig struct {
 	RPCURL              string `mapstructure:"rpc_url"`
 	SupplierName        string `mapstructure:"supplier_name"`
 	BookingTokenAddress string `mapstructure:"booking_token_address"`
-	BookingTokenABIFile string `mapstructure:"booking_token_abi_file"`
-	BuyableUntilDefault uint64 `mapstructure:"buyable_until_default"`
+	CMAccountAddress    string `mapstructure:"cm_account_address"`
 }
 
 type DBConfig struct {
@@ -119,17 +113,4 @@ func ReadConfig() (*Config, error) {
 		return nil, err
 	}
 	return cfg, nil
-}
-
-func (i *SupportedRequestTypesFlag) String() string {
-	return "[" + strings.Join(*i, ",") + "]"
-}
-
-func (i *SupportedRequestTypesFlag) Contains(requestType string) bool {
-	return slices.Contains(*i, requestType)
-}
-
-func (i *SupportedRequestTypesFlag) Set(requestType string) error {
-	*i = append(*i, requestType)
-	return nil
 }

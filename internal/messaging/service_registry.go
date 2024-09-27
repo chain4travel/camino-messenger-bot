@@ -6,6 +6,9 @@
 package messaging
 
 import (
+	"log"
+	"strconv"
+	"strings"
 	"sync"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
@@ -14,87 +17,174 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"go.uber.org/zap"
 )
 
 type ServiceRegistry interface {
-	RegisterServices(requestTypes config.SupportedRequestTypesFlag, rpcClient *client.RPCClient)
+	RegisterServices(rpcClient *client.RPCClient)
 	GetService(messageType MessageType) (Service, bool)
 }
-type serviceRegistry struct {
-	logger   *zap.SugaredLogger
-	services map[MessageType]Service
-	lock     *sync.RWMutex
+
+type supportedServices struct {
+	ServiceNames []string
+	Services     []cmaccount.PartnerConfigurationService
 }
 
-func NewServiceRegistry(logger *zap.SugaredLogger) ServiceRegistry {
+type serviceRegistry struct {
+	logger    *zap.SugaredLogger
+	services  map[MessageType]Service
+	lock      *sync.RWMutex
+	supported map[ServiceIdentifier]cmaccount.PartnerConfigurationService
+}
+type ServiceIdentifier struct {
+	serviceName    string
+	serviceVersion uint64
+	servicePath    string
+}
+
+func NewServiceRegistry(supportedServices supportedServices, logger *zap.SugaredLogger) ServiceRegistry {
+	supported := make(map[ServiceIdentifier]cmaccount.PartnerConfigurationService)
+	// TODO: @VjeraTurk support multiple versions
+	for i, serviceFullName := range supportedServices.ServiceNames {
+		// Split each service name by "."
+		servicePath := strings.Split(serviceFullName, ".")
+
+		if len(servicePath) < 4 {
+			logger.Errorf("Unidentified service: %s ", serviceFullName)
+		}
+		serviceVersion, err := strconv.ParseUint(servicePath[3][1:], 10, 64)
+		if err != nil {
+			logger.Errorf("Error:", err)
+		}
+		logger.Info(servicePath[4], " registered version:", serviceVersion)
+		supported[ServiceIdentifier{serviceName: servicePath[4], serviceVersion: serviceVersion, servicePath: serviceFullName}] = supportedServices.Services[i]
+	}
+
 	return &serviceRegistry{
-		logger:   logger,
-		services: make(map[MessageType]Service),
-		lock:     &sync.RWMutex{},
+		logger:    logger,
+		services:  make(map[MessageType]Service),
+		lock:      &sync.RWMutex{},
+		supported: supported,
 	}
 }
 
-func (s *serviceRegistry) RegisterServices(requestTypes config.SupportedRequestTypesFlag, rpcClient *client.RPCClient) {
+func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	requestTypes := []string{
+		"GetNetworkFeeRequest",
+		"GetPartnerConfigurationRequest",
+		"PingRequest",
+		"AccommodationProductListRequest",
+		"AccommodationProductInfoRequest",
+		"AccommodationSearchRequest",
+		"ActivityProductListRequest",
+		"ActivityProductInfoRequest",
+		"ActivitySearchRequest",
+		"TransportSearchRequest",
+		"MintRequest",
+		"ValidationRequest",
+		"SeatMapRequest",
+		"SeatMapAvailabilityRequest",
+		"CountryEntryRequirementsRequest",
+	}
 	for _, requestType := range requestTypes {
 		var service Service
+		// TODO @evlekht refactor: move if before switch, use map for requestType to service name if needed
 		switch MessageType(requestType) {
 		case ActivityProductInfoRequest:
-			c := activityv1grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
-			service = activityProductInfoService{client: &c}
+			if s.isServiceVersionSupported("ActivityProductInfoService", uint64(1), "cmp.services.activity.v1.ActivityProductInfoService") {
+				c := activityv1grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
+				service = activityProductInfoService{client: &c}
+			}
 		case ActivityProductListRequest:
-			c := activityv1grpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
-			service = activityProductListService{client: c}
+			if s.isServiceVersionSupported("ActivityProductListService", uint64(1), "cmp.services.activity.v1.ActivityProductInfoService") {
+				c := activityv1grpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
+				service = activityProductListService{client: c}
+			}
 		case ActivitySearchRequest:
-			c := activityv1grpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
-			service = activityService{client: &c}
+			if s.isServiceVersionSupported("ActivitySearchService", uint64(1), "cmp.services.activity.v1.ActivitySearchService'") {
+				c := activityv1grpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
+				service = activityService{client: &c}
+			}
 		case AccommodationProductInfoRequest:
-			c := accommodationv1grpc.NewAccommodationProductInfoServiceClient(rpcClient.ClientConn)
-			service = accommodationProductInfoService{client: &c}
+			if s.isServiceVersionSupported("AccommodationProductInfoService", uint64(1), "cmp.services.accommodation.v1.AccommodationProductInfoService") {
+				c := accommodationv1grpc.NewAccommodationProductInfoServiceClient(rpcClient.ClientConn)
+				service = accommodationProductInfoService{client: &c}
+			}
 		case AccommodationProductListRequest:
-			c := accommodationv1grpc.NewAccommodationProductListServiceClient(rpcClient.ClientConn)
-			service = accommodationProductListService{client: &c}
+			if s.isServiceVersionSupported("AccommodationProductListService", uint64(1), "cmp.services.accommodation.v1.AccommodationProductInfoService") {
+				c := accommodationv1grpc.NewAccommodationProductListServiceClient(rpcClient.ClientConn)
+				service = accommodationProductListService{client: &c}
+			}
 		case AccommodationSearchRequest:
-			c := accommodationv1grpc.NewAccommodationSearchServiceClient(rpcClient.ClientConn)
-			service = accommodationService{client: &c}
+			if s.isServiceVersionSupported("AccommodationSearchService", uint64(1), "cmp.services.accommodation.v1.AccommodationSearchService") {
+				c := accommodationv1grpc.NewAccommodationSearchServiceClient(rpcClient.ClientConn)
+				service = accommodationSearchService{client: &c}
+			}
+		case MintRequest:
+			if s.isServiceVersionSupported("MintService", uint64(1), "cmp.services.book.v1.MintService") {
+				c := bookv1grpc.NewMintServiceClient(rpcClient.ClientConn)
+				service = mintService{client: &c}
+			}
+			// WIP - support multiple version - otherwise linter complains
+			if s.isServiceVersionSupported("MintService", uint64(2), "cmp.services.book.v2.MintService") {
+				// c := bookv2grpc.NewMintServiceClient(rpcClient.ClientConn)
+				// services[2] = mintService{client: &c}
+				log.Print("supports MintService 2")
+			}
+		case ValidationRequest:
+			if s.isServiceVersionSupported("ValidationService", uint64(1), "cmp.services.book.v1.ValidationService") {
+				c := bookv1grpc.NewValidationServiceClient(rpcClient.ClientConn)
+				service = validationService{client: &c}
+			}
+		case TransportSearchRequest:
+			if s.isServiceVersionSupported("TransportSearchService", uint64(1), "cmp.services.transport.v1.TransportSearchService") {
+				c := transportv1grpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
+				service = transportService{client: &c}
+			}
+		case SeatMapRequest:
+			if s.isServiceVersionSupported("SeatMapService", uint64(1), "cmp.services.seat_map.v1.SeatMapService") {
+				c := seat_mapv1grpc.NewSeatMapServiceClient(rpcClient.ClientConn)
+				service = seatMapService{client: &c}
+			}
+		case SeatMapAvailabilityRequest:
+			if s.isServiceVersionSupported("SeatMapAvailabilityService", uint64(1), "cmp.services.seat_map.v1.SeatMapAvailabilityService") {
+				c := seat_mapv1grpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
+				service = seatMapAvailabilityService{client: &c}
+			}
+		case CountryEntryRequirementsRequest:
+			if s.isServiceVersionSupported("CountryEntryRequirementsService", uint64(1), "cmp.services.info.v1.CountryEntryRequirementsService") {
+				c := infov1grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
+				service = countryEntryRequirementsService{client: &c}
+			}
 		case GetNetworkFeeRequest:
 			service = networkService{} // this service does not talk to partner plugin
 		case GetPartnerConfigurationRequest:
 			service = partnerService{} // this service does not talk to partner plugin
-		case MintRequest:
-			c := bookv1grpc.NewMintServiceClient(rpcClient.ClientConn)
-			service = mintService{client: &c}
-		case ValidationRequest:
-			c := bookv1grpc.NewValidationServiceClient(rpcClient.ClientConn)
-			service = validationService{client: &c}
 		case PingRequest:
 			service = pingService{} // this service does not talk to partner plugin
-		case TransportSearchRequest:
-			c := transportv1grpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
-			service = transportService{client: &c}
-		case SeatMapRequest:
-			c := seat_mapv1grpc.NewSeatMapServiceClient(rpcClient.ClientConn)
-			service = seatMapService{client: &c}
-		case SeatMapAvailabilityRequest:
-			c := seat_mapv1grpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
-			service = seatMapAvailabilityService{client: &c}
-		case CountryEntryRequirementsRequest:
-			c := infov1grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
-			service = countryEntryRequirementsService{client: &c}
 		default:
 			s.logger.Infof("Skipping registration of unknown request type: %s", requestType)
 			continue
 		}
-		s.services[MessageType(requestType)] = service
+		if service != nil {
+			s.services[MessageType(requestType)] = service
+		}
 	}
 }
 
 func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	service, ok := s.services[messageType]
 	return service, ok
+}
+
+func (s *serviceRegistry) isServiceVersionSupported(name string, version uint64, path string) bool {
+	_, ok := s.supported[ServiceIdentifier{serviceName: name, serviceVersion: version, servicePath: path}]
+	return ok
 }

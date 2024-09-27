@@ -13,8 +13,12 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"maunium.net/go/mautrix/id"
 )
 
 type App struct {
@@ -42,46 +46,59 @@ func NewApp(cfg *config.Config) (*App, error) {
 	app.logger = logger.Sugar()
 	defer logger.Sync() //nolint:errcheck
 
-	// TODO @evlekht use actual git tag/commit
-	app.logger.Info("version: 9.0.0")
-
 	return app, nil
 }
 
 func (a *App) Run(ctx context.Context) error {
 	g, gCtx := errgroup.WithContext(ctx)
 
-	// TODO do proper DI with FX
-
-	_, err := storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
-	if err != nil {
-		a.logger.Fatalf("Failed to create storage: %v", err)
-	}
-
-	serviceRegistry := messaging.NewServiceRegistry(a.logger)
-	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
-	if a.cfg.PartnerPluginConfig.Host != "" {
-		a.startRPCClient(gCtx, g, serviceRegistry)
-	} else {
-		a.logger.Infof("No host for partner plugin provided, bot will serve as a distributor bot.")
-		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes, nil)
-	}
-	// start messenger (receiver)
-	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
-
 	evmClient, err := evm.NewClient(a.cfg.EvmConfig)
 	if err != nil {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
 
+	cmAccount, err := cmaccount.NewCmaccount(common.HexToAddress(a.cfg.CMAccountAddress), evmClient)
+	if err != nil {
+		a.logger.Fatalf("Failed to fetch CM account: %v", err)
+	}
+
+	supportedServices, err := cmAccount.GetSupportedServices(&bind.CallOpts{})
+	if err != nil {
+		a.logger.Fatalf("Failed to fetch Registered services: %v", err)
+	}
+	a.logger.Infof("supportedServices %v", supportedServices)
 	// create response handler
+
+	// TODO do proper DI with FX
+
+	_, err = storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
+	if err != nil {
+		a.logger.Fatalf("Failed to create storage: %v", err)
+	}
+	serviceRegistry := messaging.NewServiceRegistry(supportedServices, a.logger)
+
+	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
+	if a.cfg.PartnerPluginConfig.Host != "" {
+		a.startRPCClient(gCtx, g, serviceRegistry)
+	} else {
+		a.logger.Infof("No host for partner plugin provided, bot will serve as a distributor bot.")
+		serviceRegistry.RegisterServices(nil)
+	}
+	// start messenger (receiver)
+	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
+
 	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
+	identificationHandler, err := messaging.NewIdentificationHandler(evmClient, a.logger, &a.cfg.EvmConfig, &a.cfg.MatrixConfig)
+	if err != nil {
+		a.logger.Fatalf("Failed to create to evm client: %v", err)
+	}
+
 	// start msg processor
-	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, g, userIDUpdatedChan)
+	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, identificationHandler, g, userIDUpdatedChan)
 
 	// init tracer
 	tracer := a.initTracer()
@@ -125,7 +142,7 @@ func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegi
 		if err != nil {
 			panic(err)
 		}
-		serviceRegistry.RegisterServices(a.cfg.SupportedRequestTypes, rpcClient)
+		serviceRegistry.RegisterServices(rpcClient)
 		return nil
 	})
 	g.Go(func() error {
@@ -134,9 +151,9 @@ func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegi
 	})
 }
 
-func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan string) {
+func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan id.UserID) {
 	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
-	userIDUpdatedChan := make(chan string) // Channel to pass the userID
+	userIDUpdatedChan := make(chan id.UserID) // Channel to pass the userID
 	g.Go(func() error {
 		a.logger.Info("Starting message receiver...")
 		userID, err := messenger.StartReceiver()
@@ -166,8 +183,8 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, g *errgroup.Group, userIDUpdated chan string) messaging.Processor {
-	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler)
+func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, identificationHandler messaging.IdentificationHandler, g *errgroup.Group, userIDUpdated chan id.UserID) messaging.Processor {
+	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, identificationHandler)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

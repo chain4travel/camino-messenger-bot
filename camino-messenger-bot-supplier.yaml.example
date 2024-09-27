@@ -1,3 +1,5 @@
+# This example is made for development purposes - for production see docker-compose.yml
+
 # Lower level logging for local development
 developer_mode: true
 
@@ -16,7 +18,7 @@ developer_mode: true
 matrix_key: YOUR_PRIVATE_KEY_HEX
 
 # Hostname of the Matrix Server
-matrix_host: matrix.camino.network
+matrix_host: messenger.chain4travel.com
 
 # Local DB file to store Matrix data
 matrix_store: supplier-matrix.db
@@ -47,24 +49,6 @@ partner_plugin_unencrypted: true
 # Required if partner_plugin_unencrypted is false
 partner_plugin_ca_file: ca-cert.pem
 
-### Supported Request Types for this supplier.
-supported_request_types:
-  - GetNetworkFeeRequest
-  - GetPartnerConfigurationRequest
-  - PingRequest
-  - AccommodationProductListRequest
-  - AccommodationProductInfoRequest
-  - AccommodationSearchRequest
-  - ActivityProductListRequest
-  - ActivityProductInfoRequest
-  - ActivitySearchRequest
-  - TransportSearchRequest
-  - MintRequest
-  - ValidationRequest
-  - SeatMapRequest
-  - SeatMapAvailabilityRequest
-  - CountryEntryRequirementsRequest
-
 ### C-Chain (EVM)
 
 # Used for signing transactions on the c-chain, can be same as the matrix_key. This
@@ -78,21 +62,10 @@ rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 ### Booking Token
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
-booking_token_address: "0xd4e2D76E656b5060F6f43317E8d89ea81eb5fF8D"
+booking_token_address: "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"
 
-# ABI file that will be used during minting, buying of Booking Tokens
-booking_token_abi_file: abi/BookingTokenV0.abi
-
-# Supplier name to be used for registering to the BookingToken smart contract.
-# Should be a short name, it will be saved on-chain.
-supplier_name: SUPPLIER_NAME
-
-# Default expiration time (in seconds) for BookingToken mints.
-#
-# The supplier bot creates booking tokens and sets an expiration timestamp on each token.
-# Once this time has passed, the token is no longer available for purchase by the distributor.
-# The default value is 600 seconds.
-buyable_until_default: 600
+# Address of the CM Account that the bot belongs to
+cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
 
 ### Database
 

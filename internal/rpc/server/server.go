@@ -202,7 +202,7 @@ func (s *server) processInternalRequest(ctx context.Context, requestType messagi
 	defer span.End()
 	service, registered := s.serviceRegistry.GetService(requestType)
 	if !registered {
-		return nil, fmt.Errorf("%w: %s", messaging.ErrUnsupportedRequestType, requestType)
+		return nil, fmt.Errorf("%w: %s", messaging.ErrUnsupportedService, requestType)
 	}
 	response, _, err := service.Call(ctx, request)
 	return response, err
