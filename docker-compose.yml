@@ -1,25 +1,15 @@
 version: "3"
 services:
-  supplier-bot:
+  bot:
     image: c4tplatform/camino-messenger-bot
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./examples/config:/cmb-config
+      - ./cmb-config:/cmb-config
     ports:
       - "9090:9090"
-    command: ["--config", "/cmb-config/config-supplier.yaml"]
-  distributor-bot:
-    image: c4tplatform/camino-messenger-bot
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./examples/config:/cmb-config
-    ports:
-      - "9092:9090"
-    command: ["--config", "/cmb-config/config-distributor.yaml"]
+    command: ["--config", "/cmb-config/config.yaml"]
   provider-plugin:
     image: c4tplatform/camino-messenger-bot-plugin
     build:
