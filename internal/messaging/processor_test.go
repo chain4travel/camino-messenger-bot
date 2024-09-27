@@ -30,12 +30,8 @@ var (
 	anotherUserID = "anotherUserID"
 	requestID     = "requestID"
 	errSomeError  = errors.New("some error")
-)
 
-func TestProcessInbound(t *testing.T) {
-	responseMessage := Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
-
-	dummyCheque := cheques.SignedCheque{
+	dummyCheque = cheques.SignedCheque{
 		Cheque: cheques.Cheque{
 			FromCMAccount: zeroAddress,
 			ToCMAccount:   zeroAddress,
@@ -47,6 +43,10 @@ func TestProcessInbound(t *testing.T) {
 		},
 		Signature: []byte("signature"),
 	}
+)
+
+func TestProcessInbound(t *testing.T) {
+	responseMessage := Message{Type: ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -360,16 +360,16 @@ func TestStart(t *testing.T) {
 			// msg with sender == userID
 			ch <- Message{Metadata: metadata.Metadata{Sender: userID}}
 			// msg with sender == userID but without valid msgType
-			ch <- Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
+			ch <- Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
 			// msg with sender == userID and valid msgType
 			ch <- Message{
 				Type:     ActivityProductListRequest,
-				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}},
+				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 			// 2nd msg with sender == userID and valid msgType
 			ch <- Message{
 				Type:     ActivitySearchRequest,
-				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}},
+				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 		}
 		// mocks
