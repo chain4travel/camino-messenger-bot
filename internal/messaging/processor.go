@@ -209,12 +209,6 @@ func (p *processor) Respond(msg *Message) error {
 
 	myBotAddress := md.Recipient
 
-	/// TODO: Uncomment after Cheques implementation
-	// No message should be without cheque?
-	if md.Cheques == nil {
-		return fmt.Errorf("%w: %s", ErrMissingCheques, msg.Type)
-	}
-
 	// TODO@ should be part of cheque verification
 	cheque := p.getChequeForThisBot(md.Cheques)
 	if cheque == nil {
