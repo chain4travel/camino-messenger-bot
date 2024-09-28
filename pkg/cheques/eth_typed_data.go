@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
 
-// TODO@ code was copy-pasted (with small modifications) from eth; does it need license header?
+// TODO @evlekht code was copy-pasted (with small modifications) from eth; does it need license header?
 
 func hashStructWithTypeHash(typedData *apitypes.TypedData, dataType string, typeHash []byte) ([]byte, error) {
 	if exp, got := len(typedData.Types[dataType]), len(typedData.Message); exp < got {

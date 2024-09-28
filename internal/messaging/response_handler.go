@@ -14,9 +14,12 @@ import (
 	"time"
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-
+	grpc "google.golang.org/grpc"
+	grpc_metadata "google.golang.org/grpc/metadata"
+	
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -25,6 +28,7 @@ import (
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -41,7 +45,13 @@ type ResponseHandler interface {
 	HandleRequest(ctx context.Context, msgType MessageType, request *RequestContent) error
 }
 
-func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ResponseHandler, error) {
+func NewResponseHandler(
+	ethClient *ethclient.Client,
+	logger *zap.SugaredLogger,
+	cfg *config.EvmConfig,
+	serviceRegistry ServiceRegistry,
+	evmEventListener *events.EventListener,
+) (ResponseHandler, error) {
 	ecdsaPk, err := crypto.HexToECDSA(cfg.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -65,6 +75,8 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 		bookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
 		bookingService:      *bookingService,
 		bookingToken:        *bookingToken,
+		serviceRegistry:     serviceRegistry,
+		evmEventListener:    evmEventListener,
 	}, nil
 }
 
@@ -76,6 +88,8 @@ type evmResponseHandler struct {
 	bookingTokenAddress common.Address
 	bookingService      booking.Service
 	bookingToken        bookingtoken.Bookingtoken
+	serviceRegistry     ServiceRegistry
+	evmEventListener    *events.EventListener
 }
 
 func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
@@ -121,18 +135,22 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	currentTime := time.Now()
 
-	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
+	switch {
+	case response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0:
 		// BuyableUntil not set
 		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(300 * time.Second))
-	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds {
+
+	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
 		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", response.MintResponse.BuyableUntil)
 		addErrorToResponseHeader(response, errMsg)
 		return true
-	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(70*time.Second)).Seconds {
+
+	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(70*time.Second)).Seconds:
 		// BuyableUntil too early
 		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(70 * time.Second))
-	} else if response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(600*time.Second)).Seconds {
+
+	case response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(600*time.Second)).Seconds:
 		// BuyableUntil too late
 		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(600 * time.Second))
 	}
@@ -153,6 +171,9 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	}
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
+
+	h.onBookingTokenMint(tokenID, response.MintResponse.MintId, response.BuyableUntil.AsTime())
+
 	// Header is of typev1
 	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	// Disable Linter: This code will be removed with the new mint logic and protocol
@@ -223,8 +244,6 @@ func (h *evmResponseHandler) mint(
 	}
 
 	return tx.Hash().Hex(), tokenID, nil
-
-	//
 }
 
 // TODO @VjeraTurk code that creates and handles context should be improved, since its not doing job in separate goroutine,
@@ -264,6 +283,56 @@ func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Tran
 	h.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
+}
+
+func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv1.UUID, buyableUntil time.Time) {
+	var expirationTimer *time.Timer
+	notificationClient := h.serviceRegistry.NotificationClient()
+
+	unsubscribeTokenBought, err := h.evmEventListener.RegisterTokenBoughtHandler(
+		h.bookingTokenAddress,
+		[]*big.Int{tokenID},
+		nil,
+		func(e any) {
+			expirationTimer.Stop()
+			h.logger.Infof("Token bought event received for token %s", tokenID.String())
+			event := e.(*bookingtoken.BookingtokenTokenBought)
+
+			if _, err := notificationClient.TokenBoughtNotification(
+				context.Background(),
+				&notificationv1.TokenBought{
+					TokenId: tokenID.Uint64(),
+					TxId:    event.Raw.TxHash.Hex(),
+					MintId:  mintID,
+				},
+				grpc.Header(&grpc_metadata.MD{}),
+			); err != nil {
+				h.logger.Errorf("failed to call service: %v", err)
+			}
+		},
+	)
+	if err != nil {
+		h.logger.Errorf("failed to register handler: %v", err)
+		// TODO @evlekht send some notification to partner plugin
+		return
+	}
+
+	expirationTimer = time.AfterFunc(time.Until(buyableUntil), func() {
+		unsubscribeTokenBought()
+		h.logger.Infof("Token %s expired", tokenID.String())
+
+		if _, err := notificationClient.TokenExpiredNotification(
+			context.Background(),
+			&notificationv1.TokenExpired{
+				TokenId: tokenID.Uint64(),
+				MintId:  mintID,
+			},
+			grpc.Header(&grpc_metadata.MD{}),
+		); err != nil {
+			h.logger.Errorf("error calling %s service: %v", TokenExpired, err)
+			return
+		}
+	})
 }
 
 // TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg

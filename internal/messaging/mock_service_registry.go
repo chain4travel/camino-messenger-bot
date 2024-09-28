@@ -12,6 +12,7 @@ package messaging
 import (
 	reflect "reflect"
 
+	notificationv1grpc "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	client "github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -52,6 +53,20 @@ func (m *MockServiceRegistry) GetService(arg0 MessageType) (Service, bool) {
 func (mr *MockServiceRegistryMockRecorder) GetService(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetService", reflect.TypeOf((*MockServiceRegistry)(nil).GetService), arg0)
+}
+
+// NotificationClient mocks base method.
+func (m *MockServiceRegistry) NotificationClient() notificationv1grpc.NotificationServiceClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotificationClient")
+	ret0, _ := ret[0].(notificationv1grpc.NotificationServiceClient)
+	return ret0
+}
+
+// NotificationClient indicates an expected call of NotificationClient.
+func (mr *MockServiceRegistryMockRecorder) NotificationClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotificationClient", reflect.TypeOf((*MockServiceRegistry)(nil).NotificationClient))
 }
 
 // RegisterServices mocks base method.

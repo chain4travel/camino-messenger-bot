@@ -15,6 +15,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1/networkv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v2/partnerv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
@@ -25,6 +26,7 @@ import (
 	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
+	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
@@ -34,6 +36,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -55,6 +58,7 @@ type partnerPlugin struct {
 	infov2grpc.CountryEntryRequirementsServiceServer
 	activityv2grpc.ActivityProductInfoServiceServer
 	bookv2grpc.MintServiceServer
+	notificationv1grpc.NotificationServiceServer
 }
 
 func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv2.MintResponse, error) {
@@ -64,7 +68,7 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (Mint)", md.RequestID)
 
 	response := bookv2.MintResponse{
 		MintId: &typesv1.UUID{Value: md.RequestID},
@@ -95,7 +99,7 @@ func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv2.ValidationRequ
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (Validation)", md.RequestID)
 
 	response := bookv2.ValidationResponse{
 		Header:           nil,
@@ -124,7 +128,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (ActivityProductInfo)", md.RequestID)
 
 	response := activityv2.ActivityProductInfoResponse{
 		Header: nil,
@@ -137,43 +141,43 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 					ProductCode: &typesv2.ProductCode{
 						Code: "XPTFAOH15O", //supplier_code
 					},
-					UnitCode:    "ActivityTest", //supplier_unit_code
-					ServiceCode: "TRF",          //service_code
+					UnitCode:    "ActivityTest", // supplier_unit_code
+					ServiceCode: "TRF",          // service_code
 					Bookability: &typesv1.Bookability{
 						Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
 						ConfirmationTime: &typesv1.Time{
 							Hours:   18,
-							Minutes: 00,
+							Minutes: 0o0,
 						},
 					},
 				},
 				Units: []*activityv2.ActivityUnit{
 					{
 						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, time.UTC)), //summary.start
-							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 00, 0, 0, time.UTC)),
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 0o0, 0, 0, time.UTC)), // summary.start
+							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 12, 0o0, 0, 0, time.UTC)),
 						},
-						Code:        "TK0001H1",                               //unit_code
-						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
-						Description: "starts at 11h00",                        //descriptive_text
+						Code:        "TK0001H1",                               // unit_code
+						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", // unit_code_description
+						Description: "starts at 11h00",                        // descriptive_text
 					},
 					{
 						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 9, 30, 0, 0, time.UTC)), //summary.start
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 9, 30, 0, 0, time.UTC)), // summary.start
 							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 10, 30, 0, 0, time.UTC)),
 						},
-						Code:        "TK0001H0",                               //unit_code
-						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", //unit_code_description
-						Description: "starts at 09h30",                        //descriptive_text
+						Code:        "TK0001H0",                               // unit_code
+						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", // unit_code_description
+						Description: "starts at 09h30",                        // descriptive_text
 					},
 					{
 						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)), //summary.start
+							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)), // summary.start
 							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 17, 30, 0, 0, time.UTC)),
 						},
-						Code:        "TK0001H2",                               //unit_code
-						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [2]", //unit_code_description
-						Description: "starts at 16h30",                        //descriptive_text
+						Code:        "TK0001H2",                               // unit_code
+						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [2]", // unit_code_description
+						Description: "starts at 16h30",                        // descriptive_text
 					},
 				},
 				Services: []*activityv2.ActivityService{
@@ -300,25 +304,25 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.A
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (ActivityProductList)", md.RequestID)
 
 	response := activityv2.ActivityProductListResponse{
 		Header: nil,
 		Activities: []*activityv2.Activity{
 			{
-				Context:           "ActivityTest", //context
+				Context:           "ActivityTest", // context
 				LastModified:      timestamppb.New(time.Now()),
 				ExternalSessionId: "23456", //external_session_id
 				ProductCode: &typesv2.ProductCode{
 					Code: "XPTFAOH15O", //supplier_code
 				},
-				UnitCode:    "ActivityTest", //supplier_unit_code
-				ServiceCode: "TRF",          //service_code
+				UnitCode:    "ActivityTest", // supplier_unit_code
+				ServiceCode: "TRF",          // service_code
 				Bookability: &typesv1.Bookability{
 					Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
 					ConfirmationTime: &typesv1.Time{
 						Hours:   18,
-						Minutes: 00,
+						Minutes: 0o0,
 					},
 				},
 			},
@@ -328,8 +332,8 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.A
 
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
-
 }
+
 func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv2.ActivitySearchRequest) (*activityv2.ActivitySearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -337,7 +341,7 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv2.Activi
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (ActivitySearch)", md.RequestID)
 
 	response := activityv2.ActivitySearchResponse{
 		Header:   nil,
@@ -356,7 +360,7 @@ func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommo
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (AccommodationProductInfo)", md.RequestID)
 
 	response := accommodationv2.AccommodationProductInfoResponse{
 		Properties: []*accommodationv2.PropertyExtendedInfo{{PaymentType: "cash"}},
@@ -374,7 +378,7 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommo
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (AccommodationProductList)", md.RequestID)
 
 	response := accommodationv2.AccommodationProductListResponse{
 		Properties: []*accommodationv2.Property{{Name: "Hotel"}},
@@ -393,7 +397,7 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (AccommodationSearch)", md.RequestID)
 
 	response := accommodationv2.AccommodationSearchResponse{
 		Header: nil,
@@ -450,7 +454,7 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1.Ge
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (GetNetworkFee)", md.RequestID)
 
 	response := networkv1.GetNetworkFeeResponse{
 		NetworkFee: &networkv1.NetworkFee{
@@ -471,7 +475,7 @@ func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *pa
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (GetPartnerConfiguration)", md.RequestID)
 
 	response := partnerv2.GetPartnerConfigurationResponse{
 		PartnerConfiguration: &partnerv2.PartnerConfiguration{},
@@ -490,7 +494,7 @@ func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1.PingRequest) (
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (Ping)", md.RequestID)
 
 	return &pingv1.PingResponse{
 		Header:      nil,
@@ -505,7 +509,7 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.Tran
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (TransportSearch)", md.RequestID)
 
 	response := transportv2.TransportSearchResponse{
 		Header:   nil,
@@ -516,6 +520,7 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.Tran
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+
 func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMapRequest) (*seat_mapv2.SeatMapResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -523,7 +528,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMap
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (SeatMap)", md.RequestID)
 
 	response := seat_mapv2.SeatMapResponse{
 		Header: nil,
@@ -661,28 +666,31 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMap
 						Width:  50,
 						Height: 50,
 					},
-					LocalizedDescriptions: []*typesv1.LocalizedDescriptionSet{{
-						Language: typesv1.Language_LANGUAGE_EN,
-						Descriptions: []*typesv1.Description{{
-							Category: "General",
-							Text:     "Seats",
-						}},
-					}, {
-						Language: typesv1.Language_LANGUAGE_DE,
-						Descriptions: []*typesv1.Description{{
-							Category: "Allgemein",
-							Text:     "Sitz",
-						}},
-					},
+					LocalizedDescriptions: []*typesv1.LocalizedDescriptionSet{
+						{
+							Language: typesv1.Language_LANGUAGE_EN,
+							Descriptions: []*typesv1.Description{{
+								Category: "General",
+								Text:     "Seats",
+							}},
+						}, {
+							Language: typesv1.Language_LANGUAGE_DE,
+							Descriptions: []*typesv1.Description{{
+								Category: "Allgemein",
+								Text:     "Sitz",
+							}},
+						},
 					},
 				},
-			}},
+			},
+		},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
+
 func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_mapv2.SeatMapAvailabilityRequest) (*seat_mapv2.SeatMapAvailabilityResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -690,7 +698,7 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (SeatMapAvailability)", md.RequestID)
 
 	response := seat_mapv2.SeatMapAvailabilityResponse{
 		Header: nil,
@@ -703,7 +711,8 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 						SeatList: &typesv2.SeatInventory{
 							Ids: []string{"1A", "1B"},
 						},
-					}},
+					},
+				},
 				{
 					Id:       "B",
 					SeatInfo: &typesv2.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 32}},
@@ -724,7 +733,7 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (CountryEntryRequirements)", md.RequestID)
 
 	response := infov2.CountryEntryRequirementsResponse{
 		Header: nil,
@@ -813,7 +822,7 @@ func (p *partnerPlugin) InsuranceProductInfo(ctx context.Context, request *insur
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (InsuranceProductInfo)", md.RequestID)
 
 	response := insurancev1.InsuranceProductInfoResponse{
 		// TODO: add an example
@@ -829,7 +838,7 @@ func (p *partnerPlugin) InsuranceProductList(ctx context.Context, request *insur
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (InsuranceProductList)", md.RequestID)
 
 	response := insurancev1.InsuranceProductListResponse{
 		// TODO: add an example
@@ -845,13 +854,37 @@ func (p *partnerPlugin) InsuranceSearch(ctx context.Context, request *insurancev
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
+	log.Printf("Responding to request: %s (InsuranceSearch)", md.RequestID)
 
 	response := insurancev1.InsuranceSearchResponse{
 		// TODO: add an example
 	}
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
+}
+
+func (p *partnerPlugin) TokenBoughtNotification(ctx context.Context, request *notificationv1.TokenBought) (*emptypb.Empty, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s (TokenBoughtNotification)", md.RequestID)
+
+	return &emptypb.Empty{}, nil
+}
+
+func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, request *notificationv1.TokenExpired) (*emptypb.Empty, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s (TokenExpiredNotification)", md.RequestID)
+
+	return &emptypb.Empty{}, nil
 }
 
 func main() {
@@ -870,11 +903,11 @@ func main() {
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterMintServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
-
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
+	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &partnerPlugin{})
 
 	port := 55555
 	var err error
