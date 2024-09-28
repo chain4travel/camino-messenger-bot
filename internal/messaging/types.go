@@ -130,8 +130,6 @@ const (
 	InsuranceProductListResponse     MessageType = "InsuranceProductListResponse"
 	InsuranceSearchRequest           MessageType = "InsuranceSearchRequest"
 	InsuranceSearchResponse          MessageType = "InsuranceSearchResponse"
-	TokenBought                      MessageType = "TokenBought"
-	TokenExpired                     MessageType = "TokenExpired"
 )
 
 func (mt MessageType) Category() MessageCategory {

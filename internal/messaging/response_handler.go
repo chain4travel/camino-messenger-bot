@@ -306,7 +306,7 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 				},
 				grpc.Header(&grpc_metadata.MD{}),
 			); err != nil {
-				h.logger.Errorf("failed to call service: %v", err)
+				h.logger.Errorf("error calling partner plugin TokenBoughtNotification service: %v", err)
 			}
 		},
 	)
@@ -328,8 +328,7 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 			},
 			grpc.Header(&grpc_metadata.MD{}),
 		); err != nil {
-			h.logger.Errorf("error calling %s service: %v", TokenExpired, err)
-			return
+			h.logger.Errorf("error calling partner plugin TokenExpiredNotification service: %v", err)
 		}
 	})
 }
