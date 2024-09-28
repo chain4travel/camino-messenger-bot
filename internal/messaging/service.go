@@ -18,7 +18,7 @@ import (
 
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
-	ping1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
@@ -183,7 +183,7 @@ func (s pingService) Call(ctx context.Context, request *RequestContent, _ ...grp
 	if err != nil {
 		return nil, PingResponse, err
 	}
-	return &ResponseContent{PingResponse: &ping1.PingResponse{
+	return &ResponseContent{PingResponse: &pingv1.PingResponse{
 		Header:      nil,
 		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
 		Timestamp:   nil,

@@ -17,8 +17,6 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
-	// "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -112,9 +110,9 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 
 	tokenURI := response.MintResponse.BookingTokenUri
 
-	var jsonPlain string
 	if tokenURI == "" {
 		// Get a Token URI for the token.
+		var jsonPlain string
 		jsonPlain, tokenURI, _ = createTokenURIforMintResponse(response.MintResponse)
 		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 	} else {
@@ -158,7 +156,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	// Header is of typev1
 	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	// Disable Linter: This code will be removed with the new mint logic and protocol
-	response.MintResponse.BookingTokenId = uint64(tokenID.Int64()) // #nosec G115
+	response.MintResponse.BookingTokenId = tokenID.Uint64()
 	response.MintTransactionId = txID
 	return false
 }
