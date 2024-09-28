@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.opentelemetry.io/otel"
@@ -46,7 +46,6 @@ type messenger struct {
 	client       client
 	roomHandler  RoomHandler
 	msgAssembler MessageAssembler
-	compressor   compression.Compressor[messaging.Message, []matrix.CaminoMatrixMessage]
 }
 
 func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging.Messenger {
@@ -62,7 +61,6 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging
 		client:       client{Client: c},
 		roomHandler:  NewRoomHandler(NewClient(c), logger),
 		msgAssembler: NewMessageAssembler(),
-		compressor:   &ChunkingCompressor{maxChunkSize: compression.MaxChunkSize},
 	}
 }
 
@@ -170,7 +168,7 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message, sendTo id.UserID) error {
+func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message, content [][]byte, sendTo id.UserID) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -182,14 +180,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message, sendTo
 	}
 	roomSpan.End()
 
-	ctx, compressSpan := m.tracer.Start(ctx, "messenger.Compress", trace.WithAttributes(attribute.String("type", string(msg.Type))))
-	messages, err := m.compressor.Compress(msg)
-	if err != nil {
-		return err
-	}
-	compressSpan.End()
-
-	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, messages)
+	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, createMatrixMessages(&msg, content))
 }
 
 func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []matrix.CaminoMatrixMessage) error {
@@ -249,4 +240,29 @@ func hexWithChecksum(bytes []byte) (string, error) {
 	copy(checked[len(bytes):], hash[len(hash)-checksumLen:])
 	bytes = checked
 	return fmt.Sprintf("0x%x", bytes), nil
+}
+
+func createMatrixMessages(msg *messaging.Message, content [][]byte) []matrix.CaminoMatrixMessage {
+	messages := make([]matrix.CaminoMatrixMessage, 0, len(content))
+
+	// add first chunk to messages slice
+	caminoMatrixMsg := matrix.CaminoMatrixMessage{
+		MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
+		Metadata:            msg.Metadata,
+	}
+	caminoMatrixMsg.Metadata.NumberOfChunks = uint64(len(content))
+	caminoMatrixMsg.Metadata.ChunkIndex = 0
+	caminoMatrixMsg.CompressedContent = content[0]
+	messages = append(messages, caminoMatrixMsg)
+
+	// if multiple chunks were produced upon compression, add them to messages slice
+	for i, chunk := range content[1:] {
+		messages = append(messages, matrix.CaminoMatrixMessage{
+			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
+			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint64(len(content)), ChunkIndex: uint64(i + 1)},
+			CompressedContent:   chunk,
+		})
+	}
+
+	return messages
 }

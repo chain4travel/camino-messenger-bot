@@ -17,6 +17,7 @@ import (
 
 	"go.uber.org/mock/gomock"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 
@@ -131,7 +132,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 				mockActivityProductListServiceClient.EXPECT().ActivityProductList(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(activityProductListService{client: mockActivityProductListServiceClient}, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
@@ -150,7 +151,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 				mockActivityProductListServiceClient.EXPECT().ActivityProductList(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(activityProductListService{client: mockActivityProductListServiceClient}, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
@@ -188,6 +189,7 @@ func TestProcessInbound(t *testing.T) {
 				tt.fields.responseHandler,
 				tt.fields.identificationHandler,
 				tt.fields.chequeHandler,
+				&noopCompressor{},
 			)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
@@ -218,6 +220,7 @@ func TestProcessOutbound(t *testing.T) {
 		responseHandler       ResponseHandler
 		identificationHandler IdentificationHandler
 		chequeHandler         ChequeHandler
+		compressor            compression.Compressor[*Message, [][]byte]
 	}
 	type args struct {
 		msg *Message
@@ -238,6 +241,7 @@ func TestProcessOutbound(t *testing.T) {
 				identificationHandler: NoopIdentification{},
 				chequeHandler:         NoopChequeHandler{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListResponse},
@@ -252,6 +256,7 @@ func TestProcessOutbound(t *testing.T) {
 				identificationHandler: NoopIdentification{},
 				chequeHandler:         NoopChequeHandler{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest},
@@ -269,13 +274,14 @@ func TestProcessOutbound(t *testing.T) {
 				identificationHandler: NoopIdentification{},
 				chequeHandler:         NoopChequeHandler{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			err: ErrExceededResponseTimeout,
 		},
@@ -287,13 +293,14 @@ func TestProcessOutbound(t *testing.T) {
 				identificationHandler: NoopIdentification{},
 				chequeHandler:         NoopChequeHandler{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			err: errSomeError,
 		},
@@ -305,13 +312,14 @@ func TestProcessOutbound(t *testing.T) {
 				identificationHandler: NoopIdentification{},
 				chequeHandler:         NoopChequeHandler{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			args: args{
 				msg: &Message{Type: ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			writeResponseToChannel: func(p *processor) {
 				done := func() bool {
@@ -336,7 +344,17 @@ func TestProcessOutbound(t *testing.T) {
 
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewProcessor(tt.fields.messenger, zap.NewNop().Sugar(), tt.fields.cfg, tt.fields.evmConfig, tt.fields.serviceRegistry, tt.fields.responseHandler, tt.fields.identificationHandler, tt.fields.chequeHandler)
+			p := NewProcessor(
+				tt.fields.messenger,
+				zap.NewNop().Sugar(),
+				tt.fields.cfg,
+				tt.fields.evmConfig,
+				tt.fields.serviceRegistry,
+				tt.fields.responseHandler,
+				tt.fields.identificationHandler,
+				tt.fields.chequeHandler,
+				tt.fields.compressor,
+			)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
 			}
@@ -363,17 +381,9 @@ func TestStart(t *testing.T) {
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
 	mockMessenger := NewMockMessenger(mockCtrl)
 	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(dummyService{}, true)
-	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
+	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
 	t.Run("start processor and accept messages", func(*testing.T) {
-		cfg := config.ProcessorConfig{}
-		evmConfig := config.EvmConfig{}
-		serviceRegistry := mockServiceRegistry
-		responseHandler := NoopResponseHandler{}
-		identificationHandler := NoopIdentification{}
-		chequeHandler := NoopChequeHandler{}
-		messenger := mockMessenger
-
 		ch := make(chan Message, 5)
 		// incoming messages
 		{
@@ -398,7 +408,17 @@ func TestStart(t *testing.T) {
 		mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		p := NewProcessor(messenger, zap.NewNop().Sugar(), cfg, evmConfig, serviceRegistry, responseHandler, identificationHandler, chequeHandler)
+		p := NewProcessor(
+			mockMessenger,
+			zap.NewNop().Sugar(),
+			config.ProcessorConfig{},
+			config.EvmConfig{},
+			mockServiceRegistry,
+			NoopResponseHandler{},
+			NoopIdentification{},
+			NoopChequeHandler{},
+			&noopCompressor{},
+		)
 		p.SetUserID(userID)
 		go p.Start(ctx)
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
@@ -92,7 +93,13 @@ func (a *App) Run(ctx context.Context) error {
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
-	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig, serviceRegistry, evmEventListener)
+	responseHandler, err := messaging.NewResponseHandler(
+		evmClient,
+		a.logger,
+		&a.cfg.EvmConfig,
+		serviceRegistry,
+		evmEventListener,
+	)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
@@ -100,18 +107,39 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatalf("Failed to fetch chain id: %v", err)
 	}
-	chequeHandler, err := messaging.NewChequeHandler(a.logger, evmClient, &a.cfg.EvmConfig, chainID, storage, serviceRegistry)
+	chequeHandler, err := messaging.NewChequeHandler(
+		a.logger,
+		evmClient,
+		&a.cfg.EvmConfig,
+		chainID,
+		storage,
+		serviceRegistry,
+	)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
-	identificationHandler, err := messaging.NewIdentificationHandler(evmClient, a.logger, &a.cfg.EvmConfig, &a.cfg.MatrixConfig)
+	identificationHandler, err := messaging.NewIdentificationHandler(
+		evmClient,
+		a.logger,
+		&a.cfg.EvmConfig,
+		&a.cfg.MatrixConfig,
+	)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
 	// start msg processor
-	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, identificationHandler, chequeHandler, g, userIDUpdatedChan)
+	msgProcessor := a.startMessageProcessor(
+		ctx,
+		messenger,
+		serviceRegistry,
+		responseHandler,
+		identificationHandler,
+		chequeHandler,
+		g,
+		userIDUpdatedChan,
+	)
 
 	// init tracer
 	tracer := a.initTracer()
@@ -206,6 +234,7 @@ func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Mes
 		responseHandler,
 		identificationHandler,
 		chequeHandler,
+		messaging.NewCompressor(compression.MaxChunkSize),
 	)
 	g.Go(func() error {
 		// Wait for userID to be passed

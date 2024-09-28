@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
@@ -70,6 +71,7 @@ type processor struct {
 	identificationHandler IdentificationHandler
 	chequeHandler         ChequeHandler
 	myBotAddress          common.Address
+	compressor            compression.Compressor[*Message, [][]byte]
 }
 
 func (p *processor) SetUserID(userID id.UserID) {
@@ -90,6 +92,7 @@ func NewProcessor(
 	responseHandler ResponseHandler,
 	identificationHandler IdentificationHandler,
 	chequeHandler ChequeHandler,
+	compressor compression.Compressor[*Message, [][]byte],
 ) Processor {
 	return &processor{
 		cfg:                   cfg,
@@ -103,6 +106,7 @@ func NewProcessor(
 		responseHandler:       responseHandler,
 		identificationHandler: identificationHandler,
 		chequeHandler:         chequeHandler,
+		compressor:            compressor,
 	}
 }
 
@@ -188,8 +192,15 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		return nil, ErrBotMissingChequeOperatorRole
 	}
 
+	// Compress and chunk message
+
+	ctx, compressedContent, err := p.compress(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
 	// Cheque Issuing start
-	numberOfChunks := new(big.Int).SetUint64(msg.Metadata.NumberOfChunks)
+	numberOfChunks := big.NewInt(int64(len(compressedContent)))
 	totalNetworkFee := new(big.Int).Mul(networkFee, numberOfChunks)
 
 	networkFeeCheque, err := p.chequeHandler.IssueCheque(
@@ -231,7 +242,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	}
 	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBot, msg.Metadata.Recipient)
 
-	if err := p.messenger.SendAsync(ctx, *msg, recipientBot); err != nil {
+	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBot); err != nil {
 		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -299,7 +310,12 @@ func (p *processor) Respond(msg *Message) error {
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, msg.Sender)
 
-	return p.messenger.SendAsync(ctx, responseMsg, msg.Sender)
+	ctx, compressedContent, err := p.compress(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	return p.messenger.SendAsync(ctx, responseMsg, compressedContent, msg.Sender)
 }
 
 func (p *processor) Forward(msg *Message) {
@@ -322,4 +338,14 @@ func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques
 		}
 	}
 	return nil
+}
+
+func (p *processor) compress(ctx context.Context, msg *Message) (context.Context, [][]byte, error) {
+	ctx, compressSpan := p.tracer.Start(ctx, "messenger.Compress", trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	defer compressSpan.End()
+	compressedContent, err := p.compressor.Compress(msg)
+	if err != nil {
+		return ctx, nil, err
+	}
+	return ctx, compressedContent, nil
 }

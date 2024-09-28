@@ -75,21 +75,8 @@ func (m *MockServiceRegistry) RegisterServices(arg0 *client.RPCClient) {
 	m.ctrl.Call(m, "RegisterServices", arg0)
 }
 
-func (m *MockServiceRegistry) GetServiceDetails(arg0 MessageType) (ServiceIdentifier, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetServiceDetails", arg0)
-	ret0, _ := ret[0].(ServiceIdentifier)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
 // RegisterServices indicates an expected call of RegisterServices.
 func (mr *MockServiceRegistryMockRecorder) RegisterServices(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterServices", reflect.TypeOf((*MockServiceRegistry)(nil).RegisterServices), arg0)
-}
-
-func (mr *MockServiceRegistryMockRecorder) GetServiceDetails(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceDetails", reflect.TypeOf((*MockServiceRegistry)(nil).GetServiceDetails), arg0)
 }
