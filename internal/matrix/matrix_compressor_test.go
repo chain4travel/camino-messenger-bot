@@ -8,7 +8,7 @@ package matrix
 import (
 	"testing"
 
-	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
+	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
@@ -45,9 +45,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: &activityv1.ActivitySearchResponse{
-								Results: []*activityv1.ActivitySearchResult{
-									{Info: &activityv1.Activity{ServiceCode: "test"}},
+							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
+								Results: []*activityv2.ActivitySearchResult{
+									{Info: &activityv2.Activity{ServiceCode: "test"}},
 								},
 							},
 						},
@@ -69,9 +69,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 							Type: messaging.ActivitySearchResponse,
 							Content: messaging.MessageContent{
 								ResponseContent: messaging.ResponseContent{
-									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
-										Results: []*activityv1.ActivitySearchResult{
-											{Info: &activityv1.Activity{ServiceCode: "test"}},
+									ActivitySearchResponse: &activityv2.ActivitySearchResponse{
+										Results: []*activityv2.ActivitySearchResult{
+											{Info: &activityv2.Activity{ServiceCode: "test"}},
 										},
 									},
 								},
@@ -86,9 +86,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: &activityv1.ActivitySearchResponse{
-								Results: []*activityv1.ActivitySearchResult{
-									{Info: &activityv1.Activity{ServiceCode: "test"}},
+							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
+								Results: []*activityv2.ActivitySearchResult{
+									{Info: &activityv2.Activity{ServiceCode: "test"}},
 								},
 							},
 						},
@@ -110,9 +110,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 							Type: messaging.ActivitySearchResponse,
 							Content: messaging.MessageContent{
 								ResponseContent: messaging.ResponseContent{
-									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
-										Results: []*activityv1.ActivitySearchResult{
-											{Info: &activityv1.Activity{ServiceCode: "test"}},
+									ActivitySearchResponse: &activityv2.ActivitySearchResponse{
+										Results: []*activityv2.ActivitySearchResult{
+											{Info: &activityv2.Activity{ServiceCode: "test"}},
 										},
 									},
 								},
@@ -127,9 +127,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 					Type: messaging.ActivitySearchResponse,
 					Content: messaging.MessageContent{
 						ResponseContent: messaging.ResponseContent{
-							ActivitySearchResponse: &activityv1.ActivitySearchResponse{
-								Results: []*activityv1.ActivitySearchResult{
-									{Info: &activityv1.Activity{ServiceCode: "test"}},
+							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
+								Results: []*activityv2.ActivitySearchResult{
+									{Info: &activityv2.Activity{ServiceCode: "test"}},
 								},
 							},
 						},
@@ -151,9 +151,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 							Type: messaging.ActivitySearchResponse,
 							Content: messaging.MessageContent{
 								ResponseContent: messaging.ResponseContent{
-									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
-										Results: []*activityv1.ActivitySearchResult{
-											{Info: &activityv1.Activity{ServiceCode: "test"}},
+									ActivitySearchResponse: &activityv2.ActivitySearchResponse{
+										Results: []*activityv2.ActivitySearchResult{
+											{Info: &activityv2.Activity{ServiceCode: "test"}},
 										},
 									},
 								},
@@ -175,9 +175,9 @@ func TestChunkingCompressorCompress(t *testing.T) {
 							Type: messaging.ActivitySearchResponse,
 							Content: messaging.MessageContent{
 								ResponseContent: messaging.ResponseContent{
-									ActivitySearchResponse: &activityv1.ActivitySearchResponse{
-										Results: []*activityv1.ActivitySearchResult{
-											{Info: &activityv1.Activity{ServiceCode: "test"}},
+									ActivitySearchResponse: &activityv2.ActivitySearchResponse{
+										Results: []*activityv2.ActivitySearchResult{
+											{Info: &activityv2.Activity{ServiceCode: "test"}},
 										},
 									},
 								},

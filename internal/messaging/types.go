@@ -3,15 +3,16 @@ package messaging
 import (
 	"errors"
 
-	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
-	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
-	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
+	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
+	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
-	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
+	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-	seat_mapv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
-	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
+	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
+	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -22,39 +23,47 @@ import (
 var ErrUnknownMessageType = errors.New("unknown message type")
 
 type RequestContent struct {
-	*activityv1.ActivityProductInfoRequest
-	*activityv1.ActivityProductListRequest
-	*activityv1.ActivitySearchRequest
-	*accommodationv1.AccommodationProductInfoRequest
-	*accommodationv1.AccommodationProductListRequest
-	*accommodationv1.AccommodationSearchRequest
 	*networkv1.GetNetworkFeeRequest
-	*partnerv1.GetPartnerConfigurationRequest
-	*bookv1.MintRequest
-	*bookv1.ValidationRequest
 	*pingv1.PingRequest
-	*transportv1.TransportSearchRequest
-	*seat_mapv1.SeatMapRequest
-	*seat_mapv1.SeatMapAvailabilityRequest
-	*infov1.CountryEntryRequirementsRequest
+
+	*insurancev1.InsuranceProductInfoRequest
+	*insurancev1.InsuranceProductListRequest
+	*insurancev1.InsuranceSearchRequest
+
+	*activityv2.ActivityProductInfoRequest
+	*activityv2.ActivityProductListRequest
+	*activityv2.ActivitySearchRequest
+	*accommodationv2.AccommodationProductInfoRequest
+	*accommodationv2.AccommodationProductListRequest
+	*accommodationv2.AccommodationSearchRequest
+	*partnerv2.GetPartnerConfigurationRequest
+	*bookv2.MintRequest
+	*bookv2.ValidationRequest
+	*transportv2.TransportSearchRequest
+	*seat_mapv2.SeatMapRequest
+	*seat_mapv2.SeatMapAvailabilityRequest
+	*infov2.CountryEntryRequirementsRequest
 }
 
 type ResponseContent struct {
-	*activityv1.ActivityProductInfoResponse
-	*activityv1.ActivityProductListResponse
-	*activityv1.ActivitySearchResponse
-	*accommodationv1.AccommodationProductInfoResponse
-	*accommodationv1.AccommodationProductListResponse
-	*accommodationv1.AccommodationSearchResponse
 	*networkv1.GetNetworkFeeResponse
-	*partnerv1.GetPartnerConfigurationResponse
-	*bookv1.MintResponse
-	*bookv1.ValidationResponse
 	*pingv1.PingResponse
-	*transportv1.TransportSearchResponse
-	*seat_mapv1.SeatMapResponse
-	*seat_mapv1.SeatMapAvailabilityResponse
-	*infov1.CountryEntryRequirementsResponse
+	*insurancev1.InsuranceProductInfoResponse
+	*insurancev1.InsuranceProductListResponse
+	*insurancev1.InsuranceSearchResponse
+	*activityv2.ActivityProductInfoResponse
+	*activityv2.ActivityProductListResponse
+	*activityv2.ActivitySearchResponse
+	*accommodationv2.AccommodationProductInfoResponse
+	*accommodationv2.AccommodationProductListResponse
+	*accommodationv2.AccommodationSearchResponse
+	*partnerv2.GetPartnerConfigurationResponse
+	*bookv2.MintResponse
+	*bookv2.ValidationResponse
+	*transportv2.TransportSearchResponse
+	*seat_mapv2.SeatMapResponse
+	*seat_mapv2.SeatMapAvailabilityResponse
+	*infov2.CountryEntryRequirementsResponse
 }
 
 type MessageContent struct {
@@ -112,6 +121,12 @@ const (
 	SeatMapAvailabilityResponse      MessageType = "SeatMapAvailabilityResponse"
 	CountryEntryRequirementsRequest  MessageType = "CountryEntryRequirementsRequest"
 	CountryEntryRequirementsResponse MessageType = "CountryEntryRequirementsResponse"
+	InsuranceProductInfoRequest      MessageType = "InsuranceProductInfoRequest"
+	InsuranceProductInfoResponse     MessageType = "InsuranceProductInfoResponse"
+	InsuranceProductListRequest      MessageType = "InsuranceProductListRequest"
+	InsuranceProductListResponse     MessageType = "InsuranceProductListResponse"
+	InsuranceSearchRequest           MessageType = "InsuranceSearchRequest"
+	InsuranceSearchResponse          MessageType = "InsuranceSearchResponse"
 )
 
 func (mt MessageType) Category() MessageCategory {
@@ -130,7 +145,10 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchRequest,
 		SeatMapRequest,
 		SeatMapAvailabilityRequest,
-		CountryEntryRequirementsRequest:
+		CountryEntryRequirementsRequest,
+		InsuranceProductInfoRequest,
+		InsuranceProductListRequest,
+		InsuranceSearchRequest:
 		return Request
 	case ActivityProductInfoResponse,
 		ActivityProductListResponse,
@@ -146,7 +164,10 @@ func (mt MessageType) Category() MessageCategory {
 		TransportSearchResponse,
 		SeatMapResponse,
 		SeatMapAvailabilityResponse,
-		CountryEntryRequirementsResponse:
+		CountryEntryRequirementsResponse,
+		InsuranceProductInfoResponse,
+		InsuranceProductListResponse,
+		InsuranceSearchResponse:
 		return Response
 	default:
 		return Unknown
@@ -215,6 +236,19 @@ func (m *Message) MarshalContent() ([]byte, error) {
 		return proto.Marshal(m.Content.CountryEntryRequirementsRequest)
 	case CountryEntryRequirementsResponse:
 		return proto.Marshal(m.Content.CountryEntryRequirementsResponse)
+	case InsuranceProductInfoRequest:
+		return proto.Marshal(m.Content.InsuranceProductInfoRequest)
+	case InsuranceProductInfoResponse:
+		return proto.Marshal(m.Content.InsuranceProductInfoResponse)
+	case InsuranceProductListRequest:
+		return proto.Marshal(m.Content.InsuranceProductListRequest)
+	case InsuranceProductListResponse:
+		return proto.Marshal(m.Content.InsuranceProductListResponse)
+	case InsuranceSearchRequest:
+		return proto.Marshal(m.Content.InsuranceSearchRequest)
+	case InsuranceSearchResponse:
+		return proto.Marshal(m.Content.InsuranceSearchResponse)
+
 	default:
 		return nil, ErrUnknownMessageType
 	}

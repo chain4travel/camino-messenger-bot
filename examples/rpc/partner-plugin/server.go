@@ -9,49 +9,55 @@ import (
 	"strconv"
 	"time"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1/networkv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1/partnerv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v2/partnerv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
+	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
+	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
+	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
+	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
+	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-
-	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
-	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
-	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
-	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
-	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
-	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-	seat_mapv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
-	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 )
 
 type partnerPlugin struct {
-	activityv1grpc.ActivitySearchServiceServer
-	accommodationv1grpc.AccommodationProductInfoServiceServer
-	accommodationv1grpc.AccommodationProductListServiceServer
-	accommodationv1grpc.AccommodationSearchServiceServer
 	networkv1grpc.GetNetworkFeeServiceServer
-	partnerv1grpc.GetPartnerConfigurationServiceServer
 	pingv1grpc.PingServiceServer
-	transportv1grpc.TransportSearchServiceServer
-	seat_mapv1grpc.SeatMapServiceServer
-	seat_mapv1grpc.SeatMapAvailabilityServiceServer
-	infov1grpc.CountryEntryRequirementsServiceServer
-	activityv1grpc.ActivityProductInfoServiceServer
+	insurancev1grpc.InsuranceProductInfoServiceClient
+	insurancev1grpc.InsuranceProductListServiceClient
+	insurancev1grpc.InsuranceSearchServiceServer
+	activityv2grpc.ActivitySearchServiceServer
+	accommodationv2grpc.AccommodationProductInfoServiceServer
+	accommodationv2grpc.AccommodationProductListServiceServer
+	accommodationv2grpc.AccommodationSearchServiceServer
+	partnerv2grpc.GetPartnerConfigurationServiceServer
+	transportv2grpc.TransportSearchServiceServer
+	seat_mapv2grpc.SeatMapServiceServer
+	seat_mapv2grpc.SeatMapAvailabilityServiceServer
+	infov2grpc.CountryEntryRequirementsServiceServer
+	activityv2grpc.ActivityProductInfoServiceServer
+	bookv2grpc.MintServiceServer
 }
 
-func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv1.MintResponse, error) {
+func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv2.MintResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -60,14 +66,49 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := bookv1.MintResponse{
+	response := bookv2.MintResponse{
 		MintId: &typesv1.UUID{Value: md.RequestID},
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		Price: &typesv1.Price{
-			Value:    "1",
-			Decimals: 9,
+		Price: &typesv2.Price{
+			Value:    "100",
+			Decimals: 0,
+			Currency: &typesv2.Currency{
+				Currency: &typesv2.Currency_NativeToken{},
+			},
+		},
+		BookingTokenId:  uint64(123456),
+		ValidationId:    &typesv1.UUID{Value: "123456"},
+		BookingTokenUri: "https://example.com/booking-token",
+	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := bookv2.ValidationResponse{
+		Header:           nil,
+		ValidationId:     &typesv1.UUID{Value: md.RequestID},
+		ValidationObject: nil,
+		PriceDetail: &typesv2.PriceDetail{
+			Price: &typesv2.Price{
+				Value:    "100",
+				Decimals: 0,
+				Currency: &typesv2.Currency{
+					Currency: &typesv2.Currency_NativeToken{},
+				},
+			},
 		},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -76,7 +117,7 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv
 	return &response, nil
 }
 
-func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
+func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activityv2.ActivityProductInfoRequest) (*activityv2.ActivityProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -85,35 +126,15 @@ func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv1.ValidationRequ
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := bookv1.ValidationResponse{
-		Header:           nil,
-		ValidationId:     &typesv1.UUID{Value: md.RequestID},
-		ValidationObject: nil,
-	}
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
-}
-
-func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s", md.RequestID)
-
-	response := activityv1.ActivityProductInfoResponse{
+	response := activityv2.ActivityProductInfoResponse{
 		Header: nil,
-		Activities: []*activityv1.ActivityExtendedInfo{
+		Activities: []*activityv2.ActivityExtendedInfo{
 			{
-				Activity: &activityv1.Activity{
+				Activity: &activityv2.Activity{
 					Context:           "ActivityTest", //context
 					LastModified:      timestamppb.New(time.Now()),
 					ExternalSessionId: "23456", //external_session_id
-					ProductCode: &typesv1.ProductCode{
+					ProductCode: &typesv2.ProductCode{
 						Code: "XPTFAOH15O", //supplier_code
 					},
 					UnitCode:    "ActivityTest", //supplier_unit_code
@@ -126,7 +147,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 						},
 					},
 				},
-				Units: []*activityv1.ActivityUnit{
+				Units: []*activityv2.ActivityUnit{
 					{
 						Schedule: &typesv1.DateTimeRange{
 							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 11, 00, 0, 0, time.UTC)), //summary.start
@@ -155,7 +176,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 						Description: "starts at 16h30",                        //descriptive_text
 					},
 				},
-				Services: []*activityv1.ActivityService{
+				Services: []*activityv2.ActivityService{
 					{
 						Code:        "TRF",
 						Name:        "incl. pickUp & dropOff",
@@ -164,22 +185,22 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 						Excluded:    []string{},
 					},
 				},
-				Zones: []*activityv1.TransferZone{
+				Zones: []*activityv2.TransferZone{
 					{
 						Code: "ALT", //zone_code
-						GeoTree: &typesv1.GeoTree{
-							Country:      typesv1.Country_COUNTRY_PT,
+						GeoTree: &typesv2.GeoTree{
+							Country:      typesv2.Country_COUNTRY_PT,
 							Region:       "Algarve",
 							CityOrResort: "Albufeira",
 						},
-						PickupDropoffEvents: []*activityv1.PickupDropoffEvent{
+						PickupDropoffEvents: []*activityv2.PickupDropoffEvent{
 							{
 								LocationCode:    "AMTSPT0026",
 								LocationName:    "HOTELENTRANCE / HotelEntrance",
 								PickupIndicator: true,
 								OtherInfo:       "HOTELENTRANCE",
 								DateTime:        timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)),
-								Coordinates: &typesv1.Coordinates{
+								Coordinates: &typesv2.Coordinates{
 									Latitude:  37.08472,
 									Longitude: -8.31469,
 								},
@@ -196,8 +217,8 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 						}},
 					},
 				},
-				Location: &activityv1.ActivityLocation{},
-				Features: []*activityv1.ActivityFeature{
+				Location: &activityv2.ActivityLocation{},
+				Features: []*activityv2.ActivityFeature{
 					{
 						Description: "Difficulty|Easy|",
 						Code:        "EX_DIFFIC|EX_DIF_1",
@@ -215,7 +236,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 						Code:        "EN Description",
 					},
 				},
-				Tags: []*activityv1.ActivityTag{
+				Tags: []*activityv2.ActivityTag{
 					{
 						Active: true,
 						Id:     111,
@@ -233,35 +254,34 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 					typesv1.Language_LANGUAGE_EN,
 					typesv1.Language_LANGUAGE_IT,
 				},
-				ContactInfo: &typesv1.ContactInfo{
-					Address: []*typesv1.Address{
+				ContactInfo: &typesv2.ContactInfo{
+					Address: []*typesv2.Address{
 						{
 							Line_1:  "Calle Sant Joan 38",
 							Line_2:  "Quarter La Vileta",
 							ZipCode: "07008",
-							GeoTree: &typesv1.GeoTree{
-								Country:      typesv1.Country_COUNTRY_ES,
+							GeoTree: &typesv2.GeoTree{
+								Country:      typesv2.Country_COUNTRY_ES,
 								Region:       "Mallorca",
 								CityOrResort: "Palma",
 							},
 						},
 					},
 				},
-				Images: []*typesv1.Image{},
-				Videos: []*typesv1.Video{
+				Images: []*typesv2.Image{},
+				Videos: []*typesv2.Video{
 					{
-						File: &typesv1.File{
+						File: &typesv2.File{
 							Name:         "Tuk Tuk Experiences",
 							Url:          "video_url",
 							LastModified: timestamppb.New(time.Now()),
 						},
-						Codec:       "codec",
-						Bitrate:     90,
-						Framerate:   90,
-						AspectRatio: "16:90",
-						Resolution:  "720p",
-						Format:      "mp4",
-						Category:    "Commercial",
+						Bitrate:   90,
+						Framerate: 90,
+						Category:  "Commercial",
+						Width:     1920,
+						Height:    1080,
+						Format:    typesv2.VideoFormat_VIDEO_FORMAT_AVI,
 					},
 				},
 			},
@@ -273,7 +293,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 	return &response, nil
 }
 
-func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
+func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.ActivityProductListRequest) (*activityv2.ActivityProductListResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -282,14 +302,14 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.A
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := activityv1.ActivityProductListResponse{
+	response := activityv2.ActivityProductListResponse{
 		Header: nil,
-		Activities: []*activityv1.Activity{
+		Activities: []*activityv2.Activity{
 			{
 				Context:           "ActivityTest", //context
 				LastModified:      timestamppb.New(time.Now()),
 				ExternalSessionId: "23456", //external_session_id
-				ProductCode: &typesv1.ProductCode{
+				ProductCode: &typesv2.ProductCode{
 					Code: "XPTFAOH15O", //supplier_code
 				},
 				UnitCode:    "ActivityTest", //supplier_unit_code
@@ -310,7 +330,7 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv1.A
 	return &response, nil
 
 }
-func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
+func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv2.ActivitySearchRequest) (*activityv2.ActivitySearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -319,9 +339,9 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.Activi
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := activityv1.ActivitySearchResponse{
+	response := activityv2.ActivitySearchResponse{
 		Header:   nil,
-		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
+		Metadata: &typesv2.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
@@ -329,7 +349,7 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv1.Activi
 	return &response, nil
 }
 
-func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv1.AccommodationProductInfoRequest) (*accommodationv1.AccommodationProductInfoResponse, error) {
+func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -338,8 +358,8 @@ func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommo
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := accommodationv1.AccommodationProductInfoResponse{
-		Properties: []*accommodationv1.PropertyExtendedInfo{{PaymentType: "cash"}},
+	response := accommodationv2.AccommodationProductInfoResponse{
+		Properties: []*accommodationv2.PropertyExtendedInfo{{PaymentType: "cash"}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
@@ -347,7 +367,7 @@ func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommo
 	return &response, nil
 }
 
-func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
+func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommodationv2.AccommodationProductListRequest) (*accommodationv2.AccommodationProductListResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -356,8 +376,8 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommo
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := accommodationv1.AccommodationProductListResponse{
-		Properties: []*accommodationv1.Property{{Name: "Hotel"}},
+	response := accommodationv2.AccommodationProductListResponse{
+		Properties: []*accommodationv2.Property{{Name: "Hotel"}},
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -366,7 +386,7 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommo
 	return &response, nil
 }
 
-func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodationv1.AccommodationSearchRequest) (*accommodationv1.AccommodationSearchResponse, error) {
+func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -375,26 +395,26 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := accommodationv1.AccommodationSearchResponse{
+	response := accommodationv2.AccommodationSearchResponse{
 		Header: nil,
-		Metadata: &typesv1.SearchResponseMetadata{
+		Metadata: &typesv2.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: md.RequestID},
 		},
-		Results: []*accommodationv1.AccommodationSearchResult{{
+		Results: []*accommodationv2.AccommodationSearchResult{{
 			ResultId: 0,
 			QueryId:  0,
-			Units: []*accommodationv1.Unit{{
-				Type:             *accommodationv1.UnitType_UNIT_TYPE_ROOM.Enum(),
+			Units: []*accommodationv2.Unit{{
+				Type:             *accommodationv2.UnitType_UNIT_TYPE_ROOM.Enum(),
 				SupplierRoomCode: "RMSDDB0000",
 				SupplierRoomName: "Double Standard Room",
 				OriginalRoomName: "Room with a view",
 				TravelPeriod:     &typesv1.TravelPeriod{},
 				// TravellerIds:
 			}},
-			TotalPriceDetail: &typesv1.PriceDetail{
-				Price: &typesv1.Price{
-					Currency: &typesv1.Currency{
-						Currency: &typesv1.Currency_NativeToken{},
+			TotalPriceDetail: &typesv2.PriceDetail{
+				Price: &typesv2.Price{
+					Currency: &typesv2.Currency{
+						Currency: &typesv2.Currency_NativeToken{},
 					},
 					Value:    "199",
 					Decimals: 99,
@@ -407,14 +427,14 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 				},
 			},
 			RateRules:    []*typesv1.RateRule{{}},
-			CancelPolicy: &typesv1.CancelPolicy{},
+			CancelPolicy: &typesv2.CancelPolicy{},
 			Bookability:  &typesv1.Bookability{},
 			Remarks:      "A remark",
 		}},
-		Travellers: []*typesv1.BasicTraveller{{
-			Type:        typesv1.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
+		Travellers: []*typesv2.BasicTraveller{{
+			Type:        typesv2.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
 			Birthdate:   &typesv1.Date{},
-			Nationality: typesv1.Country_COUNTRY_DE,
+			Nationality: typesv2.Country_COUNTRY_DE,
 		}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -444,7 +464,7 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1.Ge
 	return &response, nil
 }
 
-func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *partnerv1.GetPartnerConfigurationRequest) (*partnerv1.GetPartnerConfigurationResponse, error) {
+func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *partnerv2.GetPartnerConfigurationRequest) (*partnerv2.GetPartnerConfigurationResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -453,8 +473,8 @@ func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *pa
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := partnerv1.GetPartnerConfigurationResponse{
-		PartnerConfiguration: &partnerv1.PartnerConfiguration{},
+	response := partnerv2.GetPartnerConfigurationResponse{
+		PartnerConfiguration: &partnerv2.PartnerConfiguration{},
 		CurrentBlockHeight:   request.GetBlockHeight(),
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -478,7 +498,7 @@ func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1.PingRequest) (
 	}, nil
 }
 
-func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv1.TransportSearchRequest) (*transportv1.TransportSearchResponse, error) {
+func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.TransportSearchRequest) (*transportv2.TransportSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -487,16 +507,16 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv1.Tran
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := transportv1.TransportSearchResponse{
+	response := transportv2.TransportSearchResponse{
 		Header:   nil,
-		Metadata: &typesv1.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
+		Metadata: &typesv2.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
-func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMapRequest) (*seat_mapv1.SeatMapResponse, error) {
+func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMapRequest) (*seat_mapv2.SeatMapResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -505,11 +525,11 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := seat_mapv1.SeatMapResponse{
+	response := seat_mapv2.SeatMapResponse{
 		Header: nil,
-		SeatMap: &typesv1.SeatMap{
+		SeatMap: &typesv2.SeatMap{
 			Id: md.RequestID,
-			Sections: []*typesv1.Section{{
+			Sections: []*typesv2.Section{{
 				Id: "123ST",
 				Names: []*typesv1.LocalizedString{{
 					Language: typesv1.Language_LANGUAGE_EN,
@@ -520,14 +540,14 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 						Text:     "Nordtribüne",
 					},
 				},
-				SeatInfo: &typesv1.Section_SeatList{
-					SeatList: &typesv1.SeatList{
-						Seats: []*typesv1.Seat{
+				SeatInfo: &typesv2.Section_SeatList{
+					SeatList: &typesv2.SeatList{
+						Seats: []*typesv2.Seat{
 							{
 								Id: "1A",
-								Location: &typesv1.SeatLocation{
-									Location: &typesv1.SeatLocation_Vector{
-										Vector: &typesv1.VectorSeatLocation{
+								Location: &typesv2.SeatLocation{
+									Location: &typesv2.SeatLocation_Vector{
+										Vector: &typesv2.VectorSeatLocation{
 											Label: "section-North-Stand-26-34-2-label",
 										},
 									},
@@ -535,17 +555,17 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 							},
 							{
 								Id: "2A",
-								Location: &typesv1.SeatLocation{
-									Location: &typesv1.SeatLocation_Vector{
-										Vector: &typesv1.VectorSeatLocation{
+								Location: &typesv2.SeatLocation{
+									Location: &typesv2.SeatLocation_Vector{
+										Vector: &typesv2.VectorSeatLocation{
 											Label: "section-North-Stand-26-34-2-label",
 										},
 									},
 								},
-								Restrictions: []*typesv1.LocalizedSeatAttributeSet{
+								Restrictions: []*typesv2.LocalizedSeatAttributeSet{
 									{
 										Language: typesv1.Language_LANGUAGE_EN,
-										SeatAttributes: []*typesv1.SeatAttribute{
+										SeatAttributes: []*typesv2.SeatAttribute{
 											{
 												Name:        "Restricted Vision",
 												Description: "Seat behind a column",
@@ -553,10 +573,10 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 										},
 									},
 								},
-								Features: []*typesv1.LocalizedSeatAttributeSet{
+								Features: []*typesv2.LocalizedSeatAttributeSet{
 									{
 										Language: typesv1.Language_LANGUAGE_EN,
-										SeatAttributes: []*typesv1.SeatAttribute{
+										SeatAttributes: []*typesv2.SeatAttribute{
 											{
 												Name:        "Discount",
 												Description: "Discount due to restricted vision up to 80%",
@@ -566,7 +586,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 									},
 									{
 										Language: typesv1.Language_LANGUAGE_DE,
-										SeatAttributes: []*typesv1.SeatAttribute{
+										SeatAttributes: []*typesv2.SeatAttribute{
 											{
 												Name:        "Rabatt",
 												Description: "Hinter der Säule - bis zu 80% Rabatt",
@@ -579,8 +599,8 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 						},
 					},
 				},
-				Image: &typesv1.Image{
-					File: &typesv1.File{
+				Image: &typesv2.Image{
+					File: &typesv2.File{
 						Name:         "String",
 						Url:          "https://camino.network/static/images/6HibYS9gzR-1800.webp", //TODO: replace with an actual image
 						LastModified: timestamppb.New(time.Now()),
@@ -606,14 +626,14 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 						Language: typesv1.Language_LANGUAGE_DE,
 						Text:     "Osttribüne",
 					}},
-					SeatInfo: &typesv1.Section_SeatList{
-						SeatList: &typesv1.SeatList{
-							Seats: []*typesv1.Seat{
+					SeatInfo: &typesv2.Section_SeatList{
+						SeatList: &typesv2.SeatList{
+							Seats: []*typesv2.Seat{
 								{
 									Id: "31F",
-									Location: &typesv1.SeatLocation{
-										Location: &typesv1.SeatLocation_Vector{
-											Vector: &typesv1.VectorSeatLocation{
+									Location: &typesv2.SeatLocation{
+										Location: &typesv2.SeatLocation_Vector{
+											Vector: &typesv2.VectorSeatLocation{
 												Label: "section-East-Stand-26-34-2-label",
 											},
 										},
@@ -621,9 +641,9 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 								},
 								{
 									Id: "32F",
-									Location: &typesv1.SeatLocation{
-										Location: &typesv1.SeatLocation_Vector{
-											Vector: &typesv1.VectorSeatLocation{
+									Location: &typesv2.SeatLocation{
+										Location: &typesv2.SeatLocation_Vector{
+											Vector: &typesv2.VectorSeatLocation{
 												Label: "section-East-Stand-26-34-2-label",
 											},
 										},
@@ -632,8 +652,8 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 							},
 						},
 					},
-					Image: &typesv1.Image{
-						File: &typesv1.File{
+					Image: &typesv2.Image{
+						File: &typesv2.File{
 							Name:         "String",
 							Url:          "https://camino.network/static/images/6HibYS9gzR-1800.webp",
 							LastModified: timestamppb.New(time.Now()),
@@ -663,7 +683,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv1.SeatMap
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
 }
-func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_mapv1.SeatMapAvailabilityRequest) (*seat_mapv1.SeatMapAvailabilityResponse, error) {
+func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_mapv2.SeatMapAvailabilityRequest) (*seat_mapv2.SeatMapAvailabilityResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -672,21 +692,21 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := seat_mapv1.SeatMapAvailabilityResponse{
+	response := seat_mapv2.SeatMapAvailabilityResponse{
 		Header: nil,
-		SeatMap: &typesv1.SeatMapInventory{
+		SeatMap: &typesv2.SeatMapInventory{
 			Id: "123ST",
-			Sections: []*typesv1.SectionInventory{
+			Sections: []*typesv2.SectionInventory{
 				{
 					Id: "A",
-					SeatInfo: &typesv1.SectionInventory_SeatList{
-						SeatList: &typesv1.SeatInventory{
+					SeatInfo: &typesv2.SectionInventory_SeatList{
+						SeatList: &typesv2.SeatInventory{
 							Ids: []string{"1A", "1B"},
 						},
 					}},
 				{
 					Id:       "B",
-					SeatInfo: &typesv1.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 32}},
+					SeatInfo: &typesv2.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 32}},
 				}},
 		},
 	}
@@ -697,7 +717,7 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 	return &response, nil
 }
 
-func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *infov1.CountryEntryRequirementsRequest) (*infov1.CountryEntryRequirementsResponse, error) {
+func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *infov2.CountryEntryRequirementsRequest) (*infov2.CountryEntryRequirementsResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -706,9 +726,9 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
-	response := infov1.CountryEntryRequirementsResponse{
+	response := infov2.CountryEntryRequirementsResponse{
 		Header: nil,
-		Categories: []*infov1.CountryEntryRequirementCategory{{
+		Categories: []*infov2.CountryEntryRequirementCategory{{
 			Key: "entry",
 			Names: []*typesv1.LocalizedString{{
 				Text:     "Entry",
@@ -717,7 +737,7 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 				Text:     "Einreise",
 				Language: typesv1.Language_LANGUAGE_DE,
 			}},
-			SubCategories: []*infov1.CountryEntryRequirementCategory{{
+			SubCategories: []*infov2.CountryEntryRequirementCategory{{
 				Key: "entry_documents",
 				Names: []*typesv1.LocalizedString{{
 					Text:     "Required entry forms and documents",
@@ -726,9 +746,9 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 					Text:     "Erforderliche Formulare und Dokumente für die Einreise",
 					Language: typesv1.Language_LANGUAGE_DE,
 				}},
-				Items: []*infov1.CountryEntryRequirementItem{{
+				Items: []*infov2.CountryEntryRequirementItem{{
 					Key: "ErVisaText",
-					Info: []*infov1.LocalizedItemInfo{{
+					Info: []*infov2.LocalizedItemInfo{{
 						Name:        "Visa required for stay",
 						Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
 						Language:    typesv1.Language_LANGUAGE_EN,
@@ -738,15 +758,15 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 						Language:    typesv1.Language_LANGUAGE_DE,
 					}},
 					LastSignificantUpdate: timestamppb.New(time.Now()),
-					Status:                infov1.ItemStatus_ITEM_STATUS_TRUE,
+					Status:                infov2.ItemStatus_ITEM_STATUS_TRUE,
 				},
 				},
 			}},
 		}},
-		Items: []*infov1.CountryEntryRequirementItem{
+		Items: []*infov2.CountryEntryRequirementItem{
 			{
 				Key: "EntryDocumentsRequired",
-				Info: []*infov1.LocalizedItemInfo{
+				Info: []*infov2.LocalizedItemInfo{
 					{
 						Name:        "Entry forms",
 						Description: "<div><p>Individuals must fill out a <a href=\"https://www.egyptair.com/en/about-egyptair/news-and-press/Documents/%D8%A7%D9%84%D8%A7%D9%95%D9%82%D8%B1%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B5%D8%AD%D9%8A%20%D9%84%D8%BA%D9%8A%D8%B1%20%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A%D9%8A%D9%86%20%28%D8%A7%D9%84%D8%A7%D9%94%D8%AC%D8%A7%D9%86%D8%A8%29.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">health form</a> upon entry, which they can complete either at the airport, on the plane, or beforehand.</p></div>",
@@ -759,11 +779,11 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 					},
 				},
 				LastSignificantUpdate: timestamppb.New(time.Now()),
-				Status:                infov1.ItemStatus_ITEM_STATUS_FALSE,
+				Status:                infov2.ItemStatus_ITEM_STATUS_FALSE,
 			},
 			{
 				Key: "ErVisaText",
-				Info: []*infov1.LocalizedItemInfo{
+				Info: []*infov2.LocalizedItemInfo{
 					{
 						Name:        "Visa required for stay",
 						Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
@@ -776,7 +796,7 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 					},
 				},
 				LastSignificantUpdate: timestamppb.New(time.Now()),
-				Status:                infov1.ItemStatus_ITEM_STATUS_TRUE,
+				Status:                infov2.ItemStatus_ITEM_STATUS_TRUE,
 			},
 		},
 	}
@@ -786,22 +806,76 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	return &response, nil
 }
 
+func (p *partnerPlugin) InsuranceProductInfo(ctx context.Context, request *insurancev1.InsuranceProductInfoRequest) (*insurancev1.InsuranceProductInfoResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := insurancev1.InsuranceProductInfoResponse{
+		// TODO: add an example
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) InsuranceProductList(ctx context.Context, request *insurancev1.InsuranceProductListRequest) (*insurancev1.InsuranceProductListResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := insurancev1.InsuranceProductListResponse{
+		// TODO: add an example
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) InsuranceSearch(ctx context.Context, request *insurancev1.InsuranceSearchRequest) (*insurancev1.InsuranceSearchResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s", md.RequestID)
+
+	response := insurancev1.InsuranceSearchResponse{
+		// TODO: add an example
+	}
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
 func main() {
 	grpcServer := grpc.NewServer()
-	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
-	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
+
 	networkv1grpc.RegisterGetNetworkFeeServiceServer(grpcServer, &partnerPlugin{})
-	partnerv1grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
-	bookv1grpc.RegisterMintServiceServer(grpcServer, &partnerPlugin{})
-	bookv1grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
 	pingv1grpc.RegisterPingServiceServer(grpcServer, &partnerPlugin{})
-	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
-	seat_mapv1grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
-	seat_mapv1grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
-	infov1grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
+	insurancev1grpc.RegisterInsuranceProductInfoServiceServer(grpcServer, &partnerPlugin{})
+	insurancev1grpc.RegisterInsuranceProductListServiceServer(grpcServer, &partnerPlugin{})
+	insurancev1grpc.RegisterInsuranceSearchServiceServer(grpcServer, &partnerPlugin{})
+	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
+	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
+	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
+	bookv2grpc.RegisterMintServiceServer(grpcServer, &partnerPlugin{})
+	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
+
+	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
+	seat_mapv2grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
+	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
+	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
+
 	port := 55555
 	var err error
 	p, found := os.LookupEnv("PORT")

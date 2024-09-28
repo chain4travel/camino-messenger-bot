@@ -75,6 +75,7 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatalf("Failed to create storage: %v", err)
 	}
+
 	serviceRegistry := messaging.NewServiceRegistry(supportedServices, a.logger)
 
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
