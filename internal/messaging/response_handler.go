@@ -36,9 +36,17 @@ import (
 	"go.uber.org/zap"
 )
 
-var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+const (
+	buyableUntilDurationDefault = 300 * time.Second
+	buyableUntilDurationMin     = 70 * time.Second
+	buyableUntilDurationMax     = 600 * time.Second
+)
 
-var _ ResponseHandler = (*evmResponseHandler)(nil)
+var (
+	_ ResponseHandler = (*evmResponseHandler)(nil)
+
+	zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+)
 
 type ResponseHandler interface {
 	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent)
@@ -138,7 +146,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	switch {
 	case response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0:
 		// BuyableUntil not set
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(300 * time.Second))
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationDefault))
 
 	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
@@ -146,13 +154,13 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		addErrorToResponseHeader(response, errMsg)
 		return true
 
-	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(70*time.Second)).Seconds:
+	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMin)).Seconds:
 		// BuyableUntil too early
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(70 * time.Second))
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMin))
 
-	case response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(600*time.Second)).Seconds:
+	case response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMax)).Seconds:
 		// BuyableUntil too late
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(600 * time.Second))
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMax))
 	}
 
 	// MINT TOKEN
