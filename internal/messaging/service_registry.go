@@ -138,11 +138,6 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	if s.isServiceVersionSupported("GetPartnerConfigurationService", uint64(2), "cmp.services.partner.v2.GetPartnerConfigurationService") {
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("GetPartnerConfigurationService"))] = partnerService{}
 	}
-	/*
-		 if s.isServiceVersionSupported("NotificationService", uint64(1), "cmp.services.notification.v2.NotificationService") {
-			 s.services[MessageType(s.getRequestTypeNameFromServiceName("NotificationService"))] = notificationService{}
-		 }
-	*/
 }
 
 func (s *serviceRegistry) getRequestTypeNameFromServiceName(name string) string {
