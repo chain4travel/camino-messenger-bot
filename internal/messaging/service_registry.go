@@ -72,7 +72,7 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	// TODO @evlekht refactor: move if before switch, use map for requestType to service name if needed
+
 	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(2), "cmp.services.activity.v2.ActivityProductInfoService") {
 		c := activityv2grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivityProductInfoService"))] = activityProductInfoService{client: &c}
