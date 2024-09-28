@@ -19,7 +19,7 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	grpc "google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
-	
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -215,7 +215,6 @@ func (h *evmResponseHandler) mint(
 	expiration *big.Int,
 	_ *typesv2.Price,
 ) (string, *big.Int, error) {
-
 	// TODO: VjeTurk: handle price and paymentToken
 	tx, err := h.bookingService.MintBookingToken(
 		reservedFor,

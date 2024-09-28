@@ -135,11 +135,11 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 		Activities: []*activityv2.ActivityExtendedInfo{
 			{
 				Activity: &activityv2.Activity{
-					Context:           "ActivityTest", //context
+					Context:           "ActivityTest", // context
 					LastModified:      timestamppb.New(time.Now()),
-					ExternalSessionId: "23456", //external_session_id
+					ExternalSessionId: "23456", // external_session_id
 					ProductCode: &typesv2.ProductCode{
-						Code: "XPTFAOH15O", //supplier_code
+						Code: "XPTFAOH15O", // supplier_code
 					},
 					UnitCode:    "ActivityTest", // supplier_unit_code
 					ServiceCode: "TRF",          // service_code
@@ -191,7 +191,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 				},
 				Zones: []*activityv2.TransferZone{
 					{
-						Code: "ALT", //zone_code
+						Code: "ALT", // zone_code
 						GeoTree: &typesv2.GeoTree{
 							Country:      typesv2.Country_COUNTRY_PT,
 							Region:       "Algarve",
@@ -312,9 +312,9 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.A
 			{
 				Context:           "ActivityTest", // context
 				LastModified:      timestamppb.New(time.Now()),
-				ExternalSessionId: "23456", //external_session_id
+				ExternalSessionId: "23456", // external_session_id
 				ProductCode: &typesv2.ProductCode{
-					Code: "XPTFAOH15O", //supplier_code
+					Code: "XPTFAOH15O", // supplier_code
 				},
 				UnitCode:    "ActivityTest", // supplier_unit_code
 				ServiceCode: "TRF",          // service_code
@@ -534,68 +534,71 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMap
 		Header: nil,
 		SeatMap: &typesv2.SeatMap{
 			Id: md.RequestID,
-			Sections: []*typesv2.Section{{
-				Id: "123ST",
-				Names: []*typesv1.LocalizedString{{
-					Language: typesv1.Language_LANGUAGE_EN,
-					Text:     "North Stand",
-				},
-					{
-						Language: typesv1.Language_LANGUAGE_DE,
-						Text:     "Nordtribüne",
+			Sections: []*typesv2.Section{
+				{
+					Id: "123ST",
+					Names: []*typesv1.LocalizedString{
+						{
+							Language: typesv1.Language_LANGUAGE_EN,
+							Text:     "North Stand",
+						},
+						{
+							Language: typesv1.Language_LANGUAGE_DE,
+							Text:     "Nordtribüne",
+						},
 					},
-				},
-				SeatInfo: &typesv2.Section_SeatList{
-					SeatList: &typesv2.SeatList{
-						Seats: []*typesv2.Seat{
-							{
-								Id: "1A",
-								Location: &typesv2.SeatLocation{
-									Location: &typesv2.SeatLocation_Vector{
-										Vector: &typesv2.VectorSeatLocation{
-											Label: "section-North-Stand-26-34-2-label",
-										},
-									},
-								},
-							},
-							{
-								Id: "2A",
-								Location: &typesv2.SeatLocation{
-									Location: &typesv2.SeatLocation_Vector{
-										Vector: &typesv2.VectorSeatLocation{
-											Label: "section-North-Stand-26-34-2-label",
-										},
-									},
-								},
-								Restrictions: []*typesv2.LocalizedSeatAttributeSet{
-									{
-										Language: typesv1.Language_LANGUAGE_EN,
-										SeatAttributes: []*typesv2.SeatAttribute{
-											{
-												Name:        "Restricted Vision",
-												Description: "Seat behind a column",
+					SeatInfo: &typesv2.Section_SeatList{
+						SeatList: &typesv2.SeatList{
+							Seats: []*typesv2.Seat{
+								{
+									Id: "1A",
+									Location: &typesv2.SeatLocation{
+										Location: &typesv2.SeatLocation_Vector{
+											Vector: &typesv2.VectorSeatLocation{
+												Label: "section-North-Stand-26-34-2-label",
 											},
 										},
 									},
 								},
-								Features: []*typesv2.LocalizedSeatAttributeSet{
-									{
-										Language: typesv1.Language_LANGUAGE_EN,
-										SeatAttributes: []*typesv2.SeatAttribute{
-											{
-												Name:        "Discount",
-												Description: "Discount due to restricted vision up to 80%",
-												Value:       int32(80),
+								{
+									Id: "2A",
+									Location: &typesv2.SeatLocation{
+										Location: &typesv2.SeatLocation_Vector{
+											Vector: &typesv2.VectorSeatLocation{
+												Label: "section-North-Stand-26-34-2-label",
 											},
 										},
 									},
-									{
-										Language: typesv1.Language_LANGUAGE_DE,
-										SeatAttributes: []*typesv2.SeatAttribute{
-											{
-												Name:        "Rabatt",
-												Description: "Hinter der Säule - bis zu 80% Rabatt",
-												Value:       int32(80),
+									Restrictions: []*typesv2.LocalizedSeatAttributeSet{
+										{
+											Language: typesv1.Language_LANGUAGE_EN,
+											SeatAttributes: []*typesv2.SeatAttribute{
+												{
+													Name:        "Restricted Vision",
+													Description: "Seat behind a column",
+												},
+											},
+										},
+									},
+									Features: []*typesv2.LocalizedSeatAttributeSet{
+										{
+											Language: typesv1.Language_LANGUAGE_EN,
+											SeatAttributes: []*typesv2.SeatAttribute{
+												{
+													Name:        "Discount",
+													Description: "Discount due to restricted vision up to 80%",
+													Value:       int32(80),
+												},
+											},
+										},
+										{
+											Language: typesv1.Language_LANGUAGE_DE,
+											SeatAttributes: []*typesv2.SeatAttribute{
+												{
+													Name:        "Rabatt",
+													Description: "Hinter der Säule - bis zu 80% Rabatt",
+													Value:       int32(80),
+												},
 											},
 										},
 									},
@@ -603,25 +606,25 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMap
 							},
 						},
 					},
-				},
-				Image: &typesv2.Image{
-					File: &typesv2.File{
-						Name:         "String",
-						Url:          "https://camino.network/static/images/6HibYS9gzR-1800.webp", //TODO: replace with an actual image
-						LastModified: timestamppb.New(time.Now()),
+					Image: &typesv2.Image{
+						File: &typesv2.File{
+							Name:         "String",
+							Url:          "https://camino.network/static/images/6HibYS9gzR-1800.webp", // TODO: replace with an actual image
+							LastModified: timestamppb.New(time.Now()),
+						},
+						Width:  50,
+						Height: 50,
 					},
-					Width:  50,
-					Height: 50,
+					LocalizedDescriptions: []*typesv1.LocalizedDescriptionSet{
+						{
+							Language: typesv1.Language_LANGUAGE_EN,
+							Descriptions: []*typesv1.Description{{
+								Category: "General",
+								Text:     "Leather Seats",
+							}},
+						},
+					},
 				},
-				LocalizedDescriptions: []*typesv1.LocalizedDescriptionSet{{
-					Language: typesv1.Language_LANGUAGE_EN,
-					Descriptions: []*typesv1.Description{{
-						Category: "General",
-						Text:     "Leather Seats",
-					}},
-				},
-				},
-			},
 				{
 					Id: "124ST",
 					Names: []*typesv1.LocalizedString{{
@@ -716,7 +719,8 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 				{
 					Id:       "B",
 					SeatInfo: &typesv2.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 32}},
-				}},
+				},
+			},
 		},
 	}
 
@@ -755,20 +759,21 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 					Text:     "Erforderliche Formulare und Dokumente für die Einreise",
 					Language: typesv1.Language_LANGUAGE_DE,
 				}},
-				Items: []*infov2.CountryEntryRequirementItem{{
-					Key: "ErVisaText",
-					Info: []*infov2.LocalizedItemInfo{{
-						Name:        "Visa required for stay",
-						Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
-						Language:    typesv1.Language_LANGUAGE_EN,
-					}, {
-						Name:        "Visum erforderlich für Aufenthalt",
-						Description: "<div><p>Es ist ein Visum für den Aufenthalt erforderlich. Dieses kann als e-Visum oder bei Ankunft als \"Visa on Arrival\" beantragt werden. </p></div><div><div>Reisende mit eVisa dürfen sich bis zu 30 Tage im Land aufhalten.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visumgebühren</a></p><div>Die Visumgebühren sind in Euro oder US-Dollar bar zu zahlen.</div>",
-						Language:    typesv1.Language_LANGUAGE_DE,
-					}},
-					LastSignificantUpdate: timestamppb.New(time.Now()),
-					Status:                infov2.ItemStatus_ITEM_STATUS_TRUE,
-				},
+				Items: []*infov2.CountryEntryRequirementItem{
+					{
+						Key: "ErVisaText",
+						Info: []*infov2.LocalizedItemInfo{{
+							Name:        "Visa required for stay",
+							Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
+							Language:    typesv1.Language_LANGUAGE_EN,
+						}, {
+							Name:        "Visum erforderlich für Aufenthalt",
+							Description: "<div><p>Es ist ein Visum für den Aufenthalt erforderlich. Dieses kann als e-Visum oder bei Ankunft als \"Visa on Arrival\" beantragt werden. </p></div><div><div>Reisende mit eVisa dürfen sich bis zu 30 Tage im Land aufhalten.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visumgebühren</a></p><div>Die Visumgebühren sind in Euro oder US-Dollar bar zu zahlen.</div>",
+							Language:    typesv1.Language_LANGUAGE_DE,
+						}},
+						LastSignificantUpdate: timestamppb.New(time.Now()),
+						Status:                infov2.ItemStatus_ITEM_STATUS_TRUE,
+					},
 				},
 			}},
 		}},
