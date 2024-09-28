@@ -141,6 +141,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		buyerAddress,
 		tokenURI,
 		big.NewInt(response.MintResponse.BuyableUntil.Seconds),
+		response.MintResponse.Price,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
@@ -189,14 +190,24 @@ func (h *evmResponseHandler) mint(
 	reservedFor common.Address,
 	uri string,
 	expiration *big.Int,
+	price *typesv1.Price,
 ) (string, *big.Int, error) {
+
+	var bigIntPrice = big.NewInt(0)
+	var paymentToken = zeroAddress
+
+	//TODO:
+	// (in booking package)
+	// define paymentToken from currency
+	// if TokenCurrency get paymentToken contract and call decimals()
+	// calculate the price in big int without loosing precision
 
 	tx, err := h.bookingService.MintBookingToken(
 		reservedFor,
 		uri,
 		expiration,
-		big.NewInt(0),
-		zeroAddress)
+		bigIntPrice,
+		paymentToken)
 	if err != nil {
 		return "", nil, err
 	}

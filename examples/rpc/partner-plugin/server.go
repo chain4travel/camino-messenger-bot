@@ -21,6 +21,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -60,6 +61,11 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s", md.RequestID)
 
+	// On-chain payment of 1 nCAM value=1 decimals=9 this currency has denominator 18 on
+	//
+	//	Columbus and conclusively to mint the value of 1 nCam must be divided by 10^9 =
+	//	0.000000001 CAM and minted in its smallest fraction by multiplying 0.000000001 *
+	//	10^18 => 1000000000 aCAM
 	response := bookv1.MintResponse{
 		MintId: &typesv1.UUID{Value: md.RequestID},
 		BuyableUntil: &timestamppb.Timestamp{
@@ -68,6 +74,11 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv
 		Price: &typesv1.Price{
 			Value:    "1",
 			Decimals: 9,
+			Currency: &typesv1.Currency{
+				Currency: &typesv1.Currency_NativeToken{
+					NativeToken: &emptypb.Empty{},
+				},
+			},
 		},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
