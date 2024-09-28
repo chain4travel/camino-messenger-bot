@@ -3,6 +3,7 @@ package messaging
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -123,11 +124,11 @@ func (ch *evmChequeHandler) IssueCheque(
 	chequeRecordID := chequeRecordID(fromBot, toBot, toCMAccount)
 
 	previousChequeModel, err := session.GetChequeRecord(ctx, chequeRecordID)
-	if err != nil && err != storage.ErrNotFound {
+	if !errors.Is(err, storage.ErrNotFound) {
 		return nil, fmt.Errorf("failed to get previous cheque: %w", err)
 	}
 
-	counter := big.NewInt(0)
+	counter := big.NewInt(1)
 	if previousChequeModel != nil {
 		counter.Add(previousChequeModel.Counter, bigOne)
 		amount.Add(previousChequeModel.Amount, amount)
