@@ -43,7 +43,7 @@ type ServiceIdentifier struct {
 	servicePath    string
 }
 
-func NewServiceRegistry(_ []string, supportedServices supportedServices, logger *zap.SugaredLogger) ServiceRegistry {
+func NewServiceRegistry(supportedServices supportedServices, logger *zap.SugaredLogger) ServiceRegistry {
 	supported := make(map[ServiceIdentifier]cmaccount.PartnerConfigurationService)
 	// TODO: @VjeraTurk support multiple versions
 	for i, serviceFullName := range supportedServices.ServiceNames {
