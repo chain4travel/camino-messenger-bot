@@ -14,6 +14,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -24,6 +25,9 @@ import (
 type ServiceRegistry interface {
 	RegisterServices(rpcClient *client.RPCClient)
 	GetService(messageType MessageType) (Service, bool)
+
+	// should only be called for supplier bot with rpc client
+	NotificationClient() notificationv1grpc.NotificationServiceClient
 }
 
 type supportedServices struct {
@@ -36,6 +40,7 @@ type serviceRegistry struct {
 	services  map[MessageType]Service
 	lock      *sync.RWMutex
 	supported map[ServiceIdentifier]cmaccount.PartnerConfigurationService
+	rpcClient *client.RPCClient
 }
 type ServiceIdentifier struct {
 	serviceName    string
@@ -138,6 +143,10 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	if s.isServiceVersionSupported("GetPartnerConfigurationService", uint64(2), "cmp.services.partner.v2.GetPartnerConfigurationService") {
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("GetPartnerConfigurationService"))] = partnerService{}
 	}
+
+	if rpcClient != nil {
+		s.rpcClient = rpcClient
+	}
 }
 
 func (s *serviceRegistry) getRequestTypeNameFromServiceName(name string) string {
@@ -155,4 +164,8 @@ func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
 func (s *serviceRegistry) isServiceVersionSupported(name string, version uint64, path string) bool {
 	_, ok := s.supported[ServiceIdentifier{serviceName: name, serviceVersion: version, servicePath: path}]
 	return ok
+}
+
+func (s *serviceRegistry) NotificationClient() notificationv1grpc.NotificationServiceClient {
+	return notificationv1grpc.NewNotificationServiceClient(s.rpcClient.ClientConn)
 }

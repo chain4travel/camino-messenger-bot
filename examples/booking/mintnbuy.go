@@ -19,7 +19,6 @@ import (
 
 // Simple usage example for the BookingService
 func main() {
-
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)

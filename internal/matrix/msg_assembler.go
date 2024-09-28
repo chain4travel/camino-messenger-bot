@@ -47,7 +47,7 @@ func (a *messageAssembler) AssembleMessage(msg *matrix.CaminoMatrixMessage) (*ma
 	}
 
 	a.partialMessages[id] = append(a.partialMessages[id], msg)
-	if len(a.partialMessages[id]) == int(msg.Metadata.NumberOfChunks) {
+	if len(a.partialMessages[id]) == int(msg.Metadata.NumberOfChunks) { //nolint:gosec
 		decompressedCaminoMsg, err := a.assembleAndDecompressCaminoMatrixMessages(a.partialMessages[id])
 		delete(a.partialMessages, id)
 		return decompressedCaminoMsg, err == nil, err
