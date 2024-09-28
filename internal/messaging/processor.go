@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"sync"
 	"time"
 
@@ -23,16 +24,20 @@ import (
 var (
 	_ Processor = (*processor)(nil)
 
-	ErrUserIDNotSet               = errors.New("user id not set")
-	ErrUnknownMessageCategory     = errors.New("unknown message category")
-	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
-	ErrUnsupportedService         = errors.New("unsupported service")
-	ErrMissingRecipient           = errors.New("missing recipient")
-	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
-	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
-	ErrMissingCheques             = errors.New("missing cheques in metadata")
-	ErrBotNotInCMAccount          = errors.New("bot not in Cm Account")
-	ErrCheckingCmAccount          = errors.New("problem calling contract")
+	ErrUserIDNotSet                 = errors.New("user id not set")
+	ErrUnknownMessageCategory       = errors.New("unknown message category")
+	ErrOnlyRequestMessagesAllowed   = errors.New("only request messages allowed")
+	ErrUnsupportedService           = errors.New("unsupported service")
+	ErrMissingRecipient             = errors.New("missing recipient")
+	ErrForeignCMAccount             = errors.New("foreign or Invalid CM Account")
+	ErrExceededResponseTimeout      = errors.New("response exceeded configured timeout")
+	ErrMissingCheques               = errors.New("missing cheques in metadata")
+	ErrBotNotInCMAccount            = errors.New("bot not in Cm Account")
+	ErrCheckingCmAccount            = errors.New("problem calling contract")
+	ErrBotMissingChequeOperatorRole = errors.New("bot missing permission")
+	ErrChequeNotIssued              = errors.New("cheque not issued")
+
+	networkFee = big.NewInt(300000000000000) // 0.00003 CAM
 )
 
 type MsgHandler interface {
@@ -51,6 +56,7 @@ type Processor interface {
 
 type processor struct {
 	cfg       config.ProcessorConfig
+	evmConfig config.EvmConfig
 	messenger Messenger
 	userID    id.UserID
 	logger    *zap.SugaredLogger
@@ -62,6 +68,7 @@ type processor struct {
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
+	chequeHandler         ChequeHandler
 	myBotAddress          common.Address
 }
 
@@ -74,9 +81,19 @@ func (*processor) Checkpoint() string {
 	return "processor"
 }
 
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
+func NewProcessor(
+	messenger Messenger,
+	logger *zap.SugaredLogger,
+	cfg config.ProcessorConfig,
+	evmConfig config.EvmConfig,
+	registry ServiceRegistry,
+	responseHandler ResponseHandler,
+	identificationHandler IdentificationHandler,
+	chequeHandler ChequeHandler,
+) Processor {
 	return &processor{
 		cfg:                   cfg,
+		evmConfig:             evmConfig,
 		messenger:             messenger,
 		logger:                logger,
 		tracer:                otel.GetTracerProvider().Tracer(""),
@@ -85,6 +102,7 @@ func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.Pro
 		serviceRegistry:       registry,
 		responseHandler:       responseHandler,
 		identificationHandler: identificationHandler,
+		chequeHandler:         chequeHandler,
 	}
 }
 
@@ -152,6 +170,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
 		return nil, ErrMissingRecipient
 	}
+
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	// lookup for CM Account -> bot
 	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
@@ -161,7 +180,49 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
-	// TODO issue and attach cheques
+	isBotAllowed, err := p.chequeHandler.IsBotAllowed(ctx, p.myBotAddress)
+	if err != nil {
+		return nil, err
+	}
+	if !isBotAllowed {
+		return nil, ErrBotMissingChequeOperatorRole
+	}
+
+	// Cheque Issuing start
+	numberOfChunks := new(big.Int).SetUint64(msg.Metadata.NumberOfChunks)
+	totalNetworkFee := new(big.Int).Mul(networkFee, numberOfChunks)
+
+	networkFeeCheque, err := p.chequeHandler.IssueCheque(
+		ctx,
+		p.identificationHandler.getMyCMAccountAddress(),
+		common.HexToAddress(p.evmConfig.NetworkFeeRecipientCMAccountAddress),
+		p.myBotAddress,
+		common.HexToAddress(p.evmConfig.NetworkFeeRecipientBotAddress),
+		totalNetworkFee,
+	)
+	if err != nil {
+		return nil, ErrChequeNotIssued
+	}
+
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), msg.Type)
+	if err != nil {
+		return nil, err
+	}
+	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
+		ctx,
+		p.identificationHandler.getMyCMAccountAddress(),
+		common.HexToAddress(msg.Metadata.Recipient),
+		p.myBotAddress,
+		common.HexToAddress(recipientBot.Localpart()),
+		serviceFee,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *networkFeeCheque, *serviceFeeCheque)
+	// Cheque Issuing end
+
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 

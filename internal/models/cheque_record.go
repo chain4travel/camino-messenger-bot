@@ -49,3 +49,21 @@ type ChequeRecord struct {
 func (c ChequeRecord) String() string {
 	return fmt.Sprintf("{ID: %s, txID %s, status: %s, cheque: %+v}", c.ChequeRecordID.Hex(), c.TxID.Hex(), c.Status, c.Cheque)
 }
+
+func ChequeRecordFromCheque(chequeRecordID common.Hash, cheque *cheques.SignedCheque) *ChequeRecord {
+	return &ChequeRecord{
+		SignedCheque: cheques.SignedCheque{
+			Cheque: cheques.Cheque{
+				FromCMAccount: cheque.FromCMAccount,
+				ToCMAccount:   cheque.ToCMAccount,
+				ToBot:         cheque.ToBot,
+				Counter:       cheque.Counter,
+				Amount:        cheque.Amount,
+				CreatedAt:     cheque.CreatedAt,
+				ExpiresAt:     cheque.ExpiresAt,
+			},
+			Signature: cheque.Signature,
+		},
+		ChequeRecordID: chequeRecordID,
+	}
+}

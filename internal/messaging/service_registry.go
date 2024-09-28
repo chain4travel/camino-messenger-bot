@@ -130,6 +130,10 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 		c := insurancev1grpc.NewInsuranceSearchServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceSearchService"))] = insuranceSearchService{client: &c}
 	}
+	if s.isServiceVersionSupported("InsuranceProductInfoService", uint64(1), "cmp.services.insurance.v1.InsuranceProductInfoService") {
+		c := insurancev1grpc.NewInsuranceProductInfoServiceClient(rpcClient.ClientConn)
+		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceProductInfoService"))] = insuranceProductInfoService{client: &c}
+	}
 	if s.isServiceVersionSupported("InsuranceProductListService", uint64(1), "cmp.services.insurance.v1.InsuranceProductListService") {
 		c := insurancev1grpc.NewInsuranceProductListServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceProductListService"))] = insuranceProductListService{client: &c}
@@ -168,4 +172,97 @@ func (s *serviceRegistry) isServiceVersionSupported(name string, version uint64,
 
 func (s *serviceRegistry) NotificationClient() notificationv1grpc.NotificationServiceClient {
 	return notificationv1grpc.NewNotificationServiceClient(s.rpcClient.ClientConn)
+}
+
+var servicesMapping = map[MessageType]ServiceIdentifier{
+	ActivityProductInfoRequest: {
+		serviceName:    "ActivityProductInfoService",
+		servicePath:    "cmp.services.activity.v2.ActivityProductInfoService",
+		serviceVersion: 2,
+	},
+	ActivityProductListRequest: {
+		serviceName:    "ActivityProductListService",
+		servicePath:    "cmp.services.activity.v2.ActivityProductListService",
+		serviceVersion: 2,
+	},
+	ActivitySearchRequest: {
+		serviceName:    "ActivitySearchService",
+		servicePath:    "cmp.services.activity.v2.ActivitySearchService",
+		serviceVersion: 2,
+	},
+	AccommodationProductInfoRequest: {
+		serviceName:    "AccommodationProductInfoService",
+		servicePath:    "cmp.services.accommodation.v2.AccommodationProductInfoService",
+		serviceVersion: 2,
+	},
+	AccommodationProductListRequest: {
+		serviceName:    "AccommodationProductListService",
+		servicePath:    "cmp.services.accommodation.v2.AccommodationProductListService",
+		serviceVersion: 2,
+	},
+	AccommodationSearchRequest: {
+		serviceName:    "AccommodationSearchService",
+		servicePath:    "cmp.services.accommodation.v2.AccommodationSearchService",
+		serviceVersion: 2,
+	},
+	MintRequest: {
+		serviceName:    "MintService",
+		servicePath:    "cmp.services.book.v2.MintService",
+		serviceVersion: 2,
+	},
+	ValidationRequest: {
+		serviceName:    "ValidationService",
+		servicePath:    "cmp.services.book.v2.ValidationService",
+		serviceVersion: 2,
+	},
+	TransportSearchRequest: {
+		serviceName:    "TransportSearchService",
+		servicePath:    "cmp.services.transport.v2.TransportSearchService",
+		serviceVersion: 2,
+	},
+	SeatMapRequest: {
+		serviceName:    "SeatMapService",
+		servicePath:    "cmp.services.seat_map.v2.SeatMapService",
+		serviceVersion: 2,
+	},
+	SeatMapAvailabilityRequest: {
+		serviceName:    "SeatMapAvailabilityService",
+		servicePath:    "cmp.services.seat_map.v2.SeatMapAvailabilityService",
+		serviceVersion: 2,
+	},
+	CountryEntryRequirementsRequest: {
+		serviceName:    "CountryEntryRequirementsService",
+		servicePath:    "cmp.services.info.v2.CountryEntryRequirementsService",
+		serviceVersion: 2,
+	},
+	InsuranceSearchRequest: {
+		serviceName:    "InsuranceSearchService",
+		servicePath:    "cmp.services.info.v1.InsuranceSearchService",
+		serviceVersion: 1,
+	},
+	InsuranceProductInfoRequest: {
+		serviceName:    "InsuranceProductInfoService",
+		servicePath:    "cmp.services.info.v1.InsuranceProductInfoService",
+		serviceVersion: 1,
+	},
+	InsuranceProductListRequest: {
+		serviceName:    "InsuranceProductListService",
+		servicePath:    "cmp.services.info.v1.InsuranceProductListService",
+		serviceVersion: 1,
+	},
+	GetNetworkFeeRequest: {
+		serviceName:    "NetworkService",
+		servicePath:    "", // No service path as it does not communicate with a partner plugin
+		serviceVersion: 1,  // Version not applicable
+	},
+	GetPartnerConfigurationRequest: {
+		serviceName:    "PartnerService",
+		servicePath:    "", // No service path as it does not communicate with a partner plugin
+		serviceVersion: 1,  // Version not applicable
+	},
+	PingRequest: {
+		serviceName:    "PingService",
+		servicePath:    "",
+		serviceVersion: 1,
+	},
 }
