@@ -38,8 +38,8 @@ import (
 
 const (
 	buyableUntilDurationDefault = 300 * time.Second
-	buyableUntilDurationMin     = 70 * time.Second
-	buyableUntilDurationMax     = 600 * time.Second
+	buyableUntilDurationMinimal = 70 * time.Second
+	buyableUntilDurationMaximal = 600 * time.Second
 )
 
 var (
@@ -154,13 +154,13 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		addErrorToResponseHeader(response, errMsg)
 		return true
 
-	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMin)).Seconds:
+	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
 		// BuyableUntil too early
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMin))
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMinimal))
 
-	case response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMax)).Seconds:
+	case response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMaximal)).Seconds:
 		// BuyableUntil too late
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMax))
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMaximal))
 	}
 
 	// MINT TOKEN
