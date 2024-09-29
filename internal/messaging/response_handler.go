@@ -228,7 +228,7 @@ func (h *evmResponseHandler) mint(
 	var paymentToken = zeroAddress
 	var err error
 
-	//TODO:
+	//  TODO:
 	// (in booking package)
 	// define paymentToken from currency
 	// if TokenCurrency get paymentToken contract and call decimals()
