@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
@@ -74,7 +76,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	// TODO do proper DI with FX
 
-	_, err = storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
+	storage, err := storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
 	if err != nil {
 		a.logger.Fatalf("Failed to create storage: %v", err)
 	}
@@ -91,18 +93,53 @@ func (a *App) Run(ctx context.Context) error {
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
-	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig, serviceRegistry, evmEventListener)
+	responseHandler, err := messaging.NewResponseHandler(
+		evmClient,
+		a.logger,
+		&a.cfg.EvmConfig,
+		serviceRegistry,
+		evmEventListener,
+	)
+	if err != nil {
+		a.logger.Fatalf("Failed to create to evm client: %v", err)
+	}
+	chainID, err := evmClient.NetworkID(ctx)
+	if err != nil {
+		a.logger.Fatalf("Failed to fetch chain id: %v", err)
+	}
+	chequeHandler, err := messaging.NewChequeHandler(
+		a.logger,
+		evmClient,
+		&a.cfg.EvmConfig,
+		chainID,
+		storage,
+		serviceRegistry,
+	)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
-	identificationHandler, err := messaging.NewIdentificationHandler(evmClient, a.logger, &a.cfg.EvmConfig, &a.cfg.MatrixConfig)
+	identificationHandler, err := messaging.NewIdentificationHandler(
+		evmClient,
+		a.logger,
+		&a.cfg.EvmConfig,
+		&a.cfg.MatrixConfig,
+	)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
 	// start msg processor
-	msgProcessor := a.startMessageProcessor(ctx, messenger, serviceRegistry, responseHandler, identificationHandler, g, userIDUpdatedChan)
+	msgProcessor := a.startMessageProcessor(
+		ctx,
+		messenger,
+		serviceRegistry,
+		responseHandler,
+		identificationHandler,
+		chequeHandler,
+		g,
+		userIDUpdatedChan,
+	)
 
 	// init tracer
 	tracer := a.initTracer()
@@ -187,8 +224,27 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, identificationHandler messaging.IdentificationHandler, g *errgroup.Group, userIDUpdated chan id.UserID) messaging.Processor {
-	msgProcessor := messaging.NewProcessor(messenger, a.logger, a.cfg.ProcessorConfig, serviceRegistry, responseHandler, identificationHandler)
+func (a *App) startMessageProcessor(
+	ctx context.Context,
+	messenger messaging.Messenger,
+	serviceRegistry messaging.ServiceRegistry,
+	responseHandler messaging.ResponseHandler,
+	identificationHandler messaging.IdentificationHandler,
+	chequeHandler messaging.ChequeHandler,
+	g *errgroup.Group,
+	userIDUpdated chan id.UserID,
+) messaging.Processor {
+	msgProcessor := messaging.NewProcessor(
+		messenger,
+		a.logger,
+		a.cfg.ProcessorConfig,
+		a.cfg.EvmConfig,
+		serviceRegistry,
+		responseHandler,
+		identificationHandler,
+		chequeHandler,
+		messaging.NewCompressor(compression.MaxChunkSize),
+	)
 	g.Go(func() error {
 		// Wait for userID to be passed
 		userID := <-userIDUpdated

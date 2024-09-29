@@ -12,6 +12,12 @@ CREATE TABLE cheque_records (
     status             TINYINT
 );
 
+CREATE TABLE issued_cheque_records (
+    cheque_record_id   VARBINARY(32)  NOT NULL PRIMARY KEY,
+    counter            VARBINARY(16)  NOT NULL,
+    amount             VARBINARY(16)  NOT NULL
+);
+
 CREATE TABLE jobs (
     name        VARCHAR(100)  NOT NULL PRIMARY KEY,
     execute_at  BIGINT        NOT NULL,

@@ -18,8 +18,8 @@ type APIMessageResponse struct {
 }
 type Messenger interface {
 	metadata.Checkpoint
-	StartReceiver() (id.UserID, error)                                // start receiving messages. Returns the user id
-	StopReceiver() error                                              // stop receiving messages
-	SendAsync(ctx context.Context, m Message, sendTo id.UserID) error // asynchronous call (fire and forget)
-	Inbound() chan Message                                            // channel where incoming messages are written
+	StartReceiver() (id.UserID, error)                                                  // start receiving messages. Returns the user id
+	StopReceiver() error                                                                // stop receiving messages
+	SendAsync(ctx context.Context, m Message, content [][]byte, sendTo id.UserID) error // asynchronous call (fire and forget)
+	Inbound() chan Message                                                              // channel where incoming messages are written
 }

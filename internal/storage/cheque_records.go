@@ -16,12 +16,12 @@ import (
 const chequeRecordsTableName = "cheque_records"
 
 var (
-	_ ChequesStorage = (*session)(nil)
+	_ ChequeRecordsStorage = (*session)(nil)
 
 	zeroHash = common.Hash{}
 )
 
-type ChequesStorage interface {
+type ChequeRecordsStorage interface {
 	GetNotCashedChequeRecords(ctx context.Context) ([]*models.ChequeRecord, error)
 	GetChequeRecordsWithPendingTxs(ctx context.Context) ([]*models.ChequeRecord, error)
 	GetChequeRecord(ctx context.Context, chequeRecordID common.Hash) (*models.ChequeRecord, error)
@@ -91,7 +91,7 @@ func (s *session) GetChequeRecordsWithPendingTxs(ctx context.Context) ([]*models
 
 func (s *session) GetChequeRecord(ctx context.Context, chequeRecordID common.Hash) (*models.ChequeRecord, error) {
 	chequeRecord := &chequeRecord{}
-	if err := s.tx.StmtxContext(ctx, s.storage.getChequeByChequeRecordID).GetContext(ctx, chequeRecord, chequeRecordID); err != nil {
+	if err := s.tx.StmtxContext(ctx, s.storage.getChequeRecordByID).GetContext(ctx, chequeRecord, chequeRecordID); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			s.logger.Error(err)
 		}
@@ -102,7 +102,7 @@ func (s *session) GetChequeRecord(ctx context.Context, chequeRecordID common.Has
 
 func (s *session) GetChequeRecordByTxID(ctx context.Context, txID common.Hash) (*models.ChequeRecord, error) {
 	chequeRecord := &chequeRecord{}
-	if err := s.tx.StmtxContext(ctx, s.storage.getChequeByTxID).GetContext(ctx, chequeRecord, txID); err != nil {
+	if err := s.tx.StmtxContext(ctx, s.storage.getChequeRecordByTxID).GetContext(ctx, chequeRecord, txID); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			s.logger.Error(err)
 		}
@@ -129,7 +129,7 @@ func (s *session) UpsertChequeRecord(ctx context.Context, chequeRecord *models.C
 
 type chequeRecordsStatements struct {
 	getNotCashedChequeRecords, getChequeRecordsWithPendingTxs *sqlx.Stmt
-	getChequeByChequeRecordID, getChequeByTxID                *sqlx.Stmt
+	getChequeRecordByID, getChequeRecordByTxID                *sqlx.Stmt
 	upsertChequeRecord                                        *sqlx.NamedStmt
 }
 
@@ -154,7 +154,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 	}
 	s.getChequeRecordsWithPendingTxs = getChequeRecordsWithPendingTxs
 
-	getChequeByID, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
+	getChequeRecordByID, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE cheque_record_id = ?
 	`, chequeRecordsTableName))
@@ -162,7 +162,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 		s.logger.Error(err)
 		return err
 	}
-	s.getChequeByChequeRecordID = getChequeByID
+	s.getChequeRecordByID = getChequeRecordByID
 
 	getChequeByTxID, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
@@ -172,7 +172,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 		s.logger.Error(err)
 		return err
 	}
-	s.getChequeByTxID = getChequeByTxID
+	s.getChequeRecordByTxID = getChequeByTxID
 
 	upsertChequeRecord, err := s.db.PrepareNamedContext(ctx, fmt.Sprintf(`
 		INSERT INTO %s (
@@ -201,13 +201,14 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 			:status
 		)
 		ON CONFLICT(cheque_record_id)
-		DO UPDATE SET counter = excluded.counter,
-			amount            = excluded.amount,
-			created_at        = excluded.created_at,
-			expires_at        = excluded.expires_at,
-			signature         = excluded.signature,
-			tx_id             = excluded.tx_id,
-			status            = excluded.status
+		DO UPDATE SET 
+			counter     = excluded.counter,
+			amount      = excluded.amount,
+			created_at  = excluded.created_at,
+			expires_at  = excluded.expires_at,
+			signature   = excluded.signature,
+			tx_id       = excluded.tx_id,
+			status      = excluded.status
 	`, chequeRecordsTableName))
 	if err != nil {
 		s.logger.Error(err)

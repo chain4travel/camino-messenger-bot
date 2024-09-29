@@ -69,17 +69,17 @@ func (mr *MockMessengerMockRecorder) Inbound() *gomock.Call {
 }
 
 // SendAsync mocks base method.
-func (m *MockMessenger) SendAsync(arg0 context.Context, arg1 Message, arg2 id.UserID) error {
+func (m *MockMessenger) SendAsync(arg0 context.Context, arg1 Message, arg2 [][]byte, arg3 id.UserID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendAsync", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SendAsync", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendAsync indicates an expected call of SendAsync.
-func (mr *MockMessengerMockRecorder) SendAsync(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockMessengerMockRecorder) SendAsync(arg0, arg1, arg2, arg3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAsync", reflect.TypeOf((*MockMessenger)(nil).SendAsync), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAsync", reflect.TypeOf((*MockMessenger)(nil).SendAsync), arg0, arg1, arg2, arg3)
 }
 
 // StartReceiver mocks base method.

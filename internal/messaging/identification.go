@@ -1,7 +1,7 @@
 package messaging
 
 import (
-	"log"
+	"context"
 	"math/big"
 	"strings"
 
@@ -28,6 +28,7 @@ type evmIdentificationHandler struct {
 	matrixHost         string
 	myCMAccountAddress common.Address
 	cmAccounts         *lru.Cache[common.Address, *cmaccount.Cmaccount]
+	logger             *zap.SugaredLogger
 }
 
 type IdentificationHandler interface {
@@ -35,7 +36,12 @@ type IdentificationHandler interface {
 	getFirstBotUserIDFromCMAccountAddress(common.Address) (id.UserID, error)
 }
 
-func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger, cfg *config.EvmConfig, mCfg *config.MatrixConfig) (IdentificationHandler, error) {
+func NewIdentificationHandler(
+	ethClient *ethclient.Client,
+	logger *zap.SugaredLogger,
+	cfg *config.EvmConfig,
+	mCfg *config.MatrixConfig,
+) (IdentificationHandler, error) {
 	cmAccountsCache, err := lru.New[common.Address, *cmaccount.Cmaccount](cmAccountsCacheSize)
 	if err != nil {
 		return nil, err
@@ -47,6 +53,7 @@ func NewIdentificationHandler(ethClient *ethclient.Client, _ *zap.SugaredLogger,
 		matrixHost:         mCfg.Host,
 		myCMAccountAddress: common.HexToAddress(cfg.CMAccountAddress),
 		cmAccounts:         cmAccountsCache,
+		logger:             logger,
 	}, nil
 }
 
@@ -72,24 +79,30 @@ func (ih *evmIdentificationHandler) getFirstBotFromCMAccountAddress(cmAccountAdd
 }
 
 func (ih *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAccountAddress common.Address) ([]common.Address, error) {
-	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, ih.ethClient)
-	if err != nil {
-		log.Printf("Failed to get cm Account: %v", err)
-		return nil, err
-	}
-
-	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{}, roleHash)
-	if err != nil {
-		log.Printf("Failed to call contract function: %v", err)
-		return nil, err
-	}
-
-	botsAddresses := []common.Address{}
-	count := countBig.Int64()
-	for i := int64(0); i < count; i++ {
-		address, err := cmAccount.GetRoleMember(&bind.CallOpts{}, roleHash, big.NewInt(i))
+	cmAccount, ok := ih.cmAccounts.Get(cmAccountAddress)
+	if !ok {
+		var err error
+		cmAccount, err = cmaccount.NewCmaccount(cmAccountAddress, ih.ethClient)
 		if err != nil {
-			log.Printf("Failed to call contract function: %v", err)
+			ih.logger.Errorf("Failed to get cm Account: %v", err)
+			return nil, err
+		}
+		ih.cmAccounts.Add(cmAccountAddress, cmAccount)
+	}
+
+	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{Context: context.TODO()}, roleHash)
+	if err != nil {
+		ih.logger.Errorf("Failed to call contract function: %v", err)
+		return nil, err
+	}
+
+	count := countBig.Int64()
+	botsAddresses := make([]common.Address, 0, count)
+	for i := int64(0); i < count; i++ {
+		address, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: context.TODO()}, roleHash, big.NewInt(i))
+		if err != nil {
+			ih.logger.Errorf("Failed to call contract function: %v", err)
+			continue
 		}
 		botsAddresses = append(botsAddresses, address)
 	}

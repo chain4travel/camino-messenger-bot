@@ -4,8 +4,8 @@ build
 .idea
 *.iml
 
-camino-messenger-bot-supplier.yaml
-camino-messenger-bot-distributor.yaml
+./camino-messenger-bot-supplier.yaml
+./camino-messenger-bot-distributor.yaml
 
 distributor-matrix.db
 supplier-matrix.db

@@ -21,7 +21,7 @@ matrix_key: YOUR_PRIVATE_KEY_HEX
 matrix_host: messenger.chain4travel.com
 
 # Local DB file to store Matrix data
-matrix_store: supplier-matrix.db
+matrix_store: distributor-matrix.db
 
 # Timeout in milliseconds to wait for responses on Matrix Server
 response_timeout: 10000
@@ -36,18 +36,17 @@ rpc_unencrypted: true
 rpc_server_cert_file: server-cert.pem
 rpc_server_key_file: server-key.pem
 
-### Partner Plugin
-
+### Partner Plugin (NOT USED FOR DISTRIBUTOR BOT)
 # Partner Plugin hostname and port, should be reachable from this machine.
 #
 # Bot tries to connect to this host and port to relay messages that it receives from
 # the distributors through Matrix Server
-partner_plugin_host: localhost
-partner_plugin_port: 50051
+#partner_plugin_host: localhost
+#partner_plugin_port: 50051
 # TLS configuration
-partner_plugin_unencrypted: true
+#partner_plugin_unencrypted: true
 # Required if partner_plugin_unencrypted is false
-partner_plugin_ca_file: ca-cert.pem
+#partner_plugin_ca_file: ca-cert.pem
 
 ### C-Chain (EVM)
 
@@ -59,6 +58,14 @@ evm_private_key: YOUR_PRIVATE_KEY_HEX
 # C-Chain RPC URL
 rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 
+# matrix application service bot address
+network_fee_recipient_bot_address: 0xff6BAC3d972680515cbB59fCB6Db6deB13Eb0E91
+
+# matrix application service cm account address
+network_fee_recipient_cm_account: 0xF6bA5c68A505559c170dC7a30448Ed64D8b9Bc3B
+
+cheque_expiration_time: 18144000 # 7 months
+
 ### Booking Token
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
@@ -67,13 +74,14 @@ booking_token_address: "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"
 # Address of the CM Account that the bot belongs to
 cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
 
+
 ### Database
 
 # Database name.
-db_name: camino_messenger-bot
+db_name: camino_messenger_bot
 
 # Path to database file.
-db_path: supplier-bot.db
+db_path: distributor-bot.db
 
 # Path to migrations dir with sql up/down scripts. Schema is mandatory.
 migrations_path: file://./migrations

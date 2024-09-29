@@ -36,6 +36,9 @@ func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.RPCURL, RPCURLKey, "", "The EVM RPC URL")
 	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address")
 	fs.StringVar(&cfg.CMAccountAddress, CMAccountAddressKey, "", "CMAccount address")
+	fs.StringVar(&cfg.NetworkFeeRecipientBotAddress, NetworkFeeRecipientBotAddressKey, "", "Network fee recipient bot address")
+	fs.StringVar(&cfg.NetworkFeeRecipientCMAccountAddress, NetworkFeeRecipientCMAccountAddressKey, "", "Network fee recipient CMAccount address")
+	fs.Uint64Var(&cfg.ChequeExpirationTime, ChequeExpirationTimeKey, 3600*24*30*6, "Cheque expiration time in seconds")
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {

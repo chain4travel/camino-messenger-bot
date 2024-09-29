@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
@@ -23,16 +25,19 @@ import (
 var (
 	_ Processor = (*processor)(nil)
 
-	ErrUserIDNotSet               = errors.New("user id not set")
-	ErrUnknownMessageCategory     = errors.New("unknown message category")
-	ErrOnlyRequestMessagesAllowed = errors.New("only request messages allowed")
-	ErrUnsupportedService         = errors.New("unsupported service")
-	ErrMissingRecipient           = errors.New("missing recipient")
-	ErrForeignCMAccount           = errors.New("foreign or Invalid CM Account")
-	ErrExceededResponseTimeout    = errors.New("response exceeded configured timeout")
-	ErrMissingCheques             = errors.New("missing cheques in metadata")
-	ErrBotNotInCMAccount          = errors.New("bot not in Cm Account")
-	ErrCheckingCmAccount          = errors.New("problem calling contract")
+	ErrUserIDNotSet                 = errors.New("user id not set")
+	ErrUnknownMessageCategory       = errors.New("unknown message category")
+	ErrOnlyRequestMessagesAllowed   = errors.New("only request messages allowed")
+	ErrUnsupportedService           = errors.New("unsupported service")
+	ErrMissingRecipient             = errors.New("missing recipient")
+	ErrForeignCMAccount             = errors.New("foreign or Invalid CM Account")
+	ErrExceededResponseTimeout      = errors.New("response exceeded configured timeout")
+	ErrMissingCheques               = errors.New("missing cheques in metadata")
+	ErrBotNotInCMAccount            = errors.New("bot not in Cm Account")
+	ErrCheckingCmAccount            = errors.New("problem calling contract")
+	ErrBotMissingChequeOperatorRole = errors.New("bot missing permission")
+
+	networkFee = big.NewInt(300000000000000) // 0.00003 CAM
 )
 
 type MsgHandler interface {
@@ -49,8 +54,36 @@ type Processor interface {
 	ProcessOutbound(ctx context.Context, message *Message) (*Message, error)
 }
 
+func NewProcessor(
+	messenger Messenger,
+	logger *zap.SugaredLogger,
+	cfg config.ProcessorConfig,
+	evmConfig config.EvmConfig,
+	registry ServiceRegistry,
+	responseHandler ResponseHandler,
+	identificationHandler IdentificationHandler,
+	chequeHandler ChequeHandler,
+	compressor compression.Compressor[*Message, [][]byte],
+) Processor {
+	return &processor{
+		cfg:                   cfg,
+		evmConfig:             evmConfig,
+		messenger:             messenger,
+		logger:                logger,
+		tracer:                otel.GetTracerProvider().Tracer(""),
+		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
+		responseChannels:      make(map[string]chan *Message),
+		serviceRegistry:       registry,
+		responseHandler:       responseHandler,
+		identificationHandler: identificationHandler,
+		chequeHandler:         chequeHandler,
+		compressor:            compressor,
+	}
+}
+
 type processor struct {
 	cfg       config.ProcessorConfig
+	evmConfig config.EvmConfig
 	messenger Messenger
 	userID    id.UserID
 	logger    *zap.SugaredLogger
@@ -62,7 +95,9 @@ type processor struct {
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
+	chequeHandler         ChequeHandler
 	myBotAddress          common.Address
+	compressor            compression.Compressor[*Message, [][]byte]
 }
 
 func (p *processor) SetUserID(userID id.UserID) {
@@ -72,20 +107,6 @@ func (p *processor) SetUserID(userID id.UserID) {
 
 func (*processor) Checkpoint() string {
 	return "processor"
-}
-
-func NewProcessor(messenger Messenger, logger *zap.SugaredLogger, cfg config.ProcessorConfig, registry ServiceRegistry, responseHandler ResponseHandler, identificationHandler IdentificationHandler) Processor {
-	return &processor{
-		cfg:                   cfg,
-		messenger:             messenger,
-		logger:                logger,
-		tracer:                otel.GetTracerProvider().Tracer(""),
-		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels:      make(map[string]chan *Message),
-		serviceRegistry:       registry,
-		responseHandler:       responseHandler,
-		identificationHandler: identificationHandler,
-	}
 }
 
 func (p *processor) Start(ctx context.Context) {
@@ -152,16 +173,67 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
 		return nil, ErrMissingRecipient
 	}
+
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	// lookup for CM Account -> bot
-	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+	recipientCMAccAddr := common.HexToAddress(msg.Metadata.Recipient)
+	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(recipientCMAccAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
-	// TODO issue and attach cheques
+	isBotAllowed, err := p.chequeHandler.IsBotAllowed(ctx, p.myBotAddress)
+	if err != nil {
+		return nil, err
+	}
+	if !isBotAllowed {
+		return nil, ErrBotMissingChequeOperatorRole
+	}
+
+	// Compress and chunk message
+
+	ctx, compressedContent, err := p.compress(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Cheque Issuing start
+	numberOfChunks := big.NewInt(int64(len(compressedContent)))
+	totalNetworkFee := new(big.Int).Mul(networkFee, numberOfChunks)
+
+	networkFeeCheque, err := p.chequeHandler.IssueCheque(
+		ctx,
+		p.identificationHandler.getMyCMAccountAddress(),
+		common.HexToAddress(p.evmConfig.NetworkFeeRecipientCMAccountAddress),
+		common.HexToAddress(p.evmConfig.NetworkFeeRecipientBotAddress),
+		totalNetworkFee,
+	)
+	if err != nil {
+		p.logger.Errorf("failed to issue network fee cheque: %v", err)
+		return nil, fmt.Errorf("failed to issue network fee cheque: %w", err)
+	}
+
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type)
+	if err != nil {
+		return nil, err
+	}
+	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
+		ctx,
+		p.identificationHandler.getMyCMAccountAddress(),
+		recipientCMAccAddr,
+		common.HexToAddress(recipientBot.Localpart()),
+		serviceFee,
+	)
+	if err != nil {
+		p.logger.Errorf("failed to issue service fee cheque: %v", err)
+		return nil, fmt.Errorf("failed to issue service fee cheque: %w", err)
+	}
+
+	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *networkFeeCheque, *serviceFeeCheque)
+	// Cheque Issuing end
+
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
@@ -170,7 +242,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	}
 	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBot, msg.Metadata.Recipient)
 
-	if err := p.messenger.SendAsync(ctx, *msg, recipientBot); err != nil {
+	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBot); err != nil {
 		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -193,6 +265,7 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
 	}
+
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
 	ctx, span := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -238,7 +311,12 @@ func (p *processor) Respond(msg *Message) error {
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, msg.Sender)
 
-	return p.messenger.SendAsync(ctx, responseMsg, msg.Sender)
+	ctx, compressedContent, err := p.compress(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	return p.messenger.SendAsync(ctx, responseMsg, compressedContent, msg.Sender)
 }
 
 func (p *processor) Forward(msg *Message) {
@@ -261,4 +339,14 @@ func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques
 		}
 	}
 	return nil
+}
+
+func (p *processor) compress(ctx context.Context, msg *Message) (context.Context, [][]byte, error) {
+	ctx, compressSpan := p.tracer.Start(ctx, "messenger.Compress", trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	defer compressSpan.End()
+	compressedContent, err := p.compressor.Compress(msg)
+	if err != nil {
+		return ctx, nil, err
+	}
+	return ctx, compressedContent, nil
 }

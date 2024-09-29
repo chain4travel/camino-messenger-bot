@@ -36,12 +36,16 @@ type ProcessorConfig struct {
 	Timeout int `mapstructure:"response_timeout"` // in milliseconds
 }
 
+// should MessengerCashier related config be here?
 type EvmConfig struct {
-	PrivateKey          string `mapstructure:"evm_private_key"`
-	RPCURL              string `mapstructure:"rpc_url"`
-	SupplierName        string `mapstructure:"supplier_name"`
-	BookingTokenAddress string `mapstructure:"booking_token_address"`
-	CMAccountAddress    string `mapstructure:"cm_account_address"`
+	PrivateKey                          string `mapstructure:"evm_private_key"`
+	RPCURL                              string `mapstructure:"rpc_url"`
+	SupplierName                        string `mapstructure:"supplier_name"`
+	BookingTokenAddress                 string `mapstructure:"booking_token_address"`
+	CMAccountAddress                    string `mapstructure:"cm_account_address"`
+	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
+	NetworkFeeRecipientCMAccountAddress string `mapstructure:"network_fee_recipient_cm_account"`
+	ChequeExpirationTime                uint64 `mapstructure:"cheque_expiration_time"`
 }
 
 type DBConfig struct {
