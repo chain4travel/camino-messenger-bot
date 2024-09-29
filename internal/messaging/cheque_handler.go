@@ -261,7 +261,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 
 	chequeRecordID := models.ChequeRecordID(&cheque.Cheque)
 	chequeRecord, err := session.GetChequeRecord(ctx, chequeRecordID)
-	if err != nil {
+	if err != nil && err != storage.ErrNotFound {
 		ch.logger.Errorf("failed to get chequeRecord: %v", err)
 		return err
 	}
@@ -281,7 +281,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 		return err
 	}
 
-	amountDiff := cheque.Amount.Sub(cheque.Amount, oldAmount)
+	amountDiff := big.NewInt(0).Sub(cheque.Amount, oldAmount)
 	if amountDiff.Cmp(serviceFee) < 0 { // amountDiff < serviceFee
 		return fmt.Errorf("cheque amount must at least cover serviceFee")
 	}
@@ -309,21 +309,7 @@ func (ch *evmChequeHandler) verifyChequeWithContract(ctx context.Context, cheque
 		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
 		return false, err
 	}
-	_, err = cmAccount.VerifyCheque(
-		&bind.CallOpts{Context: ctx},
-		cheque.FromCMAccount,
-		cheque.ToCMAccount,
-		cheque.ToBot,
-		cheque.Counter,
-		cheque.Amount,
-		cheque.CreatedAt,
-		cheque.ExpiresAt,
-		cheque.Signature,
-	)
-	if err != nil && err.Error() == "execution reverted" {
-		return false, nil
-	}
-	return err == nil, err
+	return verifyChequeWithContract(ctx, cmAccount, cheque)
 }
 
 // TODO @evlekht whole cash in is almost 100% copy-paste from asb, think of moving to common place

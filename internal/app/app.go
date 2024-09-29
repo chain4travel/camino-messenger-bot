@@ -157,6 +157,10 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to schedule cash in job: %v", err)
 	}
 
+	if err := scheduler.Start(ctx); err != nil {
+		a.logger.Fatalf("Failed to start scheduler: %v", err)
+	}
+
 	// init tracer
 	tracer := a.initTracer()
 	defer func() {
