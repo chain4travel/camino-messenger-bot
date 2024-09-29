@@ -31,7 +31,8 @@ type Session interface {
 	Abort()
 
 	JobsStorage
-	ChequesStorage
+	ChequeRecordsStorage
+	IssuedChequeRecordsStorage
 }
 
 func New(ctx context.Context, logger *zap.SugaredLogger, dbPath, dbName, migrationsPath string) (Storage, error) {
@@ -61,6 +62,7 @@ type storage struct {
 	logger *zap.SugaredLogger
 	db     *sqlx.DB
 
+	issuedChequeRecordsStatements
 	chequeRecordsStatements
 	jobsStatements
 }
@@ -115,6 +117,7 @@ func (s *storage) migrate(_ context.Context, dbName, migrationsPath string) erro
 
 func (s *storage) prepare(ctx context.Context) error {
 	return errors.Join(
+		s.prepareIssuedChequeRecordsStmts(ctx),
 		s.prepareChequeRecordsStmts(ctx),
 		s.prepareJobsStmts(ctx),
 	)

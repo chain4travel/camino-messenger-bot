@@ -73,7 +73,8 @@ func NewChequeHandler(
 		cmAccountAddress:  cmAccountAddress,
 		cmAccountInstance: cmAccountInstance,
 		chainID:           chainID,
-		chequeIssuerKey:   chequeIssuerKey,
+		botKey:            chequeIssuerKey,
+		botAddress:        crypto.PubkeyToAddress(chequeIssuerKey.PublicKey),
 		logger:            logger,
 		evmConfig:         evmConfig,
 		storage:           storage,
@@ -91,7 +92,8 @@ type evmChequeHandler struct {
 	evmConfig         *config.EvmConfig
 	cmAccountAddress  common.Address
 	cmAccountInstance *cmaccount.Cmaccount
-	chequeIssuerKey   *ecdsa.PrivateKey
+	botKey            *ecdsa.PrivateKey
+	botAddress        common.Address
 	signer            cheques.Signer
 	serviceRegistry   ServiceRegistry
 	storage           storage.Storage
@@ -125,7 +127,7 @@ func (ch *evmChequeHandler) IssueCheque(
 
 	chequeRecordID := models.ChequeRecordID(newCheque)
 
-	previousChequeModel, err := session.GetChequeRecord(ctx, chequeRecordID)
+	previousChequeModel, err := session.GetIssuedChequeRecord(ctx, chequeRecordID)
 	if !errors.Is(err, storage.ErrNotFound) {
 		return nil, fmt.Errorf("failed to get previous cheque: %w", err)
 	}
@@ -140,13 +142,33 @@ func (ch *evmChequeHandler) IssueCheque(
 		return nil, fmt.Errorf("failed to sign cheque: %w", err)
 	}
 
-	if err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque); err != nil {
+	isChequeValid, err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque)
+	if err != nil {
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
+	} else if !isChequeValid {
+		lastCounter, lastAmount, err := ch.getLastCashIn(ctx, toBot)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get last cash in: %w", err)
+		}
+		newCheque.Counter.Add(lastCounter, bigOne)
+		newCheque.Amount.Add(lastAmount, amount)
+
+		signedCheque, err = ch.signer.SignCheque(newCheque)
+		if err != nil {
+			return nil, fmt.Errorf("failed to sign cheque: %w", err)
+		}
+
+		isChequeValid, err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque)
+		if err != nil {
+			return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
+		} else if !isChequeValid {
+			return nil, fmt.Errorf("failed to issue valid cheque")
+		}
 	}
 
-	if err := session.UpsertChequeRecord(ctx, models.ChequeRecordFromCheque(chequeRecordID, signedCheque)); err != nil {
+	if err := session.UpsertIssuedChequeRecord(ctx, models.IssuedChequeRecordCheque(chequeRecordID, signedCheque)); err != nil {
 		ch.logger.Error(err)
-		return nil, fmt.Errorf("failed to upsert cheque record: %w", err)
+		return nil, fmt.Errorf("failed to upsert issued cheque record: %w", err)
 	}
 
 	if err := session.Commit(); err != nil {
@@ -203,11 +225,23 @@ func (ch *evmChequeHandler) getCMAccount(address common.Address) (*cmaccount.Cma
 	return cmAccount, nil
 }
 
+func (ch *evmChequeHandler) getLastCashIn(ctx context.Context, toBot common.Address) (counter *big.Int, amount *big.Int, err error) {
+	lastCashIn, err := ch.cmAccountInstance.GetLastCashIn(
+		&bind.CallOpts{Context: ctx},
+		ch.botAddress,
+		toBot,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
+	}
+	return lastCashIn.LastCounter, lastCashIn.LastAmount, nil
+}
+
 func verifyChequeWithContract(
 	ctx context.Context,
 	cmAcc *cmaccount.Cmaccount,
 	signedCheque *cheques.SignedCheque,
-) error {
+) (bool, error) {
 	_, err := cmAcc.VerifyCheque(
 		&bind.CallOpts{Context: ctx},
 		signedCheque.FromCMAccount,
@@ -219,5 +253,8 @@ func verifyChequeWithContract(
 		signedCheque.ExpiresAt,
 		signedCheque.Signature,
 	)
-	return err
+	if err != nil && err.Error() == "execution reverted" {
+		return false, nil
+	}
+	return err == nil, err
 }
