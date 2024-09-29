@@ -5,7 +5,6 @@
 package messaging
 
 import (
-	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -79,42 +78,59 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	hasUnsupported := false
 	// Bot does a simple check - if there is a service in the CM-Account which is not supported by the Bot it does not start up.
 	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(1), "cmp.services.activity.v1.ActivityProductInfoService") {
-	log.Fatalf("Service version is not supported: cmp.services.activity.v1.ActivityProductInfoService")
+		s.logger.Infof("Service version is not supported: cmp.services.activity.v1.ActivityProductInfoService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("ActivityProductListService", uint64(1), "cmp.services.activity.v1.ActivityProductListService") {
-		log.Fatalf("Service version is not supported: cmp.services.activity.v1.ActivityProductListService")
+		s.logger.Infof("Service version is not supported: cmp.services.activity.v1.ActivityProductListService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("ActivitySearchService", uint64(1), "cmp.services.activity.v1.ActivitySearchService") {
-		log.Fatalf("Service version is not supported: cmp.services.activity.v1.ActivitySearchService")
+		s.logger.Infof("Service version is not supported: cmp.services.activity.v1.ActivitySearchService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("AccommodationProductInfoService", uint64(1), "cmp.services.accommodation.v1.AccommodationProductInfoService") {
-		log.Fatalf("Service version is not supported: cmp.services.accommodation.v1.AccommodationProductInfoService")
+		s.logger.Infof("Service version is not supported: cmp.services.accommodation.v1.AccommodationProductInfoService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("AccommodationProductListService", uint64(1), "cmp.services.accommodation.v1.AccommodationProductListService") {
-		log.Fatalf("Service version is not supported: cmp.services.accommodation.v1.AccommodationProductListService")
+		s.logger.Infof("Service version is not supported: cmp.services.accommodation.v1.AccommodationProductListService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("AccommodationSearchService", uint64(1), "cmp.services.accommodation.v1.AccommodationSearchService") {
-		log.Fatalf("Service version is not supported: cmp.services.accommodation.v1.AccommodationSearchService")
+		s.logger.Infof("Service version is not supported: cmp.services.accommodation.v1.AccommodationSearchService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("MintService", uint64(1), "cmp.services.book.v1.MintService") {
-		log.Fatalf("Service version is not supported: cmp.services.book.v1.MintService")
+		s.logger.Infof("Service version is not supported: cmp.services.book.v1.MintService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("ValidationService", uint64(1), "cmp.services.book.v1.ValidationService") {
-		log.Fatalf("Service version is not supported: cmp.services.book.v1.ValidationService")
+		s.logger.Infof("Service version is not supported: cmp.services.book.v1.ValidationService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("TransportSearchService", uint64(1), "cmp.services.transport.v1.TransportSearchService") {
-		log.Fatalf("Service version is not supported: cmp.services.transport.v1.TransportSearchService")
+		s.logger.Infof("Service version is not supported: cmp.services.transport.v1.TransportSearchService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("SeatMapService", uint64(1), "cmp.services.seat_map.v1.SeatMapService") {
-		log.Fatalf("Service version is not supported: cmp.services.seat_map.v1.SeatMapService")
+		s.logger.Infof("Service version is not supported: cmp.services.seat_map.v1.SeatMapService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("SeatMapAvailabilityService", uint64(1), "cmp.services.seat_map.v1.SeatMapAvailabilityService") {
-		log.Fatalf("Service version is not supported: cmp.services.seat_map.v1.SeatMapAvailabilityService")
+		s.logger.Infof("Service version is not supported: cmp.services.seat_map.v1.SeatMapAvailabilityService")
+		hasUnsupported = true
 	}
 	if s.isServiceVersionSupported("CountryEntryRequirementsService", uint64(1), "cmp.services.info.v1.CountryEntryRequirementsService") {
-		log.Fatalf("Service version is not supported: cmp.services.info.v1.CountryEntryRequirementsService")
+		s.logger.Infof("Service version is not supported: cmp.services.info.v1.CountryEntryRequirementsService")
+		hasUnsupported = true
+	}
+
+	if hasUnsupported {
+		s.logger.Fatalf("Unsupported services detected. Please upgrade the service version.")
 	}
 
 	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(2), "cmp.services.activity.v2.ActivityProductInfoService") {
