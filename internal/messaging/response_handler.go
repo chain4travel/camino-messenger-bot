@@ -236,7 +236,7 @@ func (h *evmResponseHandler) mint(
 
 	switch price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(*price, int32(18)) //CAM uses 18 decimals
+		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(price, int32(18)) // CAM uses 18 decimals
 		if err != nil {
 			return "", nil, err
 		}

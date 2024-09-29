@@ -129,7 +129,7 @@ func (bs *Service) BuyBookingToken(
 }
 
 // convertPriceToBigInt converts the price to its integer representation
-func (bs *Service) ConvertPriceToBigInt(price typesv2.Price, totalDecimals int32) (*big.Int, error) {
+func (bs *Service) ConvertPriceToBigInt(price *typesv2.Price, totalDecimals int32) (*big.Int, error) {
 	// Convert the value string to a big.Int
 	valueBigInt := new(big.Int)
 	_, ok := valueBigInt.SetString(price.Value, 10)
