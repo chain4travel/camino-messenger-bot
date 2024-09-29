@@ -261,7 +261,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 
 	chequeRecordID := models.ChequeRecordID(&cheque.Cheque)
 	chequeRecord, err := session.GetChequeRecord(ctx, chequeRecordID)
-	if err != nil && err != storage.ErrNotFound {
+	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		ch.logger.Errorf("failed to get chequeRecord: %v", err)
 		return err
 	}
