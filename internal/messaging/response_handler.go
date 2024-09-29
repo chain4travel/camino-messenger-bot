@@ -216,14 +216,7 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 
 // Mints a BookingToken with the supplier private key and reserves it for the buyer address
 // For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
-func (h *evmResponseHandler) mint(
-	ctx context.Context,
-	reservedFor common.Address,
-	uri string,
-	expiration *big.Int,
-	price *typesv2.Price,
-) (string, *big.Int, error) {
-
+func (h *evmResponseHandler) mint(ctx context.Context, reservedFor common.Address, uri string, expiration *big.Int, price *typesv2.Price) (string, *big.Int, error) {
 	var bigIntPrice = big.NewInt(0)
 	var paymentToken = zeroAddress
 	var err error
