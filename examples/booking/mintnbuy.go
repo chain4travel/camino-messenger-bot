@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"time"
 
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -87,7 +87,7 @@ func main() {
 
 	var paymentToken common.Address = zeroAddress
 	var bigIntPrice *big.Int
-	var price *typesv1.Price
+	var price *typesv2.Price
 	// https://polygonscan.com/unitconverter
 	// ### Simple Price type message Price
 	//
@@ -108,12 +108,12 @@ func main() {
 	// decimals=2
 	// iso_currency=EUR or USD
 
-	priceEUR := &typesv1.Price{
+	priceEUR := &typesv2.Price{
 		Value:    "10000",
 		Decimals: 2,
-		Currency: &typesv1.Currency{
-			Currency: &typesv1.Currency_IsoCurrency{
-				IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_IsoCurrency{
+				IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR,
 			},
 		},
 	}
@@ -127,12 +127,12 @@ func main() {
 	//	its smallest fraction by multiplying  100.65 EURSH * 10^5 => 10065000 (example
 	//	conversion to bigint without losing accuracy: bigint(10065) * 10^(5-2))
 
-	priceEURSH := &typesv1.Price{
+	priceEURSH := &typesv2.Price{
 		Value:    "10065",
 		Decimals: 2,
-		Currency: &typesv1.Currency{
-			Currency: &typesv1.Currency_TokenCurrency{
-				TokenCurrency: &typesv1.TokenCurrency{
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_TokenCurrency{
+				TokenCurrency: &typesv2.TokenCurrency{
 					ContractAddress: eurshToken.Hex(),
 				},
 			},
@@ -154,12 +154,12 @@ func main() {
 	//	0.0065 for on-chain operations must be converted to big integer as bigint(65) *
 	//	10^(8-4) == 650000
 
-	priceBTC := &typesv1.Price{
+	priceBTC := &typesv2.Price{
 		Value:    "65",
 		Decimals: 4,
-		Currency: &typesv1.Currency{
-			Currency: &typesv1.Currency_TokenCurrency{
-				TokenCurrency: &typesv1.TokenCurrency{},
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_TokenCurrency{
+				TokenCurrency: &typesv2.TokenCurrency{},
 			},
 		},
 	}
@@ -169,11 +169,11 @@ func main() {
 	//	0.000000001 CAM and minted in its smallest fraction by multiplying 0.000000001 *
 	//	10^18 => 1000000000 aCAM
 
-	priceCAM := &typesv1.Price{
+	priceCAM := &typesv2.Price{
 		Value:    "1",
 		Decimals: 9,
-		Currency: &typesv1.Currency{
-			Currency: &typesv1.Currency_NativeToken{
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_NativeToken{
 				NativeToken: &emptypb.Empty{},
 			},
 		},
@@ -192,7 +192,7 @@ func main() {
 	price = priceCAM
 
 	switch price.Currency.Currency.(type) {
-	case *typesv1.Currency_NativeToken:
+	case *typesv2.Currency_NativeToken:
 		bigIntPrice, err = bs.ConvertPriceToBigInt(*price, int32(18)) //CAM uses 18 decimals
 		if err != nil {
 			sugar.Errorf("Failed to convert price to big.Int: %v", err)
@@ -200,12 +200,12 @@ func main() {
 		}
 		sugar.Infof("Converted the price big.Int: %v", bigIntPrice)
 		paymentToken = zeroAddress
-	case *typesv1.Currency_TokenCurrency:
+	case *typesv2.Currency_TokenCurrency:
 		// Add logic to handle TokenCurrency
 		// if contract address is zeroAddress, then it is native token
 		sugar.Infof("TokenCurrency not supported yet")
 		return
-	case *typesv1.Currency_IsoCurrency:
+	case *typesv2.Currency_IsoCurrency:
 		// Add logic to handle IsoCurrency
 		sugar.Infof("IsoCurrency not supported yet")
 		return
