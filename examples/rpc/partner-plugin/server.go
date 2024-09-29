@@ -80,6 +80,18 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv
 				},
 			},
 		},
+		/*
+			ISO CURRENCY EXAMPLE:
+				Price: &typesv1.Price{
+					Value:    "10000",
+					Decimals: 2,
+					Currency: &typesv1.Currency{
+						Currency: &typesv1.Currency_IsoCurrency{
+							IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
+						},
+					},
+				},
+		*/
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 

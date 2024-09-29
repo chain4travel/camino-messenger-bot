@@ -87,7 +87,7 @@ func main() {
 	expiration := big.NewInt(time.Now().Add(time.Hour).Unix())
 
 	var paymentToken common.Address = zeroAddress
-	var bigIntPrice *big.Int = big.NewInt(1)
+	var bigIntPrice *big.Int
 	var price *typesv1.Price
 	// https://polygonscan.com/unitconverter
 	// ### Simple Price type message Price
@@ -183,6 +183,35 @@ func main() {
 	sugar.Infof("%v %v %v %v", priceEUR, priceEURSH, priceBTC, priceCAM)
 	sugar.Infof("%v", price)
 
+	// bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceEURSH, int32(5))
+	// bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceCAM, int32(18))
+
+	paymentToken = zeroAddress
+	bigIntPrice = big.NewInt(0)
+	// price = priceEURSH
+	// price = priceBTC // case of unsupported token?
+	price = priceCAM
+
+	switch price.Currency.Currency.(type) {
+	case *typesv1.Currency_NativeToken:
+		bigIntPrice, err = bs.ConvertPriceToBigInt(*price, int32(18)) //CAM uses 18 decimals
+		if err != nil {
+			sugar.Errorf("Failed to convert price to big.Int: %v", err)
+			return
+		}
+		sugar.Infof("Converted the price big.Int: %v", bigIntPrice)
+		paymentToken = zeroAddress
+	case *typesv1.Currency_TokenCurrency:
+		// Add logic to handle TokenCurrency
+		// if contract address is zeroAddress, then it is native token
+		sugar.Infof("TokenCurrency not supported yet")
+		return
+	case *typesv1.Currency_IsoCurrency:
+		// Add logic to handle IsoCurrency
+		sugar.Infof("IsoCurrency not supported yet")
+		return
+	}
+
 	// Mint a new booking token
 	//
 	// Note that here we used the same CM Account address that is minting the
@@ -192,25 +221,6 @@ func main() {
 	// Under normal circumstances the reservedFor address should be another CM
 	// Account address, generally the distributor's CM account address. And the
 	// distributor should buy the token.
-
-	//bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceEURSH, int32(5))
-	//bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceCAM, int32(18))
-
-	paymentToken = zeroAddress
-	price = priceCAM
-	switch price.Currency.Currency.(type) {
-	case *typesv1.Currency_NativeToken:
-		bigIntPrice, err = bs.ConvertPriceToBigInt(*price, int32(9))
-		if err != nil {
-			sugar.Fatalf("Failed convert price: %v", err)
-		}
-		paymentToken = zeroAddress
-	case *typesv1.Currency_TokenCurrency:
-		//price.Currency.Currency.TokenCurrency.ContractAddress = zeroAddress.Hex()
-		// Add logic to handle TokenCurrency
-	case *typesv1.Currency_IsoCurrency:
-		// Add logic to handle IsoCurrency
-	}
 
 	mintTx, err := bs.MintBookingToken(
 		cmAccountAddr, // reservedFor address
@@ -236,7 +246,7 @@ func main() {
 		event, err := bt.ParseTokenReserved(*mLog)
 		if err == nil {
 			tokenID = event.TokenId
-			sugar.Infof("[TokenReserved] TokenID: %s ReservedFor: %s Price: %s, PaymentToken: %s", event.TokenId, event.ReservedFor, event.Price, event.PaymentToken)
+			sugar.Infof("[TokenReserved] TokenID: %s ReservedFor: %s Price: %s, PaymentToken: %s,  TokenId:  %s", event.TokenId, event.ReservedFor, event.Price, event.PaymentToken, tokenID)
 		}
 	}
 

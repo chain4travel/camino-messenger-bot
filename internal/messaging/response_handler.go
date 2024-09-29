@@ -205,16 +205,18 @@ func (h *evmResponseHandler) mint(
 
 	switch price.Currency.Currency.(type) {
 	case *typesv1.Currency_NativeToken:
-		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(*price, int32(9))
+		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(*price, int32(18)) //CAM uses 18 decimals
 		if err != nil {
 			return "", nil, err
 		}
 		paymentToken = zeroAddress
 	case *typesv1.Currency_TokenCurrency:
-		//price.Currency.Currency.TokenCurrency.ContractAddress = zeroAddress.Hex()
 		// Add logic to handle TokenCurrency
+		// if contract address is zeroAddress, then it is native token
+		return "", nil, fmt.Errorf("TokenCurrency not supported yet")
 	case *typesv1.Currency_IsoCurrency:
 		// Add logic to handle IsoCurrency
+		return "", nil, fmt.Errorf("IsoCurrency not supported yet")
 	}
 
 	tx, err := h.bookingService.MintBookingToken(
