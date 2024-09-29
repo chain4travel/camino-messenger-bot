@@ -67,6 +67,10 @@ network_fee_recipient_cm_account: 0xF6bA5c68A505559c170dC7a30448Ed64D8b9Bc3B
 
 cheque_expiration_time: 18144000 # 7 months
 
+min_cheque_duration_until_expiration: 15552000 # 6 months
+
+cash_in_period: 86400 # 1 day
+
 ### Booking Token
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
