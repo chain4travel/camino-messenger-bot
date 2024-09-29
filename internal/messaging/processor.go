@@ -22,9 +22,7 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
-const (
-	cashInTxIssueTimeout = 10 * time.Second
-)
+const cashInTxIssueTimeout = 10 * time.Second
 
 var (
 	_ Processor = (*processor)(nil)

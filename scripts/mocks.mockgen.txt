@@ -4,5 +4,3 @@ github.com/chain4travel/camino-messenger-bot/internal/matrix=Client=internal/mat
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc=ActivityProductListServiceClient=internal/messaging/mock_list_grpc.pb.go
 github.com/chain4travel/camino-messenger-bot/internal/messaging=ServiceRegistry=internal/messaging/mock_service_registry.go
 github.com/chain4travel/camino-messenger-bot/internal/messaging=Messenger=internal/messaging/mock_messenger.go
-github.com/chain4travel/camino-messenger-bot/internal/storage=Storage=internal/storage/mock_storage.go
-github.com/chain4travel/camino-messenger-bot/internal/storage=Session=internal/storage/mock_session.go
