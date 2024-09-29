@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"strings"
 
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -129,7 +129,7 @@ func (bs *Service) BuyBookingToken(
 }
 
 // convertPriceToBigInt converts the price to its integer representation
-func (bs *Service) ConvertPriceToBigInt(price typesv1.Price, totalDecimals int32) (*big.Int, error) {
+func (bs *Service) ConvertPriceToBigInt(price typesv2.Price, totalDecimals int32) (*big.Int, error) {
 	// Convert the value string to a big.Int
 	valueBigInt := new(big.Int)
 	_, ok := valueBigInt.SetString(price.Value, 10)

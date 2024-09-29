@@ -69,8 +69,8 @@ func main() {
 	}
 
 	_, err = el.RegisterTokenBoughtHandler(bookingTokenAddr, nil, nil, func(event interface{}) {
-		e := event.(*bookingtoken.BookingtokenTokenReserved)
-		sugar.Infof("Received TokenBought event: \n BookingToken: %s \n TokenID: %s \n Buyer: %s \n Price: %s, \n PaymentToken: %s \n Expiration: %s", bookingTokenAddr, e.TokenId, e.Supplier, e.Price, e.PaymentToken, e.ExpirationTimestamp)
+		e := event.(*bookingtoken.BookingtokenTokenBought)
+		sugar.Infof("Received TokenBought event: \n BookingToken: %s \n TokenID: %s \n Buyer: %s", bookingTokenAddr, e.TokenId, e.Buyer)
 	})
 	if err != nil {
 		log.Fatalf("Failed to register handler: %v", err)

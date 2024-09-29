@@ -7,25 +7,27 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
-	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
-	seat_mapv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
+	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/network/v1/networkv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v1/partnerv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/partner/v2/partnerv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
-	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
-	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
+	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
-	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
+	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
+	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -38,21 +40,24 @@ import (
 var (
 	_ Server = (*server)(nil)
 
-	_ accommodationv1grpc.AccommodationProductInfoServiceServer = (*server)(nil)
-	_ accommodationv1grpc.AccommodationProductListServiceServer = (*server)(nil)
-	_ accommodationv1grpc.AccommodationSearchServiceServer      = (*server)(nil)
-	_ activityv1grpc.ActivityProductListServiceServer           = (*server)(nil)
-	_ activityv1grpc.ActivitySearchServiceServer                = (*server)(nil)
+	_ accommodationv2grpc.AccommodationProductInfoServiceServer = (*server)(nil)
+	_ accommodationv2grpc.AccommodationProductListServiceServer = (*server)(nil)
+	_ accommodationv2grpc.AccommodationSearchServiceServer      = (*server)(nil)
+	_ activityv2grpc.ActivityProductListServiceServer           = (*server)(nil)
+	_ activityv2grpc.ActivitySearchServiceServer                = (*server)(nil)
 	_ networkv1grpc.GetNetworkFeeServiceServer                  = (*server)(nil)
-	_ partnerv1grpc.GetPartnerConfigurationServiceServer        = (*server)(nil)
-	_ bookv1grpc.MintServiceServer                              = (*server)(nil)
-	_ bookv1grpc.ValidationServiceServer                        = (*server)(nil)
+	_ partnerv2grpc.GetPartnerConfigurationServiceServer        = (*server)(nil)
+	_ bookv2grpc.MintServiceServer                              = (*server)(nil)
+	_ bookv2grpc.ValidationServiceServer                        = (*server)(nil)
 	_ pingv1grpc.PingServiceServer                              = (*server)(nil)
-	_ transportv1grpc.TransportSearchServiceServer              = (*server)(nil)
-	_ seat_mapv1grpc.SeatMapServiceServer                       = (*server)(nil)
-	_ seat_mapv1grpc.SeatMapAvailabilityServiceServer           = (*server)(nil)
-	_ infov1grpc.CountryEntryRequirementsServiceServer          = (*server)(nil)
-	_ activityv1grpc.ActivityProductInfoServiceServer           = (*server)(nil)
+	_ transportv2grpc.TransportSearchServiceServer              = (*server)(nil)
+	_ seat_mapv2grpc.SeatMapServiceServer                       = (*server)(nil)
+	_ seat_mapv2grpc.SeatMapAvailabilityServiceServer           = (*server)(nil)
+	_ infov2grpc.CountryEntryRequirementsServiceServer          = (*server)(nil)
+	_ activityv2grpc.ActivityProductInfoServiceServer           = (*server)(nil)
+	_ insurancev1grpc.InsuranceProductInfoServiceServer         = (*server)(nil)
+	_ insurancev1grpc.InsuranceProductListServiceServer         = (*server)(nil)
+	_ insurancev1grpc.InsuranceSearchServiceServer              = (*server)(nil)
 )
 
 type Server interface {
@@ -91,21 +96,24 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 
 func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOption) *grpc.Server {
 	grpcServer := grpc.NewServer(opts...)
-	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, server)
-	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, server)
-	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, server)
-	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, server)
-	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
+	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, server)
+	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, server)
+	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, server)
+	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, server)
+	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, server)
 	networkv1grpc.RegisterGetNetworkFeeServiceServer(grpcServer, server)
-	partnerv1grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, server)
-	bookv1grpc.RegisterMintServiceServer(grpcServer, server)
-	bookv1grpc.RegisterValidationServiceServer(grpcServer, server)
+	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, server)
+	bookv2grpc.RegisterMintServiceServer(grpcServer, server)
+	bookv2grpc.RegisterValidationServiceServer(grpcServer, server)
 	pingv1grpc.RegisterPingServiceServer(grpcServer, server)
-	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, server)
-	seat_mapv1grpc.RegisterSeatMapServiceServer(grpcServer, server)
-	seat_mapv1grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, server)
-	infov1grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, server)
-	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, server)
+	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, server)
+	seat_mapv2grpc.RegisterSeatMapServiceServer(grpcServer, server)
+	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, server)
+	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, server)
+	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, server)
+	insurancev1grpc.RegisterInsuranceProductInfoServiceServer(grpcServer, server)
+	insurancev1grpc.RegisterInsuranceProductListServiceServer(grpcServer, server)
+	insurancev1grpc.RegisterInsuranceSearchServiceServer(grpcServer, server)
 	return grpcServer
 }
 
@@ -122,17 +130,17 @@ func (s *server) Stop() {
 	s.grpcServer.Stop()
 }
 
-func (s *server) AccommodationProductInfo(ctx context.Context, request *accommodationv1.AccommodationProductInfoRequest) (*accommodationv1.AccommodationProductInfoResponse, error) {
+func (s *server) AccommodationProductInfo(ctx context.Context, request *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductInfoRequest, &messaging.RequestContent{AccommodationProductInfoRequest: request})
 	return response.AccommodationProductInfoResponse, err
 }
 
-func (s *server) AccommodationProductList(ctx context.Context, request *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
+func (s *server) AccommodationProductList(ctx context.Context, request *accommodationv2.AccommodationProductListRequest) (*accommodationv2.AccommodationProductListResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.AccommodationProductListRequest, &messaging.RequestContent{AccommodationProductListRequest: request})
 	return response.AccommodationProductListResponse, err
 }
 
-func (s *server) AccommodationSearch(ctx context.Context, request *accommodationv1.AccommodationSearchRequest) (*accommodationv1.AccommodationSearchResponse, error) {
+func (s *server) AccommodationSearch(ctx context.Context, request *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.AccommodationSearchRequest, &messaging.RequestContent{AccommodationSearchRequest: request})
 	return response.AccommodationSearchResponse, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 }
@@ -147,54 +155,69 @@ func (s *server) GetNetworkFee(ctx context.Context, request *networkv1.GetNetwor
 	return response.GetNetworkFeeResponse, err
 }
 
-func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv1.GetPartnerConfigurationRequest) (*partnerv1.GetPartnerConfigurationResponse, error) {
+func (s *server) GetPartnerConfiguration(ctx context.Context, request *partnerv2.GetPartnerConfigurationRequest) (*partnerv2.GetPartnerConfigurationResponse, error) {
 	response, err := s.processInternalRequest(ctx, messaging.GetPartnerConfigurationRequest, &messaging.RequestContent{GetPartnerConfigurationRequest: request})
 	return response.GetPartnerConfigurationResponse, err
 }
 
-func (s *server) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
+func (s *server) ActivityProductInfo(ctx context.Context, request *activityv2.ActivityProductInfoRequest) (*activityv2.ActivityProductInfoResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.ActivityProductInfoRequest, &messaging.RequestContent{ActivityProductInfoRequest: request})
 	return response.ActivityProductInfoResponse, err
 }
 
-func (s *server) ActivityProductList(ctx context.Context, request *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
+func (s *server) ActivityProductList(ctx context.Context, request *activityv2.ActivityProductListRequest) (*activityv2.ActivityProductListResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.ActivityProductListRequest, &messaging.RequestContent{ActivityProductListRequest: request})
 	return response.ActivityProductListResponse, err
 }
 
-func (s *server) ActivitySearch(ctx context.Context, request *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
+func (s *server) ActivitySearch(ctx context.Context, request *activityv2.ActivitySearchRequest) (*activityv2.ActivitySearchResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.ActivitySearchRequest, &messaging.RequestContent{ActivitySearchRequest: request})
 	return response.ActivitySearchResponse, err
 }
 
-func (s *server) Mint(ctx context.Context, request *bookv1.MintRequest) (*bookv1.MintResponse, error) {
+func (s *server) Mint(ctx context.Context, request *bookv2.MintRequest) (*bookv2.MintResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.MintRequest, &messaging.RequestContent{MintRequest: request})
 	return response.MintResponse, err
 }
 
-func (s *server) Validation(ctx context.Context, request *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
+func (s *server) Validation(ctx context.Context, request *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.ValidationRequest, &messaging.RequestContent{ValidationRequest: request})
 	return response.ValidationResponse, err
 }
 
-func (s *server) TransportSearch(ctx context.Context, request *transportv1.TransportSearchRequest) (*transportv1.TransportSearchResponse, error) {
+func (s *server) TransportSearch(ctx context.Context, request *transportv2.TransportSearchRequest) (*transportv2.TransportSearchResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.TransportSearchRequest, &messaging.RequestContent{TransportSearchRequest: request})
 	return response.TransportSearchResponse, err
 }
 
-func (s *server) SeatMap(ctx context.Context, request *seat_mapv1.SeatMapRequest) (*seat_mapv1.SeatMapResponse, error) {
+func (s *server) SeatMap(ctx context.Context, request *seat_mapv2.SeatMapRequest) (*seat_mapv2.SeatMapResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.SeatMapRequest, &messaging.RequestContent{SeatMapRequest: request})
 	return response.SeatMapResponse, err
 }
 
-func (s *server) SeatMapAvailability(ctx context.Context, request *seat_mapv1.SeatMapAvailabilityRequest) (*seat_mapv1.SeatMapAvailabilityResponse, error) {
+func (s *server) SeatMapAvailability(ctx context.Context, request *seat_mapv2.SeatMapAvailabilityRequest) (*seat_mapv2.SeatMapAvailabilityResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.SeatMapAvailabilityRequest, &messaging.RequestContent{SeatMapAvailabilityRequest: request})
 	return response.SeatMapAvailabilityResponse, err
 }
 
-func (s *server) CountryEntryRequirements(ctx context.Context, request *infov1.CountryEntryRequirementsRequest) (*infov1.CountryEntryRequirementsResponse, error) {
+func (s *server) CountryEntryRequirements(ctx context.Context, request *infov2.CountryEntryRequirementsRequest) (*infov2.CountryEntryRequirementsResponse, error) {
 	response, err := s.processExternalRequest(ctx, messaging.CountryEntryRequirementsRequest, &messaging.RequestContent{CountryEntryRequirementsRequest: request})
 	return response.CountryEntryRequirementsResponse, err
+}
+
+func (s *server) InsuranceProductInfo(ctx context.Context, request *insurancev1.InsuranceProductInfoRequest) (*insurancev1.InsuranceProductInfoResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.InsuranceProductInfoRequest, &messaging.RequestContent{InsuranceProductInfoRequest: request})
+	return response.InsuranceProductInfoResponse, err
+}
+
+func (s *server) InsuranceProductList(ctx context.Context, request *insurancev1.InsuranceProductListRequest) (*insurancev1.InsuranceProductListResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.InsuranceProductListRequest, &messaging.RequestContent{InsuranceProductListRequest: request})
+	return response.InsuranceProductListResponse, err
+}
+
+func (s *server) InsuranceSearch(ctx context.Context, request *insurancev1.InsuranceSearchRequest) (*insurancev1.InsuranceSearchResponse, error) {
+	response, err := s.processExternalRequest(ctx, messaging.InsuranceSearchRequest, &messaging.RequestContent{InsuranceSearchRequest: request})
+	return response.InsuranceSearchResponse, err
 }
 
 func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request *messaging.RequestContent) (*messaging.ResponseContent, error) {

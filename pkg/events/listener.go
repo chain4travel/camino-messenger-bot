@@ -467,10 +467,10 @@ func (el *EventListener) listenForCMAccountUpgradedEvents(subID string, eventCha
 }
 
 // RegisterTokenBoughtHandler registers a handler for TokenBought events on a BookingToken contract
-func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, tokenID []*big.Int, buyer []common.Address, handler EventHandler) (func(), error) {
+func (el *EventListener) RegisterTokenBoughtHandler(bookingTokenAddress common.Address, tokenID []*big.Int, buyer []common.Address, handler EventHandler) (func(), error) {
 	subID := uuid.New().String()
 
-	btContract, err := el.getOrCreateBookingToken(btAddress)
+	btContract, err := el.getOrCreateBookingToken(bookingTokenAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -479,7 +479,7 @@ func (el *EventListener) RegisterTokenBoughtHandler(btAddress common.Address, to
 
 	subInfo := &subscriptionInfo{
 		subID:       subID,
-		contract:    btAddress,
+		contract:    bookingTokenAddress,
 		handler:     handler,
 		unsubscribe: cancel,
 	}
@@ -548,10 +548,10 @@ func (el *EventListener) listenForTokenBoughtEvents(subID string, eventChan chan
 }
 
 // RegisterTokenReservedHandler registers a handler for TokenReserved events on a BookingToken contract
-func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, tokenID []*big.Int, reservedFor []common.Address, supplier []common.Address, handler EventHandler) (func(), error) {
+func (el *EventListener) RegisterTokenReservedHandler(bookingTokenAddress common.Address, tokenID []*big.Int, reservedFor []common.Address, supplier []common.Address, handler EventHandler) (func(), error) {
 	subID := uuid.New().String()
 
-	btContract, err := el.getOrCreateBookingToken(btAddress)
+	btContract, err := el.getOrCreateBookingToken(bookingTokenAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +560,7 @@ func (el *EventListener) RegisterTokenReservedHandler(btAddress common.Address, 
 
 	subInfo := &subscriptionInfo{
 		subID:       subID,
-		contract:    btAddress,
+		contract:    bookingTokenAddress,
 		handler:     handler,
 		unsubscribe: cancel,
 	}

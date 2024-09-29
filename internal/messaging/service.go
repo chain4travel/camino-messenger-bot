@@ -9,19 +9,20 @@ import (
 	"context"
 	"fmt"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
-	partnerv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
+	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"google.golang.org/grpc"
 )
 
@@ -41,13 +42,16 @@ var (
 	_ Service = (*seatMapService)(nil)
 	_ Service = (*seatMapAvailabilityService)(nil)
 	_ Service = (*countryEntryRequirementsService)(nil)
+	_ Service = (*insuranceProductInfoService)(nil)
+	_ Service = (*insuranceProductListService)(nil)
+	_ Service = (*insuranceSearchService)(nil)
 )
 
 type Service interface {
 	Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error)
 }
 type activityProductInfoService struct {
-	client *activityv1grpc.ActivityProductInfoServiceClient
+	client *activityv2grpc.ActivityProductInfoServiceClient
 }
 
 func (s activityProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -60,7 +64,7 @@ func (s activityProductInfoService) Call(ctx context.Context, request *RequestCo
 }
 
 type activityProductListService struct {
-	client activityv1grpc.ActivityProductListServiceClient
+	client activityv2grpc.ActivityProductListServiceClient
 }
 
 func (a activityProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -73,7 +77,7 @@ func (a activityProductListService) Call(ctx context.Context, request *RequestCo
 }
 
 type activityService struct {
-	client *activityv1grpc.ActivitySearchServiceClient
+	client *activityv2grpc.ActivitySearchServiceClient
 }
 
 func (s activityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -86,7 +90,7 @@ func (s activityService) Call(ctx context.Context, request *RequestContent, opts
 }
 
 type accommodationProductInfoService struct {
-	client *accommodationv1grpc.AccommodationProductInfoServiceClient
+	client *accommodationv2grpc.AccommodationProductInfoServiceClient
 }
 
 func (a accommodationProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -99,7 +103,7 @@ func (a accommodationProductInfoService) Call(ctx context.Context, request *Requ
 }
 
 type accommodationProductListService struct {
-	client *accommodationv1grpc.AccommodationProductListServiceClient
+	client *accommodationv2grpc.AccommodationProductListServiceClient
 }
 
 func (a accommodationProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -112,7 +116,7 @@ func (a accommodationProductListService) Call(ctx context.Context, request *Requ
 }
 
 type accommodationSearchService struct {
-	client *accommodationv1grpc.AccommodationSearchServiceClient
+	client *accommodationv2grpc.AccommodationSearchServiceClient
 }
 
 func (s accommodationSearchService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -125,7 +129,7 @@ func (s accommodationSearchService) Call(ctx context.Context, request *RequestCo
 }
 
 type mintService struct {
-	client *bookv1grpc.MintServiceClient
+	client *bookv2grpc.MintServiceClient
 }
 
 func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -138,7 +142,7 @@ func (m mintService) Call(ctx context.Context, request *RequestContent, opts ...
 }
 
 type validationService struct {
-	client *bookv1grpc.ValidationServiceClient
+	client *bookv2grpc.ValidationServiceClient
 }
 
 func (v validationService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -164,7 +168,7 @@ type partnerService struct{}
 
 func (s partnerService) Call(_ context.Context, _ *RequestContent, _ ...grpc.CallOption) (*ResponseContent, MessageType, error) {
 	return &ResponseContent{
-		GetPartnerConfigurationResponse: &partnerv1.GetPartnerConfigurationResponse{
+		GetPartnerConfigurationResponse: &partnerv2.GetPartnerConfigurationResponse{
 			PartnerConfiguration: nil, // TODO implement
 			CurrentBlockHeight:   0,
 		},
@@ -187,7 +191,7 @@ func (s pingService) Call(ctx context.Context, request *RequestContent, _ ...grp
 }
 
 type transportService struct {
-	client *transportv1grpc.TransportSearchServiceClient
+	client *transportv2grpc.TransportSearchServiceClient
 }
 
 func (s transportService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -200,7 +204,7 @@ func (s transportService) Call(ctx context.Context, request *RequestContent, opt
 }
 
 type seatMapService struct {
-	client *seat_mapv1grpc.SeatMapServiceClient
+	client *seat_mapv2grpc.SeatMapServiceClient
 }
 
 func (s seatMapService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -213,7 +217,7 @@ func (s seatMapService) Call(ctx context.Context, request *RequestContent, opts 
 }
 
 type seatMapAvailabilityService struct {
-	client *seat_mapv1grpc.SeatMapAvailabilityServiceClient
+	client *seat_mapv2grpc.SeatMapAvailabilityServiceClient
 }
 
 func (s seatMapAvailabilityService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -227,7 +231,7 @@ func (s seatMapAvailabilityService) Call(ctx context.Context, request *RequestCo
 }
 
 type countryEntryRequirementsService struct {
-	client *infov1grpc.CountryEntryRequirementsServiceClient
+	client *infov2grpc.CountryEntryRequirementsServiceClient
 }
 
 func (s countryEntryRequirementsService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
@@ -238,4 +242,46 @@ func (s countryEntryRequirementsService) Call(ctx context.Context, request *Requ
 	}
 
 	return &ResponseContent, CountryEntryRequirementsResponse, err
+}
+
+type insuranceProductInfoService struct {
+	client *insurancev1grpc.InsuranceProductInfoServiceClient
+}
+
+func (s insuranceProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).InsuranceProductInfo(ctx, request.InsuranceProductInfoRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.InsuranceProductInfoResponse = response
+	}
+
+	return &ResponseContent, InsuranceProductInfoResponse, err
+}
+
+type insuranceProductListService struct {
+	client *insurancev1grpc.InsuranceProductListServiceClient
+}
+
+func (s insuranceProductListService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).InsuranceProductList(ctx, request.InsuranceProductListRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.InsuranceProductListResponse = response
+	}
+
+	return &ResponseContent, InsuranceProductListResponse, err
+}
+
+type insuranceSearchService struct {
+	client *insurancev1grpc.InsuranceSearchServiceClient
+}
+
+func (s insuranceSearchService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
+	response, err := (*s.client).InsuranceSearch(ctx, request.InsuranceSearchRequest, opts...)
+	ResponseContent := ResponseContent{}
+	if err == nil {
+		ResponseContent.InsuranceSearchResponse = response
+	}
+
+	return &ResponseContent, InsuranceSearchResponse, err
 }

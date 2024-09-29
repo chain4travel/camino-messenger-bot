@@ -12,6 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
+	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -57,6 +58,8 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
 
+	evmEventListener := events.NewEventListener(evmClient, a.logger)
+
 	cmAccount, err := cmaccount.NewCmaccount(common.HexToAddress(a.cfg.CMAccountAddress), evmClient)
 	if err != nil {
 		a.logger.Fatalf("Failed to fetch CM account: %v", err)
@@ -75,6 +78,7 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Fatalf("Failed to create storage: %v", err)
 	}
+
 	serviceRegistry := messaging.NewServiceRegistry(supportedServices, a.logger)
 
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
@@ -87,7 +91,7 @@ func (a *App) Run(ctx context.Context) error {
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
-	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig)
+	responseHandler, err := messaging.NewResponseHandler(evmClient, a.logger, &a.cfg.EvmConfig, serviceRegistry, evmEventListener)
 	if err != nil {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}

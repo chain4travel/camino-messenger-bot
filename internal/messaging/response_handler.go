@@ -13,8 +13,13 @@ import (
 	"math/big"
 	"time"
 
-	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	grpc "google.golang.org/grpc"
+	grpc_metadata "google.golang.org/grpc/metadata"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -23,6 +28,7 @@ import (
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -30,16 +36,30 @@ import (
 	"go.uber.org/zap"
 )
 
-var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+const (
+	buyableUntilDurationDefault = 300 * time.Second
+	buyableUntilDurationMinimal = 70 * time.Second
+	buyableUntilDurationMaximal = 600 * time.Second
+)
 
-var _ ResponseHandler = (*evmResponseHandler)(nil)
+var (
+	_ ResponseHandler = (*evmResponseHandler)(nil)
+
+	zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+)
 
 type ResponseHandler interface {
 	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent)
 	HandleRequest(ctx context.Context, msgType MessageType, request *RequestContent) error
 }
 
-func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, cfg *config.EvmConfig) (ResponseHandler, error) {
+func NewResponseHandler(
+	ethClient *ethclient.Client,
+	logger *zap.SugaredLogger,
+	cfg *config.EvmConfig,
+	serviceRegistry ServiceRegistry,
+	evmEventListener *events.EventListener,
+) (ResponseHandler, error) {
 	ecdsaPk, err := crypto.HexToECDSA(cfg.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -63,6 +83,8 @@ func NewResponseHandler(ethClient *ethclient.Client, logger *zap.SugaredLogger, 
 		bookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
 		bookingService:      *bookingService,
 		bookingToken:        *bookingToken,
+		serviceRegistry:     serviceRegistry,
+		evmEventListener:    evmEventListener,
 	}, nil
 }
 
@@ -74,6 +96,8 @@ type evmResponseHandler struct {
 	bookingTokenAddress common.Address
 	bookingService      booking.Service
 	bookingToken        bookingtoken.Bookingtoken
+	serviceRegistry     ServiceRegistry
+	evmEventListener    *events.EventListener
 }
 
 func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
@@ -106,33 +130,37 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	// TODO @evlekht ensure that request.MintRequest.BuyerAddress is c-chain address format, not x/p/t chain
 	buyerAddress := common.HexToAddress(request.MintRequest.BuyerAddress)
 
-	// Get a Token URI for the token.
-	jsonPlain, tokenURI, err := createTokenURIforMintResponse(response.MintResponse)
-	if err != nil {
-		errMsg := fmt.Sprintf("error creating token URI: %v", err)
-		h.logger.Debugf(errMsg) // TODO: @VjeraTurk change to Error after we stop using mocked uri data
-		addErrorToResponseHeader(response, errMsg)
-		return true
-	}
+	tokenURI := response.MintResponse.BookingTokenUri
 
-	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
+	if tokenURI == "" {
+		// Get a Token URI for the token.
+		var jsonPlain string
+		jsonPlain, tokenURI, _ = createTokenURIforMintResponse(response.MintResponse)
+		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
+	} else {
+		h.logger.Debugf("Token URI: %s\n", tokenURI)
+	}
 
 	currentTime := time.Now()
 
-	if response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0 {
+	switch {
+	case response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0:
 		// BuyableUntil not set
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(300 * time.Second))
-	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds {
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationDefault))
+
+	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
 		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", response.MintResponse.BuyableUntil)
 		addErrorToResponseHeader(response, errMsg)
 		return true
-	} else if response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(70*time.Second)).Seconds {
+
+	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
 		// BuyableUntil too early
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(70 * time.Second))
-	} else if response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(600*time.Second)).Seconds {
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMinimal))
+
+	case response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMaximal)).Seconds:
 		// BuyableUntil too late
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(600 * time.Second))
+		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMaximal))
 	}
 
 	// MINT TOKEN
@@ -151,9 +179,13 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	}
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
+
+	h.onBookingTokenMint(tokenID, response.MintResponse.MintId, response.BuyableUntil.AsTime())
+
+	// Header is of typev1
 	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	// Disable Linter: This code will be removed with the new mint logic and protocol
-	response.MintResponse.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())} // #nosec G115
+	response.MintResponse.BookingTokenId = tokenID.Uint64()
 	response.MintTransactionId = txID
 	return false
 }
@@ -167,8 +199,7 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		return true
 	}
 
-	value64 := uint64(response.BookingToken.TokenId)
-	tokenID := new(big.Int).SetUint64(value64)
+	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
 
 	txID, err := h.buy(ctx, tokenID)
 	if err != nil {
@@ -190,7 +221,7 @@ func (h *evmResponseHandler) mint(
 	reservedFor common.Address,
 	uri string,
 	expiration *big.Int,
-	price *typesv1.Price,
+	price *typesv2.Price,
 ) (string, *big.Int, error) {
 
 	var bigIntPrice = big.NewInt(0)
@@ -204,17 +235,17 @@ func (h *evmResponseHandler) mint(
 	// calculate the price in big int without loosing precision
 
 	switch price.Currency.Currency.(type) {
-	case *typesv1.Currency_NativeToken:
+	case *typesv2.Currency_NativeToken:
 		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(*price, int32(18)) //CAM uses 18 decimals
 		if err != nil {
 			return "", nil, err
 		}
 		paymentToken = zeroAddress
-	case *typesv1.Currency_TokenCurrency:
+	case *typesv2.Currency_TokenCurrency:
 		// Add logic to handle TokenCurrency
 		// if contract address is zeroAddress, then it is native token
 		return "", nil, fmt.Errorf("TokenCurrency not supported yet")
-	case *typesv1.Currency_IsoCurrency:
+	case *typesv2.Currency_IsoCurrency:
 		// Add logic to handle IsoCurrency
 		return "", nil, fmt.Errorf("IsoCurrency not supported yet")
 	}
@@ -246,8 +277,6 @@ func (h *evmResponseHandler) mint(
 	}
 
 	return tx.Hash().Hex(), tokenID, nil
-
-	//
 }
 
 // TODO @VjeraTurk code that creates and handles context should be improved, since its not doing job in separate goroutine,
@@ -287,6 +316,55 @@ func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Tran
 	h.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
+}
+
+func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv1.UUID, buyableUntil time.Time) {
+	var expirationTimer *time.Timer
+	notificationClient := h.serviceRegistry.NotificationClient()
+
+	unsubscribeTokenBought, err := h.evmEventListener.RegisterTokenBoughtHandler(
+		h.bookingTokenAddress,
+		[]*big.Int{tokenID},
+		nil,
+		func(e any) {
+			expirationTimer.Stop()
+			h.logger.Infof("Token bought event received for token %s", tokenID.String())
+			event := e.(*bookingtoken.BookingtokenTokenBought)
+
+			if _, err := notificationClient.TokenBoughtNotification(
+				context.Background(),
+				&notificationv1.TokenBought{
+					TokenId: tokenID.Uint64(),
+					TxId:    event.Raw.TxHash.Hex(),
+					MintId:  mintID,
+				},
+				grpc.Header(&grpc_metadata.MD{}),
+			); err != nil {
+				h.logger.Errorf("error calling partner plugin TokenBoughtNotification service: %v", err)
+			}
+		},
+	)
+	if err != nil {
+		h.logger.Errorf("failed to register handler: %v", err)
+		// TODO @evlekht send some notification to partner plugin
+		return
+	}
+
+	expirationTimer = time.AfterFunc(time.Until(buyableUntil), func() {
+		unsubscribeTokenBought()
+		h.logger.Infof("Token %s expired", tokenID.String())
+
+		if _, err := notificationClient.TokenExpiredNotification(
+			context.Background(),
+			&notificationv1.TokenExpired{
+				TokenId: tokenID.Uint64(),
+				MintId:  mintID,
+			},
+			grpc.Header(&grpc_metadata.MD{}),
+		); err != nil {
+			h.logger.Errorf("error calling partner plugin TokenExpiredNotification service: %v", err)
+		}
+	})
 }
 
 // TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg
@@ -329,7 +407,7 @@ func generateAndEncodeJSON(name, description, date, externalURL, image string, a
 // TODO: @havan: We need decide what data needs to be in the tokenURI JSON and add
 // those fields to the MintResponse. These will be shown in the UI of wallets,
 // explorers etc.
-func createTokenURIforMintResponse(mintResponse *bookv1.MintResponse) (string, string, error) {
+func createTokenURIforMintResponse(mintResponse *bookv2.MintResponse) (string, string, error) {
 	// TODO: What should we use for a token name? This will be shown in the UI of wallets, explorers etc.
 	name := "CM Booking Token"
 
@@ -337,7 +415,7 @@ func createTokenURIforMintResponse(mintResponse *bookv1.MintResponse) (string, s
 	description := "This NFT represents the booking with the specified attributes."
 
 	// Dummy data
-	date := "2024-06-24"
+	date := "2024-09-27"
 
 	externalURL := "https://camino.network"
 

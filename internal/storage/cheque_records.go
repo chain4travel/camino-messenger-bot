@@ -200,7 +200,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 			:tx_id,
 			:status
 		)
-		ON CONFLICT(chequeRecord_id)
+		ON CONFLICT(cheque_record_id)
 		DO UPDATE SET counter = excluded.counter,
 			amount            = excluded.amount,
 			created_at        = excluded.created_at,

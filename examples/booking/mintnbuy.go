@@ -33,7 +33,6 @@ var wBtcToken = common.HexToAddress("0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6"
 
 // Simple usage example for the BookingService
 func main() {
-
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
