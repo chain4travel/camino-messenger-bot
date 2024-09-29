@@ -151,7 +151,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
 		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", response.MintResponse.BuyableUntil)
-		addErrorToResponseHeader(response, errMsg)
+		addErrorToResponseHeader(MintResponse, response, errMsg)
 		return true
 
 	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
@@ -174,7 +174,7 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		addErrorToResponseHeader(response, errMessage)
+		addErrorToResponseHeader(MintResponse, response, errMessage)
 		return true
 	}
 
@@ -195,7 +195,7 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 		response.MintResponse.Header = &typesv1.ResponseHeader{}
 	}
 	if response.MintTransactionId == "" {
-		addErrorToResponseHeader(response, "missing mint transaction id")
+		addErrorToResponseHeader(MintResponse, response, "missing mint transaction id")
 		return true
 	}
 
@@ -205,7 +205,7 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *Re
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		addErrorToResponseHeader(response, errMessage)
+		addErrorToResponseHeader(MintResponse, response, errMessage)
 		return true
 	}
 
@@ -318,8 +318,8 @@ func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Tran
 }
 
 func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv1.UUID, buyableUntil time.Time) {
-	var expirationTimer *time.Timer
 	notificationClient := h.serviceRegistry.NotificationClient()
+	expirationTimer := &time.Timer{}
 
 	unsubscribeTokenBought, err := h.evmEventListener.RegisterTokenBoughtHandler(
 		h.bookingTokenAddress,
@@ -450,9 +450,54 @@ func createTokenURIforMintResponse(mintResponse *bookv2.MintResponse) (string, s
 	return jsonPlain, tokenURI, nil
 }
 
-func addErrorToResponseHeader(response *ResponseContent, errMessage string) {
-	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_FAILURE
-	response.MintResponse.Header.Alerts = append(response.MintResponse.Header.Alerts, &typesv1.Alert{
+// TODO @evlekht refactor this to either remove manual cases adding or enforce it compile-time for all message types
+func addErrorToResponseHeader(msgType MessageType, response *ResponseContent, errMessage string) {
+	var header *typesv1.ResponseHeader
+	switch msgType {
+	case ActivityProductInfoResponse:
+		header = response.ActivityProductInfoResponse.Header
+	case ActivityProductListResponse:
+		header = response.ActivityProductListResponse.Header
+	case ActivitySearchResponse:
+		header = response.ActivitySearchResponse.Header
+	case AccommodationProductInfoResponse:
+		header = response.AccommodationProductInfoResponse.Header
+	case AccommodationProductListResponse:
+		header = response.AccommodationProductListResponse.Header
+	case AccommodationSearchResponse:
+		header = response.AccommodationSearchResponse.Header
+	case GetNetworkFeeResponse:
+		return // doesn't have header
+		// header = response.GetNetworkFeeResponse.Header
+	case GetPartnerConfigurationResponse:
+		return // doesn't have header
+		// header = response.GetPartnerConfigurationResponse.Header
+	case MintResponse:
+		header = response.MintResponse.Header
+	case ValidationResponse:
+		header = response.ValidationResponse.Header
+	case PingResponse:
+		header = response.PingResponse.Header
+	case TransportSearchResponse:
+		header = response.TransportSearchResponse.Header
+	case SeatMapResponse:
+		header = response.SeatMapResponse.Header
+	case SeatMapAvailabilityResponse:
+		header = response.SeatMapAvailabilityResponse.Header
+	case CountryEntryRequirementsResponse:
+		header = response.CountryEntryRequirementsResponse.Header
+	case InsuranceProductInfoResponse:
+		header = response.InsuranceProductInfoResponse.Header
+	case InsuranceProductListResponse:
+		header = response.InsuranceProductListResponse.Header
+	case InsuranceSearchResponse:
+		header = response.InsuranceSearchResponse.Header
+	default:
+		return
+	}
+
+	header.Status = typesv1.StatusType_STATUS_TYPE_FAILURE
+	header.Alerts = append(header.Alerts, &typesv1.Alert{
 		Message: errMessage,
 		Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 	})

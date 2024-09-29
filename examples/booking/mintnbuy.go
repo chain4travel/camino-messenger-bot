@@ -193,7 +193,7 @@ func main() {
 
 	switch price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		bigIntPrice, err = bs.ConvertPriceToBigInt(price, int32(18)) //CAM uses 18 decimals
+		bigIntPrice, err = bs.ConvertPriceToBigInt(price, int32(18)) // CAM uses 18 decimals
 		if err != nil {
 			sugar.Errorf("Failed to convert price to big.Int: %v", err)
 			return

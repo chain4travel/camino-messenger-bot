@@ -11,8 +11,17 @@ import (
 )
 
 const (
-	domainType = "EIP712Domain"
-	chequeType = "MessengerCheque"
+	domainType   = "EIP712Domain"
+	chequeType   = "MessengerCheque"
+	signatureLen = 65
+
+	// from the decred library:
+	// compactSigMagicOffset is a value used when creating the compact signature
+	// recovery code inherited from Bitcoin and has no meaning, but has been
+	// retained for compatibility.  For historical purposes, it was originally
+	// picked to avoid a binary representation that would allow compact
+	// signatures to be mistaken for other components.
+	compactSigMagicOffset = 27
 )
 
 var (
@@ -37,6 +46,7 @@ var (
 
 type Signer interface {
 	SignCheque(cheque *Cheque) (*SignedCheque, error)
+	RecoverPublicKey(cheque *SignedCheque) (*ecdsa.PublicKey, error)
 }
 
 type signer struct {
@@ -76,6 +86,53 @@ func NewSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (Signer, error) {
 }
 
 func (cs *signer) SignCheque(cheque *Cheque) (*SignedCheque, error) {
+	finalHash, err := cs.getFinalHash(cheque)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get final hash: %w", err)
+	}
+
+	signature, err := crypto.Sign(finalHash, cs.privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign the hash: %w", err)
+	}
+
+	if len(signature) != signatureLen {
+		return nil, fmt.Errorf("invalid signature length: %d", len(signature))
+	}
+
+	// adjust recovery byte
+	signature[signatureLen-1] += compactSigMagicOffset
+
+	return &SignedCheque{
+		Cheque:    *cheque,
+		Signature: signature,
+	}, nil
+}
+
+func (cs *signer) RecoverPublicKey(cheque *SignedCheque) (*ecdsa.PublicKey, error) {
+	finalHash, err := cs.getFinalHash(&cheque.Cheque)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get final hash: %w", err)
+	}
+
+	if len(cheque.Signature) != signatureLen {
+		return nil, fmt.Errorf("invalid signature length: %d", len(cheque.Signature))
+	}
+
+	// adjust recovery byte
+	signature := make([]byte, signatureLen)
+	copy(signature, cheque.Signature)
+	signature[signatureLen-1] -= compactSigMagicOffset
+
+	pubKey, err := crypto.SigToPub(finalHash, signature)
+	if err != nil {
+		return nil, fmt.Errorf("failed to recover public key: %w", err)
+	}
+
+	return pubKey, nil
+}
+
+func (cs *signer) getFinalHash(cheque *Cheque) ([]byte, error) {
 	message := apitypes.TypedDataMessage{
 		"fromCMAccount": cheque.FromCMAccount.Hex(),
 		"toCMAccount":   cheque.ToCMAccount.Hex(),
@@ -98,22 +155,9 @@ func (cs *signer) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 		return nil, fmt.Errorf("failed to hash struct: %w", err)
 	}
 
-	finalHash := crypto.Keccak256(
+	return crypto.Keccak256(
 		hashPrefix,
 		cs.domainSeparator,
 		typedDataHash,
-	)
-
-	signature, err := crypto.Sign(finalHash, cs.privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign the hash: %w", err)
-	}
-
-	// adjust recovery byte for compatibility
-	signature[64] += 27
-
-	return &SignedCheque{
-		Cheque:    *cheque,
-		Signature: signature,
-	}, nil
+	), nil
 }

@@ -147,6 +147,7 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
+				chequeHandler:         NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
 			},

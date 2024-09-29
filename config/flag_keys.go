@@ -30,4 +30,6 @@ const (
 	DBNameKey                              = "db_name"
 	DBPathKey                              = "db_path"
 	MigrationsPathKey                      = "migrations_path"
+	MinChequeDurationUntilExpirationKey    = "min_cheque_duration_until_expiration"
+	CashInPeriodKey                        = "cash_in_period"
 )

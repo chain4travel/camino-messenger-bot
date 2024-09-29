@@ -22,6 +22,8 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
+const cashInTxIssueTimeout = 10 * time.Second
+
 var (
 	_ Processor = (*processor)(nil)
 
@@ -102,7 +104,7 @@ type processor struct {
 
 func (p *processor) SetUserID(userID id.UserID) {
 	p.userID = userID
-	p.myBotAddress = common.HexToAddress(userID.Localpart())
+	p.myBotAddress = addressFromUserID(userID)
 }
 
 func (*processor) Checkpoint() string {
@@ -177,7 +179,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	// lookup for CM Account -> bot
 	recipientCMAccAddr := common.HexToAddress(msg.Metadata.Recipient)
-	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(recipientCMAccAddr)
+	recipientBotUserID, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(recipientCMAccAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +225,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		ctx,
 		p.identificationHandler.getMyCMAccountAddress(),
 		recipientCMAccAddr,
-		common.HexToAddress(recipientBot.Localpart()),
+		addressFromUserID(recipientBotUserID),
 		serviceFee,
 	)
 	if err != nil {
@@ -240,9 +242,9 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	if err := p.responseHandler.HandleRequest(ctx, msg.Type, &msg.Content.RequestContent); err != nil {
 		return nil, err
 	}
-	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBot, msg.Metadata.Recipient)
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBotUserID, msg.Metadata.Recipient)
 
-	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBot); err != nil {
+	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBotUserID); err != nil {
 		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -267,56 +269,81 @@ func (p *processor) Respond(msg *Message) error {
 	}
 
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
-	ctx, span := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
-	defer span.End()
-	var service Service
-	var supported bool
-	if service, supported = p.serviceRegistry.GetService(msg.Type); !supported {
+	ctx, responseSpan := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	defer responseSpan.End()
+
+	service, supported := p.serviceRegistry.GetService(msg.Type)
+	if !supported {
 		return fmt.Errorf("%w: %s", ErrUnsupportedService, msg.Type)
 	}
 
-	md := &msg.Metadata
-
-	cheque := p.getChequeForThisBot(md.Cheques)
+	cheque := p.getChequeForThisBot(msg.Metadata.Cheques)
 	if cheque == nil {
 		return ErrMissingCheques
 	}
 
-	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
-
-	md.Sender = cheque.FromCMAccount.Hex()
-
-	ctx = grpc_metadata.NewOutgoingContext(ctx, msg.Metadata.ToGrpcMD())
-	var header grpc_metadata.MD
-	ctx, cspan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(msg.Type))))
-	response, msgType, err := service.Call(ctx, &msg.Content.RequestContent, grpc.Header(&header))
-	cspan.End()
-	if err != nil {
-		return err // TODO handle error and return a response message
-	}
-
-	err = md.FromGrpcMD(header)
-	if err != nil {
-		p.logger.Infof("error extracting metadata for request: %s", md.RequestID)
-	}
-	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", md.Sender, md.Recipient)
-	p.responseHandler.HandleResponse(ctx, msgType, &msg.Content.RequestContent, response)
-	responseMsg := Message{
-		Type: msgType,
-		Content: MessageContent{
-			ResponseContent: *response,
-		},
-		Metadata: *md,
-	}
-
-	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, msg.Sender)
-
-	ctx, compressedContent, err := p.compress(ctx, msg)
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), msg.Type)
 	if err != nil {
 		return err
 	}
 
-	return p.messenger.SendAsync(ctx, responseMsg, compressedContent, msg.Sender)
+	if err := p.chequeHandler.VerifyCheque(ctx, cheque, addressFromUserID(msg.Sender), serviceFee); err != nil {
+		return err
+	}
+
+	ctx, responseMsg, compressedContent := p.callPartnerPluginAndGetResponse(ctx, msg, cheque, service)
+
+	return p.messenger.SendAsync(ctx, *responseMsg, compressedContent, msg.Sender)
+}
+
+func (p *processor) callPartnerPluginAndGetResponse(
+	ctx context.Context,
+	requestMsg *Message,
+	cheque *cheques.SignedCheque,
+	service Service,
+) (context.Context, *Message, [][]byte) {
+	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
+	requestMsg.Metadata.Sender = cheque.FromCMAccount.Hex()
+
+	responseMsg := &Message{
+		Metadata: requestMsg.Metadata,
+	}
+
+	ctx = grpc_metadata.NewOutgoingContext(ctx, requestMsg.Metadata.ToGrpcMD())
+	header := &grpc_metadata.MD{}
+	ctx, partnerPluginSpan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
+	response, msgType, err := service.Call(ctx, &requestMsg.Content.RequestContent, grpc.Header(header))
+	partnerPluginSpan.End()
+
+	responseMsg.Type = msgType
+	if response != nil {
+		responseMsg.Content.ResponseContent = *response
+	}
+
+	if err != nil {
+		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
+		p.logger.Errorf(errMessage)
+		addErrorToResponseHeader(msgType, &responseMsg.Content.ResponseContent, errMessage)
+		return ctx, responseMsg, [][]byte{{}}
+	}
+
+	if err := responseMsg.Metadata.FromGrpcMD(*header); err != nil {
+		p.logger.Infof("error extracting metadata for request: %s", responseMsg.Metadata.RequestID)
+	}
+
+	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
+	p.responseHandler.HandleResponse(ctx, msgType, &requestMsg.Content.RequestContent, response)
+
+	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, requestMsg.Sender)
+
+	ctx, compressedContent, err := p.compress(ctx, requestMsg)
+	if err != nil {
+		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
+		p.logger.Errorf(errMessage)
+		addErrorToResponseHeader(msgType, &responseMsg.Content.ResponseContent, errMessage)
+	}
+
+	return ctx, responseMsg, compressedContent
 }
 
 func (p *processor) Forward(msg *Message) {
@@ -346,7 +373,7 @@ func (p *processor) compress(ctx context.Context, msg *Message) (context.Context
 	defer compressSpan.End()
 	compressedContent, err := p.compressor.Compress(msg)
 	if err != nil {
-		return ctx, nil, err
+		return ctx, [][]byte{{}}, err
 	}
 	return ctx, compressedContent, nil
 }
