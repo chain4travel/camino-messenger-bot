@@ -195,12 +195,27 @@ func (h *evmResponseHandler) mint(
 
 	var bigIntPrice = big.NewInt(0)
 	var paymentToken = zeroAddress
+	var err error
 
 	//TODO:
 	// (in booking package)
 	// define paymentToken from currency
 	// if TokenCurrency get paymentToken contract and call decimals()
 	// calculate the price in big int without loosing precision
+
+	switch price.Currency.Currency.(type) {
+	case *typesv1.Currency_NativeToken:
+		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(*price, int32(9))
+		if err != nil {
+			return "", nil, err
+		}
+		paymentToken = zeroAddress
+	case *typesv1.Currency_TokenCurrency:
+		//price.Currency.Currency.TokenCurrency.ContractAddress = zeroAddress.Hex()
+		// Add logic to handle TokenCurrency
+	case *typesv1.Currency_IsoCurrency:
+		// Add logic to handle IsoCurrency
+	}
 
 	tx, err := h.bookingService.MintBookingToken(
 		reservedFor,

@@ -87,8 +87,8 @@ func main() {
 	expiration := big.NewInt(time.Now().Add(time.Hour).Unix())
 
 	var paymentToken common.Address = zeroAddress
-	var price *big.Int = big.NewInt(1)
-
+	var bigIntPrice *big.Int = big.NewInt(1)
+	var price *typesv1.Price
 	// https://polygonscan.com/unitconverter
 	// ### Simple Price type message Price
 	//
@@ -193,13 +193,26 @@ func main() {
 	// Account address, generally the distributor's CM account address. And the
 	// distributor should buy the token.
 
-	price, _ = bs.ConvertPriceToBigInt(priceEURSH, int32(5))
+	price = priceCAM
+	switch price.Currency.Currency.(type) {
+	case *typesv1.Currency_NativeToken:
+		bigIntPrice, err = bs.ConvertPriceToBigInt(*price, int32(9))
+		if err != nil {
+			sugar.Fatalf("Failed convert price: %v", err)
+		}
+		paymentToken = zeroAddress
+	case *typesv1.Currency_TokenCurrency:
+		//price.Currency.Currency.TokenCurrency.ContractAddress = zeroAddress.Hex()
+		// Add logic to handle TokenCurrency
+	case *typesv1.Currency_IsoCurrency:
+		// Add logic to handle IsoCurrency
+	}
 
 	mintTx, err := bs.MintBookingToken(
 		cmAccountAddr, // reservedFor address
 		tokenURI,
 		expiration,
-		price,
+		bigIntPrice,
 		paymentToken,
 	)
 	if err != nil {
