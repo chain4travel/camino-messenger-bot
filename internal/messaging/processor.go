@@ -22,6 +22,10 @@ import (
 	"maunium.net/go/mautrix/id"
 )
 
+const (
+	cashInTxIssueTimeout = 10 * time.Second
+)
+
 var (
 	_ Processor = (*processor)(nil)
 
@@ -102,7 +106,7 @@ type processor struct {
 
 func (p *processor) SetUserID(userID id.UserID) {
 	p.userID = userID
-	p.myBotAddress = common.HexToAddress(userID.Localpart())
+	p.myBotAddress = addressFromUserID(userID)
 }
 
 func (*processor) Checkpoint() string {
@@ -177,7 +181,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	// lookup for CM Account -> bot
 	recipientCMAccAddr := common.HexToAddress(msg.Metadata.Recipient)
-	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(recipientCMAccAddr)
+	recipientBotUserID, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(recipientCMAccAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +227,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		ctx,
 		p.identificationHandler.getMyCMAccountAddress(),
 		recipientCMAccAddr,
-		common.HexToAddress(recipientBot.Localpart()),
+		addressFromUserID(recipientBotUserID),
 		serviceFee,
 	)
 	if err != nil {
@@ -240,9 +244,9 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	if err := p.responseHandler.HandleRequest(ctx, msg.Type, &msg.Content.RequestContent); err != nil {
 		return nil, err
 	}
-	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBot, msg.Metadata.Recipient)
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBotUserID, msg.Metadata.Recipient)
 
-	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBot); err != nil {
+	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBotUserID); err != nil {
 		return nil, err
 	}
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
@@ -280,6 +284,15 @@ func (p *processor) Respond(msg *Message) error {
 	cheque := p.getChequeForThisBot(md.Cheques)
 	if cheque == nil {
 		return ErrMissingCheques
+	}
+
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), msg.Type)
+	if err != nil {
+		return err
+	}
+
+	if err := p.chequeHandler.VerifyCheque(ctx, cheque, addressFromUserID(msg.Sender), serviceFee); err != nil {
+		return err
 	}
 
 	md.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))

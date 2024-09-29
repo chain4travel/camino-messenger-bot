@@ -39,6 +39,8 @@ func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
 	fs.StringVar(&cfg.NetworkFeeRecipientBotAddress, NetworkFeeRecipientBotAddressKey, "", "Network fee recipient bot address")
 	fs.StringVar(&cfg.NetworkFeeRecipientCMAccountAddress, NetworkFeeRecipientCMAccountAddressKey, "", "Network fee recipient CMAccount address")
 	fs.Uint64Var(&cfg.ChequeExpirationTime, ChequeExpirationTimeKey, 3600*24*30*6, "Cheque expiration time in seconds")
+	fs.Uint64Var(&cfg.MinChequeDurationUntilExpiration, MinChequeDurationUntilExpirationKey, 3600*24*30*6, "Minimum valid duration until cheque expiration in seconds")
+	fs.Uint64Var(&cfg.CashInPeriod, CashInPeriodKey, 3600*24, "Cash-in period in seconds")
 }
 
 func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {

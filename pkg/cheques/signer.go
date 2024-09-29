@@ -37,6 +37,7 @@ var (
 
 type Signer interface {
 	SignCheque(cheque *Cheque) (*SignedCheque, error)
+	RecoverPublicKey(cheque *SignedCheque) (*ecdsa.PublicKey, error)
 }
 
 type signer struct {
@@ -76,6 +77,40 @@ func NewSigner(privateKey *ecdsa.PrivateKey, chainID *big.Int) (Signer, error) {
 }
 
 func (cs *signer) SignCheque(cheque *Cheque) (*SignedCheque, error) {
+	finalHash, err := cs.getFinalHash(cheque)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get final hash: %w", err)
+	}
+
+	signature, err := crypto.Sign(finalHash, cs.privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign the hash: %w", err)
+	}
+
+	// adjust recovery byte for compatibility
+	signature[64] += 27
+
+	return &SignedCheque{
+		Cheque:    *cheque,
+		Signature: signature,
+	}, nil
+}
+
+func (cs *signer) RecoverPublicKey(cheque *SignedCheque) (*ecdsa.PublicKey, error) {
+	finalHash, err := cs.getFinalHash(&cheque.Cheque)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get final hash: %w", err)
+	}
+
+	pubKey, err := crypto.SigToPub(finalHash, cheque.Signature)
+	if err != nil {
+		return nil, fmt.Errorf("failed to recover public key: %w", err)
+	}
+
+	return pubKey, nil
+}
+
+func (cs *signer) getFinalHash(cheque *Cheque) ([]byte, error) {
 	message := apitypes.TypedDataMessage{
 		"fromCMAccount": cheque.FromCMAccount.Hex(),
 		"toCMAccount":   cheque.ToCMAccount.Hex(),
@@ -98,22 +133,9 @@ func (cs *signer) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 		return nil, fmt.Errorf("failed to hash struct: %w", err)
 	}
 
-	finalHash := crypto.Keccak256(
+	return crypto.Keccak256(
 		hashPrefix,
 		cs.domainSeparator,
 		typedDataHash,
-	)
-
-	signature, err := crypto.Sign(finalHash, cs.privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign the hash: %w", err)
-	}
-
-	// adjust recovery byte for compatibility
-	signature[64] += 27
-
-	return &SignedCheque{
-		Cheque:    *cheque,
-		Signature: signature,
-	}, nil
+	), nil
 }

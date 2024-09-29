@@ -113,3 +113,7 @@ func (ih *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAcc
 func userIDFromAddress(address common.Address, host string) id.UserID {
 	return id.NewUserID(strings.ToLower(address.Hex()), host)
 }
+
+func addressFromUserID(userID id.UserID) common.Address {
+	return common.HexToAddress(userID.Localpart())
+}

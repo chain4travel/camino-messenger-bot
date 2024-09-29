@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
+	"github.com/chain4travel/camino-messenger-bot/internal/scheduler"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
@@ -23,6 +25,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"maunium.net/go/mautrix/id"
 )
+
+const cashInJobName = "cash_in"
 
 type App struct {
 	cfg    *config.Config
@@ -119,6 +123,10 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to create to evm client: %v", err)
 	}
 
+	if err := chequeHandler.CheckCashInStatus(ctx); err != nil {
+		a.logger.Errorf("start-up cash-in status check failed: %v", err)
+	}
+
 	identificationHandler, err := messaging.NewIdentificationHandler(
 		evmClient,
 		a.logger,
@@ -140,6 +148,14 @@ func (a *App) Run(ctx context.Context) error {
 		g,
 		userIDUpdatedChan,
 	)
+
+	scheduler := scheduler.New(ctx, a.logger, storage)
+	scheduler.RegisterJobHandler(cashInJobName, func() {
+		_ = chequeHandler.CashIn(context.Background())
+	})
+	if err := scheduler.Schedule(ctx, time.Duration(a.cfg.CashInPeriod)*time.Second, cashInJobName); err != nil { //nolint:gosec
+		a.logger.Fatalf("Failed to schedule cash in job: %v", err)
+	}
 
 	// init tracer
 	tracer := a.initTracer()

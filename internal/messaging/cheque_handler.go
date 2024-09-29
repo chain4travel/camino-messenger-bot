@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -15,6 +16,7 @@ import (
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -35,8 +37,24 @@ type ChequeHandler interface {
 		amount *big.Int,
 	) (*cheques.SignedCheque, error)
 
-	GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType MessageType) (*big.Int, error)
+	GetServiceFee(
+		ctx context.Context,
+		toCmAccountAddress common.Address,
+		messageType MessageType,
+	) (*big.Int, error)
+
 	IsBotAllowed(ctx context.Context, fromBot common.Address) (bool, error)
+
+	CashIn(ctx context.Context) error
+
+	CheckCashInStatus(ctx context.Context) error
+
+	VerifyCheque(
+		ctx context.Context,
+		cheque *cheques.SignedCheque,
+		sender common.Address,
+		serviceFee *big.Int,
+	) error
 }
 
 func NewChequeHandler(
@@ -47,7 +65,7 @@ func NewChequeHandler(
 	storage storage.Storage,
 	serviceRegistry ServiceRegistry,
 ) (ChequeHandler, error) {
-	chequeIssuerKey, err := crypto.HexToECDSA(evmConfig.PrivateKey)
+	botKey, err := crypto.HexToECDSA(evmConfig.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +76,7 @@ func NewChequeHandler(
 		return nil, fmt.Errorf("failed to instantiate contract binding: %w", err)
 	}
 
-	signer, err := cheques.NewSigner(chequeIssuerKey, chainID)
+	signer, err := cheques.NewSigner(botKey, chainID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create signer: %w", err)
 	}
@@ -69,35 +87,37 @@ func NewChequeHandler(
 	}
 
 	return &evmChequeHandler{
-		ethClient:         ethClient,
-		cmAccountAddress:  cmAccountAddress,
-		cmAccountInstance: cmAccountInstance,
-		chainID:           chainID,
-		botKey:            chequeIssuerKey,
-		botAddress:        crypto.PubkeyToAddress(chequeIssuerKey.PublicKey),
-		logger:            logger,
-		evmConfig:         evmConfig,
-		storage:           storage,
-		signer:            signer,
-		serviceRegistry:   serviceRegistry,
-		cmAccounts:        cmAccountsCache,
+		ethClient:                  ethClient,
+		cmAccountAddress:           cmAccountAddress,
+		cmAccountInstance:          cmAccountInstance,
+		chainID:                    chainID,
+		botKey:                     botKey,
+		botAddress:                 crypto.PubkeyToAddress(botKey.PublicKey),
+		logger:                     logger,
+		evmConfig:                  evmConfig,
+		storage:                    storage,
+		signer:                     signer,
+		serviceRegistry:            serviceRegistry,
+		cmAccounts:                 cmAccountsCache,
+		minDurationUntilExpiration: big.NewInt(0).SetUint64(evmConfig.MinChequeDurationUntilExpiration),
 	}, nil
 }
 
 type evmChequeHandler struct {
 	logger *zap.SugaredLogger
 
-	chainID           *big.Int
-	ethClient         *ethclient.Client
-	evmConfig         *config.EvmConfig
-	cmAccountAddress  common.Address
-	cmAccountInstance *cmaccount.Cmaccount
-	botKey            *ecdsa.PrivateKey
-	botAddress        common.Address
-	signer            cheques.Signer
-	serviceRegistry   ServiceRegistry
-	storage           storage.Storage
-	cmAccounts        *lru.Cache[common.Address, *cmaccount.Cmaccount]
+	chainID                    *big.Int
+	ethClient                  *ethclient.Client
+	evmConfig                  *config.EvmConfig
+	cmAccountAddress           common.Address
+	cmAccountInstance          *cmaccount.Cmaccount
+	botKey                     *ecdsa.PrivateKey
+	botAddress                 common.Address
+	signer                     cheques.Signer
+	serviceRegistry            ServiceRegistry
+	storage                    storage.Storage
+	cmAccounts                 *lru.Cache[common.Address, *cmaccount.Cmaccount]
+	minDurationUntilExpiration *big.Int
 }
 
 func (ch *evmChequeHandler) IssueCheque(
@@ -216,6 +236,260 @@ func (ch *evmChequeHandler) IsBotAllowed(ctx context.Context, fromBot common.Add
 	return isAllowed, nil
 }
 
+func (ch *evmChequeHandler) VerifyCheque(
+	ctx context.Context,
+	cheque *cheques.SignedCheque,
+	sender common.Address,
+	serviceFee *big.Int,
+) error {
+	session, err := ch.storage.NewSession(ctx)
+	if err != nil {
+		ch.logger.Errorf("failed to create storage session: %v", err)
+		return err
+	}
+	defer session.Abort()
+
+	chequeIssuerPubKey, err := ch.signer.RecoverPublicKey(cheque)
+	if err != nil {
+		ch.logger.Errorf("failed to recover cheque issuer public key: %v", err)
+		return err
+	}
+
+	if sender != crypto.PubkeyToAddress(*chequeIssuerPubKey) {
+		return fmt.Errorf("cheque issuer does not match sender")
+	}
+
+	chequeRecordID := models.ChequeRecordID(&cheque.Cheque)
+	chequeRecord, err := session.GetChequeRecord(ctx, chequeRecordID)
+	if err != nil {
+		ch.logger.Errorf("failed to get chequeRecord: %v", err)
+		return err
+	}
+
+	var previousCheque *cheques.SignedCheque
+	oldAmount := big.NewInt(0)
+	if chequeRecord != nil {
+		previousCheque = &chequeRecord.SignedCheque
+		oldAmount.Set(chequeRecord.Amount)
+	}
+	if err := cheques.VerifyCheque(
+		previousCheque,
+		cheque,
+		big.NewInt(time.Now().Unix()),
+		ch.minDurationUntilExpiration,
+	); err != nil {
+		return err
+	}
+
+	amountDiff := cheque.Amount.Sub(cheque.Amount, oldAmount)
+	if amountDiff.Cmp(serviceFee) < 0 { // amountDiff < serviceFee
+		return fmt.Errorf("cheque amount must at least cover serviceFee")
+	}
+
+	if valid, err := ch.verifyChequeWithContract(ctx, cheque); err != nil {
+		ch.logger.Errorf("Failed to verify cheque with blockchain: %v", err)
+		return err
+	} else if !valid {
+		ch.logger.Infof("cheque is invalid (blockchain validation)")
+		return fmt.Errorf("cheque is invalid (blockchain validation)")
+	}
+
+	chequeRecord = models.ChequeRecordFromCheque(chequeRecordID, cheque)
+	if err := session.UpsertChequeRecord(ctx, chequeRecord); err != nil {
+		ch.logger.Errorf("Failed to store cheque: %v", err)
+		return err
+	}
+
+	return session.Commit()
+}
+
+func (ch *evmChequeHandler) verifyChequeWithContract(ctx context.Context, cheque *cheques.SignedCheque) (bool, error) {
+	cmAccount, err := ch.getCMAccount(cheque.FromCMAccount)
+	if err != nil {
+		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
+		return false, err
+	}
+	_, err = cmAccount.VerifyCheque(
+		&bind.CallOpts{Context: ctx},
+		cheque.FromCMAccount,
+		cheque.ToCMAccount,
+		cheque.ToBot,
+		cheque.Counter,
+		cheque.Amount,
+		cheque.CreatedAt,
+		cheque.ExpiresAt,
+		cheque.Signature,
+	)
+	if err != nil && err.Error() == "execution reverted" {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+// TODO @evlekht whole cash in is almost 100% copy-paste from asb, think of moving to common place
+func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
+	ch.logger.Debug("Cashing in...")
+	defer ch.logger.Debug("Finished cashing in")
+
+	session, err := ch.storage.NewSession(ctx)
+	if err != nil {
+		ch.logger.Error(err)
+		return err
+	}
+	defer session.Abort()
+
+	chequeRecords, err := session.GetNotCashedChequeRecords(ctx)
+	if err != nil {
+		ch.logger.Errorf("failed to get not cashed cheques: %v", err)
+		return err
+	}
+
+	wg := sync.WaitGroup{}
+	for _, chequeRecord := range chequeRecords {
+		ch.logger.Debugf("Checking cheque %s status...", chequeRecord)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			timedCtx, cancel := context.WithTimeout(ctx, cashInTxIssueTimeout)
+			defer cancel()
+
+			txID, err := ch.cashInCheque(timedCtx, chequeRecord)
+			if err != nil {
+				return
+			}
+
+			chequeRecord.TxID = txID
+			chequeRecord.Status = models.ChequeTxStatusPending
+
+			// TODO @evlekht if tx will be issued, but then storage will fail to persist it,
+			// TODO tx is still issued and app service will fail to cash in this cheque next time
+			// TODO cause on the node side it is already cashed in
+			// TODO possible solution would be to do dry run, get txID, commit session with txID and status "processing",
+			// TODO then do real run? also do same on startup
+
+			// TODO @evlekht add txCreatedAt field to db and use it for mining timeout ?
+
+			if err := session.UpsertChequeRecord(ctx, chequeRecord); err != nil {
+				chequeRecord.Status = models.ChequeTxStatusUnknown
+				ch.logger.Errorf("failed to update cheque %s: %v", chequeRecord, err)
+				return
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if err := session.Commit(); err != nil {
+		ch.logger.Errorf("failed to commit session: %v", err)
+		return err
+	}
+
+	for _, chequeRecord := range chequeRecords {
+		if chequeRecord.Status != models.ChequeTxStatusPending {
+			continue
+		}
+
+		go func(txID common.Hash) {
+			_ = ch.checkCashInStatus(context.Background(), txID)
+		}(chequeRecord.TxID)
+	}
+
+	return nil
+}
+
+func (ch *evmChequeHandler) cashInCheque(ctx context.Context, chequeRecord *models.ChequeRecord) (common.Hash, error) {
+	cmAccount, err := ch.getCMAccount(chequeRecord.FromCMAccount)
+	if err != nil {
+		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
+		return common.Hash{}, err
+	}
+
+	transactor, err := bind.NewKeyedTransactorWithChainID(ch.botKey, ch.chainID)
+	if err != nil {
+		ch.logger.Error(err)
+		return common.Hash{}, err
+	}
+	transactor.Context = ctx
+
+	tx, err := cmAccount.CashInCheque(
+		transactor,
+		chequeRecord.FromCMAccount,
+		chequeRecord.ToCMAccount,
+		chequeRecord.ToBot,
+		chequeRecord.Counter,
+		chequeRecord.Amount,
+		chequeRecord.CreatedAt,
+		chequeRecord.ExpiresAt,
+		chequeRecord.Signature,
+	)
+	if err != nil {
+		ch.logger.Errorf("failed to cash in cheque %s: %v", chequeRecord, err)
+		return common.Hash{}, err
+	}
+
+	return tx.Hash(), nil
+}
+
+func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
+	session, err := ch.storage.NewSession(ctx)
+	if err != nil {
+		ch.logger.Error(err)
+		return err
+	}
+	defer session.Abort()
+
+	chequeRecords, err := session.GetChequeRecordsWithPendingTxs(ctx)
+	if err != nil {
+		ch.logger.Errorf("failed to get not cashed cheques: %v", err)
+		return err
+	}
+
+	for _, chequeRecord := range chequeRecords {
+		go func(txID common.Hash) {
+			_ = ch.checkCashInStatus(ctx, txID)
+		}(chequeRecord.TxID)
+	}
+
+	return nil
+}
+
+func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.Hash) error {
+	// TODO @evlekht timeout? what to do if timeouted?
+	res, err := waitMined(ctx, ch.ethClient, txID)
+	if err != nil {
+		ch.logger.Errorf("failed to get cash in transaction receipt %s: %v", txID, err)
+		return err
+	}
+
+	session, err := ch.storage.NewSession(ctx)
+	if err != nil {
+		ch.logger.Error(err)
+		return err
+	}
+	defer session.Abort()
+
+	chequeRecord, err := session.GetChequeRecordByTxID(ctx, txID)
+	if err != nil {
+		ch.logger.Errorf("failed to get chequeRecord by txID %s: %v", txID, err)
+		return err
+	}
+
+	txStatus := models.ChequeTxStatusFromTxStatus(res.Status)
+	if chequeRecord.Status == txStatus {
+		return nil
+	}
+
+	chequeRecord.Status = txStatus
+	if err := session.UpsertChequeRecord(ctx, chequeRecord); err != nil {
+		ch.logger.Errorf("failed to update chequeRecord %s: %v", chequeRecord, err)
+		return err
+	}
+
+	return session.Commit()
+}
+
 func (ch *evmChequeHandler) getCMAccount(address common.Address) (*cmaccount.Cmaccount, error) {
 	cmAccount, ok := ch.cmAccounts.Get(address)
 	if ok {
@@ -264,4 +538,22 @@ func verifyChequeWithContract(
 		return false, nil
 	}
 	return err == nil, err
+}
+
+func waitMined(ctx context.Context, b bind.DeployBackend, txID common.Hash) (*types.Receipt, error) {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for {
+		receipt, err := b.TransactionReceipt(ctx, txID)
+		if err == nil {
+			return receipt, nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ticker.C:
+		}
+	}
 }

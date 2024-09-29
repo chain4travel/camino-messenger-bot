@@ -32,3 +32,15 @@ func (NoopChequeHandler) IsBotAllowed(_ context.Context, _ common.Address) (bool
 func (NoopChequeHandler) IsEmptyCheque(_ *cheques.SignedCheque) bool {
 	return false
 }
+
+func (NoopChequeHandler) CashIn(_ context.Context) error {
+	return nil
+}
+
+func (NoopChequeHandler) CheckCashInStatus(_ context.Context) error {
+	return nil
+}
+
+func (NoopChequeHandler) VerifyCheque(_ context.Context, _ *cheques.SignedCheque, _ common.Address, _ *big.Int) error {
+	return nil
+}

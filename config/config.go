@@ -46,6 +46,8 @@ type EvmConfig struct {
 	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
 	NetworkFeeRecipientCMAccountAddress string `mapstructure:"network_fee_recipient_cm_account"`
 	ChequeExpirationTime                uint64 `mapstructure:"cheque_expiration_time"`
+	MinChequeDurationUntilExpiration    uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
+	CashInPeriod                        uint64 `mapstructure:"cash_in_period"`                       // seconds
 }
 
 type DBConfig struct {
