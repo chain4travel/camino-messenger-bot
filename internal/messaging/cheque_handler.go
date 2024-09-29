@@ -128,7 +128,8 @@ func (ch *evmChequeHandler) IssueCheque(
 	chequeRecordID := models.ChequeRecordID(newCheque)
 
 	previousChequeModel, err := session.GetIssuedChequeRecord(ctx, chequeRecordID)
-	if !errors.Is(err, storage.ErrNotFound) {
+	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+		ch.logger.Errorf("failed to get previous cheque: %v", err)
 		return nil, fmt.Errorf("failed to get previous cheque: %w", err)
 	}
 
@@ -139,15 +140,18 @@ func (ch *evmChequeHandler) IssueCheque(
 
 	signedCheque, err := ch.signer.SignCheque(newCheque)
 	if err != nil {
+		ch.logger.Errorf("failed to sign cheque: %v", err)
 		return nil, fmt.Errorf("failed to sign cheque: %w", err)
 	}
 
 	isChequeValid, err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque)
 	if err != nil {
+		ch.logger.Errorf("failed to verify cheque with smart contract: %v", err)
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 	} else if !isChequeValid {
 		lastCounter, lastAmount, err := ch.getLastCashIn(ctx, toBot)
 		if err != nil {
+			ch.logger.Errorf("failed to get last cash in: %v", err)
 			return nil, fmt.Errorf("failed to get last cash in: %w", err)
 		}
 		newCheque.Counter.Add(lastCounter, bigOne)
@@ -155,13 +159,16 @@ func (ch *evmChequeHandler) IssueCheque(
 
 		signedCheque, err = ch.signer.SignCheque(newCheque)
 		if err != nil {
+			ch.logger.Errorf("failed to sign cheque: %v", err)
 			return nil, fmt.Errorf("failed to sign cheque: %w", err)
 		}
 
 		isChequeValid, err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque)
 		if err != nil {
+			ch.logger.Errorf("failed to verify cheque with smart contract after getting last cash-in: %v", err)
 			return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 		} else if !isChequeValid {
+			ch.logger.Errorf("failed to issue valid cheque")
 			return nil, fmt.Errorf("failed to issue valid cheque")
 		}
 	}

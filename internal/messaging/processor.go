@@ -36,7 +36,6 @@ var (
 	ErrBotNotInCMAccount            = errors.New("bot not in Cm Account")
 	ErrCheckingCmAccount            = errors.New("problem calling contract")
 	ErrBotMissingChequeOperatorRole = errors.New("bot missing permission")
-	ErrChequeNotIssued              = errors.New("cheque not issued")
 
 	networkFee = big.NewInt(300000000000000) // 0.00003 CAM
 )
@@ -177,7 +176,8 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	// lookup for CM Account -> bot
-	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(common.HexToAddress(msg.Metadata.Recipient))
+	recipientCMAccAddr := common.HexToAddress(msg.Metadata.Recipient)
+	recipientBot, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(recipientCMAccAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -211,22 +211,24 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		totalNetworkFee,
 	)
 	if err != nil {
-		return nil, ErrChequeNotIssued
+		p.logger.Errorf("failed to issue network fee cheque: %v", err)
+		return nil, fmt.Errorf("failed to issue network fee cheque: %w", err)
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), msg.Type)
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type)
 	if err != nil {
 		return nil, err
 	}
 	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
 		p.identificationHandler.getMyCMAccountAddress(),
-		common.HexToAddress(msg.Metadata.Recipient),
+		recipientCMAccAddr,
 		common.HexToAddress(recipientBot.Localpart()),
 		serviceFee,
 	)
 	if err != nil {
-		return nil, err
+		p.logger.Errorf("failed to issue service fee cheque: %v", err)
+		return nil, fmt.Errorf("failed to issue service fee cheque: %w", err)
 	}
 
 	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *networkFeeCheque, *serviceFeeCheque)

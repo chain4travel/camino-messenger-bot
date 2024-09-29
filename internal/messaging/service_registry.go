@@ -237,32 +237,32 @@ var servicesMapping = map[MessageType]ServiceIdentifier{
 	},
 	InsuranceSearchRequest: {
 		serviceName:    "InsuranceSearchService",
-		servicePath:    "cmp.services.info.v1.InsuranceSearchService",
+		servicePath:    "cmp.services.insurance.v1.InsuranceSearchService",
 		serviceVersion: 1,
 	},
 	InsuranceProductInfoRequest: {
 		serviceName:    "InsuranceProductInfoService",
-		servicePath:    "cmp.services.info.v1.InsuranceProductInfoService",
+		servicePath:    "cmp.services.insurance.v1.InsuranceProductInfoService",
 		serviceVersion: 1,
 	},
 	InsuranceProductListRequest: {
 		serviceName:    "InsuranceProductListService",
-		servicePath:    "cmp.services.info.v1.InsuranceProductListService",
+		servicePath:    "cmp.services.insurance.v1.InsuranceProductListService",
 		serviceVersion: 1,
 	},
-	GetNetworkFeeRequest: {
-		serviceName:    "NetworkService",
-		servicePath:    "", // No service path as it does not communicate with a partner plugin
-		serviceVersion: 1,  // Version not applicable
-	},
 	GetPartnerConfigurationRequest: {
-		serviceName:    "PartnerService",
-		servicePath:    "", // No service path as it does not communicate with a partner plugin
-		serviceVersion: 1,  // Version not applicable
+		serviceName:    "GetPartnerConfigurationService",
+		servicePath:    "cmp.services.partner.v2.GetPartnerConfigurationService",
+		serviceVersion: 2,
+	},
+	GetNetworkFeeRequest: {
+		serviceName:    "GetNetworkFeeService",
+		servicePath:    "cmp.services.network.v1.GetNetworkFeeService",
+		serviceVersion: 1,
 	},
 	PingRequest: {
 		serviceName:    "PingService",
-		servicePath:    "",
+		servicePath:    "cmp.services.ping.v1.PingService",
 		serviceVersion: 1,
 	},
 }
