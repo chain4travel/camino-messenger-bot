@@ -130,7 +130,7 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	}
 
 	if hasUnsupported {
-		s.logger.Fatalf("Unsupported services detected. Please upgrade the service version.")
+		s.logger.Fatalf("Unsupported services detected. Please upgrade or remove the service version from your CM Account.")
 	}
 
 	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(2), "cmp.services.activity.v2.ActivityProductInfoService") {
