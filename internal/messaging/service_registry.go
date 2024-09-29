@@ -5,6 +5,7 @@
 package messaging
 
 import (
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -77,6 +78,44 @@ func NewServiceRegistry(supportedServices supportedServices, logger *zap.Sugared
 func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	// Bot does a simple check - if there is a service in the CM-Account which is not supported by the Bot it does not start up.
+	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(1), "cmp.services.activity.v1.ActivityProductInfoService") {
+	log.Fatalf("Service version is not supported: cmp.services.activity.v1.ActivityProductInfoService")
+	}
+	if s.isServiceVersionSupported("ActivityProductListService", uint64(1), "cmp.services.activity.v1.ActivityProductListService") {
+		log.Fatalf("Service version is not supported: cmp.services.activity.v1.ActivityProductListService")
+	}
+	if s.isServiceVersionSupported("ActivitySearchService", uint64(1), "cmp.services.activity.v1.ActivitySearchService") {
+		log.Fatalf("Service version is not supported: cmp.services.activity.v1.ActivitySearchService")
+	}
+	if s.isServiceVersionSupported("AccommodationProductInfoService", uint64(1), "cmp.services.accommodation.v1.AccommodationProductInfoService") {
+		log.Fatalf("Service version is not supported: cmp.services.accommodation.v1.AccommodationProductInfoService")
+	}
+	if s.isServiceVersionSupported("AccommodationProductListService", uint64(1), "cmp.services.accommodation.v1.AccommodationProductListService") {
+		log.Fatalf("Service version is not supported: cmp.services.accommodation.v1.AccommodationProductListService")
+	}
+	if s.isServiceVersionSupported("AccommodationSearchService", uint64(1), "cmp.services.accommodation.v1.AccommodationSearchService") {
+		log.Fatalf("Service version is not supported: cmp.services.accommodation.v1.AccommodationSearchService")
+	}
+	if s.isServiceVersionSupported("MintService", uint64(1), "cmp.services.book.v1.MintService") {
+		log.Fatalf("Service version is not supported: cmp.services.book.v1.MintService")
+	}
+	if s.isServiceVersionSupported("ValidationService", uint64(1), "cmp.services.book.v1.ValidationService") {
+		log.Fatalf("Service version is not supported: cmp.services.book.v1.ValidationService")
+	}
+	if s.isServiceVersionSupported("TransportSearchService", uint64(1), "cmp.services.transport.v1.TransportSearchService") {
+		log.Fatalf("Service version is not supported: cmp.services.transport.v1.TransportSearchService")
+	}
+	if s.isServiceVersionSupported("SeatMapService", uint64(1), "cmp.services.seat_map.v1.SeatMapService") {
+		log.Fatalf("Service version is not supported: cmp.services.seat_map.v1.SeatMapService")
+	}
+	if s.isServiceVersionSupported("SeatMapAvailabilityService", uint64(1), "cmp.services.seat_map.v1.SeatMapAvailabilityService") {
+		log.Fatalf("Service version is not supported: cmp.services.seat_map.v1.SeatMapAvailabilityService")
+	}
+	if s.isServiceVersionSupported("CountryEntryRequirementsService", uint64(1), "cmp.services.info.v1.CountryEntryRequirementsService") {
+		log.Fatalf("Service version is not supported: cmp.services.info.v1.CountryEntryRequirementsService")
+	}
 
 	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(2), "cmp.services.activity.v2.ActivityProductInfoService") {
 		c := activityv2grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
