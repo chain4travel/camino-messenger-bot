@@ -22,5 +22,6 @@ RUN apk add --no-cache olm-dev
 WORKDIR /
 
 COPY --from=build-stage /camino-messenger-bot/bot /camino-messenger-bot
+COPY --from=build-stage /camino-messenger-bot/migrations ./migrations
 
 ENTRYPOINT ["./camino-messenger-bot"]
