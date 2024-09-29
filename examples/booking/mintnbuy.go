@@ -109,7 +109,7 @@ func main() {
 	// decimals=2
 	// iso_currency=EUR or USD
 
-	priceEUR := typesv1.Price{
+	priceEUR := &typesv1.Price{
 		Value:    "10000",
 		Decimals: 2,
 		Currency: &typesv1.Currency{
@@ -128,7 +128,7 @@ func main() {
 	//	its smallest fraction by multiplying  100.65 EURSH * 10^5 => 10065000 (example
 	//	conversion to bigint without losing accuracy: bigint(10065) * 10^(5-2))
 
-	priceEURSH := typesv1.Price{
+	priceEURSH := &typesv1.Price{
 		Value:    "10065",
 		Decimals: 2,
 		Currency: &typesv1.Currency{
@@ -155,7 +155,7 @@ func main() {
 	//	0.0065 for on-chain operations must be converted to big integer as bigint(65) *
 	//	10^(8-4) == 650000
 
-	priceBTC := typesv1.Price{
+	priceBTC := &typesv1.Price{
 		Value:    "65",
 		Decimals: 4,
 		Currency: &typesv1.Currency{
@@ -193,6 +193,10 @@ func main() {
 	// Account address, generally the distributor's CM account address. And the
 	// distributor should buy the token.
 
+	//bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceEURSH, int32(5))
+	//bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceCAM, int32(18))
+
+	paymentToken = zeroAddress
 	price = priceCAM
 	switch price.Currency.Currency.(type) {
 	case *typesv1.Currency_NativeToken:
