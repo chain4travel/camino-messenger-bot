@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strings"
 
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -125,4 +126,22 @@ func (bs *Service) BuyBookingToken(
 
 	bs.logger.Infof("BuyBookingToken tx sent: %s", tx.Hash().Hex())
 	return tx, nil
+}
+
+// convertPriceToBigInt converts the price to its integer representation
+func (bs *Service) ConvertPriceToBigInt(price *typesv2.Price, totalDecimals int32) (*big.Int, error) {
+	// Convert the value string to a big.Int
+	valueBigInt := new(big.Int)
+	_, ok := valueBigInt.SetString(price.Value, 10)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert value to big.Int: %s", price.Value)
+	}
+
+	// Calculate the multiplier as 10^(totalDecimals - price.Decimals)
+	multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(totalDecimals-price.Decimals)), nil)
+
+	// Multiply the value by the multiplier
+	result := new(big.Int).Mul(valueBigInt, multiplier)
+
+	return result, nil
 }

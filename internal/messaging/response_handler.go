@@ -221,15 +221,40 @@ func (h *evmResponseHandler) mint(
 	reservedFor common.Address,
 	uri string,
 	expiration *big.Int,
-	_ *typesv2.Price,
+	price *typesv2.Price,
 ) (string, *big.Int, error) {
-	// TODO: VjeTurk: handle price and paymentToken
+	bigIntPrice := big.NewInt(0)
+	paymentToken := zeroAddress
+	var err error
+
+	//  TODO:
+	// (in booking package)
+	// define paymentToken from currency
+	// if TokenCurrency get paymentToken contract and call decimals()
+	// calculate the price in big int without loosing precision
+
+	switch price.Currency.Currency.(type) {
+	case *typesv2.Currency_NativeToken:
+		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(price, int32(18)) // CAM uses 18 decimals
+		if err != nil {
+			return "", nil, err
+		}
+		paymentToken = zeroAddress
+	case *typesv2.Currency_TokenCurrency:
+		// Add logic to handle TokenCurrency
+		// if contract address is zeroAddress, then it is native token
+		return "", nil, fmt.Errorf("TokenCurrency not supported yet")
+	case *typesv2.Currency_IsoCurrency:
+		// Add logic to handle IsoCurrency
+		return "", nil, fmt.Errorf("IsoCurrency not supported yet")
+	}
+
 	tx, err := h.bookingService.MintBookingToken(
 		reservedFor,
 		uri,
 		expiration,
-		big.NewInt(0),
-		zeroAddress)
+		bigIntPrice,
+		paymentToken)
 	if err != nil {
 		return "", nil, err
 	}

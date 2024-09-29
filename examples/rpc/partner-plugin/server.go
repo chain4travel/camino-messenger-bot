@@ -70,18 +70,37 @@ func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (Mint)", md.RequestID)
 
+	// On-chain payment of 1 nCAM value=1 decimals=9 this currency has denominator 18 on
+	//
+	//	Columbus and conclusively to mint the value of 1 nCam must be divided by 10^9 =
+	//	0.000000001 CAM and minted in its smallest fraction by multiplying 0.000000001 *
+	//	10^18 => 1000000000 aCAM
 	response := bookv2.MintResponse{
 		MintId: &typesv1.UUID{Value: md.RequestID},
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
 		Price: &typesv2.Price{
-			Value:    "100",
-			Decimals: 0,
+			Value:    "1",
+			Decimals: 9,
 			Currency: &typesv2.Currency{
-				Currency: &typesv2.Currency_NativeToken{},
+				Currency: &typesv2.Currency_NativeToken{
+					NativeToken: &emptypb.Empty{},
+				},
 			},
 		},
+		/*
+			ISO CURRENCY EXAMPLE:
+				Price: &typesv1.Price{
+					Value:    "10000",
+					Decimals: 2,
+					Currency: &typesv1.Currency{
+						Currency: &typesv1.Currency_IsoCurrency{
+							IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
+						},
+					},
+				},
+		*/
 		BookingTokenId:  uint64(123456),
 		ValidationId:    &typesv1.UUID{Value: "123456"},
 		BookingTokenUri: "https://example.com/booking-token",
