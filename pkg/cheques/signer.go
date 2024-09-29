@@ -11,8 +11,17 @@ import (
 )
 
 const (
-	domainType = "EIP712Domain"
-	chequeType = "MessengerCheque"
+	domainType   = "EIP712Domain"
+	chequeType   = "MessengerCheque"
+	signatureLen = 65
+
+	// from the decred library:
+	// compactSigMagicOffset is a value used when creating the compact signature
+	// recovery code inherited from Bitcoin and has no meaning, but has been
+	// retained for compatibility.  For historical purposes, it was originally
+	// picked to avoid a binary representation that would allow compact
+	// signatures to be mistaken for other components.
+	compactSigMagicOffset = 27
 )
 
 var (
@@ -87,8 +96,12 @@ func (cs *signer) SignCheque(cheque *Cheque) (*SignedCheque, error) {
 		return nil, fmt.Errorf("failed to sign the hash: %w", err)
 	}
 
-	// adjust recovery byte for compatibility
-	signature[64] += 27
+	if len(signature) != signatureLen {
+		return nil, fmt.Errorf("invalid signature length: %d", len(signature))
+	}
+
+	// adjust recovery byte
+	signature[signatureLen-1] += compactSigMagicOffset
 
 	return &SignedCheque{
 		Cheque:    *cheque,
@@ -102,7 +115,16 @@ func (cs *signer) RecoverPublicKey(cheque *SignedCheque) (*ecdsa.PublicKey, erro
 		return nil, fmt.Errorf("failed to get final hash: %w", err)
 	}
 
-	pubKey, err := crypto.SigToPub(finalHash, cheque.Signature)
+	if len(cheque.Signature) != signatureLen {
+		return nil, fmt.Errorf("invalid signature length: %d", len(cheque.Signature))
+	}
+
+	// adjust recovery byte
+	signature := make([]byte, signatureLen)
+	copy(signature, cheque.Signature)
+	signature[signatureLen-1] -= compactSigMagicOffset
+
+	pubKey, err := crypto.SigToPub(finalHash, signature)
 	if err != nil {
 		return nil, fmt.Errorf("failed to recover public key: %w", err)
 	}
