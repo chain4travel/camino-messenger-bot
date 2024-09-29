@@ -64,6 +64,7 @@ func TestProcessInbound(t *testing.T) {
 		responseHandler       ResponseHandler
 		identificationHandler IdentificationHandler
 		chequeHandler         ChequeHandler
+		compressor            compression.Compressor[*Message, [][]byte]
 	}
 	type args struct {
 		msg *Message
@@ -127,6 +128,7 @@ func TestProcessInbound(t *testing.T) {
 				identificationHandler: NoopIdentification{},
 				chequeHandler:         NoopChequeHandler{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -146,6 +148,7 @@ func TestProcessInbound(t *testing.T) {
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -164,6 +167,7 @@ func TestProcessInbound(t *testing.T) {
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
 				messenger:             mockMessenger,
+				compressor:            &noopCompressor{},
 			},
 			prepare: func(p *processor) {
 				p.responseChannels[requestID] = make(chan *Message, 1)
@@ -189,7 +193,7 @@ func TestProcessInbound(t *testing.T) {
 				tt.fields.responseHandler,
 				tt.fields.identificationHandler,
 				tt.fields.chequeHandler,
-				&noopCompressor{},
+				tt.fields.compressor,
 			)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))

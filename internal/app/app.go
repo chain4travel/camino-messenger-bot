@@ -224,7 +224,16 @@ func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Process
 	})
 }
 
-func (a *App) startMessageProcessor(ctx context.Context, messenger messaging.Messenger, serviceRegistry messaging.ServiceRegistry, responseHandler messaging.ResponseHandler, identificationHandler messaging.IdentificationHandler, chequeHandler messaging.ChequeHandler, g *errgroup.Group, userIDUpdated chan id.UserID) messaging.Processor {
+func (a *App) startMessageProcessor(
+	ctx context.Context,
+	messenger messaging.Messenger,
+	serviceRegistry messaging.ServiceRegistry,
+	responseHandler messaging.ResponseHandler,
+	identificationHandler messaging.IdentificationHandler,
+	chequeHandler messaging.ChequeHandler,
+	g *errgroup.Group,
+	userIDUpdated chan id.UserID,
+) messaging.Processor {
 	msgProcessor := messaging.NewProcessor(
 		messenger,
 		a.logger,

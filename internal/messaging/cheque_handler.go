@@ -26,21 +26,6 @@ var (
 	bigOne               = big.NewInt(1)
 )
 
-type evmChequeHandler struct {
-	logger *zap.SugaredLogger
-
-	chainID           *big.Int
-	ethClient         *ethclient.Client
-	evmConfig         *config.EvmConfig
-	cmAccountAddress  common.Address
-	cmAccountInstance *cmaccount.Cmaccount
-	privateKey        *ecdsa.PrivateKey
-	signer            cheques.Signer
-	serviceRegistry   ServiceRegistry
-	storage           storage.Storage
-	cmAccounts        *lru.Cache[common.Address, *cmaccount.Cmaccount]
-}
-
 type ChequeHandler interface {
 	IssueCheque(
 		ctx context.Context,
@@ -53,13 +38,6 @@ type ChequeHandler interface {
 
 	GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType MessageType) (*big.Int, error)
 	IsBotAllowed(ctx context.Context, fromBot common.Address) (bool, error)
-}
-
-type LastCashIn struct {
-	Counter   *big.Int
-	Amount    *big.Int
-	CreatedAt *big.Int
-	ExpiresAt *big.Int
 }
 
 func NewChequeHandler(
@@ -96,7 +74,7 @@ func NewChequeHandler(
 		cmAccountAddress:  cmAccountAddress,
 		cmAccountInstance: cmAccountInstance,
 		chainID:           chainID,
-		privateKey:        caminoPrivateKey,
+		botKey:            caminoPrivateKey,
 		logger:            logger,
 		evmConfig:         evmConfig,
 		storage:           storage,
@@ -104,6 +82,21 @@ func NewChequeHandler(
 		serviceRegistry:   serviceRegistry,
 		cmAccounts:        cmAccountsCache,
 	}, nil
+}
+
+type evmChequeHandler struct {
+	logger *zap.SugaredLogger
+
+	chainID           *big.Int
+	ethClient         *ethclient.Client
+	evmConfig         *config.EvmConfig
+	cmAccountAddress  common.Address
+	cmAccountInstance *cmaccount.Cmaccount
+	botKey            *ecdsa.PrivateKey
+	signer            cheques.Signer
+	serviceRegistry   ServiceRegistry
+	storage           storage.Storage
+	cmAccounts        *lru.Cache[common.Address, *cmaccount.Cmaccount]
 }
 
 func (ch *evmChequeHandler) IssueCheque(
@@ -121,28 +114,27 @@ func (ch *evmChequeHandler) IssueCheque(
 
 	defer session.Abort()
 
-	chequeRecordID := chequeRecordID(fromBot, toBot, toCMAccount)
+	now := time.Now().Unix()
+	newCheque := &cheques.Cheque{
+		FromCMAccount: fromCMAccount,
+		ToCMAccount:   toCMAccount,
+		ToBot:         toBot,
+		Counter:       big.NewInt(0),
+		Amount:        big.NewInt(0).Set(amount),
+		CreatedAt:     big.NewInt(now),
+		ExpiresAt:     big.NewInt(0).SetUint64(uint64(now) + ch.evmConfig.ChequeExpirationTime),
+	}
+
+	chequeRecordID := models.ChequeRecordID(newCheque)
 
 	previousChequeModel, err := session.GetChequeRecord(ctx, chequeRecordID)
 	if !errors.Is(err, storage.ErrNotFound) {
 		return nil, fmt.Errorf("failed to get previous cheque: %w", err)
 	}
 
-	counter := big.NewInt(1)
 	if previousChequeModel != nil {
-		counter.Add(previousChequeModel.Counter, bigOne)
-		amount.Add(previousChequeModel.Amount, amount)
-	}
-
-	now := time.Now().Unix()
-	newCheque := &cheques.Cheque{
-		FromCMAccount: fromCMAccount,
-		ToCMAccount:   toCMAccount,
-		ToBot:         toBot,
-		Counter:       counter,
-		Amount:        amount,
-		CreatedAt:     big.NewInt(now),
-		ExpiresAt:     big.NewInt(0).SetUint64(uint64(now) + ch.evmConfig.ChequeExpirationTime),
+		newCheque.Counter.Add(previousChequeModel.Counter, bigOne)
+		newCheque.Amount.Add(previousChequeModel.Amount, amount)
 	}
 
 	signedCheque, err := ch.signer.SignCheque(newCheque)
@@ -150,7 +142,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		return nil, fmt.Errorf("failed to sign cheque: %w", err)
 	}
 
-	if err := ch.verifyWithSmartContract(ctx, signedCheque); err != nil {
+	if err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque); err != nil {
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 	}
 
@@ -167,32 +159,10 @@ func (ch *evmChequeHandler) IssueCheque(
 	return signedCheque, nil
 }
 
-func (ch *evmChequeHandler) verifyWithSmartContract(ctx context.Context, signedCheque *cheques.SignedCheque) error {
-	_, err := ch.cmAccountInstance.VerifyCheque(
-		&bind.CallOpts{Context: ctx},
-		signedCheque.Cheque.FromCMAccount,
-		signedCheque.Cheque.ToCMAccount,
-		signedCheque.Cheque.ToBot,
-		signedCheque.Cheque.Counter,
-		signedCheque.Cheque.Amount,
-		signedCheque.Cheque.CreatedAt,
-		signedCheque.Cheque.ExpiresAt,
-		signedCheque.Signature,
-	)
-
-	return err
-}
-
 func (ch *evmChequeHandler) GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType MessageType) (*big.Int, error) {
-	supplierCmAccount, ok := ch.cmAccounts.Get(toCmAccountAddress)
-	if !ok {
-		var err error
-		supplierCmAccount, err = cmaccount.NewCmaccount(toCmAccountAddress, ch.ethClient)
-		if err != nil {
-			ch.logger.Errorf("Failed to get cm Account: %v", err)
-			return nil, err
-		}
-		ch.cmAccounts.Add(toCmAccountAddress, supplierCmAccount)
+	supplierCmAccount, err := ch.getCMAccount(toCmAccountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
 	}
 
 	service, exists := servicesMapping[messageType]
@@ -219,10 +189,37 @@ func (ch *evmChequeHandler) IsBotAllowed(ctx context.Context, fromBot common.Add
 	return isAllowed, nil
 }
 
-func chequeRecordID(fromBot common.Address, toBot common.Address, toCmAccount common.Address) common.Hash {
-	return crypto.Keccak256Hash(
-		fromBot.Bytes(),
-		toBot.Bytes(),
-		toCmAccount.Bytes(),
+func (ch *evmChequeHandler) getCMAccount(address common.Address) (*cmaccount.Cmaccount, error) {
+	cmAccount, ok := ch.cmAccounts.Get(address)
+	if ok {
+		return cmAccount, nil
+	}
+
+	cmAccount, err := cmaccount.NewCmaccount(address, ch.ethClient)
+	if err != nil {
+		ch.logger.Errorf("failed to create cmAccount contract instance: %v", err)
+		return nil, err
+	}
+	_ = ch.cmAccounts.Add(address, cmAccount)
+
+	return cmAccount, nil
+}
+
+func verifyChequeWithContract(
+	ctx context.Context,
+	cmAcc *cmaccount.Cmaccount,
+	signedCheque *cheques.SignedCheque,
+) error {
+	_, err := cmAcc.VerifyCheque(
+		&bind.CallOpts{Context: ctx},
+		signedCheque.FromCMAccount,
+		signedCheque.ToCMAccount,
+		signedCheque.ToBot,
+		signedCheque.Counter,
+		signedCheque.Amount,
+		signedCheque.CreatedAt,
+		signedCheque.ExpiresAt,
+		signedCheque.Signature,
 	)
+	return err
 }

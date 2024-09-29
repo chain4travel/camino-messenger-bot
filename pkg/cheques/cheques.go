@@ -97,20 +97,24 @@ func (sc *SignedCheque) UnmarshalJSON(data []byte) error {
 }
 
 func VerifyCheque(previousCheque, newCheque *SignedCheque, timestamp, minDurationUntilExpiration *big.Int) error {
-	if newCheque.ExpiresAt.Cmp(timestamp) < 1 { // cheque.ExpiresAt <= timestamp
-		return fmt.Errorf("cheque expired at %s; %w", newCheque.ExpiresAt, ErrChequeAlreadyExpired)
-	}
 	durationUntilExpiration := big.NewInt(0).Sub(newCheque.ExpiresAt, timestamp)
-	if durationUntilExpiration.Cmp(minDurationUntilExpiration) < 0 { // durationUntilExpiration < minDurationUntilExpiration
-		return fmt.Errorf("duration until expiration less than min (%s < %s): %w", durationUntilExpiration, minDurationUntilExpiration, ErrChequeExpiresTooSoon)
-	}
+
 	switch {
+	case newCheque.ExpiresAt.Cmp(timestamp) < 1: // cheque.ExpiresAt <= timestamp
+		return fmt.Errorf("cheque expired at %s; %w", newCheque.ExpiresAt, ErrChequeAlreadyExpired)
+	case durationUntilExpiration.Cmp(minDurationUntilExpiration) < 0: // durationUntilExpiration < minDurationUntilExpiration
+		return fmt.Errorf("duration until expiration less than min (%s < %s): %w",
+			durationUntilExpiration, minDurationUntilExpiration, ErrChequeExpiresTooSoon)
+	case newCheque.FromCMAccount == newCheque.ToCMAccount:
+		return errors.New("cheque FromCMAccount and ToCMAccount are the same")
 	case previousCheque == nil:
 		return nil
 	case previousCheque.Amount.Cmp(newCheque.Amount) > 0: // previous.Amount > new.Amount
-		return fmt.Errorf("new cheque amount (%s) < (%s) previous cheque amount: %w", newCheque.Amount, previousCheque.Amount, ErrChequeAmountLessThanPrevious)
+		return fmt.Errorf("new cheque amount (%s) < (%s) previous cheque amount: %w",
+			newCheque.Amount, previousCheque.Amount, ErrChequeAmountLessThanPrevious)
 	case previousCheque.Counter.Cmp(newCheque.Counter) > -1: // previous.Counter >= new.Counter
-		return fmt.Errorf("new cheque counter (%s) <= (%s) previous cheque counter: %w", newCheque.Counter, previousCheque.Counter, ErrChequeCounterNotGreaterThanPrevious)
+		return fmt.Errorf("new cheque counter (%s) <= (%s) previous cheque counter: %w",
+			newCheque.Counter, previousCheque.Counter, ErrChequeCounterNotGreaterThanPrevious)
 	}
 	return nil
 }

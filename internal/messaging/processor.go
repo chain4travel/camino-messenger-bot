@@ -55,6 +55,33 @@ type Processor interface {
 	ProcessOutbound(ctx context.Context, message *Message) (*Message, error)
 }
 
+func NewProcessor(
+	messenger Messenger,
+	logger *zap.SugaredLogger,
+	cfg config.ProcessorConfig,
+	evmConfig config.EvmConfig,
+	registry ServiceRegistry,
+	responseHandler ResponseHandler,
+	identificationHandler IdentificationHandler,
+	chequeHandler ChequeHandler,
+	compressor compression.Compressor[*Message, [][]byte],
+) Processor {
+	return &processor{
+		cfg:                   cfg,
+		evmConfig:             evmConfig,
+		messenger:             messenger,
+		logger:                logger,
+		tracer:                otel.GetTracerProvider().Tracer(""),
+		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
+		responseChannels:      make(map[string]chan *Message),
+		serviceRegistry:       registry,
+		responseHandler:       responseHandler,
+		identificationHandler: identificationHandler,
+		chequeHandler:         chequeHandler,
+		compressor:            compressor,
+	}
+}
+
 type processor struct {
 	cfg       config.ProcessorConfig
 	evmConfig config.EvmConfig
@@ -81,33 +108,6 @@ func (p *processor) SetUserID(userID id.UserID) {
 
 func (*processor) Checkpoint() string {
 	return "processor"
-}
-
-func NewProcessor(
-	messenger Messenger,
-	logger *zap.SugaredLogger,
-	cfg config.ProcessorConfig,
-	evmConfig config.EvmConfig,
-	registry ServiceRegistry,
-	responseHandler ResponseHandler,
-	identificationHandler IdentificationHandler,
-	chequeHandler ChequeHandler,
-	compressor compression.Compressor[*Message, [][]byte],
-) Processor {
-	return &processor{
-		cfg:                   cfg,
-		evmConfig:             evmConfig,
-		messenger:             messenger,
-		logger:                logger,
-		tracer:                otel.GetTracerProvider().Tracer(""),
-		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels:      make(map[string]chan *Message),
-		serviceRegistry:       registry,
-		responseHandler:       responseHandler,
-		identificationHandler: identificationHandler,
-		chequeHandler:         chequeHandler,
-		compressor:            compressor,
-	}
 }
 
 func (p *processor) Start(ctx context.Context) {
@@ -265,6 +265,7 @@ func (p *processor) Respond(msg *Message) error {
 	if err != nil {
 		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
 	}
+
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
 	ctx, span := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()

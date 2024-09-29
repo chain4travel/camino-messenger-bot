@@ -6,6 +6,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 type ChequeTxStatus uint8
@@ -66,4 +67,12 @@ func ChequeRecordFromCheque(chequeRecordID common.Hash, cheque *cheques.SignedCh
 		},
 		ChequeRecordID: chequeRecordID,
 	}
+}
+
+func ChequeRecordID(cheque *cheques.Cheque) common.Hash {
+	return crypto.Keccak256Hash(
+		cheque.FromCMAccount.Bytes(),
+		cheque.ToCMAccount.Bytes(),
+		cheque.ToBot.Bytes(),
+	)
 }
