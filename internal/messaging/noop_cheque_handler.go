@@ -17,7 +17,7 @@ var _ ChequeHandler = (*NoopChequeHandler)(nil)
 
 type NoopChequeHandler struct{}
 
-func (NoopChequeHandler) IssueCheque(_ context.Context, _ common.Address, _ common.Address, _ common.Address, _ common.Address, _ *big.Int) (*cheques.SignedCheque, error) {
+func (NoopChequeHandler) IssueCheque(_ context.Context, _ common.Address, _ common.Address, _ common.Address, _ *big.Int) (*cheques.SignedCheque, error) {
 	return &cheques.SignedCheque{}, nil
 }
 

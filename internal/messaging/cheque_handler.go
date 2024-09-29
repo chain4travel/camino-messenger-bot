@@ -31,7 +31,6 @@ type ChequeHandler interface {
 		ctx context.Context,
 		fromCmAccount common.Address,
 		toCmAccount common.Address,
-		fromBot common.Address,
 		toBot common.Address,
 		amount *big.Int,
 	) (*cheques.SignedCheque, error)
@@ -48,7 +47,7 @@ func NewChequeHandler(
 	storage storage.Storage,
 	serviceRegistry ServiceRegistry,
 ) (ChequeHandler, error) {
-	caminoPrivateKey, err := crypto.HexToECDSA(evmConfig.PrivateKey)
+	chequeIssuerKey, err := crypto.HexToECDSA(evmConfig.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +58,7 @@ func NewChequeHandler(
 		return nil, fmt.Errorf("failed to instantiate contract binding: %w", err)
 	}
 
-	signer, err := cheques.NewSigner(caminoPrivateKey, chainID)
+	signer, err := cheques.NewSigner(chequeIssuerKey, chainID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create signer: %w", err)
 	}
@@ -74,7 +73,7 @@ func NewChequeHandler(
 		cmAccountAddress:  cmAccountAddress,
 		cmAccountInstance: cmAccountInstance,
 		chainID:           chainID,
-		botKey:            caminoPrivateKey,
+		chequeIssuerKey:   chequeIssuerKey,
 		logger:            logger,
 		evmConfig:         evmConfig,
 		storage:           storage,
@@ -92,7 +91,7 @@ type evmChequeHandler struct {
 	evmConfig         *config.EvmConfig
 	cmAccountAddress  common.Address
 	cmAccountInstance *cmaccount.Cmaccount
-	botKey            *ecdsa.PrivateKey
+	chequeIssuerKey   *ecdsa.PrivateKey
 	signer            cheques.Signer
 	serviceRegistry   ServiceRegistry
 	storage           storage.Storage
@@ -103,7 +102,6 @@ func (ch *evmChequeHandler) IssueCheque(
 	ctx context.Context,
 	fromCMAccount common.Address,
 	toCMAccount common.Address,
-	fromBot common.Address,
 	toBot common.Address,
 	amount *big.Int,
 ) (*cheques.SignedCheque, error) {

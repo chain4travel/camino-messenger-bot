@@ -207,7 +207,6 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		ctx,
 		p.identificationHandler.getMyCMAccountAddress(),
 		common.HexToAddress(p.evmConfig.NetworkFeeRecipientCMAccountAddress),
-		p.myBotAddress,
 		common.HexToAddress(p.evmConfig.NetworkFeeRecipientBotAddress),
 		totalNetworkFee,
 	)
@@ -223,7 +222,6 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		ctx,
 		p.identificationHandler.getMyCMAccountAddress(),
 		common.HexToAddress(msg.Metadata.Recipient),
-		p.myBotAddress,
 		common.HexToAddress(recipientBot.Localpart()),
 		serviceFee,
 	)
