@@ -1,5 +1,27 @@
 #!/bin/bash
 
+function generate() {
+	FQPN=$1
+	SERVICE=$2
+	PACKAGE=$3
+	local -n _METHODS=$4
+	local -n _INPUTS=$5
+	local -n _OUTPUTS=$6
+
+	echo "Generating with parameters:"
+	echo "FQPN    : $FQPN"
+	echo "SERVICE : $SERVICE"
+	echo "PACKAGE : $PACKAGE"
+	for num in `seq 0 $(( ${#_METHODS[@]} - 1 ))` ; do
+		echo "METHOD[$num]: ${_METHODS[$num]} ${_INPUTS[$num]} ${_OUTPUTS[$num]}"
+		# does each method has an independent file? If not how should the template work?
+	done
+
+	# From here on it's very easy in case it's just search replace
+	# Simply copy the template to the target directory
+	# And do some sed -i -e "s#{{.FQDN}}#$FQDN#g" -e "s#{{.SERVICE}}#$SERVICE#g" [...] $file
+}
+
 BUF_SDK_URL=buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go
 echo "⌛ Downloading SDK from $BUF_SDK_URL"
 go get $BUF_SDK_URL
@@ -40,12 +62,16 @@ while read file ; do
 
 	FQPN=$(grep -P 'FullMethodName' $file | grep -oP 'cmp\.services\.[^/]+' | head -n1) # only 1 - it may contain more
 	PACKAGE=$(grep -oP '^package \S+$' $file | cut -d" " -f2)
+	SERVICE=${FQPN##*.}
 
-	echo "🔑 FQPN   : $FQPN"
-	echo "⚙️ Service: ${FQPN##*.}"
+	echo "🔑 FQPN      : $FQPN"
+	echo "⚙️ Service   : $SERVICE"
 	echo "📦 Go Package: $PACKAGE"
 
 	echo "📑 Methods: "
+	declare -a METHODS=()
+	declare -a INPUTS=()
+	declare -a OUTPUTS=()
 	for method in $(grep -P 'FullMethodName' $file | grep -oP 'cmp\.services\.[^"]+' | cut -d"/" -f2) ; do
 		# Now we try to extract the inputs and outputs for each method
 		# for this grep $method(xxx, INPUT) (OUTPUT, yyy)
@@ -56,8 +82,14 @@ while read file ; do
 		INPUT=$(echo $PARAMS_CUT | cut -d" " -f1 | cut -d"." -f2)
 		OUTPUT=$(echo $PARAMS_CUT | cut -d" " -f2 | cut -d"." -f2)
 
+		METHODS+=("$method")
+		INPUTS+=("$INPUT")
+		OUTPUTS+=("$OUTPUT")
+
 		echo " ◉ $method (↓ in: '$INPUT' - ↑ out: '$OUTPUT')"
 	done
+
+	generate "$FQPN" "$SERVICE" "$PACKAGE" METHODS INPUTS OUTPUTS
 
 	echo 
 done < <(find "$SDK_PATH/cmp/services/" -name "*_grpc.pb.go")
