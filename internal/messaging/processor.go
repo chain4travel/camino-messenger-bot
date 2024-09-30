@@ -239,7 +239,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
-	if err := p.responseHandler.HandleRequest(ctx, msg.Type, &msg.Content.RequestContent); err != nil {
+	if err := p.responseHandler.HandleRequest(ctx, msg.Type, msg.Content); err != nil {
 		return nil, err
 	}
 	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBotUserID, msg.Metadata.Recipient)
@@ -253,7 +253,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 		select {
 		case response := <-responseChan:
 			if response.Metadata.RequestID == msg.Metadata.RequestID {
-				p.responseHandler.HandleResponse(ctx, msg.Type, &msg.Content.RequestContent, &response.Content.ResponseContent)
+				p.responseHandler.HandleResponse(ctx, msg.Type, msg.Content, response.Content)
 				return response, nil
 			}
 		case <-ctx.Done():
@@ -312,18 +312,18 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	ctx = grpc_metadata.NewOutgoingContext(ctx, requestMsg.Metadata.ToGrpcMD())
 	header := &grpc_metadata.MD{}
 	ctx, partnerPluginSpan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	response, msgType, err := service.Call(ctx, &requestMsg.Content.RequestContent, grpc.Header(header))
+	response, msgType, err := service.Call(ctx, requestMsg.Content, grpc.Header(header))
 	partnerPluginSpan.End()
 
 	responseMsg.Type = msgType
 	if response != nil {
-		responseMsg.Content.ResponseContent = *response
+		responseMsg.Content = response
 	}
 
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
-		addErrorToResponseHeader(msgType, &responseMsg.Content.ResponseContent, errMessage)
+		addErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
 		return ctx, responseMsg, [][]byte{{}}
 	}
 
@@ -332,7 +332,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	}
 
 	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
-	p.responseHandler.HandleResponse(ctx, msgType, &requestMsg.Content.RequestContent, response)
+	p.responseHandler.HandleResponse(ctx, msgType, requestMsg.Content, response)
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, requestMsg.Sender)
 
@@ -340,7 +340,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	if err != nil {
 		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
 		p.logger.Errorf(errMessage)
-		addErrorToResponseHeader(msgType, &responseMsg.Content.ResponseContent, errMessage)
+		addErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
 	}
 
 	return ctx, responseMsg, compressedContent

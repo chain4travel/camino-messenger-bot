@@ -78,73 +78,73 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(2), "cmp.services.activity.v2.ActivityProductInfoService") {
-		c := activityv2grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivityProductInfoService"))] = activityProductInfoService{client: &c}
+	if s.isServiceSupported("cmp.services.activity.v2.ActivityProductInfoService") {
+		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivityProductInfoService"))] =
+			newActivityProductInfoServiceV2(rpcClient.ClientConn)
 	}
-	if s.isServiceVersionSupported("ActivityProductListService", uint64(2), "cmp.services.activity.v2.ActivityProductListService") {
+	if s.isServiceSupported("ActivityProductListService", uint64(2), "cmp.services.activity.v2.ActivityProductListService") {
 		c := activityv2grpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivityProductListService"))] = activityProductListService{client: c}
 	}
-	if s.isServiceVersionSupported("ActivitySearchService", uint64(2), "cmp.services.activity.v2.ActivitySearchService'") {
+	if s.isServiceSupported("ActivitySearchService", uint64(2), "cmp.services.activity.v2.ActivitySearchService'") {
 		c := activityv2grpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivitySearchService"))] = activityService{client: &c}
 	}
-	if s.isServiceVersionSupported("AccommodationProductInfoService", uint64(2), "cmp.services.accommodation.v2.AccommodationProductInfoService") {
+	if s.isServiceSupported("AccommodationProductInfoService", uint64(2), "cmp.services.accommodation.v2.AccommodationProductInfoService") {
 		c := accommodationv2grpc.NewAccommodationProductInfoServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("AccommodationProductInfoService"))] = accommodationProductInfoService{client: &c}
 	}
-	if s.isServiceVersionSupported("AccommodationProductListService", uint64(2), "cmp.services.accommodation.v2.AccommodationProductListService") {
+	if s.isServiceSupported("AccommodationProductListService", uint64(2), "cmp.services.accommodation.v2.AccommodationProductListService") {
 		c := accommodationv2grpc.NewAccommodationProductListServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("AccommodationProductListService"))] = accommodationProductListService{client: &c}
 	}
-	if s.isServiceVersionSupported("AccommodationSearchService", uint64(2), "cmp.services.accommodation.v2.AccommodationSearchService") {
+	if s.isServiceSupported("AccommodationSearchService", uint64(2), "cmp.services.accommodation.v2.AccommodationSearchService") {
 		c := accommodationv2grpc.NewAccommodationSearchServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("AccommodationSearchService"))] = accommodationSearchService{client: &c}
 	}
-	if s.isServiceVersionSupported("MintService", uint64(2), "cmp.services.book.v2.MintService") {
+	if s.isServiceSupported("MintService", uint64(2), "cmp.services.book.v2.MintService") {
 		c := bookv2grpc.NewMintServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("MintService"))] = mintService{client: &c}
 	}
-	if s.isServiceVersionSupported("ValidationService", uint64(2), "cmp.services.book.v2.ValidationService") {
+	if s.isServiceSupported("ValidationService", uint64(2), "cmp.services.book.v2.ValidationService") {
 		c := bookv2grpc.NewValidationServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("ValidationService"))] = validationService{client: &c}
 	}
-	if s.isServiceVersionSupported("TransportSearchService", uint64(2), "cmp.services.transport.v2.TransportSearchService") {
+	if s.isServiceSupported("TransportSearchService", uint64(2), "cmp.services.transport.v2.TransportSearchService") {
 		c := transportv2grpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("TransportSearchService"))] = transportService{client: &c}
 	}
-	if s.isServiceVersionSupported("SeatMapService", uint64(2), "cmp.services.seat_map.v2.SeatMapService") {
+	if s.isServiceSupported("SeatMapService", uint64(2), "cmp.services.seat_map.v2.SeatMapService") {
 		c := seat_mapv2grpc.NewSeatMapServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("SeatMapService"))] = seatMapService{client: &c}
 	}
-	if s.isServiceVersionSupported("SeatMapAvailabilityService", uint64(2), "cmp.services.seat_map.v2.SeatMapAvailabilityService") {
+	if s.isServiceSupported("SeatMapAvailabilityService", uint64(2), "cmp.services.seat_map.v2.SeatMapAvailabilityService") {
 		c := seat_mapv2grpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("SeatMapAvailabilityService"))] = seatMapAvailabilityService{client: &c}
 	}
-	if s.isServiceVersionSupported("CountryEntryRequirementsService", uint64(2), "cmp.services.info.v2.CountryEntryRequirementsService") {
+	if s.isServiceSupported("CountryEntryRequirementsService", uint64(2), "cmp.services.info.v2.CountryEntryRequirementsService") {
 		c := infov2grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("CountryEntryRequirementsService"))] = countryEntryRequirementsService{client: &c}
 	}
-	if s.isServiceVersionSupported("InsuranceSearchService", uint64(1), "cmp.services.insurance.v1.InsuranceSearchService") {
+	if s.isServiceSupported("InsuranceSearchService", uint64(1), "cmp.services.insurance.v1.InsuranceSearchService") {
 		c := insurancev1grpc.NewInsuranceSearchServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceSearchService"))] = insuranceSearchService{client: &c}
 	}
-	if s.isServiceVersionSupported("InsuranceProductInfoService", uint64(1), "cmp.services.insurance.v1.InsuranceProductInfoService") {
+	if s.isServiceSupported("InsuranceProductInfoService", uint64(1), "cmp.services.insurance.v1.InsuranceProductInfoService") {
 		c := insurancev1grpc.NewInsuranceProductInfoServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceProductInfoService"))] = insuranceProductInfoService{client: &c}
 	}
-	if s.isServiceVersionSupported("InsuranceProductListService", uint64(1), "cmp.services.insurance.v1.InsuranceProductListService") {
+	if s.isServiceSupported("InsuranceProductListService", uint64(1), "cmp.services.insurance.v1.InsuranceProductListService") {
 		c := insurancev1grpc.NewInsuranceProductListServiceClient(rpcClient.ClientConn)
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceProductListService"))] = insuranceProductListService{client: &c}
 	}
-	if s.isServiceVersionSupported("GetNetworkFeeService", uint64(1), "cmp.services.network.1.GetNetworkFeeService") {
+	if s.isServiceSupported("GetNetworkFeeService", uint64(1), "cmp.services.network.1.GetNetworkFeeService") {
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("GetNetworkFeeService"))] = networkService{}
 	}
-	if s.isServiceVersionSupported("PingService", uint64(1), "cmp.services.ping.v1.PingService") {
+	if s.isServiceSupported("PingService", uint64(1), "cmp.services.ping.v1.PingService") {
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("PingService"))] = pingService{}
 	}
-	if s.isServiceVersionSupported("GetPartnerConfigurationService", uint64(2), "cmp.services.partner.v2.GetPartnerConfigurationService") {
+	if s.isServiceSupported("GetPartnerConfigurationService", uint64(2), "cmp.services.partner.v2.GetPartnerConfigurationService") {
 		s.services[MessageType(s.getRequestTypeNameFromServiceName("GetPartnerConfigurationService"))] = partnerService{}
 	}
 
@@ -165,10 +165,21 @@ func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
 	return service, ok
 }
 
-func (s *serviceRegistry) isServiceVersionSupported(name string, version uint64, path string) bool {
-	_, ok := s.supported[ServiceIdentifier{serviceName: name, serviceVersion: version, servicePath: path}]
+func (s *serviceRegistry) isServiceSupported(serviceFullName string) bool {
+	_, ok := s.supported[serviceFullName]
 	return ok
 }
+
+// func (s *serviceRegistry) GetClient(serviceFullName string) any {
+// 	_, ok := s.supported[serviceFullName]
+// 	if !ok {
+// 		return nil
+// 	}
+// 	switch serviceFullName {
+// 	case "cmp.services.activity.v2.ActivityProductInfoService":
+
+// 	return notificationv1grpc.NewNotificationServiceClient(s.rpcClient.ClientConn)
+// }
 
 func (s *serviceRegistry) NotificationClient() notificationv1grpc.NotificationServiceClient {
 	return notificationv1grpc.NewNotificationServiceClient(s.rpcClient.ClientConn)

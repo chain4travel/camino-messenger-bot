@@ -10,6 +10,8 @@ import (
 	"fmt"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
+	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
@@ -24,6 +26,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 var (
@@ -48,19 +51,25 @@ var (
 )
 
 type Service interface {
-	Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error)
+	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, MessageType, error)
 }
+
+func newActivityProductInfoServiceV2(grpcCon *grpc.ClientConn) Service {
+	client := activityv2grpc.NewActivityProductInfoServiceClient(grpcCon)
+	return &activityProductInfoService{client: &client}
+}
+
 type activityProductInfoService struct {
 	client *activityv2grpc.ActivityProductInfoServiceClient
 }
 
-func (s activityProductInfoService) Call(ctx context.Context, request *RequestContent, opts ...grpc.CallOption) (*ResponseContent, MessageType, error) {
-	response, err := (*s.client).ActivityProductInfo(ctx, request.ActivityProductInfoRequest, opts...)
-	ResponseContent := ResponseContent{}
-	if err == nil {
-		ResponseContent.ActivityProductInfoResponse = response
+func (s activityProductInfoService) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, MessageType, error) {
+	request, ok := requestIntf.(*activityv2.ActivityProductInfoRequest)
+	if !ok {
+		return nil, ActivityProductInfoResponse, fmt.Errorf("invalid request type")
 	}
-	return &ResponseContent, ActivityProductInfoResponse, err
+	response, err := (*s.client).ActivityProductInfo(ctx, request, opts...)
+	return response, ActivityProductInfoResponse, err
 }
 
 type activityProductListService struct {

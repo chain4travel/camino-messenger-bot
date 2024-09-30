@@ -30,9 +30,7 @@ func NewPartnerSrv1(
 func (s *partner_srv1) GetPartnerConfiguration(ctx context.Context, request *partnerv1.GetPartnerConfigurationRequest) (*partnerv1.GetPartnerConfigurationResponse, error) {
 	response, err := s.reqProcessor.processExternalRequest(
 		ctx,
-		messaging.PingRequest, &messaging.RequestContent{
-			GetPartnerConfigurationRequestV1: request,
-		},
+		messaging.PingRequest, request,
 	)
-	return response.GetPartnerConfigurationResponseV1, err
+	return response.(*partnerv1.GetPartnerConfigurationResponse), err
 }
