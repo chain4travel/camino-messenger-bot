@@ -7,7 +7,30 @@ go get $BUF_SDK_URL
 VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go.*" go.mod | cut -d" " -f2)
 echo "Extracting version from go.mod: $VERSION"
 
-SDK_PATH="${GOPATH:-~/.go}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${VERSION}/"
+echo "Searching for go path"
+if [ ! -z "$GOPATH" ] ; then
+	GO_PATH=$GOPATH
+else
+	# try out the defaults:
+	if [ -f ~/.go ] ; then
+		GO_PATH=~/.go
+	elif [ -f ~/go ] ; then
+		GO_PATH=~/go
+	fi
+	
+fi
+
+if [ -z "$GO_PATH" ] ; then
+	# still no luck? extract it from go env!
+	GO_PATH=$(go env | grep GOPATH | cut -d"'" -f2)
+fi
+
+if [ -z "$GO_PATH" ] ; then
+	echo "Can't find go path :("
+	exit 1
+fi
+
+SDK_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${VERSION}/"
 echo "SDK_PATH: $SDK_PATH"
 
 while read file ; do
