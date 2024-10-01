@@ -4,27 +4,35 @@ function generate() {
 	FQPN=$1
 	SERVICE=$2
 	PACKAGE=$3
-	local -n _METHODS=$4
-	local -n _INPUTS=$5
-	local -n _OUTPUTS=$6
+	TYPE=$4
+	local -n _METHODS=$5
+	local -n _INPUTS=$6
+	local -n _OUTPUTS=$7
+	GRPC_INCLUDE=$8
+	PROTO_INCLUDE=$9
 
 	echo "Generating with parameters:"
-	echo "FQPN    : $FQPN"
-	echo "SERVICE : $SERVICE"
-	echo "PACKAGE : $PACKAGE"
+	echo "FQPN     : $FQPN"
+	echo "SERVICE  : $SERVICE"
+	echo "PACKAGE  : $PACKAGE"
+	echo "TYPE     : $TYPE"
 	for num in `seq 0 $(( ${#_METHODS[@]} - 1 ))` ; do
 		echo "METHOD[$num]: ${_METHODS[$num]} ${_INPUTS[$num]} ${_OUTPUTS[$num]}"
 		# does each method has an independent file? If not how should the template work?
 	done
+
+	echo "GRPC_INC : $GRPC_INCLUDE"
+	echo "PROTO_INC: $PROTO_INCLUDE"
 
 	# From here on it's very easy in case it's just search replace
 	# Simply copy the template to the target directory
 	# And do some sed -i -e "s#{{.FQDN}}#$FQDN#g" -e "s#{{.SERVICE}}#$SERVICE#g" [...] $file
 }
 
-BUF_SDK_URL=buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go
-echo "⌛ Downloading SDK from $BUF_SDK_URL"
-go get $BUF_SDK_URL
+BUF_SDK_BASE="buf.build/gen/go/chain4travel/camino-messenger-protocol"
+BUF_SDK_URL_GO="${BUF_SDK_BASE}/grpc/go"
+echo "⌛ Downloading SDK from $BUF_SDK_URL_GO"
+go get $BUF_SDK_URL_GO
 
 VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go.*" go.mod | cut -d" " -f2)
 echo "🔗 Extracting version from go.mod: $VERSION"
@@ -57,16 +65,26 @@ fi
 SDK_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${VERSION}"
 echo "SDK_PATH: $SDK_PATH"
 
+FILTER=$1
+
 while read file ; do
+	if [ ! -z "$FILTER" ] ; then
+		if [[ ! $file =~ $FILTER ]] ; then
+			continue
+		fi
+	fi
+
 	echo "🔍 Scanning file $file"
 
 	FQPN=$(grep -P 'FullMethodName' $file | grep -oP 'cmp\.services\.[^/]+' | head -n1) # only 1 - it may contain more
-	PACKAGE=$(grep -oP '^package \S+$' $file | cut -d" " -f2)
 	SERVICE=${FQPN##*.}
+	PACKAGE=$(grep -oP '^package \S+$' $file | cut -d" " -f2)
+	TYPE=${PACKAGE%*grpc}	
 
 	echo "🔑 FQPN      : $FQPN"
 	echo "⚙️ Service   : $SERVICE"
 	echo "📦 Go Package: $PACKAGE"
+	echo "🔧 Type      : $TYPE"
 
 	echo "📑 Methods: "
 	declare -a METHODS=()
@@ -89,7 +107,19 @@ while read file ; do
 		echo " ◉ $method (↓ in: '$INPUT' - ↑ out: '$OUTPUT')"
 	done
 
-	generate "$FQPN" "$SERVICE" "$PACKAGE" METHODS INPUTS OUTPUTS
+	# We also need something like:
+	# "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	# "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
+	# We already have the base URL in BUF_SDK_URL_GO - now we only need the suffixes for the protocolbuffers and grpc
+	# And store them into the INCLUDES array
+	declare -a INCLUDES=()
+	# First the protocolbuffers
+	SUFFIX=$(echo ${FQPN%.*} | tr "." "/")
+	GRPC_INCLUDE="${BUF_SDK_BASE}/protocolbuffers/go/${SUFFIX}"
+	# Now the grpc which is quite similar by just adding the package name at the end
+	PROTO_INCLUDE="${BUF_SDK_BASE}/grpc/go/${SUFFIX}/${PACKAGE}"
+
+	generate "$FQPN" "$SERVICE" "$PACKAGE" "$TYPE" METHODS INPUTS OUTPUTS $GRPC_INCLUDE $PROTO_INCLUDE
 
 	echo 
 done < <(find "$SDK_PATH/cmp/services/" -name "*_grpc.pb.go")
