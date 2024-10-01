@@ -158,6 +158,8 @@ fi
 SDK_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${VERSION}"
 echo "SDK_PATH: $SDK_PATH"
 
+DEFAULT_BLACKLIST="NotificationService"
+
 FILTER=$1
 declare -a SERVICES_TO_REGISTER=()
 
@@ -166,6 +168,11 @@ while read file ; do
 		if [[ ! $file =~ $FILTER ]] ; then
 			continue
 		fi
+	fi
+
+	if [[ $file =~ $DEFAULT_BLACKLIST ]] ; then
+		echo "⚠️ Skipping $file -- blacklisted"
+		continue 
 	fi
 
 	echo "🔍 Scanning file $file"
