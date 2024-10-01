@@ -245,7 +245,8 @@ func (h *evmResponseHandler) mint(
 		// if contract address is zeroAddress, then it is native token
 		return "", nil, fmt.Errorf("TokenCurrency not supported yet")
 	case *typesv2.Currency_IsoCurrency:
-		// for iso paument the on chain price is 0 and payment token is zero address
+		// Add logic to handle IsoCurrency
+		return "", nil, fmt.Errorf("IsoCurrency not supported yet")
 	}
 
 	tx, err := h.bookingService.MintBookingToken(
