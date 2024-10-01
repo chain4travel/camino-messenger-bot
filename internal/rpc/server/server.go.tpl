@@ -9,17 +9,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}_srv1)(nil)
+var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}Srv)(nil)
 
-type {{TYPE_PACKAGE}}_srv struct {
+type {{TYPE_PACKAGE}}Srv struct {
 	reqProcessor externalRequestProcessor
 }
 
-func New{{SERVICE}}Server(
-	grpcServer *grpc.Server,
-	reqProcess externalRequestProcessor,
-) {{GRPC_PACKAGE}}.{{SERVICE}}Server {
-	{{TYPE_PACKAGE}}_srv := &{{TYPE_PACKAGE}}_srv1{reqProcessor: reqProcess}
-	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, {{TYPE_PACKAGE}}_srv)
-	return {{TYPE_PACKAGE}}_srv
+func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqProcessor externalRequestProcessor) {
+	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, &{{TYPE_PACKAGE}}Srv{reqProcessor})
 }

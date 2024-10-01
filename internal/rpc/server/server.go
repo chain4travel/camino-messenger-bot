@@ -55,15 +55,16 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
-	server := &server{cfg: cfg, logger: logger, tracer: tracer, processor: processor, serviceRegistry: serviceRegistry}
-	server.grpcServer = createGrpcServerAndRegisterServices(server, opts...)
+	server := &server{
+		cfg:             cfg,
+		logger:          logger,
+		tracer:          tracer,
+		processor:       processor,
+		serviceRegistry: serviceRegistry,
+		grpcServer:      grpc.NewServer(opts...),
+	}
+	server.registerServices()
 	return server
-}
-
-func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOption) *grpc.Server {
-	grpcServer := grpc.NewServer(opts...)
-	NewPingServer(grpcServer, server)
-	return grpcServer
 }
 
 func (s *server) Start() error {

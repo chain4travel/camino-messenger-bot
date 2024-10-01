@@ -12,7 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
 )
 
-func (s *{{TYPE_PACKAGE}}_srv1) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
+func (s *{{TYPE_PACKAGE}}Srv) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
 	response, err := s.reqProcessor.processExternalRequest(ctx, clients.{{SERVICE}}V{{VERSION}}Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", clients.{{SERVICE}}V{{VERSION}}Request, err)

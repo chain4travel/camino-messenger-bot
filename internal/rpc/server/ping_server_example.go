@@ -15,11 +15,6 @@ type ping_srv1 struct {
 	reqProcessor externalRequestProcessor
 }
 
-func NewPingServer(
-	grpcServer *grpc.Server,
-	reqProcess externalRequestProcessor,
-) pingv1grpc.PingServiceServer {
-	ping_srv := &ping_srv1{reqProcessor: reqProcess}
-	pingv1grpc.RegisterPingServiceServer(grpcServer, ping_srv)
-	return ping_srv
+func registerPingServiceV1Server(grpcServer *grpc.Server, reqProcess externalRequestProcessor) {
+	pingv1grpc.RegisterPingServiceServer(grpcServer, &ping_srv1{reqProcess})
 }
