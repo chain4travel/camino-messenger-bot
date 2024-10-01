@@ -11,18 +11,18 @@ import (
 )
 
 const (
-	{{SERVICE}}V{{VERSION}} = {{FQPN}}
+	{{SERVICE}}V{{VERSION}} = "{{FQPN}}"
 	{{SERVICE}}V{{VERSION}}Request  types.MessageType = types.MessageType({{SERVICE}}V{{VERSION}} + ".Request")
 	{{SERVICE}}V{{VERSION}}Response types.MessageType = types.MessageType({{SERVICE}}V{{VERSION}} + ".Response")
 )
 
-var _ Client = (*{{SERVICE}}Client)(nil)
+var _ Client = (*{{SERVICE}}V{{VERSION}}Client)(nil)
 
-func New{{SERVICE}}V{{VERSION}}(grpcCon *grpc.ClientConn) *{{SERVICE}}Client {
+func New{{SERVICE}}V{{VERSION}}(grpcCon *grpc.ClientConn) *{{SERVICE}}V{{VERSION}}Client {
 	client := {{GRPC_PACKAGE}}.New{{SERVICE}}Client(grpcCon)
-	return &{{SERVICE}}Client{client: &client}
+	return &{{SERVICE}}V{{VERSION}}Client{client: &client}
 }
 
-type {{SERVICE}}Client struct {
+type {{SERVICE}}V{{VERSION}}Client struct {
 	client *{{GRPC_PACKAGE}}.{{SERVICE}}Client
 }
