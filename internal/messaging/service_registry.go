@@ -43,7 +43,7 @@ func NewServiceRegistry(supportedServices SupportedServices, logger *zap.Sugared
 	logStr := "\nSupported services:\n"
 	for _, serviceName := range supportedServices.ServiceNames {
 		logStr += serviceName + "\n"
-		services[clients.ServiceNameToRequestType(serviceName)] = &service{name: serviceName}
+		services[types.ServiceNameToRequestMessageType(serviceName)] = &service{name: serviceName}
 	}
 	logStr += "\n"
 	logger.Info(logStr)
@@ -67,6 +67,7 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 		s.rpcClient = rpcClient
 	}
 }
+
 func (s *serviceRegistry) GetService(requestType types.MessageType) (Service, bool) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()

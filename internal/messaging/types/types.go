@@ -47,6 +47,10 @@ func (m MessageType) Category() MessageCategory {
 	return Unknown
 }
 
+func ServiceNameToRequestMessageType(serviceName string) MessageType {
+	return MessageType(serviceName + ".Request")
+}
+
 // Message is the message format used for communication between the messenger and the service
 type Message struct {
 	Type     MessageType               `json:"msgtype"`

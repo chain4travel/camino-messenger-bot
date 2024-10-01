@@ -11,7 +11,3 @@ import (
 type Client interface {
 	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error)
 }
-
-func ServiceNameToRequestType(serviceName string) types.MessageType {
-	return types.MessageType(serviceName + ".Request")
-}
