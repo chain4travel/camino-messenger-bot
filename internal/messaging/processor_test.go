@@ -19,9 +19,9 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 
 	"github.com/stretchr/testify/require"

@@ -79,12 +79,12 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	// register supported service
-	serviceRegistry, hasSupportedService, err := messaging.NewServiceRegistry(&a.cfg.EvmConfig, evmClient, a.logger, rpcClient)
+	serviceRegistry, hasSupportedServices, err := messaging.NewServiceRegistry(&a.cfg.EvmConfig, evmClient, a.logger, rpcClient)
 	if err != nil {
 		a.logger.Fatalf("Failed to create service registry: %v", err)
 	}
 
-	if !hasSupportedService && rpcClient != nil {
+	if !hasSupportedServices && rpcClient != nil {
 		a.logger.Warn("Bot doesn't support any services, but has partner plugin rpc client configured")
 	}
 
