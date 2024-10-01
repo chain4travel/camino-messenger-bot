@@ -23,12 +23,6 @@ const (
 // Always has to be in the format <ServiceName>.<Request/Response>
 type MessageType string
 
-// TODO@ remove when mint client is added
-const (
-	MintV2Request  = "MintV2.Request"
-	MintV2Response = "MintV2.Response"
-)
-
 func (m MessageType) ToServiceName() string {
 	msgStr := string(m)
 	if idx := strings.LastIndex(msgStr, "."); idx != -1 {

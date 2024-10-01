@@ -196,6 +196,16 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		return nil, ErrBotMissingChequeOperatorRole
 	}
 
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type.ToServiceName())
+	if err != nil {
+		// TODO @evlekht explicitly say if service is not supported and its not just some network error
+		return nil, err
+	}
+
+	if err := p.responseHandler.HandleRequest(ctx, msg.Type, msg.Content); err != nil {
+		return nil, err
+	}
+
 	// Compress and chunk message
 
 	ctx, compressedContent, err := p.compress(ctx, msg)
@@ -219,10 +229,6 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		return nil, fmt.Errorf("failed to issue network fee cheque: %w", err)
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type.ToServiceName())
-	if err != nil {
-		return nil, err
-	}
 	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
 		p.identificationHandler.getMyCMAccountAddress(),
@@ -241,9 +247,6 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
-	if err := p.responseHandler.HandleRequest(ctx, msg.Type, msg.Content); err != nil {
-		return nil, err
-	}
 	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBotUserID, msg.Metadata.Recipient)
 
 	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBotUserID); err != nil {
@@ -293,7 +296,14 @@ func (p *processor) Respond(msg *types.Message) error {
 		return err
 	}
 
-	ctx, responseMsg, compressedContent := p.callPartnerPluginAndGetResponse(ctx, msg, cheque, service)
+	ctx, responseMsg := p.callPartnerPluginAndGetResponse(ctx, msg, cheque, service)
+
+	ctx, compressedContent, err := p.compress(ctx, responseMsg)
+	if err != nil {
+		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
+		p.logger.Errorf(errMessage)
+		p.responseHandler.AddErrorToResponseHeader(responseMsg.Type, responseMsg.Content, errMessage)
+	}
 
 	return p.messenger.SendAsync(ctx, *responseMsg, compressedContent, msg.Sender)
 }
@@ -303,7 +313,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	requestMsg *types.Message,
 	cheque *cheques.SignedCheque,
 	service rpc.Client,
-) (context.Context, *types.Message, [][]byte) {
+) (context.Context, *types.Message) {
 	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 	requestMsg.Metadata.Sender = cheque.FromCMAccount.Hex()
 
@@ -326,7 +336,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
 		p.responseHandler.AddErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
-		return ctx, responseMsg, [][]byte{{}}
+		return ctx, responseMsg
 	}
 
 	if err := responseMsg.Metadata.FromGrpcMD(*header); err != nil {
@@ -338,14 +348,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, requestMsg.Sender)
 
-	ctx, compressedContent, err := p.compress(ctx, requestMsg)
-	if err != nil {
-		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
-		p.logger.Errorf(errMessage)
-		p.responseHandler.AddErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
-	}
-
-	return ctx, responseMsg, compressedContent
+	return ctx, responseMsg
 }
 
 func (p *processor) Forward(msg *types.Message) {

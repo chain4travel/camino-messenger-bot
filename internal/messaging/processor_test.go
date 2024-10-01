@@ -452,7 +452,7 @@ func TestStart(t *testing.T) {
 			}
 			// 2nd msg with sender == userID and valid msgType
 			ch <- types.Message{
-				Type:     generated.PingServiceV1Request, // TODO@ use different message type
+				Type:     generated.AccommodationProductInfoServiceV2Request,
 				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 		}
