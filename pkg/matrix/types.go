@@ -3,13 +3,11 @@ package matrix
 import (
 	"reflect"
 
-	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"maunium.net/go/mautrix/event"
 )
@@ -37,15 +35,7 @@ func (b ByChunkIndex) Less(i, j int) bool {
 func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
 func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
-	switch types.MessageType(m.MsgType) {
-	case generated.PingServiceV1Request:
-		m.Content = &pingv1.PingRequest{}
-	case generated.PingServiceV1Response:
-		m.Content = &pingv1.PingResponse{}
-	default:
-		return types.ErrUnknownMessageType
-	}
-	return proto.Unmarshal(src, m.Content)
+	return generated.UnmarshalContent(src, types.MessageType(m.MsgType), &m.Content)
 }
 
 func (m *CaminoMatrixMessage) GetChequeFor(addr common.Address) *cheques.SignedCheque {
