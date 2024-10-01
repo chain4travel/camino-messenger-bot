@@ -4,15 +4,10 @@
 package clients
 
 import (
-	"context"
-	"fmt"
-
 	"{{GRPC_INC}}"
-	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -30,13 +25,4 @@ func New{{SERVICE}}V{{VERSION}}(grpcCon *grpc.ClientConn) *{{SERVICE}}Client {
 
 type {{SERVICE}}Client struct {
 	client *{{GRPC_PACKAGE}}.{{SERVICE}}Client
-}
-
-func (s {{SERVICE}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
-	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}}))
-	if !ok {
-		return nil, {{SERVICE}}V{{VERSION}}Response, fmt.Errorf("invalid request type")
-	}
-	response, err := (*s.client).{{METHOD}})(ctx, request, opts...)
-	return response, {{SERVICE}}V{{VERSION}}Response, err
 }
