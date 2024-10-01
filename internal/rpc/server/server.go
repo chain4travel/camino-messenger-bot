@@ -78,6 +78,7 @@ func (s *server) Stop() {
 	s.logger.Info("Stopping gRPC server...")
 	s.grpcServer.Stop()
 }
+
 func (s *server) processInternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processInternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
