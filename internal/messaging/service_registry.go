@@ -6,7 +6,6 @@ package messaging
 
 import (
 	"context"
-	"math/big"
 	"sync"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
@@ -42,12 +41,9 @@ type serviceRegistry struct {
 func NewServiceRegistry(supportedServices SupportedServices, logger *zap.SugaredLogger) ServiceRegistry {
 	services := make(map[types.MessageType]*service, len(supportedServices.ServiceNames))
 	logStr := "\nSupported services:\n"
-	for i, serviceName := range supportedServices.ServiceNames {
+	for _, serviceName := range supportedServices.ServiceNames {
 		logStr += serviceName + "\n"
-		services[clients.ServiceNameToRequestType(serviceName)] = &service{
-			PartnerConfigurationService: supportedServices.Services[i],
-			name:                        serviceName,
-		}
+		services[clients.ServiceNameToRequestType(serviceName)] = &service{name: serviceName}
 	}
 	logStr += "\n"
 	logger.Info(logStr)
@@ -94,13 +90,8 @@ type Service interface {
 }
 
 type service struct {
-	cmaccount.PartnerConfigurationService
 	client clients.Client
 	name   string
-}
-
-func (s *service) Fee() *big.Int {
-	return big.NewInt(0).Set(s.PartnerConfigurationService.Fee)
 }
 
 func (s *service) Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {

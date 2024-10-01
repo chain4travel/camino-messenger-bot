@@ -40,13 +40,12 @@ func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	switch types.MessageType(m.MsgType) {
 	case clients.PingServiceV1Request:
 		m.Content = &pingv1.PingRequest{}
-		return proto.Unmarshal(src, m.Content)
 	case clients.PingServiceV1Response:
 		m.Content = &pingv1.PingResponse{}
-		return proto.Unmarshal(src, m.Content)
 	default:
 		return types.ErrUnknownMessageType
 	}
+	return proto.Unmarshal(src, m.Content)
 }
 
 func (m *CaminoMatrixMessage) GetChequeFor(addr common.Address) *cheques.SignedCheque {
