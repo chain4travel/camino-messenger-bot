@@ -158,7 +158,7 @@ fi
 SDK_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${VERSION}"
 echo "SDK_PATH: $SDK_PATH"
 
-DEFAULT_BLACKLIST="NotificationService"
+DEFAULT_BLACKLIST="notification"
 
 FILTER=$1
 declare -a SERVICES_TO_REGISTER=()
