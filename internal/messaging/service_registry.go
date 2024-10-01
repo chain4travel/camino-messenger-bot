@@ -60,8 +60,9 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	defer s.lock.Unlock()
 
 	if s.isServiceSupported("cmp.services.ping.v1.PingService") {
-		s.clients[types.MessageType(s.getRequestTypeNameFromServiceName("PingService"))] =
-			clients.NewPingServiceV1(rpcClient.ClientConn)
+		// TODO@ will not work, because we clients is MessageType -> Client
+		// TODO@ and we need to have different service versions for same MessageType
+		s.clients[s.getRequestTypeNameFromServiceName("PingService")] = clients.NewPingServiceV1(rpcClient.ClientConn)
 	}
 
 	if rpcClient != nil {
@@ -69,9 +70,8 @@ func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
 	}
 }
 
-func (s *serviceRegistry) getRequestTypeNameFromServiceName(name string) string {
-	name = strings.TrimSuffix(name, "Service")
-	return name + "Request"
+func (s *serviceRegistry) getRequestTypeNameFromServiceName(name string) types.MessageType {
+	return types.MessageType(strings.TrimSuffix(name, "Service") + "Request")
 }
 
 func (s *serviceRegistry) GetClient(messageType types.MessageType) (clients.Client, bool) {
