@@ -27,6 +27,13 @@ function generate() {
 	# From here on it's very easy in case it's just search replace
 	# Simply copy the template to the target directory
 	# And do some sed -i -e "s#{{.FQDN}}#$FQDN#g" -e "s#{{.SERVICE}}#$SERVICE#g" [...] $file
+	PARAM_REPLACE=""
+	PARAM_REPLACE+=" -e 's#{{.FQPN}}#$FQPN#g'"
+	PARAM_REPLACE+=" -e 's#{{.SERVICE}}#$SERVICE#g'"
+	PARAM_REPLACE+=" -e 's#{{.PACKAGE}}#$PACKAGE#g'"
+	PARAM_REPLACE+=" -e 's#{{.TYPE}}#$TYPE#g'"
+	PARAM_REPLACE+=" -e 's#{{.GRPC_INCLUDE}}#$GRPC_INCLUDE#g'"
+	PARAM_REPLACE+=" -e 's#{{.PROTO_INCLUDE}}#$PROTO_INCLUDE#g'"
 }
 
 BUF_SDK_BASE="buf.build/gen/go/chain4travel/camino-messenger-protocol"
