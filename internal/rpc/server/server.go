@@ -81,7 +81,7 @@ func (s *server) Stop() {
 func (s *server) processInternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processInternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
-	service, registered := s.serviceRegistry.GetClient(requestType)
+	service, registered := s.serviceRegistry.GetService(requestType)
 	if !registered {
 		return nil, fmt.Errorf("%w: %s", messaging.ErrUnsupportedService, requestType)
 	}

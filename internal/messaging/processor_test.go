@@ -51,12 +51,19 @@ var (
 )
 
 func TestProcessInbound(t *testing.T) {
-	responseMessage := types.Message{Type: types.ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
+	responseMessage := types.Message{
+		Type: clients.PingServiceV1Response,
+		Metadata: metadata.Metadata{
+			RequestID: requestID,
+			Sender:    anotherUserID,
+			Cheques:   []cheques.SignedCheque{},
+		},
+	}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
-	mockClient := clients.NewMockClient(mockCtrl)
+	mockService := NewMockService(mockCtrl)
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
@@ -104,10 +111,16 @@ func TestProcessInbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockServiceRegistry.EXPECT().GetClient(gomock.Any()).Return(nil, false)
+				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(nil, false)
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
+				msg: &types.Message{
+					Type: clients.PingServiceV1Request,
+					Metadata: metadata.Metadata{
+						Sender:  anotherUserID,
+						Cheques: []cheques.SignedCheque{},
+					},
+				},
 			},
 			err: ErrUnsupportedService,
 		},
@@ -135,12 +148,18 @@ func TestProcessInbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockClient.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
-				mockServiceRegistry.EXPECT().GetClient(gomock.Any()).Times(1).Return(mockClient, true)
+				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
+				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
+				msg: &types.Message{
+					Type: clients.PingServiceV1Request,
+					Metadata: metadata.Metadata{
+						Sender:  anotherUserID,
+						Cheques: []cheques.SignedCheque{dummyCheque},
+					},
+				},
 			},
 			err: errSomeError,
 		},
@@ -156,12 +175,18 @@ func TestProcessInbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockClient.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
-				mockServiceRegistry.EXPECT().GetClient(gomock.Any()).Times(1).Return(mockClient, true)
+				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
+				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
+				msg: &types.Message{
+					Type: clients.PingServiceV1Request,
+					Metadata: metadata.Metadata{
+						Sender:  anotherUserID,
+						Cheques: []cheques.SignedCheque{dummyCheque},
+					},
+				},
 			},
 		},
 		"success: process response message": {
@@ -213,7 +238,10 @@ func TestProcessInbound(t *testing.T) {
 }
 
 func TestProcessOutbound(t *testing.T) {
-	productListResponse := &types.Message{Type: types.ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID}}
+	productListResponse := &types.Message{
+		Type:     clients.PingServiceV1Response,
+		Metadata: metadata.Metadata{RequestID: requestID},
+	}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -252,7 +280,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivityProductListResponse},
+				msg: &types.Message{Type: clients.PingServiceV1Response},
 			},
 			err: ErrOnlyRequestMessagesAllowed,
 		},
@@ -267,7 +295,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivityProductListRequest},
+				msg: &types.Message{Type: clients.PingServiceV1Request},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -285,7 +313,10 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
+				msg: &types.Message{
+					Type:     clients.PingServiceV1Request,
+					Metadata: metadata.Metadata{Recipient: anotherUserID},
+				},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -304,7 +335,10 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
+				msg: &types.Message{
+					Type:     clients.PingServiceV1Request,
+					Metadata: metadata.Metadata{Recipient: anotherUserID},
+				},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -323,7 +357,10 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID}},
+				msg: &types.Message{
+					Type:     clients.PingServiceV1Request,
+					Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID},
+				},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -377,10 +414,16 @@ func TestProcessOutbound(t *testing.T) {
 	}
 }
 
+var _ Service = (*dummyService)(nil)
+
 type dummyService struct{}
 
-func (d dummyService) Call(context.Context, *protoreflect.ProtoMessage, ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+func (d dummyService) Call(context.Context, protoreflect.ProtoMessage, ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
 	return nil, "", nil
+}
+
+func (d dummyService) Name() string {
+	return "dummy"
 }
 
 func TestStart(t *testing.T) {
@@ -388,7 +431,7 @@ func TestStart(t *testing.T) {
 	defer mockCtrl.Finish()
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
 	mockMessenger := NewMockMessenger(mockCtrl)
-	mockServiceRegistry.EXPECT().GetClient(gomock.Any()).AnyTimes().Return(dummyService{}, true)
+	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(dummyService{}, true)
 	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
 	t.Run("start processor and accept messages", func(*testing.T) {
@@ -403,12 +446,12 @@ func TestStart(t *testing.T) {
 			ch <- types.Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
 			// msg with sender == userID and valid msgType
 			ch <- types.Message{
-				Type:     types.ActivityProductListRequest,
+				Type:     clients.PingServiceV1Request,
 				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 			// 2nd msg with sender == userID and valid msgType
 			ch <- types.Message{
-				Type:     types.ActivitySearchRequest,
+				Type:     clients.PingServiceV1Request, // TODO@ use different message type
 				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 		}

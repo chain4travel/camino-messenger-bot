@@ -24,11 +24,11 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
-	types1 "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
@@ -51,9 +51,9 @@ var (
 )
 
 type ResponseHandler interface {
-	HandleResponse(ctx context.Context, msgType types1.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage)
-	HandleRequest(ctx context.Context, msgType types1.MessageType, request protoreflect.ProtoMessage) error
-	AddErrorToResponseHeader(msgType types1.MessageType, response protoreflect.ProtoMessage, errMessage string)
+	HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage)
+	HandleRequest(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error
+	AddErrorToResponseHeader(msgType types.MessageType, response protoreflect.ProtoMessage, errMessage string)
 }
 
 func NewResponseHandler(
@@ -103,22 +103,22 @@ type evmResponseHandler struct {
 	evmEventListener    *events.EventListener
 }
 
-func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types1.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
+func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
 	switch msgType {
-	case types1.MintRequest: // distributor will post-process a mint request to buy the returned NFT
+	case types.MintV2Request: // distributor will post-process a mint request to buy the returned NFT
 		if h.handleMintRequest(ctx, response) {
 			return
 		}
-	case types1.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
+	case types.MintV2Response: // supplier will act upon receiving a mint response by minting an NFT
 		if h.handleMintResponseV2(ctx, response, request) {
 			return
 		}
 	}
 }
 
-func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types1.MessageType, request protoreflect.ProtoMessage) error {
+func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error {
 	switch msgType { //nolint:gocritic
-	case types1.MintRequest:
+	case types.MintV2Request:
 		mintReq, ok := request.(*bookv2.MintRequest)
 		if !ok {
 			return nil
@@ -166,7 +166,7 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 	case mintResp.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
 		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", mintResp.BuyableUntil)
-		h.AddErrorToResponseHeader(types1.MintResponse, response, errMsg)
+		h.AddErrorToResponseHeader(types.MintV2Response, response, errMsg)
 		return true
 
 	case mintResp.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
@@ -189,7 +189,7 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(types1.MintResponse, response, errMessage)
+		h.AddErrorToResponseHeader(types.MintV2Response, response, errMessage)
 		return true
 	}
 
@@ -214,7 +214,7 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response pro
 		mintResp.Header = &typesv1.ResponseHeader{}
 	}
 	if mintResp.MintTransactionId == "" {
-		h.AddErrorToResponseHeader(types1.MintResponse, response, "missing mint transaction id")
+		h.AddErrorToResponseHeader(types.MintV2Response, response, "missing mint transaction id")
 		return true
 	}
 
@@ -224,7 +224,7 @@ func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response pro
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(types1.MintResponse, response, errMessage)
+		h.AddErrorToResponseHeader(types.MintV2Response, response, errMessage)
 		return true
 	}
 
@@ -309,7 +309,7 @@ func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string,
 	if err != nil {
 		return "", err
 	}
-	if receipt.Status != types.ReceiptStatusSuccessful {
+	if receipt.Status != ethTypes.ReceiptStatusSuccessful {
 		return "", fmt.Errorf("transaction failed: %v", receipt)
 	}
 
@@ -319,7 +319,7 @@ func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string,
 }
 
 // Waits for a transaction to be mined
-func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Transaction) (receipt *types.Receipt, err error) {
+func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *ethTypes.Transaction) (receipt *ethTypes.Receipt, err error) {
 	h.logger.Infof("Waiting for transaction to be mined...\n")
 
 	receipt, err = bind.WaitMined(ctx, h.ethClient, tx)
@@ -327,7 +327,7 @@ func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Tran
 		return receipt, err
 	}
 
-	if receipt.Status != types.ReceiptStatusSuccessful {
+	if receipt.Status != ethTypes.ReceiptStatusSuccessful {
 		return receipt, fmt.Errorf("transaction failed: %v", receipt)
 	}
 
@@ -469,7 +469,7 @@ func createTokenURIforMintResponse(mintResponse *bookv2.MintResponse) (string, s
 	return jsonPlain, tokenURI, nil
 }
 
-func (h *evmResponseHandler) AddErrorToResponseHeader(msgType types1.MessageType, response protoreflect.ProtoMessage, errMessage string) {
+func (h *evmResponseHandler) AddErrorToResponseHeader(msgType types.MessageType, response protoreflect.ProtoMessage, errMessage string) {
 	headerFieldDescriptor := response.ProtoReflect().Descriptor().Fields().ByName("Header")
 	headerReflectValue := response.ProtoReflect().Get(headerFieldDescriptor)
 	switch header := headerReflectValue.Message().Interface().(type) {

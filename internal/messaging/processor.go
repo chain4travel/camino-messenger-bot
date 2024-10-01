@@ -219,7 +219,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		return nil, fmt.Errorf("failed to issue network fee cheque: %w", err)
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type)
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type.ToServiceName())
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func (p *processor) Respond(msg *types.Message) error {
 	ctx, responseSpan := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer responseSpan.End()
 
-	service, supported := p.serviceRegistry.GetClient(msg.Type)
+	service, supported := p.serviceRegistry.GetService(msg.Type)
 	if !supported {
 		return fmt.Errorf("%w: %s", ErrUnsupportedService, msg.Type)
 	}
@@ -284,7 +284,7 @@ func (p *processor) Respond(msg *types.Message) error {
 		return ErrMissingCheques
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), msg.Type)
+	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), service.Name())
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/models"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
@@ -41,7 +40,7 @@ type ChequeHandler interface {
 	GetServiceFee(
 		ctx context.Context,
 		toCmAccountAddress common.Address,
-		messageType types.MessageType,
+		serviceFullName string,
 	) (*big.Int, error)
 
 	IsBotAllowed(ctx context.Context, fromBot common.Address) (bool, error)
@@ -207,20 +206,19 @@ func (ch *evmChequeHandler) IssueCheque(
 	return signedCheque, nil
 }
 
-func (ch *evmChequeHandler) GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType types.MessageType) (*big.Int, error) {
+func (ch *evmChequeHandler) GetServiceFee(
+	ctx context.Context,
+	toCmAccountAddress common.Address,
+	servicefullName string,
+) (*big.Int, error) {
 	supplierCmAccount, err := ch.getCMAccount(toCmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
 	}
 
-	serviceFullName, err := types.ServiceFullName(messageType)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get service: %v", err)
-	}
-
 	serviceFee, err := supplierCmAccount.GetServiceFee(
 		&bind.CallOpts{Context: ctx},
-		serviceFullName,
+		servicefullName,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service fee: %w", err)

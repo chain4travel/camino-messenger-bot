@@ -11,11 +11,16 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+)
+
+const (
+	PingServiceV1                           = "cmp.services.ping.v1.PingService"
+	PingServiceV1Request  types.MessageType = types.MessageType(PingServiceV1 + ".Request")
+	PingServiceV1Response types.MessageType = types.MessageType(PingServiceV1 + ".Response")
 )
 
 var _ Client = (*PingClient)(nil)
@@ -32,8 +37,8 @@ type PingClient struct {
 func (s PingClient) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
 	request, ok := requestIntf.(*pingv1.PingRequest)
 	if !ok {
-		return nil, types.PingResponse, fmt.Errorf("invalid request type")
+		return nil, PingServiceV1Response, fmt.Errorf("invalid request type")
 	}
 	response, err := (*s.client).Ping(ctx, request, opts...)
-	return response, types.PingResponse, err
+	return response, PingServiceV1Response, err
 }

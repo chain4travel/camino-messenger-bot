@@ -9,7 +9,6 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -22,7 +21,7 @@ func (NoopChequeHandler) IssueCheque(_ context.Context, _ common.Address, _ comm
 	return &cheques.SignedCheque{}, nil
 }
 
-func (NoopChequeHandler) GetServiceFee(_ context.Context, _ common.Address, _ types.MessageType) (*big.Int, error) {
+func (NoopChequeHandler) GetServiceFee(_ context.Context, _ common.Address, _ string) (*big.Int, error) {
 	return nil, nil
 }
 
