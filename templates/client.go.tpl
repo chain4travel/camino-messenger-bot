@@ -5,7 +5,7 @@ package generated
 
 import (
 	"{{GRPC_INC}}"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
@@ -17,7 +17,7 @@ const (
 	{{SERVICE}}V{{VERSION}}Response types.MessageType = types.MessageType({{SERVICE}}V{{VERSION}} + ".Response")
 )
 
-var _ clients.Client = (*{{SERVICE}}V{{VERSION}}Client)(nil)
+var _ rpc.Client = (*{{SERVICE}}V{{VERSION}}Client)(nil)
 
 func New{{SERVICE}}V{{VERSION}}(grpcCon *grpc.ClientConn) *{{SERVICE}}V{{VERSION}}Client {
 	client := {{GRPC_PACKAGE}}.New{{SERVICE}}Client(grpcCon)

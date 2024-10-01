@@ -10,9 +10,9 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
@@ -302,7 +302,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	ctx context.Context,
 	requestMsg *types.Message,
 	cheque *cheques.SignedCheque,
-	service clients.Client,
+	service rpc.Client,
 ) (context.Context, *types.Message, [][]byte) {
 	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 	requestMsg.Metadata.Sender = cheque.FromCMAccount.Hex()

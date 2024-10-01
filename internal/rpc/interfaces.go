@@ -1,4 +1,4 @@
-package clients
+package rpc
 
 import (
 	"context"
@@ -7,6 +7,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+type ExternalRequestProcessor interface {
+	ProcessExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
+}
 
 type Client interface {
 	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error)

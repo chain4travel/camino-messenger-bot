@@ -6,6 +6,8 @@ import (
 	"net"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -19,12 +21,9 @@ import (
 )
 
 var (
-	_ Server = (*server)(nil)
+	_ Server                       = (*server)(nil)
+	_ rpc.ExternalRequestProcessor = (*server)(nil)
 )
-
-type ExternalRequestProcessor interface {
-	ProcessExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
-}
 
 type Server interface {
 	metadata.Checkpoint
@@ -63,7 +62,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 		serviceRegistry: serviceRegistry,
 		grpcServer:      grpc.NewServer(opts...),
 	}
-	server.registerServices()
+	generated.RegisterServices(server.grpcServer, server)
 	return server
 }
 

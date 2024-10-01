@@ -5,7 +5,7 @@ package generated
 
 import (
 	"{{GRPC_INC}}"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	
 	"google.golang.org/grpc"
 )
@@ -13,9 +13,9 @@ import (
 var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}{{SERVICE}}Srv)(nil)
 
 type {{TYPE_PACKAGE}}{{SERVICE}}Srv struct {
-	reqProcessor server.ExternalRequestProcessor
+	reqProcessor rpc.ExternalRequestProcessor
 }
 
-func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqProcessor server.ExternalRequestProcessor) {
+func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
 	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Srv{reqProcessor})
 }

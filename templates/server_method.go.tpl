@@ -9,7 +9,7 @@ import (
 
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients/generated"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client/generated"
 )
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Srv) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {

@@ -6,7 +6,7 @@ CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
 SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
 SERVER_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_method.go.tpl"
 
-GEN_OUTPATH_CLIENT="internal/messaging/clients/generated"
+GEN_OUTPATH_CLIENT="internal/rpc/client/generated"
 GEN_OUTPATH_SERVER="internal/rpc/server/generated"
 
 function generate_with_templates() {
