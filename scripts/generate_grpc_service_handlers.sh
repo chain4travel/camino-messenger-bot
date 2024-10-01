@@ -113,9 +113,14 @@ function generate_register_services_server() {
 	echo >> $OUTFILE
 	echo "package generated" >> $OUTFILE
 	echo >> $OUTFILE
-	echo "func (s *server) registerServices() {" >> $OUTFILE
+	echo "import (" >> $OUTFILE
+	echo "    \"github.com/chain4travel/camino-messenger-bot/internal/rpc\"" >> $OUTFILE
+	echo "    \"google.golang.org/grpc\"" >> $OUTFILE
+	echo ")" >> $OUTFILE
+	echo >> $OUTFILE
+	echo "func RegisterServices(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {" >> $OUTFILE
 	for service in "${_SERVICES[@]}" ; do
-		echo "    register${service}Server(s.grpcServer, s)" >> $OUTFILE
+		echo "    register${service}Server(grpcServer, reqProcessor)" >> $OUTFILE
 	done
 	echo "}" >> $OUTFILE
 }
@@ -132,15 +137,21 @@ function generate_register_services_client() {
 	echo >> $OUTFILE
 	echo "package generated" >> $OUTFILE
 	echo >> $OUTFILE
-	echo "func (s *serviceRegistry) registerServices() {" >> $OUTFILE
-	echo "    s.lock.Lock()" >> $OUTFILE
-	echo "    defer s.lock.Unlock()" >> $OUTFILE
+	echo "import (" >> $OUTFILE
+	echo "    \"github.com/chain4travel/camino-messenger-bot/internal/messaging/types\"" >> $OUTFILE
+	echo "    \"github.com/chain4travel/camino-messenger-bot/internal/rpc\"" >> $OUTFILE
+	echo "    \"google.golang.org/grpc\"" >> $OUTFILE
+	echo ")" >> $OUTFILE
+	echo >> $OUTFILE
+	echo "func RegisterServices(rpcConn *grpc.ClientConn, serviceNames map[types.MessageType]string) map[types.MessageType]rpc.Service {" >> $OUTFILE
+	echo "    services := make(map[types.MessageType]rpc.Service, len(serviceNames))" >> $OUTFILE
 	echo >> $OUTFILE
 	for service in "${_SERVICES[@]}" ; do
-		echo "    if srv, ok := s.services[${service}Request]; ok {" >> $OUTFILE
-		echo "        srv.client = New${service}(s.rpcClient.ClientConn)" >> $OUTFILE
+		echo "    if srvName, ok := serviceNames[${service}Request]; ok {" >> $OUTFILE
+		echo "        services[${service}Request] = rpc.NewService(New${service}(rpcConn), srvName)" >> $OUTFILE
 		echo "    }" >> $OUTFILE
 	done
+	echo "    return services" >> $OUTFILE
 	echo "}" >> $OUTFILE
 }
 
