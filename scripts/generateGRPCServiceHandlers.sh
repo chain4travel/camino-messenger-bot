@@ -6,8 +6,8 @@ CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
 SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
 SERVER_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_method.go.tpl"
 
-GEN_OUTPATH_CLIENT="internal/messaging/clients"
-GEN_OUTPATH_SERVER="internal/rpc/server"
+GEN_OUTPATH_CLIENT="internal/messaging/clients/generated"
+GEN_OUTPATH_SERVER="internal/rpc/server/generated"
 
 function generate_with_templates() {
 	FQPN=$1
@@ -101,7 +101,7 @@ function generate_with_templates() {
 	## gofumpt -l -w <generated_files>
 }
 
-REGISTER_SERVICES_FILE="internal/rpc/server/register_services.go"
+REGISTER_SERVICES_FILE="${GEN_OUTPATH_SERVER}/register_services.go"
 
 function generate_register_services() {
 	OUTFILE=$1
@@ -121,6 +121,13 @@ function generate_register_services() {
 }
 
 SCRIPT=$0
+
+# Prepare the output directories
+echo "🧹 Cleaning and generating output directories"
+rm -rf $GEN_OUTPATH_CLIENT
+rm -rf $GEN_OUTPATH_SERVER
+mkdir -p $GEN_OUTPATH_CLIENT
+mkdir -p $GEN_OUTPATH_SERVER
 
 BUF_SDK_BASE="buf.build/gen/go/chain4travel/camino-messenger-protocol"
 BUF_SDK_URL_GO="${BUF_SDK_BASE}/grpc/go"
