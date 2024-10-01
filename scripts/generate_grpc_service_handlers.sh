@@ -10,31 +10,17 @@ GEN_OUTPATH_CLIENT="internal/rpc/client/generated"
 GEN_OUTPATH_SERVER="internal/rpc/server/generated"
 
 function generate_with_templates() {
-	FQPN=$1
-	SERVICE=$2
-	GRPC_PACKAGE=$3
-	TYPE_PACKAGE=$4
+	FQPN="$1"
+	SERVICE="$2"
+	GRPC_PACKAGE="$3"
+	TYPE_PACKAGE="$4"
 	local -n _METHODS=$5
 	local -n _INPUTS=$6
 	local -n _OUTPUTS=$7
-	GRPC_INCLUDE=$8
-	PROTO_INCLUDE=$9
-	VERSION=${10}
-	GENERATOR=${11}
-
-	echo "Generating with parameters:"
-	echo "FQPN          : $FQPN"
-	echo "SERVICE       : $SERVICE"
-	echo "GRPC_PACKAGE  : $GRPC_PACKAGE"
-	echo "TYPE_PACKAGE  : $TYPE_PACKAGE"
-	echo "VERSION       : $VERSION"
-	for num in `seq 0 $(( ${#_METHODS[@]} - 1 ))` ; do
-		echo "METHOD[$num]: ${_METHODS[$num]} ${_INPUTS[$num]} ${_OUTPUTS[$num]}"
-		# does each method has an independent file? If not how should the template work?
-	done
-
-	echo "GRPC_INC : $GRPC_INCLUDE"
-	echo "PROTO_INC: $PROTO_INCLUDE"
+	GRPC_INCLUDE="$8"
+	PROTO_INCLUDE="$9"
+	VERSION="${10}"
+	GENERATOR="${11}"
 
 	# From here on it's very easy in case it's just search replace
 	# Simply copy the template to the target directory
@@ -51,7 +37,7 @@ function generate_with_templates() {
 
 	# Generate client
 	CLIENT_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_${SERVICE}_client.go"
-	echo "Generating client: $CLIENT_GEN_FILE"
+	echo "🔨 Generating client: $CLIENT_GEN_FILE"
 	cp $CLIENT_TEMPLATE $CLIENT_GEN_FILE
 	sed -i $GENERAL_PARAM_REPLACE $CLIENT_GEN_FILE
 	sed -i -e "s#{{TEMPLATE}}#$CLIENT_TEMPLATE#g" $CLIENT_GEN_FILE
@@ -66,7 +52,7 @@ function generate_with_templates() {
 		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
 		METHOD_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_method.go"
-		echo "Generating client method: $METHOD_GEN_FILE"
+		echo "🔨 Generating client method: $METHOD_GEN_FILE"
 		cp $CLIENT_METHOD_TEMPLATE $METHOD_GEN_FILE
 		sed -i $GENERAL_PARAM_REPLACE $METHOD_GEN_FILE
 		sed -i $METHOD_PARAM_REPLACE $METHOD_GEN_FILE
@@ -75,7 +61,7 @@ function generate_with_templates() {
 
 	# Generate server
 	SERVER_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_${SERVICE}_server.go"
-	echo "Generating server: $SERVER_GEN_FILE"
+	echo "🔨 Generating server: $SERVER_GEN_FILE"
 	cp $SERVER_TEMPLATE $SERVER_GEN_FILE
 	sed -i $GENERAL_PARAM_REPLACE $SERVER_GEN_FILE
 	sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" $SERVER_GEN_FILE
@@ -90,21 +76,18 @@ function generate_with_templates() {
 		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
 		METHOD_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_method.go"
-		echo "Generating server method: $METHOD_GEN_FILE"
+		echo "🔨 Generating server method: $METHOD_GEN_FILE"
 		cp $SERVER_METHOD_TEMPLATE $METHOD_GEN_FILE
 		sed -i $GENERAL_PARAM_REPLACE $METHOD_GEN_FILE
 		sed -i $METHOD_PARAM_REPLACE $METHOD_GEN_FILE
 		sed -i -e "s#{{TEMPLATE}}#$SERVER_METHOD_TEMPLATE#g" $METHOD_GEN_FILE
 	done
-
-	## TODO: When done generating also run:
-	## gofumpt -l -w <generated_files>
 }
 
 REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH_SERVER}/register_services.go"
 
 function generate_register_services_server() {
-	OUTFILE=$1
+	OUTFILE="$1"
 	local -n _SERVICES=$2
 
 	echo "📝 Registering server services in $OUTFILE"
@@ -128,7 +111,7 @@ function generate_register_services_server() {
 REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH_CLIENT}/register_services.go"
 
 function generate_register_services_client() {
-	OUTFILE=$1
+	OUTFILE="$1"
 	local -n _SERVICES=$2
 
 	echo "📝 Registering client services in $OUTFILE"
@@ -200,6 +183,15 @@ fi
 SDK_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${VERSION}"
 echo "SDK_PATH: $SDK_PATH"
 
+echo "⌛ Making sure gofumpt is installed"
+go install mvdan.cc/gofumpt@latest
+
+FUMPT="${GO_PATH}/bin/gofumpt"
+if [ ! -f $FUMPT ] ; then
+	echo "❌ gofumpt not found at $FUMPT"
+	exit 1
+fi
+
 DEFAULT_BLACKLIST="notification"
 
 FILTER=$1
@@ -213,7 +205,8 @@ while read file ; do
 	fi
 
 	if [[ $file =~ $DEFAULT_BLACKLIST ]] ; then
-		echo "⚠️ Skipping $file -- blacklisted"
+		echo "⚠️ Skipping (blacklisted): $file"
+		echo 
 		continue 
 	fi
 
@@ -264,12 +257,15 @@ while read file ; do
 
 	VERSION=$(echo "$FQPN" | grep -oP "\.v[0-9]+\." | cut -d"." -f2 )
 
-	generate_with_templates "$FQPN" "$SERVICE" "$PACKAGE" "$TYPE" METHODS INPUTS OUTPUTS $GRPC_INCLUDE $PROTO_INCLUDE ${VERSION:1} $SCRIPT
+	generate_with_templates "$FQPN" "$SERVICE" "$PACKAGE" "$TYPE" METHODS INPUTS OUTPUTS "$GRPC_INCLUDE" "$PROTO_INCLUDE" ${VERSION:1} "$SCRIPT" 
 	SERVICES_TO_REGISTER+=("${SERVICE}V${VERSION}")
 
 	echo 
 done < <(find "$SDK_PATH/cmp/services/" -name "*_grpc.pb.go")
 
-generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER
-generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER
+generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER 
+generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER 
+
+echo "🧹 Running gofumpt on all generated files"
+$FUMPT -w $GEN_OUTPATH_CLIENT $GEN_OUTPATH_SERVER
 
