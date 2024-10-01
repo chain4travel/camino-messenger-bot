@@ -149,7 +149,8 @@ func TestProcessInbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
+				mockService.EXPECT().Name().Return("dummy")
+				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
@@ -176,7 +177,8 @@ func TestProcessInbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
-				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, nil)
+				mockService.EXPECT().Name().Return("dummy")
+				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
