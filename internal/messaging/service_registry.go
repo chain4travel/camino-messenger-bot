@@ -6,39 +6,51 @@ package messaging
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
+	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type ServiceRegistry interface {
-	RegisterServices(rpcClient *client.RPCClient)
 	GetService(messageType types.MessageType) (Service, bool)
 
 	// should only be called for supplier bot with rpc client
 	NotificationClient() notificationv1grpc.NotificationServiceClient
 }
 
-type SupportedServices struct {
-	ServiceNames []string
-	Services     []cmaccount.PartnerConfigurationService
-}
+func NewServiceRegistry(
+	cfg *config.EvmConfig,
+	evmClient *ethclient.Client,
+	logger *zap.SugaredLogger,
+	rpcClient *client.RPCClient,
+) (ServiceRegistry, bool, error) {
+	cmAccount, err := cmaccount.NewCmaccount(common.HexToAddress(cfg.CMAccountAddress), evmClient)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to fetch CM account: %w", err)
+	}
 
-type serviceRegistry struct {
-	logger    *zap.SugaredLogger
-	services  map[types.MessageType]*service
-	lock      *sync.RWMutex
-	rpcClient *client.RPCClient
-}
+	supportedServices, err := cmAccount.GetSupportedServices(&bind.CallOpts{})
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to fetch Registered services: %w", err)
+	}
 
-func NewServiceRegistry(supportedServices SupportedServices, logger *zap.SugaredLogger) ServiceRegistry {
+	hasSupportedService := len(supportedServices.ServiceNames) > 0
+	if hasSupportedService && rpcClient == nil {
+		return nil, false, fmt.Errorf("bot supports some services, but doesn't have partner plugin rpc client configured")
+	}
+
 	services := make(map[types.MessageType]*service, len(supportedServices.ServiceNames))
 	logStr := "\nSupported services:\n"
 	for _, serviceName := range supportedServices.ServiceNames {
@@ -48,24 +60,23 @@ func NewServiceRegistry(supportedServices SupportedServices, logger *zap.Sugared
 	logStr += "\n"
 	logger.Info(logStr)
 
-	return &serviceRegistry{
-		logger:   logger,
-		services: services,
-		lock:     &sync.RWMutex{},
+	registry := &serviceRegistry{
+		logger:    logger,
+		services:  services,
+		lock:      &sync.RWMutex{},
+		rpcClient: rpcClient,
 	}
+
+	registry.registerServices()
+
+	return registry, hasSupportedService, nil
 }
 
-func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	if srv, ok := s.services[clients.PingServiceV1Request]; ok {
-		srv.client = clients.NewPingServiceV1(rpcClient.ClientConn)
-	}
-
-	if rpcClient != nil {
-		s.rpcClient = rpcClient
-	}
+type serviceRegistry struct {
+	logger    *zap.SugaredLogger
+	services  map[types.MessageType]*service
+	lock      *sync.RWMutex
+	rpcClient *client.RPCClient
 }
 
 func (s *serviceRegistry) GetService(requestType types.MessageType) (Service, bool) {
