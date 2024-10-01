@@ -23,5 +23,5 @@ func (NoopResponseHandler) HandleRequest(context.Context, types.MessageType, pro
 	return nil
 }
 
-func (NoopResponseHandler) AddErrorToResponseHeader(types.MessageType, protoreflect.ProtoMessage, string) {
+func (NoopResponseHandler) AddErrorToResponseHeader(protoreflect.ProtoMessage, string) {
 }

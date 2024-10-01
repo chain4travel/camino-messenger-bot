@@ -22,7 +22,6 @@ func TestMessageTypeToServiceName(t *testing.T) {
 			expected:    TestServiceV1,
 		},
 		{
-
 			messageType: TestServiceV2Response,
 			expected:    TestServiceV1,
 		},

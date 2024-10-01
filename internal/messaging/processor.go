@@ -302,7 +302,7 @@ func (p *processor) Respond(msg *types.Message) error {
 	if err != nil {
 		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
 		p.logger.Errorf(errMessage)
-		p.responseHandler.AddErrorToResponseHeader(responseMsg.Type, responseMsg.Content, errMessage)
+		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 	}
 
 	return p.messenger.SendAsync(ctx, *responseMsg, compressedContent, msg.Sender)
@@ -335,7 +335,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
-		p.responseHandler.AddErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
+		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 		return ctx, responseMsg
 	}
 
