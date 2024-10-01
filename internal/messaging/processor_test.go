@@ -20,7 +20,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 
@@ -51,7 +51,7 @@ var (
 )
 
 func TestProcessInbound(t *testing.T) {
-	responseMessage := messages.Message{Type: messages.ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
+	responseMessage := types.Message{Type: types.ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID, Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -67,10 +67,10 @@ func TestProcessInbound(t *testing.T) {
 		responseHandler       ResponseHandler
 		identificationHandler IdentificationHandler
 		chequeHandler         ChequeHandler
-		compressor            compression.Compressor[*messages.Message, [][]byte]
+		compressor            compression.Compressor[*types.Message, [][]byte]
 	}
 	type args struct {
-		msg *messages.Message
+		msg *types.Message
 	}
 	tests := map[string]struct {
 		fields  fields
@@ -93,7 +93,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 			},
 			args: args{
-				msg: &messages.Message{Type: "invalid", Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
+				msg: &types.Message{Type: "invalid", Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
 			err: ErrUnknownMessageCategory,
 		},
@@ -107,7 +107,7 @@ func TestProcessInbound(t *testing.T) {
 				mockServiceRegistry.EXPECT().GetClient(gomock.Any()).Return(nil, false)
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
+				msg: &types.Message{Type: types.ActivitySearchRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
 			err: ErrUnsupportedService,
 		},
@@ -119,7 +119,7 @@ func TestProcessInbound(t *testing.T) {
 				p.SetUserID(userID)
 			},
 			args: args{
-				msg: &messages.Message{Metadata: metadata.Metadata{}, Sender: userID},
+				msg: &types.Message{Metadata: metadata.Metadata{}, Sender: userID},
 			},
 			err: nil, // no error, msg will be just ignored
 		},
@@ -140,7 +140,7 @@ func TestProcessInbound(t *testing.T) {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
+				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
 			},
 			err: errSomeError,
 		},
@@ -161,7 +161,7 @@ func TestProcessInbound(t *testing.T) {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
+				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}},
 			},
 		},
 		"success: process response message": {
@@ -174,7 +174,7 @@ func TestProcessInbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			prepare: func(p *processor) {
-				p.responseChannels[requestID] = make(chan *messages.Message, 1)
+				p.responseChannels[requestID] = make(chan *types.Message, 1)
 				p.SetUserID(userID)
 			},
 			args: args{
@@ -213,7 +213,7 @@ func TestProcessInbound(t *testing.T) {
 }
 
 func TestProcessOutbound(t *testing.T) {
-	productListResponse := &messages.Message{Type: messages.ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID}}
+	productListResponse := &types.Message{Type: types.ActivityProductListResponse, Metadata: metadata.Metadata{RequestID: requestID}}
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -228,15 +228,15 @@ func TestProcessOutbound(t *testing.T) {
 		responseHandler       ResponseHandler
 		identificationHandler IdentificationHandler
 		chequeHandler         ChequeHandler
-		compressor            compression.Compressor[*messages.Message, [][]byte]
+		compressor            compression.Compressor[*types.Message, [][]byte]
 	}
 	type args struct {
-		msg *messages.Message
+		msg *types.Message
 	}
 	tests := map[string]struct {
 		fields                 fields
 		args                   args
-		want                   *messages.Message
+		want                   *types.Message
 		err                    error
 		prepare                func(p *processor)
 		writeResponseToChannel func(p *processor)
@@ -252,7 +252,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivityProductListResponse},
+				msg: &types.Message{Type: types.ActivityProductListResponse},
 			},
 			err: ErrOnlyRequestMessagesAllowed,
 		},
@@ -267,7 +267,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivityProductListRequest},
+				msg: &types.Message{Type: types.ActivityProductListRequest},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -285,7 +285,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
+				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -304,7 +304,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
+				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -323,7 +323,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &messages.Message{Type: messages.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID}},
+				msg: &types.Message{Type: types.ActivityProductListRequest, Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID}},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -379,7 +379,7 @@ func TestProcessOutbound(t *testing.T) {
 
 type dummyService struct{}
 
-func (d dummyService) Call(context.Context, *protoreflect.ProtoMessage, ...grpc.CallOption) (protoreflect.ProtoMessage, messages.MessageType, error) {
+func (d dummyService) Call(context.Context, *protoreflect.ProtoMessage, ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
 	return nil, "", nil
 }
 
@@ -392,23 +392,23 @@ func TestStart(t *testing.T) {
 	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
 	t.Run("start processor and accept messages", func(*testing.T) {
-		ch := make(chan messages.Message, 5)
+		ch := make(chan types.Message, 5)
 		// incoming messages
 		{
 			// msg without sender
-			ch <- messages.Message{Metadata: metadata.Metadata{}}
+			ch <- types.Message{Metadata: metadata.Metadata{}}
 			// msg with sender == userID
-			ch <- messages.Message{Metadata: metadata.Metadata{}, Sender: userID}
+			ch <- types.Message{Metadata: metadata.Metadata{}, Sender: userID}
 			// msg with sender == userID but without valid msgType
-			ch <- messages.Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
+			ch <- types.Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
 			// msg with sender == userID and valid msgType
-			ch <- messages.Message{
-				Type:     messages.ActivityProductListRequest,
+			ch <- types.Message{
+				Type:     types.ActivityProductListRequest,
 				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 			// 2nd msg with sender == userID and valid msgType
-			ch <- messages.Message{
-				Type:     messages.ActivitySearchRequest,
+			ch <- types.Message{
+				Type:     types.ActivitySearchRequest,
 				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 		}

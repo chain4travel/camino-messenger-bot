@@ -14,7 +14,7 @@ import (
 
 	notificationv1grpc "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	clients "github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
-	messages "github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	messages "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	client "github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	gomock "go.uber.org/mock/gomock"
 )

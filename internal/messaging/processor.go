@@ -11,7 +11,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
@@ -45,17 +45,17 @@ var (
 )
 
 type MsgHandler interface {
-	Request(ctx context.Context, msg *messages.Message) (*messages.Message, error)
-	Respond(msg *messages.Message) error
-	Forward(msg *messages.Message)
+	Request(ctx context.Context, msg *types.Message) (*types.Message, error)
+	Respond(msg *types.Message) error
+	Forward(msg *types.Message)
 }
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
 	SetUserID(userID id.UserID)
 	Start(ctx context.Context)
-	ProcessInbound(message *messages.Message) error
-	ProcessOutbound(ctx context.Context, message *messages.Message) (*messages.Message, error)
+	ProcessInbound(message *types.Message) error
+	ProcessOutbound(ctx context.Context, message *types.Message) (*types.Message, error)
 }
 
 func NewProcessor(
@@ -67,7 +67,7 @@ func NewProcessor(
 	responseHandler ResponseHandler,
 	identificationHandler IdentificationHandler,
 	chequeHandler ChequeHandler,
-	compressor compression.Compressor[*messages.Message, [][]byte],
+	compressor compression.Compressor[*types.Message, [][]byte],
 ) Processor {
 	return &processor{
 		cfg:                   cfg,
@@ -76,7 +76,7 @@ func NewProcessor(
 		logger:                logger,
 		tracer:                otel.GetTracerProvider().Tracer(""),
 		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels:      make(map[string]chan *messages.Message),
+		responseChannels:      make(map[string]chan *types.Message),
 		serviceRegistry:       registry,
 		responseHandler:       responseHandler,
 		identificationHandler: identificationHandler,
@@ -95,13 +95,13 @@ type processor struct {
 	timeout   time.Duration // timeout after which a request is considered failed
 
 	mu                    sync.Mutex
-	responseChannels      map[string]chan *messages.Message
+	responseChannels      map[string]chan *types.Message
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
 	chequeHandler         ChequeHandler
 	myBotAddress          common.Address
-	compressor            compression.Compressor[*messages.Message, [][]byte]
+	compressor            compression.Compressor[*types.Message, [][]byte]
 }
 
 func (p *processor) SetUserID(userID id.UserID) {
@@ -131,15 +131,15 @@ func (p *processor) Start(ctx context.Context) {
 	}
 }
 
-func (p *processor) ProcessInbound(msg *messages.Message) error {
+func (p *processor) ProcessInbound(msg *types.Message) error {
 	if p.userID == "" {
 		return ErrUserIDNotSet
 	}
 	if msg.Sender != p.userID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
-		case messages.Request:
+		case types.Request:
 			return p.Respond(msg)
-		case messages.Response:
+		case types.Response:
 			p.Forward(msg)
 			return nil
 		default:
@@ -150,18 +150,18 @@ func (p *processor) ProcessInbound(msg *messages.Message) error {
 	}
 }
 
-func (p *processor) ProcessOutbound(ctx context.Context, msg *messages.Message) (*messages.Message, error) {
+func (p *processor) ProcessOutbound(ctx context.Context, msg *types.Message) (*types.Message, error) {
 	msg.Sender = p.userID
-	if msg.Type.Category() == messages.Request { // only request messages (received by are processed
+	if msg.Type.Category() == types.Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	}
 	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
 	return nil, ErrOnlyRequestMessagesAllowed // ignore msg
 }
 
-func (p *processor) Request(ctx context.Context, msg *messages.Message) (*messages.Message, error) {
+func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Message, error) {
 	p.logger.Debug("Sending outbound request message")
-	responseChan := make(chan *messages.Message)
+	responseChan := make(chan *types.Message)
 	p.mu.Lock()
 	p.responseChannels[msg.Metadata.RequestID] = responseChan
 	p.mu.Unlock()
@@ -264,7 +264,7 @@ func (p *processor) Request(ctx context.Context, msg *messages.Message) (*messag
 	}
 }
 
-func (p *processor) Respond(msg *messages.Message) error {
+func (p *processor) Respond(msg *types.Message) error {
 	traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
 	if err != nil {
 		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
@@ -300,14 +300,14 @@ func (p *processor) Respond(msg *messages.Message) error {
 
 func (p *processor) callPartnerPluginAndGetResponse(
 	ctx context.Context,
-	requestMsg *messages.Message,
+	requestMsg *types.Message,
 	cheque *cheques.SignedCheque,
 	service clients.Client,
-) (context.Context, *messages.Message, [][]byte) {
+) (context.Context, *types.Message, [][]byte) {
 	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 	requestMsg.Metadata.Sender = cheque.FromCMAccount.Hex()
 
-	responseMsg := &messages.Message{
+	responseMsg := &types.Message{
 		Metadata: requestMsg.Metadata,
 	}
 
@@ -348,7 +348,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	return ctx, responseMsg, compressedContent
 }
 
-func (p *processor) Forward(msg *messages.Message) {
+func (p *processor) Forward(msg *types.Message) {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -370,7 +370,7 @@ func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques
 	return nil
 }
 
-func (p *processor) compress(ctx context.Context, msg *messages.Message) (context.Context, [][]byte, error) {
+func (p *processor) compress(ctx context.Context, msg *types.Message) (context.Context, [][]byte, error) {
 	ctx, compressSpan := p.tracer.Start(ctx, "messenger.Compress", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer compressSpan.End()
 	compressedContent, err := p.compressor.Compress(msg)

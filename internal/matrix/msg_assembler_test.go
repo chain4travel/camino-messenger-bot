@@ -12,7 +12,7 @@ import (
 
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/stretchr/testify/require"
@@ -21,8 +21,8 @@ import (
 )
 
 func TestAssembleMessage(t *testing.T) {
-	plainActivitySearchResponseMsg := messages.Message{
-		Type: messages.ActivitySearchResponse,
+	plainActivitySearchResponseMsg := types.Message{
+		Type: types.ActivitySearchResponse,
 		Content: &activityv2.ActivitySearchResponse{
 			Results: []*activityv2.ActivitySearchResult{
 				{Info: &activityv2.Activity{ServiceCode: "test"}},
@@ -111,7 +111,7 @@ func TestAssembleMessage(t *testing.T) {
 			args: args{
 				msg: &matrix.CaminoMatrixMessage{
 					MessageEventContent: event.MessageEventContent{
-						MsgType: event.MessageType(messages.ActivitySearchResponse),
+						MsgType: event.MessageType(types.ActivitySearchResponse),
 					},
 					Metadata: metadata.Metadata{
 						RequestID:      "id",
@@ -131,7 +131,7 @@ func TestAssembleMessage(t *testing.T) {
 					NumberOfChunks: 1,
 				},
 				MessageEventContent: event.MessageEventContent{
-					MsgType: event.MessageType(messages.ActivitySearchResponse),
+					MsgType: event.MessageType(types.ActivitySearchResponse),
 				},
 				Content: plainActivitySearchResponseMsg.Content,
 			},
@@ -143,7 +143,7 @@ func TestAssembleMessage(t *testing.T) {
 				partialMessages: map[string][]*matrix.CaminoMatrixMessage{"id": {
 					// only 2 chunks because the last one is passed as the last argument triggering the call of AssembleMessage
 					// msgType is necessary only for 1st chunk
-					{MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(messages.ActivitySearchResponse)}}, {},
+					{MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(types.ActivitySearchResponse)}}, {},
 				}},
 			},
 			args: args{
@@ -162,7 +162,7 @@ func TestAssembleMessage(t *testing.T) {
 			},
 			want: &matrix.CaminoMatrixMessage{
 				MessageEventContent: event.MessageEventContent{
-					MsgType: event.MessageType(messages.ActivitySearchResponse),
+					MsgType: event.MessageType(types.ActivitySearchResponse),
 				},
 				Content: plainActivitySearchResponseMsg.Content,
 			},

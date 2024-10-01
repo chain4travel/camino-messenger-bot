@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	messages "github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	messages "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	gomock "go.uber.org/mock/gomock"
 	id "maunium.net/go/mautrix/id"
 )

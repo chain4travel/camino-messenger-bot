@@ -8,7 +8,7 @@ package messaging
 import (
 	"context"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -16,12 +16,12 @@ var _ ResponseHandler = (*NoopResponseHandler)(nil)
 
 type NoopResponseHandler struct{}
 
-func (NoopResponseHandler) HandleResponse(context.Context, messages.MessageType, protoreflect.ProtoMessage, protoreflect.ProtoMessage) {
+func (NoopResponseHandler) HandleResponse(context.Context, types.MessageType, protoreflect.ProtoMessage, protoreflect.ProtoMessage) {
 }
 
-func (NoopResponseHandler) HandleRequest(context.Context, messages.MessageType, protoreflect.ProtoMessage) error {
+func (NoopResponseHandler) HandleRequest(context.Context, types.MessageType, protoreflect.ProtoMessage) error {
 	return nil
 }
 
-func (NoopResponseHandler) AddErrorToResponseHeader(messages.MessageType, protoreflect.ProtoMessage, string) {
+func (NoopResponseHandler) AddErrorToResponseHeader(types.MessageType, protoreflect.ProtoMessage, string) {
 }

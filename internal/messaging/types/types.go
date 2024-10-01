@@ -1,7 +1,8 @@
-package messages
+package types
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/protobuf/proto"
@@ -116,4 +117,33 @@ func (mt MessageType) Category() MessageCategory {
 
 func (m *Message) MarshalContent() ([]byte, error) {
 	return proto.Marshal(m.Content)
+}
+
+func ServiceFullName(messageType MessageType) (string, error) {
+	serviceFullName, ok := servicesByMessageType[messageType]
+	if !ok {
+		return "", fmt.Errorf("service not found for message type %v", messageType)
+	}
+	return serviceFullName, nil
+}
+
+var servicesByMessageType = map[MessageType]string{
+	ActivityProductInfoRequest:      "cmp.services.activity.v2.ActivityProductInfoService",
+	ActivityProductListRequest:      "cmp.services.activity.v2.ActivityProductListService",
+	ActivitySearchRequest:           "cmp.services.activity.v2.ActivitySearchService",
+	AccommodationProductInfoRequest: "cmp.services.accommodation.v2.AccommodationProductInfoService",
+	AccommodationProductListRequest: "cmp.services.accommodation.v2.AccommodationProductListService",
+	AccommodationSearchRequest:      "cmp.services.accommodation.v2.AccommodationSearchService",
+	MintRequest:                     "cmp.services.book.v2.MintService",
+	ValidationRequest:               "cmp.services.book.v2.ValidationService",
+	TransportSearchRequest:          "cmp.services.transport.v2.TransportSearchService",
+	SeatMapRequest:                  "cmp.services.seat_map.v2.SeatMapService",
+	SeatMapAvailabilityRequest:      "cmp.services.seat_map.v2.SeatMapAvailabilityService",
+	CountryEntryRequirementsRequest: "cmp.services.info.v2.CountryEntryRequirementsService",
+	InsuranceSearchRequest:          "cmp.services.insurance.v1.InsuranceSearchService",
+	InsuranceProductInfoRequest:     "cmp.services.insurance.v1.InsuranceProductInfoService",
+	InsuranceProductListRequest:     "cmp.services.insurance.v1.InsuranceProductListService",
+	GetPartnerConfigurationRequest:  "cmp.services.partner.v2.GetPartnerConfigurationService",
+	GetNetworkFeeRequest:            "cmp.services.network.v1.GetNetworkFeeService",
+	PingRequest:                     "cmp.services.ping.v1.PingService",
 }

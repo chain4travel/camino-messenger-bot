@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -23,7 +23,7 @@ var (
 )
 
 type externalRequestProcessor interface {
-	processExternalRequest(ctx context.Context, requestType messages.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
+	processExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
 }
 
 type Server interface {
@@ -78,7 +78,7 @@ func (s *server) Stop() {
 	s.logger.Info("Stopping gRPC server...")
 	s.grpcServer.Stop()
 }
-func (s *server) processInternalRequest(ctx context.Context, requestType messages.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+func (s *server) processInternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processInternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 	service, registered := s.serviceRegistry.GetClient(requestType)
@@ -89,7 +89,7 @@ func (s *server) processInternalRequest(ctx context.Context, requestType message
 	return response, err
 }
 
-func (s *server) processExternalRequest(ctx context.Context, requestType messages.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+func (s *server) processExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processExternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
@@ -97,7 +97,7 @@ func (s *server) processExternalRequest(ctx context.Context, requestType message
 		return nil, fmt.Errorf("error processing metadata: %w", err)
 	}
 
-	m := &messages.Message{
+	m := &types.Message{
 		Type:     requestType,
 		Content:  request,
 		Metadata: md,

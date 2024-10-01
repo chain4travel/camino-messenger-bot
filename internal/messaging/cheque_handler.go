@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/models"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -41,7 +41,7 @@ type ChequeHandler interface {
 	GetServiceFee(
 		ctx context.Context,
 		toCmAccountAddress common.Address,
-		messageType messages.MessageType,
+		messageType types.MessageType,
 	) (*big.Int, error)
 
 	IsBotAllowed(ctx context.Context, fromBot common.Address) (bool, error)
@@ -207,13 +207,13 @@ func (ch *evmChequeHandler) IssueCheque(
 	return signedCheque, nil
 }
 
-func (ch *evmChequeHandler) GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType messages.MessageType) (*big.Int, error) {
+func (ch *evmChequeHandler) GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType types.MessageType) (*big.Int, error) {
 	supplierCmAccount, err := ch.getCMAccount(toCmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
 	}
 
-	serviceFullName, err := getServiceFullName(messageType)
+	serviceFullName, err := types.ServiceFullName(messageType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service: %v", err)
 	}
@@ -527,7 +527,7 @@ func verifyChequeWithContract(
 	return err == nil, err
 }
 
-func waitMined(ctx context.Context, b bind.DeployBackend, txID common.Hash) (*types.Receipt, error) {
+func waitMined(ctx context.Context, b bind.DeployBackend, txID common.Hash) (*ethTypes.Receipt, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 

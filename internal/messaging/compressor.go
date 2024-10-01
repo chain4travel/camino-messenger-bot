@@ -10,18 +10,18 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 )
 
 var (
-	_ compression.Compressor[*messages.Message, [][]byte] = (*chunkingCompressor)(nil)
-	_ compression.Compressor[*messages.Message, [][]byte] = (*noopCompressor)(nil)
+	_ compression.Compressor[*types.Message, [][]byte] = (*chunkingCompressor)(nil)
+	_ compression.Compressor[*types.Message, [][]byte] = (*noopCompressor)(nil)
 
 	ErrCompressionProducedNoChunks = errors.New("compression produced no chunks")
 	ErrEncodingMsg                 = errors.New("error while encoding msg for compression")
 )
 
-func NewCompressor(maxChunkSize int) compression.Compressor[*messages.Message, [][]byte] {
+func NewCompressor(maxChunkSize int) compression.Compressor[*types.Message, [][]byte] {
 	return &chunkingCompressor{maxChunkSize: maxChunkSize}
 }
 
@@ -31,7 +31,7 @@ type chunkingCompressor struct {
 }
 
 // Compress implements the Compressor interface for chunkingCompressor
-func (c *chunkingCompressor) Compress(msg *messages.Message) ([][]byte, error) {
+func (c *chunkingCompressor) Compress(msg *types.Message) ([][]byte, error) {
 	compressedContent, err := compress(msg)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrEncodingMsg, err)
@@ -48,7 +48,7 @@ func (c *chunkingCompressor) split(bytes []byte) ([][]byte, error) {
 	return splitCompressedContent, nil
 }
 
-func compress(msg *messages.Message) ([]byte, error) {
+func compress(msg *types.Message) ([]byte, error) {
 	content, err := msg.MarshalContent()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrEncodingMsg, err)
@@ -76,6 +76,6 @@ func splitByteArray(src []byte, maxSize int) [][]byte {
 
 type noopCompressor struct{}
 
-func (*noopCompressor) Compress(_ *messages.Message) ([][]byte, error) {
+func (*noopCompressor) Compress(_ *types.Message) ([][]byte, error) {
 	return [][]byte{{}}, nil
 }

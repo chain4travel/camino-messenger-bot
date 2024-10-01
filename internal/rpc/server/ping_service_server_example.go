@@ -6,7 +6,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"google.golang.org/grpc"
 )
 
@@ -30,7 +30,7 @@ func NewPingServer(
 func (s *ping_srv1) Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error) {
 	response, err := s.reqProcessor.processExternalRequest(
 		ctx,
-		messages.PingRequest, request,
+		types.PingRequest, request,
 	)
 	return response.(*pingv1.PingResponse), err
 }

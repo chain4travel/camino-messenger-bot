@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/stretchr/testify/require"
 )
 
-func compressOnly(t *testing.T, msg *messages.Message) []byte {
+func compressOnly(t *testing.T, msg *types.Message) []byte {
 	compressed, err := compress(msg)
 	require.NoError(t, err)
 	return compressed
@@ -21,7 +21,7 @@ func compressOnly(t *testing.T, msg *messages.Message) []byte {
 
 func TestChunkingCompressorCompress(t *testing.T) {
 	type args struct {
-		msg     *messages.Message
+		msg     *types.Message
 		maxSize int
 	}
 	tests := map[string]struct {
@@ -30,17 +30,17 @@ func TestChunkingCompressorCompress(t *testing.T) {
 		err  error
 	}{
 		"err: unknown message type": {
-			args: args{msg: &messages.Message{Type: "Unknown"}, maxSize: 5},
-			err:  messages.ErrUnknownMessageType,
+			args: args{msg: &types.Message{Type: "Unknown"}, maxSize: 5},
+			err:  types.ErrUnknownMessageType, // TODO@ probably doesn't work. this err is ONLY used there
 		},
 		"err: empty message": {
-			args: args{msg: &messages.Message{Type: messages.ActivitySearchResponse}, maxSize: 5},
+			args: args{msg: &types.Message{Type: types.ActivitySearchResponse}, maxSize: 5},
 			err:  ErrCompressionProducedNoChunks,
 		},
 		"success: small message compressed without chunking (input<maxSize)": {
 			args: args{
-				msg: &messages.Message{
-					Type: messages.ActivitySearchResponse,
+				msg: &types.Message{
+					Type: types.ActivitySearchResponse,
 					Content: &activityv2.ActivitySearchResponse{
 						Results: []*activityv2.ActivitySearchResult{
 							{Info: &activityv2.Activity{ServiceCode: "test"}},
@@ -50,8 +50,8 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				maxSize: 100,
 			},
 			want: [][]byte{
-				compressOnly(t, &messages.Message{
-					Type: messages.ActivitySearchResponse,
+				compressOnly(t, &types.Message{
+					Type: types.ActivitySearchResponse,
 					Content: &activityv2.ActivitySearchResponse{
 						Results: []*activityv2.ActivitySearchResult{
 							{Info: &activityv2.Activity{ServiceCode: "test"}},
@@ -62,8 +62,8 @@ func TestChunkingCompressorCompress(t *testing.T) {
 		},
 		"success: small message compressed without chunking (input=maxSize)": {
 			args: args{
-				msg: &messages.Message{
-					Type: messages.ActivitySearchResponse,
+				msg: &types.Message{
+					Type: types.ActivitySearchResponse,
 					Content: &activityv2.ActivitySearchResponse{
 						Results: []*activityv2.ActivitySearchResult{
 							{Info: &activityv2.Activity{ServiceCode: "test"}},
@@ -73,8 +73,8 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				maxSize: 23, // compressed size of msgType=messages.ActivitySearchResponse and serviceCode="test"
 			},
 			want: [][]byte{
-				compressOnly(t, &messages.Message{
-					Type: messages.ActivitySearchResponse,
+				compressOnly(t, &types.Message{
+					Type: types.ActivitySearchResponse,
 					Content: &activityv2.ActivitySearchResponse{
 						Results: []*activityv2.ActivitySearchResult{
 							{Info: &activityv2.Activity{ServiceCode: "test"}},
@@ -85,8 +85,8 @@ func TestChunkingCompressorCompress(t *testing.T) {
 		},
 		"success: large message compressed with chunking (input>maxSize)": {
 			args: args{
-				msg: &messages.Message{
-					Type: messages.ActivitySearchResponse,
+				msg: &types.Message{
+					Type: types.ActivitySearchResponse,
 					Content: &activityv2.ActivitySearchResponse{
 						Results: []*activityv2.ActivitySearchResult{
 							{Info: &activityv2.Activity{ServiceCode: "test"}},
@@ -96,16 +96,16 @@ func TestChunkingCompressorCompress(t *testing.T) {
 				maxSize: 22, // < 23 = compressed size of msgType=messages.ActivitySearchResponse and serviceCode="test"
 			},
 			want: [][]byte{
-				compressOnly(t, &messages.Message{
-					Type: messages.ActivitySearchResponse,
+				compressOnly(t, &types.Message{
+					Type: types.ActivitySearchResponse,
 					Content: &activityv2.ActivitySearchResponse{
 						Results: []*activityv2.ActivitySearchResult{
 							{Info: &activityv2.Activity{ServiceCode: "test"}},
 						},
 					},
 				})[:22],
-				compressOnly(t, &messages.Message{
-					Type: messages.ActivitySearchResponse,
+				compressOnly(t, &types.Message{
+					Type: types.ActivitySearchResponse,
 					Content: &activityv2.ActivitySearchResponse{
 						Results: []*activityv2.ActivitySearchResult{
 							{Info: &activityv2.Activity{ServiceCode: "test"}},
