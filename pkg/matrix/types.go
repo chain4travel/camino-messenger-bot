@@ -3,6 +3,9 @@ package matrix
 import (
 	"reflect"
 
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
@@ -34,8 +37,16 @@ func (b ByChunkIndex) Less(i, j int) bool {
 func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
 func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
-	// TODO: @VjeraTurk support multiple versions per MessageType
-	return proto.Unmarshal(src, m.Content)
+	switch types.MessageType(m.MsgType) {
+	case clients.PingServiceV1Request:
+		m.Content = &pingv1.PingRequest{}
+		return proto.Unmarshal(src, m.Content)
+	case clients.PingServiceV1Response:
+		m.Content = &pingv1.PingResponse{}
+		return proto.Unmarshal(src, m.Content)
+	default:
+		return types.ErrUnknownMessageType
+	}
 }
 
 func (m *CaminoMatrixMessage) GetChequeFor(addr common.Address) *cheques.SignedCheque {
