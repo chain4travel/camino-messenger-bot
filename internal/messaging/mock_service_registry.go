@@ -13,6 +13,8 @@ import (
 	reflect "reflect"
 
 	notificationv1grpc "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
+	clients "github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
+	messages "github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
 	client "github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -40,19 +42,19 @@ func (m *MockServiceRegistry) EXPECT() *MockServiceRegistryMockRecorder {
 	return m.recorder
 }
 
-// GetService mocks base method.
-func (m *MockServiceRegistry) GetService(arg0 MessageType) (Service, bool) {
+// GetClient mocks base method.
+func (m *MockServiceRegistry) GetClient(arg0 messages.MessageType) (clients.Client, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetService", arg0)
-	ret0, _ := ret[0].(Service)
+	ret := m.ctrl.Call(m, "GetClient", arg0)
+	ret0, _ := ret[0].(clients.Client)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-// GetService indicates an expected call of GetService.
-func (mr *MockServiceRegistryMockRecorder) GetService(arg0 any) *gomock.Call {
+// GetClient indicates an expected call of GetClient.
+func (mr *MockServiceRegistryMockRecorder) GetClient(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetService", reflect.TypeOf((*MockServiceRegistry)(nil).GetService), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockServiceRegistry)(nil).GetClient), arg0)
 }
 
 // NotificationClient mocks base method.

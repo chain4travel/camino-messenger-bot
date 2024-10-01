@@ -10,6 +10,8 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
@@ -43,17 +45,17 @@ var (
 )
 
 type MsgHandler interface {
-	Request(ctx context.Context, msg *Message) (*Message, error)
-	Respond(msg *Message) error
-	Forward(msg *Message)
+	Request(ctx context.Context, msg *messages.Message) (*messages.Message, error)
+	Respond(msg *messages.Message) error
+	Forward(msg *messages.Message)
 }
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
 	SetUserID(userID id.UserID)
 	Start(ctx context.Context)
-	ProcessInbound(message *Message) error
-	ProcessOutbound(ctx context.Context, message *Message) (*Message, error)
+	ProcessInbound(message *messages.Message) error
+	ProcessOutbound(ctx context.Context, message *messages.Message) (*messages.Message, error)
 }
 
 func NewProcessor(
@@ -65,7 +67,7 @@ func NewProcessor(
 	responseHandler ResponseHandler,
 	identificationHandler IdentificationHandler,
 	chequeHandler ChequeHandler,
-	compressor compression.Compressor[*Message, [][]byte],
+	compressor compression.Compressor[*messages.Message, [][]byte],
 ) Processor {
 	return &processor{
 		cfg:                   cfg,
@@ -74,7 +76,7 @@ func NewProcessor(
 		logger:                logger,
 		tracer:                otel.GetTracerProvider().Tracer(""),
 		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels:      make(map[string]chan *Message),
+		responseChannels:      make(map[string]chan *messages.Message),
 		serviceRegistry:       registry,
 		responseHandler:       responseHandler,
 		identificationHandler: identificationHandler,
@@ -93,13 +95,13 @@ type processor struct {
 	timeout   time.Duration // timeout after which a request is considered failed
 
 	mu                    sync.Mutex
-	responseChannels      map[string]chan *Message
+	responseChannels      map[string]chan *messages.Message
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
 	chequeHandler         ChequeHandler
 	myBotAddress          common.Address
-	compressor            compression.Compressor[*Message, [][]byte]
+	compressor            compression.Compressor[*messages.Message, [][]byte]
 }
 
 func (p *processor) SetUserID(userID id.UserID) {
@@ -129,15 +131,15 @@ func (p *processor) Start(ctx context.Context) {
 	}
 }
 
-func (p *processor) ProcessInbound(msg *Message) error {
+func (p *processor) ProcessInbound(msg *messages.Message) error {
 	if p.userID == "" {
 		return ErrUserIDNotSet
 	}
 	if msg.Sender != p.userID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
-		case Request:
+		case messages.Request:
 			return p.Respond(msg)
-		case Response:
+		case messages.Response:
 			p.Forward(msg)
 			return nil
 		default:
@@ -148,18 +150,18 @@ func (p *processor) ProcessInbound(msg *Message) error {
 	}
 }
 
-func (p *processor) ProcessOutbound(ctx context.Context, msg *Message) (*Message, error) {
+func (p *processor) ProcessOutbound(ctx context.Context, msg *messages.Message) (*messages.Message, error) {
 	msg.Sender = p.userID
-	if msg.Type.Category() == Request { // only request messages (received by are processed
+	if msg.Type.Category() == messages.Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	}
 	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
 	return nil, ErrOnlyRequestMessagesAllowed // ignore msg
 }
 
-func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error) {
+func (p *processor) Request(ctx context.Context, msg *messages.Message) (*messages.Message, error) {
 	p.logger.Debug("Sending outbound request message")
-	responseChan := make(chan *Message)
+	responseChan := make(chan *messages.Message)
 	p.mu.Lock()
 	p.responseChannels[msg.Metadata.RequestID] = responseChan
 	p.mu.Unlock()
@@ -262,7 +264,7 @@ func (p *processor) Request(ctx context.Context, msg *Message) (*Message, error)
 	}
 }
 
-func (p *processor) Respond(msg *Message) error {
+func (p *processor) Respond(msg *messages.Message) error {
 	traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
 	if err != nil {
 		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
@@ -272,7 +274,7 @@ func (p *processor) Respond(msg *Message) error {
 	ctx, responseSpan := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer responseSpan.End()
 
-	service, supported := p.serviceRegistry.GetService(msg.Type)
+	service, supported := p.serviceRegistry.GetClient(msg.Type)
 	if !supported {
 		return fmt.Errorf("%w: %s", ErrUnsupportedService, msg.Type)
 	}
@@ -298,14 +300,14 @@ func (p *processor) Respond(msg *Message) error {
 
 func (p *processor) callPartnerPluginAndGetResponse(
 	ctx context.Context,
-	requestMsg *Message,
+	requestMsg *messages.Message,
 	cheque *cheques.SignedCheque,
-	service Service,
-) (context.Context, *Message, [][]byte) {
+	service clients.Client,
+) (context.Context, *messages.Message, [][]byte) {
 	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
 	requestMsg.Metadata.Sender = cheque.FromCMAccount.Hex()
 
-	responseMsg := &Message{
+	responseMsg := &messages.Message{
 		Metadata: requestMsg.Metadata,
 	}
 
@@ -323,7 +325,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
-		addErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
+		p.responseHandler.AddErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
 		return ctx, responseMsg, [][]byte{{}}
 	}
 
@@ -340,13 +342,13 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	if err != nil {
 		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
 		p.logger.Errorf(errMessage)
-		addErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
+		p.responseHandler.AddErrorToResponseHeader(msgType, responseMsg.Content, errMessage)
 	}
 
 	return ctx, responseMsg, compressedContent
 }
 
-func (p *processor) Forward(msg *Message) {
+func (p *processor) Forward(msg *messages.Message) {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -368,7 +370,7 @@ func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques
 	return nil
 }
 
-func (p *processor) compress(ctx context.Context, msg *Message) (context.Context, [][]byte, error) {
+func (p *processor) compress(ctx context.Context, msg *messages.Message) (context.Context, [][]byte, error) {
 	ctx, compressSpan := p.tracer.Start(ctx, "messenger.Compress", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer compressSpan.End()
 	compressedContent, err := p.compressor.Compress(msg)

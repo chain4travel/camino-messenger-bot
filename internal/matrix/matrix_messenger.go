@@ -12,6 +12,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -37,7 +38,7 @@ type client struct {
 	cryptoHelper *cryptohelper.CryptoHelper
 }
 type messenger struct {
-	msgChannel chan messaging.Message
+	msgChannel chan messages.Message
 
 	cfg    *config.MatrixConfig
 	logger *zap.SugaredLogger
@@ -54,7 +55,7 @@ func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging
 		panic(err)
 	}
 	return &messenger{
-		msgChannel:   make(chan messaging.Message),
+		msgChannel:   make(chan messages.Message),
 		cfg:          cfg,
 		logger:       logger,
 		tracer:       otel.GetTracerProvider().Tracer(""),
@@ -91,10 +92,10 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 		}
 		completeMsg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", completeMsg.MsgType), evt.Timestamp)
 		completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.Checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
-		m.msgChannel <- messaging.Message{
+		m.msgChannel <- messages.Message{
 			Metadata: completeMsg.Metadata,
 			Content:  completeMsg.Content,
-			Type:     messaging.MessageType(msg.MsgType),
+			Type:     messages.MessageType(msg.MsgType),
 			Sender:   evt.Sender,
 		}
 	})
@@ -168,7 +169,7 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg messaging.Message, content [][]byte, sendTo id.UserID) error {
+func (m *messenger) SendAsync(ctx context.Context, msg messages.Message, content [][]byte, sendTo id.UserID) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -194,7 +195,7 @@ func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eve
 	return nil
 }
 
-func (m *messenger) Inbound() chan messaging.Message {
+func (m *messenger) Inbound() chan messages.Message {
 	return m.msgChannel
 }
 
@@ -242,7 +243,7 @@ func hexWithChecksum(bytes []byte) (string, error) {
 	return fmt.Sprintf("0x%x", bytes), nil
 }
 
-func createMatrixMessages(msg *messaging.Message, content [][]byte) []matrix.CaminoMatrixMessage {
+func createMatrixMessages(msg *messages.Message, content [][]byte) []matrix.CaminoMatrixMessage {
 	messages := make([]matrix.CaminoMatrixMessage, 0, len(content))
 
 	// add first chunk to messages slice

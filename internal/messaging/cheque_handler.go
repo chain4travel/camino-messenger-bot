@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
 	"github.com/chain4travel/camino-messenger-bot/internal/models"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
@@ -40,7 +41,7 @@ type ChequeHandler interface {
 	GetServiceFee(
 		ctx context.Context,
 		toCmAccountAddress common.Address,
-		messageType MessageType,
+		messageType messages.MessageType,
 	) (*big.Int, error)
 
 	IsBotAllowed(ctx context.Context, fromBot common.Address) (bool, error)
@@ -206,20 +207,20 @@ func (ch *evmChequeHandler) IssueCheque(
 	return signedCheque, nil
 }
 
-func (ch *evmChequeHandler) GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType MessageType) (*big.Int, error) {
+func (ch *evmChequeHandler) GetServiceFee(ctx context.Context, toCmAccountAddress common.Address, messageType messages.MessageType) (*big.Int, error) {
 	supplierCmAccount, err := ch.getCMAccount(toCmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
 	}
 
-	service, exists := servicesMapping[messageType]
-	if !exists {
-		return nil, fmt.Errorf("failed to get service identifier: %v", messageType)
+	serviceFullName, err := getServiceFullName(messageType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get service: %v", err)
 	}
 
 	serviceFee, err := supplierCmAccount.GetServiceFee(
 		&bind.CallOpts{Context: ctx},
-		service.servicePath,
+		serviceFullName,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service fee: %w", err)

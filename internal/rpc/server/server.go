@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/messages"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -22,7 +23,7 @@ var (
 )
 
 type externalRequestProcessor interface {
-	processExternalRequest(ctx context.Context, requestType messaging.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
+	processExternalRequest(ctx context.Context, requestType messages.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
 }
 
 type Server interface {
@@ -56,13 +57,12 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 	}
 	server := &server{cfg: cfg, logger: logger, tracer: tracer, processor: processor, serviceRegistry: serviceRegistry}
 	server.grpcServer = createGrpcServerAndRegisterServices(server, opts...)
-	NewPartnerSrv1(server.grpcServer, server)
-	NewPartnerSrv2(server.grpcServer, server)
 	return server
 }
 
 func createGrpcServerAndRegisterServices(server *server, opts ...grpc.ServerOption) *grpc.Server {
 	grpcServer := grpc.NewServer(opts...)
+	NewPingServer(grpcServer, server)
 	return grpcServer
 }
 
@@ -78,10 +78,10 @@ func (s *server) Stop() {
 	s.logger.Info("Stopping gRPC server...")
 	s.grpcServer.Stop()
 }
-func (s *server) processInternalRequest(ctx context.Context, requestType messaging.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+func (s *server) processInternalRequest(ctx context.Context, requestType messages.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processInternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
-	service, registered := s.serviceRegistry.GetService(requestType)
+	service, registered := s.serviceRegistry.GetClient(requestType)
 	if !registered {
 		return nil, fmt.Errorf("%w: %s", messaging.ErrUnsupportedService, requestType)
 	}
@@ -89,7 +89,7 @@ func (s *server) processInternalRequest(ctx context.Context, requestType messagi
 	return response, err
 }
 
-func (s *server) processExternalRequest(ctx context.Context, requestType messaging.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+func (s *server) processExternalRequest(ctx context.Context, requestType messages.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processExternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
@@ -97,7 +97,7 @@ func (s *server) processExternalRequest(ctx context.Context, requestType messagi
 		return nil, fmt.Errorf("error processing metadata: %w", err)
 	}
 
-	m := &messaging.Message{
+	m := &messages.Message{
 		Type:     requestType,
 		Content:  request,
 		Metadata: md,
