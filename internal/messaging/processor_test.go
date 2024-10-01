@@ -21,6 +21,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 
@@ -63,7 +64,7 @@ func TestProcessInbound(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
-	mockService := NewMockService(mockCtrl)
+	mockService := rpc.NewMockService(mockCtrl)
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
@@ -414,7 +415,7 @@ func TestProcessOutbound(t *testing.T) {
 	}
 }
 
-var _ Service = (*dummyService)(nil)
+var _ rpc.Service = (*dummyService)(nil)
 
 type dummyService struct{}
 

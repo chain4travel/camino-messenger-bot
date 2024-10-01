@@ -6,7 +6,6 @@ package messaging
 
 import (
 	"fmt"
-	"sync"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -63,7 +62,6 @@ func NewServiceRegistry(
 	return &serviceRegistry{
 		logger:    logger,
 		services:  services,
-		lock:      &sync.RWMutex{},
 		rpcClient: rpcClient,
 	}, hasSupportedServices, nil
 }
@@ -71,13 +69,10 @@ func NewServiceRegistry(
 type serviceRegistry struct {
 	logger    *zap.SugaredLogger
 	services  map[types.MessageType]rpc.Service
-	lock      *sync.RWMutex
 	rpcClient *client.RPCClient
 }
 
 func (s *serviceRegistry) GetService(requestType types.MessageType) (rpc.Service, bool) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
 	service, ok := s.services[requestType]
 	if !ok {
 		return nil, false

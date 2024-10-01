@@ -1,6 +1,3 @@
-github.com/chain4travel/camino-messenger-bot/internal/compression=Decompressor=internal/compression/mock_decompress.go
-github.com/chain4travel/camino-messenger-bot/internal/matrix=Client=internal/matrix/mock_room_handler.go
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc=ActivityProductListServiceClient=internal/messaging/mock_list_grpc.pb.go
-github.com/chain4travel/camino-messenger-bot/internal/messaging=ServiceRegistry=internal/messaging/mock_service_registry.go
-github.com/chain4travel/camino-messenger-bot/internal/messaging=Service=internal/messaging/mock_service.go
+github.com/chain4travel/camino-messenger-bot/internal/matrix=Client=internal/matrix/mock_client.go
 github.com/chain4travel/camino-messenger-bot/internal/messaging=Messenger=internal/messaging/mock_messenger.go
+github.com/chain4travel/camino-messenger-bot/internal/messaging=ServiceRegistry=internal/messaging/mock_service_registry.go

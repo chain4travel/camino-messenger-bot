@@ -18,10 +18,27 @@ input="scripts/mocks.mockgen.txt"
 while IFS= read -r line
 do
   IFS='=' read src_import_path interface_name output_path <<< "${line}"
-  package_name=$(basename $(dirname $output_path))
+  package_name=$(basename "$(dirname $output_path)")
   [[ $src_import_path == \#* ]] && continue
   echo "Generating ${output_path}..."
   mockgen -package=${package_name} -destination=${output_path} ${src_import_path} ${interface_name}
+done < "$input"
+
+# tuples of (source import path, comma-separated interface names to exclude, output file path)
+input="scripts/mocks.mockgen.source.txt"
+while IFS= read -r line
+do
+  IFS='=' read -r source_path exclude_interfaces output_path <<< "${line}"
+  package_name=$(basename "$(dirname "$output_path")")
+  outputted_files+=("${output_path}")
+  echo "Generating ${output_path}..."
+
+  mockgen \
+    -source="${source_path}" \
+    -destination="${output_path}" \
+    -package="${package_name}" \
+    -exclude_interfaces="${exclude_interfaces}"
+
 done < "$input"
 
 echo "SUCCESS"

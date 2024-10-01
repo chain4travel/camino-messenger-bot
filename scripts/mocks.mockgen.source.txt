@@ -1,0 +1,1 @@
+internal/rpc/rpc.go=ExternalRequestProcessor,Client,ServiceRegistry=internal/rpc/mock_service.go
