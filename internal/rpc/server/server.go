@@ -22,8 +22,8 @@ var (
 	_ Server = (*server)(nil)
 )
 
-type externalRequestProcessor interface {
-	processExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
+type ExternalRequestProcessor interface {
+	ProcessExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
 }
 
 type Server interface {
@@ -91,7 +91,7 @@ func (s *server) processInternalRequest(ctx context.Context, requestType types.M
 	return response, err
 }
 
-func (s *server) processExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+func (s *server) ProcessExternalRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.processExternalRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))

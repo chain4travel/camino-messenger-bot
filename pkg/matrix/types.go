@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
@@ -38,9 +38,9 @@ func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
 func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
 	switch types.MessageType(m.MsgType) {
-	case clients.PingServiceV1Request:
+	case generated.PingServiceV1Request:
 		m.Content = &pingv1.PingRequest{}
-	case clients.PingServiceV1Response:
+	case generated.PingServiceV1Response:
 		m.Content = &pingv1.PingResponse{}
 	default:
 		return types.ErrUnknownMessageType

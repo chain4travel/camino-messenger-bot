@@ -5,14 +5,14 @@
 package messaging
 
 import (
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients/generated"
 )
 
 func (s *serviceRegistry) registerServices() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	if srv, ok := s.services[clients.PingServiceV1Request]; ok {
-		srv.client = clients.NewPingServiceV1(s.rpcClient.ClientConn)
+	if srv, ok := s.services[generated.PingServiceV1Request]; ok {
+		srv.client = generated.NewPingServiceV1(s.rpcClient.ClientConn)
 	}
 }

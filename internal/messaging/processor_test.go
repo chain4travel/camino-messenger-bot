@@ -19,7 +19,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/clients/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
@@ -52,7 +52,7 @@ var (
 
 func TestProcessInbound(t *testing.T) {
 	responseMessage := types.Message{
-		Type: clients.PingServiceV1Response,
+		Type: generated.PingServiceV1Response,
 		Metadata: metadata.Metadata{
 			RequestID: requestID,
 			Sender:    anotherUserID,
@@ -115,7 +115,7 @@ func TestProcessInbound(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type: clients.PingServiceV1Request,
+					Type: generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{
 						Sender:  anotherUserID,
 						Cheques: []cheques.SignedCheque{},
@@ -154,7 +154,7 @@ func TestProcessInbound(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type: clients.PingServiceV1Request,
+					Type: generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{
 						Sender:  anotherUserID,
 						Cheques: []cheques.SignedCheque{dummyCheque},
@@ -181,7 +181,7 @@ func TestProcessInbound(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type: clients.PingServiceV1Request,
+					Type: generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{
 						Sender:  anotherUserID,
 						Cheques: []cheques.SignedCheque{dummyCheque},
@@ -239,7 +239,7 @@ func TestProcessInbound(t *testing.T) {
 
 func TestProcessOutbound(t *testing.T) {
 	productListResponse := &types.Message{
-		Type:     clients.PingServiceV1Response,
+		Type:     generated.PingServiceV1Response,
 		Metadata: metadata.Metadata{RequestID: requestID},
 	}
 
@@ -280,7 +280,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &types.Message{Type: clients.PingServiceV1Response},
+				msg: &types.Message{Type: generated.PingServiceV1Response},
 			},
 			err: ErrOnlyRequestMessagesAllowed,
 		},
@@ -295,7 +295,7 @@ func TestProcessOutbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			args: args{
-				msg: &types.Message{Type: clients.PingServiceV1Request},
+				msg: &types.Message{Type: generated.PingServiceV1Request},
 			},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
@@ -314,7 +314,7 @@ func TestProcessOutbound(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:     clients.PingServiceV1Request,
+					Type:     generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{Recipient: anotherUserID},
 				},
 			},
@@ -336,7 +336,7 @@ func TestProcessOutbound(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:     clients.PingServiceV1Request,
+					Type:     generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{Recipient: anotherUserID},
 				},
 			},
@@ -358,7 +358,7 @@ func TestProcessOutbound(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:     clients.PingServiceV1Request,
+					Type:     generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID},
 				},
 			},
@@ -446,12 +446,12 @@ func TestStart(t *testing.T) {
 			ch <- types.Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
 			// msg with sender == userID and valid msgType
 			ch <- types.Message{
-				Type:     clients.PingServiceV1Request,
+				Type:     generated.PingServiceV1Request,
 				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 			// 2nd msg with sender == userID and valid msgType
 			ch <- types.Message{
-				Type:     clients.PingServiceV1Request, // TODO@ use different message type
+				Type:     generated.PingServiceV1Request, // TODO@ use different message type
 				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
 			}
 		}
