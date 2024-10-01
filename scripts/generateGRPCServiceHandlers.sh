@@ -50,7 +50,7 @@ function generate_with_templates() {
 	GENERAL_PARAM_REPLACE+=" -e s#{{GENERATOR}}#$GENERATOR#g"
 
 	# Generate client
-	CLIENT_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_client.go"
+	CLIENT_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_${SERVICE}_client.go"
 	echo "Generating client: $CLIENT_GEN_FILE"
 	cp $CLIENT_TEMPLATE $CLIENT_GEN_FILE
 	sed -i $GENERAL_PARAM_REPLACE $CLIENT_GEN_FILE
@@ -65,7 +65,7 @@ function generate_with_templates() {
 		METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
-		METHOD_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_${METHOD}_method.go"
+		METHOD_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_method.go"
 		echo "Generating client method: $METHOD_GEN_FILE"
 		cp $CLIENT_METHOD_TEMPLATE $METHOD_GEN_FILE
 		sed -i $GENERAL_PARAM_REPLACE $METHOD_GEN_FILE
@@ -74,7 +74,7 @@ function generate_with_templates() {
 	done
 
 	# Generate server
-	SERVER_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_server.go"
+	SERVER_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_${SERVICE}_server.go"
 	echo "Generating server: $SERVER_GEN_FILE"
 	cp $SERVER_TEMPLATE $SERVER_GEN_FILE
 	sed -i $GENERAL_PARAM_REPLACE $SERVER_GEN_FILE
@@ -89,7 +89,7 @@ function generate_with_templates() {
 		METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
-		METHOD_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_${METHOD}_method.go"
+		METHOD_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_method.go"
 		echo "Generating server method: $METHOD_GEN_FILE"
 		cp $SERVER_METHOD_TEMPLATE $METHOD_GEN_FILE
 		sed -i $GENERAL_PARAM_REPLACE $METHOD_GEN_FILE
