@@ -9,7 +9,7 @@ import (
 const (
 	TestServiceV1                     = "TestServiceV1"
 	TestServiceV1Request  MessageType = TestServiceV1 + ".Request"
-	TestServiceV2Response MessageType = TestServiceV1 + ".Response"
+	TestServiceV1Response MessageType = TestServiceV1 + ".Response"
 )
 
 func TestMessageTypeToServiceName(t *testing.T) {
@@ -22,7 +22,7 @@ func TestMessageTypeToServiceName(t *testing.T) {
 			expected:    TestServiceV1,
 		},
 		{
-			messageType: TestServiceV2Response,
+			messageType: TestServiceV1Response,
 			expected:    TestServiceV1,
 		},
 	}
