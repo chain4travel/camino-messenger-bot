@@ -11,6 +11,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
@@ -33,6 +34,7 @@ import (
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -57,58 +59,7 @@ type partnerPlugin struct {
 	seat_mapv2grpc.SeatMapAvailabilityServiceServer
 	infov2grpc.CountryEntryRequirementsServiceServer
 	activityv2grpc.ActivityProductInfoServiceServer
-	bookv2grpc.MintServiceServer
 	notificationv1grpc.NotificationServiceServer
-}
-
-func (p *partnerPlugin) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv2.MintResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s (Mint)", md.RequestID)
-
-	// On-chain payment of 1 nCAM value=1 decimals=9 this currency has denominator 18 on
-	//
-	//	Columbus and conclusively to mint the value of 1 nCam must be divided by 10^9 =
-	//	0.000000001 CAM and minted in its smallest fraction by multiplying 0.000000001 *
-	//	10^18 => 1000000000 aCAM
-	response := bookv2.MintResponse{
-		MintId: &typesv1.UUID{Value: md.RequestID},
-		BuyableUntil: &timestamppb.Timestamp{
-			Seconds: time.Now().Add(5 * time.Minute).Unix(),
-		},
-		Price: &typesv2.Price{
-			Value:    "1",
-			Decimals: 9,
-			Currency: &typesv2.Currency{
-				Currency: &typesv2.Currency_NativeToken{
-					NativeToken: &emptypb.Empty{},
-				},
-			},
-		},
-		/*
-			ISO CURRENCY EXAMPLE:
-				Price: &typesv1.Price{
-					Value:    "10000",
-					Decimals: 2,
-					Currency: &typesv1.Currency{
-						Currency: &typesv1.Currency_IsoCurrency{
-							IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
-						},
-					},
-				},
-		*/
-		BookingTokenId:  uint64(123456),
-		ValidationId:    &typesv1.UUID{Value: "123456"},
-		BookingTokenUri: "https://example.com/booking-token",
-	}
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
 }
 
 func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
@@ -925,13 +876,15 @@ func main() {
 	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
 	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
-	bookv2grpc.RegisterMintServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
 	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &partnerPlugin{})
+
+	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers.MintServiceV2Server{})
+	bookv1grpc.RegisterMintServiceServer(grpcServer, &handlers.MintServiceV1Server{})
 
 	port := 55555
 	var err error
