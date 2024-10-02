@@ -77,7 +77,7 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 	h.onBookingTokenMint(tokenID, mintResp.MintId, mintResp.BuyableUntil.AsTime())
 
 	mintResp.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
-	mintResp.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())}
+	mintResp.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())} //nolint:gosec
 	mintResp.MintTransactionId = txID
 	return false
 }
@@ -119,7 +119,7 @@ func (h *evmResponseHandler) getPriceAndTokenV1(_ context.Context, price *typesv
 		var err error
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
 		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("error minting NFT: %v", err)
+			return nil, zeroAddress, fmt.Errorf("error minting NFT: %w", err)
 		}
 	case *typesv1.Currency_TokenCurrency:
 		// Add logic to handle TokenCurrency

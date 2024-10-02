@@ -127,7 +127,7 @@ func (h *evmResponseHandler) getPriceAndTokenV2(_ context.Context, price *typesv
 		var err error
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
 		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("error minting NFT: %v", err)
+			return nil, zeroAddress, fmt.Errorf("error minting NFT: %w", err)
 		}
 	case *typesv2.Currency_TokenCurrency:
 		// Add logic to handle TokenCurrency
