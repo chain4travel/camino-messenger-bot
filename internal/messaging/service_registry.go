@@ -5,264 +5,97 @@
 package messaging
 
 import (
-	"strconv"
-	"strings"
-	"sync"
+	"errors"
+	"fmt"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
+	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 )
 
+var errUnsupportedService = errors.New("cm account support service, which bot doesn't support")
+
 type ServiceRegistry interface {
-	RegisterServices(rpcClient *client.RPCClient)
-	GetService(messageType MessageType) (Service, bool)
+	GetService(messageType types.MessageType) (rpc.Service, bool)
 
 	// should only be called for supplier bot with rpc client
 	NotificationClient() notificationv1grpc.NotificationServiceClient
 }
 
-type supportedServices struct {
-	ServiceNames []string
-	Services     []cmaccount.PartnerConfigurationService
-}
+func NewServiceRegistry(
+	cfg *config.EvmConfig,
+	evmClient *ethclient.Client,
+	logger *zap.SugaredLogger,
+	rpcClient *client.RPCClient,
+) (ServiceRegistry, bool, error) {
+	cmAccount, err := cmaccount.NewCmaccount(common.HexToAddress(cfg.CMAccountAddress), evmClient)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to fetch CM account: %w", err)
+	}
 
-type serviceRegistry struct {
-	logger    *zap.SugaredLogger
-	services  map[MessageType]Service
-	lock      *sync.RWMutex
-	supported map[ServiceIdentifier]cmaccount.PartnerConfigurationService
-	rpcClient *client.RPCClient
-}
-type ServiceIdentifier struct {
-	serviceName    string
-	serviceVersion uint64
-	servicePath    string
-}
+	supportedServices, err := cmAccount.GetSupportedServices(&bind.CallOpts{})
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to fetch Registered services: %w", err)
+	}
 
-func NewServiceRegistry(supportedServices supportedServices, logger *zap.SugaredLogger) ServiceRegistry {
-	supported := make(map[ServiceIdentifier]cmaccount.PartnerConfigurationService)
-	// TODO: @VjeraTurk support multiple versions
-	for i, serviceFullName := range supportedServices.ServiceNames {
-		// Split each service name by "."
-		servicePath := strings.Split(serviceFullName, ".")
+	hasSupportedServices := len(supportedServices.ServiceNames) > 0
+	if hasSupportedServices && rpcClient == nil {
+		return nil, false, fmt.Errorf("bot supports some services, but doesn't have partner plugin rpc client configured")
+	}
 
-		if len(servicePath) < 4 {
-			logger.Errorf("Unidentified service: %s ", serviceFullName)
+	servicesNames := make(map[string]struct{}, len(supportedServices.ServiceNames))
+	logStr := "\nSupported services:\n"
+	for _, serviceName := range supportedServices.ServiceNames {
+		logStr += serviceName + "\n"
+		servicesNames[serviceName] = struct{}{}
+	}
+	logStr += "\n"
+	logger.Info(logStr)
+
+	services := generated.RegisterClientServices(rpcClient.ClientConn, servicesNames)
+
+	if len(servicesNames) > 0 {
+		logger.Error(errUnsupportedService)
+
+		logStr := "\nUnsupported services:\n"
+		for serviceName := range servicesNames {
+			logStr += serviceName + "\n"
 		}
-		serviceVersion, err := strconv.ParseUint(servicePath[3][1:], 10, 64)
-		if err != nil {
-			logger.Errorf("Error:", err)
-		}
-		logger.Info(servicePath[4], " registered version:", serviceVersion)
-		supported[ServiceIdentifier{serviceName: servicePath[4], serviceVersion: serviceVersion, servicePath: serviceFullName}] = supportedServices.Services[i]
+		logStr += "\n"
+		logger.Warn(logStr)
+
+		return nil, false, errUnsupportedService
 	}
 
 	return &serviceRegistry{
 		logger:    logger,
-		services:  make(map[MessageType]Service),
-		lock:      &sync.RWMutex{},
-		supported: supported,
-	}
+		services:  services,
+		rpcClient: rpcClient,
+	}, hasSupportedServices, nil
 }
 
-func (s *serviceRegistry) RegisterServices(rpcClient *client.RPCClient) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	if s.isServiceVersionSupported("ActivityProductInfoService", uint64(2), "cmp.services.activity.v2.ActivityProductInfoService") {
-		c := activityv2grpc.NewActivityProductInfoServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivityProductInfoService"))] = activityProductInfoService{client: &c}
-	}
-	if s.isServiceVersionSupported("ActivityProductListService", uint64(2), "cmp.services.activity.v2.ActivityProductListService") {
-		c := activityv2grpc.NewActivityProductListServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivityProductListService"))] = activityProductListService{client: c}
-	}
-	if s.isServiceVersionSupported("ActivitySearchService", uint64(2), "cmp.services.activity.v2.ActivitySearchService'") {
-		c := activityv2grpc.NewActivitySearchServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("ActivitySearchService"))] = activityService{client: &c}
-	}
-	if s.isServiceVersionSupported("AccommodationProductInfoService", uint64(2), "cmp.services.accommodation.v2.AccommodationProductInfoService") {
-		c := accommodationv2grpc.NewAccommodationProductInfoServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("AccommodationProductInfoService"))] = accommodationProductInfoService{client: &c}
-	}
-	if s.isServiceVersionSupported("AccommodationProductListService", uint64(2), "cmp.services.accommodation.v2.AccommodationProductListService") {
-		c := accommodationv2grpc.NewAccommodationProductListServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("AccommodationProductListService"))] = accommodationProductListService{client: &c}
-	}
-	if s.isServiceVersionSupported("AccommodationSearchService", uint64(2), "cmp.services.accommodation.v2.AccommodationSearchService") {
-		c := accommodationv2grpc.NewAccommodationSearchServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("AccommodationSearchService"))] = accommodationSearchService{client: &c}
-	}
-	if s.isServiceVersionSupported("MintService", uint64(2), "cmp.services.book.v2.MintService") {
-		c := bookv2grpc.NewMintServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("MintService"))] = mintService{client: &c}
-	}
-	if s.isServiceVersionSupported("ValidationService", uint64(2), "cmp.services.book.v2.ValidationService") {
-		c := bookv2grpc.NewValidationServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("ValidationService"))] = validationService{client: &c}
-	}
-	if s.isServiceVersionSupported("TransportSearchService", uint64(2), "cmp.services.transport.v2.TransportSearchService") {
-		c := transportv2grpc.NewTransportSearchServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("TransportSearchService"))] = transportService{client: &c}
-	}
-	if s.isServiceVersionSupported("SeatMapService", uint64(2), "cmp.services.seat_map.v2.SeatMapService") {
-		c := seat_mapv2grpc.NewSeatMapServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("SeatMapService"))] = seatMapService{client: &c}
-	}
-	if s.isServiceVersionSupported("SeatMapAvailabilityService", uint64(2), "cmp.services.seat_map.v2.SeatMapAvailabilityService") {
-		c := seat_mapv2grpc.NewSeatMapAvailabilityServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("SeatMapAvailabilityService"))] = seatMapAvailabilityService{client: &c}
-	}
-	if s.isServiceVersionSupported("CountryEntryRequirementsService", uint64(2), "cmp.services.info.v2.CountryEntryRequirementsService") {
-		c := infov2grpc.NewCountryEntryRequirementsServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("CountryEntryRequirementsService"))] = countryEntryRequirementsService{client: &c}
-	}
-	if s.isServiceVersionSupported("InsuranceSearchService", uint64(1), "cmp.services.insurance.v1.InsuranceSearchService") {
-		c := insurancev1grpc.NewInsuranceSearchServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceSearchService"))] = insuranceSearchService{client: &c}
-	}
-	if s.isServiceVersionSupported("InsuranceProductInfoService", uint64(1), "cmp.services.insurance.v1.InsuranceProductInfoService") {
-		c := insurancev1grpc.NewInsuranceProductInfoServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceProductInfoService"))] = insuranceProductInfoService{client: &c}
-	}
-	if s.isServiceVersionSupported("InsuranceProductListService", uint64(1), "cmp.services.insurance.v1.InsuranceProductListService") {
-		c := insurancev1grpc.NewInsuranceProductListServiceClient(rpcClient.ClientConn)
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("InsuranceProductListService"))] = insuranceProductListService{client: &c}
-	}
-	if s.isServiceVersionSupported("GetNetworkFeeService", uint64(1), "cmp.services.network.1.GetNetworkFeeService") {
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("GetNetworkFeeService"))] = networkService{}
-	}
-	if s.isServiceVersionSupported("PingService", uint64(1), "cmp.services.ping.v1.PingService") {
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("PingService"))] = pingService{}
-	}
-	if s.isServiceVersionSupported("GetPartnerConfigurationService", uint64(2), "cmp.services.partner.v2.GetPartnerConfigurationService") {
-		s.services[MessageType(s.getRequestTypeNameFromServiceName("GetPartnerConfigurationService"))] = partnerService{}
-	}
-
-	if rpcClient != nil {
-		s.rpcClient = rpcClient
-	}
+type serviceRegistry struct {
+	logger    *zap.SugaredLogger
+	services  map[types.MessageType]rpc.Service
+	rpcClient *client.RPCClient
 }
 
-func (s *serviceRegistry) getRequestTypeNameFromServiceName(name string) string {
-	name = strings.TrimSuffix(name, "Service")
-	return name + "Request"
-}
-
-func (s *serviceRegistry) GetService(messageType MessageType) (Service, bool) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	service, ok := s.services[messageType]
-	return service, ok
-}
-
-func (s *serviceRegistry) isServiceVersionSupported(name string, version uint64, path string) bool {
-	_, ok := s.supported[ServiceIdentifier{serviceName: name, serviceVersion: version, servicePath: path}]
-	return ok
+func (s *serviceRegistry) GetService(requestType types.MessageType) (rpc.Service, bool) {
+	service, ok := s.services[requestType]
+	if !ok {
+		return nil, false
+	}
+	return service, true
 }
 
 func (s *serviceRegistry) NotificationClient() notificationv1grpc.NotificationServiceClient {
 	return notificationv1grpc.NewNotificationServiceClient(s.rpcClient.ClientConn)
-}
-
-var servicesMapping = map[MessageType]ServiceIdentifier{
-	ActivityProductInfoRequest: {
-		serviceName:    "ActivityProductInfoService",
-		servicePath:    "cmp.services.activity.v2.ActivityProductInfoService",
-		serviceVersion: 2,
-	},
-	ActivityProductListRequest: {
-		serviceName:    "ActivityProductListService",
-		servicePath:    "cmp.services.activity.v2.ActivityProductListService",
-		serviceVersion: 2,
-	},
-	ActivitySearchRequest: {
-		serviceName:    "ActivitySearchService",
-		servicePath:    "cmp.services.activity.v2.ActivitySearchService",
-		serviceVersion: 2,
-	},
-	AccommodationProductInfoRequest: {
-		serviceName:    "AccommodationProductInfoService",
-		servicePath:    "cmp.services.accommodation.v2.AccommodationProductInfoService",
-		serviceVersion: 2,
-	},
-	AccommodationProductListRequest: {
-		serviceName:    "AccommodationProductListService",
-		servicePath:    "cmp.services.accommodation.v2.AccommodationProductListService",
-		serviceVersion: 2,
-	},
-	AccommodationSearchRequest: {
-		serviceName:    "AccommodationSearchService",
-		servicePath:    "cmp.services.accommodation.v2.AccommodationSearchService",
-		serviceVersion: 2,
-	},
-	MintRequest: {
-		serviceName:    "MintService",
-		servicePath:    "cmp.services.book.v2.MintService",
-		serviceVersion: 2,
-	},
-	ValidationRequest: {
-		serviceName:    "ValidationService",
-		servicePath:    "cmp.services.book.v2.ValidationService",
-		serviceVersion: 2,
-	},
-	TransportSearchRequest: {
-		serviceName:    "TransportSearchService",
-		servicePath:    "cmp.services.transport.v2.TransportSearchService",
-		serviceVersion: 2,
-	},
-	SeatMapRequest: {
-		serviceName:    "SeatMapService",
-		servicePath:    "cmp.services.seat_map.v2.SeatMapService",
-		serviceVersion: 2,
-	},
-	SeatMapAvailabilityRequest: {
-		serviceName:    "SeatMapAvailabilityService",
-		servicePath:    "cmp.services.seat_map.v2.SeatMapAvailabilityService",
-		serviceVersion: 2,
-	},
-	CountryEntryRequirementsRequest: {
-		serviceName:    "CountryEntryRequirementsService",
-		servicePath:    "cmp.services.info.v2.CountryEntryRequirementsService",
-		serviceVersion: 2,
-	},
-	InsuranceSearchRequest: {
-		serviceName:    "InsuranceSearchService",
-		servicePath:    "cmp.services.insurance.v1.InsuranceSearchService",
-		serviceVersion: 1,
-	},
-	InsuranceProductInfoRequest: {
-		serviceName:    "InsuranceProductInfoService",
-		servicePath:    "cmp.services.insurance.v1.InsuranceProductInfoService",
-		serviceVersion: 1,
-	},
-	InsuranceProductListRequest: {
-		serviceName:    "InsuranceProductListService",
-		servicePath:    "cmp.services.insurance.v1.InsuranceProductListService",
-		serviceVersion: 1,
-	},
-	GetPartnerConfigurationRequest: {
-		serviceName:    "GetPartnerConfigurationService",
-		servicePath:    "cmp.services.partner.v2.GetPartnerConfigurationService",
-		serviceVersion: 2,
-	},
-	GetNetworkFeeRequest: {
-		serviceName:    "GetNetworkFeeService",
-		servicePath:    "cmp.services.network.v1.GetNetworkFeeService",
-		serviceVersion: 1,
-	},
-	PingRequest: {
-		serviceName:    "PingService",
-		servicePath:    "cmp.services.ping.v1.PingService",
-		serviceVersion: 1,
-	},
 }

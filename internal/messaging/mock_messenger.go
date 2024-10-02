@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	types "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	gomock "go.uber.org/mock/gomock"
 	id "maunium.net/go/mautrix/id"
 )
@@ -55,10 +56,10 @@ func (mr *MockMessengerMockRecorder) Checkpoint() *gomock.Call {
 }
 
 // Inbound mocks base method.
-func (m *MockMessenger) Inbound() chan Message {
+func (m *MockMessenger) Inbound() chan types.Message {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Inbound")
-	ret0, _ := ret[0].(chan Message)
+	ret0, _ := ret[0].(chan types.Message)
 	return ret0
 }
 
@@ -69,7 +70,7 @@ func (mr *MockMessengerMockRecorder) Inbound() *gomock.Call {
 }
 
 // SendAsync mocks base method.
-func (m *MockMessenger) SendAsync(arg0 context.Context, arg1 Message, arg2 [][]byte, arg3 id.UserID) error {
+func (m *MockMessenger) SendAsync(arg0 context.Context, arg1 types.Message, arg2 [][]byte, arg3 id.UserID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendAsync", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)

@@ -18,9 +18,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-bot/utils/constants"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"maunium.net/go/mautrix/id"
@@ -66,16 +63,6 @@ func (a *App) Run(ctx context.Context) error {
 
 	evmEventListener := events.NewEventListener(evmClient, a.logger)
 
-	cmAccount, err := cmaccount.NewCmaccount(common.HexToAddress(a.cfg.CMAccountAddress), evmClient)
-	if err != nil {
-		a.logger.Fatalf("Failed to fetch CM account: %v", err)
-	}
-
-	supportedServices, err := cmAccount.GetSupportedServices(&bind.CallOpts{})
-	if err != nil {
-		a.logger.Fatalf("Failed to fetch Registered services: %v", err)
-	}
-	a.logger.Infof("supportedServices %v", supportedServices)
 	// create response handler
 
 	// TODO do proper DI with FX
@@ -85,15 +72,22 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Fatalf("Failed to create storage: %v", err)
 	}
 
-	serviceRegistry := messaging.NewServiceRegistry(supportedServices, a.logger)
-
 	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
+	var rpcClient *client.RPCClient
 	if a.cfg.PartnerPluginConfig.Host != "" {
-		a.startRPCClient(gCtx, g, serviceRegistry)
-	} else {
-		a.logger.Infof("No host for partner plugin provided, bot will serve as a distributor bot.")
-		serviceRegistry.RegisterServices(nil)
+		rpcClient = a.startRPCClient(gCtx, g)
 	}
+
+	// register supported service
+	serviceRegistry, hasSupportedServices, err := messaging.NewServiceRegistry(&a.cfg.EvmConfig, evmClient, a.logger, rpcClient)
+	if err != nil {
+		a.logger.Fatalf("Failed to create service registry: %v", err)
+	}
+
+	if !hasSupportedServices && rpcClient != nil {
+		a.logger.Warn("Bot doesn't support any services, but has partner plugin rpc client configured")
+	}
+
 	// start messenger (receiver)
 	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
 
@@ -195,7 +189,7 @@ func (a *App) initTracer() tracing.Tracer {
 	return tracer
 }
 
-func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegistry messaging.ServiceRegistry) {
+func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group) *client.RPCClient {
 	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
 	g.Go(func() error {
 		a.logger.Info("Starting gRPC client...")
@@ -203,13 +197,13 @@ func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group, serviceRegi
 		if err != nil {
 			panic(err)
 		}
-		serviceRegistry.RegisterServices(rpcClient)
 		return nil
 	})
 	g.Go(func() error {
 		<-ctx.Done()
 		return rpcClient.Shutdown()
 	})
+	return rpcClient
 }
 
 func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan id.UserID) {

@@ -21,7 +21,7 @@ func (NoopChequeHandler) IssueCheque(_ context.Context, _ common.Address, _ comm
 	return &cheques.SignedCheque{}, nil
 }
 
-func (NoopChequeHandler) GetServiceFee(_ context.Context, _ common.Address, _ MessageType) (*big.Int, error) {
+func (NoopChequeHandler) GetServiceFee(_ context.Context, _ common.Address, _ string) (*big.Int, error) {
 	return nil, nil
 }
 

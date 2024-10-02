@@ -8,29 +8,22 @@ package matrix
 import (
 	"testing"
 
-	"maunium.net/go/mautrix/event"
-
-	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
+	"google.golang.org/protobuf/proto"
+	"maunium.net/go/mautrix/event"
 )
 
 func TestAssembleMessage(t *testing.T) {
-	plainActivitySearchResponseMsg := messaging.Message{
-		Type: messaging.ActivitySearchResponse,
-		Content: messaging.MessageContent{
-			ResponseContent: messaging.ResponseContent{
-				ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-					Results: []*activityv2.ActivitySearchResult{
-						{Info: &activityv2.Activity{ServiceCode: "test"}},
-					},
-				},
-			},
-		},
+	pingResponseMsg := types.Message{
+		Type:    generated.PingServiceV1Response,
+		Content: &pingv1.PingResponse{PingMessage: "pong"},
 	}
 	type fields struct {
 		partialMessages map[string][]*matrix.CaminoMatrixMessage
@@ -114,7 +107,7 @@ func TestAssembleMessage(t *testing.T) {
 			args: args{
 				msg: &matrix.CaminoMatrixMessage{
 					MessageEventContent: event.MessageEventContent{
-						MsgType: event.MessageType(messaging.ActivitySearchResponse),
+						MsgType: event.MessageType(generated.PingServiceV1Response),
 					},
 					Metadata: metadata.Metadata{
 						RequestID:      "id",
@@ -123,7 +116,7 @@ func TestAssembleMessage(t *testing.T) {
 				}, // last message
 			},
 			prepare: func() {
-				msg := plainActivitySearchResponseMsg
+				msg := pingResponseMsg
 				msgBytes, err := msg.MarshalContent()
 				require.NoError(t, err)
 				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
@@ -134,9 +127,9 @@ func TestAssembleMessage(t *testing.T) {
 					NumberOfChunks: 1,
 				},
 				MessageEventContent: event.MessageEventContent{
-					MsgType: event.MessageType(messaging.ActivitySearchResponse),
+					MsgType: event.MessageType(generated.PingServiceV1Response),
 				},
-				Content: plainActivitySearchResponseMsg.Content,
+				Content: pingResponseMsg.Content,
 			},
 			isComplete: true,
 			err:        nil,
@@ -146,7 +139,7 @@ func TestAssembleMessage(t *testing.T) {
 				partialMessages: map[string][]*matrix.CaminoMatrixMessage{"id": {
 					// only 2 chunks because the last one is passed as the last argument triggering the call of AssembleMessage
 					// msgType is necessary only for 1st chunk
-					{MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(messaging.ActivitySearchResponse)}}, {},
+					{MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(generated.PingServiceV1Response)}}, {},
 				}},
 			},
 			args: args{
@@ -158,16 +151,16 @@ func TestAssembleMessage(t *testing.T) {
 				}, // last message
 			},
 			prepare: func() {
-				msg := plainActivitySearchResponseMsg
+				msg := pingResponseMsg
 				msgBytes, err := msg.MarshalContent()
 				require.NoError(t, err)
 				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
 			},
 			want: &matrix.CaminoMatrixMessage{
 				MessageEventContent: event.MessageEventContent{
-					MsgType: event.MessageType(messaging.ActivitySearchResponse),
+					MsgType: event.MessageType(generated.PingServiceV1Response),
 				},
-				Content: plainActivitySearchResponseMsg.Content,
+				Content: pingResponseMsg.Content,
 			},
 			isComplete: true,
 			err:        nil,
@@ -188,8 +181,8 @@ func TestAssembleMessage(t *testing.T) {
 
 			// Reset the response content to avoid comparisons of pb fields like sizeCache
 			if tt.want != nil && got != nil {
-				tt.want.Content.ResponseContent.ActivitySearchResponse.Reset()
-				got.Content.ResponseContent.ActivitySearchResponse.Reset()
+				proto.Reset(tt.want.Content)
+				proto.Reset(got.Content)
 			}
 			require.Equal(t, tt.want, got, "AssembleMessage() got = %v, expRoomID %v", got, tt.want)
 		})

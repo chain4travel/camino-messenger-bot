@@ -8,18 +8,27 @@ package messaging
 import (
 	"context"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"maunium.net/go/mautrix/id"
 )
 
 type APIMessageResponse struct {
-	Message Message
+	Message types.Message
 	Err     error
 }
 type Messenger interface {
 	metadata.Checkpoint
-	StartReceiver() (id.UserID, error)                                                  // start receiving messages. Returns the user id
-	StopReceiver() error                                                                // stop receiving messages
-	SendAsync(ctx context.Context, m Message, content [][]byte, sendTo id.UserID) error // asynchronous call (fire and forget)
-	Inbound() chan Message                                                              // channel where incoming messages are written
+
+	// start receiving messages. Returns the user id
+	StartReceiver() (id.UserID, error)
+
+	// stop receiving messages
+	StopReceiver() error
+
+	// asynchronous call (fire and forget)
+	SendAsync(ctx context.Context, m types.Message, content [][]byte, sendTo id.UserID) error
+
+	// channel where incoming messages are written
+	Inbound() chan types.Message
 }

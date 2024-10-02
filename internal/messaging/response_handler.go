@@ -20,13 +20,16 @@ import (
 	grpc "google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
 
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	config "github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
@@ -49,8 +52,9 @@ var (
 )
 
 type ResponseHandler interface {
-	HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent)
-	HandleRequest(ctx context.Context, msgType MessageType, request *RequestContent) error
+	HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage)
+	HandleRequest(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error
+	AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string)
 }
 
 func NewResponseHandler(
@@ -100,42 +104,54 @@ type evmResponseHandler struct {
 	evmEventListener    *events.EventListener
 }
 
-func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType MessageType, request *RequestContent, response *ResponseContent) {
+func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
 	switch msgType {
-	case MintRequest: // distributor will post-process a mint request to buy the returned NFT
-		if h.handleMintRequest(ctx, response) {
+	case generated.MintServiceV2Request: // distributor will post-process a mint request to buy the returned NFT
+		if h.handleMintRequestV2(ctx, response) {
 			return
 		}
-	case MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		if h.handleMintResponse(ctx, response, request) {
+	case generated.MintServiceV2Response: // supplier will act upon receiving a mint response by minting an NFT
+		if h.handleMintResponseV2(ctx, response, request) {
 			return
 		}
 	}
 }
 
-func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType MessageType, request *RequestContent) error {
+func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error {
 	switch msgType { //nolint:gocritic
-	case MintRequest:
-		request.BuyerAddress = h.cmAccountAddress.Hex()
+	case generated.MintServiceV2Request:
+		mintReq, ok := request.(*bookv2.MintRequest)
+		if !ok {
+			return nil
+		}
+		mintReq.BuyerAddress = h.cmAccountAddress.Hex()
 	}
 	return nil
 }
 
-func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *ResponseContent, request *RequestContent) bool {
-	if response.MintResponse.Header == nil {
-		response.MintResponse.Header = &typesv1.ResponseHeader{}
+func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response protoreflect.ProtoMessage, request protoreflect.ProtoMessage) bool {
+	mintResp, ok := response.(*bookv2.MintResponse)
+	if !ok {
+		return false
+	}
+	mintReq, ok := request.(*bookv2.MintRequest)
+	if !ok {
+		return false
+	}
+	if mintResp.Header == nil {
+		mintResp.Header = &typesv1.ResponseHeader{}
 	}
 
 	// TODO: @VjeraTurk check if CMAccount exists
-	// TODO @evlekht ensure that request.MintRequest.BuyerAddress is c-chain address format, not x/p/t chain
-	buyerAddress := common.HexToAddress(request.MintRequest.BuyerAddress)
+	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format, not x/p/t chain
+	buyerAddress := common.HexToAddress(mintReq.BuyerAddress)
 
-	tokenURI := response.MintResponse.BookingTokenUri
+	tokenURI := mintResp.BookingTokenUri
 
 	if tokenURI == "" {
 		// Get a Token URI for the token.
 		var jsonPlain string
-		jsonPlain, tokenURI, _ = createTokenURIforMintResponse(response.MintResponse)
+		jsonPlain, tokenURI, _ = createTokenURIforMintResponse(mintResp)
 		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 	} else {
 		h.logger.Debugf("Token URI: %s\n", tokenURI)
@@ -144,23 +160,23 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 	currentTime := time.Now()
 
 	switch {
-	case response.MintResponse.BuyableUntil == nil || response.MintResponse.BuyableUntil.Seconds == 0:
+	case mintResp.BuyableUntil == nil || mintResp.BuyableUntil.Seconds == 0:
 		// BuyableUntil not set
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationDefault))
+		mintResp.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationDefault))
 
-	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
+	case mintResp.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
-		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", response.MintResponse.BuyableUntil)
-		addErrorToResponseHeader(MintResponse, response, errMsg)
+		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", mintResp.BuyableUntil)
+		h.AddErrorToResponseHeader(response, errMsg)
 		return true
 
-	case response.MintResponse.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
+	case mintResp.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
 		// BuyableUntil too early
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMinimal))
+		mintResp.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMinimal))
 
-	case response.MintResponse.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMaximal)).Seconds:
+	case mintResp.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMaximal)).Seconds:
 		// BuyableUntil too late
-		response.MintResponse.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMaximal))
+		mintResp.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMaximal))
 	}
 
 	// MINT TOKEN
@@ -168,49 +184,53 @@ func (h *evmResponseHandler) handleMintResponse(ctx context.Context, response *R
 		ctx,
 		buyerAddress,
 		tokenURI,
-		big.NewInt(response.MintResponse.BuyableUntil.Seconds),
-		response.MintResponse.Price,
+		big.NewInt(mintResp.BuyableUntil.Seconds),
+		mintResp.Price,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		addErrorToResponseHeader(MintResponse, response, errMessage)
+		h.AddErrorToResponseHeader(response, errMessage)
 		return true
 	}
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 
-	h.onBookingTokenMint(tokenID, response.MintResponse.MintId, response.BuyableUntil.AsTime())
+	h.onBookingTokenMint(tokenID, mintResp.MintId, mintResp.BuyableUntil.AsTime())
 
 	// Header is of typev1
-	response.MintResponse.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
+	mintResp.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	// Disable Linter: This code will be removed with the new mint logic and protocol
-	response.MintResponse.BookingTokenId = tokenID.Uint64()
-	response.MintTransactionId = txID
+	mintResp.BookingTokenId = tokenID.Uint64()
+	mintResp.MintTransactionId = txID
 	return false
 }
 
-func (h *evmResponseHandler) handleMintRequest(ctx context.Context, response *ResponseContent) bool {
-	if response.MintResponse.Header == nil {
-		response.MintResponse.Header = &typesv1.ResponseHeader{}
+func (h *evmResponseHandler) handleMintRequestV2(ctx context.Context, response protoreflect.ProtoMessage) bool {
+	mintResp, ok := response.(*bookv2.MintResponse)
+	if !ok {
+		return false
 	}
-	if response.MintTransactionId == "" {
-		addErrorToResponseHeader(MintResponse, response, "missing mint transaction id")
+	if mintResp.Header == nil {
+		mintResp.Header = &typesv1.ResponseHeader{}
+	}
+	if mintResp.MintTransactionId == "" {
+		h.AddErrorToResponseHeader(response, "missing mint transaction id")
 		return true
 	}
 
-	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
+	tokenID := new(big.Int).SetUint64(mintResp.BookingTokenId)
 
 	txID, err := h.buy(ctx, tokenID)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		addErrorToResponseHeader(MintResponse, response, errMessage)
+		h.AddErrorToResponseHeader(response, errMessage)
 		return true
 	}
 
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, response.MintTransactionId)
-	response.BuyTransactionId = txID
+	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintResp.MintTransactionId)
+	mintResp.BuyTransactionId = txID
 	return false
 }
 
@@ -291,7 +311,7 @@ func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string,
 	if err != nil {
 		return "", err
 	}
-	if receipt.Status != types.ReceiptStatusSuccessful {
+	if receipt.Status != ethTypes.ReceiptStatusSuccessful {
 		return "", fmt.Errorf("transaction failed: %v", receipt)
 	}
 
@@ -301,7 +321,7 @@ func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string,
 }
 
 // Waits for a transaction to be mined
-func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Transaction) (receipt *types.Receipt, err error) {
+func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *ethTypes.Transaction) (receipt *ethTypes.Receipt, err error) {
 	h.logger.Infof("Waiting for transaction to be mined...\n")
 
 	receipt, err = bind.WaitMined(ctx, h.ethClient, tx)
@@ -309,7 +329,7 @@ func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *types.Tran
 		return receipt, err
 	}
 
-	if receipt.Status != types.ReceiptStatusSuccessful {
+	if receipt.Status != ethTypes.ReceiptStatusSuccessful {
 		return receipt, fmt.Errorf("transaction failed: %v", receipt)
 	}
 
@@ -451,52 +471,18 @@ func createTokenURIforMintResponse(mintResponse *bookv2.MintResponse) (string, s
 	return jsonPlain, tokenURI, nil
 }
 
-// TODO @evlekht refactor this to either remove manual cases adding or enforce it compile-time for all message types
-func addErrorToResponseHeader(msgType MessageType, response *ResponseContent, errMessage string) {
-	var header *typesv1.ResponseHeader
-	switch msgType {
-	case ActivityProductInfoResponse:
-		header = response.ActivityProductInfoResponse.Header
-	case ActivityProductListResponse:
-		header = response.ActivityProductListResponse.Header
-	case ActivitySearchResponse:
-		header = response.ActivitySearchResponse.Header
-	case AccommodationProductInfoResponse:
-		header = response.AccommodationProductInfoResponse.Header
-	case AccommodationProductListResponse:
-		header = response.AccommodationProductListResponse.Header
-	case AccommodationSearchResponse:
-		header = response.AccommodationSearchResponse.Header
-	case GetNetworkFeeResponse:
-		return // doesn't have header
-		// header = response.GetNetworkFeeResponse.Header
-	case GetPartnerConfigurationResponse:
-		return // doesn't have header
-		// header = response.GetPartnerConfigurationResponse.Header
-	case MintResponse:
-		header = response.MintResponse.Header
-	case ValidationResponse:
-		header = response.ValidationResponse.Header
-	case PingResponse:
-		header = response.PingResponse.Header
-	case TransportSearchResponse:
-		header = response.TransportSearchResponse.Header
-	case SeatMapResponse:
-		header = response.SeatMapResponse.Header
-	case SeatMapAvailabilityResponse:
-		header = response.SeatMapAvailabilityResponse.Header
-	case CountryEntryRequirementsResponse:
-		header = response.CountryEntryRequirementsResponse.Header
-	case InsuranceProductInfoResponse:
-		header = response.InsuranceProductInfoResponse.Header
-	case InsuranceProductListResponse:
-		header = response.InsuranceProductListResponse.Header
-	case InsuranceSearchResponse:
-		header = response.InsuranceSearchResponse.Header
+func (h *evmResponseHandler) AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string) {
+	headerFieldDescriptor := response.ProtoReflect().Descriptor().Fields().ByName("header")
+	headerReflectValue := response.ProtoReflect().Get(headerFieldDescriptor)
+	switch header := headerReflectValue.Message().Interface().(type) {
+	case *typesv1.ResponseHeader:
+		addErrorToResponseHeaderV1(header, errMessage)
 	default:
-		return
+		h.logger.Errorf("failed add error to response header: %v", errMessage)
 	}
+}
 
+func addErrorToResponseHeaderV1(header *typesv1.ResponseHeader, errMessage string) {
 	header.Status = typesv1.StatusType_STATUS_TYPE_FAILURE
 	header.Alerts = append(header.Alerts, &typesv1.Alert{
 		Message: errMessage,

@@ -8,11 +8,13 @@ package messaging
 import (
 	"testing"
 
-	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/stretchr/testify/require"
 )
 
-func compressOnly(t *testing.T, msg *Message) []byte {
+func compressOnly(t *testing.T, msg *types.Message) []byte {
 	compressed, err := compress(msg)
 	require.NoError(t, err)
 	return compressed
@@ -20,7 +22,7 @@ func compressOnly(t *testing.T, msg *Message) []byte {
 
 func TestChunkingCompressorCompress(t *testing.T) {
 	type args struct {
-		msg     *Message
+		msg     *types.Message
 		maxSize int
 	}
 	tests := map[string]struct {
@@ -28,117 +30,71 @@ func TestChunkingCompressorCompress(t *testing.T) {
 		want [][]byte
 		err  error
 	}{
-		"err: unknown message type": {
-			args: args{msg: &Message{Type: "Unknown"}, maxSize: 5},
-			err:  ErrUnknownMessageType,
-		},
 		"err: empty message": {
-			args: args{msg: &Message{Type: ActivitySearchResponse}, maxSize: 5},
+			args: args{msg: &types.Message{Type: generated.PingServiceV1Response}, maxSize: 5},
 			err:  ErrCompressionProducedNoChunks,
 		},
 		"success: small message compressed without chunking (input<maxSize)": {
 			args: args{
-				msg: &Message{
-					Type: ActivitySearchResponse,
-					Content: MessageContent{
-						ResponseContent: ResponseContent{
-							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-								Results: []*activityv2.ActivitySearchResult{
-									{Info: &activityv2.Activity{ServiceCode: "test"}},
-								},
-							},
-						},
+				msg: &types.Message{
+					Type: generated.PingServiceV1Response,
+					Content: &pingv1.PingResponse{
+						PingMessage: "The quick brown fox jumps over the lazy dog",
 					},
 				},
 				maxSize: 100,
 			},
 			want: [][]byte{
-				compressOnly(t, &Message{
-					Type: ActivitySearchResponse,
-					Content: MessageContent{
-						ResponseContent: ResponseContent{
-							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-								Results: []*activityv2.ActivitySearchResult{
-									{Info: &activityv2.Activity{ServiceCode: "test"}},
-								},
-							},
-						},
+				compressOnly(t, &types.Message{
+					Type: generated.PingServiceV1Response,
+					Content: &pingv1.PingResponse{
+						PingMessage: "The quick brown fox jumps over the lazy dog",
 					},
 				}),
 			},
 		},
 		"success: small message compressed without chunking (input=maxSize)": {
 			args: args{
-				msg: &Message{
-					Type: ActivitySearchResponse,
-					Content: MessageContent{
-						ResponseContent: ResponseContent{
-							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-								Results: []*activityv2.ActivitySearchResult{
-									{Info: &activityv2.Activity{ServiceCode: "test"}},
-								},
-							},
-						},
+				msg: &types.Message{
+					Type: generated.PingServiceV1Response,
+					Content: &pingv1.PingResponse{
+						PingMessage: "The quick brown fox jumps over the lazy dog",
 					},
 				},
-				maxSize: 23, // compressed size of msgType=ActivitySearchResponse and serviceCode="test"
+				maxSize: 58, // size of compressed message
 			},
 			want: [][]byte{
-				compressOnly(t, &Message{
-					Type: ActivitySearchResponse,
-					Content: MessageContent{
-						ResponseContent: ResponseContent{
-							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-								Results: []*activityv2.ActivitySearchResult{
-									{Info: &activityv2.Activity{ServiceCode: "test"}},
-								},
-							},
-						},
+				compressOnly(t, &types.Message{
+					Type: generated.PingServiceV1Response,
+					Content: &pingv1.PingResponse{
+						PingMessage: "The quick brown fox jumps over the lazy dog",
 					},
 				}),
 			},
 		},
 		"success: large message compressed with chunking (input>maxSize)": {
 			args: args{
-				msg: &Message{
-					Type: ActivitySearchResponse,
-					Content: MessageContent{
-						ResponseContent: ResponseContent{
-							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-								Results: []*activityv2.ActivitySearchResult{
-									{Info: &activityv2.Activity{ServiceCode: "test"}},
-								},
-							},
-						},
+				msg: &types.Message{
+					Type: generated.PingServiceV1Response,
+					Content: &pingv1.PingResponse{
+						PingMessage: "The quick brown fox jumps over the lazy dog",
 					},
 				},
-				maxSize: 22, // < 23 = compressed size of msgType=ActivitySearchResponse and serviceCode="test"
+				maxSize: 57, // < size of compressed message
 			},
 			want: [][]byte{
-				compressOnly(t, &Message{
-					Type: ActivitySearchResponse,
-					Content: MessageContent{
-						ResponseContent: ResponseContent{
-							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-								Results: []*activityv2.ActivitySearchResult{
-									{Info: &activityv2.Activity{ServiceCode: "test"}},
-								},
-							},
-						},
+				compressOnly(t, &types.Message{
+					Type: generated.PingServiceV1Response,
+					Content: &pingv1.PingResponse{
+						PingMessage: "The quick brown fox jumps over the lazy dog",
 					},
-				})[:22],
-				compressOnly(t, &Message{
-					Type: ActivitySearchResponse,
-					Content: MessageContent{
-						ResponseContent: ResponseContent{
-							ActivitySearchResponse: &activityv2.ActivitySearchResponse{
-								Results: []*activityv2.ActivitySearchResult{
-									{Info: &activityv2.Activity{ServiceCode: "test"}},
-								},
-							},
-						},
+				})[:57],
+				compressOnly(t, &types.Message{
+					Type: generated.PingServiceV1Response,
+					Content: &pingv1.PingResponse{
+						PingMessage: "The quick brown fox jumps over the lazy dog",
 					},
-				})[22:],
+				})[57:],
 			},
 		},
 	}
