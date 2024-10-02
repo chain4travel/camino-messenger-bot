@@ -8,16 +8,13 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"log"
-	"math/big"
 	"time"
 
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
@@ -32,7 +29,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/metachris/eth-go-bindings/erc20"
 	"go.uber.org/zap"
 )
 
@@ -138,209 +134,6 @@ func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types.Mess
 		mintReq.BuyerAddress = h.cmAccountAddress.Hex()
 	}
 	return nil
-}
-
-func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response protoreflect.ProtoMessage, request protoreflect.ProtoMessage) bool {
-	mintResp, ok := response.(*bookv2.MintResponse)
-	if !ok {
-		return false
-	}
-	mintReq, ok := request.(*bookv2.MintRequest)
-	if !ok {
-		return false
-	}
-	if mintResp.Header == nil {
-		mintResp.Header = &typesv1.ResponseHeader{}
-	}
-
-	// TODO: @VjeraTurk check if CMAccount exists
-	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format, not x/p/t chain
-	buyerAddress := common.HexToAddress(mintReq.BuyerAddress)
-
-	tokenURI := mintResp.BookingTokenUri
-
-	if tokenURI == "" {
-		// Get a Token URI for the token.
-		var jsonPlain string
-		jsonPlain, tokenURI, _ = createTokenURIforMintResponse(mintResp)
-		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
-	} else {
-		h.logger.Debugf("Token URI: %s\n", tokenURI)
-	}
-
-	currentTime := time.Now()
-
-	switch {
-	case mintResp.BuyableUntil == nil || mintResp.BuyableUntil.Seconds == 0:
-		// BuyableUntil not set
-		mintResp.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationDefault))
-
-	case mintResp.BuyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
-		// BuyableUntil in the past
-		errMsg := fmt.Sprintf("Refused to mint token - BuyableUntil in the past:  %v", mintResp.BuyableUntil)
-		h.AddErrorToResponseHeader(response, errMsg)
-		return true
-
-	case mintResp.BuyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
-		// BuyableUntil too early
-		mintResp.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMinimal))
-
-	case mintResp.BuyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMaximal)).Seconds:
-		// BuyableUntil too late
-		mintResp.BuyableUntil = timestamppb.New(currentTime.Add(buyableUntilDurationMaximal))
-	}
-
-	// MINT TOKEN
-	txID, tokenID, err := h.mintv2(
-		ctx,
-		buyerAddress,
-		tokenURI,
-		big.NewInt(mintResp.BuyableUntil.Seconds),
-		mintResp.Price,
-	)
-	if err != nil {
-		errMessage := fmt.Sprintf("error minting NFT: %v", err)
-		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(response, errMessage)
-		return true
-	}
-
-	h.logger.Infof("NFT minted with txID: %s\n", txID)
-
-	h.onBookingTokenMint(tokenID, mintResp.MintId, mintResp.BuyableUntil.AsTime())
-
-	// Header is of typev1
-	mintResp.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
-	// Disable Linter: This code will be removed with the new mint logic and protocol
-	mintResp.BookingTokenId = tokenID.Uint64()
-	mintResp.MintTransactionId = txID
-	return false
-}
-
-func (h *evmResponseHandler) handleMintRequestV2(ctx context.Context, response protoreflect.ProtoMessage) bool {
-	mintResp, ok := response.(*bookv2.MintResponse)
-	if !ok {
-		return false
-	}
-	if mintResp.Header == nil {
-		mintResp.Header = &typesv1.ResponseHeader{}
-	}
-	if mintResp.MintTransactionId == "" {
-		h.AddErrorToResponseHeader(response, "missing mint transaction id")
-		return true
-	}
-
-	tokenID := new(big.Int).SetUint64(mintResp.BookingTokenId)
-
-	txID, err := h.buy(ctx, tokenID)
-	if err != nil {
-		errMessage := fmt.Sprintf("error buying NFT: %v", err)
-		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(response, errMessage)
-		return true
-	}
-
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintResp.MintTransactionId)
-	mintResp.BuyTransactionId = txID
-	return false
-}
-
-// Mints a BookingToken with the supplier private key and reserves it for the buyer address
-// For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
-func (h *evmResponseHandler) mintv2(
-	ctx context.Context,
-	reservedFor common.Address,
-	uri string,
-	expiration *big.Int,
-	price *typesv2.Price,
-) (string, *big.Int, error) {
-	bigIntPrice := big.NewInt(0)
-	paymentToken := zeroAddress
-	var err error
-
-	switch currency := price.Currency.Currency.(type) {
-	case *typesv2.Currency_NativeToken:
-		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(price, int32(18)) // CAM uses 18 decimals
-		if err != nil {
-			return "", nil, err
-		}
-		paymentToken = zeroAddress
-	case *typesv2.Currency_TokenCurrency:
-		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
-			return "", nil, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
-		}
-		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-
-		token, err := erc20.NewErc20(contractAddress, h.ethClient)
-		if err != nil {
-			return "", nil, fmt.Errorf("failed to instantiate ERC20 contract: %w", err)
-		}
-
-		tokenDecimals, err := token.Decimals(&bind.CallOpts{Context: ctx})
-		if err != nil {
-			return "", nil, fmt.Errorf("failed to fetch token decimals: %w", err)
-		}
-
-		bigIntPrice, err = h.bookingService.ConvertPriceToBigInt(price, int32(tokenDecimals))
-		if err != nil {
-			return "", nil, err
-		}
-
-		paymentToken = contractAddress
-	case *typesv2.Currency_IsoCurrency:
-		// For IsoCurrency, keep price as 0 and paymentToken as zeroAddress
-		bigIntPrice = big.NewInt(0)
-		paymentToken = zeroAddress
-	}
-
-	tx, err := h.bookingService.MintBookingToken(
-		reservedFor,
-		uri,
-		expiration,
-		bigIntPrice,
-		paymentToken)
-	if err != nil {
-		return "", nil, err
-	}
-
-	// Wait for transaction to be mined
-	receipt, err := bind.WaitMined(ctx, h.ethClient, tx)
-	if err != nil {
-		return "", nil, err
-	}
-
-	tokenID := big.NewInt(0)
-
-	for _, mLog := range receipt.Logs {
-		event, err := h.bookingToken.ParseTokenReserved(*mLog)
-		if err == nil {
-			tokenID = event.TokenId
-			h.logger.Infof("[TokenReserved] TokenID: %s ReservedFor: %s Price: %s, PaymentToken: %s", event.TokenId, event.ReservedFor, event.Price, event.PaymentToken)
-		}
-	}
-
-	return tx.Hash().Hex(), tokenID, nil
-}
-
-// TODO @VjeraTurk code that creates and handles context should be improved, since its not doing job in separate goroutine,
-// Buys a token with the buyer private key. Token must be reserved for the buyer address.
-func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string, error) {
-	tx, err := h.bookingService.BuyBookingToken(tokenID)
-	if err != nil {
-		return "", err
-	}
-
-	receipt, err := h.waitTransaction(ctx, tx)
-	if err != nil {
-		return "", err
-	}
-	if receipt.Status != ethTypes.ReceiptStatusSuccessful {
-		return "", fmt.Errorf("transaction failed: %v", receipt)
-	}
-
-	h.logger.Infof("Transaction sent!\nTransaction hash: %s\n", tx.Hash().Hex())
-
-	return tx.Hash().Hex(), nil
 }
 
 // Waits for a transaction to be mined
