@@ -78,6 +78,9 @@ func main() {
 	}
 
 	bt, err := bookingtoken.NewBookingtoken(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
+	if err != nil {
+		sugar.Fatalf("Failed to create BookingToken contract binding: %v", err)
+	}
 
 	// token uri
 	tokenURI := "data:application/json;base64,eyJuYW1lIjoiYm90IGNtYWNjb3VudCBwa2cgYm9va2luZyB0b2tlbiB0ZXN0In0K"
@@ -193,7 +196,7 @@ func main() {
 
 	switch price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		bigIntPrice, err = bs.ConvertPriceToBigInt(price, int32(18)) // CAM uses 18 decimals
+		bigIntPrice, err = bs.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
 		if err != nil {
 			sugar.Errorf("Failed to convert price to big.Int: %v", err)
 			return
