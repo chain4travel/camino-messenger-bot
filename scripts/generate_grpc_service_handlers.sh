@@ -9,6 +9,9 @@ SERVER_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_method.go.tpl"
 GEN_OUTPATH_CLIENT="internal/rpc/client/generated"
 GEN_OUTPATH_SERVER="internal/rpc/server/generated"
 
+REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH_SERVER}/register_services.go"
+REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH_CLIENT}/register_services.go"
+
 function generate_with_templates() {
 	FQPN="$1"
 	SERVICE="$2"
@@ -84,8 +87,6 @@ function generate_with_templates() {
 	done
 }
 
-REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH_SERVER}/register_services.go"
-
 function generate_register_services_server() {
 	OUTFILE="$1"
 	local -n _SERVICES=$2
@@ -108,8 +109,6 @@ function generate_register_services_server() {
 	echo "}" >> $OUTFILE
 }
 
-REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH_CLIENT}/register_services.go"
-
 function generate_register_services_client() {
 	OUTFILE="$1"
 	local -n _SERVICES=$2
@@ -126,12 +125,13 @@ function generate_register_services_client() {
 	echo "    \"google.golang.org/grpc\"" >> $OUTFILE
 	echo ")" >> $OUTFILE
 	echo >> $OUTFILE
-	echo "func RegisterServices(rpcConn *grpc.ClientConn, serviceNames map[types.MessageType]string) map[types.MessageType]rpc.Service {" >> $OUTFILE
+	echo "func RegisterServices(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {" >> $OUTFILE
 	echo "    services := make(map[types.MessageType]rpc.Service, len(serviceNames))" >> $OUTFILE
 	echo >> $OUTFILE
 	for service in "${_SERVICES[@]}" ; do
-		echo "    if srvName, ok := serviceNames[${service}Request]; ok {" >> $OUTFILE
-		echo "        services[${service}Request] = rpc.NewService(New${service}(rpcConn), srvName)" >> $OUTFILE
+		echo "    if _, ok := serviceNames[${service}]; ok {" >> $OUTFILE
+		echo "        services[${service}Request] = rpc.NewService(New${service}(rpcConn), ${service})" >> $OUTFILE
+		echo "        delete(serviceNames, ${service})" >> $OUTFILE
 		echo "    }" >> $OUTFILE
 	done
 	echo "    return services" >> $OUTFILE
