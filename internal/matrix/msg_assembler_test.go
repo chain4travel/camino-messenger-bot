@@ -12,7 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client/generated"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/stretchr/testify/require"
 	gomock "go.uber.org/mock/gomock"
@@ -21,7 +21,7 @@ import (
 )
 
 func TestAssembleMessage(t *testing.T) {
-	plainActivitySearchResponseMsg := types.Message{
+	pingResponseMsg := types.Message{
 		Type:    generated.PingServiceV1Response,
 		Content: &pingv1.PingResponse{PingMessage: "pong"},
 	}
@@ -116,7 +116,7 @@ func TestAssembleMessage(t *testing.T) {
 				}, // last message
 			},
 			prepare: func() {
-				msg := plainActivitySearchResponseMsg
+				msg := pingResponseMsg
 				msgBytes, err := msg.MarshalContent()
 				require.NoError(t, err)
 				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
@@ -129,7 +129,7 @@ func TestAssembleMessage(t *testing.T) {
 				MessageEventContent: event.MessageEventContent{
 					MsgType: event.MessageType(generated.PingServiceV1Response),
 				},
-				Content: plainActivitySearchResponseMsg.Content,
+				Content: pingResponseMsg.Content,
 			},
 			isComplete: true,
 			err:        nil,
@@ -151,7 +151,7 @@ func TestAssembleMessage(t *testing.T) {
 				}, // last message
 			},
 			prepare: func() {
-				msg := plainActivitySearchResponseMsg
+				msg := pingResponseMsg
 				msgBytes, err := msg.MarshalContent()
 				require.NoError(t, err)
 				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
@@ -160,7 +160,7 @@ func TestAssembleMessage(t *testing.T) {
 				MessageEventContent: event.MessageEventContent{
 					MsgType: event.MessageType(generated.PingServiceV1Response),
 				},
-				Content: plainActivitySearchResponseMsg.Content,
+				Content: pingResponseMsg.Content,
 			},
 			isComplete: true,
 			err:        nil,

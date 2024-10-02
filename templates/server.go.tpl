@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}{{SERVICE}}Srv)(nil)
+var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}{{SERVICE}}Server)(nil)
 
-type {{TYPE_PACKAGE}}{{SERVICE}}Srv struct {
+type {{TYPE_PACKAGE}}{{SERVICE}}Server struct {
 	reqProcessor rpc.ExternalRequestProcessor
 }
 
 func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
-	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Srv{reqProcessor})
+	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Server{reqProcessor})
 }

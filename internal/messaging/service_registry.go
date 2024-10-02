@@ -5,6 +5,7 @@
 package messaging
 
 import (
+	"errors"
 	"fmt"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
@@ -12,13 +13,15 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client/generated"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 )
+
+var errUnsupportedService = errors.New("cm account support service, which bot doesn't support")
 
 type ServiceRegistry interface {
 	GetService(messageType types.MessageType) (rpc.Service, bool)
@@ -48,16 +51,29 @@ func NewServiceRegistry(
 		return nil, false, fmt.Errorf("bot supports some services, but doesn't have partner plugin rpc client configured")
 	}
 
-	servicesNames := make(map[types.MessageType]string, len(supportedServices.ServiceNames))
+	servicesNames := make(map[string]struct{}, len(supportedServices.ServiceNames))
 	logStr := "\nSupported services:\n"
 	for _, serviceName := range supportedServices.ServiceNames {
 		logStr += serviceName + "\n"
-		servicesNames[types.ServiceNameToRequestMessageType(serviceName)] = serviceName
+		servicesNames[serviceName] = struct{}{}
 	}
 	logStr += "\n"
 	logger.Info(logStr)
 
 	services := generated.RegisterServices(rpcClient.ClientConn, servicesNames)
+
+	if len(servicesNames) > 0 {
+		logger.Error(errUnsupportedService)
+
+		logStr := "\nUnsupported services:\n"
+		for serviceName := range servicesNames {
+			logStr += serviceName + "\n"
+		}
+		logStr += "\n"
+		logger.Warn(logStr)
+
+		return nil, false, errUnsupportedService
+	}
 
 	return &serviceRegistry{
 		logger:    logger,

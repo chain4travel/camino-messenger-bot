@@ -7,7 +7,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server/generated"
+	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 
 	"github.com/chain4travel/camino-messenger-bot/config"

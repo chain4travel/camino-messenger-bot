@@ -8,11 +8,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-func RegisterServices(rpcConn *grpc.ClientConn, serviceNames map[types.MessageType]string) map[types.MessageType]rpc.Service {
+func RegisterServices(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {
 	services := make(map[types.MessageType]rpc.Service, len(serviceNames))
 
-	if srvName, ok := serviceNames[PingServiceV1Request]; ok {
-		services[PingServiceV1Request] = rpc.NewService(NewPingServiceV1(rpcConn), srvName)
+	if _, ok := serviceNames[PingServiceV1]; ok {
+		services[PingServiceV1Request] = rpc.NewService(NewPingServiceV1(rpcConn), PingServiceV1)
+		delete(serviceNames, PingServiceV1)
 	}
 	if srvName, ok := serviceNames[CountryEntryRequirementsServiceV2Request]; ok {
 		services[CountryEntryRequirementsServiceV2Request] = rpc.NewService(NewCountryEntryRequirementsServiceV2(rpcConn), srvName)
