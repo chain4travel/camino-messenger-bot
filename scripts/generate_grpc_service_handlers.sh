@@ -305,7 +305,7 @@ while read file ; do
 	PROTO_INCLUDES_FOR_UNMARSHALLING+=("$PROTO_INCLUDE")
 
 	echo 
-done < <(find "$SDK_PATH/cmp/services/" -name "*_grpc.pb.go")
+done < <(find "$SDK_PATH/cmp/services/" -name "*_grpc.pb.go" | sort)
 
 generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER 
 generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER 
