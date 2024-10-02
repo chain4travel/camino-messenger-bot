@@ -60,7 +60,7 @@ func NewServiceRegistry(
 	logStr += "\n"
 	logger.Info(logStr)
 
-	services := generated.RegisterServices(rpcClient.ClientConn, servicesNames)
+	services := generated.RegisterClientServices(rpcClient.ClientConn, servicesNames)
 
 	if len(servicesNames) > 0 {
 		logger.Error(errUnsupportedService)
