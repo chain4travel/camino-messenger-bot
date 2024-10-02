@@ -18,7 +18,7 @@ developer_mode: true
 matrix_key: YOUR_PRIVATE_KEY_HEX
 
 # Hostname of the Matrix Server
-matrix_host: dev.messenger.chain4travel.com
+matrix_host: messenger.chain4travel.com
 
 # Local DB file to store Matrix data
 matrix_store: distributor-matrix.db
