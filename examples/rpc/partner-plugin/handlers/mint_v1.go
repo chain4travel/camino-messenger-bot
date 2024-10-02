@@ -11,6 +11,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -37,6 +38,79 @@ func (*MintServiceV1Server) Mint(ctx context.Context, _ *bookv1.MintRequest) (*b
 		Price: &typesv1.Price{
 			Value:    "1",
 			Decimals: 9,
+			Currency: &typesv1.Currency{
+				Currency: &typesv1.Currency_NativeToken{
+					NativeToken: &emptypb.Empty{},
+				},
+			},
+		},
+	}
+
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+
+	return &response, nil
+}
+
+func (*MintServiceV1Server) MintTokenPayment(ctx context.Context, _ *bookv1.MintRequest) (*bookv1.MintResponse, error) {
+	md := metadata.Metadata{}
+
+	if err := md.ExtractMetadata(ctx); err != nil {
+		log.Print("error extracting metadata")
+	}
+
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+
+	log.Printf("Responding to request (MintV1): %s", md.RequestID)
+
+	response := bookv1.MintResponse{
+		MintId: &typesv1.UUID{Value: md.RequestID},
+		BuyableUntil: &timestamppb.Timestamp{
+			Seconds: time.Now().Add(5 * time.Minute).Unix(),
+		},
+		Price: &typesv1.Price{
+			Value:    "1",
+			Decimals: 9,
+			Currency: &typesv1.Currency{
+				Currency: &typesv1.Currency_NativeToken{
+					NativeToken: &emptypb.Empty{},
+				},
+			},
+		},
+	}
+
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+
+	return &response, nil
+}
+
+func (*MintServiceV1Server) MintOffchainPayment(ctx context.Context, _ *bookv1.MintRequest) (*bookv1.MintResponse, error) {
+	md := metadata.Metadata{}
+
+	if err := md.ExtractMetadata(ctx); err != nil {
+		log.Print("error extracting metadata")
+	}
+
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+
+	log.Printf("Responding to request (MintV1): %s", md.RequestID)
+
+	response := bookv1.MintResponse{
+		MintId: &typesv1.UUID{Value: md.RequestID},
+		BuyableUntil: &timestamppb.Timestamp{
+			Seconds: time.Now().Add(5 * time.Minute).Unix(),
+		},
+		Price: &typesv1.Price{
+			Value:    "1",
+			Decimals: 9,
+			Currency: &typesv1.Currency{
+				Currency: &typesv1.Currency_IsoCurrency{
+					IsoCurrency: "USD"
+				},
+			},
 		},
 	}
 
