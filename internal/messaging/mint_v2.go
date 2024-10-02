@@ -9,7 +9,9 @@ import (
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/metachris/eth-go-bindings/erc20"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -119,10 +121,10 @@ func (h *evmResponseHandler) handleMintRequestV2(ctx context.Context, response p
 	return false
 }
 
-func (h *evmResponseHandler) getPriceAndTokenV2(_ context.Context, price *typesv2.Price) (*big.Int, common.Address, error) {
+func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *typesv2.Price) (*big.Int, common.Address, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
-	switch price.Currency.Currency.(type) {
+	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
 		var err error
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
@@ -130,9 +132,23 @@ func (h *evmResponseHandler) getPriceAndTokenV2(_ context.Context, price *typesv
 			return nil, zeroAddress, fmt.Errorf("error minting NFT: %w", err)
 		}
 	case *typesv2.Currency_TokenCurrency:
-		// Add logic to handle TokenCurrency
-		// if contract address is zeroAddress, then it is native token
-		return nil, zeroAddress, fmt.Errorf("TokenCurrency not supported yet")
+		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
+			return nil, zeroAddress, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
+		}
+		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
+		token, err := erc20.NewErc20(contractAddress, h.ethClient)
+		if err != nil {
+			return nil, zeroAddress, fmt.Errorf("failed to instantiate ERC20 contract: %w", err)
+		}
+		tokenDecimals, err := token.Decimals(&bind.CallOpts{Context: ctx})
+		if err != nil {
+			return nil, zeroAddress, fmt.Errorf("failed to fetch token decimals: %w", err)
+		}
+		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(tokenDecimals))
+		if err != nil {
+			return nil, zeroAddress, err
+		}
+		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
 		// For IsoCurrency, keep price as 0 and paymentToken as zeroAddress
 	}
