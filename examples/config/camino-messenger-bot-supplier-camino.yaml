@@ -1,0 +1,91 @@
+# This example is made for development purposes - for production see docker-compose.yml
+
+# Lower level logging for local development
+developer_mode: true
+
+### Tracing
+#tracing_enabled: true
+#tracing_host: localhost
+#tracing_port: 4317
+#tracing_insecure: true
+#tracing_cert_file: server-cert.pem
+#tracing_key_file: server-key.pem
+
+### Matrix
+
+# Private key to be used to login to Matrix Server. This should be in hex format
+# without the 0x prefix.
+matrix_key: YOUR_PRIVATE_KEY_HEX
+
+# Hostname of the Matrix Server
+matrix_host: dev.messenger.chain4travel.com
+
+# Local DB file to store Matrix data
+matrix_store: supplier-matrix.db
+
+# Timeout in milliseconds to wait for responses on Matrix Server
+response_timeout: 10000
+
+### Bot RPC Configuration
+
+# Listen on this port for RPC requests from the partner plugin (or Postman during
+# development)
+rpc_server_port: 9090
+# TLS configuration
+rpc_unencrypted: true
+rpc_server_cert_file: server-cert.pem
+rpc_server_key_file: server-key.pem
+
+### Partner Plugin
+
+# Partner Plugin hostname and port, should be reachable from this machine.
+#
+# Bot tries to connect to this host and port to relay messages that it receives from
+# the distributors through Matrix Server
+partner_plugin_host: localhost
+partner_plugin_port: 50051
+# TLS configuration
+partner_plugin_unencrypted: true
+# Required if partner_plugin_unencrypted is false
+partner_plugin_ca_file: ca-cert.pem
+
+### C-Chain (EVM)
+
+# Used for signing transactions on the c-chain, can be same as the matrix_key. This
+# address needs to have some funds to pay for transaction fees on the C-Chain. This
+# should be in hex format without the 0x prefix.
+evm_private_key: YOUR_PRIVATE_KEY_HEX
+
+# C-Chain RPC URL
+rpc_url: wss://api.camino.network/ext/bc/C/ws
+
+# matrix application service bot address
+network_fee_recipient_bot_address: 0xbeb027D2f439805E17EAA16Da26c1FCa68a30232
+
+# matrix application service cm account address
+network_fee_recipient_cm_account: 0x16DFfB3911BB0b1B53eF4d774804381f0B38B5d7
+
+cheque_expiration_time: 18144000 # 7 months
+
+min_cheque_duration_until_expiration: 15552000 # 6 months
+
+cash_in_period: 86400 # 1 day
+
+### Booking Token
+
+# Booking Token contract address. This address will be used for minting, buying of Booking Tokens
+booking_token_address: "0xe2b8c92B6519d1A2020dA0A5fBbA99a43A2c0922"
+
+# Address of the CM Account that the bot belongs to
+cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
+
+### Database
+
+# Database name.
+db_name: camino_messenger-bot
+
+# Path to database file.
+db_path: supplier-bot.db
+
+# Path to migrations dir with sql up/down scripts. Schema is mandatory.
+migrations_path: file://./migrations

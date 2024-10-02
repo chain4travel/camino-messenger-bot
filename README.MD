@@ -29,10 +29,10 @@ Currently [release-9](https://github.com/chain4travel/camino-messenger-protocol/
 
 ## Examples and Docker Support
 
-The repository includes examples demonstrating the setup of gRPC servers and clients under the `examples` folder. Additionally, Dockerfiles and a docker-compose.yml file are provided to simplify the deployment of a provider, distributor bot, and a partner plugin application that mocks responses. 
+The repository includes examples demonstrating the setup of gRPC servers and clients under the `examples` folder. Additionally, Dockerfiles and a docker-compose.yml file are provided to simplify the deployment of a provider, distributor bot, and a partner plugin application that mocks responses.
 
 > [!Note]
-> If docker-compose.yml is used, please check volumes. The configuration filepath should be `cmb-config/config.yaml`.
+> If docker-compose.yml is used, please check volumes. The configuration filepath should be `cmb-config/config.yaml`. An example can be copied over from examples/config/ and modified.
 
 
 ## Getting Started
