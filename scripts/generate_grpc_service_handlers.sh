@@ -1,16 +1,20 @@
 #!/bin/bash
 
+BUF_SDK_BASE="buf.build/gen/go/chain4travel/camino-messenger-protocol"
 TEMPLATES_DIR="templates"
 CLIENT_TEMPLATE="${TEMPLATES_DIR}/client.go.tpl"
 CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
 SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
 SERVER_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_method.go.tpl"
+GEN_OUTPATH="internal/rpc/generated"
+REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH}/register_server_services.go"
+REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH}/register_client_services.go"
+UNMARSHALLING_FILE="${GEN_OUTPATH}/unmarshal.go"
 
-GEN_OUTPATH_CLIENT="internal/rpc/client/generated"
-GEN_OUTPATH_SERVER="internal/rpc/server/generated"
+DEFAULT_BLACKLIST="notification" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
 
-REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH_SERVER}/register_services.go"
-REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH_CLIENT}/register_services.go"
+SCRIPT=$0
+FILTER=$1 #optional filter for files -- used for testing
 
 function generate_with_templates() {
 	FQPN="$1"
@@ -39,7 +43,7 @@ function generate_with_templates() {
 	GENERAL_PARAM_REPLACE+=" -e s#{{GENERATOR}}#$GENERATOR#g"
 
 	# Generate client
-	CLIENT_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_${SERVICE}_client.go"
+	CLIENT_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_client.go"
 	echo "🔨 Generating client: $CLIENT_GEN_FILE"
 	cp $CLIENT_TEMPLATE $CLIENT_GEN_FILE
 	sed -i $GENERAL_PARAM_REPLACE $CLIENT_GEN_FILE
@@ -54,7 +58,7 @@ function generate_with_templates() {
 		METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
-		METHOD_GEN_FILE="${GEN_OUTPATH_CLIENT}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_method.go"
+		METHOD_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_client_method.go"
 		echo "🔨 Generating client method: $METHOD_GEN_FILE"
 		cp $CLIENT_METHOD_TEMPLATE $METHOD_GEN_FILE
 		sed -i $GENERAL_PARAM_REPLACE $METHOD_GEN_FILE
@@ -63,7 +67,7 @@ function generate_with_templates() {
 	done
 
 	# Generate server
-	SERVER_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_${SERVICE}_server.go"
+	SERVER_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
 	echo "🔨 Generating server: $SERVER_GEN_FILE"
 	cp $SERVER_TEMPLATE $SERVER_GEN_FILE
 	sed -i $GENERAL_PARAM_REPLACE $SERVER_GEN_FILE
@@ -78,7 +82,7 @@ function generate_with_templates() {
 		METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
 		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
-		METHOD_GEN_FILE="${GEN_OUTPATH_SERVER}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_method.go"
+		METHOD_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
 		echo "🔨 Generating server method: $METHOD_GEN_FILE"
 		cp $SERVER_METHOD_TEMPLATE $METHOD_GEN_FILE
 		sed -i $GENERAL_PARAM_REPLACE $METHOD_GEN_FILE
@@ -102,7 +106,7 @@ function generate_register_services_server() {
 	echo "    \"google.golang.org/grpc\"" >> $OUTFILE
 	echo ")" >> $OUTFILE
 	echo >> $OUTFILE
-	echo "func RegisterServices(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {" >> $OUTFILE
+	echo "func RegisterServerServices(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {" >> $OUTFILE
 	for service in "${_SERVICES[@]}" ; do
 		echo "    register${service}Server(grpcServer, reqProcessor)" >> $OUTFILE
 	done
@@ -125,7 +129,7 @@ function generate_register_services_client() {
 	echo "    \"google.golang.org/grpc\"" >> $OUTFILE
 	echo ")" >> $OUTFILE
 	echo >> $OUTFILE
-	echo "func RegisterServices(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {" >> $OUTFILE
+	echo "func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {" >> $OUTFILE
 	echo "    services := make(map[types.MessageType]rpc.Service, len(serviceNames))" >> $OUTFILE
 	echo >> $OUTFILE
 	for service in "${_SERVICES[@]}" ; do
@@ -137,8 +141,6 @@ function generate_register_services_client() {
 	echo "    return services" >> $OUTFILE
 	echo "}" >> $OUTFILE
 }
-
-UNMARSHALLING_FILE="${GEN_OUTPATH_CLIENT}/unmarshal.go"
 
 function generate_unmarshalling() {
 	OUTFILE="$1"
@@ -177,17 +179,11 @@ function generate_unmarshalling() {
 	echo "}" >> $OUTFILE
 }
 
-
-SCRIPT=$0
-
 # Prepare the output directories
 echo "🧹 Cleaning and generating output directories"
-rm -rf $GEN_OUTPATH_CLIENT
-rm -rf $GEN_OUTPATH_SERVER
-mkdir -p $GEN_OUTPATH_CLIENT
-mkdir -p $GEN_OUTPATH_SERVER
+rm -rf $GEN_OUTPATH
+mkdir -p $GEN_OUTPATH
 
-BUF_SDK_BASE="buf.build/gen/go/chain4travel/camino-messenger-protocol"
 BUF_SDK_URL_GO="${BUF_SDK_BASE}/grpc/go"
 echo "⌛ Downloading SDK from $BUF_SDK_URL_GO"
 go get $BUF_SDK_URL_GO
@@ -232,11 +228,7 @@ if [ ! -f $FUMPT ] ; then
 	exit 1
 fi
 
-DEFAULT_BLACKLIST="notification"
-
-FILTER=$1
 declare -a SERVICES_TO_REGISTER=()
-
 declare -a PROTO_INCLUDES_FOR_UNMARSHALLING=()
 declare -a UNMARSHAL_METHODS=()
 
@@ -320,5 +312,5 @@ generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_R
 generate_unmarshalling "$UNMARSHALLING_FILE" PROTO_INCLUDES_FOR_UNMARSHALLING UNMARSHAL_METHODS
 
 echo "🧹 Running gofumpt on all generated files"
-$FUMPT -w $GEN_OUTPATH_CLIENT $GEN_OUTPATH_SERVER
+$FUMPT -w $GEN_OUTPATH
 

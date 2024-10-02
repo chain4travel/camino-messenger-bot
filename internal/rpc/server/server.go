@@ -62,7 +62,7 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 		serviceRegistry: serviceRegistry,
 		grpcServer:      grpc.NewServer(opts...),
 	}
-	generated.RegisterServersServices(server.grpcServer, server)
+	generated.RegisterServerServices(server.grpcServer, server)
 	return server
 }
 
