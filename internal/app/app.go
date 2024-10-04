@@ -26,12 +26,12 @@ import (
 const cashInJobName = "cash_in"
 
 type App struct {
-	cfg    *config.Config
+	cfg    *config.UnparsedConfig
 	logger *zap.SugaredLogger
 	tracer tracing.Tracer
 }
 
-func NewApp(cfg *config.Config) (*App, error) {
+func NewApp(cfg *config.UnparsedConfig) (*App, error) {
 	app := &App{
 		cfg: cfg,
 	}

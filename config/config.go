@@ -1,8 +1,11 @@
 package config
 
 import (
+	"crypto/ecdsa"
 	"flag"
+	"net/url"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -12,70 +15,52 @@ const (
 	configFlagKey = "config"
 )
 
-type AppConfig struct {
+type UnparsedConfig struct {
+}
+
+func (uc *UnparsedConfig) Parse() (*Config, error) {
+	return &Config{}, nil
+}
+
+type Config struct {
 	DeveloperMode bool `mapstructure:"developer_mode"`
-}
-type MatrixConfig struct {
-	Key   string `mapstructure:"matrix_key"` // TODO @evlekht I'd suggest to add some parsed config, so we'll see on config read if some fields are invalid
-	Host  string `mapstructure:"matrix_host"`
-	Store string `mapstructure:"matrix_store"`
-}
-type RPCServerConfig struct {
-	Port           int    `mapstructure:"rpc_server_port"`
-	Unencrypted    bool   `mapstructure:"rpc_unencrypted"`
-	ServerCertFile string `mapstructure:"rpc_server_cert_file"`
-	ServerKeyFile  string `mapstructure:"rpc_server_key_file"`
-}
-type PartnerPluginConfig struct {
-	Host        string `mapstructure:"partner_plugin_host"`
-	Port        int    `mapstructure:"partner_plugin_port"`
-	Unencrypted bool   `mapstructure:"partner_plugin_unencrypted"`
-	CACertFile  string `mapstructure:"partner_plugin_ca_file"`
-}
-type ProcessorConfig struct {
-	Timeout int `mapstructure:"response_timeout"` // in milliseconds
-}
 
-// should MessengerCashier related config be here?
-type EvmConfig struct {
-	PrivateKey                          string `mapstructure:"evm_private_key"`
-	RPCURL                              string `mapstructure:"rpc_url"`
-	SupplierName                        string `mapstructure:"supplier_name"`
-	BookingTokenAddress                 string `mapstructure:"booking_token_address"`
-	CMAccountAddress                    string `mapstructure:"cm_account_address"`
-	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
-	NetworkFeeRecipientCMAccountAddress string `mapstructure:"network_fee_recipient_cm_account"`
-	ChequeExpirationTime                uint64 `mapstructure:"cheque_expiration_time"`
-	MinChequeDurationUntilExpiration    uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
-	CashInPeriod                        uint64 `mapstructure:"cash_in_period"`                       // seconds
-}
+	BotKey                              *ecdsa.PrivateKey `mapstructure:"evm_private_key"`
+	CChainRPCURL                        url.URL           `mapstructure:"rpc_url"`
+	BookingTokenAddress                 common.Address    `mapstructure:"booking_token_address"`
+	CMAccountAddress                    common.Address    `mapstructure:"cm_account_address"`
+	NetworkFeeRecipientBotAddress       common.Address    `mapstructure:"network_fee_recipient_bot_address"`
+	NetworkFeeRecipientCMAccountAddress common.Address    `mapstructure:"network_fee_recipient_cm_account"`
+	ChequeExpirationTime                uint64            `mapstructure:"cheque_expiration_time"`
+	MinChequeDurationUntilExpiration    uint64            `mapstructure:"min_cheque_duration_until_expiration"` // seconds
+	CashInPeriod                        uint64            `mapstructure:"cash_in_period"`                       // seconds
 
-type DBConfig struct {
+	MatrixHost   url.URL `mapstructure:"matrix_host"`
+	MatrixDBPath string  `mapstructure:"matrix_store"`
+
+	RPCPort           int    `mapstructure:"rpc_server_port"`
+	RPCUnencrypted    bool   `mapstructure:"rpc_unencrypted"`
+	RPCServerCertFile string `mapstructure:"rpc_server_cert_file"`
+	RPCServerKeyFile  string `mapstructure:"rpc_server_key_file"`
+
+	PartnerPluginHost url.URL `mapstructure:"partner_plugin_host"`
+	Unencrypted       bool    `mapstructure:"partner_plugin_unencrypted"`
+	CACertFile        string  `mapstructure:"partner_plugin_ca_file"`
+
+	ResponseTimeout int `mapstructure:"response_timeout"` // in milliseconds
+
+	TracingEnabled  bool    `mapstructure:"tracing_enabled"`
+	TracingHost     url.URL `mapstructure:"tracing_host"`
+	TracingInsecure bool    `mapstructure:"tracing_insecure"`
+	TracingCertFile string  `mapstructure:"tracing_cert_file"`
+	TracingKeyFile  string  `mapstructure:"tracing_key_file"`
+
 	DBPath         string `mapstructure:"db_path"`
 	DBName         string `mapstructure:"db_name"`
 	MigrationsPath string `mapstructure:"migrations_path"`
 }
 
-type TracingConfig struct {
-	Enabled  bool   `mapstructure:"tracing_enabled"`
-	Host     string `mapstructure:"tracing_host"`
-	Port     int    `mapstructure:"tracing_port"`
-	Insecure bool   `mapstructure:"tracing_insecure"`
-	CertFile string `mapstructure:"tracing_cert_file"`
-	KeyFile  string `mapstructure:"tracing_key_file"`
-}
-type Config struct {
-	AppConfig           `mapstructure:",squash"` // TODO use nested yaml structure
-	EvmConfig           `mapstructure:",squash"`
-	MatrixConfig        `mapstructure:",squash"`
-	RPCServerConfig     `mapstructure:",squash"`
-	PartnerPluginConfig `mapstructure:",squash"`
-	ProcessorConfig     `mapstructure:",squash"`
-	TracingConfig       `mapstructure:",squash"`
-	DBConfig            `mapstructure:",squash"`
-}
-
-func ReadConfig() (*Config, error) {
+func ReadConfig() (*UnparsedConfig, error) {
 	var configFile string
 
 	// Define command-line flags
@@ -89,7 +74,7 @@ func ReadConfig() (*Config, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix(envVarPrefix)
 
-	cfg := &Config{}
+	cfg := &UnparsedConfig{}
 	fs := flag.NewFlagSet("tcm", flag.ExitOnError)
 	readAppConfig(cfg.AppConfig, fs)
 	readMatrixConfig(cfg.MatrixConfig, fs)
