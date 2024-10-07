@@ -30,20 +30,14 @@ type Server interface {
 	Start() error
 	Stop()
 }
-type server struct {
-	grpcServer      *grpc.Server
-	cfg             *config.RPCServerConfig
-	logger          *zap.SugaredLogger
-	tracer          tracing.Tracer
-	processor       messaging.Processor
-	serviceRegistry messaging.ServiceRegistry
-}
 
-func (*server) Checkpoint() string {
-	return "request-gateway"
-}
-
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tracing.Tracer, processor messaging.Processor, serviceRegistry messaging.ServiceRegistry) Server {
+func NewServer(
+	cfg config.RPCServerConfig,
+	logger *zap.SugaredLogger,
+	tracer tracing.Tracer,
+	processor messaging.Processor,
+	serviceRegistry messaging.ServiceRegistry,
+) Server {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
@@ -64,6 +58,19 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 	}
 	generated.RegisterServerServices(server.grpcServer, server)
 	return server
+}
+
+type server struct {
+	grpcServer      *grpc.Server
+	cfg             config.RPCServerConfig
+	logger          *zap.SugaredLogger
+	tracer          tracing.Tracer
+	processor       messaging.Processor
+	serviceRegistry messaging.ServiceRegistry
+}
+
+func (*server) Checkpoint() string {
+	return "request-gateway"
 }
 
 func (s *server) Start() error {

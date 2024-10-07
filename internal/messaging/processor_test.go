@@ -24,10 +24,10 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"go.uber.org/zap"
 )
 
@@ -68,8 +68,6 @@ func TestProcessInbound(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
-		cfg                   config.ProcessorConfig
-		evmConfig             config.EvmConfig
 		messenger             Messenger
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
@@ -88,15 +86,11 @@ func TestProcessInbound(t *testing.T) {
 		assert  func(t *testing.T, p *processor)
 	}{
 		"err: user id not set": {
-			fields: fields{
-				cfg: config.ProcessorConfig{},
-			},
-			err: ErrUserIDNotSet,
+			fields: fields{},
+			err:    ErrUserIDNotSet,
 		},
 		"err: invalid message type": {
-			fields: fields{
-				cfg: config.ProcessorConfig{},
-			},
+			fields: fields{},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
 			},
@@ -107,7 +101,6 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"err: unsupported request message": {
 			fields: fields{
-				cfg:             config.ProcessorConfig{},
 				serviceRegistry: mockServiceRegistry,
 			},
 			prepare: func(p *processor) {
@@ -126,9 +119,7 @@ func TestProcessInbound(t *testing.T) {
 			err: ErrUnsupportedService,
 		},
 		"ignore own outbound messages": {
-			fields: fields{
-				cfg: config.ProcessorConfig{},
-			},
+			fields: fields{},
 			prepare: func(p *processor) {
 				p.SetUserID(userID)
 			},
@@ -139,7 +130,6 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"err: process request message failed": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -167,7 +157,6 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"success: process request message": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -194,7 +183,6 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"success: process response message": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -219,8 +207,10 @@ func TestProcessInbound(t *testing.T) {
 			p := NewProcessor(
 				tt.fields.messenger,
 				zap.NewNop().Sugar(),
-				tt.fields.cfg,
-				tt.fields.evmConfig,
+				int64(0),
+				common.Address{},
+				common.Address{},
+				common.Address{},
 				tt.fields.serviceRegistry,
 				tt.fields.responseHandler,
 				tt.fields.identificationHandler,
@@ -252,8 +242,7 @@ func TestProcessOutbound(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
-		cfg                   config.ProcessorConfig
-		evmConfig             config.EvmConfig
+		responseTimeout       int64
 		messenger             Messenger
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
@@ -274,7 +263,6 @@ func TestProcessOutbound(t *testing.T) {
 	}{
 		"err: non-request outbound message": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -289,7 +277,6 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: missing recipient": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{},
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -307,7 +294,7 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: awaiting-response-timeout exceeded": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{Timeout: 10}, // 10ms
+				responseTimeout:       10, // 10ms
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -329,7 +316,7 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: while sending request": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{Timeout: 100}, // 10ms
+				responseTimeout:       100, // 10ms
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -351,7 +338,7 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"success: response before timeout": {
 			fields: fields{
-				cfg:                   config.ProcessorConfig{Timeout: 500}, // long enough timeout for response to be received
+				responseTimeout:       500, // long enough timeout for response to be received
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -395,8 +382,10 @@ func TestProcessOutbound(t *testing.T) {
 			p := NewProcessor(
 				tt.fields.messenger,
 				zap.NewNop().Sugar(),
-				tt.fields.cfg,
-				tt.fields.evmConfig,
+				tt.fields.responseTimeout,
+				common.Address{},
+				common.Address{},
+				common.Address{},
 				tt.fields.serviceRegistry,
 				tt.fields.responseHandler,
 				tt.fields.identificationHandler,
@@ -465,8 +454,10 @@ func TestStart(t *testing.T) {
 		p := NewProcessor(
 			mockMessenger,
 			zap.NewNop().Sugar(),
-			config.ProcessorConfig{},
-			config.EvmConfig{},
+			int64(0),
+			common.Address{},
+			common.Address{},
+			common.Address{},
 			mockServiceRegistry,
 			NoopResponseHandler{},
 			NoopIdentification{},

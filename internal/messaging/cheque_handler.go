@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/models"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
@@ -60,17 +59,14 @@ type ChequeHandler interface {
 func NewChequeHandler(
 	logger *zap.SugaredLogger,
 	ethClient *ethclient.Client,
-	evmConfig *config.EvmConfig,
+	botKey *ecdsa.PrivateKey,
+	cmAccountAddress common.Address,
 	chainID *big.Int,
 	storage storage.Storage,
 	serviceRegistry ServiceRegistry,
+	minChequeDurationUntilExpiration uint64,
+	chequeExpirationTime uint64,
 ) (ChequeHandler, error) {
-	botKey, err := crypto.HexToECDSA(evmConfig.PrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	cmAccountAddress := common.HexToAddress(evmConfig.CMAccountAddress)
 	cmAccountInstance, err := cmaccount.NewCmaccount(cmAccountAddress, ethClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate contract binding: %w", err)
@@ -94,12 +90,12 @@ func NewChequeHandler(
 		botKey:                     botKey,
 		botAddress:                 crypto.PubkeyToAddress(botKey.PublicKey),
 		logger:                     logger,
-		evmConfig:                  evmConfig,
 		storage:                    storage,
 		signer:                     signer,
 		serviceRegistry:            serviceRegistry,
 		cmAccounts:                 cmAccountsCache,
-		minDurationUntilExpiration: big.NewInt(0).SetUint64(evmConfig.MinChequeDurationUntilExpiration),
+		minDurationUntilExpiration: big.NewInt(0).SetUint64(minChequeDurationUntilExpiration),
+		chequeExpirationTime:       chequeExpirationTime,
 	}, nil
 }
 
@@ -108,7 +104,6 @@ type evmChequeHandler struct {
 
 	chainID                    *big.Int
 	ethClient                  *ethclient.Client
-	evmConfig                  *config.EvmConfig
 	cmAccountAddress           common.Address
 	cmAccountInstance          *cmaccount.Cmaccount
 	botKey                     *ecdsa.PrivateKey
@@ -118,6 +113,7 @@ type evmChequeHandler struct {
 	storage                    storage.Storage
 	cmAccounts                 *lru.Cache[common.Address, *cmaccount.Cmaccount]
 	minDurationUntilExpiration *big.Int
+	chequeExpirationTime       uint64
 }
 
 func (ch *evmChequeHandler) IssueCheque(
@@ -142,7 +138,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		Counter:       big.NewInt(0),
 		Amount:        big.NewInt(0).Set(amount),
 		CreatedAt:     big.NewInt(now),
-		ExpiresAt:     big.NewInt(0).SetUint64(uint64(now) + ch.evmConfig.ChequeExpirationTime),
+		ExpiresAt:     big.NewInt(0).SetUint64(uint64(now) + ch.chequeExpirationTime),
 	}
 
 	chequeRecordID := models.ChequeRecordID(newCheque)

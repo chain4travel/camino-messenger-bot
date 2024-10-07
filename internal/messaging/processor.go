@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -61,8 +60,10 @@ type Processor interface {
 func NewProcessor(
 	messenger Messenger,
 	logger *zap.SugaredLogger,
-	cfg config.ProcessorConfig,
-	evmConfig config.EvmConfig,
+	responseTimeout int64,
+	cmAccountAddress common.Address,
+	networkFeeRecipientBotAddress common.Address,
+	networkFeeRecipientCMAccountAddress common.Address,
 	registry ServiceRegistry,
 	responseHandler ResponseHandler,
 	identificationHandler IdentificationHandler,
@@ -70,29 +71,31 @@ func NewProcessor(
 	compressor compression.Compressor[*types.Message, [][]byte],
 ) Processor {
 	return &processor{
-		cfg:                   cfg,
-		evmConfig:             evmConfig,
-		messenger:             messenger,
-		logger:                logger,
-		tracer:                otel.GetTracerProvider().Tracer(""),
-		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels:      make(map[string]chan *types.Message),
-		serviceRegistry:       registry,
-		responseHandler:       responseHandler,
-		identificationHandler: identificationHandler,
-		chequeHandler:         chequeHandler,
-		compressor:            compressor,
+		messenger:                           messenger,
+		logger:                              logger,
+		tracer:                              otel.GetTracerProvider().Tracer(""),
+		timeout:                             time.Duration(responseTimeout) * time.Millisecond, // for now applies to all request types
+		responseChannels:                    make(map[string]chan *types.Message),
+		serviceRegistry:                     registry,
+		responseHandler:                     responseHandler,
+		identificationHandler:               identificationHandler,
+		chequeHandler:                       chequeHandler,
+		compressor:                          compressor,
+		cmAccountAddress:                    cmAccountAddress,
+		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
+		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
 	}
 }
 
 type processor struct {
-	cfg       config.ProcessorConfig
-	evmConfig config.EvmConfig
-	messenger Messenger
-	userID    id.UserID
-	logger    *zap.SugaredLogger
-	tracer    trace.Tracer
-	timeout   time.Duration // timeout after which a request is considered failed
+	messenger                           Messenger
+	userID                              id.UserID
+	logger                              *zap.SugaredLogger
+	tracer                              trace.Tracer
+	timeout                             time.Duration // timeout after which a request is considered failed
+	cmAccountAddress                    common.Address
+	networkFeeRecipientBotAddress       common.Address
+	networkFeeRecipientCMAccountAddress common.Address
 
 	mu                    sync.Mutex
 	responseChannels      map[string]chan *types.Message
@@ -219,9 +222,9 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 
 	networkFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
-		p.identificationHandler.getMyCMAccountAddress(),
-		common.HexToAddress(p.evmConfig.NetworkFeeRecipientCMAccountAddress),
-		common.HexToAddress(p.evmConfig.NetworkFeeRecipientBotAddress),
+		p.cmAccountAddress,
+		p.networkFeeRecipientCMAccountAddress,
+		p.networkFeeRecipientBotAddress,
 		totalNetworkFee,
 	)
 	if err != nil {
@@ -231,7 +234,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 
 	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
-		p.identificationHandler.getMyCMAccountAddress(),
+		p.cmAccountAddress,
 		recipientCMAccAddr,
 		addressFromUserID(recipientBotUserID),
 		serviceFee,
@@ -366,7 +369,7 @@ func (p *processor) Forward(msg *types.Message) {
 
 func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques.SignedCheque {
 	for _, cheque := range cheques {
-		if cheque.ToBot == p.myBotAddress && cheque.ToCMAccount == p.identificationHandler.getMyCMAccountAddress() {
+		if cheque.ToBot == p.myBotAddress && cheque.ToCMAccount == p.cmAccountAddress {
 			return &cheque
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
@@ -35,8 +36,8 @@ type Session interface {
 	IssuedChequeRecordsStorage
 }
 
-func New(ctx context.Context, logger *zap.SugaredLogger, dbPath, dbName, migrationsPath string) (Storage, error) {
-	db, err := sqlx.Open("sqlite3", dbPath)
+func New(ctx context.Context, logger *zap.SugaredLogger, cfg config.DBConfig) (Storage, error) {
+	db, err := sqlx.Open("sqlite3", cfg.DBPath)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -47,7 +48,7 @@ func New(ctx context.Context, logger *zap.SugaredLogger, dbPath, dbName, migrati
 		db:     db,
 	}
 
-	if err := s.migrate(ctx, dbName, migrationsPath); err != nil {
+	if err := s.migrate(cfg.DBName, cfg.MigrationsPath); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +68,7 @@ type storage struct {
 	jobsStatements
 }
 
-func (s *storage) migrate(_ context.Context, dbName, migrationsPath string) error {
+func (s *storage) migrate(dbName, migrationsPath string) error {
 	s.logger.Infof("Performing db migrations...")
 
 	driver, err := sqlite3.WithInstance(s.db.DB, &sqlite3.Config{})

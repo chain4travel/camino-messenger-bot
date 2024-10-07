@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -25,7 +26,7 @@ import (
 )
 
 func main() {
-	var mu sync.Mutex
+	mu := &sync.Mutex{}
 	var wg sync.WaitGroup
 	var logger *zap.Logger
 	cfg := zap.NewDevelopmentConfig()
@@ -40,10 +41,10 @@ func main() {
 	recipient := flag.String("recipient", "@0xeb3D6560a5eCf3e00b68a4b2899FEc93419F06B9:", "Recipient c-chain address (format: @[...]:messenger.chain4travel.com")
 	caCertFile := flag.String("ca-cert-file", "", "CA certificate file (optional)")
 	flag.Parse()
+	hostURL, _ := url.Parse(fmt.Sprintf("%s:%d", *host, *port))
 
 	ppConfig := config.PartnerPluginConfig{
-		Host:        *host,
-		Port:        *port,
+		HostURL:     hostURL,
 		Unencrypted: *caCertFile == "",
 	}
 	ppConfig.CACertFile = *caCertFile
@@ -65,11 +66,17 @@ func main() {
 	}
 }
 
-func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogger *zap.SugaredLogger, recipient string, loadTestData [][]string, mu sync.Mutex) {
-	c := client.NewClient(&ppConfig, sLogger)
-	err := c.Start()
+func createClientAndRunRequest(
+	i int,
+	ppConfig config.PartnerPluginConfig,
+	sLogger *zap.SugaredLogger,
+	recipient string,
+	loadTestData [][]string,
+	mu *sync.Mutex,
+) {
+	c, err := client.NewClient(ppConfig, sLogger)
 	if err != nil {
-		fmt.Errorf("error starting client: %v", err)
+		fmt.Printf("error creating client: %v", err)
 		return
 	}
 	request := &accommodationv1.AccommodationSearchRequest{
@@ -114,7 +121,14 @@ func createClientAndRunRequest(i int, ppConfig config.PartnerPluginConfig, sLogg
 	c.Shutdown()
 }
 
-func addToDataset(counter int64, totalTime int64, resp *accommodationv1.AccommodationSearchResponse, metadata *internalmetadata.Metadata, loadTestData [][]string, mu sync.Mutex) {
+func addToDataset(
+	counter int64,
+	totalTime int64,
+	resp *accommodationv1.AccommodationSearchResponse,
+	metadata *internalmetadata.Metadata,
+	loadTestData [][]string,
+	mu *sync.Mutex,
+) {
 	var data []string
 	var entries []struct {
 		Key   string

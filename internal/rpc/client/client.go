@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"sync"
 
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -16,44 +15,35 @@ import (
 var _ metadata.Checkpoint = (*RPCClient)(nil)
 
 type RPCClient struct {
-	cfg        *config.PartnerPluginConfig
 	logger     *zap.SugaredLogger
 	ClientConn *grpc.ClientConn
-	mu         sync.Mutex
 }
 
-func NewClient(cfg *config.PartnerPluginConfig, logger *zap.SugaredLogger) *RPCClient {
-	return &RPCClient{
-		cfg:    cfg,
-		logger: logger,
-	}
-}
-
-func (rc *RPCClient) Checkpoint() string {
-	return "ext-system-client"
-}
-
-func (rc *RPCClient) Start() error {
-	rc.mu.Lock()
-	defer rc.mu.Unlock()
-
+func NewClient(cfg config.PartnerPluginConfig, logger *zap.SugaredLogger) (*RPCClient, error) {
 	var opts []grpc.DialOption
-	if rc.cfg.Unencrypted {
+	if cfg.Unencrypted {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	} else {
-		tlsCreds, err := utils.LoadCATLSCredentials(rc.cfg.CACertFile)
+		tlsCreds, err := utils.LoadCATLSCredentials(cfg.CACertFile)
 		if err != nil {
-			return fmt.Errorf("could not load TLS keys: %w", err)
+			return nil, fmt.Errorf("could not load TLS keys: %w", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(tlsCreds))
 	}
 
-	cc, err := grpc.NewClient(fmt.Sprintf("%s:%d", rc.cfg.Host, rc.cfg.Port), opts...)
+	clientConnection, err := grpc.NewClient(cfg.HostURL.String(), opts...)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	rc.ClientConn = cc
-	return nil
+
+	return &RPCClient{
+		logger:     logger,
+		ClientConn: clientConnection,
+	}, nil
+}
+
+func (rc *RPCClient) Checkpoint() string {
+	return "ext-system-client"
 }
 
 func (rc *RPCClient) Shutdown() error {

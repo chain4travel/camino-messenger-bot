@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os/signal"
 	"syscall"
 
+	"log"
+
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/app"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 var (
@@ -17,24 +20,60 @@ var (
 	GitCommit string
 )
 
-func main() {
-	fmt.Println("Version\t", Version)
-	fmt.Println("GitCommit\t", GitCommit)
+var rootCmd = &cobra.Command{
+	Use:        "camino-messenger-bot",
+	Short:      "starts camino messenger bot",
+	Version:    Version,
+	SuggestFor: []string{"camino-messenger", "camino-messenger-bot", "camino-bot", "cmb"},
+	RunE:       rootFunc,
+}
 
-	cfg, err := config.ReadConfig()
+func rootFunc(cmd *cobra.Command, _ []string) error {
+	// TODO@
+	log.Printf("Version %s", Version)
+	log.Printf("GitCommit %s", GitCommit)
+
+	isDevelopmentMode, err := cmd.Flags().GetBool(config.FlagKeyDeveloperMode)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to get developer mode flag: %v", err)
 	}
+
+	var zapLogger *zap.Logger
+	if isDevelopmentMode {
+		zapLogger, err = zap.NewDevelopment()
+	} else {
+		zapLogger, err = zap.NewProduction()
+	}
+	if err != nil {
+		log.Fatalf("failed to create logger: %v", err)
+	}
+
+	logger := zapLogger.Sugar()
+	defer func() { _ = logger.Sync() }()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	app, err := app.NewApp(cfg)
+	cfg, err := config.ReadConfig(logger)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		return err
 	}
-	err = app.Run(ctx)
+
+	app, err := app.NewApp(ctx, cfg, logger)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		return err
+	}
+	defer app.Stop(context.Background())
+
+	return app.Run(ctx)
+}
+
+func init() {
+	cobra.EnablePrefixMatching = true
+
+	if err := config.BindFlags(rootCmd); err != nil {
+		log.Fatalf("failed to bind flags: %w", err)
 	}
 }

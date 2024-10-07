@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/evm"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -16,142 +16,203 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/scheduler"
 	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
-	"github.com/chain4travel/camino-messenger-bot/pkg/events"
-	"github.com/chain4travel/camino-messenger-bot/utils/constants"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"maunium.net/go/mautrix/id"
 )
 
-const cashInJobName = "cash_in"
+// TODO @nikos do proper DI with FX
 
-type App struct {
-	cfg    *config.UnparsedConfig
-	logger *zap.SugaredLogger
-	tracer tracing.Tracer
+const (
+	cashInJobName = "cash_in"
+	appName       = "camino-messenger-bot"
+)
+
+func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) (*App, error) {
+	// c-chain evm client && chain id
+	evmClient, err := ethclient.Dial(cfg.CChainRPCURL.String())
+	if err != nil {
+		logger.Errorf("Failed to connect to the Ethereum client: %v", err)
+		return nil, err
+	}
+
+	chainID, err := evmClient.NetworkID(ctx)
+	if err != nil {
+		logger.Errorf("Failed to fetch chain id: %v", err)
+		return nil, err
+	}
+
+	storage, err := storage.New(ctx, logger, cfg.DBConfig)
+	if err != nil {
+		logger.Errorf("Failed to create storage: %v", err)
+		return nil, err
+	}
+
+	// partner-plugin rpc client
+	var rpcClient *client.RPCClient
+	if cfg.PartnerPluginConfig.HostURL != nil {
+		rpcClient, err = client.NewClient(cfg.PartnerPluginConfig, logger)
+		if err != nil {
+			logger.Errorf("Failed to create rpc client: %v", err)
+			return nil, err
+		}
+	}
+
+	// register supported services, check if they actually supported by bot
+	serviceRegistry, hasSupportedServices, err := messaging.NewServiceRegistry(
+		cfg.CMAccountAddress,
+		evmClient,
+		logger,
+		rpcClient,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create service registry: %v", err)
+		return nil, err
+	}
+
+	if !hasSupportedServices && rpcClient != nil {
+		logger.Warn("Bot doesn't support any services, but has partner plugin rpc client configured")
+	}
+
+	// messaging components
+	responseHandler, err := messaging.NewResponseHandler(
+		cfg.BotKey,
+		evmClient,
+		logger,
+		cfg.CMAccountAddress,
+		cfg.BookingTokenAddress,
+		serviceRegistry,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create response handler: %v", err)
+		return nil, err
+	}
+
+	identificationHandler, err := messaging.NewIdentificationHandler(
+		evmClient,
+		logger,
+		cfg.CMAccountAddress,
+		cfg.MatrixConfig.HostURL,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create identification handler: %v", err)
+		return nil, err
+	}
+
+	chequeHandler, err := messaging.NewChequeHandler(
+		logger,
+		evmClient,
+		cfg.BotKey,
+		cfg.CMAccountAddress,
+		chainID,
+		storage,
+		serviceRegistry,
+		cfg.MinChequeDurationUntilExpiration,
+		cfg.ChequeExpirationTime,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create cheque handler: %v", err)
+		return nil, err
+	}
+
+	matrixMessenger := matrix.NewMessenger(cfg.MatrixConfig, cfg.BotKey, logger)
+
+	messageProcessor := messaging.NewProcessor(
+		matrixMessenger,
+		logger,
+		cfg.ResponseTimeout,
+		cfg.CMAccountAddress,
+		cfg.NetworkFeeRecipientBotAddress,
+		cfg.NetworkFeeRecipientCMAccountAddress,
+		serviceRegistry,
+		responseHandler,
+		identificationHandler,
+		chequeHandler,
+		messaging.NewCompressor(compression.MaxChunkSize),
+	)
+
+	// rpc server for incoming requests
+	// TODO@ disable if we don't have port provided, e.g. its supplier bot?
+	rpcServer := server.NewServer(
+		cfg.RPCServerConfig,
+		logger,
+		tracer,
+		messageProcessor,
+		serviceRegistry,
+	)
+
+	// scheduler for periodic tasks (e.g. cheques cash-in)
+	scheduler := scheduler.New(ctx, logger, storage)
+	scheduler.RegisterJobHandler(cashInJobName, func() {
+		_ = chequeHandler.CashIn(context.Background())
+	})
+
+	return &App{
+		cfg:              cfg,
+		logger:           logger,
+		scheduler:        scheduler,
+		chequeHandler:    chequeHandler,
+		rpcClient:        rpcClient,
+		rpcServer:        rpcServer,
+		messageProcessor: messageProcessor,
+		messenger:        matrixMessenger,
+	}, nil
 }
 
-func NewApp(cfg *config.UnparsedConfig) (*App, error) {
-	app := &App{
-		cfg: cfg,
-	}
-
-	// create logger
-	var logger *zap.Logger
-	// Development configuration with a lower log level (e.g., Debug).
-	if cfg.DeveloperMode {
-		cfg := zap.NewDevelopmentConfig()
-		cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
-		logger, _ = cfg.Build()
-	} else { // Production configuration with a higher log level (e.g., Info).
-		cfg := zap.NewProductionConfig()
-		logger, _ = cfg.Build()
-	}
-	app.logger = logger.Sugar()
-	defer logger.Sync() //nolint:errcheck
-
-	return app, nil
+type App struct {
+	cfg              *config.Config
+	logger           *zap.SugaredLogger
+	tracer           tracing.Tracer
+	scheduler        scheduler.Scheduler
+	chequeHandler    messaging.ChequeHandler
+	rpcClient        *client.RPCClient
+	rpcServer        server.Server
+	messageProcessor messaging.Processor
+	messenger        messaging.Messenger
 }
 
 func (a *App) Run(ctx context.Context) error {
 	g, gCtx := errgroup.WithContext(ctx)
 
-	evmClient, err := evm.NewClient(a.cfg.EvmConfig)
-	if err != nil {
-		a.logger.Fatalf("Failed to connect to the Ethereum client: %v", err)
-	}
+	g.Go(func() error {
+		<-ctx.Done()
+		return a.rpcClient.Shutdown()
+	})
 
-	evmEventListener := events.NewEventListener(evmClient, a.logger)
+	userIDUpdatedChan := make(chan id.UserID) // Channel to pass the userID
+	g.Go(func() error {
+		a.logger.Info("Starting message receiver...")
+		userID, err := a.messenger.StartReceiver()
+		if err != nil {
+			panic(err)
+		}
+		userIDUpdatedChan <- userID // Pass userID through the channel
+		return nil
+	})
+	g.Go(func() error {
+		<-ctx.Done()
+		return a.messenger.StopReceiver()
+	})
 
-	// create response handler
-
-	// TODO do proper DI with FX
-
-	storage, err := storage.New(ctx, a.logger, a.cfg.DBPath, a.cfg.DBName, a.cfg.MigrationsPath)
-	if err != nil {
-		a.logger.Fatalf("Failed to create storage: %v", err)
-	}
-
-	// start rpc client if host is provided, otherwise bot serves as a distributor bot (rpc server)
-	var rpcClient *client.RPCClient
-	if a.cfg.PartnerPluginConfig.Host != "" {
-		rpcClient = a.startRPCClient(gCtx, g)
-	}
-
-	// register supported service
-	serviceRegistry, hasSupportedServices, err := messaging.NewServiceRegistry(&a.cfg.EvmConfig, evmClient, a.logger, rpcClient)
-	if err != nil {
-		a.logger.Fatalf("Failed to create service registry: %v", err)
-	}
-
-	if !hasSupportedServices && rpcClient != nil {
-		a.logger.Warn("Bot doesn't support any services, but has partner plugin rpc client configured")
-	}
-
-	// start messenger (receiver)
-	messenger, userIDUpdatedChan := a.startMessenger(gCtx, g)
-
-	responseHandler, err := messaging.NewResponseHandler(
-		evmClient,
-		a.logger,
-		&a.cfg.EvmConfig,
-		serviceRegistry,
-		evmEventListener,
-	)
-	if err != nil {
-		a.logger.Fatalf("Failed to create to evm client: %v", err)
-	}
-	chainID, err := evmClient.NetworkID(ctx)
-	if err != nil {
-		a.logger.Fatalf("Failed to fetch chain id: %v", err)
-	}
-	chequeHandler, err := messaging.NewChequeHandler(
-		a.logger,
-		evmClient,
-		&a.cfg.EvmConfig,
-		chainID,
-		storage,
-		serviceRegistry,
-	)
-	if err != nil {
-		a.logger.Fatalf("Failed to create to evm client: %v", err)
-	}
-
-	if err := chequeHandler.CheckCashInStatus(ctx); err != nil {
+	if err := a.chequeHandler.CheckCashInStatus(ctx); err != nil {
 		a.logger.Errorf("start-up cash-in status check failed: %v", err)
 	}
 
-	identificationHandler, err := messaging.NewIdentificationHandler(
-		evmClient,
-		a.logger,
-		&a.cfg.EvmConfig,
-		&a.cfg.MatrixConfig,
-	)
-	if err != nil {
-		a.logger.Fatalf("Failed to create to evm client: %v", err)
-	}
-
-	// start msg processor
-	msgProcessor := a.startMessageProcessor(
-		ctx,
-		messenger,
-		serviceRegistry,
-		responseHandler,
-		identificationHandler,
-		chequeHandler,
-		g,
-		userIDUpdatedChan,
-	)
-
-	scheduler := scheduler.New(ctx, a.logger, storage)
-	scheduler.RegisterJobHandler(cashInJobName, func() {
-		_ = chequeHandler.CashIn(context.Background())
+	g.Go(func() error {
+		// Wait for userID to be passed
+		userID := <-userIDUpdatedChan
+		close(userIDUpdatedChan)
+		a.messageProcessor.SetUserID(userID)
+		a.logger.Info("Starting message processor...")
+		a.messageProcessor.Start(ctx)
+		return nil
 	})
-	if err := scheduler.Schedule(ctx, time.Duration(a.cfg.CashInPeriod)*time.Second, cashInJobName); err != nil { //nolint:gosec
+
+	if err := a.scheduler.Schedule(ctx, time.Duration(a.cfg.CashInPeriod)*time.Second, cashInJobName); err != nil { //nolint:gosec
 		a.logger.Fatalf("Failed to schedule cash in job: %v", err)
 	}
 
-	if err := scheduler.Start(ctx); err != nil {
+	if err := a.scheduler.Start(ctx); err != nil {
 		a.logger.Fatalf("Failed to start scheduler: %v", err)
 	}
 
@@ -164,7 +225,15 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	// start rpc server
-	a.startRPCServer(gCtx, msgProcessor, serviceRegistry, g)
+	g.Go(func() error {
+		a.logger.Info("Starting gRPC server...")
+		return a.rpcServer.Start()
+	})
+	g.Go(func() error {
+		<-ctx.Done()
+		a.rpcServer.Stop()
+		return nil
+	})
 
 	if err := g.Wait(); err != nil {
 		a.logger.Error(err)
@@ -178,7 +247,7 @@ func (a *App) initTracer() tracing.Tracer {
 		err    error
 	)
 	if a.cfg.TracingConfig.Enabled {
-		tracer, err = tracing.NewTracer(&a.cfg.TracingConfig, fmt.Sprintf("%s:%d", constants.AppName, a.cfg.RPCServerConfig.Port))
+		tracer, err = tracing.NewTracer(&a.cfg.TracingConfig, fmt.Sprintf("%s:%d", appName, a.cfg.RPCServerConfig.Port))
 	} else {
 		tracer, err = tracing.NewNoOpTracer()
 	}
@@ -187,86 +256,4 @@ func (a *App) initTracer() tracing.Tracer {
 	}
 	a.tracer = tracer
 	return tracer
-}
-
-func (a *App) startRPCClient(ctx context.Context, g *errgroup.Group) *client.RPCClient {
-	rpcClient := client.NewClient(&a.cfg.PartnerPluginConfig, a.logger)
-	g.Go(func() error {
-		a.logger.Info("Starting gRPC client...")
-		err := rpcClient.Start()
-		if err != nil {
-			panic(err)
-		}
-		return nil
-	})
-	g.Go(func() error {
-		<-ctx.Done()
-		return rpcClient.Shutdown()
-	})
-	return rpcClient
-}
-
-func (a *App) startMessenger(ctx context.Context, g *errgroup.Group) (messaging.Messenger, chan id.UserID) {
-	messenger := matrix.NewMessenger(&a.cfg.MatrixConfig, a.logger)
-	userIDUpdatedChan := make(chan id.UserID) // Channel to pass the userID
-	g.Go(func() error {
-		a.logger.Info("Starting message receiver...")
-		userID, err := messenger.StartReceiver()
-		if err != nil {
-			panic(err)
-		}
-		userIDUpdatedChan <- userID // Pass userID through the channel
-		return nil
-	})
-	g.Go(func() error {
-		<-ctx.Done()
-		return messenger.StopReceiver()
-	})
-	return messenger, userIDUpdatedChan
-}
-
-func (a *App) startRPCServer(ctx context.Context, msgProcessor messaging.Processor, serviceRegistry messaging.ServiceRegistry, g *errgroup.Group) {
-	rpcServer := server.NewServer(&a.cfg.RPCServerConfig, a.logger, a.tracer, msgProcessor, serviceRegistry)
-	g.Go(func() error {
-		a.logger.Info("Starting gRPC server...")
-		return rpcServer.Start()
-	})
-	g.Go(func() error {
-		<-ctx.Done()
-		rpcServer.Stop()
-		return nil
-	})
-}
-
-func (a *App) startMessageProcessor(
-	ctx context.Context,
-	messenger messaging.Messenger,
-	serviceRegistry messaging.ServiceRegistry,
-	responseHandler messaging.ResponseHandler,
-	identificationHandler messaging.IdentificationHandler,
-	chequeHandler messaging.ChequeHandler,
-	g *errgroup.Group,
-	userIDUpdated chan id.UserID,
-) messaging.Processor {
-	msgProcessor := messaging.NewProcessor(
-		messenger,
-		a.logger,
-		a.cfg.ProcessorConfig,
-		a.cfg.EvmConfig,
-		serviceRegistry,
-		responseHandler,
-		identificationHandler,
-		chequeHandler,
-		messaging.NewCompressor(compression.MaxChunkSize),
-	)
-	g.Go(func() error {
-		// Wait for userID to be passed
-		userID := <-userIDUpdated
-		close(userIDUpdated)
-		msgProcessor.SetUserID(userID)
-		a.logger.Info("Starting message processor...")
-		msgProcessor.Start(ctx)
-		return nil
-	})
-	return msgProcessor
 }
