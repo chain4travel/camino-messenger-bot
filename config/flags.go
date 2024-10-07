@@ -24,7 +24,7 @@ func BindFlags(cmd *cobra.Command) error {
 	cmd.PersistentFlags().String("network_fee_recipient_cm_account", "", "Network fee recipient CMAccount address.")
 	cmd.PersistentFlags().Uint64("cheque_expiration_time", 3600*24*30*7, "Cheque expiration time (in seconds).")
 	cmd.PersistentFlags().Uint64("min_cheque_duration_until_expiration", 3600*24*30*6, "Minimum valid duration until cheque expiration (in seconds).")
-	cmd.PersistentFlags().Uint64("cash_in_period", 3600*24, "Cash-in period (in seconds).")
+	cmd.PersistentFlags().Int64("cash_in_period", 3600*24, "Cash-in period (in seconds).")
 	cmd.PersistentFlags().Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
 
 	// DB config flags
@@ -45,7 +45,7 @@ func BindFlags(cmd *cobra.Command) error {
 	cmd.PersistentFlags().String("partner_plugin_ca_file", "", "The partner plugin RPC server CA certificate file.")
 
 	// RPC server config flags
-	cmd.PersistentFlags().Int64("rpc_server_port", 9090, "The RPC server port.")
+	cmd.PersistentFlags().Uint64("rpc_server_port", 9090, "The RPC server port.")
 	cmd.PersistentFlags().Bool("rpc_unencrypted", false, "Whether the RPC server should be unencrypted.")
 	cmd.PersistentFlags().String("rpc_server_cert_file", "", "The server certificate file.")
 	cmd.PersistentFlags().String("rpc_server_key_file", "", "The server key file.")

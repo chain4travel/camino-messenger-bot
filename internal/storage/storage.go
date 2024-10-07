@@ -177,10 +177,3 @@ func upgradeError(err error) error {
 	}
 	return err
 }
-
-func upgradeErrorAllowNotFound(err error) error { //nolint:unused
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil
-	}
-	return err
-}

@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -154,13 +153,17 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// rpc server for incoming requests
 	// TODO@ disable if we don't have port provided, e.g. its supplier bot?
-	rpcServer := server.NewServer(
+	rpcServer, err := server.NewServer(
 		cfg.RPCServerConfig,
 		logger,
 		tracer,
 		messageProcessor,
 		serviceRegistry,
 	)
+	if err != nil {
+		logger.Errorf("Failed to create rpc server: %v", err)
+		return nil, err
+	}
 
 	// scheduler for periodic tasks (e.g. cheques cash-in)
 	scheduler := scheduler.New(ctx, logger, storage)
@@ -221,7 +224,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	g.Go(func() error {
 		a.logger.Info("Starting scheduler...")
-		if err := a.scheduler.Schedule(gCtx, time.Duration(a.cfg.CashInPeriod)*time.Second, cashInJobName); err != nil { //nolint:gosec
+		if err := a.scheduler.Schedule(gCtx, a.cfg.CashInPeriod, cashInJobName); err != nil {
 			return fmt.Errorf("failed to schedule cash in job: %w", err)
 		}
 		if err := a.scheduler.Start(gCtx); err != nil {

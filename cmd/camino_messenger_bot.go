@@ -1,7 +1,8 @@
-package main
+package cmd
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os/signal"
 	"syscall"
@@ -28,13 +29,13 @@ var rootCmd = &cobra.Command{
 }
 
 func rootFunc(cmd *cobra.Command, _ []string) error {
-	// TODO@
+	// TODO @evlekht normal log printing
 	log.Printf("Version %s", Version)
 	log.Printf("GitCommit %s", GitCommit)
 
 	isDevelopmentMode, err := cmd.Flags().GetBool(config.FlagKeyDeveloperMode)
 	if err != nil {
-		log.Fatalf("failed to get developer mode flag: %v", err)
+		return fmt.Errorf("failed to get developer mode flag: %w", err)
 	}
 
 	var zapLogger *zap.Logger
@@ -44,7 +45,7 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 		zapLogger, err = zap.NewProduction()
 	}
 	if err != nil {
-		log.Fatalf("failed to create logger: %v", err)
+		return fmt.Errorf("failed to create logger: %w", err)
 	}
 
 	logger := zapLogger.Sugar()
@@ -74,4 +75,8 @@ func init() {
 	if err := config.BindFlags(rootCmd); err != nil {
 		log.Fatalf("failed to bind flags: %v", err)
 	}
+}
+
+func Execute() error {
+	return rootCmd.Execute()
 }

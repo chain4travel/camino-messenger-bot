@@ -2,7 +2,9 @@ package config
 
 import (
 	"crypto/ecdsa"
+	"math/big"
 	"net/url"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -23,11 +25,11 @@ type Config struct {
 	NetworkFeeRecipientBotAddress       common.Address
 	NetworkFeeRecipientCMAccountAddress common.Address
 
-	ChequeExpirationTime             uint64
-	MinChequeDurationUntilExpiration uint64 // seconds
-	CashInPeriod                     uint64 // seconds
+	ChequeExpirationTime             *big.Int // seconds
+	MinChequeDurationUntilExpiration *big.Int // seconds
+	CashInPeriod                     time.Duration
 
-	ResponseTimeout int64 // in milliseconds // TODO@ uint64?
+	ResponseTimeout time.Duration
 
 	RPCServerConfig
 	PartnerPluginConfig
@@ -61,7 +63,7 @@ type MatrixConfig struct {
 }
 
 type RPCServerConfig struct {
-	Port           int
+	Port           uint64
 	Unencrypted    bool
 	ServerCertFile string
 	ServerKeyFile  string
@@ -83,11 +85,11 @@ type UnparsedConfig struct {
 	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
 	NetworkFeeRecipientCMAccountAddress string `mapstructure:"network_fee_recipient_cm_account"`
 
-	ChequeExpirationTime             uint64 `mapstructure:"cheque_expiration_time"`
+	ChequeExpirationTime             uint64 `mapstructure:"cheque_expiration_time"`               // seconds
 	MinChequeDurationUntilExpiration uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
-	CashInPeriod                     uint64 `mapstructure:"cash_in_period"`                       // seconds
+	CashInPeriod                     int64  `mapstructure:"cash_in_period"`                       // seconds
 
-	ResponseTimeout int64 `mapstructure:"response_timeout"` // in milliseconds
+	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
 
 	UnparsedPartnerPluginConfig
 	UnparsedTracingConfig

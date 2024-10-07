@@ -112,7 +112,7 @@ func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.M
 }
 
 func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error {
-	switch msgType { //nolint:gocritic
+	switch msgType {
 	case generated.MintServiceV2Request:
 		mintReq, ok := request.(*bookv2.MintRequest)
 		if !ok {

@@ -25,7 +25,8 @@ import (
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 
-	_ "github.com/mattn/go-sqlite3" //nolint:revive
+	// required to initialize the sqlite driver
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var _ messaging.Messenger = (*messenger)(nil)

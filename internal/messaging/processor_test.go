@@ -193,7 +193,7 @@ func TestProcessInbound(t *testing.T) {
 			p := NewProcessor(
 				tt.fields.messenger,
 				zap.NewNop().Sugar(),
-				int64(0),
+				time.Duration(0),
 				userID,
 				common.Address{},
 				common.Address{},
@@ -229,7 +229,7 @@ func TestProcessOutbound(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 
 	type fields struct {
-		responseTimeout       int64
+		responseTimeout       time.Duration
 		messenger             Messenger
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
@@ -278,7 +278,7 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: awaiting-response-timeout exceeded": {
 			fields: fields{
-				responseTimeout:       10, // 10ms
+				responseTimeout:       10 * time.Millisecond, // 10ms
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -299,7 +299,7 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"err: while sending request": {
 			fields: fields{
-				responseTimeout:       100, // 10ms
+				responseTimeout:       100 * time.Millisecond, // 100ms
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -320,7 +320,7 @@ func TestProcessOutbound(t *testing.T) {
 		},
 		"success: response before timeout": {
 			fields: fields{
-				responseTimeout:       500, // long enough timeout for response to be received
+				responseTimeout:       500 * time.Millisecond, // long enough timeout for response to be received
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
@@ -436,7 +436,7 @@ func TestStart(t *testing.T) {
 		p := NewProcessor(
 			mockMessenger,
 			zap.NewNop().Sugar(),
-			int64(0),
+			time.Duration(0),
 			userID,
 			common.Address{},
 			common.Address{},

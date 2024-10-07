@@ -37,14 +37,14 @@ func NewServer(
 	tracer tracing.Tracer,
 	processor messaging.Processor,
 	serviceRegistry messaging.ServiceRegistry,
-) Server {
+) (Server, error) {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
 	} else {
 		creds, err := utils.LoadTLSCredentials(cfg.ServerCertFile, cfg.ServerKeyFile)
 		if err != nil {
-			logger.Fatalf("could not load TLS keys: %s", err)
+			return nil, fmt.Errorf("could not load TLS keys: %w", err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
@@ -57,7 +57,7 @@ func NewServer(
 		grpcServer:      grpc.NewServer(opts...),
 	}
 	generated.RegisterServerServices(server.grpcServer, server)
-	return server
+	return server, nil
 }
 
 type server struct {

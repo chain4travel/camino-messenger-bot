@@ -64,8 +64,8 @@ func NewChequeHandler(
 	chainID *big.Int,
 	storage storage.Storage,
 	serviceRegistry ServiceRegistry,
-	minChequeDurationUntilExpiration uint64,
-	chequeExpirationTime uint64,
+	minChequeDurationUntilExpiration *big.Int,
+	chequeExpirationTime *big.Int,
 ) (ChequeHandler, error) {
 	cmAccountInstance, err := cmaccount.NewCmaccount(cmAccountAddress, ethClient)
 	if err != nil {
@@ -83,37 +83,37 @@ func NewChequeHandler(
 	}
 
 	return &evmChequeHandler{
-		ethClient:                  ethClient,
-		cmAccountAddress:           cmAccountAddress,
-		cmAccountInstance:          cmAccountInstance,
-		chainID:                    chainID,
-		botKey:                     botKey,
-		botAddress:                 crypto.PubkeyToAddress(botKey.PublicKey),
-		logger:                     logger,
-		storage:                    storage,
-		signer:                     signer,
-		serviceRegistry:            serviceRegistry,
-		cmAccounts:                 cmAccountsCache,
-		minDurationUntilExpiration: big.NewInt(0).SetUint64(minChequeDurationUntilExpiration),
-		chequeExpirationTime:       chequeExpirationTime,
+		ethClient:                        ethClient,
+		cmAccountAddress:                 cmAccountAddress,
+		cmAccountInstance:                cmAccountInstance,
+		chainID:                          chainID,
+		botKey:                           botKey,
+		botAddress:                       crypto.PubkeyToAddress(botKey.PublicKey),
+		logger:                           logger,
+		storage:                          storage,
+		signer:                           signer,
+		serviceRegistry:                  serviceRegistry,
+		cmAccounts:                       cmAccountsCache,
+		minChequeDurationUntilExpiration: minChequeDurationUntilExpiration,
+		chequeExpirationTime:             chequeExpirationTime,
 	}, nil
 }
 
 type evmChequeHandler struct {
 	logger *zap.SugaredLogger
 
-	chainID                    *big.Int
-	ethClient                  *ethclient.Client
-	cmAccountAddress           common.Address
-	cmAccountInstance          *cmaccount.Cmaccount
-	botKey                     *ecdsa.PrivateKey
-	botAddress                 common.Address
-	signer                     cheques.Signer
-	serviceRegistry            ServiceRegistry
-	storage                    storage.Storage
-	cmAccounts                 *lru.Cache[common.Address, *cmaccount.Cmaccount]
-	minDurationUntilExpiration *big.Int
-	chequeExpirationTime       uint64
+	chainID                          *big.Int
+	ethClient                        *ethclient.Client
+	cmAccountAddress                 common.Address
+	cmAccountInstance                *cmaccount.Cmaccount
+	botKey                           *ecdsa.PrivateKey
+	botAddress                       common.Address
+	signer                           cheques.Signer
+	serviceRegistry                  ServiceRegistry
+	storage                          storage.Storage
+	cmAccounts                       *lru.Cache[common.Address, *cmaccount.Cmaccount]
+	minChequeDurationUntilExpiration *big.Int
+	chequeExpirationTime             *big.Int
 }
 
 func (ch *evmChequeHandler) IssueCheque(
@@ -130,15 +130,15 @@ func (ch *evmChequeHandler) IssueCheque(
 
 	defer session.Abort()
 
-	now := time.Now().Unix()
+	now := big.NewInt(time.Now().Unix())
 	newCheque := &cheques.Cheque{
 		FromCMAccount: fromCMAccount,
 		ToCMAccount:   toCMAccount,
 		ToBot:         toBot,
 		Counter:       big.NewInt(0),
 		Amount:        big.NewInt(0).Set(amount),
-		CreatedAt:     big.NewInt(now),
-		ExpiresAt:     big.NewInt(0).SetUint64(uint64(now) + ch.chequeExpirationTime),
+		CreatedAt:     now,
+		ExpiresAt:     big.NewInt(0).Add(now, ch.chequeExpirationTime),
 	}
 
 	chequeRecordID := models.ChequeRecordID(newCheque)
@@ -271,7 +271,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 		previousCheque,
 		cheque,
 		big.NewInt(time.Now().Unix()),
-		ch.minDurationUntilExpiration,
+		ch.minChequeDurationUntilExpiration,
 	); err != nil {
 		return err
 	}

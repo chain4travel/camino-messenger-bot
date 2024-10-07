@@ -58,7 +58,7 @@ type Processor interface {
 func NewProcessor(
 	messenger Messenger,
 	logger *zap.SugaredLogger,
-	responseTimeout int64,
+	responseTimeout time.Duration,
 	botUserID id.UserID,
 	cmAccountAddress common.Address,
 	networkFeeRecipientBotAddress common.Address,
@@ -73,7 +73,7 @@ func NewProcessor(
 		messenger:                           messenger,
 		logger:                              logger,
 		tracer:                              otel.GetTracerProvider().Tracer(""),
-		timeout:                             time.Duration(responseTimeout) * time.Millisecond, // for now applies to all request types
+		responseTimeout:                     responseTimeout, // for now applies to all request types
 		responseChannels:                    make(map[string]chan *types.Message),
 		serviceRegistry:                     registry,
 		responseHandler:                     responseHandler,
@@ -92,7 +92,7 @@ type processor struct {
 	messenger                           Messenger
 	logger                              *zap.SugaredLogger
 	tracer                              trace.Tracer
-	timeout                             time.Duration // timeout after which a request is considered failed
+	responseTimeout                     time.Duration // timeout after which a request is considered failed
 	botUserID                           id.UserID
 	myBotAddress                        common.Address
 	cmAccountAddress                    common.Address
@@ -167,7 +167,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		p.mu.Unlock()
 	}()
 
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
@@ -258,7 +258,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 				return response, nil
 			}
 		case <-ctx.Done():
-			return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.timeout, msg.Metadata.RequestID)
+			return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, msg.Metadata.RequestID)
 		}
 	}
 }

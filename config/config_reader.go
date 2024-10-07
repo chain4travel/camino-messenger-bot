@@ -2,7 +2,9 @@ package config
 
 import (
 	"errors"
+	"math/big"
 	"net/url"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -109,9 +111,9 @@ func (cr *configReader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		BookingTokenAddress:                 common.HexToAddress(cfg.BookingTokenAddress),
 		NetworkFeeRecipientBotAddress:       common.HexToAddress(cfg.NetworkFeeRecipientBotAddress),
 		NetworkFeeRecipientCMAccountAddress: common.HexToAddress(cfg.NetworkFeeRecipientCMAccountAddress),
-		ChequeExpirationTime:                cfg.ChequeExpirationTime,
-		MinChequeDurationUntilExpiration:    cfg.MinChequeDurationUntilExpiration,
-		CashInPeriod:                        cfg.CashInPeriod,
-		ResponseTimeout:                     cfg.ResponseTimeout,
+		ChequeExpirationTime:                big.NewInt(0).SetUint64(cfg.ChequeExpirationTime),
+		MinChequeDurationUntilExpiration:    big.NewInt(0).SetUint64(cfg.MinChequeDurationUntilExpiration),
+		CashInPeriod:                        time.Duration(cfg.CashInPeriod) * time.Second,
+		ResponseTimeout:                     time.Duration(cfg.ResponseTimeout) * time.Millisecond,
 	}, nil
 }
