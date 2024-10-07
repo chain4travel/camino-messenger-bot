@@ -28,7 +28,6 @@ const cashInTxIssueTimeout = 10 * time.Second
 var (
 	_ Processor = (*processor)(nil)
 
-	ErrUserIDNotSet                 = errors.New("user id not set")
 	ErrUnknownMessageCategory       = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed   = errors.New("only request messages allowed")
 	ErrUnsupportedService           = errors.New("unsupported service")
@@ -132,9 +131,6 @@ func (p *processor) Start(ctx context.Context) {
 }
 
 func (p *processor) ProcessInbound(msg *types.Message) error {
-	if p.botUserID == "" {
-		return ErrUserIDNotSet
-	}
 	if msg.Sender != p.botUserID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case types.Request:

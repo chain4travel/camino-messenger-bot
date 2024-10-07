@@ -85,10 +85,6 @@ func TestProcessInbound(t *testing.T) {
 		err     error
 		assert  func(*testing.T, *processor)
 	}{
-		"err: user id not set": {
-			fields: fields{},
-			err:    ErrUserIDNotSet,
-		},
 		"err: invalid message type": {
 			fields: fields{},
 			args: args{
