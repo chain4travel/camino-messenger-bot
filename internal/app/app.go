@@ -274,5 +274,4 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Error(err) // will log first run/stop error
 	}
 	return err
-
 }

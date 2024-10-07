@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
+	"log"
 	"os/signal"
 	"syscall"
-
-	"log"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/app"

@@ -81,9 +81,9 @@ func TestProcessInbound(t *testing.T) {
 	tests := map[string]struct {
 		fields  fields
 		args    args
-		prepare func(p *processor)
+		prepare func(*processor)
 		err     error
-		assert  func(t *testing.T, p *processor)
+		assert  func(*testing.T, *processor)
 	}{
 		"err: user id not set": {
 			fields: fields{},
@@ -100,7 +100,7 @@ func TestProcessInbound(t *testing.T) {
 			fields: fields{
 				serviceRegistry: mockServiceRegistry,
 			},
-			prepare: func(p *processor) {
+			prepare: func(*processor) {
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(nil, false)
 			},
 			args: args{
@@ -130,7 +130,7 @@ func TestProcessInbound(t *testing.T) {
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
 			},
-			prepare: func(p *processor) {
+			prepare: func(*processor) {
 				mockService.EXPECT().Name().Return("dummy")
 				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
@@ -156,7 +156,7 @@ func TestProcessInbound(t *testing.T) {
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
 			},
-			prepare: func(p *processor) {
+			prepare: func(*processor) {
 				mockService.EXPECT().Name().Return("dummy")
 				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
@@ -249,8 +249,8 @@ func TestProcessOutbound(t *testing.T) {
 		args                   args
 		want                   *types.Message
 		err                    error
-		prepare                func(p *processor)
-		writeResponseToChannel func(p *processor)
+		prepare                func()
+		writeResponseToChannel func(*processor)
 	}{
 		"err: non-request outbound message": {
 			fields: fields{
@@ -296,7 +296,7 @@ func TestProcessOutbound(t *testing.T) {
 					Metadata: metadata.Metadata{Recipient: anotherUserID},
 				},
 			},
-			prepare: func(p *processor) {
+			prepare: func() {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			err: ErrExceededResponseTimeout,
@@ -317,7 +317,7 @@ func TestProcessOutbound(t *testing.T) {
 					Metadata: metadata.Metadata{Recipient: anotherUserID},
 				},
 			},
-			prepare: func(p *processor) {
+			prepare: func() {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			err: errSomeError,
@@ -338,7 +338,7 @@ func TestProcessOutbound(t *testing.T) {
 					Metadata: metadata.Metadata{Recipient: anotherUserID, RequestID: requestID},
 				},
 			},
-			prepare: func(p *processor) {
+			prepare: func() {
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			writeResponseToChannel: func(p *processor) {
@@ -379,7 +379,7 @@ func TestProcessOutbound(t *testing.T) {
 				tt.fields.compressor,
 			)
 			if tt.prepare != nil {
-				tt.prepare(p.(*processor))
+				tt.prepare()
 			}
 			if tt.writeResponseToChannel != nil {
 				go tt.writeResponseToChannel(p.(*processor))
