@@ -4,7 +4,7 @@
 OUTPUT_BINARY="build/bot"
 
 # Set the main source file
-MAIN_SOURCE="cmd/camino-messenger-bot/main.go"
+MAIN_SOURCE="main.go"
 
 # Flag to enable debug mode
 DEBUG=false
