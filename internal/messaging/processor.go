@@ -51,7 +51,6 @@ type MsgHandler interface {
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
-	SetUserID(userID id.UserID)
 	Start(ctx context.Context)
 	ProcessInbound(message *types.Message) error
 	ProcessOutbound(ctx context.Context, message *types.Message) (*types.Message, error)
@@ -61,6 +60,7 @@ func NewProcessor(
 	messenger Messenger,
 	logger *zap.SugaredLogger,
 	responseTimeout int64,
+	botUserID id.UserID,
 	cmAccountAddress common.Address,
 	networkFeeRecipientBotAddress common.Address,
 	networkFeeRecipientCMAccountAddress common.Address,
@@ -81,6 +81,8 @@ func NewProcessor(
 		identificationHandler:               identificationHandler,
 		chequeHandler:                       chequeHandler,
 		compressor:                          compressor,
+		myBotAddress:                        addressFromUserID(botUserID),
+		botUserID:                           botUserID,
 		cmAccountAddress:                    cmAccountAddress,
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
 		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
@@ -89,10 +91,11 @@ func NewProcessor(
 
 type processor struct {
 	messenger                           Messenger
-	userID                              id.UserID
 	logger                              *zap.SugaredLogger
 	tracer                              trace.Tracer
 	timeout                             time.Duration // timeout after which a request is considered failed
+	botUserID                           id.UserID
+	myBotAddress                        common.Address
 	cmAccountAddress                    common.Address
 	networkFeeRecipientBotAddress       common.Address
 	networkFeeRecipientCMAccountAddress common.Address
@@ -103,13 +106,7 @@ type processor struct {
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
 	chequeHandler         ChequeHandler
-	myBotAddress          common.Address
 	compressor            compression.Compressor[*types.Message, [][]byte]
-}
-
-func (p *processor) SetUserID(userID id.UserID) {
-	p.userID = userID
-	p.myBotAddress = addressFromUserID(userID)
 }
 
 func (*processor) Checkpoint() string {
@@ -135,10 +132,10 @@ func (p *processor) Start(ctx context.Context) {
 }
 
 func (p *processor) ProcessInbound(msg *types.Message) error {
-	if p.userID == "" {
+	if p.botUserID == "" {
 		return ErrUserIDNotSet
 	}
-	if msg.Sender != p.userID { // outbound messages = messages sent by own ext system
+	if msg.Sender != p.botUserID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case types.Request:
 			return p.Respond(msg)
@@ -154,11 +151,11 @@ func (p *processor) ProcessInbound(msg *types.Message) error {
 }
 
 func (p *processor) ProcessOutbound(ctx context.Context, msg *types.Message) (*types.Message, error) {
-	msg.Sender = p.userID
+	msg.Sender = p.botUserID
 	if msg.Type.Category() == types.Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	}
-	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
+	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.botUserID)
 	return nil, ErrOnlyRequestMessagesAllowed // ignore msg
 }
 
@@ -349,7 +346,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 	p.responseHandler.HandleResponse(ctx, msgType, requestMsg.Content, response)
 
-	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, requestMsg.Sender)
+	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botUserID, requestMsg.Sender)
 
 	return ctx, responseMsg
 }

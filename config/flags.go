@@ -29,7 +29,7 @@ func BindFlags(cmd *cobra.Command) error {
 
 	// DB config flags
 	cmd.PersistentFlags().String("db_name", "camino_messenger_bot", "Database name.")
-	cmd.PersistentFlags().String("db_path", "db.db", "Path to database.")
+	cmd.PersistentFlags().String("db_path", "cmb.db", "Path to database.")
 	cmd.PersistentFlags().String("migrations_path", "file://./migrations", "Path to migration scripts.")
 
 	// Tracing config flags
@@ -52,7 +52,7 @@ func BindFlags(cmd *cobra.Command) error {
 
 	// Matrix config flags
 	cmd.PersistentFlags().String("matrix_host", "", "Sets the matrix host.")
-	cmd.PersistentFlags().String("matrix_store", "", "Sets the matrix store (sqlite3 db path).")
+	cmd.PersistentFlags().String("matrix_store", "cmb_matrix.db", "Sets the matrix store (sqlite3 db path).")
 
 	return viper.BindPFlags(cmd.PersistentFlags())
 }

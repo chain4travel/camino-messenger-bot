@@ -65,7 +65,6 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 		logger.Error(err)
 		return err
 	}
-	defer app.Stop(context.Background())
 
 	return app.Run(ctx)
 }
@@ -74,6 +73,6 @@ func init() {
 	cobra.EnablePrefixMatching = true
 
 	if err := config.BindFlags(rootCmd); err != nil {
-		log.Fatalf("failed to bind flags: %w", err)
+		log.Fatalf("failed to bind flags: %v", err)
 	}
 }

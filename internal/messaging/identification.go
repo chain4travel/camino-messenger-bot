@@ -60,7 +60,7 @@ func (ih *evmIdentificationHandler) getFirstBotUserIDFromCMAccountAddress(cmAcco
 		return "", err
 	}
 
-	return userIDFromAddress(botAddress, ih.matrixHost), nil
+	return UserIDFromAddress(botAddress, ih.matrixHost), nil
 }
 
 func (ih *evmIdentificationHandler) getFirstBotFromCMAccountAddress(cmAccountAddress common.Address) (common.Address, error) {
@@ -103,7 +103,7 @@ func (ih *evmIdentificationHandler) getAllBotAddressesFromCMAccountAddress(cmAcc
 	return botsAddresses, nil
 }
 
-func userIDFromAddress(address common.Address, host string) id.UserID {
+func UserIDFromAddress(address common.Address, host string) id.UserID {
 	return id.NewUserID(strings.ToLower(address.Hex()), host)
 }
 

@@ -91,9 +91,6 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"err: invalid message type": {
 			fields: fields{},
-			prepare: func(p *processor) {
-				p.SetUserID(userID)
-			},
 			args: args{
 				msg: &types.Message{Type: "invalid", Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{}}},
 			},
@@ -104,7 +101,6 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry: mockServiceRegistry,
 			},
 			prepare: func(p *processor) {
-				p.SetUserID(userID)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(nil, false)
 			},
 			args: args{
@@ -120,9 +116,6 @@ func TestProcessInbound(t *testing.T) {
 		},
 		"ignore own outbound messages": {
 			fields: fields{},
-			prepare: func(p *processor) {
-				p.SetUserID(userID)
-			},
 			args: args{
 				msg: &types.Message{Metadata: metadata.Metadata{}, Sender: userID},
 			},
@@ -138,7 +131,6 @@ func TestProcessInbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			prepare: func(p *processor) {
-				p.SetUserID(userID)
 				mockService.EXPECT().Name().Return("dummy")
 				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
@@ -165,7 +157,6 @@ func TestProcessInbound(t *testing.T) {
 				compressor:            &noopCompressor{},
 			},
 			prepare: func(p *processor) {
-				p.SetUserID(userID)
 				mockService.EXPECT().Name().Return("dummy")
 				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
@@ -191,7 +182,6 @@ func TestProcessInbound(t *testing.T) {
 			},
 			prepare: func(p *processor) {
 				p.responseChannels[requestID] = make(chan *types.Message, 1)
-				p.SetUserID(userID)
 			},
 			args: args{
 				msg: &responseMessage,
@@ -208,6 +198,7 @@ func TestProcessInbound(t *testing.T) {
 				tt.fields.messenger,
 				zap.NewNop().Sugar(),
 				int64(0),
+				userID,
 				common.Address{},
 				common.Address{},
 				common.Address{},
@@ -287,9 +278,6 @@ func TestProcessOutbound(t *testing.T) {
 			args: args{
 				msg: &types.Message{Type: generated.PingServiceV1Request},
 			},
-			prepare: func(p *processor) {
-				p.SetUserID(userID)
-			},
 			err: ErrMissingRecipient,
 		},
 		"err: awaiting-response-timeout exceeded": {
@@ -309,7 +297,6 @@ func TestProcessOutbound(t *testing.T) {
 				},
 			},
 			prepare: func(p *processor) {
-				p.SetUserID(userID)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			err: ErrExceededResponseTimeout,
@@ -331,7 +318,6 @@ func TestProcessOutbound(t *testing.T) {
 				},
 			},
 			prepare: func(p *processor) {
-				p.SetUserID(userID)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
 			},
 			err: errSomeError,
@@ -353,7 +339,6 @@ func TestProcessOutbound(t *testing.T) {
 				},
 			},
 			prepare: func(p *processor) {
-				p.SetUserID(userID)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			},
 			writeResponseToChannel: func(p *processor) {
@@ -383,6 +368,7 @@ func TestProcessOutbound(t *testing.T) {
 				tt.fields.messenger,
 				zap.NewNop().Sugar(),
 				tt.fields.responseTimeout,
+				userID,
 				common.Address{},
 				common.Address{},
 				common.Address{},
@@ -455,6 +441,7 @@ func TestStart(t *testing.T) {
 			mockMessenger,
 			zap.NewNop().Sugar(),
 			int64(0),
+			userID,
 			common.Address{},
 			common.Address{},
 			common.Address{},
@@ -464,7 +451,6 @@ func TestStart(t *testing.T) {
 			NoopChequeHandler{},
 			&noopCompressor{},
 		)
-		p.SetUserID(userID)
 		go p.Start(ctx)
 
 		time.Sleep(1 * time.Second)
