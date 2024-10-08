@@ -26,33 +26,33 @@ func TestReadConfig(t *testing.T) {
 	require.NoError(t, yaml.Unmarshal(testConfigYAML, &rawMap))
 
 	tests := map[string]struct {
-		prepare     func(*testing.T, *configReader)
+		prepare     func(*testing.T, *reader)
 		flags       *pflag.FlagSet
 		expectedErr error
 	}{
 		"default": {
-			prepare: func(_ *testing.T, cr *configReader) {
+			prepare: func(_ *testing.T, cr *reader) {
 				cr.viper.Set(flagKeyConfig, nonExistingConfigPath)
 			},
 			flags:       Flags(),
 			expectedErr: errInvalidConfig, // empty bot key
 		},
 		"from file": {
-			prepare: func(_ *testing.T, cr *configReader) {
+			prepare: func(_ *testing.T, cr *reader) {
 				cr.viper.Set(flagKeyConfig, existingConfigPath)
 			},
 			flags: Flags(),
 		},
 		"from env": {
-			prepare: func(t *testing.T, cr *configReader) {
-				setEnvFromMap(envPrefix, rawMap)
+			prepare: func(t *testing.T, cr *reader) {
+				require.NoError(t, setEnvFromMap(envPrefix, rawMap))
 				cr.viper.Set(flagKeyConfig, nonExistingConfigPath)
 			},
 			flags: Flags(),
 		},
 		"from flags": {
-			prepare: func(t *testing.T, cr *configReader) {
-				setFlagsFromMap(cr.flags, "", rawMap)
+			prepare: func(t *testing.T, cr *reader) {
+				require.NoError(t, setFlagsFromMap(cr.flags, "", rawMap))
 				cr.viper.Set(flagKeyConfig, nonExistingConfigPath)
 			},
 			flags: Flags(),
@@ -62,13 +62,13 @@ func TestReadConfig(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			configReader := NewConfigReader(tt.flags)
-			tt.prepare(t, configReader)
+			cr := NewConfigReader(tt.flags)
+			tt.prepare(t, cr.(*reader))
 
-			config, err := configReader.ReadConfig(zap.NewNop().Sugar())
+			config, err := cr.ReadConfig(zap.NewNop().Sugar())
 			require.ErrorIs(t, err, tt.expectedErr)
 
-			unsetEnvFromMap(envPrefix, rawMap)
+			require.NoError(t, unsetEnvFromMap(envPrefix, rawMap))
 
 			if err == nil {
 				unparsedMap := &map[string]any{}

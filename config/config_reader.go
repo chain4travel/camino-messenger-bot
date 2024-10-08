@@ -18,32 +18,46 @@ import (
 
 const envPrefix = "CMB"
 
-var errInvalidConfig = errors.New("invalid config")
+var (
+	_ Reader = (*reader)(nil)
+
+	errInvalidConfig = errors.New("invalid config")
+)
+
+type Reader interface {
+	IsDevelopmentMode() bool
+	ReadConfig(logger *zap.SugaredLogger) (*Config, error)
+}
 
 // Returns a new config reader.
-func NewConfigReader(flags *pflag.FlagSet) *configReader {
-	return &configReader{
+func NewConfigReader(flags *pflag.FlagSet) Reader {
+	return &reader{
 		viper: viper.New(),
 		flags: flags,
 	}
 }
 
-type configReader struct {
+type reader struct {
 	viper  *viper.Viper
 	logger *zap.SugaredLogger
 	flags  *pflag.FlagSet
 }
 
-func (cr *configReader) IsDevelopmentMode() bool {
+func (cr *reader) IsDevelopmentMode() bool {
 	return cr.viper.GetBool(flagKeyDeveloperMode)
 }
-func (cr *configReader) ReadConfig(logger *zap.SugaredLogger) (*Config, error) {
+
+func (cr *reader) ReadConfig(logger *zap.SugaredLogger) (*Config, error) {
 	cr.logger = logger
 
 	cr.viper.SetEnvPrefix(envPrefix)
 	cr.viper.AutomaticEnv()
 	cr.viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	cr.viper.BindPFlags(cr.flags)
+
+	if err := cr.viper.BindPFlags(cr.flags); err != nil {
+		cr.logger.Errorf("Error binding flags: %s", err)
+		return nil, err
+	}
 
 	configPath := cr.viper.GetString(flagKeyConfig)
 	if configPath == "" {
@@ -69,13 +83,13 @@ func (cr *configReader) ReadConfig(logger *zap.SugaredLogger) (*Config, error) {
 
 	parsedCfg, err := cr.parseConfig(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", errInvalidConfig, err)
+		return nil, fmt.Errorf("%w: %w", errInvalidConfig, err)
 	}
 
 	return parsedCfg, nil
 }
 
-func (cr *configReader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
+func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 	botKey, err := crypto.HexToECDSA(cfg.BotKey)
 	if err != nil {
 		cr.logger.Errorf("Error parsing bot key: %s", err)
