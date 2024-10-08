@@ -2,11 +2,13 @@ package config
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
 	"math/big"
 	"net/url"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 //
@@ -19,7 +21,7 @@ type Config struct {
 	BotKey           *ecdsa.PrivateKey
 	CMAccountAddress common.Address
 
-	CChainRPCURL        url.URL
+	ChainRPCURL         url.URL
 	BookingTokenAddress common.Address
 
 	NetworkFeeRecipientBotAddress       common.Address
@@ -31,28 +33,23 @@ type Config struct {
 
 	ResponseTimeout time.Duration
 
-	RPCServerConfig
-	PartnerPluginConfig
-	TracingConfig
-	DBConfig
-	MatrixConfig
+	RPCServer     RPCServerConfig
+	PartnerPlugin PartnerPluginConfig
+	Tracing       TracingConfig
+	DB            DBConfig
+	Matrix        MatrixConfig
 }
 
 type TracingConfig struct {
 	Enabled  bool
-	HostURL  *url.URL
+	HostURL  url.URL
 	Insecure bool
 	CertFile string
 	KeyFile  string
 }
 
-type DBConfig struct {
-	DBPath         string
-	DBName         string
-	MigrationsPath string
-}
 type PartnerPluginConfig struct {
-	HostURL     *url.URL
+	HostURL     url.URL
 	Unencrypted bool
 	CACertFile  string
 }
@@ -62,11 +59,21 @@ type MatrixConfig struct {
 	Store   string
 }
 
+//
+// ******* Common *******
+//
+
+type DBConfig struct {
+	DBPath         string `mapstructure:"path"`
+	DBName         string `mapstructure:"name"`
+	MigrationsPath string `mapstructure:"migrations_path"`
+}
+
 type RPCServerConfig struct {
-	Port           uint64
-	Unencrypted    bool
-	ServerCertFile string
-	ServerKeyFile  string
+	Port           uint64 `mapstructure:"port"`
+	Unencrypted    bool   `mapstructure:"unencrypted"`
+	ServerCertFile string `mapstructure:"cert_file"`
+	ServerKeyFile  string `mapstructure:"key_file"`
 }
 
 //
@@ -76,10 +83,10 @@ type RPCServerConfig struct {
 type UnparsedConfig struct {
 	DeveloperMode bool `mapstructure:"developer_mode"`
 
-	BotKey           string `mapstructure:"evm_private_key"`
+	BotKey           string `mapstructure:"bot_key"`
 	CMAccountAddress string `mapstructure:"cm_account_address"`
 
-	CChainRPCURL        string `mapstructure:"rpc_url"`
+	ChainRPCURL         string `mapstructure:"chain_rpc_url"`
 	BookingTokenAddress string `mapstructure:"booking_token_address"`
 
 	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
@@ -91,29 +98,63 @@ type UnparsedConfig struct {
 
 	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
 
-	UnparsedPartnerPluginConfig
-	UnparsedTracingConfig
+	PartnerPlugin UnparsedPartnerPluginConfig `mapstructure:"partner_plugin"`
+	Tracing       UnparsedTracingConfig       `mapstructure:"tracing"`
+	Matrix        UnparsedMatrixConfig        `mapstructure:"matrix"`
 
-	RPCServerConfig
-	MatrixConfig
-	DBConfig
+	RPCServer RPCServerConfig `mapstructure:"rpc_server"`
+	DB        DBConfig        `mapstructure:"db"`
 }
 
 type UnparsedTracingConfig struct {
-	Enabled  bool   `mapstructure:"tracing_enabled"`
-	Host     string `mapstructure:"tracing_host"`
-	Insecure bool   `mapstructure:"tracing_insecure"`
-	CertFile string `mapstructure:"tracing_cert_file"`
-	KeyFile  string `mapstructure:"tracing_key_file"`
+	Enabled  bool   `mapstructure:"enabled"`
+	Host     string `mapstructure:"host"`
+	Insecure bool   `mapstructure:"insecure"`
+	CertFile string `mapstructure:"cert_file"`
+	KeyFile  string `mapstructure:"key_file"`
 }
 
 type UnparsedPartnerPluginConfig struct {
-	Host        string `mapstructure:"partner_plugin_host"`
-	Unencrypted bool   `mapstructure:"partner_plugin_unencrypted"`
-	CACertFile  string `mapstructure:"partner_plugin_ca_file"`
+	Host        string `mapstructure:"host"`
+	Unencrypted bool   `mapstructure:"unencrypted"`
+	CACertFile  string `mapstructure:"ca_file"`
 }
 
 type UnparsedMatrixConfig struct {
-	Host  string `mapstructure:"matrix_host"`
-	Store string `mapstructure:"matrix_store"`
+	Host  string `mapstructure:"host"`
+	Store string `mapstructure:"store"`
+}
+
+func (cfg *Config) unparse() *UnparsedConfig {
+	return &UnparsedConfig{
+		DB:        cfg.DB,
+		RPCServer: cfg.RPCServer,
+		Tracing: UnparsedTracingConfig{
+			Enabled:  cfg.Tracing.Enabled,
+			Host:     cfg.Tracing.HostURL.String(),
+			Insecure: cfg.Tracing.Insecure,
+			CertFile: cfg.Tracing.CertFile,
+			KeyFile:  cfg.Tracing.KeyFile,
+		},
+		PartnerPlugin: UnparsedPartnerPluginConfig{
+			Host:        cfg.PartnerPlugin.HostURL.String(),
+			Unencrypted: cfg.PartnerPlugin.Unencrypted,
+			CACertFile:  cfg.PartnerPlugin.CACertFile,
+		},
+		Matrix: UnparsedMatrixConfig{
+			Host:  cfg.Matrix.HostURL.String(),
+			Store: cfg.Matrix.Store,
+		},
+		DeveloperMode:                       cfg.DeveloperMode,
+		BotKey:                              hex.EncodeToString(crypto.FromECDSA(cfg.BotKey)),
+		CMAccountAddress:                    cfg.CMAccountAddress.Hex(),
+		ChainRPCURL:                         cfg.ChainRPCURL.String(),
+		BookingTokenAddress:                 cfg.BookingTokenAddress.Hex(),
+		NetworkFeeRecipientBotAddress:       cfg.NetworkFeeRecipientBotAddress.Hex(),
+		NetworkFeeRecipientCMAccountAddress: cfg.NetworkFeeRecipientCMAccountAddress.Hex(),
+		ChequeExpirationTime:                cfg.ChequeExpirationTime.Uint64(),
+		MinChequeDurationUntilExpiration:    cfg.MinChequeDurationUntilExpiration.Uint64(),
+		CashInPeriod:                        int64(cfg.CashInPeriod / time.Second),
+		ResponseTimeout:                     int64(cfg.ResponseTimeout / time.Millisecond),
+	}
 }

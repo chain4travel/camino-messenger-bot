@@ -5,17 +5,12 @@ developer_mode: true
 
 ### Tracing
 #tracing_enabled: true
-#tracing_host: localhost
-#tracing_port: 4317
+#tracing_host: localhost:4317
 #tracing_insecure: true
 #tracing_cert_file: server-cert.pem
 #tracing_key_file: server-key.pem
 
 ### Matrix
-
-# Private key to be used to login to Matrix Server. This should be in hex format
-# without the 0x prefix.
-matrix_key: YOUR_PRIVATE_KEY_HEX
 
 # Hostname of the Matrix Server
 matrix_host: messenger.chain4travel.com
@@ -32,7 +27,7 @@ response_timeout: 10000
 # development)
 rpc_server_port: 9090
 # TLS configuration
-rpc_unencrypted: true
+rpc_server_unencrypted: true
 rpc_server_cert_file: server-cert.pem
 rpc_server_key_file: server-key.pem
 
@@ -42,8 +37,7 @@ rpc_server_key_file: server-key.pem
 #
 # Bot tries to connect to this host and port to relay messages that it receives from
 # the distributors through Matrix Server
-partner_plugin_host: localhost
-partner_plugin_port: 50051
+partner_plugin_host: localhost:50051
 # TLS configuration
 partner_plugin_unencrypted: true
 # Required if partner_plugin_unencrypted is false
@@ -51,13 +45,13 @@ partner_plugin_ca_file: ca-cert.pem
 
 ### C-Chain (EVM)
 
-# Used for signing transactions on the c-chain, can be same as the matrix_key. This
+# Used for signing transactions on the c-chain, also used to log in into Matrix. This
 # address needs to have some funds to pay for transaction fees on the C-Chain. This
 # should be in hex format without the 0x prefix.
-evm_private_key: YOUR_PRIVATE_KEY_HEX
+bot_key: YOUR_PRIVATE_KEY_HEX
 
 # C-Chain RPC URL
-rpc_url: wss://api.camino.network/ext/bc/C/ws
+chain_rpc_url: wss://api.camino.network/ext/bc/C/ws
 
 # matrix application service bot address
 network_fee_recipient_bot_address: 0xbeb027D2f439805E17EAA16Da26c1FCa68a30232

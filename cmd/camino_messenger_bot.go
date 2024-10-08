@@ -33,13 +33,11 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	log.Printf("Version %s", Version)
 	log.Printf("GitCommit %s", GitCommit)
 
-	isDevelopmentMode, err := cmd.Flags().GetBool(config.FlagKeyDeveloperMode)
-	if err != nil {
-		return fmt.Errorf("failed to get developer mode flag: %w", err)
-	}
+	configReader := config.NewConfigReader(cmd.Flags())
 
+	var err error
 	var zapLogger *zap.Logger
-	if isDevelopmentMode {
+	if configReader.IsDevelopmentMode() {
 		zapLogger, err = zap.NewDevelopment()
 	} else {
 		zapLogger, err = zap.NewProduction()
@@ -54,7 +52,7 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	cfg, err := config.ReadConfig(logger)
+	cfg, err := configReader.ReadConfig(logger)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -71,10 +69,7 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 
 func init() {
 	cobra.EnablePrefixMatching = true
-
-	if err := config.BindFlags(rootCmd); err != nil {
-		log.Fatalf("failed to bind flags: %v", err)
-	}
+	rootCmd.Flags().AddFlagSet(config.Flags())
 }
 
 func Execute() error {

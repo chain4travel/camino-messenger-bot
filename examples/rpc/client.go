@@ -44,7 +44,7 @@ func main() {
 	hostURL, _ := url.Parse(fmt.Sprintf("%s:%d", *host, *port))
 
 	ppConfig := config.PartnerPluginConfig{
-		HostURL:     hostURL,
+		HostURL:     *hostURL,
 		Unencrypted: *caCertFile == "",
 	}
 	ppConfig.CACertFile = *caCertFile

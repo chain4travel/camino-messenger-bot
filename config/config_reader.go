@@ -2,46 +2,59 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"net/url"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 const envPrefix = "CMB"
 
-func ReadConfig(logger *zap.SugaredLogger) (*Config, error) {
-	cr := &configReader{
-		logger: logger,
-	}
+var errInvalidConfig = errors.New("invalid config")
 
-	return cr.readConfig()
+// Returns a new config reader.
+func NewConfigReader(flags *pflag.FlagSet) *configReader {
+	return &configReader{
+		viper: viper.New(),
+		flags: flags,
+	}
 }
 
 type configReader struct {
+	viper  *viper.Viper
 	logger *zap.SugaredLogger
+	flags  *pflag.FlagSet
 }
 
-func (cr *configReader) readConfig() (*Config, error) {
-	configPath := viper.GetString(flagKeyConfig)
+func (cr *configReader) IsDevelopmentMode() bool {
+	return cr.viper.GetBool(flagKeyDeveloperMode)
+}
+func (cr *configReader) ReadConfig(logger *zap.SugaredLogger) (*Config, error) {
+	cr.logger = logger
+
+	cr.viper.SetEnvPrefix(envPrefix)
+	cr.viper.AutomaticEnv()
+	cr.viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	cr.viper.BindPFlags(cr.flags)
+
+	configPath := cr.viper.GetString(flagKeyConfig)
 	if configPath == "" {
 		err := errors.New("config path is empty")
 		cr.logger.Error(err)
 		return nil, err
 	}
+	cr.viper.SetConfigFile(configPath)
 
-	viper.AddConfigPath(configPath)
-
-	viper.SetEnvPrefix(envPrefix)
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err != nil {
-		viperErr := &viper.ConfigFileNotFoundError{}
-		if ok := errors.As(err, viperErr); !ok {
+	if err := cr.viper.ReadInConfig(); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
 			cr.logger.Errorf("Error reading config file: %s", err)
 			return nil, err
 		}
@@ -49,12 +62,17 @@ func (cr *configReader) readConfig() (*Config, error) {
 	}
 
 	cfg := &UnparsedConfig{}
-	if err := viper.Unmarshal(cfg); err != nil {
+	if err := cr.viper.Unmarshal(cfg); err != nil {
 		cr.logger.Error(err)
 		return nil, err
 	}
 
-	return cr.parseConfig(cfg)
+	parsedCfg, err := cr.parseConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", errInvalidConfig, err)
+	}
+
+	return parsedCfg, nil
 }
 
 func (cr *configReader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
@@ -64,50 +82,53 @@ func (cr *configReader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		return nil, err
 	}
 
-	cChainRPCURL, err := url.Parse(cfg.CChainRPCURL)
+	chainRPC, err := url.Parse(cfg.ChainRPCURL)
 	if err != nil {
 		cr.logger.Errorf("Error parsing C-Chain RPC URL: %s", err)
 		return nil, err
 	}
 
-	var tracingHost *url.URL
-	if cfg.UnparsedTracingConfig.Host != "" {
-		tracingHost, err = url.Parse(cfg.UnparsedTracingConfig.Host)
-		if err != nil {
-			cr.logger.Errorf("Error parsing tracing host: %s", err)
-			return nil, err
-		}
+	tracingHost, err := url.Parse(cfg.Tracing.Host)
+	if err != nil {
+		cr.logger.Errorf("Error parsing tracing host: %s", err)
+		return nil, err
 	}
 
-	var partnerPluginHost *url.URL
-	if cfg.UnparsedPartnerPluginConfig.Host != "" {
-		partnerPluginHost, err = url.Parse(cfg.UnparsedPartnerPluginConfig.Host)
-		if err != nil {
-			cr.logger.Errorf("Error parsing partner plugin host: %s", err)
-			return nil, err
-		}
+	partnerPluginHost, err := url.Parse(cfg.PartnerPlugin.Host)
+	if err != nil {
+		cr.logger.Errorf("Error parsing partner plugin host: %s", err)
+		return nil, err
+	}
+
+	matrixHost, err := url.Parse(cfg.Matrix.Host)
+	if err != nil {
+		cr.logger.Errorf("Error parsing matrix host: %s", err)
+		return nil, err
 	}
 
 	return &Config{
-		MatrixConfig:    cfg.MatrixConfig,
-		DBConfig:        cfg.DBConfig,
-		RPCServerConfig: cfg.RPCServerConfig,
-		TracingConfig: TracingConfig{
-			Enabled:  cfg.UnparsedTracingConfig.Enabled,
-			HostURL:  tracingHost,
-			Insecure: cfg.UnparsedTracingConfig.Insecure,
-			CertFile: cfg.UnparsedTracingConfig.CertFile,
-			KeyFile:  cfg.UnparsedTracingConfig.KeyFile,
+		DB:        cfg.DB,
+		RPCServer: cfg.RPCServer,
+		Tracing: TracingConfig{
+			Enabled:  cfg.Tracing.Enabled,
+			HostURL:  *tracingHost,
+			Insecure: cfg.Tracing.Insecure,
+			CertFile: cfg.Tracing.CertFile,
+			KeyFile:  cfg.Tracing.KeyFile,
 		},
-		PartnerPluginConfig: PartnerPluginConfig{
-			HostURL:     partnerPluginHost,
-			Unencrypted: cfg.UnparsedPartnerPluginConfig.Unencrypted,
-			CACertFile:  cfg.UnparsedPartnerPluginConfig.CACertFile,
+		PartnerPlugin: PartnerPluginConfig{
+			HostURL:     *partnerPluginHost,
+			Unencrypted: cfg.PartnerPlugin.Unencrypted,
+			CACertFile:  cfg.PartnerPlugin.CACertFile,
+		},
+		Matrix: MatrixConfig{
+			HostURL: *matrixHost,
+			Store:   cfg.Matrix.Store,
 		},
 		DeveloperMode:                       cfg.DeveloperMode,
 		BotKey:                              botKey,
 		CMAccountAddress:                    common.HexToAddress(cfg.CMAccountAddress),
-		CChainRPCURL:                        *cChainRPCURL,
+		ChainRPCURL:                         *chainRPC,
 		BookingTokenAddress:                 common.HexToAddress(cfg.BookingTokenAddress),
 		NetworkFeeRecipientBotAddress:       common.HexToAddress(cfg.NetworkFeeRecipientBotAddress),
 		NetworkFeeRecipientCMAccountAddress: common.HexToAddress(cfg.NetworkFeeRecipientCMAccountAddress),

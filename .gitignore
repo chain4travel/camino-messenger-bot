@@ -3,6 +3,7 @@ build
 .vscode
 .idea
 *.iml
+__debug*
 
 ./camino-messenger-bot-supplier.yaml
 ./camino-messenger-bot-distributor.yaml

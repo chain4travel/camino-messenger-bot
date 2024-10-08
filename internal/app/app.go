@@ -30,7 +30,7 @@ const (
 
 func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) (*App, error) {
 	// c-chain evm client && chain id
-	evmClient, err := ethclient.Dial(cfg.CChainRPCURL.String())
+	evmClient, err := ethclient.Dial(cfg.ChainRPCURL.String())
 	if err != nil {
 		logger.Errorf("Failed to connect to the Ethereum client: %v", err)
 		return nil, err
@@ -44,10 +44,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// tracer
 	var tracer tracing.Tracer
-	if cfg.TracingConfig.Enabled {
+	if cfg.Tracing.Enabled {
 		tracer, err = tracing.NewTracer(
-			cfg.TracingConfig,
-			fmt.Sprintf("%s:%d", appName, cfg.RPCServerConfig.Port),
+			cfg.Tracing,
+			fmt.Sprintf("%s:%d", appName, cfg.RPCServer.Port),
 		)
 	} else {
 		tracer, err = tracing.NewNoOpTracer()
@@ -58,7 +58,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// database
-	storage, err := storage.New(ctx, logger, cfg.DBConfig)
+	storage, err := storage.New(ctx, logger, cfg.DB)
 	if err != nil {
 		logger.Errorf("Failed to create storage: %v", err)
 		return nil, err
@@ -66,8 +66,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// partner-plugin rpc client
 	var rpcClient *client.RPCClient
-	if cfg.PartnerPluginConfig.HostURL != nil {
-		rpcClient, err = client.NewClient(cfg.PartnerPluginConfig, logger)
+	if cfg.PartnerPlugin.HostURL.String() != "" {
+		rpcClient, err = client.NewClient(cfg.PartnerPlugin, logger)
 		if err != nil {
 			logger.Errorf("Failed to create rpc client: %v", err)
 			return nil, err
@@ -108,7 +108,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		evmClient,
 		logger,
 		cfg.CMAccountAddress,
-		cfg.MatrixConfig.HostURL,
+		cfg.Matrix.HostURL,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create identification handler: %v", err)
@@ -131,10 +131,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	matrixMessenger := matrix.NewMessenger(cfg.MatrixConfig, cfg.BotKey, logger)
+	matrixMessenger := matrix.NewMessenger(cfg.Matrix, cfg.BotKey, logger)
 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
-	botUserID := messaging.UserIDFromAddress(botAddress, cfg.MatrixConfig.HostURL.String())
+	botUserID := messaging.UserIDFromAddress(botAddress, cfg.Matrix.HostURL.String())
 
 	messageProcessor := messaging.NewProcessor(
 		matrixMessenger,
@@ -154,7 +154,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	// rpc server for incoming requests
 	// TODO@ disable if we don't have port provided, e.g. its supplier bot?
 	rpcServer, err := server.NewServer(
-		cfg.RPCServerConfig,
+		cfg.RPCServer,
 		logger,
 		tracer,
 		messageProcessor,
