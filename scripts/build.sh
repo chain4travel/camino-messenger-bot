@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the output binary name
-OUTPUT_BINARY="build/bot"
+OUTPUT_BINARY="build/camino-messenger-bot"
 
 # Set the main source file
 MAIN_SOURCE="main.go"
