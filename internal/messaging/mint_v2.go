@@ -26,18 +26,15 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 		mintResp.Header = &typesv1.ResponseHeader{}
 	}
 
-	var err error
-
 	// TODO: @VjeraTurk check if CMAccount exists
-	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format, not x/p/t chain
+
+	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format,
+	// TODO not x/p/t chain or anything else. Currently it will not error
+	// TODO if address is invalid and will just get zero addr
 	buyerAddress := common.HexToAddress(mintReq.BuyerAddress)
 
-	// TODO@ do we need to update token uri in response?
-	tokenURI := mintResp.BookingTokenUri
-	if tokenURI == "" {
-		// Get a Token URI for the token.
-		var jsonPlain string
-		jsonPlain, tokenURI, err = createTokenURIforMintResponse(
+	if mintResp.BookingTokenUri == "" {
+		jsonPlain, tokenURI, err := createTokenURIforMintResponse(
 			mintResp.MintId.Value,
 			mintReq.BookingReference,
 		)
@@ -48,14 +45,17 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 			return true
 		}
 		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
+		mintResp.BookingTokenUri = tokenURI
 	}
-	h.logger.Debugf("Token URI: %s\n", tokenURI)
+	h.logger.Debugf("Token URI: %s\n", mintResp.BookingTokenUri)
 
-	mintResp.BuyableUntil, err = verifyAndFixBuyableUntil(mintResp.BuyableUntil, time.Now())
+	buyableUntil, err := verifyAndFixBuyableUntil(mintResp.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
 		h.AddErrorToResponseHeader(response, err.Error())
+		return true
 	}
+	mintResp.BuyableUntil = buyableUntil
 
 	price, paymentToken, err := h.getPriceAndTokenV2(ctx, mintResp.Price)
 	if err != nil {
@@ -69,7 +69,7 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 	txID, tokenID, err := h.mint(
 		ctx,
 		buyerAddress,
-		tokenURI,
+		mintResp.BookingTokenUri,
 		big.NewInt(mintResp.BuyableUntil.Seconds),
 		price,
 		paymentToken,

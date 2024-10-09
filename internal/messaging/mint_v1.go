@@ -25,7 +25,9 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 		mintResp.Header = &typesv1.ResponseHeader{}
 	}
 
-	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format, not x/p/t chain
+	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format,
+	// TODO not x/p/t chain or anything else. Currently it will not error
+	// TODO if address is invalid and will just get zero addr
 	buyerAddress := common.HexToAddress(mintReq.BuyerAddress)
 
 	// Get a Token URI for the token.
@@ -42,11 +44,13 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
-	mintResp.BuyableUntil, err = verifyAndFixBuyableUntil(mintResp.BuyableUntil, time.Now())
+	buyableUntil, err := verifyAndFixBuyableUntil(mintResp.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
 		h.AddErrorToResponseHeader(response, err.Error())
+		return true
 	}
+	mintResp.BuyableUntil = buyableUntil
 
 	price, paymentToken, err := h.getPriceAndTokenV1(ctx, mintResp.Price)
 	if err != nil {
