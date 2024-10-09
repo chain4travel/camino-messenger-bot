@@ -48,59 +48,59 @@ network_fee_recipient_cm_account: 0x16DFfB3911BB0b1B53eF4d774804381f0B38B5d7
 
 ### Database
 db:
-  # Path to migrations dir with sql up/down scripts. Schema is mandatory.
-  migrations_path: file://./migrations
+    # Path to migrations dir with sql up/down scripts. Schema is mandatory.
+    migrations_path: file://./migrations
 
-  # Database name.
-  name: camino_messenger_bot
+    # Database name.
+    name: camino_messenger_bot
 
-  # Path to database file.
-  path: distributor-bot.db
+    # Path to database file.
+    path: distributor-bot.db
 
 
 
 ### Matrix
 matrix:
-  # Hostname of the Matrix server
-  host: messenger.chain4travel.com
+    # Hostname of the Matrix server
+    host: messenger.chain4travel.com
 
-  # Local DB file to store Matrix data
-  store: distributor-matrix.db
+    # Local DB file to store Matrix data
+    store: distributor-matrix.db
 
 
 
 ### Partner Plugin (NOT USED FOR DISTRIBUTOR BOT)
 # partner_plugin:
-#   # Partner Plugin hostname and port, should be reachable from this machine.
-#   # Bot tries to connect to this host and port to relay messages that it receives from
-#   # the distributors through Matrix Server
-#   host: localhost:50051
+#     # Partner Plugin hostname and port, should be reachable from this machine.
+#     # Bot tries to connect to this host and port to relay messages that it receives from
+#     # the distributors through Matrix Server
+#     host: localhost:50051
 
-#   # TLS configuration
-#   unencrypted: true
+#     # TLS configuration
+#     unencrypted: true
 
-#   # Required if partner_plugin_unencrypted is false
-#   ca_file: ca-cert.pem
+#     # Required if partner_plugin_unencrypted is false
+#     ca_file: ca-cert.pem
 
 
 
 ### RPC server
 rpc_server:
-  # Listen on this port for incoming RPC requests
-  port: 9090
+    # Listen on this port for incoming RPC requests
+    port: 9090
 
-  # TLS configuration
-  unencrypted: true
+    # TLS configuration
+    unencrypted: true
 
-  cert_file: server-cert.pem
-  key_file: server-key.pem
+    cert_file: server-cert.pem
+    key_file: server-key.pem
 
 
 
 ### Tracing
 # tracing:
-#   cert_file: server-cert.pem
-#   enabled: true
-#   host: localhost:4317
-#   insecure: true
-#   key_file: server-key.pem
+#     cert_file: server-cert.pem
+#     enabled: true
+#     host: localhost:4317
+#     insecure: true
+#     key_file: server-key.pem
