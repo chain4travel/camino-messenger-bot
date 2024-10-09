@@ -21,8 +21,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// TODO @nikos do proper DI with FX
-
 const (
 	cashInJobName = "cash_in"
 	appName       = "camino-messenger-bot"
