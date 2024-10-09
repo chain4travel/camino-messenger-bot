@@ -5,29 +5,29 @@ chain_rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 cheque_expiration_time: 18144000
 cm_account_address: 0xe55E387F5474a012D1b048155E25ea78C7DBfBBC
 db:
-    migrations_path: file://./migrations
-    name: camino_messenger_bot
-    path: supplier-bot.db
+  migrations_path: file://./migrations
+  name: camino_messenger_bot
+  path: supplier-bot.db
 developer_mode: true
 matrix:
-    host: messenger.chain4travel.com
-    store: supplier-matrix.db
+  host: messenger.chain4travel.com
+  store: supplier-matrix.db
 min_cheque_duration_until_expiration: 15552000
 network_fee_recipient_bot_address: 0xff6BAC3d972680515cbB59fCB6Db6deB13Eb0E91
 network_fee_recipient_cm_account: 0xF6bA5c68A505559c170dC7a30448Ed64D8b9Bc3B
 partner_plugin:
-    ca_file: ca-cert.pem
-    host: localhost:50051
-    unencrypted: true
+  ca_file: ca-cert.pem
+  host: localhost:50051
+  unencrypted: true
 response_timeout: 10000
 rpc_server:
-    cert_file: server-cert.pem
-    key_file: server-key.pem
-    port: 9090
-    unencrypted: true
+  cert_file: server-cert.pem
+  key_file: server-key.pem
+  port: 9090
+  unencrypted: true
 tracing:
-    cert_file: server-cert.pem
-    enabled: true
-    host: localhost:4317
-    insecure: true
-    key_file: server-key.pem
+  cert_file: server-cert.pem
+  enabled: true
+  host: localhost:4317
+  insecure: true
+  key_file: server-key.pem
