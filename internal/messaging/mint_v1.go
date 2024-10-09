@@ -11,6 +11,7 @@ import (
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -114,10 +115,12 @@ func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response p
 	return false
 }
 
+
 func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *typesv1.Price) (*big.Int, common.Address, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
 	switch currency := price.Currency.Currency.(type) {
+
 	case *typesv1.Currency_NativeToken:
 		var err error
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
@@ -142,6 +145,7 @@ func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *type
 			return nil, zeroAddress, err
 		}
 		paymentToken = contractAddress
+
 	case *typesv1.Currency_IsoCurrency:
 		// For IsoCurrency, keep price as 0 and paymentToken as zeroAddress
 	}
