@@ -20,6 +20,44 @@ var _ bookv2grpc.MintServiceServer = (*MintServiceV2Server)(nil)
 
 type MintServiceV2Server struct{}
 
+type mintServiceV2Payment struct {
+	NativeToken *typesv2.Price
+	Token       *typesv2.Price
+	Offchain    *typesv2.Price
+}
+
+var mintServiceV2Config = mintServiceV2Payment{
+	NativeToken: &typesv2.Price{
+		Value:    "1",
+		Decimals: 9,
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_NativeToken{
+				NativeToken: &emptypb.Empty{},
+			},
+		},
+	},
+	Offchain: &typesv2.Price{
+		Value:    "1",
+		Decimals: 9,
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_IsoCurrency{
+				IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR, // EUR
+			},
+		},
+	},
+	Token: &typesv2.Price{
+		Value:    "100",
+		Decimals: 2,
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_TokenCurrency{
+				TokenCurrency: &typesv2.TokenCurrency{
+					ContractAddress: "0x87a131801978d1ffBa53a6D4180cBef3F8C9e760",
+				},
+			},
+		},
+	},
+}
+
 func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv2.MintResponse, error) {
 	md := metadata.Metadata{}
 
@@ -31,36 +69,12 @@ func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*b
 
 	log.Printf("Responding to request: %s (MintV2)", md.RequestID)
 
-	// On-chain payment of 1 nCAM value=1 decimals=9 this currency has denominator 18 on
-	//
-	//	Columbus and conclusively to mint the value of 1 nCam must be divided by 10^9 =
-	//	0.000000001 CAM and minted in its smallest fraction by multiplying 0.000000001 *
-	//	10^18 => 1000000000 aCAM
 	response := bookv2.MintResponse{
 		MintId: &typesv1.UUID{Value: md.RequestID},
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		// NATIVE TOKEN EXAMPLE:
-		Price: &typesv2.Price{
-			Value:    "12345",
-			Decimals: 9,
-			Currency: &typesv2.Currency{
-				Currency: &typesv2.Currency_NativeToken{
-					NativeToken: &emptypb.Empty{},
-				},
-			},
-		},
-		// ISO CURRENCY EXAMPLE:
-		// Price: &typesv2.Price{
-		// 	Value:    "10000",
-		// 	Decimals: 2,
-		// 	Currency: &typesv2.Currency{
-		// 		Currency: &typesv2.Currency_IsoCurrency{
-		// 			IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR,
-		// 		},
-		// 	},
-		// },
+		Price:           mintServiceV2Config.NativeToken, // change to Token or Offchain to test different scenarios
 		BookingTokenId:  uint64(123456),
 		ValidationId:    &typesv1.UUID{Value: "123456"},
 		BookingTokenUri: "https://example.com/booking-token",

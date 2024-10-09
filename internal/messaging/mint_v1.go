@@ -114,7 +114,7 @@ func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response p
 	return false
 }
 
-func (h *evmResponseHandler) getPriceAndTokenV1(_ context.Context, price *typesv1.Price) (*big.Int, common.Address, error) {
+func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *typesv1.Price) (*big.Int, common.Address, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
 	switch currency := price.Currency.Currency.(type) {
@@ -137,7 +137,7 @@ func (h *evmResponseHandler) getPriceAndTokenV1(_ context.Context, price *typesv
 		if err != nil {
 			return nil, zeroAddress, fmt.Errorf("failed to fetch token decimals: %w", err)
 		}
-		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price, int32(tokenDecimals))
+		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(tokenDecimals))
 		if err != nil {
 			return nil, zeroAddress, err
 		}

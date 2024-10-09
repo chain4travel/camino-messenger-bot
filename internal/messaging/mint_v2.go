@@ -61,7 +61,7 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 
 	price, paymentToken, err := h.getPriceAndTokenV2(ctx, mintResp.Price)
 	if err != nil {
-		errMessage := fmt.Sprintf("error minting NFT: %v", err)
+		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
 		h.AddErrorToResponseHeader(response, errMessage)
 		return true

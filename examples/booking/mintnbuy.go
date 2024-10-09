@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/metachris/eth-go-bindings/erc20"
 	"go.uber.org/zap"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
@@ -27,9 +28,6 @@ var zeroAddress = common.HexToAddress("0x000000000000000000000000000000000000000
 var eurshToken = common.HexToAddress("0x5b1c852dad36854B0dFFF61d2C13F108D8E01975")
 
 var polygonToken = common.HexToAddress("0x0000000000000000000000000000000000001010")
-
-// https://polygonscan.com/token/0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6
-var wBtcToken = common.HexToAddress("0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6") // not on Camino
 
 // Simple usage example for the BookingService
 func main() {
@@ -142,21 +140,6 @@ func main() {
 		},
 	}
 
-	// TODO: call decimals on eurshToken (should get 5)
-
-	// On-chain payment of 0.0065 BTC
-	//  value=65
-	//  decimals=4
-	//  contract_address=0x... Using
-	//
-	//	the contract address, we get the decimals decimals and the currency name or
-	//	abbreviation: 8 decimals & WBTC Because we see 4 decimals specified in the
-	//	message we divide 65 by 10^4 == 0.0065 WBTC (for showing in the front-end UIs)
-	//
-	//	This currency has 8 decimals on-chain and conclusively to use the value of
-	//	0.0065 for on-chain operations must be converted to big integer as bigint(65) *
-	//	10^(8-4) == 650000
-
 	priceBTC := &typesv2.Price{
 		Value:    "65",
 		Decimals: 4,
@@ -194,7 +177,7 @@ func main() {
 	// price = priceBTC // case of unsupported token?
 	price = priceCAM
 
-	switch price.Currency.Currency.(type) {
+	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
 		bigIntPrice, err = bs.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
 		if err != nil {
@@ -204,14 +187,31 @@ func main() {
 		sugar.Infof("Converted the price big.Int: %v", bigIntPrice)
 		paymentToken = zeroAddress
 	case *typesv2.Currency_TokenCurrency:
-		// Add logic to handle TokenCurrency
-		// if contract address is zeroAddress, then it is native token
-		sugar.Infof("TokenCurrency not supported yet")
-		return
+		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
+			sugar.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
+			return
+		}
+		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
+		token, err := erc20.NewErc20(contractAddress, client)
+
+		if err != nil {
+			sugar.Errorf("failed to instantiate ERC20 contract: %w", err)
+			return
+		}
+		tokenDecimals, err := token.Decimals(&bind.CallOpts{})
+		if err != nil {
+			sugar.Errorf("failed to instantiate ERC20 contract: %w", err)
+			return
+		}
+		bigIntPrice, err = bs.ConvertPriceToBigInt(price.Value, price.Decimals, int32(tokenDecimals))
+		if err != nil {
+			sugar.Errorf("failed to instantiate ERC20 contract: %w", err)
+			return
+		}
+		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
-		// Add logic to handle IsoCurrency
-		sugar.Infof("IsoCurrency not supported yet")
-		return
+		bigIntPrice = big.NewInt(0)
+		paymentToken = zeroAddress
 	}
 
 	// Mint a new booking token
