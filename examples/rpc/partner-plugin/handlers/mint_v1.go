@@ -19,13 +19,13 @@ var _ bookv1grpc.MintServiceServer = (*MintServiceV1Server)(nil)
 
 type MintServiceV1Server struct{}
 
-type MintServiceV1Config struct {
+type PaymentConfigMintV1 struct {
 	NativeToken *typesv1.Price
 	Token       *typesv1.Price
 	Offchain    *typesv1.Price
 }
 
-var mintServiceV1Config = MintServiceV1Config{
+var priceConfigMintV1 = PaymentConfigMintV1{
 	NativeToken: &typesv1.Price{
 		Value:    "1",
 		Decimals: 9,
@@ -73,7 +73,7 @@ func (*MintServiceV1Server) Mint(ctx context.Context, _ *bookv1.MintRequest) (*b
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		Price: mintServiceV1Config.Token, // change to Token or Offchain to test different scenarios
+		Price: priceConfigMintV1.Token, // change to Token or Offchain to test different scenarios
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 

@@ -20,13 +20,13 @@ var _ bookv2grpc.MintServiceServer = (*MintServiceV2Server)(nil)
 
 type MintServiceV2Server struct{}
 
-type mintServiceV2Payment struct {
+type PaymentConfigMintV2 struct {
 	NativeToken *typesv2.Price
 	Token       *typesv2.Price
 	Offchain    *typesv2.Price
 }
 
-var mintServiceV2Config = mintServiceV2Payment{
+var priceConfigMintV2 = PaymentConfigMintV2{
 	NativeToken: &typesv2.Price{
 		Value:    "1",
 		Decimals: 9,
@@ -74,7 +74,7 @@ func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*b
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		Price:           mintServiceV2Config.NativeToken, // change to Token or Offchain to test different scenarios
+		Price:           priceConfigMintV2.NativeToken, // change to Token or Offchain to test different scenarios
 		BookingTokenId:  uint64(123456),
 		ValidationId:    &typesv1.UUID{Value: "123456"},
 		BookingTokenUri: "https://example.com/booking-token",
