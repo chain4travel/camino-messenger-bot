@@ -7,7 +7,7 @@
 # Lower level logging for local development
 developer_mode: true
 
-# Timeout in milliseconds to wait for responses on Matrix Server # TODO@ not correct ?
+# Timeout in milliseconds to wait for responses to message sent via Matrix
 response_timeout: 10000
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
