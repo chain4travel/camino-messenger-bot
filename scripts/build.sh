@@ -29,8 +29,8 @@ CAMINOBOT_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )"; cd .. && pwd )
 # Load the constants
 source "$CAMINOBOT_PATH"/scripts/constants.sh
 
-LDFLAGS="-X main.GitCommit=$git_commit"
-LDFLAGS="$LDFLAGS -X main.Version=$git_tag"
+LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/cmd.GitCommit=$git_commit"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/cmd.Version=$git_tag"
 
 # Build the Go application
 echo "Building camino-messenger-bot..."

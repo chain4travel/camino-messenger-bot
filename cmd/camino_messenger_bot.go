@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"os/signal"
 	"syscall"
 
@@ -29,10 +28,6 @@ var rootCmd = &cobra.Command{
 }
 
 func rootFunc(cmd *cobra.Command, _ []string) error {
-	// TODO @evlekht normal log printing
-	log.Printf("Version %s", Version)
-	log.Printf("GitCommit %s", GitCommit)
-
 	configReader := config.NewConfigReader(cmd.Flags())
 
 	var err error
@@ -48,6 +43,8 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 
 	logger := zapLogger.Sugar()
 	defer func() { _ = logger.Sync() }()
+
+	logger.Infof("App version: %s (git: %s)", Version, GitCommit)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
