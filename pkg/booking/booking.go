@@ -180,7 +180,7 @@ func (bs *Service) checkAndApproveAllowance(
 		// Approve the required amount
 		approveTx, err := erc20Contract.Approve(bs.transactOpts, spender, price)
 		if err != nil {
-			return fmt.Errorf("failed to approve token spending: %s", err)
+			return fmt.Errorf("failed to approve token spending: %w", err)
 		}
 
 		bs.logger.Infof("Approval transaction sent: %s", approveTx.Hash().Hex())

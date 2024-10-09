@@ -115,12 +115,10 @@ func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response p
 	return false
 }
 
-
 func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *typesv1.Price) (*big.Int, common.Address, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
 	switch currency := price.Currency.Currency.(type) {
-
 	case *typesv1.Currency_NativeToken:
 		var err error
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
