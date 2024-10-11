@@ -11,7 +11,7 @@ import (
 )
 
 func (s *accommodationv2AccommodationSearchServiceServer) AccommodationSearch(ctx context.Context, request *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, AccommodationSearchServiceV2Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, AccommodationSearchServiceV2Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", AccommodationSearchServiceV2Request, err)
 	}

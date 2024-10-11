@@ -11,7 +11,7 @@ import (
 )
 
 func (s *activityv1ActivityProductInfoServiceServer) ActivityProductInfo(ctx context.Context, request *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, ActivityProductInfoServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, ActivityProductInfoServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ActivityProductInfoServiceV1Request, err)
 	}

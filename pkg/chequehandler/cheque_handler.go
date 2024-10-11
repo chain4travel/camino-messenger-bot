@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
 package chequehandler
+========
+package cheque_handler
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 
 import (
 	"context"
@@ -10,10 +14,20 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
+========
+	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
+========
+	"github.com/ethereum/go-ethereum/ethclient"
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 	"go.uber.org/zap"
 )
 
@@ -54,10 +68,13 @@ type Session interface {
 	Abort() error
 }
 
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
 type TxReceiptGetter interface {
 	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
 }
 
+========
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 type ChequeHandler interface {
 	IssueCheque(
 		ctx context.Context,
@@ -67,6 +84,11 @@ type ChequeHandler interface {
 		amount *big.Int,
 	) (*cheques.SignedCheque, error)
 
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
+========
+	IsAllowedToIssueCheque(ctx context.Context, fromBot common.Address) (bool, error)
+
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 	CashIn(ctx context.Context) error
 
 	CheckCashInStatus(ctx context.Context) error
@@ -86,7 +108,11 @@ func NewChequeHandler(
 	cmAccountAddress common.Address,
 	chainID *big.Int,
 	storage Storage,
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
 	cmAccounts cmaccounts.Service,
+========
+	cmAccounts cmaccountscache.CMAccountsCache,
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 	minChequeDurationUntilExpiration *big.Int,
 	chequeExpirationTime *big.Int,
 	cashInTxIssueTimeout time.Duration,
@@ -122,7 +148,11 @@ type evmChequeHandler struct {
 	botAddress                       common.Address
 	signer                           cheques.Signer
 	storage                          Storage
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
 	cmAccounts                       cmaccounts.Service
+========
+	cmAccounts                       cmaccountscache.CMAccountsCache
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 	minChequeDurationUntilExpiration *big.Int
 	chequeExpirationTime             *big.Int
 	cashInTxIssueTimeout             time.Duration
@@ -212,6 +242,18 @@ func (ch *evmChequeHandler) IssueCheque(
 	return signedCheque, nil
 }
 
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
+========
+func (ch *evmChequeHandler) IsAllowedToIssueCheque(ctx context.Context, fromBot common.Address) (bool, error) {
+	isAllowed, err := ch.cmAccountInstance.IsBotAllowed(&bind.CallOpts{Context: ctx}, fromBot)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if bot has required permissions: %w", err)
+	}
+
+	return isAllowed, nil
+}
+
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 func (ch *evmChequeHandler) VerifyCheque(
 	ctx context.Context,
 	cheque *cheques.SignedCheque,
@@ -279,6 +321,18 @@ func (ch *evmChequeHandler) VerifyCheque(
 	return ch.storage.Commit(session)
 }
 
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
+========
+func (ch *evmChequeHandler) verifyChequeWithContract(ctx context.Context, cheque *cheques.SignedCheque) (bool, error) {
+	cmAccount, err := ch.cmAccounts.Get(cheque.FromCMAccount)
+	if err != nil {
+		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
+		return false, err
+	}
+	return verifyChequeWithContract(ctx, cmAccount, cheque)
+}
+
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 	ch.logger.Debug("Cashing in...")
 	defer ch.logger.Debug("Finished cashing in")
@@ -355,6 +409,42 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 	return nil
 }
 
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
+========
+func (ch *evmChequeHandler) cashInCheque(ctx context.Context, chequeRecord *ChequeRecord) (common.Hash, error) {
+	cmAccount, err := ch.cmAccounts.Get(chequeRecord.FromCMAccount)
+	if err != nil {
+		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
+		return common.Hash{}, err
+	}
+
+	transactor, err := bind.NewKeyedTransactorWithChainID(ch.botKey, ch.chainID)
+	if err != nil {
+		ch.logger.Error(err)
+		return common.Hash{}, err
+	}
+	transactor.Context = ctx
+
+	tx, err := cmAccount.CashInCheque(
+		transactor,
+		chequeRecord.FromCMAccount,
+		chequeRecord.ToCMAccount,
+		chequeRecord.ToBot,
+		chequeRecord.Counter,
+		chequeRecord.Amount,
+		chequeRecord.CreatedAt,
+		chequeRecord.ExpiresAt,
+		chequeRecord.Signature,
+	)
+	if err != nil {
+		ch.logger.Errorf("failed to cash in cheque %s: %v", chequeRecord, err)
+		return common.Hash{}, err
+	}
+
+	return tx.Hash(), nil
+}
+
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 	session, err := ch.storage.NewSession(ctx)
 	if err != nil {
@@ -413,7 +503,45 @@ func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.H
 	return ch.storage.Commit(session)
 }
 
+<<<<<<<< HEAD:pkg/chequehandler/cheque_handler.go
 func (ch *evmChequeHandler) waitMined(ctx context.Context, txID common.Hash) (*types.Receipt, error) {
+========
+func (ch *evmChequeHandler) getLastCashIn(ctx context.Context, toBot common.Address) (counter *big.Int, amount *big.Int, err error) {
+	lastCashIn, err := ch.cmAccountInstance.GetLastCashIn(
+		&bind.CallOpts{Context: ctx},
+		ch.botAddress,
+		toBot,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
+	}
+	return lastCashIn.LastCounter, lastCashIn.LastAmount, nil
+}
+
+func verifyChequeWithContract(
+	ctx context.Context,
+	cmAcc *cmaccount.Cmaccount,
+	signedCheque *cheques.SignedCheque,
+) (bool, error) {
+	_, err := cmAcc.VerifyCheque(
+		&bind.CallOpts{Context: ctx},
+		signedCheque.FromCMAccount,
+		signedCheque.ToCMAccount,
+		signedCheque.ToBot,
+		signedCheque.Counter,
+		signedCheque.Amount,
+		signedCheque.CreatedAt,
+		signedCheque.ExpiresAt,
+		signedCheque.Signature,
+	)
+	if err != nil && err.Error() == "execution reverted" {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+func waitMined(ctx context.Context, b bind.DeployBackend, txID common.Hash) (*ethTypes.Receipt, error) {
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_handler.go
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 

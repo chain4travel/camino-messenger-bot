@@ -13,9 +13,9 @@ import (
 var _ partnerv2grpc.GetPartnerConfigurationServiceServer = (*partnerv2GetPartnerConfigurationServiceServer)(nil)
 
 type partnerv2GetPartnerConfigurationServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerGetPartnerConfigurationServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerGetPartnerConfigurationServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerv2GetPartnerConfigurationServiceServer{reqProcessor})
 }

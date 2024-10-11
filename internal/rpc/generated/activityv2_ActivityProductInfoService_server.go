@@ -13,9 +13,9 @@ import (
 var _ activityv2grpc.ActivityProductInfoServiceServer = (*activityv2ActivityProductInfoServiceServer)(nil)
 
 type activityv2ActivityProductInfoServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerActivityProductInfoServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerActivityProductInfoServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, &activityv2ActivityProductInfoServiceServer{reqProcessor})
 }

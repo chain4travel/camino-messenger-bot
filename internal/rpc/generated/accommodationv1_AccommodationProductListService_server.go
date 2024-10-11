@@ -13,9 +13,9 @@ import (
 var _ accommodationv1grpc.AccommodationProductListServiceServer = (*accommodationv1AccommodationProductListServiceServer)(nil)
 
 type accommodationv1AccommodationProductListServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerAccommodationProductListServiceV1Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerAccommodationProductListServiceV1Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, &accommodationv1AccommodationProductListServiceServer{reqProcessor})
 }

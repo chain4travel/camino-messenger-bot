@@ -167,3 +167,8 @@ func (cfg *Config) unparse() *UnparsedConfig {
 		ResponseTimeout:                     int64(cfg.ResponseTimeout / time.Millisecond),
 	}
 }
+
+func (cfg *Config) verify() error {
+	// TODO@ any config verification needed?
+	return nil
+}

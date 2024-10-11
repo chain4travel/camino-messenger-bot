@@ -13,9 +13,9 @@ import (
 var _ infov2grpc.CountryEntryRequirementsServiceServer = (*infov2CountryEntryRequirementsServiceServer)(nil)
 
 type infov2CountryEntryRequirementsServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerCountryEntryRequirementsServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerCountryEntryRequirementsServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &infov2CountryEntryRequirementsServiceServer{reqProcessor})
 }

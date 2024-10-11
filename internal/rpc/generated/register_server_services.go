@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func RegisterServerServices(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func RegisterServerServices(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	registerAccommodationProductInfoServiceV1Server(grpcServer, reqProcessor)
 	registerAccommodationProductListServiceV1Server(grpcServer, reqProcessor)
 	registerAccommodationSearchServiceV1Server(grpcServer, reqProcessor)

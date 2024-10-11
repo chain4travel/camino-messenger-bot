@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:pkg/chequehandler/cheque_record.go
 package chequehandler
+========
+package cheque_handler
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/cheque_record.go
 
 import (
 	"fmt"

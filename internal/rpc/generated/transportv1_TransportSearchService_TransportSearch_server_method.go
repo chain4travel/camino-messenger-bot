@@ -11,7 +11,7 @@ import (
 )
 
 func (s *transportv1TransportSearchServiceServer) TransportSearch(ctx context.Context, request *transportv1.TransportSearchRequest) (*transportv1.TransportSearchResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, TransportSearchServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, TransportSearchServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", TransportSearchServiceV1Request, err)
 	}

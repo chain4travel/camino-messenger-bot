@@ -11,7 +11,7 @@ import (
 )
 
 func (s *accommodationv1AccommodationProductListServiceServer) AccommodationProductList(ctx context.Context, request *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, AccommodationProductListServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, AccommodationProductListServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", AccommodationProductListServiceV1Request, err)
 	}

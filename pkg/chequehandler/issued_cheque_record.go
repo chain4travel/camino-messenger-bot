@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:pkg/chequehandler/issued_cheque_record.go
 package chequehandler
+========
+package cheque_handler
+>>>>>>>> a1cdaeb (wip):pkg/cheque_handler/issued_cheque_record.go
 
 import (
 	"math/big"

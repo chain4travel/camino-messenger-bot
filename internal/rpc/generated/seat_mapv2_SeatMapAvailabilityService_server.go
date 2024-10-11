@@ -13,9 +13,9 @@ import (
 var _ seat_mapv2grpc.SeatMapAvailabilityServiceServer = (*seat_mapv2SeatMapAvailabilityServiceServer)(nil)
 
 type seat_mapv2SeatMapAvailabilityServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerSeatMapAvailabilityServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerSeatMapAvailabilityServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &seat_mapv2SeatMapAvailabilityServiceServer{reqProcessor})
 }

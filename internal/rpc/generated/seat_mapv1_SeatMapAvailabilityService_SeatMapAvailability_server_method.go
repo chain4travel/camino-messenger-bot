@@ -11,7 +11,7 @@ import (
 )
 
 func (s *seat_mapv1SeatMapAvailabilityServiceServer) SeatMapAvailability(ctx context.Context, request *seat_mapv1.SeatMapAvailabilityRequest) (*seat_mapv1.SeatMapAvailabilityResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, SeatMapAvailabilityServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, SeatMapAvailabilityServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", SeatMapAvailabilityServiceV1Request, err)
 	}

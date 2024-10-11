@@ -11,7 +11,7 @@ import (
 )
 
 func (s *infov1CountryEntryRequirementsServiceServer) CountryEntryRequirements(ctx context.Context, request *infov1.CountryEntryRequirementsRequest) (*infov1.CountryEntryRequirementsResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, CountryEntryRequirementsServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, CountryEntryRequirementsServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", CountryEntryRequirementsServiceV1Request, err)
 	}

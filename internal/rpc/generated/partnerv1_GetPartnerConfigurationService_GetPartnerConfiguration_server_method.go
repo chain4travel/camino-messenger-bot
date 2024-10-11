@@ -11,7 +11,7 @@ import (
 )
 
 func (s *partnerv1GetPartnerConfigurationServiceServer) GetPartnerConfiguration(ctx context.Context, request *partnerv1.GetPartnerConfigurationRequest) (*partnerv1.GetPartnerConfigurationResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, GetPartnerConfigurationServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, GetPartnerConfigurationServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", GetPartnerConfigurationServiceV1Request, err)
 	}

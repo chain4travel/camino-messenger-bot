@@ -19,6 +19,44 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 )
 
+// MockRequestHandler is a mock of RequestHandler interface.
+type MockRequestHandler struct {
+	ctrl     *gomock.Controller
+	recorder *MockRequestHandlerMockRecorder
+}
+
+// MockRequestHandlerMockRecorder is the mock recorder for MockRequestHandler.
+type MockRequestHandlerMockRecorder struct {
+	mock *MockRequestHandler
+}
+
+// NewMockRequestHandler creates a new mock instance.
+func NewMockRequestHandler(ctrl *gomock.Controller) *MockRequestHandler {
+	mock := &MockRequestHandler{ctrl: ctrl}
+	mock.recorder = &MockRequestHandlerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRequestHandler) EXPECT() *MockRequestHandlerMockRecorder {
+	return m.recorder
+}
+
+// HandleRequest mocks base method.
+func (m *MockRequestHandler) HandleRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HandleRequest", ctx, requestType, request)
+	ret0, _ := ret[0].(protoreflect.ProtoMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HandleRequest indicates an expected call of HandleRequest.
+func (mr *MockRequestHandlerMockRecorder) HandleRequest(ctx, requestType, request any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleRequest", reflect.TypeOf((*MockRequestHandler)(nil).HandleRequest), ctx, requestType, request)
+}
+
 // MockService is a mock of Service interface.
 type MockService struct {
 	ctrl     *gomock.Controller

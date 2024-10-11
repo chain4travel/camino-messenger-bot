@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -16,6 +17,10 @@ import (
 	grpc_metadata "google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var errMissingMintTxID = errors.New("missing mint transaction id")
+var errUnexpectedRequestType = errors.New("unexpected request type")
+var errUnexpectedResponseType = errors.New("unexpected response type")
 
 // Mints a BookingToken with the supplier private key and reserves it for the buyer address
 // For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
@@ -205,4 +210,11 @@ func verifyAndFixBuyableUntil(buyableUntil *timestamppb.Timestamp, currentTime t
 	}
 
 	return buyableUntil, nil
+}
+
+// TODO@ test that its working, its not c++ after all
+func ensureHeaderV1(response **typesv1.ResponseHeader) {
+	if *response == nil {
+		*response = &typesv1.ResponseHeader{}
+	}
 }

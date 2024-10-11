@@ -11,7 +11,7 @@ import (
 )
 
 func (s *insurancev1InsuranceProductListServiceServer) InsuranceProductList(ctx context.Context, request *insurancev1.InsuranceProductListRequest) (*insurancev1.InsuranceProductListResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, InsuranceProductListServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, InsuranceProductListServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", InsuranceProductListServiceV1Request, err)
 	}

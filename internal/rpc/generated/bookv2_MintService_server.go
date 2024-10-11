@@ -13,9 +13,9 @@ import (
 var _ bookv2grpc.MintServiceServer = (*bookv2MintServiceServer)(nil)
 
 type bookv2MintServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerMintServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerMintServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	bookv2grpc.RegisterMintServiceServer(grpcServer, &bookv2MintServiceServer{reqProcessor})
 }
