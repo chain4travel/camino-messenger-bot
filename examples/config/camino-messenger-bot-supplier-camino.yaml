@@ -51,11 +51,8 @@ db:
     # Path to migrations dir with sql up/down scripts. Schema is mandatory.
     migrations_path: file://./migrations
 
-    # Database name.
-    name: camino_messenger_bot
-
-    # Path to database file.
-    path: supplier-bot.db
+    # Path to database dir.
+    path: supplier-bot-db
 
 
 
