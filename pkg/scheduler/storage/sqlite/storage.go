@@ -44,7 +44,7 @@ func New(ctx context.Context, logger *zap.SugaredLogger, cfg sqlite.DBConfig) (S
 }
 
 type storage struct {
-	base *sqlite.SQLiteXDB
+	base *sqlite.DB
 
 	jobsStatements
 }

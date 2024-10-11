@@ -1,4 +1,4 @@
-package cheque_handler
+package chequehandler
 
 import (
 	"fmt"

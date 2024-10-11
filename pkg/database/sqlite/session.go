@@ -25,7 +25,7 @@ type SQLxTxer interface {
 	SQLxTx() *sqlx.Tx
 }
 
-func (s *SQLiteXDB) NewSession(ctx context.Context) (*SQLxTxSession, error) {
+func (s *DB) NewSession(ctx context.Context) (*SQLxTxSession, error) {
 	tx, err := s.DB.BeginTxx(ctx, &sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
@@ -36,7 +36,7 @@ func (s *SQLiteXDB) NewSession(ctx context.Context) (*SQLxTxSession, error) {
 	return &SQLxTxSession{Tx: tx}, nil
 }
 
-func (s *SQLiteXDB) Commit(session Session) error {
+func (s *DB) Commit(session Session) error {
 	if err := session.Commit(); err != nil {
 		s.Logger.Error(err)
 		return err
@@ -44,7 +44,7 @@ func (s *SQLiteXDB) Commit(session Session) error {
 	return nil
 }
 
-func (s *SQLiteXDB) Abort(session Session) {
+func (s *DB) Abort(session Session) {
 	if err := session.Abort(); err != nil {
 		s.Logger.Error(err)
 	}

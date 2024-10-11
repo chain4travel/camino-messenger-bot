@@ -16,14 +16,14 @@ type DBConfig struct {
 	MigrationsPath string
 }
 
-func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*SQLiteXDB, error) {
+func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*DB, error) {
 	db, err := sqlx.Open("sqlite3", cfg.DBPath)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
-	s := &SQLiteXDB{
+	s := &DB{
 		Logger: logger,
 		DB:     db,
 	}
@@ -35,12 +35,12 @@ func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*SQLiteXDB, er
 	return s, nil
 }
 
-type SQLiteXDB struct {
+type DB struct {
 	Logger *zap.SugaredLogger
 	DB     *sqlx.DB
 }
 
-func (s *SQLiteXDB) Close() error {
+func (s *DB) Close() error {
 	if err := s.DB.Close(); err != nil {
 		s.Logger.Error(err)
 		return err
@@ -48,7 +48,7 @@ func (s *SQLiteXDB) Close() error {
 	return nil
 }
 
-func (s *SQLiteXDB) migrate(dbName, migrationsPath string) error {
+func (s *DB) migrate(dbName, migrationsPath string) error {
 	s.Logger.Infof("Performing db migrations...")
 
 	driver, err := sqlite3.WithInstance(s.DB.DB, &sqlite3.Config{})

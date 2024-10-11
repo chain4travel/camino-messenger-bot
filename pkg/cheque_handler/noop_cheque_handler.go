@@ -3,7 +3,7 @@
  * See the file LICENSE for licensing terms.
  */
 
-package cheque_handler
+package chequehandler
 
 import (
 	"context"
