@@ -1,4 +1,4 @@
-package messaging
+package cheque_handler
 
 import (
 	"context"
@@ -9,23 +9,53 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/models"
-	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	lru "github.com/hashicorp/golang-lru/v2"
 	"go.uber.org/zap"
 )
 
 var (
 	_      ChequeHandler = (*evmChequeHandler)(nil)
 	bigOne               = big.NewInt(1)
+
+	ErrNotFound = errors.New("not found")
 )
+
+type Storage interface {
+	SessionHandler
+	ChequeRecordsStorage
+	IssuedChequeRecordsStorage
+}
+
+type ChequeRecordsStorage interface {
+	GetNotCashedChequeRecords(ctx context.Context, session Session) ([]*ChequeRecord, error)
+	GetChequeRecordsWithPendingTxs(ctx context.Context, session Session) ([]*ChequeRecord, error)
+	GetChequeRecord(ctx context.Context, session Session, chequeRecordID common.Hash) (*ChequeRecord, error)
+	GetChequeRecordByTxID(ctx context.Context, session Session, txID common.Hash) (*ChequeRecord, error)
+	UpsertChequeRecord(ctx context.Context, session Session, chequeRecord *ChequeRecord) error
+}
+
+type IssuedChequeRecordsStorage interface {
+	GetIssuedChequeRecord(ctx context.Context, session Session, chequeRecordID common.Hash) (*IssuedChequeRecord, error)
+	UpsertIssuedChequeRecord(ctx context.Context, session Session, chequeRecord *IssuedChequeRecord) error
+}
+
+type SessionHandler interface {
+	NewSession(ctx context.Context) (Session, error)
+	Commit(session Session) error
+	Abort(session Session)
+}
+
+type Session interface {
+	Commit() error
+	Abort() error
+}
 
 type ChequeHandler interface {
 	IssueCheque(
@@ -36,13 +66,7 @@ type ChequeHandler interface {
 		amount *big.Int,
 	) (*cheques.SignedCheque, error)
 
-	GetServiceFee(
-		ctx context.Context,
-		toCmAccountAddress common.Address,
-		serviceFullName string,
-	) (*big.Int, error)
-
-	IsBotAllowed(ctx context.Context, fromBot common.Address) (bool, error)
+	IsAllowedToIssueCheque(ctx context.Context, fromBot common.Address) (bool, error)
 
 	CashIn(ctx context.Context) error
 
@@ -62,10 +86,11 @@ func NewChequeHandler(
 	botKey *ecdsa.PrivateKey,
 	cmAccountAddress common.Address,
 	chainID *big.Int,
-	storage storage.Storage,
-	serviceRegistry ServiceRegistry,
+	storage Storage,
+	cmAccounts cmaccountscache.CMAccountsCache,
 	minChequeDurationUntilExpiration *big.Int,
 	chequeExpirationTime *big.Int,
+	cashInTxIssueTimeout time.Duration,
 ) (ChequeHandler, error) {
 	cmAccountInstance, err := cmaccount.NewCmaccount(cmAccountAddress, ethClient)
 	if err != nil {
@@ -75,11 +100,6 @@ func NewChequeHandler(
 	signer, err := cheques.NewSigner(botKey, chainID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create signer: %w", err)
-	}
-
-	cmAccountsCache, err := lru.New[common.Address, *cmaccount.Cmaccount](cmAccountsCacheSize)
-	if err != nil {
-		return nil, err
 	}
 
 	return &evmChequeHandler{
@@ -92,10 +112,10 @@ func NewChequeHandler(
 		logger:                           logger,
 		storage:                          storage,
 		signer:                           signer,
-		serviceRegistry:                  serviceRegistry,
-		cmAccounts:                       cmAccountsCache,
+		cmAccounts:                       cmAccounts,
 		minChequeDurationUntilExpiration: minChequeDurationUntilExpiration,
 		chequeExpirationTime:             chequeExpirationTime,
+		cashInTxIssueTimeout:             cashInTxIssueTimeout,
 	}, nil
 }
 
@@ -109,11 +129,11 @@ type evmChequeHandler struct {
 	botKey                           *ecdsa.PrivateKey
 	botAddress                       common.Address
 	signer                           cheques.Signer
-	serviceRegistry                  ServiceRegistry
-	storage                          storage.Storage
-	cmAccounts                       *lru.Cache[common.Address, *cmaccount.Cmaccount]
+	storage                          Storage
+	cmAccounts                       cmaccountscache.CMAccountsCache
 	minChequeDurationUntilExpiration *big.Int
 	chequeExpirationTime             *big.Int
+	cashInTxIssueTimeout             time.Duration
 }
 
 func (ch *evmChequeHandler) IssueCheque(
@@ -128,7 +148,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 
-	defer session.Abort()
+	defer ch.storage.Abort(session)
 
 	now := big.NewInt(time.Now().Unix())
 	newCheque := &cheques.Cheque{
@@ -141,10 +161,10 @@ func (ch *evmChequeHandler) IssueCheque(
 		ExpiresAt:     big.NewInt(0).Add(now, ch.chequeExpirationTime),
 	}
 
-	chequeRecordID := models.ChequeRecordID(newCheque)
+	chequeRecordID := ChequeRecordID(newCheque)
 
-	previousChequeModel, err := session.GetIssuedChequeRecord(ctx, chequeRecordID)
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+	previousChequeModel, err := ch.storage.GetIssuedChequeRecord(ctx, session, chequeRecordID)
+	if err != nil && !errors.Is(err, ErrNotFound) {
 		ch.logger.Errorf("failed to get previous cheque: %v", err)
 		return nil, fmt.Errorf("failed to get previous cheque: %w", err)
 	}
@@ -189,12 +209,12 @@ func (ch *evmChequeHandler) IssueCheque(
 		}
 	}
 
-	if err := session.UpsertIssuedChequeRecord(ctx, models.IssuedChequeRecordCheque(chequeRecordID, signedCheque)); err != nil {
+	if err := ch.storage.UpsertIssuedChequeRecord(ctx, session, IssuedChequeRecordCheque(chequeRecordID, signedCheque)); err != nil {
 		ch.logger.Error(err)
 		return nil, fmt.Errorf("failed to upsert issued cheque record: %w", err)
 	}
 
-	if err := session.Commit(); err != nil {
+	if err := ch.storage.Commit(session); err != nil {
 		ch.logger.Error(err)
 		return nil, fmt.Errorf("failed to commit session: %w", err)
 	}
@@ -202,27 +222,7 @@ func (ch *evmChequeHandler) IssueCheque(
 	return signedCheque, nil
 }
 
-func (ch *evmChequeHandler) GetServiceFee(
-	ctx context.Context,
-	toCmAccountAddress common.Address,
-	servicefullName string,
-) (*big.Int, error) {
-	supplierCmAccount, err := ch.getCMAccount(toCmAccountAddress)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
-	}
-
-	serviceFee, err := supplierCmAccount.GetServiceFee(
-		&bind.CallOpts{Context: ctx},
-		servicefullName,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get service fee: %w", err)
-	}
-	return serviceFee, nil
-}
-
-func (ch *evmChequeHandler) IsBotAllowed(ctx context.Context, fromBot common.Address) (bool, error) {
+func (ch *evmChequeHandler) IsAllowedToIssueCheque(ctx context.Context, fromBot common.Address) (bool, error) {
 	isAllowed, err := ch.cmAccountInstance.IsBotAllowed(&bind.CallOpts{Context: ctx}, fromBot)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if bot has required permissions: %w", err)
@@ -242,7 +242,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 		ch.logger.Errorf("failed to create storage session: %v", err)
 		return err
 	}
-	defer session.Abort()
+	defer ch.storage.Abort(session)
 
 	chequeIssuerPubKey, err := ch.signer.RecoverPublicKey(cheque)
 	if err != nil {
@@ -254,9 +254,9 @@ func (ch *evmChequeHandler) VerifyCheque(
 		return fmt.Errorf("cheque issuer does not match sender")
 	}
 
-	chequeRecordID := models.ChequeRecordID(&cheque.Cheque)
-	chequeRecord, err := session.GetChequeRecord(ctx, chequeRecordID)
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+	chequeRecordID := ChequeRecordID(&cheque.Cheque)
+	chequeRecord, err := ch.storage.GetChequeRecord(ctx, session, chequeRecordID)
+	if err != nil && !errors.Is(err, ErrNotFound) {
 		ch.logger.Errorf("failed to get chequeRecord: %v", err)
 		return err
 	}
@@ -289,17 +289,17 @@ func (ch *evmChequeHandler) VerifyCheque(
 		return fmt.Errorf("cheque is invalid (blockchain validation)")
 	}
 
-	chequeRecord = models.ChequeRecordFromCheque(chequeRecordID, cheque)
-	if err := session.UpsertChequeRecord(ctx, chequeRecord); err != nil {
+	chequeRecord = ChequeRecordFromCheque(chequeRecordID, cheque)
+	if err := ch.storage.UpsertChequeRecord(ctx, session, chequeRecord); err != nil {
 		ch.logger.Errorf("Failed to store cheque: %v", err)
 		return err
 	}
 
-	return session.Commit()
+	return ch.storage.Commit(session)
 }
 
 func (ch *evmChequeHandler) verifyChequeWithContract(ctx context.Context, cheque *cheques.SignedCheque) (bool, error) {
-	cmAccount, err := ch.getCMAccount(cheque.FromCMAccount)
+	cmAccount, err := ch.cmAccounts.Get(cheque.FromCMAccount)
 	if err != nil {
 		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
 		return false, err
@@ -307,7 +307,6 @@ func (ch *evmChequeHandler) verifyChequeWithContract(ctx context.Context, cheque
 	return verifyChequeWithContract(ctx, cmAccount, cheque)
 }
 
-// TODO @evlekht whole cash in is almost 100% copy-paste from asb, think of moving to common place
 func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 	ch.logger.Debug("Cashing in...")
 	defer ch.logger.Debug("Finished cashing in")
@@ -317,9 +316,9 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 		ch.logger.Error(err)
 		return err
 	}
-	defer session.Abort()
+	defer ch.storage.Abort(session)
 
-	chequeRecords, err := session.GetNotCashedChequeRecords(ctx)
+	chequeRecords, err := ch.storage.GetNotCashedChequeRecords(ctx, session)
 	if err != nil {
 		ch.logger.Errorf("failed to get not cashed cheques: %v", err)
 		return err
@@ -333,7 +332,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 		go func() {
 			defer wg.Done()
 
-			timedCtx, cancel := context.WithTimeout(ctx, cashInTxIssueTimeout)
+			timedCtx, cancel := context.WithTimeout(ctx, ch.cashInTxIssueTimeout)
 			defer cancel()
 
 			txID, err := ch.cashInCheque(timedCtx, chequeRecord)
@@ -342,7 +341,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 			}
 
 			chequeRecord.TxID = txID
-			chequeRecord.Status = models.ChequeTxStatusPending
+			chequeRecord.Status = ChequeTxStatusPending
 
 			// TODO @evlekht if tx will be issued, but then storage will fail to persist it,
 			// TODO tx is still issued and app service will fail to cash in this cheque next time
@@ -352,8 +351,8 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 
 			// TODO @evlekht add txCreatedAt field to db and use it for mining timeout ?
 
-			if err := session.UpsertChequeRecord(ctx, chequeRecord); err != nil {
-				chequeRecord.Status = models.ChequeTxStatusUnknown
+			if err := ch.storage.UpsertChequeRecord(ctx, session, chequeRecord); err != nil {
+				chequeRecord.Status = ChequeTxStatusUnknown
 				ch.logger.Errorf("failed to update cheque %s: %v", chequeRecord, err)
 				return
 			}
@@ -362,13 +361,13 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 
 	wg.Wait()
 
-	if err := session.Commit(); err != nil {
+	if err := ch.storage.Commit(session); err != nil {
 		ch.logger.Errorf("failed to commit session: %v", err)
 		return err
 	}
 
 	for _, chequeRecord := range chequeRecords {
-		if chequeRecord.Status != models.ChequeTxStatusPending {
+		if chequeRecord.Status != ChequeTxStatusPending {
 			continue
 		}
 
@@ -380,8 +379,8 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 	return nil
 }
 
-func (ch *evmChequeHandler) cashInCheque(ctx context.Context, chequeRecord *models.ChequeRecord) (common.Hash, error) {
-	cmAccount, err := ch.getCMAccount(chequeRecord.FromCMAccount)
+func (ch *evmChequeHandler) cashInCheque(ctx context.Context, chequeRecord *ChequeRecord) (common.Hash, error) {
+	cmAccount, err := ch.cmAccounts.Get(chequeRecord.FromCMAccount)
 	if err != nil {
 		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
 		return common.Hash{}, err
@@ -419,9 +418,9 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 		ch.logger.Error(err)
 		return err
 	}
-	defer session.Abort()
+	defer ch.storage.Abort(session)
 
-	chequeRecords, err := session.GetChequeRecordsWithPendingTxs(ctx)
+	chequeRecords, err := ch.storage.GetChequeRecordsWithPendingTxs(ctx, session)
 	if err != nil {
 		ch.logger.Errorf("failed to get not cashed cheques: %v", err)
 		return err
@@ -449,42 +448,26 @@ func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.H
 		ch.logger.Error(err)
 		return err
 	}
-	defer session.Abort()
+	defer ch.storage.Abort(session)
 
-	chequeRecord, err := session.GetChequeRecordByTxID(ctx, txID)
+	chequeRecord, err := ch.storage.GetChequeRecordByTxID(ctx, session, txID)
 	if err != nil {
 		ch.logger.Errorf("failed to get chequeRecord by txID %s: %v", txID, err)
 		return err
 	}
 
-	txStatus := models.ChequeTxStatusFromTxStatus(res.Status)
+	txStatus := ChequeTxStatusFromTxStatus(res.Status)
 	if chequeRecord.Status == txStatus {
 		return nil
 	}
 
 	chequeRecord.Status = txStatus
-	if err := session.UpsertChequeRecord(ctx, chequeRecord); err != nil {
+	if err := ch.storage.UpsertChequeRecord(ctx, session, chequeRecord); err != nil {
 		ch.logger.Errorf("failed to update chequeRecord %s: %v", chequeRecord, err)
 		return err
 	}
 
-	return session.Commit()
-}
-
-func (ch *evmChequeHandler) getCMAccount(address common.Address) (*cmaccount.Cmaccount, error) {
-	cmAccount, ok := ch.cmAccounts.Get(address)
-	if ok {
-		return cmAccount, nil
-	}
-
-	cmAccount, err := cmaccount.NewCmaccount(address, ch.ethClient)
-	if err != nil {
-		ch.logger.Errorf("failed to create cmAccount contract instance: %v", err)
-		return nil, err
-	}
-	_ = ch.cmAccounts.Add(address, cmAccount)
-
-	return cmAccount, nil
+	return ch.storage.Commit(session)
 }
 
 func (ch *evmChequeHandler) getLastCashIn(ctx context.Context, toBot common.Address) (counter *big.Int, amount *big.Int, err error) {

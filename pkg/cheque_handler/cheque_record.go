@@ -1,4 +1,4 @@
-package models
+package cheque_handler
 
 import (
 	"fmt"

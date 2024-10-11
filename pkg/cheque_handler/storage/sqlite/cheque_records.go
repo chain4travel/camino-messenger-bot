@@ -1,4 +1,4 @@
-package storage
+package sqlite
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/models"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
@@ -16,49 +16,47 @@ import (
 const chequeRecordsTableName = "cheque_records"
 
 var (
-	_ ChequeRecordsStorage = (*session)(nil)
+	_ cheque_handler.ChequeRecordsStorage = (*storage)(nil)
 
 	zeroHash = common.Hash{}
 )
 
-type ChequeRecordsStorage interface {
-	GetNotCashedChequeRecords(ctx context.Context) ([]*models.ChequeRecord, error)
-	GetChequeRecordsWithPendingTxs(ctx context.Context) ([]*models.ChequeRecord, error)
-	GetChequeRecord(ctx context.Context, chequeRecordID common.Hash) (*models.ChequeRecord, error)
-	GetChequeRecordByTxID(ctx context.Context, txID common.Hash) (*models.ChequeRecord, error)
-	UpsertChequeRecord(ctx context.Context, chequeRecord *models.ChequeRecord) error
-}
-
 type chequeRecord struct {
-	ChequeRecordID common.Hash            `db:"cheque_record_id"`
-	FromCMAccount  common.Address         `db:"from_cm_account"`
-	ToCMAccount    common.Address         `db:"to_cm_account"`
-	ToBot          common.Address         `db:"to_bot"`
-	Counter        []byte                 `db:"counter"`
-	Amount         []byte                 `db:"amount"`
-	CreatedAt      []byte                 `db:"created_at"`
-	ExpiresAt      []byte                 `db:"expires_at"`
-	Signature      []byte                 `db:"signature"`
-	TxID           *common.Hash           `db:"tx_id"`
-	Status         *models.ChequeTxStatus `db:"status"`
+	ChequeRecordID common.Hash                    `db:"cheque_record_id"`
+	FromCMAccount  common.Address                 `db:"from_cm_account"`
+	ToCMAccount    common.Address                 `db:"to_cm_account"`
+	ToBot          common.Address                 `db:"to_bot"`
+	Counter        []byte                         `db:"counter"`
+	Amount         []byte                         `db:"amount"`
+	CreatedAt      []byte                         `db:"created_at"`
+	ExpiresAt      []byte                         `db:"expires_at"`
+	Signature      []byte                         `db:"signature"`
+	TxID           *common.Hash                   `db:"tx_id"`
+	Status         *cheque_handler.ChequeTxStatus `db:"status"`
 }
 
-func (s *session) GetNotCashedChequeRecords(ctx context.Context) ([]*models.ChequeRecord, error) {
-	chequeRecords := []*models.ChequeRecord{}
-	rows, err := s.tx.StmtxContext(ctx, s.storage.getNotCashedChequeRecords).QueryxContext(ctx)
+func (s *storage) GetNotCashedChequeRecords(ctx context.Context, session cheque_handler.Session) ([]*cheque_handler.ChequeRecord, error) {
+	tx, err := getSQLXTx(session)
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
+		return nil, err
+	}
+
+	chequeRecords := []*cheque_handler.ChequeRecord{}
+	rows, err := tx.StmtxContext(ctx, s.getNotCashedChequeRecords).QueryxContext(ctx)
+	if err != nil {
+		s.baseDB.Logger.Error(err)
 		return nil, upgradeError(err)
 	}
 	for rows.Next() {
 		chequeRecord := &chequeRecord{}
 		if err := rows.StructScan(chequeRecord); err != nil {
-			s.logger.Errorf("failed to get not cashed chequeRecord from db: %v", err)
+			s.baseDB.Logger.Errorf("failed to get not cashed chequeRecord from db: %v", err)
 			continue
 		}
 		model, err := modelFromChequeRecord(chequeRecord)
 		if err != nil {
-			s.logger.Errorf("failed to parse not cashed chequeRecord: %v", err)
+			s.baseDB.Logger.Errorf("failed to parse not cashed chequeRecord: %v", err)
 			continue
 		}
 		chequeRecords = append(chequeRecords, model)
@@ -66,22 +64,28 @@ func (s *session) GetNotCashedChequeRecords(ctx context.Context) ([]*models.Cheq
 	return chequeRecords, nil
 }
 
-func (s *session) GetChequeRecordsWithPendingTxs(ctx context.Context) ([]*models.ChequeRecord, error) {
-	chequeRecords := []*models.ChequeRecord{}
-	rows, err := s.tx.StmtxContext(ctx, s.storage.getChequeRecordsWithPendingTxs).QueryxContext(ctx)
+func (s *storage) GetChequeRecordsWithPendingTxs(ctx context.Context, session cheque_handler.Session) ([]*cheque_handler.ChequeRecord, error) {
+	tx, err := getSQLXTx(session)
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
+		return nil, err
+	}
+
+	chequeRecords := []*cheque_handler.ChequeRecord{}
+	rows, err := tx.StmtxContext(ctx, s.getChequeRecordsWithPendingTxs).QueryxContext(ctx)
+	if err != nil {
+		s.baseDB.Logger.Error(err)
 		return nil, upgradeError(err)
 	}
 	for rows.Next() {
 		chequeRecord := &chequeRecord{}
 		if err := rows.StructScan(chequeRecord); err != nil {
-			s.logger.Errorf("failed to get chequeRecord with pending tx from db: %v", err)
+			s.baseDB.Logger.Errorf("failed to get chequeRecord with pending tx from db: %v", err)
 			continue
 		}
 		model, err := modelFromChequeRecord(chequeRecord)
 		if err != nil {
-			s.logger.Errorf("failed to parse chequeRecord with pending tx: %v", err)
+			s.baseDB.Logger.Errorf("failed to parse chequeRecord with pending tx: %v", err)
 			continue
 		}
 		chequeRecords = append(chequeRecords, model)
@@ -89,37 +93,55 @@ func (s *session) GetChequeRecordsWithPendingTxs(ctx context.Context) ([]*models
 	return chequeRecords, nil
 }
 
-func (s *session) GetChequeRecord(ctx context.Context, chequeRecordID common.Hash) (*models.ChequeRecord, error) {
+func (s *storage) GetChequeRecord(ctx context.Context, session cheque_handler.Session, chequeRecordID common.Hash) (*cheque_handler.ChequeRecord, error) {
+	tx, err := getSQLXTx(session)
+	if err != nil {
+		s.baseDB.Logger.Error(err)
+		return nil, err
+	}
+
 	chequeRecord := &chequeRecord{}
-	if err := s.tx.StmtxContext(ctx, s.storage.getChequeRecordByID).GetContext(ctx, chequeRecord, chequeRecordID); err != nil {
+	if err := tx.StmtxContext(ctx, s.getChequeRecordByID).GetContext(ctx, chequeRecord, chequeRecordID); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			s.logger.Error(err)
+			s.baseDB.Logger.Error(err)
 		}
 		return nil, upgradeError(err)
 	}
 	return modelFromChequeRecord(chequeRecord)
 }
 
-func (s *session) GetChequeRecordByTxID(ctx context.Context, txID common.Hash) (*models.ChequeRecord, error) {
+func (s *storage) GetChequeRecordByTxID(ctx context.Context, session cheque_handler.Session, txID common.Hash) (*cheque_handler.ChequeRecord, error) {
+	tx, err := getSQLXTx(session)
+	if err != nil {
+		s.baseDB.Logger.Error(err)
+		return nil, err
+	}
+
 	chequeRecord := &chequeRecord{}
-	if err := s.tx.StmtxContext(ctx, s.storage.getChequeRecordByTxID).GetContext(ctx, chequeRecord, txID); err != nil {
+	if err := tx.StmtxContext(ctx, s.getChequeRecordByTxID).GetContext(ctx, chequeRecord, txID); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			s.logger.Error(err)
+			s.baseDB.Logger.Error(err)
 		}
 		return nil, upgradeError(err)
 	}
 	return modelFromChequeRecord(chequeRecord)
 }
 
-func (s *session) UpsertChequeRecord(ctx context.Context, chequeRecord *models.ChequeRecord) error {
-	result, err := s.tx.NamedStmtContext(ctx, s.storage.upsertChequeRecord).
+func (s *storage) UpsertChequeRecord(ctx context.Context, session cheque_handler.Session, chequeRecord *cheque_handler.ChequeRecord) error {
+	tx, err := getSQLXTx(session)
+	if err != nil {
+		s.baseDB.Logger.Error(err)
+		return err
+	}
+
+	result, err := tx.NamedStmtContext(ctx, s.upsertChequeRecord).
 		ExecContext(ctx, chequeRecordFromModel(chequeRecord))
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
 		return upgradeError(err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
 		return upgradeError(err)
 	} else if rowsAffected != 1 {
 		return fmt.Errorf("failed to add chequeRecord: expected to affect 1 row, but affected %d", rowsAffected)
@@ -134,47 +156,47 @@ type chequeRecordsStatements struct {
 }
 
 func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
-	getNotCashedChequeRecords, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
+	getNotCashedChequeRecords, err := s.baseDB.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE status = %d OR status IS NULL
-	`, chequeRecordsTableName, models.ChequeTxStatusRejected))
+	`, chequeRecordsTableName, cheque_handler.ChequeTxStatusRejected))
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
 		return err
 	}
 	s.getNotCashedChequeRecords = getNotCashedChequeRecords
 
-	getChequeRecordsWithPendingTxs, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
+	getChequeRecordsWithPendingTxs, err := s.baseDB.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE status = %d
-	`, chequeRecordsTableName, models.ChequeTxStatusPending))
+	`, chequeRecordsTableName, cheque_handler.ChequeTxStatusPending))
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
 		return err
 	}
 	s.getChequeRecordsWithPendingTxs = getChequeRecordsWithPendingTxs
 
-	getChequeRecordByID, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
+	getChequeRecordByID, err := s.baseDB.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE cheque_record_id = ?
 	`, chequeRecordsTableName))
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
 		return err
 	}
 	s.getChequeRecordByID = getChequeRecordByID
 
-	getChequeByTxID, err := s.db.PreparexContext(ctx, fmt.Sprintf(`
+	getChequeByTxID, err := s.baseDB.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE tx_id = ?
 	`, chequeRecordsTableName))
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
 		return err
 	}
 	s.getChequeRecordByTxID = getChequeByTxID
 
-	upsertChequeRecord, err := s.db.PrepareNamedContext(ctx, fmt.Sprintf(`
+	upsertChequeRecord, err := s.baseDB.DB.PrepareNamedContext(ctx, fmt.Sprintf(`
 		INSERT INTO %s (
 			cheque_record_id,
 			from_cm_account,
@@ -211,7 +233,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 			status      = excluded.status
 	`, chequeRecordsTableName))
 	if err != nil {
-		s.logger.Error(err)
+		s.baseDB.Logger.Error(err)
 		return err
 	}
 	s.upsertChequeRecord = upsertChequeRecord
@@ -219,18 +241,18 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 	return nil
 }
 
-func modelFromChequeRecord(chequeRecord *chequeRecord) (*models.ChequeRecord, error) {
+func modelFromChequeRecord(chequeRecord *chequeRecord) (*cheque_handler.ChequeRecord, error) {
 	txID := common.Hash{}
 	if chequeRecord.TxID != nil {
 		txID = *chequeRecord.TxID
 	}
 
-	status := models.ChequeTxStatusUnknown
+	status := cheque_handler.ChequeTxStatusUnknown
 	if chequeRecord.Status != nil {
 		status = *chequeRecord.Status
 	}
 
-	return &models.ChequeRecord{
+	return &cheque_handler.ChequeRecord{
 		SignedCheque: cheques.SignedCheque{
 			Cheque: cheques.Cheque{
 				FromCMAccount: chequeRecord.FromCMAccount,
@@ -249,14 +271,14 @@ func modelFromChequeRecord(chequeRecord *chequeRecord) (*models.ChequeRecord, er
 	}, nil
 }
 
-func chequeRecordFromModel(model *models.ChequeRecord) *chequeRecord {
+func chequeRecordFromModel(model *cheque_handler.ChequeRecord) *chequeRecord {
 	var txID *common.Hash
 	if model.TxID != zeroHash {
 		txID = &model.TxID
 	}
 
-	var status *models.ChequeTxStatus
-	if model.Status != models.ChequeTxStatusUnknown {
+	var status *cheque_handler.ChequeTxStatus
+	if model.Status != cheque_handler.ChequeTxStatusUnknown {
 		status = &model.Status
 	}
 

@@ -23,7 +23,9 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/stretchr/testify/require"
@@ -72,8 +74,9 @@ func TestProcessInbound(t *testing.T) {
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
 		identificationHandler IdentificationHandler
-		chequeHandler         ChequeHandler
+		chequeHandler         cheque_handler.ChequeHandler
 		compressor            compression.Compressor[*types.Message, [][]byte]
+		cmAccountsCache       cmaccountscache.CMAccountsCache
 	}
 	type args struct {
 		msg *types.Message
@@ -122,9 +125,10 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
-				chequeHandler:         NoopChequeHandler{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			prepare: func(*processor) {
 				mockService.EXPECT().Name().Return("dummy")
@@ -148,9 +152,10 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
-				chequeHandler:         NoopChequeHandler{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			prepare: func(*processor) {
 				mockService.EXPECT().Name().Return("dummy")
@@ -173,8 +178,10 @@ func TestProcessInbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			prepare: func(p *processor) {
 				p.responseChannels[requestID] = make(chan *types.Message, 1)
@@ -203,6 +210,7 @@ func TestProcessInbound(t *testing.T) {
 				tt.fields.identificationHandler,
 				tt.fields.chequeHandler,
 				tt.fields.compressor,
+				tt.fields.cmAccountsCache,
 			)
 			if tt.prepare != nil {
 				tt.prepare(p.(*processor))
@@ -234,8 +242,9 @@ func TestProcessOutbound(t *testing.T) {
 		serviceRegistry       ServiceRegistry
 		responseHandler       ResponseHandler
 		identificationHandler IdentificationHandler
-		chequeHandler         ChequeHandler
+		chequeHandler         cheque_handler.ChequeHandler
 		compressor            compression.Compressor[*types.Message, [][]byte]
+		cmAccountsCache       cmaccountscache.CMAccountsCache
 	}
 	type args struct {
 		msg *types.Message
@@ -253,9 +262,10 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
-				chequeHandler:         NoopChequeHandler{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			args: args{
 				msg: &types.Message{Type: generated.PingServiceV1Response},
@@ -267,9 +277,10 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
-				chequeHandler:         NoopChequeHandler{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			args: args{
 				msg: &types.Message{Type: generated.PingServiceV1Request},
@@ -282,9 +293,10 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
-				chequeHandler:         NoopChequeHandler{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			args: args{
 				msg: &types.Message{
@@ -303,9 +315,10 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
-				chequeHandler:         NoopChequeHandler{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			args: args{
 				msg: &types.Message{
@@ -324,9 +337,10 @@ func TestProcessOutbound(t *testing.T) {
 				serviceRegistry:       mockServiceRegistry,
 				responseHandler:       NoopResponseHandler{},
 				identificationHandler: NoopIdentification{},
-				chequeHandler:         NoopChequeHandler{},
+				chequeHandler:         cheque_handler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
+				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
 			},
 			args: args{
 				msg: &types.Message{
@@ -373,6 +387,7 @@ func TestProcessOutbound(t *testing.T) {
 				tt.fields.identificationHandler,
 				tt.fields.chequeHandler,
 				tt.fields.compressor,
+				tt.fields.cmAccountsCache,
 			)
 			if tt.prepare != nil {
 				tt.prepare()
@@ -444,8 +459,9 @@ func TestStart(t *testing.T) {
 			mockServiceRegistry,
 			NoopResponseHandler{},
 			NoopIdentification{},
-			NoopChequeHandler{},
+			cheque_handler.NoopChequeHandler{},
 			&noopCompressor{},
+			&cmaccountscache.NoopCMAccountsCache{},
 		)
 		go p.Start(ctx)
 

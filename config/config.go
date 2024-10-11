@@ -11,8 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-//
 // ******* Parsed config *******
+//
 //
 
 type Config struct {
@@ -36,7 +36,7 @@ type Config struct {
 	RPCServer     RPCServerConfig
 	PartnerPlugin PartnerPluginConfig
 	Tracing       TracingConfig
-	DB            DBConfig
+	DB            SQLiteDBConfig
 	Matrix        MatrixConfig
 }
 
@@ -60,15 +60,15 @@ type MatrixConfig struct {
 	Store   string
 }
 
-//
+type SQLiteDBConfig struct {
+	Common        UnparsedSQLiteDBConfig
+	Scheduler     UnparsedSQLiteDBConfig
+	ChequeHandler UnparsedSQLiteDBConfig
+}
+
 // ******* Common *******
 //
-
-type DBConfig struct {
-	DBPath         string `mapstructure:"path"`
-	DBName         string `mapstructure:"name"`
-	MigrationsPath string `mapstructure:"migrations_path"`
-}
+//
 
 type RPCServerConfig struct {
 	Enabled        bool   `mapstructure:"enabled"`
@@ -78,8 +78,8 @@ type RPCServerConfig struct {
 	ServerKeyFile  string `mapstructure:"key_file"`
 }
 
-//
 // ******* Unparsed config *******
+//
 //
 
 type UnparsedConfig struct {
@@ -104,8 +104,8 @@ type UnparsedConfig struct {
 	Tracing       UnparsedTracingConfig       `mapstructure:"tracing"`
 	Matrix        UnparsedMatrixConfig        `mapstructure:"matrix"`
 
-	RPCServer RPCServerConfig `mapstructure:"rpc_server"`
-	DB        DBConfig        `mapstructure:"db"`
+	RPCServer RPCServerConfig        `mapstructure:"rpc_server"`
+	DB        UnparsedSQLiteDBConfig `mapstructure:"db"`
 }
 
 type UnparsedTracingConfig struct {
@@ -128,9 +128,14 @@ type UnparsedMatrixConfig struct {
 	Store string `mapstructure:"store"`
 }
 
+type UnparsedSQLiteDBConfig struct {
+	DBPath         string `mapstructure:"path"`
+	MigrationsPath string `mapstructure:"migrations_path"`
+}
+
 func (cfg *Config) unparse() *UnparsedConfig {
 	return &UnparsedConfig{
-		DB:        cfg.DB,
+		DB:        cfg.DB.Common,
 		RPCServer: cfg.RPCServer,
 		Tracing: UnparsedTracingConfig{
 			Enabled:  cfg.Tracing.Enabled,

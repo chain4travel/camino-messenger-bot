@@ -12,7 +12,10 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,8 +25,6 @@ import (
 	grpc_metadata "google.golang.org/grpc/metadata"
 	"maunium.net/go/mautrix/id"
 )
-
-const cashInTxIssueTimeout = 10 * time.Second
 
 var (
 	_ Processor = (*processor)(nil)
@@ -66,8 +67,9 @@ func NewProcessor(
 	registry ServiceRegistry,
 	responseHandler ResponseHandler,
 	identificationHandler IdentificationHandler,
-	chequeHandler ChequeHandler,
+	chequeHandler cheque_handler.ChequeHandler,
 	compressor compression.Compressor[*types.Message, [][]byte],
+	cmAccounts cmaccountscache.CMAccountsCache,
 ) Processor {
 	return &processor{
 		messenger:                           messenger,
@@ -80,6 +82,7 @@ func NewProcessor(
 		identificationHandler:               identificationHandler,
 		chequeHandler:                       chequeHandler,
 		compressor:                          compressor,
+		cmAccounts:                          cmAccounts,
 		myBotAddress:                        addressFromUserID(botUserID),
 		botUserID:                           botUserID,
 		cmAccountAddress:                    cmAccountAddress,
@@ -104,8 +107,9 @@ type processor struct {
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
-	chequeHandler         ChequeHandler
+	chequeHandler         cheque_handler.ChequeHandler
 	compressor            compression.Compressor[*types.Message, [][]byte]
+	cmAccounts            cmaccountscache.CMAccountsCache
 }
 
 func (*processor) Checkpoint() string {
@@ -184,7 +188,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
-	isBotAllowed, err := p.chequeHandler.IsBotAllowed(ctx, p.myBotAddress)
+	isBotAllowed, err := p.chequeHandler.IsAllowedToIssueCheque(ctx, p.myBotAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +196,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		return nil, ErrBotMissingChequeOperatorRole
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type.ToServiceName())
+	serviceFee, err := p.getServiceFee(ctx, recipientCMAccAddr, msg.Type.ToServiceName())
 	if err != nil {
 		// TODO @evlekht explicitly say if service is not supported and its not just some network error
 		return nil, err
@@ -283,7 +287,7 @@ func (p *processor) Respond(msg *types.Message) error {
 		return ErrMissingCheques
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), service.Name())
+	serviceFee, err := p.getServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), service.Name())
 	if err != nil {
 		return err
 	}
@@ -377,4 +381,24 @@ func (p *processor) compress(ctx context.Context, msg *types.Message) (context.C
 		return ctx, [][]byte{{}}, err
 	}
 	return ctx, compressedContent, nil
+}
+
+func (p *processor) getServiceFee(
+	ctx context.Context,
+	supplierCmAccountAddress common.Address,
+	serviceFullName string,
+) (*big.Int, error) {
+	supplierCmAccount, err := p.cmAccounts.Get(supplierCmAccountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
+	}
+
+	serviceFee, err := supplierCmAccount.GetServiceFee(
+		&bind.CallOpts{Context: ctx},
+		serviceFullName,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get service fee: %w", err)
+	}
+	return serviceFee, nil
 }
