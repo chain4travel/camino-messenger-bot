@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO@ there is data-race, check gh ci!
+
 func TestTimer_StartOnce(t *testing.T) {
 	t.Run("function is called after duration", func(t *testing.T) {
 		timer := newTimer()
