@@ -21,7 +21,8 @@ const envPrefix = "CMB"
 var (
 	_ Reader = (*reader)(nil)
 
-	errInvalidConfig = errors.New("invalid config")
+	errInvalidRawConfig = errors.New("invalid raw config")
+	errInvalidConfig    = errors.New("invalid config")
 )
 
 type Reader interface {
@@ -83,6 +84,10 @@ func (cr *reader) ReadConfig(logger *zap.SugaredLogger) (*Config, error) {
 
 	parsedCfg, err := cr.parseConfig(cfg)
 	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errInvalidRawConfig, err)
+	}
+
+	if err := parsedCfg.verify(); err != nil {
 		return nil, fmt.Errorf("%w: %w", errInvalidConfig, err)
 	}
 
@@ -121,7 +126,17 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 	}
 
 	return &Config{
-		DB:        cfg.DB,
+		DB: SQLiteDBConfig{
+			Common: cfg.DB,
+			Scheduler: UnparsedSQLiteDBConfig{
+				DBPath:         cfg.DB.DBPath + "/scheduler",
+				MigrationsPath: cfg.DB.MigrationsPath + "/scheduler",
+			},
+			ChequeHandler: UnparsedSQLiteDBConfig{
+				DBPath:         cfg.DB.DBPath + "/cheque_handler",
+				MigrationsPath: cfg.DB.MigrationsPath + "/cheque_handler",
+			},
+		},
 		RPCServer: cfg.RPCServer,
 		Tracing: TracingConfig{
 			Enabled:  cfg.Tracing.Enabled,

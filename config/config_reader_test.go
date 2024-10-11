@@ -35,7 +35,7 @@ func TestReadConfig(t *testing.T) {
 				cr.viper.Set(flagKeyConfig, nonExistingConfigPath)
 			},
 			flags:       Flags(),
-			expectedErr: errInvalidConfig, // empty bot key
+			expectedErr: errInvalidRawConfig, // empty bot key
 		},
 		"from file": {
 			prepare: func(_ *testing.T, cr *reader) {

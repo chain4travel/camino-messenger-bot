@@ -106,9 +106,9 @@ function generate_register_services_server() {
 	echo "    \"google.golang.org/grpc\"" >> $OUTFILE
 	echo ")" >> $OUTFILE
 	echo >> $OUTFILE
-	echo "func RegisterServerServices(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {" >> $OUTFILE
+	echo "func RegisterServerServices(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {" >> $OUTFILE
 	for service in "${_SERVICES[@]}" ; do
-		echo "    register${service}Server(grpcServer, reqProcessor)" >> $OUTFILE
+		echo "    register${service}Server(grpcServer, reqHandler)" >> $OUTFILE
 	done
 	echo "}" >> $OUTFILE
 }

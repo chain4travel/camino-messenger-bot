@@ -13,9 +13,9 @@ import (
 var _ pingv1grpc.PingServiceServer = (*pingv1PingServiceServer)(nil)
 
 type pingv1PingServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerPingServiceV1Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerPingServiceV1Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	pingv1grpc.RegisterPingServiceServer(grpcServer, &pingv1PingServiceServer{reqProcessor})
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *networkv1GetNetworkFeeServiceServer) GetNetworkFee(ctx context.Context, request *networkv1.GetNetworkFeeRequest) (*networkv1.GetNetworkFeeResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, GetNetworkFeeServiceV1Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, GetNetworkFeeServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", GetNetworkFeeServiceV1Request, err)
 	}

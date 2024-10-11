@@ -7,22 +7,41 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/models"
-	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"go.uber.org/zap"
 )
 
-// TODO @evlekht its duplicate from asb, think of moving to common place
-var _ Scheduler = (*scheduler)(nil)
+var (
+	_           Scheduler = (*scheduler)(nil)
+	ErrNotFound           = errors.New("not found")
+)
+
+type Storage interface {
+	SessionHandler
+
+	GetAllJobs(ctx context.Context, session Session) ([]*Job, error)
+	UpsertJob(ctx context.Context, session Session, job *Job) error
+	GetJobByName(ctx context.Context, session Session, jobName string) (*Job, error)
+}
+
+type SessionHandler interface {
+	NewSession(ctx context.Context) (Session, error)
+	Commit(session Session) error
+	Abort(session Session)
+}
+
+type Session interface {
+	Commit() error
+	Abort() error
+}
 
 type Scheduler interface {
 	Start(ctx context.Context) error
-	Stop(ctx context.Context) error
+	Stop() error
 	Schedule(ctx context.Context, period time.Duration, jobName string) error
 	RegisterJobHandler(jobName string, jobHandler func())
 }
 
-func New(_ context.Context, logger *zap.SugaredLogger, storage storage.Storage) Scheduler {
+func New(logger *zap.SugaredLogger, storage Storage) Scheduler {
 	return &scheduler{
 		storage:  storage,
 		logger:   logger,
@@ -33,7 +52,7 @@ func New(_ context.Context, logger *zap.SugaredLogger, storage storage.Storage) 
 
 type scheduler struct {
 	logger       *zap.SugaredLogger
-	storage      storage.Storage
+	storage      Storage
 	registry     map[string]func()
 	timers       map[string]*timer
 	registryLock sync.RWMutex
@@ -47,9 +66,9 @@ func (s *scheduler) Start(ctx context.Context) error {
 		s.logger.Errorf("failed to create storage session: %v", err)
 		return err
 	}
-	defer session.Abort()
+	defer s.storage.Abort(session)
 
-	jobs, err := session.GetAllJobs(ctx)
+	jobs, err := s.storage.GetAllJobs(ctx, session)
 	if err != nil {
 		s.logger.Errorf("failed to get all jobs: %v", err)
 		return err
@@ -93,7 +112,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *scheduler) Stop(_ context.Context) error {
+func (s *scheduler) Stop() error {
 	s.timersLock.RLock()
 	for _, timer := range s.timers {
 		timer.Stop()
@@ -111,10 +130,10 @@ func (s *scheduler) Schedule(ctx context.Context, period time.Duration, jobName 
 		s.logger.Errorf("failed to create storage session: %v", err)
 		return err
 	}
-	defer session.Abort()
+	defer s.storage.Abort(session)
 
-	job, err := session.GetJobByName(ctx, jobName)
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+	job, err := s.storage.GetJobByName(ctx, session, jobName)
+	if err != nil && !errors.Is(err, ErrNotFound) {
 		s.logger.Errorf("failed to get job: %v", err)
 		return err
 	}
@@ -127,19 +146,19 @@ func (s *scheduler) Schedule(ctx context.Context, period time.Duration, jobName 
 			job.ExecuteAt = executeAt
 		}
 	} else {
-		job = &models.Job{
+		job = &Job{
 			Name:      jobName,
 			ExecuteAt: executeAt,
 			Period:    period,
 		}
 	}
 
-	if err := session.UpsertJob(ctx, job); err != nil {
+	if err := s.storage.UpsertJob(ctx, session, job); err != nil {
 		s.logger.Errorf("failed to store scheduled job: %v", err)
 		return err
 	}
 
-	return session.Commit()
+	return s.storage.Commit(session)
 }
 
 func (s *scheduler) RegisterJobHandler(jobName string, jobHandler func()) {
@@ -154,9 +173,9 @@ func (s *scheduler) updateJobExecutionTime(ctx context.Context, jobName string) 
 		s.logger.Errorf("failed to create storage session: %v", err)
 		return err
 	}
-	defer session.Abort()
+	defer s.storage.Abort(session)
 
-	job, err := session.GetJobByName(ctx, jobName)
+	job, err := s.storage.GetJobByName(ctx, session, jobName)
 	if err != nil {
 		s.logger.Errorf("failed to get job: %v", err)
 		return err
@@ -164,12 +183,12 @@ func (s *scheduler) updateJobExecutionTime(ctx context.Context, jobName string) 
 
 	job.ExecuteAt = time.Now().Add(job.Period)
 
-	if err := session.UpsertJob(ctx, job); err != nil {
+	if err := s.storage.UpsertJob(ctx, session, job); err != nil {
 		s.logger.Errorf("failed to store scheduled job: %v", err)
 		return err
 	}
 
-	if err := session.Commit(); err != nil {
+	if err := s.storage.Commit(session); err != nil {
 		s.logger.Errorf("failed to commit session: %v", err)
 		return err
 	}

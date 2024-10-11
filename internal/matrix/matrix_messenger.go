@@ -77,6 +77,10 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
 
 	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
+		if evt.Sender == m.client.UserID { // ignore own messages
+			return
+		}
+
 		msg := evt.Content.Parsed.(*matrix.CaminoMatrixMessage)
 		traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
 		if err != nil {
@@ -168,7 +172,7 @@ func (m *messenger) StopReceiver() error {
 	return m.client.cryptoHelper.Close()
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg types.Message, content [][]byte, sendTo id.UserID) error {
+func (m *messenger) SendAsync(ctx context.Context, msg *types.Message, sendTo id.UserID) error {
 	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
 	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -180,7 +184,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg types.Message, content []
 	}
 	roomSpan.End()
 
-	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, createMatrixMessages(&msg, content))
+	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, createMatrixMessages(msg))
 }
 
 func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []matrix.CaminoMatrixMessage) error {
@@ -242,24 +246,24 @@ func hexWithChecksum(bytes []byte) (string, error) {
 	return fmt.Sprintf("0x%x", bytes), nil
 }
 
-func createMatrixMessages(msg *types.Message, content [][]byte) []matrix.CaminoMatrixMessage {
-	messages := make([]matrix.CaminoMatrixMessage, 0, len(content))
+func createMatrixMessages(msg *types.Message) []matrix.CaminoMatrixMessage {
+	messages := make([]matrix.CaminoMatrixMessage, 0, len(msg.CompressedContent))
 
 	// add first chunk to messages slice
 	caminoMatrixMsg := matrix.CaminoMatrixMessage{
 		MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
 		Metadata:            msg.Metadata,
 	}
-	caminoMatrixMsg.Metadata.NumberOfChunks = uint64(len(content))
+	caminoMatrixMsg.Metadata.NumberOfChunks = uint64(len(msg.CompressedContent))
 	caminoMatrixMsg.Metadata.ChunkIndex = 0
-	caminoMatrixMsg.CompressedContent = content[0]
+	caminoMatrixMsg.CompressedContent = msg.CompressedContent[0]
 	messages = append(messages, caminoMatrixMsg)
 
 	// if multiple chunks were produced upon compression, add them to messages slice
-	for i, chunk := range content[1:] {
+	for i, chunk := range msg.CompressedContent[1:] {
 		messages = append(messages, matrix.CaminoMatrixMessage{
 			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
-			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint64(len(content)), ChunkIndex: uint64(i + 1)},
+			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint64(len(msg.CompressedContent)), ChunkIndex: uint64(i + 1)},
 			CompressedContent:   chunk,
 		})
 	}

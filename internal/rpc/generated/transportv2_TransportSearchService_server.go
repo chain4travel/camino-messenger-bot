@@ -13,9 +13,9 @@ import (
 var _ transportv2grpc.TransportSearchServiceServer = (*transportv2TransportSearchServiceServer)(nil)
 
 type transportv2TransportSearchServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqProcessor rpc.RequestHandler
 }
 
-func registerTransportSearchServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
+func registerTransportSearchServiceV2Server(grpcServer *grpc.Server, reqProcessor rpc.RequestHandler) {
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &transportv2TransportSearchServiceServer{reqProcessor})
 }

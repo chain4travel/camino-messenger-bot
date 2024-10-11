@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -14,16 +15,22 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
-	"github.com/chain4travel/camino-messenger-bot/internal/scheduler"
-	"github.com/chain4travel/camino-messenger-bot/internal/storage"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
+	cheque_handler_storage "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler/storage/sqlite"
+	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
+	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
+	scheduler_storage "github.com/chain4travel/camino-messenger-bot/pkg/scheduler/storage/sqlite"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
 const (
-	cashInJobName = "cash_in"
-	appName       = "camino-messenger-bot"
+	cashInJobName        = "cash_in"
+	appName              = "camino-messenger-bot"
+	cmaAccountsCacheSize = 100
+	cashInTxIssueTimeout = 10 * time.Second
 )
 
 func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) (*App, error) {
@@ -52,13 +59,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 	if err != nil {
 		logger.Errorf("Failed to initialize tracer: %v", err)
-		return nil, err
-	}
-
-	// database
-	storage, err := storage.New(ctx, logger, cfg.DB)
-	if err != nil {
-		logger.Errorf("Failed to create storage: %v", err)
 		return nil, err
 	}
 
@@ -102,27 +102,33 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	identificationHandler, err := messaging.NewIdentificationHandler(
-		evmClient,
-		logger,
-		cfg.CMAccountAddress,
-		cfg.Matrix.HostURL,
-	)
+	cmAccounts, err := cmaccountscache.NewCMAccountsCache(cmaAccountsCacheSize, evmClient)
 	if err != nil {
-		logger.Errorf("Failed to create identification handler: %v", err)
+		logger.Errorf("Failed to create cm accounts cache: %v", err)
 		return nil, err
 	}
 
-	chequeHandler, err := messaging.NewChequeHandler(
+	chequeHandlerStorage, err := cheque_handler_storage.New(
+		ctx,
+		logger,
+		sqlite.DBConfig(cfg.DB.ChequeHandler),
+	)
+	if err != nil {
+		logger.Errorf("Failed to create cheque handler storage: %v", err)
+		return nil, err
+	}
+
+	chequeHandler, err := cheque_handler.NewChequeHandler(
 		logger,
 		evmClient,
 		cfg.BotKey,
 		cfg.CMAccountAddress,
 		chainID,
-		storage,
-		serviceRegistry,
+		chequeHandlerStorage,
+		cmAccounts,
 		cfg.MinChequeDurationUntilExpiration,
 		cfg.ChequeExpirationTime,
+		cashInTxIssueTimeout,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create cheque handler: %v", err)
@@ -134,7 +140,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
 	botUserID := messaging.UserIDFromAddress(botAddress, cfg.Matrix.HostURL.String())
 
-	messageProcessor := messaging.NewProcessor(
+	messageProcessor := messaging.NewMessageProcessor(
 		matrixMessenger,
 		logger,
 		cfg.ResponseTimeout,
@@ -144,13 +150,13 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.NetworkFeeRecipientCMAccountAddress,
 		serviceRegistry,
 		responseHandler,
-		identificationHandler,
 		chequeHandler,
 		messaging.NewCompressor(compression.MaxChunkSize),
+		cmAccounts,
+		cfg.Matrix.HostURL.String(),
 	)
 
 	// rpc server for incoming requests
-	// TODO@ disable if we don't have port provided, e.g. its supplier bot?
 	rpcServer, err := server.NewServer(
 		cfg.RPCServer,
 		logger,
@@ -164,7 +170,14 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// scheduler for periodic tasks (e.g. cheques cash-in)
-	scheduler := scheduler.New(ctx, logger, storage)
+
+	storage, err := scheduler_storage.New(ctx, logger, sqlite.DBConfig(cfg.DB.Scheduler))
+	if err != nil {
+		logger.Errorf("Failed to create storage: %v", err)
+		return nil, err
+	}
+
+	scheduler := scheduler.New(logger, storage)
 	scheduler.RegisterJobHandler(cashInJobName, func() {
 		_ = chequeHandler.CashIn(context.Background())
 	})
@@ -188,10 +201,10 @@ type App struct {
 	logger           *zap.SugaredLogger
 	tracer           tracing.Tracer
 	scheduler        scheduler.Scheduler
-	chequeHandler    messaging.ChequeHandler
+	chequeHandler    cheque_handler.ChequeHandler
 	rpcClient        *client.RPCClient
 	rpcServer        server.Server
-	messageProcessor messaging.Processor
+	messageProcessor messaging.MessageProcessor
 	messenger        messaging.Messenger
 	botUserID        id.UserID
 }

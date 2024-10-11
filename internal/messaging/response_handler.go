@@ -42,9 +42,21 @@ var (
 	zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
 )
 
+// TODO@ move this to processor?
+// TODO@ two reason its there:
+// TODO@ 1) to make processor not depend on protobuf types (but package depends regardless)
+// TODO@ 2) to abstract all message-specific logic into response handler. But I'm not sure if it worth it.
 type ResponseHandler interface {
-	HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage)
-	HandleRequest(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error
+	// Processes incoming response
+	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
+
+	// Prepares response by performing any necessary modifications to it
+	PrepareResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
+
+	// Prepares request by performing any necessary modifications to it
+	PrepareRequest(msgType types.MessageType, request protoreflect.ProtoMessage) error
+
+	// Adds an error message to the response header
 	AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string)
 }
 
@@ -90,28 +102,33 @@ type evmResponseHandler struct {
 	evmEventListener    *events.EventListener
 }
 
-func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
-	switch msgType {
+func (h *evmResponseHandler) ProcessResponseMessage(
+	ctx context.Context,
+	requestMsg *types.Message,
+	responseMsg *types.Message,
+) {
+	switch requestMsg.Type {
 	case generated.MintServiceV1Request: // distributor will post-process a mint request to buy the returned NFT
-		if h.handleMintRequestV1(ctx, response) {
-			return // TODO @evlekht we don't need this if true/false then do nothing
-		}
-	case generated.MintServiceV1Response: // supplier will act upon receiving a mint response by minting an NFT
-		if h.handleMintResponseV1(ctx, response, request) {
-			return // TODO @evlekht we don't need this if true/false then do nothing
-		}
+		h.processMintResponseV1(ctx, responseMsg.Content)
 	case generated.MintServiceV2Request: // distributor will post-process a mint request to buy the returned NFT
-		if h.handleMintRequestV2(ctx, response) {
-			return // TODO @evlekht we don't need this if true/false then do nothing
-		}
-	case generated.MintServiceV2Response: // supplier will act upon receiving a mint response by minting an NFT
-		if h.handleMintResponseV2(ctx, response, request) {
-			return // TODO @evlekht we don't need this if true/false then do nothing
-		}
+		h.processMintResponseV2(ctx, responseMsg.Content)
 	}
 }
 
-func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error {
+func (h *evmResponseHandler) PrepareResponseMessage(
+	ctx context.Context,
+	requestMsg *types.Message,
+	responseMsg *types.Message,
+) {
+	switch response := responseMsg.Content.(type) {
+	case *bookv1.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
+		h.prepareMintResponseV1(ctx, response, requestMsg.Content)
+	case *bookv2.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
+		h.prepareMintResponseV2(ctx, response, requestMsg.Content)
+	}
+}
+
+func (h *evmResponseHandler) PrepareRequest(msgType types.MessageType, request protoreflect.ProtoMessage) error {
 	switch msgType {
 	case generated.MintServiceV2Request:
 		mintReq, ok := request.(*bookv2.MintRequest)

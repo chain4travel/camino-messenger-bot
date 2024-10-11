@@ -13,64 +13,66 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response protoreflect.ProtoMessage, request protoreflect.ProtoMessage) bool {
-	mintResp, ok := response.(*bookv2.MintResponse)
+func (h *evmResponseHandler) prepareMintResponseV2(
+	ctx context.Context,
+	response *bookv2.MintResponse,
+	requestIntf protoreflect.ProtoMessage,
+) {
+	request, ok := requestIntf.(*bookv2.MintRequest)
 	if !ok {
-		return false
+		err := fmt.Errorf("%w: expected *bookv2.MintRequest, got %T", errUnexpectedRequestType, requestIntf)
+		h.logger.Error(err)
+		h.AddErrorToResponseHeader(response, err.Error())
+		return
 	}
-	mintReq, ok := request.(*bookv2.MintRequest)
-	if !ok {
-		return false
-	}
-	if mintResp.Header == nil {
-		mintResp.Header = &typesv1.ResponseHeader{}
-	}
+
+	ensureHeaderV1(&response.Header)
 
 	// TODO: @VjeraTurk check if CMAccount exists
 
 	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format,
 	// TODO not x/p/t chain or anything else. Currently it will not error
 	// TODO if address is invalid and will just get zero addr
-	buyerAddress := common.HexToAddress(mintReq.BuyerAddress)
+	buyerAddress := common.HexToAddress(request.BuyerAddress)
 
-	if mintResp.BookingTokenUri == "" {
+	if response.BookingTokenUri == "" {
 		jsonPlain, tokenURI, err := createTokenURIforMintResponse(
-			mintResp.MintId.Value,
-			mintReq.BookingReference,
+			response.MintId.Value,
+			request.BookingReference,
 		)
 		if err != nil {
 			errMsg := fmt.Sprintf("Failed to mint token: failed to generate tokenURI:  %s", err)
 			h.logger.Error(errMsg)
 			h.AddErrorToResponseHeader(response, errMsg)
-			return true
+			return
 		}
 		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
-		mintResp.BookingTokenUri = tokenURI
+		response.BookingTokenUri = tokenURI
 	}
-	h.logger.Debugf("Token URI: %s\n", mintResp.BookingTokenUri)
+	h.logger.Debugf("Token URI: %s\n", response.BookingTokenUri)
 
-	buyableUntil, err := verifyAndFixBuyableUntil(mintResp.BuyableUntil, time.Now())
+	buyableUntil, err := verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
 		h.AddErrorToResponseHeader(response, err.Error())
-		return true
+		return
 	}
-	mintResp.BuyableUntil = buyableUntil
+	response.BuyableUntil = buyableUntil
 
-	price, paymentToken, err := h.getPriceAndTokenV2(ctx, mintResp.Price)
+	price, paymentToken, err := h.getPriceAndTokenV2(response.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
 		h.AddErrorToResponseHeader(response, errMessage)
-		return true
+		return
 	}
 
 	// MINT TOKEN
 	txID, tokenID, err := h.mint(
 		ctx,
 		buyerAddress,
-		mintResp.BookingTokenUri,
-		big.NewInt(mintResp.BuyableUntil.Seconds),
+		response.BookingTokenUri,
+		big.NewInt(response.BuyableUntil.Seconds),
 		price,
 		paymentToken,
 	)
@@ -78,48 +80,50 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
 		h.AddErrorToResponseHeader(response, errMessage)
-		return true
+		return
 	}
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 
-	h.onBookingTokenMint(tokenID, mintResp.MintId, mintResp.BuyableUntil.AsTime())
+	h.onBookingTokenMint(tokenID, response.MintId, response.BuyableUntil.AsTime())
 
-	mintResp.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
-	mintResp.BookingTokenId = tokenID.Uint64()
-	mintResp.MintTransactionId = txID
-	return false
+	response.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
+	response.BookingTokenId = tokenID.Uint64()
+	response.MintTransactionId = txID
 }
 
-func (h *evmResponseHandler) handleMintRequestV2(ctx context.Context, response protoreflect.ProtoMessage) bool {
-	mintResp, ok := response.(*bookv2.MintResponse)
+func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, responseIntf protoreflect.ProtoMessage) {
+	response, ok := responseIntf.(*bookv2.MintResponse)
 	if !ok {
-		return false
-	}
-	if mintResp.Header == nil {
-		mintResp.Header = &typesv1.ResponseHeader{}
-	}
-	if mintResp.MintTransactionId == "" {
-		h.AddErrorToResponseHeader(response, "missing mint transaction id")
-		return true
+		err := fmt.Errorf("%w: expected *bookv2.MintResponse, got %T", errUnexpectedResponseType, responseIntf)
+		h.logger.Error(err)
+		h.AddErrorToResponseHeader(response, err.Error())
+		return
 	}
 
-	tokenID := new(big.Int).SetUint64(mintResp.BookingTokenId)
+	ensureHeaderV1(&response.Header)
+
+	if response.MintTransactionId == "" {
+		h.logger.Error(errMissingMintTxID)
+		h.AddErrorToResponseHeader(response, errMissingMintTxID.Error())
+		return
+	}
+
+	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
 
 	txID, err := h.buy(ctx, tokenID)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
 		h.AddErrorToResponseHeader(response, errMessage)
-		return true
+		return
 	}
 
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintResp.MintTransactionId)
-	mintResp.BuyTransactionId = txID
-	return false
+	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, response.MintTransactionId)
+	response.BuyTransactionId = txID
 }
 
-func (h *evmResponseHandler) getPriceAndTokenV2(_ context.Context, price *typesv2.Price) (*big.Int, common.Address, error) {
+func (h *evmResponseHandler) getPriceAndTokenV2(price *typesv2.Price) (*big.Int, common.Address, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
 	switch price.Currency.Currency.(type) {

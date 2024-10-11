@@ -17,10 +17,3 @@ CREATE TABLE issued_cheque_records (
     counter            VARBINARY(16)  NOT NULL,
     amount             VARBINARY(16)  NOT NULL
 );
-
-CREATE TABLE jobs (
-    name        VARCHAR(100)  NOT NULL PRIMARY KEY,
-    execute_at  BIGINT        NOT NULL,
-    period      BIGINT        NOT NULL
-);
-

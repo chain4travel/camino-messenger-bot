@@ -11,7 +11,7 @@ import (
 )
 
 func (s *bookv2MintServiceServer) Mint(ctx context.Context, request *bookv2.MintRequest) (*bookv2.MintResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, MintServiceV2Request, request)
+	response, err := s.reqProcessor.HandleRequest(ctx, MintServiceV2Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", MintServiceV2Request, err)
 	}
