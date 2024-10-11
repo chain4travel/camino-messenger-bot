@@ -1,122 +1,160 @@
 package config
 
 import (
-	"flag"
+	"crypto/ecdsa"
+	"encoding/hex"
+	"math/big"
+	"net/url"
+	"time"
 
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
-const (
-	envVarPrefix  = "CMB" // CMB=camino-messenger-bot
-	configFlagKey = "config"
-)
+//
+// ******* Parsed config *******
+//
 
-type AppConfig struct {
-	DeveloperMode bool `mapstructure:"developer_mode"`
-}
-type MatrixConfig struct {
-	Key   string `mapstructure:"matrix_key"` // TODO @evlekht I'd suggest to add some parsed config, so we'll see on config read if some fields are invalid
-	Host  string `mapstructure:"matrix_host"`
-	Store string `mapstructure:"matrix_store"`
-}
-type RPCServerConfig struct {
-	Port           int    `mapstructure:"rpc_server_port"`
-	Unencrypted    bool   `mapstructure:"rpc_unencrypted"`
-	ServerCertFile string `mapstructure:"rpc_server_cert_file"`
-	ServerKeyFile  string `mapstructure:"rpc_server_key_file"`
-}
-type PartnerPluginConfig struct {
-	Host        string `mapstructure:"partner_plugin_host"`
-	Port        int    `mapstructure:"partner_plugin_port"`
-	Unencrypted bool   `mapstructure:"partner_plugin_unencrypted"`
-	CACertFile  string `mapstructure:"partner_plugin_ca_file"`
-}
-type ProcessorConfig struct {
-	Timeout int `mapstructure:"response_timeout"` // in milliseconds
-}
+type Config struct {
+	DeveloperMode bool
 
-// should MessengerCashier related config be here?
-type EvmConfig struct {
-	PrivateKey                          string `mapstructure:"evm_private_key"`
-	RPCURL                              string `mapstructure:"rpc_url"`
-	SupplierName                        string `mapstructure:"supplier_name"`
-	BookingTokenAddress                 string `mapstructure:"booking_token_address"`
-	CMAccountAddress                    string `mapstructure:"cm_account_address"`
-	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
-	NetworkFeeRecipientCMAccountAddress string `mapstructure:"network_fee_recipient_cm_account"`
-	ChequeExpirationTime                uint64 `mapstructure:"cheque_expiration_time"`
-	MinChequeDurationUntilExpiration    uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
-	CashInPeriod                        uint64 `mapstructure:"cash_in_period"`                       // seconds
-}
+	BotKey           *ecdsa.PrivateKey
+	CMAccountAddress common.Address
 
-type DBConfig struct {
-	DBPath         string `mapstructure:"db_path"`
-	DBName         string `mapstructure:"db_name"`
-	MigrationsPath string `mapstructure:"migrations_path"`
+	ChainRPCURL         url.URL
+	BookingTokenAddress common.Address
+
+	NetworkFeeRecipientBotAddress       common.Address
+	NetworkFeeRecipientCMAccountAddress common.Address
+
+	ChequeExpirationTime             *big.Int // seconds
+	MinChequeDurationUntilExpiration *big.Int // seconds
+	CashInPeriod                     time.Duration
+
+	ResponseTimeout time.Duration
+
+	RPCServer     RPCServerConfig
+	PartnerPlugin PartnerPluginConfig
+	Tracing       TracingConfig
+	DB            DBConfig
+	Matrix        MatrixConfig
 }
 
 type TracingConfig struct {
-	Enabled  bool   `mapstructure:"tracing_enabled"`
-	Host     string `mapstructure:"tracing_host"`
-	Port     int    `mapstructure:"tracing_port"`
-	Insecure bool   `mapstructure:"tracing_insecure"`
-	CertFile string `mapstructure:"tracing_cert_file"`
-	KeyFile  string `mapstructure:"tracing_key_file"`
-}
-type Config struct {
-	AppConfig           `mapstructure:",squash"` // TODO use nested yaml structure
-	EvmConfig           `mapstructure:",squash"`
-	MatrixConfig        `mapstructure:",squash"`
-	RPCServerConfig     `mapstructure:",squash"`
-	PartnerPluginConfig `mapstructure:",squash"`
-	ProcessorConfig     `mapstructure:",squash"`
-	TracingConfig       `mapstructure:",squash"`
-	DBConfig            `mapstructure:",squash"`
+	Enabled  bool
+	HostURL  url.URL
+	Insecure bool
+	CertFile string
+	KeyFile  string
 }
 
-func ReadConfig() (*Config, error) {
-	var configFile string
+type PartnerPluginConfig struct {
+	HostURL     url.URL
+	Unencrypted bool
+	CACertFile  string
+}
 
-	// Define command-line flags
-	flag.StringVar(&configFile, configFlagKey, "", "Path to configuration file")
-	flag.Parse()
+type MatrixConfig struct {
+	HostURL url.URL
+	Store   string
+}
 
-	viper.New()
-	viper.SetConfigFile(configFile)
+//
+// ******* Common *******
+//
 
-	// Enable reading from environment variables
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix(envVarPrefix)
+type DBConfig struct {
+	DBPath         string `mapstructure:"path"`
+	DBName         string `mapstructure:"name"`
+	MigrationsPath string `mapstructure:"migrations_path"`
+}
 
-	cfg := &Config{}
-	fs := flag.NewFlagSet("tcm", flag.ExitOnError)
-	readAppConfig(cfg.AppConfig, fs)
-	readMatrixConfig(cfg.MatrixConfig, fs)
-	readRPCServerConfig(cfg.RPCServerConfig, fs)
-	readPartnerRPCServerConfig(cfg.PartnerPluginConfig, fs)
-	readMessengerConfig(cfg.ProcessorConfig, fs)
-	readEvmConfig(cfg.EvmConfig, fs)
-	readTracingConfig(cfg.TracingConfig, fs)
-	readDBConfig(cfg.DBConfig, fs)
+type RPCServerConfig struct {
+	Port           uint64 `mapstructure:"port"`
+	Unencrypted    bool   `mapstructure:"unencrypted"`
+	ServerCertFile string `mapstructure:"cert_file"`
+	ServerKeyFile  string `mapstructure:"key_file"`
+}
 
-	// Parse command-line flags
-	pfs := pflag.NewFlagSet(fs.Name(), pflag.ContinueOnError)
-	pfs.AddGoFlagSet(fs)
-	err := viper.BindPFlags(pfs)
-	if err != nil {
-		return nil, err
+//
+// ******* Unparsed config *******
+//
+
+type UnparsedConfig struct {
+	DeveloperMode bool `mapstructure:"developer_mode"`
+
+	BotKey           string `mapstructure:"bot_key"`
+	CMAccountAddress string `mapstructure:"cm_account_address"`
+
+	ChainRPCURL         string `mapstructure:"chain_rpc_url"`
+	BookingTokenAddress string `mapstructure:"booking_token_address"`
+
+	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
+	NetworkFeeRecipientCMAccountAddress string `mapstructure:"network_fee_recipient_cm_account"`
+
+	ChequeExpirationTime             uint64 `mapstructure:"cheque_expiration_time"`               // seconds
+	MinChequeDurationUntilExpiration uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
+	CashInPeriod                     int64  `mapstructure:"cash_in_period"`                       // seconds
+
+	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
+
+	PartnerPlugin UnparsedPartnerPluginConfig `mapstructure:"partner_plugin"`
+	Tracing       UnparsedTracingConfig       `mapstructure:"tracing"`
+	Matrix        UnparsedMatrixConfig        `mapstructure:"matrix"`
+
+	RPCServer RPCServerConfig `mapstructure:"rpc_server"`
+	DB        DBConfig        `mapstructure:"db"`
+}
+
+type UnparsedTracingConfig struct {
+	Enabled  bool   `mapstructure:"enabled"`
+	Host     string `mapstructure:"host"`
+	Insecure bool   `mapstructure:"insecure"`
+	CertFile string `mapstructure:"cert_file"`
+	KeyFile  string `mapstructure:"key_file"`
+}
+
+type UnparsedPartnerPluginConfig struct {
+	Host        string `mapstructure:"host"`
+	Unencrypted bool   `mapstructure:"unencrypted"`
+	CACertFile  string `mapstructure:"ca_file"`
+}
+
+type UnparsedMatrixConfig struct {
+	Host  string `mapstructure:"host"`
+	Store string `mapstructure:"store"`
+}
+
+func (cfg *Config) unparse() *UnparsedConfig {
+	return &UnparsedConfig{
+		DB:        cfg.DB,
+		RPCServer: cfg.RPCServer,
+		Tracing: UnparsedTracingConfig{
+			Enabled:  cfg.Tracing.Enabled,
+			Host:     cfg.Tracing.HostURL.String(),
+			Insecure: cfg.Tracing.Insecure,
+			CertFile: cfg.Tracing.CertFile,
+			KeyFile:  cfg.Tracing.KeyFile,
+		},
+		PartnerPlugin: UnparsedPartnerPluginConfig{
+			Host:        cfg.PartnerPlugin.HostURL.String(),
+			Unencrypted: cfg.PartnerPlugin.Unencrypted,
+			CACertFile:  cfg.PartnerPlugin.CACertFile,
+		},
+		Matrix: UnparsedMatrixConfig{
+			Host:  cfg.Matrix.HostURL.String(),
+			Store: cfg.Matrix.Store,
+		},
+		DeveloperMode:                       cfg.DeveloperMode,
+		BotKey:                              hex.EncodeToString(crypto.FromECDSA(cfg.BotKey)),
+		CMAccountAddress:                    cfg.CMAccountAddress.Hex(),
+		ChainRPCURL:                         cfg.ChainRPCURL.String(),
+		BookingTokenAddress:                 cfg.BookingTokenAddress.Hex(),
+		NetworkFeeRecipientBotAddress:       cfg.NetworkFeeRecipientBotAddress.Hex(),
+		NetworkFeeRecipientCMAccountAddress: cfg.NetworkFeeRecipientCMAccountAddress.Hex(),
+		ChequeExpirationTime:                cfg.ChequeExpirationTime.Uint64(),
+		MinChequeDurationUntilExpiration:    cfg.MinChequeDurationUntilExpiration.Uint64(),
+		CashInPeriod:                        int64(cfg.CashInPeriod / time.Second),
+		ResponseTimeout:                     int64(cfg.ResponseTimeout / time.Millisecond),
 	}
-
-	// read configuration file if provided, otherwise rely on env vars
-	if configFile != "" {
-		if err := viper.ReadInConfig(); err != nil {
-			return cfg, err
-		}
-	}
-
-	if err := viper.Unmarshal(cfg); err != nil {
-		return nil, err
-	}
-	return cfg, nil
 }
