@@ -25,14 +25,14 @@ type issuedChequeRecord struct {
 func (s *storage) GetIssuedChequeRecord(ctx context.Context, session cheque_handler.Session, chequeRecordID common.Hash) (*cheque_handler.IssuedChequeRecord, error) {
 	tx, err := getSQLXTx(session)
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return nil, err
 	}
 
 	chequeRecord := &issuedChequeRecord{}
 	if err := tx.StmtxContext(ctx, s.getIssuedChequeRecord).GetContext(ctx, chequeRecord, chequeRecordID); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			s.baseDB.Logger.Error(err)
+			s.base.Logger.Error(err)
 		}
 		return nil, upgradeError(err)
 	}
@@ -42,18 +42,18 @@ func (s *storage) GetIssuedChequeRecord(ctx context.Context, session cheque_hand
 func (s *storage) UpsertIssuedChequeRecord(ctx context.Context, session cheque_handler.Session, chequeRecord *cheque_handler.IssuedChequeRecord) error {
 	tx, err := getSQLXTx(session)
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return err
 	}
 
 	result, err := tx.NamedStmtContext(ctx, s.upsertIssuedChequeRecord).
 		ExecContext(ctx, issuedChequeRecordFromModel(chequeRecord))
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return upgradeError(err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return upgradeError(err)
 	} else if rowsAffected != 1 {
 		return fmt.Errorf("failed to add chequeRecord: expected to affect 1 row, but affected %d", rowsAffected)
@@ -67,17 +67,17 @@ type issuedChequeRecordsStatements struct {
 }
 
 func (s *storage) prepareIssuedChequeRecordsStmts(ctx context.Context) error {
-	getIssuedChequeRecord, err := s.baseDB.DB.PreparexContext(ctx, fmt.Sprintf(`
+	getIssuedChequeRecord, err := s.base.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE cheque_record_id = ?
 	`, issuedChequeRecordsTableName))
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return err
 	}
 	s.getIssuedChequeRecord = getIssuedChequeRecord
 
-	upsertIssuedChequeRecord, err := s.baseDB.DB.PrepareNamedContext(ctx, fmt.Sprintf(`
+	upsertIssuedChequeRecord, err := s.base.DB.PrepareNamedContext(ctx, fmt.Sprintf(`
 		INSERT INTO %s (
 			cheque_record_id,
 			counter,
@@ -93,7 +93,7 @@ func (s *storage) prepareIssuedChequeRecordsStmts(ctx context.Context) error {
 			amount  = excluded.amount
 	`, issuedChequeRecordsTableName))
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return err
 	}
 	s.upsertIssuedChequeRecord = upsertIssuedChequeRecord

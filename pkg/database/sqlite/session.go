@@ -12,7 +12,8 @@ var (
 	_ Session  = (*SQLxTxSession)(nil)
 	_ SQLxTxer = (*SQLxTxSession)(nil)
 
-	ErrAlreadyCommitted = errors.New("already committed")
+	ErrAlreadyCommitted      = errors.New("already committed")
+	ErrUnexpectedSessionType = errors.New("unexpected session type")
 )
 
 type Session interface {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/chain4travel/camino-messenger-bot/pkg/database"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
@@ -19,10 +20,6 @@ var (
 	_ Storage                  = (*storage)(nil)
 	_ scheduler.Session        = (*sqlite.SQLxTxSession)(nil)
 	_ scheduler.SessionHandler = (*storage)(nil)
-
-	ErrNotFound              = errors.New("not found")
-	ErrAlreadyCommitted      = errors.New("already committed")
-	ErrUnexpectedSessionType = errors.New("unexpected session type")
 )
 
 type Storage interface {
@@ -32,12 +29,12 @@ type Storage interface {
 }
 
 func New(ctx context.Context, logger *zap.SugaredLogger, cfg sqlite.DBConfig) (Storage, error) {
-	baseDB, err := sqlite.New(ctx, logger, cfg, dbName)
+	baseDB, err := sqlite.New(logger, cfg, dbName)
 	if err != nil {
 		return nil, err
 	}
 
-	s := &storage{baseDB: baseDB}
+	s := &storage{base: baseDB}
 
 	if err := s.prepare(ctx); err != nil {
 		return nil, err
@@ -47,42 +44,42 @@ func New(ctx context.Context, logger *zap.SugaredLogger, cfg sqlite.DBConfig) (S
 }
 
 type storage struct {
-	baseDB *sqlite.SQLiteXDB
+	base *sqlite.SQLiteXDB
 
 	jobsStatements
 }
 
 func (s *storage) Close() error {
-	return s.baseDB.Close()
+	return s.base.Close()
 }
 
 func (s *storage) prepare(ctx context.Context) error {
 	return s.prepareJobsStmts(ctx)
 }
 
-func upgradeError(err error) error {
-	if errors.Is(err, sql.ErrNoRows) {
-		return ErrNotFound
-	}
-	return err
-}
-
 func (s *storage) NewSession(ctx context.Context) (scheduler.Session, error) {
-	return s.baseDB.NewSession(ctx)
+	return s.base.NewSession(ctx)
 }
 
 func (s *storage) Commit(session scheduler.Session) error {
-	return s.baseDB.Commit(session)
+	return s.base.Commit(session)
 }
 
 func (s *storage) Abort(session scheduler.Session) {
-	s.baseDB.Abort(session)
+	s.base.Abort(session)
 }
 
 func getSQLXTx(session scheduler.Session) (*sqlx.Tx, error) {
 	s, ok := session.(sqlite.SQLxTxer)
 	if !ok {
-		return nil, ErrUnexpectedSessionType
+		return nil, sqlite.ErrUnexpectedSessionType
 	}
 	return s.SQLxTx(), nil
+}
+
+func upgradeError(err error) error {
+	if errors.Is(err, sql.ErrNoRows) {
+		return database.ErrNotFound
+	}
+	return err
 }

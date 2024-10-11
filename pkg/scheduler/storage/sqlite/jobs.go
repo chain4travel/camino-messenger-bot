@@ -24,14 +24,14 @@ type job struct {
 func (s *storage) GetJobByName(ctx context.Context, session scheduler.Session, jobName string) (*scheduler.Job, error) {
 	tx, err := getSQLXTx(session)
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return nil, err
 	}
 
 	job := &job{}
 	if err := tx.StmtxContext(ctx, s.getJobByName).GetContext(ctx, job, jobName); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			s.baseDB.Logger.Error(err)
+			s.base.Logger.Error(err)
 		}
 		return nil, upgradeError(err)
 	}
@@ -41,18 +41,18 @@ func (s *storage) GetJobByName(ctx context.Context, session scheduler.Session, j
 func (s *storage) UpsertJob(ctx context.Context, session scheduler.Session, job *scheduler.Job) error {
 	tx, err := getSQLXTx(session)
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return err
 	}
 
 	result, err := tx.NamedStmtContext(ctx, s.upsertJob).
 		ExecContext(ctx, jobFromModel(job))
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return upgradeError(err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return upgradeError(err)
 	} else if rowsAffected != 1 {
 		return fmt.Errorf("failed to add cheque: expected to affect 1 row, but affected %d", rowsAffected)
@@ -63,20 +63,20 @@ func (s *storage) UpsertJob(ctx context.Context, session scheduler.Session, job 
 func (s *storage) GetAllJobs(ctx context.Context, session scheduler.Session) ([]*scheduler.Job, error) {
 	tx, err := getSQLXTx(session)
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return nil, err
 	}
 
 	jobs := []*scheduler.Job{}
 	rows, err := tx.StmtxContext(ctx, s.getAllJobs).QueryxContext(ctx)
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return nil, upgradeError(err)
 	}
 	for rows.Next() {
 		job := &job{}
 		if err := rows.StructScan(job); err != nil {
-			s.baseDB.Logger.Errorf("failed to get not cashed cheque from db: %v", err)
+			s.base.Logger.Errorf("failed to get not cashed cheque from db: %v", err)
 			continue
 		}
 		jobs = append(jobs, modelFromJob(job))
@@ -90,17 +90,17 @@ type jobsStatements struct {
 }
 
 func (s *storage) prepareJobsStmts(ctx context.Context) error {
-	getJobByName, err := s.baseDB.DB.PreparexContext(ctx, fmt.Sprintf(`
+	getJobByName, err := s.base.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE name = ?
 	`, jobsTableName))
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return err
 	}
 	s.getJobByName = getJobByName
 
-	upsertJob, err := s.baseDB.DB.PrepareNamedContext(ctx, fmt.Sprintf(`
+	upsertJob, err := s.base.DB.PrepareNamedContext(ctx, fmt.Sprintf(`
 		INSERT INTO %s (
 			name,
 			execute_at,
@@ -114,16 +114,16 @@ func (s *storage) prepareJobsStmts(ctx context.Context) error {
 		DO UPDATE SET period = excluded.period
 	`, jobsTableName))
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return err
 	}
 	s.upsertJob = upsertJob
 
-	getAllJobs, err := s.baseDB.DB.PreparexContext(ctx, fmt.Sprintf(`
+	getAllJobs, err := s.base.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 	`, jobsTableName))
 	if err != nil {
-		s.baseDB.Logger.Error(err)
+		s.base.Logger.Error(err)
 		return err
 	}
 	s.getAllJobs = getAllJobs

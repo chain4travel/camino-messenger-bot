@@ -1,7 +1,6 @@
 package sqlite
 
 import (
-	"context"
 	"errors"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -17,7 +16,7 @@ type DBConfig struct {
 	MigrationsPath string
 }
 
-func New(ctx context.Context, logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*SQLiteXDB, error) {
+func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*SQLiteXDB, error) {
 	db, err := sqlx.Open("sqlite3", cfg.DBPath)
 	if err != nil {
 		logger.Error(err)

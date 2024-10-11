@@ -21,16 +21,8 @@ func (NoopChequeHandler) IssueCheque(context.Context, common.Address, common.Add
 	return &cheques.SignedCheque{}, nil
 }
 
-func (NoopChequeHandler) GetServiceFee(context.Context, common.Address, string) (*big.Int, error) {
-	return nil, nil
-}
-
 func (NoopChequeHandler) IsAllowedToIssueCheque(context.Context, common.Address) (bool, error) {
 	return true, nil
-}
-
-func (NoopChequeHandler) IsEmptyCheque(*cheques.SignedCheque) bool {
-	return false
 }
 
 func (NoopChequeHandler) CashIn(context.Context) error {
