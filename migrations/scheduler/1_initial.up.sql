@@ -3,4 +3,3 @@ CREATE TABLE jobs (
     execute_at  BIGINT        NOT NULL,
     period      BIGINT        NOT NULL
 );
-
