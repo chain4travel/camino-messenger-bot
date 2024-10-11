@@ -23,7 +23,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
+	chequehandler "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
 	"github.com/ethereum/go-ethereum/common"

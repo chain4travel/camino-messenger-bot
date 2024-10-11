@@ -16,8 +16,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
-	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
-	cheque_handler_storage "github.com/chain4travel/camino-messenger-bot/pkg/chequehandler/storage/sqlite"
+	chequeHandler "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
+	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler/storage/sqlite"
 	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
@@ -29,7 +29,7 @@ import (
 const (
 	cashInJobName        = "cash_in"
 	appName              = "camino-messenger-bot"
-	cmaAccountsCacheSize = 100
+	cmAccountsCacheSize  = 100
 	cashInTxIssueTimeout = 10 * time.Second
 )
 
@@ -95,7 +95,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	cmAccounts, err := cmaccountscache.NewCMAccountsCache(cmaAccountsCacheSize, evmClient)
+	cmAccounts, err := cmaccountscache.NewCMAccountsCache(cmAccountsCacheSize, evmClient)
 	if err != nil {
 		logger.Errorf("Failed to create cm accounts cache: %v", err)
 		return nil, err
@@ -113,7 +113,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	chequeHandlerStorage, err := cheque_handler_storage.New(
+	chequeHandlerStorage, err := chequeHandlerStorage.New(
 		ctx,
 		logger,
 		sqlite.DBConfig(cfg.DB.ChequeHandler),
@@ -123,7 +123,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	chequeHandler, err := chequehandler.NewChequeHandler(
+	chequeHandler, err := chequeHandler.NewChequeHandler(
 		logger,
 		evmClient,
 		cfg.BotKey,
@@ -206,7 +206,7 @@ type App struct {
 	logger           *zap.SugaredLogger
 	tracer           tracing.Tracer
 	scheduler        scheduler.Scheduler
-	chequeHandler    chequehandler.ChequeHandler
+	chequeHandler    chequeHandler.ChequeHandler
 	rpcClient        *client.RPCClient
 	rpcServer        server.Server
 	messageProcessor messaging.Processor

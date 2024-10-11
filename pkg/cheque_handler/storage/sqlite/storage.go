@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
+	chequeHandler "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
@@ -18,14 +18,14 @@ const dbName = "cheque_handler"
 
 var (
 	_ Storage                      = (*storage)(nil)
-	_ chequehandler.Session        = (*sqlite.SQLxTxSession)(nil)
-	_ chequehandler.SessionHandler = (*storage)(nil)
+	_ chequeHandler.Session        = (*sqlite.SQLxTxSession)(nil)
+	_ chequeHandler.SessionHandler = (*storage)(nil)
 )
 
 type Storage interface {
 	Close() error
 
-	chequehandler.Storage
+	chequeHandler.Storage
 }
 
 func New(ctx context.Context, logger *zap.SugaredLogger, cfg sqlite.DBConfig) (Storage, error) {
@@ -61,19 +61,19 @@ func (s *storage) prepare(ctx context.Context) error {
 	)
 }
 
-func (s *storage) NewSession(ctx context.Context) (chequehandler.Session, error) {
+func (s *storage) NewSession(ctx context.Context) (chequeHandler.Session, error) {
 	return s.base.NewSession(ctx)
 }
 
-func (s *storage) Commit(session chequehandler.Session) error {
+func (s *storage) Commit(session chequeHandler.Session) error {
 	return s.base.Commit(session)
 }
 
-func (s *storage) Abort(session chequehandler.Session) {
+func (s *storage) Abort(session chequeHandler.Session) {
 	s.base.Abort(session)
 }
 
-func getSQLXTx(session chequehandler.Session) (*sqlx.Tx, error) {
+func getSQLXTx(session chequeHandler.Session) (*sqlx.Tx, error) {
 	s, ok := session.(sqlite.SQLxTxer)
 	if !ok {
 		return nil, sqlite.ErrUnexpectedSessionType

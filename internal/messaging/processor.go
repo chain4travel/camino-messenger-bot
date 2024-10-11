@@ -12,7 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
+	chequeHandler "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -67,7 +67,7 @@ func NewProcessor(
 	registry ServiceRegistry,
 	responseHandler ResponseHandler,
 	identificationHandler IdentificationHandler,
-	chequeHandler chequehandler.ChequeHandler,
+	chequeHandler chequeHandler.ChequeHandler,
 	compressor compression.Compressor[*types.Message, [][]byte],
 	cmAccounts cmaccountscache.CMAccountsCache,
 ) Processor {
@@ -107,7 +107,7 @@ type processor struct {
 	serviceRegistry       ServiceRegistry
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
-	chequeHandler         chequehandler.ChequeHandler
+	chequeHandler         chequeHandler.ChequeHandler
 	compressor            compression.Compressor[*types.Message, [][]byte]
 	cmAccounts            cmaccountscache.CMAccountsCache
 }
