@@ -383,6 +383,11 @@ func (p *processor) compress(ctx context.Context, msg *types.Message) (context.C
 	return ctx, compressedContent, nil
 }
 
+// TODO@ I need to mock it, imo. cmAccounts cache mock isn't solving the issue.
+// TODO@ I can't mock cmAccount instance here, so I can't unit-test it without mocking evm.
+// TODO@ The question is where to put this method,
+// TODO@ so I can mock some interface that is abstracting implementation of this method
+// TODO@ don't forget to remove cmAccounts cache mock if it won't be needed
 func (p *processor) getServiceFee(
 	ctx context.Context,
 	supplierCmAccountAddress common.Address,

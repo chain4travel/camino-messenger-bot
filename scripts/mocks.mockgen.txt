@@ -2,3 +2,4 @@ github.com/chain4travel/camino-messenger-bot/internal/compression=Decompressor=i
 github.com/chain4travel/camino-messenger-bot/internal/matrix=Client=internal/matrix/mock_client.go
 github.com/chain4travel/camino-messenger-bot/internal/messaging=Messenger=internal/messaging/mock_messenger.go
 github.com/chain4travel/camino-messenger-bot/internal/messaging=ServiceRegistry=internal/messaging/mock_service_registry.go
+github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache=CMAccountsCache=pkg/cm_accounts_cache/mock_cm_accounts_cache.go=cmaccountscache

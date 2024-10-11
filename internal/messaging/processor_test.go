@@ -68,6 +68,7 @@ func TestProcessInbound(t *testing.T) {
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
 	mockService := rpc.NewMockService(mockCtrl)
 	mockMessenger := NewMockMessenger(mockCtrl)
+	mockCMAccountsCache := cmaccountscache.NewMockCMAccountsCache(mockCtrl)
 
 	type fields struct {
 		messenger             Messenger
@@ -128,13 +129,14 @@ func TestProcessInbound(t *testing.T) {
 				chequeHandler:         chequehandler.NoopChequeHandler{},
 				messenger:             mockMessenger,
 				compressor:            &noopCompressor{},
-				cmAccountsCache:       &cmaccountscache.NoopCMAccountsCache{},
+				cmAccountsCache:       mockCMAccountsCache,
 			},
 			prepare: func(*processor) {
 				mockService.EXPECT().Name().Return("dummy")
 				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Times(1).Return(mockService, true)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errSomeError)
+				mockCMAccountsCache.EXPECT().Get(gomock.Any()).Times(1).Return(nil, nil)
 			},
 			args: args{
 				msg: &types.Message{
