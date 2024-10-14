@@ -18,7 +18,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	chequeHandler "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
 	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler/storage/sqlite"
-	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
 	scheduler_storage "github.com/chain4travel/camino-messenger-bot/pkg/scheduler/storage/sqlite"
@@ -95,21 +95,13 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	cmAccounts, err := cmaccountscache.NewCMAccountsCache(cmAccountsCacheSize, evmClient)
-	if err != nil {
-		logger.Errorf("Failed to create cm accounts cache: %v", err)
-		return nil, err
-	}
-
-	identificationHandler, err := messaging.NewIdentificationHandler(
-		evmClient,
+	cmAccounts, err := cmaccounts.NewService(
 		logger,
-		cfg.CMAccountAddress,
-		cfg.Matrix.HostURL,
-		cmAccounts,
+		cmAccountsCacheSize,
+		evmClient,
 	)
 	if err != nil {
-		logger.Errorf("Failed to create identification handler: %v", err)
+		logger.Errorf("Failed to create cm accounts service: %v", err)
 		return nil, err
 	}
 
@@ -155,7 +147,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.NetworkFeeRecipientCMAccountAddress,
 		serviceRegistry,
 		responseHandler,
-		identificationHandler,
 		chequeHandler,
 		messaging.NewCompressor(compression.MaxChunkSize),
 		cmAccounts,

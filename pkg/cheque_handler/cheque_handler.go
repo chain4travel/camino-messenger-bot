@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
-	cmaccountscache "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts_cache"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -87,7 +87,7 @@ func NewChequeHandler(
 	cmAccountAddress common.Address,
 	chainID *big.Int,
 	storage Storage,
-	cmAccounts cmaccountscache.CMAccountsCache,
+	cmAccounts cmaccounts.Service,
 	minChequeDurationUntilExpiration *big.Int,
 	chequeExpirationTime *big.Int,
 	cashInTxIssueTimeout time.Duration,
@@ -130,7 +130,7 @@ type evmChequeHandler struct {
 	botAddress                       common.Address
 	signer                           cheques.Signer
 	storage                          Storage
-	cmAccounts                       cmaccountscache.CMAccountsCache
+	cmAccounts                       cmaccounts.Service
 	minChequeDurationUntilExpiration *big.Int
 	chequeExpirationTime             *big.Int
 	cashInTxIssueTimeout             time.Duration
@@ -180,8 +180,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		return nil, fmt.Errorf("failed to sign cheque: %w", err)
 	}
 
-	isChequeValid, err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque)
-	if err != nil {
+	if isChequeValid, err := ch.cmAccounts.VerifyCheque(ctx, signedCheque); err != nil {
 		ch.logger.Errorf("failed to verify cheque with smart contract: %v", err)
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 	} else if !isChequeValid {
@@ -199,8 +198,7 @@ func (ch *evmChequeHandler) IssueCheque(
 			return nil, fmt.Errorf("failed to sign cheque: %w", err)
 		}
 
-		isChequeValid, err := verifyChequeWithContract(ctx, ch.cmAccountInstance, signedCheque)
-		if err != nil {
+		if isChequeValid, err := ch.cmAccounts.VerifyCheque(ctx, signedCheque); err != nil {
 			ch.logger.Errorf("failed to verify cheque with smart contract after getting last cash-in: %v", err)
 			return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 		} else if !isChequeValid {
@@ -281,7 +279,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 		return fmt.Errorf("cheque amount must at least cover serviceFee")
 	}
 
-	if valid, err := ch.verifyChequeWithContract(ctx, cheque); err != nil {
+	if valid, err := ch.cmAccounts.VerifyCheque(ctx, cheque); err != nil {
 		ch.logger.Errorf("Failed to verify cheque with blockchain: %v", err)
 		return err
 	} else if !valid {
@@ -296,15 +294,6 @@ func (ch *evmChequeHandler) VerifyCheque(
 	}
 
 	return ch.storage.Commit(session)
-}
-
-func (ch *evmChequeHandler) verifyChequeWithContract(ctx context.Context, cheque *cheques.SignedCheque) (bool, error) {
-	cmAccount, err := ch.cmAccounts.Get(cheque.FromCMAccount)
-	if err != nil {
-		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
-		return false, err
-	}
-	return verifyChequeWithContract(ctx, cmAccount, cheque)
 }
 
 func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
@@ -335,7 +324,11 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 			timedCtx, cancel := context.WithTimeout(ctx, ch.cashInTxIssueTimeout)
 			defer cancel()
 
-			txID, err := ch.cashInCheque(timedCtx, chequeRecord)
+			txID, err := ch.cmAccounts.CashInCheque(
+				timedCtx,
+				&chequeRecord.SignedCheque,
+				ch.botKey,
+			)
 			if err != nil {
 				return
 			}
@@ -377,39 +370,6 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (ch *evmChequeHandler) cashInCheque(ctx context.Context, chequeRecord *ChequeRecord) (common.Hash, error) {
-	cmAccount, err := ch.cmAccounts.Get(chequeRecord.FromCMAccount)
-	if err != nil {
-		ch.logger.Errorf("failed to get cmAccount contract instance: %v", err)
-		return common.Hash{}, err
-	}
-
-	transactor, err := bind.NewKeyedTransactorWithChainID(ch.botKey, ch.chainID)
-	if err != nil {
-		ch.logger.Error(err)
-		return common.Hash{}, err
-	}
-	transactor.Context = ctx
-
-	tx, err := cmAccount.CashInCheque(
-		transactor,
-		chequeRecord.FromCMAccount,
-		chequeRecord.ToCMAccount,
-		chequeRecord.ToBot,
-		chequeRecord.Counter,
-		chequeRecord.Amount,
-		chequeRecord.CreatedAt,
-		chequeRecord.ExpiresAt,
-		chequeRecord.Signature,
-	)
-	if err != nil {
-		ch.logger.Errorf("failed to cash in cheque %s: %v", chequeRecord, err)
-		return common.Hash{}, err
-	}
-
-	return tx.Hash(), nil
 }
 
 func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
@@ -480,28 +440,6 @@ func (ch *evmChequeHandler) getLastCashIn(ctx context.Context, toBot common.Addr
 		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
 	}
 	return lastCashIn.LastCounter, lastCashIn.LastAmount, nil
-}
-
-func verifyChequeWithContract(
-	ctx context.Context,
-	cmAcc *cmaccount.Cmaccount,
-	signedCheque *cheques.SignedCheque,
-) (bool, error) {
-	_, err := cmAcc.VerifyCheque(
-		&bind.CallOpts{Context: ctx},
-		signedCheque.FromCMAccount,
-		signedCheque.ToCMAccount,
-		signedCheque.ToBot,
-		signedCheque.Counter,
-		signedCheque.Amount,
-		signedCheque.CreatedAt,
-		signedCheque.ExpiresAt,
-		signedCheque.Signature,
-	)
-	if err != nil && err.Error() == "execution reverted" {
-		return false, nil
-	}
-	return err == nil, err
 }
 
 func waitMined(ctx context.Context, b bind.DeployBackend, txID common.Hash) (*ethTypes.Receipt, error) {
