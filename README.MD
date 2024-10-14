@@ -91,7 +91,7 @@ Copy them accordingly and edit fields, mainly the private keys and CM Account ad
 values should be fine for testing.
 
 > [!IMPORTANT]
-> Keep in mind that the addresses of `evm_private_key` in the config file needs to
+> Keep in mind that the addresses of `bot_key` in the config file needs to
 > have funds on C-Chain to pay for the transaction fees. (If you are using **MintRequest**)
 
 ### Start the Application

@@ -26,7 +26,7 @@ const (
 func newExporter(cfg *config.TracingConfig) (trace.SpanExporter, error) {
 	var client otlptrace.Client
 	opts := []otlptracegrpc.Option{
-		otlptracegrpc.WithEndpoint(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)),
+		otlptracegrpc.WithEndpoint(cfg.HostURL.String()),
 		otlptracegrpc.WithTimeout(exportTimeout),
 	}
 	if cfg.Insecure {

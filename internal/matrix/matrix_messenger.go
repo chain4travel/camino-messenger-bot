@@ -25,22 +25,34 @@ import (
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 
-	_ "github.com/mattn/go-sqlite3" //nolint:revive
+	// required to initialize the sqlite driver
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var _ messaging.Messenger = (*messenger)(nil)
 
-type client struct {
-	*mautrix.Client
-	ctx          context.Context
-	cancelSync   context.CancelFunc
-	syncStopWait sync.WaitGroup
-	cryptoHelper *cryptohelper.CryptoHelper
+func NewMessenger(cfg config.MatrixConfig, botKey *ecdsa.PrivateKey, logger *zap.SugaredLogger) messaging.Messenger {
+	c, err := mautrix.NewClient(cfg.HostURL.String(), "", "")
+	if err != nil {
+		panic(err)
+	}
+	return &messenger{
+		msgChannel:   make(chan types.Message),
+		logger:       logger,
+		tracer:       otel.GetTracerProvider().Tracer(""),
+		client:       client{Client: c},
+		roomHandler:  NewRoomHandler(NewClient(c), logger),
+		msgAssembler: NewMessageAssembler(),
+		botKey:       botKey,
+		dbPath:       cfg.Store,
+	}
 }
+
 type messenger struct {
 	msgChannel chan types.Message
 
-	cfg    *config.MatrixConfig
+	dbPath string
+	botKey *ecdsa.PrivateKey
 	logger *zap.SugaredLogger
 	tracer trace.Tracer
 
@@ -49,20 +61,12 @@ type messenger struct {
 	msgAssembler MessageAssembler
 }
 
-func NewMessenger(cfg *config.MatrixConfig, logger *zap.SugaredLogger) messaging.Messenger {
-	c, err := mautrix.NewClient(cfg.Host, "", "")
-	if err != nil {
-		panic(err)
-	}
-	return &messenger{
-		msgChannel:   make(chan types.Message),
-		cfg:          cfg,
-		logger:       logger,
-		tracer:       otel.GetTracerProvider().Tracer(""),
-		client:       client{Client: c},
-		roomHandler:  NewRoomHandler(NewClient(c), logger),
-		msgAssembler: NewMessageAssembler(),
-	}
+type client struct {
+	*mautrix.Client
+	ctx          context.Context
+	cancelSync   context.CancelFunc
+	syncStopWait sync.WaitGroup
+	cryptoHelper *cryptohelper.CryptoHelper
 }
 
 func (m *messenger) Checkpoint() string {
@@ -114,17 +118,12 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 		}
 	})
 
-	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.cfg.Store) // TODO refactor
+	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.dbPath) // TODO refactor
 	if err != nil {
 		return "", err
 	}
 
-	caminoPrivateKey, err := crypto.HexToECDSA(m.cfg.Key)
-	if err != nil {
-		return "", err
-	}
-
-	signature, message, err := signPublicKey(caminoPrivateKey)
+	signature, message, err := signPublicKey(m.botKey)
 	if err != nil {
 		return "", err
 	}

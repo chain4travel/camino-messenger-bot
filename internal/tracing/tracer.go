@@ -47,8 +47,8 @@ func (t *tracer) TraceIDForSpan(span trace.Span) trace.TraceID {
 	return span.SpanContext().TraceID()
 }
 
-func NewTracer(tracingConfig *config.TracingConfig, name string) (Tracer, error) {
-	exporter, err := newExporter(tracingConfig)
+func NewTracer(cfg config.TracingConfig, name string) (Tracer, error) {
+	exporter, err := newExporter(&cfg)
 	if err != nil {
 		return nil, err
 	}

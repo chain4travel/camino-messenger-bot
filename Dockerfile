@@ -11,7 +11,7 @@ COPY . .
 RUN apk --no-cache add git
 RUN git submodule update --init
 RUN go mod download
-RUN go build -o bot  cmd/camino-messenger-bot/main.go
+RUN go build -o camino-messenger-bot main.go
 
 
 #runtime stage
@@ -21,7 +21,7 @@ RUN apk add --no-cache olm-dev
 
 WORKDIR /
 
-COPY --from=build-stage /camino-messenger-bot/bot /camino-messenger-bot
+COPY --from=build-stage /camino-messenger-bot/camino-messenger-bot /camino-messenger-bot
 COPY --from=build-stage /camino-messenger-bot/migrations ./migrations
 
 ENTRYPOINT ["./camino-messenger-bot"]

@@ -1,59 +1,59 @@
 package config
 
-import "flag"
+import (
+	"github.com/spf13/pflag"
+)
 
-func readAppConfig(cfg AppConfig, fs *flag.FlagSet) {
-	fs.BoolVar(&cfg.DeveloperMode, DeveloperMode, false, "Sets developer mode")
-	flag.Parse()
-}
+const (
+	flagKeyConfig = "config"
 
-func readMatrixConfig(cfg MatrixConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.Key, MatrixKey, "", "Sets private key used for the matrix server connection")
-	fs.StringVar(&cfg.Host, MatrixHost, "", "Sets the matrix host")
-	fs.StringVar(&cfg.Store, MatrixStore, "", "Sets the matrix store (sqlite3 db path)")
-}
+	flagKeyDeveloperMode = "developer_mode"
+)
 
-func readRPCServerConfig(cfg RPCServerConfig, fs *flag.FlagSet) {
-	fs.IntVar(&cfg.Port, RPCServerPortKey, 9090, "The RPC server port")
-	fs.BoolVar(&cfg.Unencrypted, RPCUnencryptedKey, false, "Whether the RPC server should be unencrypted")
-	fs.StringVar(&cfg.ServerCertFile, RPCServerCertFileKey, "", "The server certificate file")
-	fs.StringVar(&cfg.ServerKeyFile, RPCServerKeyFileKey, "", "The server key file")
-}
+func Flags() *pflag.FlagSet {
+	flags := pflag.NewFlagSet("config", pflag.ExitOnError)
 
-func readPartnerRPCServerConfig(cfg PartnerPluginConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.Host, PartnerPluginHostKey, "", "The partner plugin RPC server host")
-	fs.IntVar(&cfg.Port, PartnerPluginPortKey, 50051, "The partner plugin RPC server port")
-	fs.BoolVar(&cfg.Unencrypted, PartnerPluginUnencryptedKey, false, "Whether the RPC client should initiate an unencrypted connection with the server")
-	fs.StringVar(&cfg.CACertFile, PartnerPluginCAFileKey, "", "The partner plugin RPC server CA certificate file")
-}
+	flags.String(flagKeyConfig, "camino-messenger-bot.yaml", "path to config file dir")
 
-func readMessengerConfig(cfg ProcessorConfig, fs *flag.FlagSet) {
-	fs.IntVar(&cfg.Timeout, MessengerTimeoutKey, 3000, "The messenger timeout (in milliseconds)")
-}
+	// Main config flags
+	flags.Bool(flagKeyDeveloperMode, false, "Sets developer mode.")
+	flags.String("bot_key", "", "Sets bot private key. Its used for the matrix server connection, cm account interaction and cheques signing.")
+	flags.String("cm_account_address", "", "Sets bot cm account address.")
+	flags.String("chain_rpc_url", "", "C-chain RPC URL.")
+	flags.String("booking_token_address", "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address.")
+	flags.String("network_fee_recipient_bot_address", "", "Network fee recipient bot address.")
+	flags.String("network_fee_recipient_cm_account", "", "Network fee recipient CMAccount address.")
+	flags.Uint64("cheque_expiration_time", 3600*24*30*7, "Cheque expiration time (in seconds).")
+	flags.Uint64("min_cheque_duration_until_expiration", 3600*24*30*6, "Minimum valid duration until cheque expiration (in seconds).")
+	flags.Int64("cash_in_period", 3600*24, "Cash-in period (in seconds).")
+	flags.Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
 
-func readEvmConfig(cfg EvmConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.PrivateKey, EvmPrivateKey, "", "The EVM private key")
-	fs.StringVar(&cfg.RPCURL, RPCURLKey, "", "The EVM RPC URL")
-	fs.StringVar(&cfg.BookingTokenAddress, BookingTokenAddressKey, "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address")
-	fs.StringVar(&cfg.CMAccountAddress, CMAccountAddressKey, "", "CMAccount address")
-	fs.StringVar(&cfg.NetworkFeeRecipientBotAddress, NetworkFeeRecipientBotAddressKey, "", "Network fee recipient bot address")
-	fs.StringVar(&cfg.NetworkFeeRecipientCMAccountAddress, NetworkFeeRecipientCMAccountAddressKey, "", "Network fee recipient CMAccount address")
-	fs.Uint64Var(&cfg.ChequeExpirationTime, ChequeExpirationTimeKey, 3600*24*30*6, "Cheque expiration time in seconds")
-	fs.Uint64Var(&cfg.MinChequeDurationUntilExpiration, MinChequeDurationUntilExpirationKey, 3600*24*30*6, "Minimum valid duration until cheque expiration in seconds")
-	fs.Uint64Var(&cfg.CashInPeriod, CashInPeriodKey, 3600*24, "Cash-in period in seconds")
-}
+	// DB config flags
+	flags.String("db.name", "camino_messenger_bot", "Database name.")
+	flags.String("db.path", "cmb.db", "Path to database.")
+	flags.String("db.migrations_path", "file://./migrations", "Path to migration scripts.")
 
-func readTracingConfig(cfg TracingConfig, fs *flag.FlagSet) {
-	fs.BoolVar(&cfg.Enabled, TracingEnabledKey, false, "Whether tracing is enabled")
-	fs.StringVar(&cfg.Host, TracingHostKey, "localhost", "The tracing host")
-	fs.IntVar(&cfg.Port, TracingPortKey, 4317, "The tracing port")
-	fs.BoolVar(&cfg.Insecure, TracingInsecureKey, true, "Whether the tracing connection should be insecure")
-	fs.StringVar(&cfg.CertFile, TracingCertFileKey, "", "The tracing certificate file")
-	fs.StringVar(&cfg.KeyFile, TracingKeyFileKey, "", "The tracing key file")
-}
+	// Tracing config flags
+	flags.Bool("tracing.enabled", false, "Whether tracing is enabled.")
+	flags.String("tracing.host", "localhost:4317", "The tracing host.")
+	flags.Bool("tracing.insecure", true, "Whether the tracing connection should be insecure.")
+	flags.String("tracing.cert_file", "", "The tracing certificate file.")
+	flags.String("tracing.key_file", "", "The tracing key file.")
 
-func readDBConfig(cfg DBConfig, fs *flag.FlagSet) {
-	fs.StringVar(&cfg.DBName, DBNameKey, "camino_messenger_bot", "database name")
-	fs.StringVar(&cfg.DBPath, DBPathKey, "db.db", "path to database")
-	fs.StringVar(&cfg.MigrationsPath, MigrationsPathKey, "file://./migrations", "path to migration scripts")
+	// Partner plugin config flags
+	flags.String("partner_plugin.host", "localhost:50051", "partner plugin RPC server host.")
+	flags.Bool("partner_plugin.unencrypted", false, "Whether the RPC client should initiate an unencrypted connection with the server.")
+	flags.String("partner_plugin.ca_file", "", "The partner plugin RPC server CA certificate file.")
+
+	// RPC server config flags
+	flags.Uint64("rpc_server.port", 9090, "The RPC server port.")
+	flags.Bool("rpc_server.unencrypted", false, "Whether the RPC server should be unencrypted.")
+	flags.String("rpc_server.cert_file", "", "The server certificate file.")
+	flags.String("rpc_server.key_file", "", "The server key file.")
+
+	// Matrix config flags
+	flags.String("matrix.host", "", "Sets the matrix host.")
+	flags.String("matrix.store", "cmb_matrix.db", "Sets the matrix store (sqlite3 db path).")
+
+	return flags
 }

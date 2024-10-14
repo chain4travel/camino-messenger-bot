@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -31,12 +30,12 @@ type ServiceRegistry interface {
 }
 
 func NewServiceRegistry(
-	cfg *config.EvmConfig,
+	cmAccountAddress common.Address,
 	evmClient *ethclient.Client,
 	logger *zap.SugaredLogger,
 	rpcClient *client.RPCClient,
 ) (ServiceRegistry, bool, error) {
-	cmAccount, err := cmaccount.NewCmaccount(common.HexToAddress(cfg.CMAccountAddress), evmClient)
+	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, evmClient)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to fetch CM account: %w", err)
 	}

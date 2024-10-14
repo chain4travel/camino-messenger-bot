@@ -18,9 +18,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 
-	config "github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
@@ -51,23 +49,20 @@ type ResponseHandler interface {
 }
 
 func NewResponseHandler(
+	botKey *ecdsa.PrivateKey,
 	ethClient *ethclient.Client,
 	logger *zap.SugaredLogger,
-	cfg *config.EvmConfig,
+	cmAccountAddress common.Address,
+	bookingTokenAddress common.Address,
 	serviceRegistry ServiceRegistry,
-	evmEventListener *events.EventListener,
 ) (ResponseHandler, error) {
-	ecdsaPk, err := crypto.HexToECDSA(cfg.PrivateKey)
-	if err != nil {
-		return nil, err
-	}
-	bookingService, err := booking.NewService(common.HexToAddress(cfg.CMAccountAddress), ecdsaPk, ethClient, logger)
+	bookingService, err := booking.NewService(cmAccountAddress, botKey, ethClient, logger)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err
 	}
 
-	bookingToken, err := bookingtoken.NewBookingtoken(common.HexToAddress(cfg.BookingTokenAddress), ethClient)
+	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenAddress, ethClient)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err
@@ -75,20 +70,18 @@ func NewResponseHandler(
 	return &evmResponseHandler{
 		ethClient:           ethClient,
 		logger:              logger,
-		pk:                  ecdsaPk,
-		cmAccountAddress:    common.HexToAddress(cfg.CMAccountAddress),
-		bookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
+		cmAccountAddress:    cmAccountAddress,
+		bookingTokenAddress: bookingTokenAddress,
 		bookingService:      *bookingService,
 		bookingToken:        *bookingToken,
 		serviceRegistry:     serviceRegistry,
-		evmEventListener:    evmEventListener,
+		evmEventListener:    events.NewEventListener(ethClient, logger),
 	}, nil
 }
 
 type evmResponseHandler struct {
 	ethClient           *ethclient.Client
 	logger              *zap.SugaredLogger
-	pk                  *ecdsa.PrivateKey
 	cmAccountAddress    common.Address
 	bookingTokenAddress common.Address
 	bookingService      booking.Service
@@ -119,7 +112,7 @@ func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.M
 }
 
 func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types.MessageType, request protoreflect.ProtoMessage) error {
-	switch msgType { //nolint:gocritic
+	switch msgType {
 	case generated.MintServiceV2Request:
 		mintReq, ok := request.(*bookv2.MintRequest)
 		if !ok {

@@ -30,27 +30,21 @@ type Server interface {
 	Start() error
 	Stop()
 }
-type server struct {
-	grpcServer      *grpc.Server
-	cfg             *config.RPCServerConfig
-	logger          *zap.SugaredLogger
-	tracer          tracing.Tracer
-	processor       messaging.Processor
-	serviceRegistry messaging.ServiceRegistry
-}
 
-func (*server) Checkpoint() string {
-	return "request-gateway"
-}
-
-func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tracing.Tracer, processor messaging.Processor, serviceRegistry messaging.ServiceRegistry) Server {
+func NewServer(
+	cfg config.RPCServerConfig,
+	logger *zap.SugaredLogger,
+	tracer tracing.Tracer,
+	processor messaging.Processor,
+	serviceRegistry messaging.ServiceRegistry,
+) (Server, error) {
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
 	} else {
 		creds, err := utils.LoadTLSCredentials(cfg.ServerCertFile, cfg.ServerKeyFile)
 		if err != nil {
-			logger.Fatalf("could not load TLS keys: %s", err)
+			return nil, fmt.Errorf("could not load TLS keys: %w", err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
@@ -63,7 +57,20 @@ func NewServer(cfg *config.RPCServerConfig, logger *zap.SugaredLogger, tracer tr
 		grpcServer:      grpc.NewServer(opts...),
 	}
 	generated.RegisterServerServices(server.grpcServer, server)
-	return server
+	return server, nil
+}
+
+type server struct {
+	grpcServer      *grpc.Server
+	cfg             config.RPCServerConfig
+	logger          *zap.SugaredLogger
+	tracer          tracing.Tracer
+	processor       messaging.Processor
+	serviceRegistry messaging.ServiceRegistry
+}
+
+func (*server) Checkpoint() string {
+	return "request-gateway"
 }
 
 func (s *server) Start() error {

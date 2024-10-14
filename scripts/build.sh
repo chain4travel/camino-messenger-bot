@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Set the output binary name
-OUTPUT_BINARY="build/bot"
+OUTPUT_BINARY="build/camino-messenger-bot"
 
 # Set the main source file
-MAIN_SOURCE="cmd/camino-messenger-bot/main.go"
+MAIN_SOURCE="main.go"
 
 # Flag to enable debug mode
 DEBUG=false
@@ -29,8 +29,8 @@ CAMINOBOT_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )"; cd .. && pwd )
 # Load the constants
 source "$CAMINOBOT_PATH"/scripts/constants.sh
 
-LDFLAGS="-X main.GitCommit=$git_commit"
-LDFLAGS="$LDFLAGS -X main.Version=$git_tag"
+LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/cmd.GitCommit=$git_commit"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/cmd.Version=$git_tag"
 
 # Build the Go application
 echo "Building camino-messenger-bot..."

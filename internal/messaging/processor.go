@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -29,7 +28,6 @@ const cashInTxIssueTimeout = 10 * time.Second
 var (
 	_ Processor = (*processor)(nil)
 
-	ErrUserIDNotSet                 = errors.New("user id not set")
 	ErrUnknownMessageCategory       = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed   = errors.New("only request messages allowed")
 	ErrUnsupportedService           = errors.New("unsupported service")
@@ -52,7 +50,6 @@ type MsgHandler interface {
 type Processor interface {
 	metadata.Checkpoint
 	MsgHandler
-	SetUserID(userID id.UserID)
 	Start(ctx context.Context)
 	ProcessInbound(message *types.Message) error
 	ProcessOutbound(ctx context.Context, message *types.Message) (*types.Message, error)
@@ -61,8 +58,11 @@ type Processor interface {
 func NewProcessor(
 	messenger Messenger,
 	logger *zap.SugaredLogger,
-	cfg config.ProcessorConfig,
-	evmConfig config.EvmConfig,
+	responseTimeout time.Duration,
+	botUserID id.UserID,
+	cmAccountAddress common.Address,
+	networkFeeRecipientBotAddress common.Address,
+	networkFeeRecipientCMAccountAddress common.Address,
 	registry ServiceRegistry,
 	responseHandler ResponseHandler,
 	identificationHandler IdentificationHandler,
@@ -70,29 +70,34 @@ func NewProcessor(
 	compressor compression.Compressor[*types.Message, [][]byte],
 ) Processor {
 	return &processor{
-		cfg:                   cfg,
-		evmConfig:             evmConfig,
-		messenger:             messenger,
-		logger:                logger,
-		tracer:                otel.GetTracerProvider().Tracer(""),
-		timeout:               time.Duration(cfg.Timeout) * time.Millisecond, // for now applies to all request types
-		responseChannels:      make(map[string]chan *types.Message),
-		serviceRegistry:       registry,
-		responseHandler:       responseHandler,
-		identificationHandler: identificationHandler,
-		chequeHandler:         chequeHandler,
-		compressor:            compressor,
+		messenger:                           messenger,
+		logger:                              logger,
+		tracer:                              otel.GetTracerProvider().Tracer(""),
+		responseTimeout:                     responseTimeout, // for now applies to all request types
+		responseChannels:                    make(map[string]chan *types.Message),
+		serviceRegistry:                     registry,
+		responseHandler:                     responseHandler,
+		identificationHandler:               identificationHandler,
+		chequeHandler:                       chequeHandler,
+		compressor:                          compressor,
+		myBotAddress:                        addressFromUserID(botUserID),
+		botUserID:                           botUserID,
+		cmAccountAddress:                    cmAccountAddress,
+		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
+		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
 	}
 }
 
 type processor struct {
-	cfg       config.ProcessorConfig
-	evmConfig config.EvmConfig
-	messenger Messenger
-	userID    id.UserID
-	logger    *zap.SugaredLogger
-	tracer    trace.Tracer
-	timeout   time.Duration // timeout after which a request is considered failed
+	messenger                           Messenger
+	logger                              *zap.SugaredLogger
+	tracer                              trace.Tracer
+	responseTimeout                     time.Duration // timeout after which a request is considered failed
+	botUserID                           id.UserID
+	myBotAddress                        common.Address
+	cmAccountAddress                    common.Address
+	networkFeeRecipientBotAddress       common.Address
+	networkFeeRecipientCMAccountAddress common.Address
 
 	mu                    sync.Mutex
 	responseChannels      map[string]chan *types.Message
@@ -100,13 +105,7 @@ type processor struct {
 	responseHandler       ResponseHandler
 	identificationHandler IdentificationHandler
 	chequeHandler         ChequeHandler
-	myBotAddress          common.Address
 	compressor            compression.Compressor[*types.Message, [][]byte]
-}
-
-func (p *processor) SetUserID(userID id.UserID) {
-	p.userID = userID
-	p.myBotAddress = addressFromUserID(userID)
 }
 
 func (*processor) Checkpoint() string {
@@ -132,10 +131,7 @@ func (p *processor) Start(ctx context.Context) {
 }
 
 func (p *processor) ProcessInbound(msg *types.Message) error {
-	if p.userID == "" {
-		return ErrUserIDNotSet
-	}
-	if msg.Sender != p.userID { // outbound messages = messages sent by own ext system
+	if msg.Sender != p.botUserID { // outbound messages = messages sent by own ext system
 		switch msg.Type.Category() {
 		case types.Request:
 			return p.Respond(msg)
@@ -151,11 +147,11 @@ func (p *processor) ProcessInbound(msg *types.Message) error {
 }
 
 func (p *processor) ProcessOutbound(ctx context.Context, msg *types.Message) (*types.Message, error) {
-	msg.Sender = p.userID
+	msg.Sender = p.botUserID
 	if msg.Type.Category() == types.Request { // only request messages (received by are processed
 		return p.Request(ctx, msg) // forward request msg to matrix
 	}
-	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.userID)
+	p.logger.Debugf("Ignoring any non-request message from sender other than: %s ", p.botUserID)
 	return nil, ErrOnlyRequestMessagesAllowed // ignore msg
 }
 
@@ -171,7 +167,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		p.mu.Unlock()
 	}()
 
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
 	if msg.Metadata.Recipient == "" { // TODO: add address validation
@@ -219,9 +215,9 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 
 	networkFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
-		p.identificationHandler.getMyCMAccountAddress(),
-		common.HexToAddress(p.evmConfig.NetworkFeeRecipientCMAccountAddress),
-		common.HexToAddress(p.evmConfig.NetworkFeeRecipientBotAddress),
+		p.cmAccountAddress,
+		p.networkFeeRecipientCMAccountAddress,
+		p.networkFeeRecipientBotAddress,
 		totalNetworkFee,
 	)
 	if err != nil {
@@ -231,7 +227,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 
 	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
-		p.identificationHandler.getMyCMAccountAddress(),
+		p.cmAccountAddress,
 		recipientCMAccAddr,
 		addressFromUserID(recipientBotUserID),
 		serviceFee,
@@ -262,7 +258,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 				return response, nil
 			}
 		case <-ctx.Done():
-			return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.timeout, msg.Metadata.RequestID)
+			return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, msg.Metadata.RequestID)
 		}
 	}
 }
@@ -346,7 +342,7 @@ func (p *processor) callPartnerPluginAndGetResponse(
 	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 	p.responseHandler.HandleResponse(ctx, msgType, requestMsg.Content, response)
 
-	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.userID, requestMsg.Sender)
+	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botUserID, requestMsg.Sender)
 
 	return ctx, responseMsg
 }
@@ -366,7 +362,7 @@ func (p *processor) Forward(msg *types.Message) {
 
 func (p *processor) getChequeForThisBot(cheques []cheques.SignedCheque) *cheques.SignedCheque {
 	for _, cheque := range cheques {
-		if cheque.ToBot == p.myBotAddress && cheque.ToCMAccount == p.identificationHandler.getMyCMAccountAddress() {
+		if cheque.ToBot == p.myBotAddress && cheque.ToCMAccount == p.cmAccountAddress {
 			return &cheque
 		}
 	}
