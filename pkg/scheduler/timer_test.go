@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -71,25 +72,25 @@ func TestTimer_Start(t *testing.T) {
 	epsilon := time.Millisecond
 	startTime := time.Now()
 	lastCallTime := startTime
-	callCount := 0
-	lastCallCount := 0
-	maxCallCount := 5
+	callCount := atomic.Int64{}
+	lastCallCount := int64(0)
+	maxCallCount := int64(5)
 	totalDuration := duration * time.Duration(maxCallCount)
 	totalEpsilon := epsilon * time.Duration(maxCallCount)
 	callTimeCh := make(chan time.Time)
 
 	stopSignalCh := timer.Start(duration, func() {
 		callTimeCh <- time.Now()
-		callCount++
+		callCount.Add(1)
 	})
 
 	go func() {
 		for callTime := range callTimeCh {
 			require.InEpsilon(t, duration, callTime.Sub(lastCallTime), float64(epsilon))
-			require.Equal(t, callCount, lastCallCount+1)
+			require.Equal(t, callCount.Load(), lastCallCount+1)
 			lastCallTime = callTime
-			lastCallCount = callCount
-			if callCount >= maxCallCount {
+			lastCallCount = callCount.Load()
+			if callCount.Load() >= maxCallCount {
 				timer.Stop()
 				close(called)
 			}
@@ -105,5 +106,5 @@ func TestTimer_Start(t *testing.T) {
 		require.FailNow(t, "timer did not stop within the expected duration")
 	}
 
-	require.Equal(t, maxCallCount, callCount)
+	require.Equal(t, maxCallCount, callCount.Load())
 }
