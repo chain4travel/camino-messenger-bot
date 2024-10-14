@@ -1,110 +1,148 @@
 package scheduler
 
 import (
-	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
-// TODO@ there is data-race, check gh ci!
-
 func TestTimer_StartOnce(t *testing.T) {
 	t.Run("function is called after duration", func(t *testing.T) {
-		timer := newTimer()
-		duration := 100 * time.Millisecond
+		require := require.New(t)
+		clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
+		timer := newTimer(clock)
+		duration := time.Millisecond
+		timeout := 10 * time.Millisecond
 		epsilon := time.Millisecond
 		called := make(chan struct{})
-		startTime := time.Now()
+		startTime := clock.Now()
+
+		require.Greater(duration, time.Duration(1))
+		require.Less(duration, timeout-epsilon)
 
 		stopSignalCh := timer.StartOnce(duration, func() {
 			close(called)
 		})
 
+		clock.Advance(duration - 1)
+
+		select {
+		case <-time.After(timeout):
+		case <-stopSignalCh:
+			require.FailNow("timer should not have stopped before the expected duration")
+		}
+
+		clock.Advance(1)
+
 		select {
 		case <-stopSignalCh:
-			require.GreaterOrEqual(t, time.Since(startTime), duration)
-		case timeout := <-time.After(duration + epsilon):
-			require.FailNow(t, "timer did not stop within the expected duration", "expected less than %v+%v, got %v",
-				duration, epsilon, timeout.Sub(startTime))
+		case <-time.After(timeout):
+			require.FailNow("timer did not stop within the expected duration")
 		}
 
 		select {
 		case <-called:
-		case <-time.After(epsilon):
-			require.FailNow(t, "function was not called within the expected duration")
+		case <-time.After(timeout):
+			require.FailNow("function was not called within the expected duration")
 		}
+
+		require.Equal(clock.Since(startTime), duration)
 	})
 
 	t.Run("timer is stopped manually", func(t *testing.T) {
-		timer := newTimer()
-		duration := 100 * time.Millisecond
+		require := require.New(t)
+		clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
+		timer := newTimer(clock)
+		duration := time.Millisecond
+		timeout := 10 * time.Millisecond
 		epsilon := time.Millisecond
 		called := make(chan struct{})
-		startTime := time.Now()
-		runDuration := 50 * time.Millisecond
+		startTime := clock.Now()
+
+		require.Greater(duration, time.Duration(1))
+		require.Less(duration, timeout-epsilon)
 
 		stopSignalCh := timer.StartOnce(duration, func() {
 			close(called)
 		})
 
-		time.Sleep(runDuration)
+		runDuration := duration - 1
+		clock.Advance(runDuration)
+
 		timer.Stop()
 
 		select {
 		case <-stopSignalCh:
 		case <-called:
-			require.FailNow(t, "function should not have been called after timer was stopped")
-		case timeout := <-time.After(epsilon):
-			require.FailNow(t, "timer did not stop within the expected duration", "expected less than %v+%v, got %v",
-				runDuration, epsilon, timeout.Sub(startTime))
+			require.FailNow("function should not have been called after timer was stopped")
+		case <-time.After(timeout):
+			require.FailNow("timer did not stop within the expected duration")
 		}
 
+		require.Equal(clock.Since(startTime), runDuration)
 		close(called) // ensure the function is not called after the timer is stopped
 	})
 }
 
 func TestTimer_Start(t *testing.T) {
-	timer := newTimer()
-	duration := 100 * time.Millisecond
-	called := make(chan struct{})
+	require := require.New(t)
+	clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
+	timer := newTimer(clock)
+
+	duration := time.Millisecond
+	timeout := 10 * time.Millisecond
 	epsilon := time.Millisecond
-	startTime := time.Now()
-	lastCallTime := startTime
-	callCount := atomic.Int64{}
-	lastCallCount := int64(0)
-	maxCallCount := int64(5)
-	totalDuration := duration * time.Duration(maxCallCount)
-	totalEpsilon := epsilon * time.Duration(maxCallCount)
-	callTimeCh := make(chan time.Time)
+	startTime := clock.Now()
+	callCount := 0
+	lastCallCount := 0
+	maxCallCount := 5
+	callCh := make(chan struct{})
+
+	require.Greater(duration, time.Duration(1))
+	require.Less(duration, timeout-epsilon)
 
 	stopSignalCh := timer.Start(duration, func() {
-		callTimeCh <- time.Now()
-		callCount.Add(1)
+		callCount++
+		callCh <- struct{}{}
 	})
 
-	go func() {
-		for callTime := range callTimeCh {
-			require.InEpsilon(t, duration, callTime.Sub(lastCallTime), float64(epsilon))
-			require.Equal(t, callCount.Load(), lastCallCount+1)
-			lastCallTime = callTime
-			lastCallCount = callCount.Load()
-			if callCount.Load() >= maxCallCount {
-				timer.Stop()
-				close(called)
-			}
+	for i := 0; i < int(maxCallCount); i++ {
+		require.Equal(lastCallCount, callCount)
+		require.Equal(duration*time.Duration(i), clock.Since(startTime))
+
+		clock.Advance(duration - 1)
+
+		select {
+		case <-callCh:
+			require.FailNow("function should not have been called before the expected duration")
+		case <-time.After(timeout):
 		}
-	}()
+
+		clock.Advance(1)
+
+		select {
+		case <-callCh:
+		case <-time.After(timeout):
+			// TODO@ sometimes fails. Why?
+			require.FailNow("function was not called within the expected duration")
+		}
+
+		require.Equal(duration*time.Duration(i+1), clock.Since(startTime))
+		require.Equal(lastCallCount+1, callCount)
+
+		lastCallCount = callCount
+	}
+
+	timer.Stop()
 
 	select {
 	case <-stopSignalCh:
-		require.GreaterOrEqual(t, time.Since(startTime), totalDuration)
-	case timeout := <-time.After(totalDuration + totalEpsilon):
-		require.FailNow(t, "timer did not stop within the expected duration", "expected less than %v+%v, got %v",
-			totalDuration, totalEpsilon, timeout.Sub(startTime))
-		require.FailNow(t, "timer did not stop within the expected duration")
+	case <-time.After(timeout):
+		require.FailNow("timer did not stop within the expected duration")
 	}
 
-	require.Equal(t, maxCallCount, callCount.Load())
+	require.Equal(duration*time.Duration(maxCallCount), clock.Since(startTime))
+	require.Equal(maxCallCount, callCount)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/jonboulle/clockwork"
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
@@ -173,7 +174,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	scheduler := scheduler.New(logger, storage)
+	scheduler := scheduler.New(logger, storage, clockwork.NewRealClock())
 	scheduler.RegisterJobHandler(cashInJobName, func() {
 		_ = chequeHandler.CashIn(context.Background())
 	})

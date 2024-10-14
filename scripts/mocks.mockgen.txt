@@ -3,3 +3,4 @@ github.com/chain4travel/camino-messenger-bot/internal/matrix=Client=internal/mat
 github.com/chain4travel/camino-messenger-bot/internal/messaging=Messenger=internal/messaging/mock_messenger.go
 github.com/chain4travel/camino-messenger-bot/internal/messaging=ServiceRegistry=internal/messaging/mock_service_registry.go
 github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts=Service=pkg/cm_accounts/mock_cm_accounts.go=cmaccounts
+github.com/chain4travel/camino-messenger-bot/pkg/scheduler=Storage=pkg/scheduler/mock_storage.go

@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jonboulle/clockwork"
 	"go.uber.org/zap"
 )
 
@@ -41,12 +42,13 @@ type Scheduler interface {
 	RegisterJobHandler(jobName string, jobHandler func())
 }
 
-func New(logger *zap.SugaredLogger, storage Storage) Scheduler {
+func New(logger *zap.SugaredLogger, storage Storage, clock clockwork.Clock) Scheduler {
 	return &scheduler{
 		storage:  storage,
 		logger:   logger,
 		registry: make(map[string]func()),
 		timers:   make(map[string]*timer),
+		clock:    clock,
 	}
 }
 
@@ -57,6 +59,7 @@ type scheduler struct {
 	timers       map[string]*timer
 	registryLock sync.RWMutex
 	timersLock   sync.RWMutex
+	clock        clockwork.Clock
 }
 
 // Start starts the scheduler. Jobs that are already due are executed immediately.
@@ -84,7 +87,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 		jobName := job.Name
 		period := job.Period
 
-		now := time.Now()
+		now := s.clock.Now()
 		timeUntilFirstExecution := time.Duration(0)
 		if job.ExecuteAt.After(now) {
 			timeUntilFirstExecution = job.ExecuteAt.Sub(now)
@@ -99,7 +102,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 			jobHandler()
 		}
 
-		timer := newTimer()
+		timer := newTimer(s.clock)
 		doneCh := timer.StartOnce(timeUntilFirstExecution, handler)
 		go func() {
 			<-doneCh
@@ -138,7 +141,7 @@ func (s *scheduler) Schedule(ctx context.Context, period time.Duration, jobName 
 		return err
 	}
 
-	executeAt := time.Now().Add(period)
+	executeAt := s.clock.Now().Add(period)
 
 	if job != nil {
 		job.Period = period
@@ -181,7 +184,7 @@ func (s *scheduler) updateJobExecutionTime(ctx context.Context, jobName string) 
 		return err
 	}
 
-	job.ExecuteAt = time.Now().Add(job.Period)
+	job.ExecuteAt = s.clock.Now().Add(job.Period)
 
 	if err := s.storage.UpsertJob(ctx, session, job); err != nil {
 		s.logger.Errorf("failed to store scheduled job: %v", err)

@@ -2,19 +2,21 @@ package scheduler
 
 import (
 	"time"
+
+	"github.com/jonboulle/clockwork"
 )
 
-func newTimer() *timer {
-	t := time.NewTimer(time.Second)
+func newTimer(clock clockwork.Clock) *timer {
+	t := clock.NewTimer(time.Second)
 	t.Stop()
 	return &timer{
-		Timer:  t,
+		timer:  t,
 		stopCh: make(chan struct{}, 1),
 	}
 }
 
 type timer struct {
-	*time.Timer
+	timer  clockwork.Timer
 	stopCh chan struct{}
 }
 
@@ -23,7 +25,7 @@ type timer struct {
 //
 // Should not be called on already running timer.
 func (t *timer) StartOnce(d time.Duration, f func()) chan struct{} {
-	t.Reset(d)
+	t.timer.Reset(d)
 	stopSignalCh := make(chan struct{})
 	go func() {
 		defer close(stopSignalCh)
@@ -31,7 +33,7 @@ func (t *timer) StartOnce(d time.Duration, f func()) chan struct{} {
 			select {
 			case <-t.stopCh:
 				return
-			case <-t.C:
+			case <-t.timer.Chan():
 				go f()
 				t.Stop()
 			}
@@ -45,7 +47,7 @@ func (t *timer) StartOnce(d time.Duration, f func()) chan struct{} {
 //
 // Should not be called on already running timer.
 func (t *timer) Start(d time.Duration, f func()) chan struct{} {
-	t.Reset(d)
+	t.timer.Reset(d)
 	stopSignalCh := make(chan struct{})
 	go func() {
 		defer close(stopSignalCh)
@@ -53,9 +55,9 @@ func (t *timer) Start(d time.Duration, f func()) chan struct{} {
 			select {
 			case <-t.stopCh:
 				return
-			case <-t.C:
+			case <-t.timer.Chan():
 				go f()
-				t.Reset(d)
+				t.timer.Reset(d)
 			}
 		}
 	}()
@@ -67,5 +69,5 @@ func (t *timer) Start(d time.Duration, f func()) chan struct{} {
 // Stop should not be called on already stopped timer.
 func (t *timer) Stop() {
 	t.stopCh <- struct{}{}
-	t.Timer.Stop()
+	t.timer.Stop()
 }
