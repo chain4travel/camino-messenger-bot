@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/metachris/eth-go-bindings/erc20"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
 
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"

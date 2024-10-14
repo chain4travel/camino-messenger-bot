@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/metachris/eth-go-bindings/erc20"
 	"go.uber.org/zap"
 )
 

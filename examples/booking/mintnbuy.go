@@ -10,11 +10,11 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/metachris/eth-go-bindings/erc20"
 	"go.uber.org/zap"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
