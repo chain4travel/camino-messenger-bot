@@ -31,7 +31,7 @@ var zeroAddress = common.HexToAddress("0x000000000000000000000000000000000000000
 // NewService initializes a new Service. It sets up the transactor with the provided
 // private key and creates the CMAccount contract.
 func NewService(
-	cmAccountAddr common.Address,
+	cmAccountAddr *common.Address,
 	privateKey *ecdsa.PrivateKey,
 	client *ethclient.Client,
 	logger *zap.SugaredLogger,
@@ -55,7 +55,7 @@ func NewService(
 	// transactOpts.GasPrice = big.NewInt(20000000000) // example gas price
 
 	// Initialize the CMAccount
-	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddr, client)
+	cmAccount, err := cmaccount.NewCmaccount(*cmAccountAddr, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CMAccount: %w", err)
 	}
@@ -66,7 +66,7 @@ func NewService(
 		cmAccount:        cmAccount,
 		transactOpts:     transactOpts,
 		chainID:          chainID,
-		cmAccountAddress: &cmAccountAddr,
+		cmAccountAddress: cmAccountAddr,
 	}, nil
 }
 
