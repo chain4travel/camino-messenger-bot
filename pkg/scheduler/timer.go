@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"sync/atomic"
 	"time"
 
 	"github.com/jonboulle/clockwork"
@@ -16,8 +17,9 @@ func newTimer(clock clockwork.Clock) *timer {
 }
 
 type timer struct {
-	timer  clockwork.Timer
-	stopCh chan struct{}
+	timer   clockwork.Timer
+	stopped atomic.Bool
+	stopCh  chan struct{}
 }
 
 // StartOnce starts the timer once and starts goroutine with [f] call when the timer expires.
@@ -32,6 +34,7 @@ func (t *timer) StartOnce(d time.Duration, f func()) chan struct{} {
 		for {
 			select {
 			case <-t.stopCh:
+				t.stopped.Store(true) // TODO@ test
 				return
 			case <-t.timer.Chan():
 				go f()
@@ -54,6 +57,7 @@ func (t *timer) Start(d time.Duration, f func()) chan struct{} {
 		for {
 			select {
 			case <-t.stopCh:
+				t.stopped.Store(true) // TODO@ test
 				return
 			case <-t.timer.Chan():
 				go f()
@@ -70,4 +74,9 @@ func (t *timer) Start(d time.Duration, f func()) chan struct{} {
 func (t *timer) Stop() {
 	t.stopCh <- struct{}{}
 	t.timer.Stop()
+}
+
+// TODO@ test
+func (t *timer) IsStopped() bool {
+	return t.stopped.Load()
 }
