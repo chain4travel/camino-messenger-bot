@@ -63,6 +63,8 @@ func NewServiceRegistry(
 			servicesNames[serviceName] = struct{}{}
 		}
 
+		services = generated.RegisterClientServices(rpcClient.ClientConn, servicesNames)
+
 		logStr += "\n"
 		logger.Info(logStr)
 
@@ -78,8 +80,6 @@ func NewServiceRegistry(
 
 			return nil, errUnsupportedService
 		}
-
-		services = generated.RegisterClientServices(rpcClient.ClientConn, servicesNames)
 	}
 
 	return &serviceRegistry{
