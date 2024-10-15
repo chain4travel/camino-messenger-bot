@@ -26,15 +26,16 @@ var (
 
 type Reader interface {
 	IsDevelopmentMode() bool
-	ReadConfig(logger *zap.SugaredLogger) (*Config, error)
+	ReadConfig() (*Config, error)
 }
 
 // Returns a new config reader.
-func NewConfigReader(flags *pflag.FlagSet) Reader {
+func NewConfigReader(flags *pflag.FlagSet, logger *zap.SugaredLogger) (Reader, error) {
 	return &reader{
-		viper: viper.New(),
-		flags: flags,
-	}
+		viper:  viper.New(),
+		flags:  flags,
+		logger: logger,
+	}, nil
 }
 
 type reader struct {
@@ -47,9 +48,7 @@ func (cr *reader) IsDevelopmentMode() bool {
 	return cr.viper.GetBool(flagKeyDeveloperMode)
 }
 
-func (cr *reader) ReadConfig(logger *zap.SugaredLogger) (*Config, error) {
-	cr.logger = logger
-
+func (cr *reader) ReadConfig() (*Config, error) {
 	cr.viper.SetEnvPrefix(envPrefix)
 	cr.viper.AutomaticEnv()
 	cr.viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))

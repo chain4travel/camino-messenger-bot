@@ -86,7 +86,7 @@ partner_plugin:
 
 
 
-### RPC server (NOT USED FOR SUPPLIER BOT)
+### RPC server (NOT USED FOR SUPPLIER BOT IN THIS VERSION)
 # rpc_server:
 #     enabled: false
 
