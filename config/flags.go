@@ -41,13 +41,13 @@ func Flags() *pflag.FlagSet {
 	flags.String("tracing.key_file", "", "The tracing key file.")
 
 	// Partner plugin config flags
-	flags.Bool("partner_plugin.enabled", false, "Whether the RPC client is enabled or not.")
+	flags.Bool("partner_plugin.enabled", false, "Enable or disable the partner plugin rpc client. It must be enabled if bot's cm account supports at least one service.")
 	flags.String("partner_plugin.host", "localhost:50051", "partner plugin RPC server host.")
 	flags.Bool("partner_plugin.unencrypted", false, "Whether the RPC client should initiate an unencrypted connection with the server.")
 	flags.String("partner_plugin.ca_file", "", "The partner plugin RPC server CA certificate file.")
 
 	// RPC server config flags
-	flags.Bool("rpc_server.enabled", false, "Whether the RPC server is enabled or not.")
+	flags.Bool("rpc_server.enabled", false, "Enable or disable RPC server. It must be enabled if bot is expecting to receive RPC requests (e.g. its distributor bot).")
 	flags.Uint64("rpc_server.port", 9090, "The RPC server port.")
 	flags.Bool("rpc_server.unencrypted", false, "Whether the RPC server should be unencrypted.")
 	flags.String("rpc_server.cert_file", "", "The server certificate file.")

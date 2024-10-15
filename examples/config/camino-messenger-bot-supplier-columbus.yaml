@@ -71,6 +71,7 @@ matrix:
 
 ### Partner Plugin
 partner_plugin:
+    # Enable or disable the partner plugin rpc client. It must be enabled if bot's cm account supports at least one service.
     enabled: true
 
     # Partner Plugin hostname and port, should be reachable from this machine.
@@ -88,6 +89,7 @@ partner_plugin:
 
 ### RPC server (NOT USED FOR SUPPLIER BOT IN THIS VERSION)
 # rpc_server:
+#     # Enable or disable RPC server. It must be enabled if bot is expecting to receive RPC requests (e.g. its distributor bot).
 #     enabled: false
 
 #     # Listen on this port for incoming RPC requests
