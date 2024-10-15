@@ -62,10 +62,11 @@ func TestReadConfig(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			cr := NewConfigReader(tt.flags)
+			cr, err := NewConfigReader(tt.flags, zap.NewNop().Sugar())
+			require.NoError(t, err)
 			tt.prepare(t, cr.(*reader))
 
-			config, err := cr.ReadConfig(zap.NewNop().Sugar())
+			config, err := cr.ReadConfig()
 			require.ErrorIs(t, err, tt.expectedErr)
 
 			require.NoError(t, unsetEnvFromMap(envPrefix, rawMap))

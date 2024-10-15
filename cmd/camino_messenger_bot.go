@@ -28,9 +28,29 @@ var rootCmd = &cobra.Command{
 }
 
 func rootFunc(cmd *cobra.Command, _ []string) error {
-	configReader := config.NewConfigReader(cmd.Flags())
+	configReaderLogger, err := zap.NewProduction()
+	if err != nil {
+		return fmt.Errorf("failed to create config-reader logger: %w", err)
+	}
 
-	var err error
+	sugaredConfigReaderLogger := configReaderLogger.Sugar()
+	defer func() { _ = sugaredConfigReaderLogger.Sync() }()
+
+	configReader, err := config.NewConfigReader(cmd.Flags(), sugaredConfigReaderLogger)
+	if err != nil {
+		return fmt.Errorf("failed to create config reader: %w", err)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	cfg, err := configReader.ReadConfig()
+	if err != nil {
+		return fmt.Errorf("failed to read config: %w", err)
+	}
+
+	_ = sugaredConfigReaderLogger.Sync()
+
 	var zapLogger *zap.Logger
 	if configReader.IsDevelopmentMode() {
 		zapLogger, err = zap.NewDevelopment()
@@ -45,15 +65,6 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	defer func() { _ = logger.Sync() }()
 
 	logger.Infof("App version: %s (git: %s)", Version, GitCommit)
-
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	cfg, err := configReader.ReadConfig(logger)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
 
 	app, err := app.NewApp(ctx, cfg, logger)
 	if err != nil {

@@ -71,6 +71,9 @@ matrix:
 
 ### Partner Plugin
 partner_plugin:
+    # Enable or disable the partner plugin rpc client. It must be enabled if bot's cm account supports at least one service.
+    enabled: true
+
     # Partner Plugin hostname and port, should be reachable from this machine.
     # Bot tries to connect to this host and port to relay messages that it receives from
     # the distributors through Matrix Server
@@ -84,16 +87,19 @@ partner_plugin:
 
 
 
-### RPC server
-rpc_server:
-    # Listen on this port for incoming RPC requests
-    port: 9090
+### RPC server (NOT USED FOR SUPPLIER BOT IN THIS VERSION)
+# rpc_server:
+#     # Enable or disable RPC server. It must be enabled if bot is expecting to receive RPC requests (e.g. its distributor bot).
+#     enabled: false
 
-    # TLS configuration
-    unencrypted: true
+#     # Listen on this port for incoming RPC requests
+#     port: 9090
 
-    cert_file: server-cert.pem
-    key_file: server-key.pem
+#     # TLS configuration
+#     unencrypted: true
+
+#     cert_file: server-cert.pem
+#     key_file: server-key.pem
 
 
 
