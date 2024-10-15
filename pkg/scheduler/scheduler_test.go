@@ -23,7 +23,7 @@ func TestScheduler_Start(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	storage := NewMockStorage(ctrl)
 	epsilon := time.Millisecond
-	timeout := 10000 * time.Millisecond
+	timeout := 10 * time.Millisecond
 
 	earlyJobExecuted := make(chan string)
 	nowJobExecuted := make(chan string)

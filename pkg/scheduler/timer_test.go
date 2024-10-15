@@ -8,11 +8,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO@ update tests after implementation changes
+
 func TestTimer_StartOnce(t *testing.T) {
 	t.Run("function is called after duration", func(t *testing.T) {
 		require := require.New(t)
 		clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
-		timer := newTimer(clock)
+		timer := NewTimer(clock)
 		duration := time.Millisecond
 		timeout := 10 * time.Millisecond
 		epsilon := time.Millisecond
@@ -54,7 +56,7 @@ func TestTimer_StartOnce(t *testing.T) {
 	t.Run("timer is stopped manually", func(t *testing.T) {
 		require := require.New(t)
 		clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
-		timer := newTimer(clock)
+		timer := NewTimer(clock)
 		duration := time.Millisecond
 		timeout := 10 * time.Millisecond
 		epsilon := time.Millisecond
@@ -89,7 +91,7 @@ func TestTimer_StartOnce(t *testing.T) {
 func TestTimer_Start(t *testing.T) {
 	require := require.New(t)
 	clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
-	timer := newTimer(clock)
+	timer := NewTimer(clock)
 
 	duration := time.Millisecond
 	timeout := 10 * time.Millisecond

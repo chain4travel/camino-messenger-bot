@@ -47,7 +47,7 @@ func New(logger *zap.SugaredLogger, storage Storage, clock clockwork.Clock) Sche
 		storage:  storage,
 		logger:   logger,
 		registry: make(map[string]func()),
-		timers:   make(map[string]*timer),
+		timers:   make(map[string]*Timer),
 		clock:    clock,
 	}
 }
@@ -56,9 +56,9 @@ type scheduler struct {
 	logger       *zap.SugaredLogger
 	storage      Storage
 	registry     map[string]func()
-	timers       map[string]*timer
+	timers       map[string]*Timer
 	registryLock sync.RWMutex
-	timersLock   sync.RWMutex
+	timersLock   sync.Mutex
 	clock        clockwork.Clock
 }
 
@@ -102,7 +102,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 			jobHandler()
 		}
 
-		timer := newTimer(s.clock)
+		timer := NewTimer(s.clock)
 		doneCh := timer.StartOnce(timeUntilFirstExecution, handler)
 		go func() {
 			<-doneCh
@@ -116,12 +116,13 @@ func (s *scheduler) Start(ctx context.Context) error {
 }
 
 func (s *scheduler) Stop() error {
-	s.timersLock.RLock()
-	for _, timer := range s.timers {
-		timer.Stop()
+	s.timersLock.Lock()
+	for jobName, timer := range s.timers {
+		timer.Stop() // will block until timer is stopped, but not until the job handler is finished
+		delete(s.timers, jobName)
 	}
-	s.timersLock.RUnlock()
-	// TODO @evlekht await all ongoing job handlers to finish
+	s.timersLock.Unlock()
+	// TODO @evlekht await all ongoing job handlers to finish ?
 	return nil
 }
 
@@ -209,7 +210,7 @@ func (s *scheduler) getJobHandler(jobName string) (func(), error) {
 	return jobHandler, nil
 }
 
-func (s *scheduler) setJobTimer(jobName string, t *timer) {
+func (s *scheduler) setJobTimer(jobName string, t *Timer) {
 	s.timersLock.Lock()
 	s.timers[jobName] = t
 	s.timersLock.Unlock()
