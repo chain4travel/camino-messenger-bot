@@ -49,7 +49,7 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to read config: %w", err)
 	}
 
-	sugaredConfigReaderLogger.Sync()
+	_ = sugaredConfigReaderLogger.Sync()
 
 	var zapLogger *zap.Logger
 	if configReader.IsDevelopmentMode() {
