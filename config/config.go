@@ -49,6 +49,7 @@ type TracingConfig struct {
 }
 
 type PartnerPluginConfig struct {
+	Enabled     bool
 	HostURL     url.URL
 	Unencrypted bool
 	CACertFile  string
@@ -70,6 +71,7 @@ type DBConfig struct {
 }
 
 type RPCServerConfig struct {
+	Enabled        bool   `mapstructure:"enabled"`
 	Port           uint64 `mapstructure:"port"`
 	Unencrypted    bool   `mapstructure:"unencrypted"`
 	ServerCertFile string `mapstructure:"cert_file"`
@@ -115,6 +117,7 @@ type UnparsedTracingConfig struct {
 }
 
 type UnparsedPartnerPluginConfig struct {
+	Enabled     bool   `mapstructure:"enabled"`
 	Host        string `mapstructure:"host"`
 	Unencrypted bool   `mapstructure:"unencrypted"`
 	CACertFile  string `mapstructure:"ca_file"`
@@ -137,6 +140,7 @@ func (cfg *Config) unparse() *UnparsedConfig {
 			KeyFile:  cfg.Tracing.KeyFile,
 		},
 		PartnerPlugin: UnparsedPartnerPluginConfig{
+			Enabled:     cfg.PartnerPlugin.Enabled,
 			Host:        cfg.PartnerPlugin.HostURL.String(),
 			Unencrypted: cfg.PartnerPlugin.Unencrypted,
 			CACertFile:  cfg.PartnerPlugin.CACertFile,

@@ -20,6 +20,10 @@ type RPCClient struct {
 }
 
 func NewClient(cfg config.PartnerPluginConfig, logger *zap.SugaredLogger) (*RPCClient, error) {
+	if !cfg.Enabled {
+		return nil, nil
+	}
+
 	var opts []grpc.DialOption
 	if cfg.Unencrypted {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))

@@ -38,6 +38,10 @@ func NewServer(
 	processor messaging.Processor,
 	serviceRegistry messaging.ServiceRegistry,
 ) (Server, error) {
+	if !cfg.Enabled {
+		return nil, nil
+	}
+
 	var opts []grpc.ServerOption
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")

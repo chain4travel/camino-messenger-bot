@@ -71,6 +71,8 @@ matrix:
 
 ### Partner Plugin (NOT USED FOR DISTRIBUTOR BOT)
 # partner_plugin:
+#     enabled: false
+
 #     # Partner Plugin hostname and port, should be reachable from this machine.
 #     # Bot tries to connect to this host and port to relay messages that it receives from
 #     # the distributors through Matrix Server
@@ -86,6 +88,8 @@ matrix:
 
 ### RPC server
 rpc_server:
+    enabled: true
+    
     # Listen on this port for incoming RPC requests
     port: 9090
 

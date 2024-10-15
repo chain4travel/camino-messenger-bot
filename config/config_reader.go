@@ -131,6 +131,7 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 			KeyFile:  cfg.Tracing.KeyFile,
 		},
 		PartnerPlugin: PartnerPluginConfig{
+			Enabled:     cfg.PartnerPlugin.Enabled,
 			HostURL:     *partnerPluginHost,
 			Unencrypted: cfg.PartnerPlugin.Unencrypted,
 			CACertFile:  cfg.PartnerPlugin.CACertFile,

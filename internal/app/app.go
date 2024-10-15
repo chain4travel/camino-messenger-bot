@@ -63,13 +63,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// partner-plugin rpc client
-	var rpcClient *client.RPCClient
-	if cfg.PartnerPlugin.HostURL.String() != "" {
-		rpcClient, err = client.NewClient(cfg.PartnerPlugin, logger)
-		if err != nil {
-			logger.Errorf("Failed to create rpc client: %v", err)
-			return nil, err
-		}
+	rpcClient, err := client.NewClient(cfg.PartnerPlugin, logger)
+	if err != nil {
+		logger.Errorf("Failed to create rpc client: %v", err)
+		return nil, err
 	}
 
 	// register supported services, check if they actually supported by bot
@@ -84,8 +81,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	if !hasSupportedServices && rpcClient != nil {
-		logger.Warn("Bot doesn't support any services, but has partner plugin rpc client configured")
+	if !hasSupportedServices && cfg.PartnerPlugin.Enabled {
+		logger.Warn("Bot doesn't support any services, but has partner plugin rpc client enabled")
 	}
 
 	// messaging components
@@ -207,10 +204,12 @@ func (a *App) Run(ctx context.Context) error {
 
 	// run
 
-	g.Go(func() error {
-		a.logger.Info("Starting gRPC server...")
-		return a.rpcServer.Start()
-	})
+	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
+		g.Go(func() error {
+			a.logger.Info("Starting gRPC server...")
+			return a.rpcServer.Start()
+		})
+	}
 
 	g.Go(func() error {
 		a.logger.Info("Starting start-up cash-in status check...")
@@ -252,16 +251,20 @@ func (a *App) Run(ctx context.Context) error {
 	// stop
 	// <-gCtx.Done() means that all "run" goroutines are finished
 
-	g.Go(func() error {
-		<-ctx.Done()
-		return a.rpcClient.Shutdown()
-	})
+	if a.rpcClient != nil { // rpcClient will be nil, if its disabled in partner plugin config section
+		g.Go(func() error {
+			<-ctx.Done()
+			return a.rpcClient.Shutdown()
+		})
+	}
 
-	g.Go(func() error {
-		<-ctx.Done()
-		a.rpcServer.Stop()
-		return nil
-	})
+	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
+		g.Go(func() error {
+			<-ctx.Done()
+			a.rpcServer.Stop()
+			return nil
+		})
+	}
 
 	g.Go(func() error {
 		<-ctx.Done()
