@@ -156,6 +156,7 @@ func TestScheduler_Start(t *testing.T) {
 		for _, job := range step.jobs {
 			jobsExecChans = append(jobsExecChans, jobsExecChansMap[job.Name])
 		}
+		// TODO@ sometimes fails, unexpected mock calls. Why?
 
 		requireJobsToBeExecuted(t, clock.Now(), step.jobs, jobsExecChans, timeout)
 
@@ -239,22 +240,6 @@ func requireJobsToBeExecuted(t *testing.T, execTime time.Time, jobs []*Job, exec
 		})
 	}
 }
-
-// func requireJobsNotToBeExecuted(t *testing.T, jobs []*Job, executed []chan string, timeout time.Duration) {
-// 	t.Helper()
-
-// 	require.Len(t, jobs, len(executed))
-
-// 	cases := make([]reflect.SelectCase, len(executed)+1)
-// 	for i, ch := range executed {
-// 		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
-// 	}
-// 	cases[len(executed)] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(time.After(timeout))}
-
-// 	if i, _, _ := reflect.Select(cases); i < len(executed) {
-// 		require.FailNowf(t, "job was executed", jobs[i].Name)
-// 	}
-// }
 
 type dummySession struct{}
 

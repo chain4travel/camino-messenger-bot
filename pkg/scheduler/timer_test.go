@@ -125,6 +125,7 @@ func TestTimer_Start(t *testing.T) {
 		select {
 		case <-callCh:
 		case <-time.After(timeout):
+			// TODO@ sometimes fails. Why?
 			require.FailNow("function was not called within the expected duration")
 		}
 
