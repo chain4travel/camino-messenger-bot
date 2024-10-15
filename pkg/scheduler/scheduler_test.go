@@ -68,7 +68,7 @@ func TestScheduler_Start(t *testing.T) {
 
 	for i := 0; i < numberOfFullCycles+1; i++ {
 		for _, job := range jobs {
-			expectUpdateJobExecutionTime(t, ctx, storage, job, job.ExecuteAt.Add(job.Period*time.Duration(i+1)))
+			expectUpdateJobExecutionTime(ctx, t, storage, job, job.ExecuteAt.Add(job.Period*time.Duration(i+1)))
 		}
 	}
 
@@ -77,24 +77,22 @@ func TestScheduler_Start(t *testing.T) {
 
 	// *** scheduler
 
-	sch, ok := New(zap.NewNop().Sugar(), storage, clock).(*scheduler)
-	require.True(ok)
+	sch := New(zap.NewNop().Sugar(), storage, clock).(*scheduler)
 	sch.RegisterJobHandler(earlyJob.Name, func() {
-		fmt.Printf("%s executed at %d\n", earlyJob.Name, clock.Now().UnixNano())
+		fmt.Printf("%s (%d) executed at %d\n", earlyJob.Name, earlyJob.Period, clock.Now().UnixNano())
 		earlyJobExecuted <- earlyJob.Name + " executed"
 	})
 	sch.RegisterJobHandler(nowJob.Name, func() {
-		fmt.Printf("%s executed at %d\n", nowJob.Name, clock.Now().UnixNano())
+		fmt.Printf("%s (%d) executed at %d\n", nowJob.Name, nowJob.Period, clock.Now().UnixNano())
 		nowJobExecuted <- nowJob.Name + " executed"
 	})
 	sch.RegisterJobHandler(lateJob.Name, func() {
-		fmt.Printf("%s executed at %d\n", lateJob.Name, clock.Now().UnixNano())
+		fmt.Printf("%s (%d) executed at %d\n", lateJob.Name, lateJob.Period, clock.Now().UnixNano())
 		lateJobExecuted <- lateJob.Name + " executed"
 	})
 
 	// *** test initial job execution
 
-	fmt.Printf("Start scheduler\n")
 	require.NoError(sch.Start(ctx))
 	require.Len(sch.timers, len(jobs))
 
@@ -109,9 +107,9 @@ func TestScheduler_Start(t *testing.T) {
 	earlyJob.ExecuteAt = clock.Now().Add(earlyJob.Period)
 	nowJob.ExecuteAt = clock.Now().Add(nowJob.Period)
 
-	fmt.Printf("Advance %d by %d\n", clock.Now().UnixNano(), lateJob.ExecuteAt.Sub(clock.Now()))
+	fmt.Printf("Advance %d by %d", clock.Now().UnixNano(), lateJob.ExecuteAt.Sub(clock.Now()))
 	clock.Advance(lateJob.ExecuteAt.Sub(clock.Now()))
-	fmt.Printf("clock.Now(): %d\n", clock.Now().UnixNano())
+	fmt.Printf(", now is %d\n", clock.Now().UnixNano())
 
 	// late job is executed, early and now jobs are not
 	requireJobsNotToBeExecuted(t,
@@ -124,11 +122,11 @@ func TestScheduler_Start(t *testing.T) {
 
 	// *** test job execution after period
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < numberOfFullCycles; i++ {
 		for jobIndex, job := range jobs {
-			fmt.Printf("Advance %d by %d\n", clock.Now().UnixNano(), job.ExecuteAt.Sub(clock.Now()))
+			fmt.Printf("Advance %d by %d", clock.Now().UnixNano(), job.ExecuteAt.Sub(clock.Now()))
 			clock.Advance(job.ExecuteAt.Sub(clock.Now()))
-			fmt.Printf("clock.Now(): %d\n", clock.Now().UnixNano())
+			fmt.Printf(", now is %d\n", clock.Now().UnixNano())
 			requireJobsNotToBeExecuted(t,
 				excludeFromSlice(jobs, jobIndex),
 				excludeFromSlice(jobsExecChans, jobIndex),
@@ -141,9 +139,41 @@ func TestScheduler_Start(t *testing.T) {
 
 	require.NoError(sch.Stop())
 
-	for _, timer := range sch.timers {
+	for key, timer := range sch.timers {
 		<-timer.stopCh
+		fmt.Printf("Timer %s stopped\n", key)
 	}
+}
+
+func TestScheduler_RegisterJobHandler(t *testing.T) {
+	require := require.New(t)
+	logger := zap.NewNop().Sugar()
+	clock := clockwork.NewFakeClock()
+	ctrl := gomock.NewController(t)
+	storage := NewMockStorage(ctrl)
+	jobExecuted := ""
+	jobName1 := "job1"
+	jobName2 := "job2"
+	jobHandler1 := func() {}
+	jobHandler2 := func() {}
+
+	s := New(logger, storage, clock).(*scheduler)
+
+	require.Empty(s.registry)
+
+	s.RegisterJobHandler(jobName1, jobHandler1)
+	require.Len(s.registry, 1)
+	require.Empty(jobExecuted)
+	s.registry[jobName1]()
+	require.True(jobExecuted1)
+
+	s.RegisterJobHandler(jobName2, jobHandler2)
+	require.Len(s.registry, 2)
+
+	handler, ok := s.registry[jobName]
+	s.registryLock.RUnlock()
+	require.True(t, ok, "job handler should be registered")
+	require.NotNil(t, handler, "job handler should not be nil")
 }
 
 // func TestScheduler_Stop(t *testing.T) {
@@ -236,7 +266,7 @@ func TestScheduler_Start(t *testing.T) {
 // 	// require.Equal(t, time.Minute*30, job.Period)
 // }
 
-func requireJobToBeExecuted(t *testing.T, jobName string, executed chan string, timeout time.Duration) {
+func requireJobToBeExecuted(t *testing.T, jobName string, executed chan string, timeout time.Duration) { //nolint:unparam
 	t.Helper()
 	select {
 	case result := <-executed:
@@ -255,16 +285,12 @@ func requireJobsNotToBeExecuted(t *testing.T, jobs []*Job, executed []chan strin
 	}
 	cases[len(executed)] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(time.After(timeout))}
 
-	i, v, c := reflect.Select(cases)
-	if i < len(executed) {
-		fmt.Printf("select {case i: %d, value: %s, closed: %t}\n", i, v.String(), c)
+	if i, _, _ := reflect.Select(cases); i < len(executed) {
 		require.FailNowf(t, "job was executed", jobs[i].Name)
 	}
-	tv := v.Interface().(time.Time)
-	fmt.Printf("select {case i: %d, value: %d, closed: %t}\n", i, tv.UnixNano()/int64(time.Second), c)
 }
 
-func expectUpdateJobExecutionTime(t *testing.T, ctx context.Context, storage *MockStorage, job *Job, newExecuteAt time.Time) {
+func expectUpdateJobExecutionTime(ctx context.Context, t *testing.T, storage *MockStorage, job *Job, newExecuteAt time.Time) {
 	t.Helper()
 	storageSession := &dummySession{}
 

@@ -108,7 +108,7 @@ func TestTimer_Start(t *testing.T) {
 		callCh <- struct{}{}
 	})
 
-	for i := 0; i < int(maxCallCount); i++ {
+	for i := 0; i < maxCallCount; i++ {
 		require.Equal(lastCallCount, callCount)
 		require.Equal(duration*time.Duration(i), clock.Since(startTime))
 
