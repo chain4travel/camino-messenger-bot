@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -24,6 +25,7 @@ type Service struct {
 	transactOpts     *bind.TransactOpts
 	chainID          *big.Int
 	cmAccountAddress *common.Address
+	TokenCache       *cache.TokenCache
 }
 
 var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
@@ -35,6 +37,7 @@ func NewService(
 	privateKey *ecdsa.PrivateKey,
 	client *ethclient.Client,
 	logger *zap.SugaredLogger,
+	tokenCache *cache.TokenCache,
 ) (*Service, error) {
 	// Get the chain ID to prevent replay attacks
 	chainID, err := client.ChainID(context.Background())

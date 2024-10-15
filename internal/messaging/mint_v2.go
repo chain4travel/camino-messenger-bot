@@ -10,6 +10,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
+	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -17,7 +18,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response protoreflect.ProtoMessage, request protoreflect.ProtoMessage) bool {
+func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response protoreflect.ProtoMessage, request protoreflect.ProtoMessage, tokenCache *cache.TokenCache) bool {
 	mintResp, ok := response.(*bookv2.MintResponse)
 	if !ok {
 		return false
@@ -61,7 +62,7 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 	}
 	mintResp.BuyableUntil = buyableUntil
 
-	price, paymentToken, err := h.getPriceAndTokenV2(ctx, mintResp.Price)
+	price, paymentToken, err := h.getPriceAndTokenV2(ctx, mintResp.Price, tokenCache)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
@@ -123,12 +124,12 @@ func (h *evmResponseHandler) handleMintRequestV2(ctx context.Context, response p
 	return false
 }
 
-func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *typesv2.Price) (*big.Int, common.Address, error) {
+func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *typesv2.Price, tokenCache *cache.TokenCache) (*big.Int, common.Address, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
+	var err error
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		var err error
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
 		if err != nil {
 			return nil, zeroAddress, fmt.Errorf("error minting NFT: %w", err)
@@ -138,15 +139,22 @@ func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *type
 			return nil, zeroAddress, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
 		}
 		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-		token, err := erc20.NewErc20(contractAddress, h.ethClient)
-		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("failed to instantiate ERC20 contract: %w", err)
+		tokenDecimals, found := tokenCache.Get(contractAddress)
+		if !found {
+			// Fetch decimals from the ERC20 contract
+			token, err := erc20.NewErc20(contractAddress, h.ethClient)
+			if err != nil {
+				return nil, zeroAddress, fmt.Errorf("failed to instantiate ERC20 contract: %w", err)
+			}
+			decimals, err := token.Decimals(&bind.CallOpts{Context: ctx})
+			if err != nil {
+				return nil, zeroAddress, fmt.Errorf("failed to fetch token decimals: %w", err)
+			}
+			// Cache decimals
+			tokenCache.Add(contractAddress, int32(decimals))
+			tokenDecimals = int32(decimals)
 		}
-		tokenDecimals, err := token.Decimals(&bind.CallOpts{Context: ctx})
-		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("failed to fetch token decimals: %w", err)
-		}
-		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(tokenDecimals))
+		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
 		if err != nil {
 			return nil, zeroAddress, err
 		}

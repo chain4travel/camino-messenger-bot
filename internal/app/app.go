@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"maunium.net/go/mautrix/id"
@@ -62,6 +63,9 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	// erc20 token cache
+	tokenCache, err := cache.NewTokenCache(20)
+
 	// partner-plugin rpc client
 	var rpcClient *client.RPCClient
 	if cfg.PartnerPlugin.HostURL.String() != "" {
@@ -96,6 +100,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.CMAccountAddress,
 		cfg.BookingTokenAddress,
 		serviceRegistry,
+		tokenCache,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create response handler: %v", err)
