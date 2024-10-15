@@ -70,7 +70,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// register supported services, check if they actually supported by bot
-	serviceRegistry, hasSupportedServices, err := messaging.NewServiceRegistry(
+	serviceRegistry, err := messaging.NewServiceRegistry(
 		cfg.CMAccountAddress,
 		evmClient,
 		logger,
@@ -79,10 +79,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	if err != nil {
 		logger.Errorf("Failed to create service registry: %v", err)
 		return nil, err
-	}
-
-	if !hasSupportedServices && cfg.PartnerPlugin.Enabled {
-		logger.Warn("Bot doesn't support any services, but has partner plugin rpc client enabled")
 	}
 
 	// messaging components

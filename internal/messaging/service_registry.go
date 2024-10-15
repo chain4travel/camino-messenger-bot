@@ -34,51 +34,59 @@ func NewServiceRegistry(
 	evmClient *ethclient.Client,
 	logger *zap.SugaredLogger,
 	rpcClient *client.RPCClient,
-) (ServiceRegistry, bool, error) {
+) (ServiceRegistry, error) {
 	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, evmClient)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to fetch CM account: %w", err)
+		return nil, fmt.Errorf("failed to fetch CM account: %w", err)
 	}
 
 	supportedServices, err := cmAccount.GetSupportedServices(&bind.CallOpts{})
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to fetch Registered services: %w", err)
+		return nil, fmt.Errorf("failed to fetch Registered services: %w", err)
 	}
 
 	hasSupportedServices := len(supportedServices.ServiceNames) > 0
-	if hasSupportedServices && rpcClient == nil {
-		return nil, false, fmt.Errorf("bot supports some services, but doesn't have partner plugin rpc client configured")
-	}
+	partnerPluginClientEnabled := rpcClient != nil
+	var services map[types.MessageType]rpc.Service
 
-	servicesNames := make(map[string]struct{}, len(supportedServices.ServiceNames))
-	logStr := "\nSupported services:\n"
-	for _, serviceName := range supportedServices.ServiceNames {
-		logStr += serviceName + "\n"
-		servicesNames[serviceName] = struct{}{}
-	}
-	logStr += "\n"
-	logger.Info(logStr)
+	switch {
+	case hasSupportedServices && !partnerPluginClientEnabled:
+		return nil, fmt.Errorf("bot supports some services, but doesn't have partner plugin rpc client enabled")
+	case !hasSupportedServices && partnerPluginClientEnabled:
+		logger.Warn("Bot doesn't support any services, but has partner plugin rpc client enabled")
+	case hasSupportedServices && partnerPluginClientEnabled: // register supported services
+		servicesNames := make(map[string]struct{}, len(supportedServices.ServiceNames))
 
-	services := generated.RegisterClientServices(rpcClient.ClientConn, servicesNames)
-
-	if len(servicesNames) > 0 {
-		logger.Error(errUnsupportedService)
-
-		logStr := "\nUnsupported services:\n"
-		for serviceName := range servicesNames {
+		logStr := "\nSupported services:\n"
+		for _, serviceName := range supportedServices.ServiceNames {
 			logStr += serviceName + "\n"
+			servicesNames[serviceName] = struct{}{}
 		}
-		logStr += "\n"
-		logger.Warn(logStr)
 
-		return nil, false, errUnsupportedService
+		logStr += "\n"
+		logger.Info(logStr)
+
+		if len(servicesNames) > 0 {
+			logger.Error(errUnsupportedService)
+
+			logStr := "\nUnsupported services:\n"
+			for serviceName := range servicesNames {
+				logStr += serviceName + "\n"
+			}
+			logStr += "\n"
+			logger.Warn(logStr)
+
+			return nil, errUnsupportedService
+		}
+
+		services = generated.RegisterClientServices(rpcClient.ClientConn, servicesNames)
 	}
 
 	return &serviceRegistry{
 		logger:    logger,
 		services:  services,
 		rpcClient: rpcClient,
-	}, hasSupportedServices, nil
+	}, nil
 }
 
 type serviceRegistry struct {
