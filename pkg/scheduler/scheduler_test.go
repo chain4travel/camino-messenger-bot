@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	reflect "reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -216,6 +217,11 @@ func requireJobsToBeExecuted(t *testing.T, execTime time.Time, jobs []*Job, exec
 
 	require.Len(t, jobs, len(executed))
 
+	notExecutedJobNames := make([]string, len(jobs))
+	for i, job := range jobs {
+		notExecutedJobNames[i] = job.Name
+	}
+
 	for i := 0; i < len(jobs); i++ {
 		cases := make([]reflect.SelectCase, len(executed)+1)
 		for i, ch := range executed {
@@ -224,10 +230,13 @@ func requireJobsToBeExecuted(t *testing.T, execTime time.Time, jobs []*Job, exec
 		cases[len(executed)] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(time.After(timeout))}
 
 		if i, _, _ := reflect.Select(cases); i == len(executed) {
-			require.FailNow(t, "some jobs wasn't executed within timeout")
+			require.FailNowf(t, "some jobs wasn't executed within timeout", "some of %v", notExecutedJobNames)
 		}
 		require.Equal(t, execTime, jobs[i].ExecuteAt, "expected %s (%d) to be executed at %d, but got at %d",
 			jobs[i].Name, jobs[i].Period, jobs[i].ExecuteAt.UnixNano(), execTime.UnixNano())
+		notExecutedJobNames = slices.DeleteFunc(notExecutedJobNames, func(jobName string) bool {
+			return jobs[i].Name == jobName
+		})
 	}
 }
 
