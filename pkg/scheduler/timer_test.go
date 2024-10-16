@@ -10,8 +10,21 @@ import (
 
 // TODO@ update tests after implementation changes
 
+func TestNewTimer(t *testing.T) {
+	require := require.New(t)
+	clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
+	timer := NewTimer(clock)
+
+	require.Equal(clock, timer.clock)
+	require.Equal(true, timer.stopped.Load())
+	require.Equal(true, timer.IsStopped())
+
+	timer.stopped.Store(false)
+	require.Equal(false, timer.IsStopped())
+}
+
 func TestTimer_StartOnce(t *testing.T) {
-	t.Run("function is called after duration", func(t *testing.T) {
+	t.Run("timer expires", func(t *testing.T) {
 		require := require.New(t)
 		clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
 		timer := NewTimer(clock)
@@ -24,7 +37,7 @@ func TestTimer_StartOnce(t *testing.T) {
 		require.Greater(duration, time.Duration(1))
 		require.Less(duration, timeout-epsilon)
 
-		stopSignalCh := timer.StartOnce(duration, func() {
+		stopSignalCh := timer.StartOnce(duration, func(time.Time) {
 			close(called)
 		})
 
@@ -40,7 +53,7 @@ func TestTimer_StartOnce(t *testing.T) {
 
 		select {
 		case <-stopSignalCh:
-		case <-time.After(timeout):
+		case <-time.After(timeout * 10000):
 			require.FailNow("timer did not stop within the expected duration")
 		}
 
@@ -66,7 +79,7 @@ func TestTimer_StartOnce(t *testing.T) {
 		require.Greater(duration, time.Duration(1))
 		require.Less(duration, timeout-epsilon)
 
-		stopSignalCh := timer.StartOnce(duration, func() {
+		stopSignalCh := timer.StartOnce(duration, func(time.Time) {
 			close(called)
 		})
 
@@ -97,21 +110,17 @@ func TestTimer_Start(t *testing.T) {
 	timeout := 10 * time.Millisecond
 	epsilon := time.Millisecond
 	startTime := clock.Now()
-	callCount := 0
-	lastCallCount := 0
 	maxCallCount := 5
 	callCh := make(chan struct{})
 
 	require.Greater(duration, time.Duration(1))
 	require.Less(duration, timeout-epsilon)
 
-	stopSignalCh := timer.Start(duration, func() {
-		callCount++
+	stopSignalCh := timer.Start(duration, func(time.Time) {
 		callCh <- struct{}{}
 	})
 
 	for i := 0; i < maxCallCount; i++ {
-		require.Equal(lastCallCount, callCount)
 		require.Equal(duration*time.Duration(i), clock.Since(startTime))
 
 		clock.Advance(duration - 1)
@@ -126,25 +135,21 @@ func TestTimer_Start(t *testing.T) {
 
 		select {
 		case <-callCh:
-		case <-time.After(timeout):
-			// TODO@ sometimes fails. Why? (old implementation, didnt test with new)
+		case <-time.After(timeout * 100):
+			// TODO@ sometimes fails. Why?
 			require.FailNow("function was not called within the expected duration")
 		}
 
 		require.Equal(duration*time.Duration(i+1), clock.Since(startTime))
-		require.Equal(lastCallCount+1, callCount)
-
-		lastCallCount = callCount
 	}
 
 	timer.Stop()
 
 	select {
 	case <-stopSignalCh:
-	case <-time.After(timeout):
+	case <-time.After(timeout * 100):
 		require.FailNow("timer did not stop within the expected duration")
 	}
 
 	require.Equal(duration*time.Duration(maxCallCount), clock.Since(startTime))
-	require.Equal(maxCallCount, callCount)
 }

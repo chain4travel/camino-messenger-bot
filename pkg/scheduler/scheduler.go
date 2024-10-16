@@ -93,7 +93,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 			timeUntilFirstExecution = job.ExecuteAt.Sub(now)
 		}
 
-		handler := func() {
+		handler := func(time.Time) {
 			// TODO @evlekht panic handling?
 			if err := s.updateJobExecutionTime(ctx, jobName); err != nil {
 				s.logger.Errorf("failed to update job execution time: %v", err)
