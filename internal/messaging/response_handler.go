@@ -97,7 +97,7 @@ type evmResponseHandler struct {
 func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
 	switch msgType {
 	case generated.MintServiceV1Request: // distributor will post-process a mint request to buy the returned NFT
-		if h.handleMintRequestV1(ctx, response, h.tokenCache) {
+		if h.handleMintRequestV1(ctx, response) {
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	case generated.MintServiceV1Response: // supplier will act upon receiving a mint response by minting an NFT

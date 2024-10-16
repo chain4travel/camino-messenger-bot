@@ -91,7 +91,7 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 	return false
 }
 
-func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response protoreflect.ProtoMessage, tokenCache *cache.TokenCache) bool {
+func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response protoreflect.ProtoMessage) bool {
 	mintResp, ok := response.(*bookv1.MintResponse)
 	if !ok {
 		return false
