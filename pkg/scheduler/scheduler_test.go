@@ -48,6 +48,7 @@ func TestScheduler_Start(t *testing.T) {
 		nowJob.Name:   nowJobExecuted,
 		lateJob.Name:  lateJobExecuted,
 	}
+	jobsExecChans := []chan string{earlyJobExecuted, nowJobExecuted, lateJobExecuted}
 
 	// this is needed for correct time-advancement sequence
 
@@ -136,81 +137,41 @@ func TestScheduler_Start(t *testing.T) {
 	require.NoError(sch.Start(ctx))
 	require.Len(sch.timers, len(jobs))
 
+	// test that jobs are executed in correct order and time
+
 	for _, step := range executionSequence {
 		jobNames := make([]string, len(step.jobs))
 		for jobIndex, job := range step.jobs {
 			jobNames[jobIndex] = job.Name
 		}
 
-		advanceDuration := step.time.Sub(clock.Now())
-		clock.Advance(advanceDuration) // first execution step will advance time by 0
+		// advancing time to the next expected execution time
+		clock.Advance(step.time.Sub(clock.Now())) // first execution step will advance time by 0
 		require.Equal(step.time, clock.Now())
 
-		jobsExecuteChans := make([]chan struct{}, len(step.jobs))
-		ctx, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
-
+		jobsExecuteChans := make([]chan string, len(step.jobs))
 		for jobIndex, job := range step.jobs {
-			executeChan := make(chan struct{})
-			jobsExecuteChans[jobIndex] = executeChan
-
-			go func(jobName string) {
-				select {
-				case <-ctx.Done():
-				case <-jobsExecChansMap[jobName]:
-					executeChan <- struct{}{}
-				}
-				close(executeChan)
-			}(job.Name)
+			jobsExecuteChans[jobIndex] = jobsExecChansMap[job.Name]
 		}
 
-		for _, executeChan := range jobsExecuteChans {
-			_, ok := <-executeChan
-			require.True(ok, "some jobs weren't executed within timeout")
-		}
+		_, ok := waitForAllChannels(jobsExecuteChans, timeout)
+		require.True(ok, "some jobs weren't executed within timeout")
 
 		// if its first step for this timers, means that
 		// those timers will be stopped after and replaced with tickers
 		// we need to make sure that tickers are started before advancing time on next step
 		if step.initialTimer {
-			timersRearmChans := make([]chan struct{}, len(step.jobs))
-			ctx, cancel := context.WithTimeout(ctx, timeout)
-			defer cancel()
-
+			conditions := make([]func() bool, len(step.jobs))
 			for jobIndex, job := range step.jobs {
-				rearmChan := make(chan struct{})
-				timersRearmChans[jobIndex] = rearmChan
-
-				// this starts goroutine with ticker that will periodically check if timer was replaced with ticker (rearmed)
-				go func(jobName string) {
-					ticker := time.NewTicker(epsilon)
-					defer ticker.Stop()
-					defer close(rearmChan)
-					for {
-						jobTimer, ok := sch.getJobTimer(jobName)
-						require.True(ok)
-						select {
-						case <-ctx.Done():
-							return
-						case <-ticker.C:
-							if _, ok := jobTimer.(clockwork.Ticker); ok {
-								// sending signal, that timer was rearmed
-								rearmChan <- struct{}{}
-								return
-							}
-						}
-					}
-				}(job.Name)
+				conditions[jobIndex] = func() bool {
+					jobTimer, ok := sch.getJobTimer(job.Name)
+					require.True(ok)
+					_, ok = jobTimer.(clockwork.Ticker)
+					return ok
+				}
 			}
-
-			// this gathers all rearm signals and checks that all timers were rearmed
-			for _, rearmChan := range timersRearmChans {
-				// [ok] true means that channel read returns actual written value
-				// and not zero-value from closed channel
-				// if its false, means that channel was closed before value was written, so timer wasn't rearmed within timeout
-				_, ok := <-rearmChan
-				require.True(ok, "some timers weren't rearmed within timeout")
-			}
+			allTimersRearmed := waitForAllConditions(conditions, epsilon, timeout)
+			require.True(allTimersRearmed, "some timers weren't rearmed within timeout")
 		}
 
 		require.Equal(step.time, clock.Now())
@@ -229,20 +190,8 @@ func TestScheduler_Start(t *testing.T) {
 
 	clock.Advance(maxPeriod)
 
-	selectCases := make([]reflect.SelectCase, len(jobs)+1)
-	for i, job := range jobs {
-		selectCases[i] = reflect.SelectCase{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(jobsExecChansMap[job.Name]),
-		}
-	}
-	selectCases[len(jobs)] = reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(time.After(timeout)),
-	}
-
-	caseIndex, _, _ := reflect.Select(selectCases)
-	require.Equal(len(jobs), caseIndex, "some jobs were executed after scheduler and job timers were stopped")
+	caseIndex, _, _ := waitForOneChannel(jobsExecChans, timeout)
+	require.Equal(-1, caseIndex, "some jobs were executed after scheduler and job timers were stopped")
 }
 
 func TestScheduler_RegisterJobHandler(t *testing.T) {
@@ -361,4 +310,64 @@ func (d *dummySession) Commit() error {
 
 func (d *dummySession) Abort() error {
 	return nil
+}
+
+func waitForOneChannel[T any](chans []chan T, timeout time.Duration) (chanIndex int, receivedValue T, wasClosed bool) {
+	selectCases := make([]reflect.SelectCase, len(chans)+1)
+	for i, ch := range chans {
+		selectCases[i] = reflect.SelectCase{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ch),
+		}
+	}
+	selectCases[len(chans)] = reflect.SelectCase{
+		Dir:  reflect.SelectRecv,
+		Chan: reflect.ValueOf(time.After(timeout)),
+	}
+
+	caseIndex, value, wasClosed := reflect.Select(selectCases)
+	if caseIndex == len(chans) {
+		var zeroValue T
+		return -1, zeroValue, wasClosed
+	}
+	return caseIndex, value.Interface().(T), wasClosed
+}
+
+func waitForAllChannels[T any](chans []chan T, timeout time.Duration) ([]T, bool) {
+	values := make([]T, len(chans))
+	timeoutTimer := time.NewTimer(timeout)
+
+	for i := range chans {
+		select {
+		case <-timeoutTimer.C:
+			return values, false
+		case value := <-chans[i]:
+			values[i] = value
+		}
+	}
+	return values, true
+}
+
+// assumes that each condition will take negligible time
+func waitForAllConditions(conditions []func() bool, checkPeriod, timeout time.Duration) bool {
+	deadline := time.Now().Add(timeout)
+	ticker := time.NewTicker(checkPeriod)
+	defer ticker.Stop()
+
+	for {
+		allTrue := true
+		for _, condition := range conditions {
+			if !condition() {
+				allTrue = false
+				break
+			}
+		}
+		if allTrue {
+			return true
+		}
+		if time.Now().After(deadline) {
+			return false
+		}
+		<-ticker.C
+	}
 }
