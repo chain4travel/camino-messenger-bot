@@ -149,6 +149,7 @@ func TestScheduler_Start(t *testing.T) {
 		clock.Advance(step.time.Sub(clock.Now())) // first execution step will advance time by 0
 		require.Equal(step.time, clock.Now())
 
+		// check that all expected jobs are executed
 		jobsExecuteChans := make([]chan string, len(step.jobs))
 		for jobIndex, job := range step.jobs {
 			jobsExecuteChans[jobIndex] = jobsExecChansMap[job.Name]

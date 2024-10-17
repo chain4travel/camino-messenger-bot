@@ -298,12 +298,10 @@ func TestProcessOutbound(t *testing.T) {
 				},
 			},
 			prepare: func() {
-				mockCMAccounts.EXPECT().GetChequeOperators(gomock.Any(), gomock.Any()).
-					Return([]common.Address{{}}, nil)
-				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(big.NewInt(1), nil)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil)
+				mockCMAccounts.EXPECT().GetChequeOperators(gomock.Any(), gomock.Any()).Return([]common.Address{{}}, nil)
+				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
+				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			err: ErrExceededResponseTimeout,
 		},
@@ -328,6 +326,7 @@ func TestProcessOutbound(t *testing.T) {
 					Return([]common.Address{{}}, nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(big.NewInt(1), nil)
+				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(errSomeError)
 			},
@@ -354,6 +353,7 @@ func TestProcessOutbound(t *testing.T) {
 					Return([]common.Address{{}}, nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(big.NewInt(1), nil)
+				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
