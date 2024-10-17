@@ -102,13 +102,13 @@ func (s *scheduler) Start(ctx context.Context) error {
 			jobHandler()
 		}
 
-		timer := NewTimer(s.clock, job.Name)
+		timer := NewTimer(s.clock)
 		s.setJobTimer(job.Name, timer)
 		doneCh := timer.StartOnce(durationUntilFirstExecution, handler)
 
 		go func() {
 			<-doneCh
-			timer := NewTimer(s.clock, job.Name)
+			timer := NewTimer(s.clock)
 			s.setJobTimer(job.Name, timer)
 			_ = timer.Start(period, handler)
 		}()

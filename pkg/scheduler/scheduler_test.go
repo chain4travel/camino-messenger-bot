@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -106,9 +105,6 @@ func TestScheduler_Start(t *testing.T) {
 				executionSequence[len(executionSequence)-1].jobs = append(executionSequence[len(executionSequence)-1].jobs, currentJob)
 			}
 
-			fmt.Printf("Expecting update for %s (%d): %d -> %d\n",
-				currentJob.Name, currentJob.Period, currentJob.ExecuteAt.UnixNano(), newJob.ExecuteAt.UnixNano())
-
 			storageSession := &dummySession{}
 			storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
 			storage.EXPECT().GetJobByName(ctx, storageSession, currentJob.Name).Return(&currentJob, nil)
@@ -125,15 +121,12 @@ func TestScheduler_Start(t *testing.T) {
 
 	sch := New(zap.NewNop().Sugar(), storage, clock).(*scheduler)
 	sch.RegisterJobHandler(earlyJob.Name, func() {
-		fmt.Printf("%s (goID %d) handler: executed at %d\n", earlyJob.Name, goID(), clock.Now().UnixNano())
 		earlyJobExecuted <- earlyJob.Name + " executed"
 	})
 	sch.RegisterJobHandler(nowJob.Name, func() {
-		fmt.Printf("%s (goID %d) handler: executed at %d\n", nowJob.Name, goID(), clock.Now().UnixNano())
 		nowJobExecuted <- nowJob.Name + " executed"
 	})
 	sch.RegisterJobHandler(lateJob.Name, func() {
-		fmt.Printf("%s (goID %d) handler: executed at %d\n", lateJob.Name, goID(), clock.Now().UnixNano())
 		lateJobExecuted <- lateJob.Name + " executed"
 	})
 
@@ -142,16 +135,13 @@ func TestScheduler_Start(t *testing.T) {
 	require.NoError(sch.Start(ctx))
 	require.Len(sch.timers, len(jobs))
 
-	for stepIndex, step := range executionSequence {
+	for _, step := range executionSequence {
 		jobNames := make([]string, len(step.jobs))
-		for i, job := range step.jobs {
-			jobNames[i] = job.Name
+		for jobIndex, job := range step.jobs {
+			jobNames[jobIndex] = job.Name
 		}
 
 		advanceDuration := step.time.Sub(clock.Now())
-		fmt.Printf("Step %d (%d) %v (goID %d): Advance %d by %d to %d\n",
-			stepIndex, step.time.UnixNano(), jobNames, goID(),
-			clock.Now().UnixNano(), advanceDuration, clock.Now().Add(advanceDuration).UnixNano())
 		clock.Advance(advanceDuration) // first execution step will advance time by 0
 		require.Equal(step.time, clock.Now())
 
@@ -159,15 +149,14 @@ func TestScheduler_Start(t *testing.T) {
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
-		for i, job := range step.jobs {
+		for jobIndex, job := range step.jobs {
 			executeChan := make(chan struct{})
-			jobsExecuteChans[i] = executeChan
+			jobsExecuteChans[jobIndex] = executeChan
 
 			go func(jobName string) {
 				select {
 				case <-ctx.Done():
 				case <-jobsExecChansMap[jobName]:
-					fmt.Printf("Step %d (%d) %v (goID %d): %s executed\n", stepIndex, step.time.UnixNano(), jobNames, goID(), jobName)
 					executeChan <- struct{}{}
 				}
 				close(executeChan)
@@ -184,9 +173,9 @@ func TestScheduler_Start(t *testing.T) {
 			ctx, cancel := context.WithTimeout(ctx, timeout)
 			defer cancel()
 
-			for i, job := range step.jobs {
+			for jobIndex, job := range step.jobs {
 				rearmChan := make(chan struct{})
-				timersRearmChans[i] = rearmChan
+				timersRearmChans[jobIndex] = rearmChan
 
 				go func(jobName string) {
 					defer close(rearmChan)
@@ -198,7 +187,6 @@ func TestScheduler_Start(t *testing.T) {
 							return
 						case <-time.After(epsilon):
 							if timer.IsTicker() {
-								fmt.Printf("Step %d (%d) %v (goID %d): %s timer rearmed\n", stepIndex, step.time.UnixNano(), jobNames, goID(), jobName)
 								rearmChan <- struct{}{}
 								return
 							}
@@ -218,9 +206,8 @@ func TestScheduler_Start(t *testing.T) {
 
 	require.NoError(sch.Stop())
 
-	for key, timer := range sch.timers {
+	for _, timer := range sch.timers {
 		require.True(timer.IsStopped())
-		fmt.Printf("Timer %s is stopped\n", key)
 	}
 }
 

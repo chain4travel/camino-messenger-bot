@@ -1,7 +1,6 @@
 package scheduler
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 func TestNewTimer(t *testing.T) {
 	require := require.New(t)
 	clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
-	timer := NewTimer(clock, "")
+	timer := NewTimer(clock)
 
 	require.Equal(clock, timer.clock)
 	require.Equal(true, timer.stopped.Load())
@@ -28,7 +27,7 @@ func TestTimer_StartOnce(t *testing.T) {
 	t.Run("timer expires", func(t *testing.T) {
 		require := require.New(t)
 		clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
-		timer := NewTimer(clock, "")
+		timer := NewTimer(clock)
 		duration := time.Millisecond
 		timeout := 10 * time.Millisecond
 		epsilon := time.Millisecond
@@ -70,7 +69,7 @@ func TestTimer_StartOnce(t *testing.T) {
 	t.Run("timer is stopped manually", func(t *testing.T) {
 		require := require.New(t)
 		clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
-		timer := NewTimer(clock, "")
+		timer := NewTimer(clock)
 		duration := time.Millisecond
 		timeout := 10 * time.Millisecond
 		epsilon := time.Millisecond
@@ -105,7 +104,7 @@ func TestTimer_StartOnce(t *testing.T) {
 func TestTimer_Start(t *testing.T) {
 	require := require.New(t)
 	clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
-	timer := NewTimer(clock, "")
+	timer := NewTimer(clock)
 
 	duration := time.Millisecond
 	timeout := 10 * time.Millisecond
@@ -118,33 +117,22 @@ func TestTimer_Start(t *testing.T) {
 	require.Less(duration, timeout-epsilon)
 
 	stopCh := timer.Start(duration, func(time.Time) {
-		fmt.Printf("\n\nHandler called, goroutineID %d\n", goID())
 		callCh <- struct{}{}
 	})
 
 	for i := 0; i < maxCallCount; i++ {
 		require.Equal(duration*time.Duration(i), clock.Since(startTime))
 
-		advanceDuration := duration - 1
-		// advanceDuration := startTime.Add(duration*time.Duration(i+1)).Sub(clock.Now()) - 1
-		nextTime := clock.Now().Add(advanceDuration)
-		fmt.Printf("[%d] advancing %d time by %d to %d\n", i, clock.Now().UnixNano(), advanceDuration, nextTime.UnixNano())
-		clock.Advance(advanceDuration)
+		clock.Advance(duration - 1)
 
-		fmt.Printf("[%d] checking that handler isn't called within next %d\n", i, timeout)
 		select {
 		case <-callCh:
 			require.FailNow("function should not have been called before the expected duration", "%d", timeout)
 		case <-time.After(timeout):
 		}
 
-		advanceDuration = 1
-		// advanceDuration = 2
-		nextTime = clock.Now().Add(advanceDuration)
-		fmt.Printf("[%d] advancing %d time by %d to %d\n", i, clock.Now().UnixNano(), advanceDuration, nextTime.UnixNano())
-		clock.Advance(advanceDuration)
+		clock.Advance(1)
 
-		fmt.Printf("[%d] checking that handler is called within next %d\n", i, timeout)
 		select {
 		case <-callCh:
 		case <-time.After(timeout):
