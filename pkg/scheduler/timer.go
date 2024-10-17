@@ -7,6 +7,9 @@ import (
 	"github.com/jonboulle/clockwork"
 )
 
+// TODO@ ? separate into Timer and Ticker types, then add common interface (e.g. Expirer?)
+// TODO@ common interface will be needed by scheduler, so it can store timers and tickers in the same map
+// TODO@ after that IsTicker() can be removed, because test can rely on type-casting
 func NewTimer(clock clockwork.Clock) *Timer {
 	timer := &Timer{
 		clock:    clock,
