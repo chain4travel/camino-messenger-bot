@@ -73,6 +73,22 @@ func (mr *MockServiceMockRecorder) GetChequeOperators(arg0, arg1 any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChequeOperators", reflect.TypeOf((*MockService)(nil).GetChequeOperators), arg0, arg1)
 }
 
+// GetLastCashIn mocks base method.
+func (m *MockService) GetLastCashIn(arg0 context.Context, arg1, arg2, arg3 common.Address) (*big.Int, *big.Int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLastCashIn", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(*big.Int)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetLastCashIn indicates an expected call of GetLastCashIn.
+func (mr *MockServiceMockRecorder) GetLastCashIn(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastCashIn", reflect.TypeOf((*MockService)(nil).GetLastCashIn), arg0, arg1, arg2, arg3)
+}
+
 // GetServiceFee mocks base method.
 func (m *MockService) GetServiceFee(arg0 context.Context, arg1 common.Address, arg2 string) (*big.Int, error) {
 	m.ctrl.T.Helper()
@@ -86,6 +102,21 @@ func (m *MockService) GetServiceFee(arg0 context.Context, arg1 common.Address, a
 func (mr *MockServiceMockRecorder) GetServiceFee(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceFee", reflect.TypeOf((*MockService)(nil).GetServiceFee), arg0, arg1, arg2)
+}
+
+// IsBotAllowed mocks base method.
+func (m *MockService) IsBotAllowed(arg0 context.Context, arg1, arg2 common.Address) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsBotAllowed", arg0, arg1, arg2)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsBotAllowed indicates an expected call of IsBotAllowed.
+func (mr *MockServiceMockRecorder) IsBotAllowed(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBotAllowed", reflect.TypeOf((*MockService)(nil).IsBotAllowed), arg0, arg1, arg2)
 }
 
 // VerifyCheque mocks base method.

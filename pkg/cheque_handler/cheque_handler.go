@@ -13,7 +13,6 @@ import (
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
 )
@@ -414,7 +413,7 @@ func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.H
 	return ch.storage.Commit(session)
 }
 
-func (ch *evmChequeHandler) waitMined(ctx context.Context, txID common.Hash) (*ethTypes.Receipt, error) {
+func (ch *evmChequeHandler) waitMined(ctx context.Context, txID common.Hash) (*types.Receipt, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
