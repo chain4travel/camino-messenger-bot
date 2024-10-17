@@ -42,12 +42,16 @@ type Scheduler interface {
 	RegisterJobHandler(jobName string, jobHandler func())
 }
 
+type Stopper interface {
+	Stop()
+}
+
 func New(logger *zap.SugaredLogger, storage Storage, clock clockwork.Clock) Scheduler {
 	return &scheduler{
 		storage:  storage,
 		logger:   logger,
 		registry: make(map[string]func()),
-		timers:   make(map[string]*Timer),
+		timers:   make(map[string]Stopper),
 		clock:    clock,
 	}
 }
@@ -56,7 +60,7 @@ type scheduler struct {
 	logger       *zap.SugaredLogger
 	storage      Storage
 	registry     map[string]func()
-	timers       map[string]*Timer
+	timers       map[string]Stopper
 	registryLock sync.RWMutex
 	timersLock   sync.RWMutex
 	clock        clockwork.Clock
@@ -93,7 +97,9 @@ func (s *scheduler) Start(ctx context.Context) error {
 			durationUntilFirstExecution = job.ExecuteAt.Sub(now)
 		}
 
-		handler := func(time.Time) {
+		onceDone := make(chan struct{})
+
+		handler := func() {
 			// TODO @evlekht panic handling?
 			if err := s.updateJobExecutionTime(ctx, jobName); err != nil {
 				s.logger.Errorf("failed to update job execution time: %v", err)
@@ -102,15 +108,27 @@ func (s *scheduler) Start(ctx context.Context) error {
 			jobHandler()
 		}
 
-		timer := NewTimer(s.clock)
-		s.setJobTimer(job.Name, timer)
-		doneCh := timer.StartOnce(durationUntilFirstExecution, handler)
+		handlerOnce := func() {
+			handler()
+			close(onceDone)
+		}
+
+		timer := s.clock.AfterFunc(durationUntilFirstExecution, handlerOnce)
+		s.setJobTimer(job.Name, &timerStopper{timer})
 
 		go func() {
-			<-doneCh
-			timer := NewTimer(s.clock)
-			s.setJobTimer(job.Name, timer)
-			_ = timer.Start(period, handler)
+			<-onceDone
+			ticker := s.clock.NewTicker(period)
+			defer ticker.Stop()
+			s.setJobTimer(job.Name, ticker)
+			for {
+				select {
+				case <-ticker.Chan():
+					handler()
+				case <-ctx.Done():
+					return
+				}
+			}
 		}()
 	}
 
@@ -212,15 +230,23 @@ func (s *scheduler) getJobHandler(jobName string) (func(), error) {
 	return jobHandler, nil
 }
 
-func (s *scheduler) setJobTimer(jobName string, t *Timer) {
+func (s *scheduler) setJobTimer(jobName string, t Stopper) {
 	s.timersLock.Lock()
 	s.timers[jobName] = t
 	s.timersLock.Unlock()
 }
 
-func (s *scheduler) getJobTimer(jobName string) (*Timer, bool) {
+func (s *scheduler) getJobTimer(jobName string) (Stopper, bool) {
 	s.timersLock.RLock()
 	timer, ok := s.timers[jobName]
 	s.timersLock.RUnlock()
 	return timer, ok
+}
+
+type timerStopper struct {
+	timer clockwork.Timer
+}
+
+func (t *timerStopper) Stop() {
+	_ = t.timer.Stop()
 }
