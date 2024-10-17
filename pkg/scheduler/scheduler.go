@@ -58,7 +58,7 @@ type scheduler struct {
 	registry     map[string]func()
 	timers       map[string]*Timer
 	registryLock sync.RWMutex
-	timersLock   sync.Mutex
+	timersLock   sync.RWMutex
 	clock        clockwork.Clock
 }
 
@@ -88,9 +88,9 @@ func (s *scheduler) Start(ctx context.Context) error {
 		period := job.Period
 
 		now := s.clock.Now()
-		timeUntilFirstExecution := time.Duration(0)
+		durationUntilFirstExecution := time.Duration(0)
 		if job.ExecuteAt.After(now) {
-			timeUntilFirstExecution = job.ExecuteAt.Sub(now)
+			durationUntilFirstExecution = job.ExecuteAt.Sub(now)
 		}
 
 		handler := func(time.Time) {
@@ -102,14 +102,17 @@ func (s *scheduler) Start(ctx context.Context) error {
 			jobHandler()
 		}
 
-		timer := NewTimer(s.clock)
-		doneCh := timer.StartOnce(timeUntilFirstExecution, handler)
+		timer := NewTimer(s.clock, job.Name)
+		s.setJobTimer(job.Name, timer)
+		doneCh := timer.StartOnce(durationUntilFirstExecution, handler)
+
 		go func() {
 			<-doneCh
+			timer := NewTimer(s.clock, job.Name)
+			s.setJobTimer(job.Name, timer)
 			_ = timer.Start(period, handler)
 		}()
 
-		s.setJobTimer(job.Name, timer)
 	}
 
 	return nil
@@ -214,4 +217,11 @@ func (s *scheduler) setJobTimer(jobName string, t *Timer) {
 	s.timersLock.Lock()
 	s.timers[jobName] = t
 	s.timersLock.Unlock()
+}
+
+func (s *scheduler) getJobTimer(jobName string) (*Timer, bool) {
+	s.timersLock.RLock()
+	timer, ok := s.timers[jobName]
+	s.timersLock.RUnlock()
+	return timer, ok
 }
