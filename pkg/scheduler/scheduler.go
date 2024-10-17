@@ -112,7 +112,6 @@ func (s *scheduler) Start(ctx context.Context) error {
 			s.setJobTimer(job.Name, timer)
 			_ = timer.Start(period, handler)
 		}()
-
 	}
 
 	return nil

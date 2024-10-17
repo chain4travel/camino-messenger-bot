@@ -249,6 +249,76 @@ func TestScheduler_RegisterJobHandler(t *testing.T) {
 	checkJobHandlerRegistered(sch, jobName2)
 }
 
+func TestScheduler_Schedule(t *testing.T) {
+	type testCase struct {
+		storage     func(context.Context, *gomock.Controller, clockwork.Clock, *testCase) Storage
+		existingJob *Job
+		jobName     string
+		period      time.Duration
+		expectedErr error
+	}
+
+	tests := map[string]testCase{
+		"OK: New job": {
+			storage: func(ctx context.Context, ctrl *gomock.Controller, clock clockwork.Clock, tt *testCase) Storage {
+				storage := NewMockStorage(ctrl)
+				storageSession := &dummySession{}
+				storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
+				storage.EXPECT().GetJobByName(ctx, storageSession, tt.jobName).Return(nil, ErrNotFound)
+				storage.EXPECT().UpsertJob(ctx, storageSession, &Job{
+					Name:      tt.jobName,
+					ExecuteAt: clock.Now().Add(tt.period),
+					Period:    tt.period,
+				}).Return(nil)
+				storage.EXPECT().Commit(storageSession).Return(nil)
+				storage.EXPECT().Abort(storageSession)
+				return storage
+			},
+			jobName: "new_job",
+			period:  10 * time.Second,
+		},
+		"OK: Existing job": {
+			storage: func(ctx context.Context, ctrl *gomock.Controller, clock clockwork.Clock, tt *testCase) Storage {
+				storage := NewMockStorage(ctrl)
+				storageSession := &dummySession{}
+				storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
+				storage.EXPECT().GetJobByName(ctx, storageSession, tt.jobName).Return(tt.existingJob, nil)
+				storage.EXPECT().UpsertJob(ctx, storageSession, &Job{
+					Name:      tt.jobName,
+					ExecuteAt: tt.existingJob.ExecuteAt,
+					Period:    tt.period,
+				}).Return(nil)
+				storage.EXPECT().Commit(storageSession).Return(nil)
+				storage.EXPECT().Abort(storageSession)
+				return storage
+			},
+			existingJob: &Job{
+				Name:      "existing_job",
+				ExecuteAt: time.Now(),
+				Period:    10 * time.Second,
+			},
+			jobName: "existing_job",
+			period:  15 * time.Second,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			clock := clockwork.NewFakeClock()
+
+			sch := New(
+				zap.NewNop().Sugar(),
+				tt.storage(ctx, gomock.NewController(t), clock, &tt),
+				clock,
+			).(*scheduler)
+
+			err := sch.Schedule(ctx, tt.period, tt.jobName)
+			require.ErrorIs(t, err, tt.expectedErr)
+		})
+	}
+}
+
 type dummySession struct{}
 
 func (d *dummySession) Commit() error {
