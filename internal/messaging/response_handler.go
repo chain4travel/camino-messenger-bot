@@ -58,7 +58,7 @@ func NewResponseHandler(
 	serviceRegistry ServiceRegistry,
 	tokenCache *cache.TokenCache,
 ) (ResponseHandler, error) {
-	bookingService, err := booking.NewService(&cmAccountAddress, botKey, ethClient, logger, tokenCache)
+	bookingService, err := booking.NewService(&cmAccountAddress, botKey, ethClient, logger)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err
