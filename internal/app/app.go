@@ -65,6 +65,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// erc20 token cache
 	tokenCache, err := cache.NewTokenCache(20)
+	if err != nil {
+		logger.Errorf("Failed to create token cache: %v", err)
+		return nil, err
+	}
 
 	// partner-plugin rpc client
 	var rpcClient *client.RPCClient

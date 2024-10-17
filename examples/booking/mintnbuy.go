@@ -18,7 +18,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
 
@@ -38,10 +37,6 @@ func main() {
 	}
 	defer logger.Sync()
 	sugar := logger.Sugar()
-
-	// initiate token cache
-	// erc20 token cache
-	tokenCache, err := cache.NewTokenCache(20)
 
 	sugar.Info("Starting Mint & Buy Example...")
 
@@ -75,7 +70,7 @@ func main() {
 	}
 
 	sugar.Info("Creating Booking Service...")
-	bs, err := booking.NewService(&cmAccountAddr, pk, client, sugar, tokenCache)
+	bs, err := booking.NewService(&cmAccountAddr, pk, client, sugar)
 	if err != nil {
 		sugar.Fatalf("Failed to create Booking Service: %v", err)
 	}

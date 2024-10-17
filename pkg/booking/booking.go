@@ -37,7 +37,6 @@ func NewService(
 	privateKey *ecdsa.PrivateKey,
 	client *ethclient.Client,
 	logger *zap.SugaredLogger,
-	tokenCache *cache.TokenCache,
 ) (*Service, error) {
 	// Get the chain ID to prevent replay attacks
 	chainID, err := client.ChainID(context.Background())
