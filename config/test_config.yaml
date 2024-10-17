@@ -6,8 +6,7 @@ cheque_expiration_time: 18144000
 cm_account_address: 0xe55E387F5474a012D1b048155E25ea78C7DBfBBC
 db:
     migrations_path: file://./migrations
-    name: camino_messenger_bot
-    path: supplier-bot.db
+    path: supplier-bot-db
 developer_mode: true
 matrix:
     host: messenger.chain4travel.com

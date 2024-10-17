@@ -29,8 +29,7 @@ func Flags() *pflag.FlagSet {
 	flags.Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
 
 	// DB config flags
-	flags.String("db.name", "camino_messenger_bot", "Database name.")
-	flags.String("db.path", "cmb.db", "Path to database.")
+	flags.String("db.path", "cmb-db", "Path to database dir.")
 	flags.String("db.migrations_path", "file://./migrations", "Path to migration scripts.")
 
 	// Tracing config flags

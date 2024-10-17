@@ -13,16 +13,21 @@ then
   go install -v go.uber.org/mock/mockgen@v0.4.0
 fi
 
-# tuples of (source interface import path, comma-separated interface names, output file path)
+# tuples of (source interface import path, comma-separated interface names, output file path) with optional 4th argument for package name
 input="scripts/mocks.mockgen.txt"
 while IFS= read -r line
 do
-  IFS='=' read src_import_path interface_name output_path <<< "${line}"
-  package_name=$(basename "$(dirname $output_path)")
+  IFS='=' read src_import_path interface_name output_path package_name <<< "${line}"
+  # If package_name is not provided, use the basename of the directory containing the output file
+  if [[ -z "$package_name" ]]; then
+    package_name=$(basename "$(dirname "$output_path")")
+  fi
+
   [[ $src_import_path == \#* ]] && continue
   echo "Generating ${output_path}..."
   mockgen -package=${package_name} -destination=${output_path} ${src_import_path} ${interface_name}
 done < "$input"
+
 
 # tuples of (source import path, comma-separated interface names to exclude, output file path)
 input="scripts/mocks.mockgen.source.txt"

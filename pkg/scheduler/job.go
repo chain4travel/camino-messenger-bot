@@ -1,4 +1,4 @@
-package models
+package scheduler
 
 import "time"
 
