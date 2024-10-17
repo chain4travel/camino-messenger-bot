@@ -17,8 +17,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
-	chequeHandler "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
-	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler/storage/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
+	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/pkg/chequehandler/storage/sqlite"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
@@ -116,7 +116,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	chequeHandler, err := chequeHandler.NewChequeHandler(
+	chequeHandler, err := chequehandler.NewChequeHandler(
 		logger,
 		evmClient,
 		cfg.BotKey,
@@ -198,7 +198,7 @@ type App struct {
 	logger           *zap.SugaredLogger
 	tracer           tracing.Tracer
 	scheduler        scheduler.Scheduler
-	chequeHandler    chequeHandler.ChequeHandler
+	chequeHandler    chequehandler.ChequeHandler
 	rpcClient        *client.RPCClient
 	rpcServer        server.Server
 	messageProcessor messaging.Processor

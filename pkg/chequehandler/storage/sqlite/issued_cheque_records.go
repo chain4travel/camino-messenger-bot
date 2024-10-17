@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"math/big"
 
-	chequeHandler "github.com/chain4travel/camino-messenger-bot/pkg/cheque_handler"
+	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )
 
 const issuedChequeRecordsTableName = "issued_cheque_records"
 
-var _ chequeHandler.ChequeRecordsStorage = (*storage)(nil)
+var _ chequehandler.ChequeRecordsStorage = (*storage)(nil)
 
 type issuedChequeRecord struct {
 	ChequeRecordID common.Hash `db:"cheque_record_id"`
@@ -22,7 +22,7 @@ type issuedChequeRecord struct {
 	Amount         []byte      `db:"amount"`
 }
 
-func (s *storage) GetIssuedChequeRecord(ctx context.Context, session chequeHandler.Session, chequeRecordID common.Hash) (*chequeHandler.IssuedChequeRecord, error) {
+func (s *storage) GetIssuedChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecordID common.Hash) (*chequehandler.IssuedChequeRecord, error) {
 	tx, err := getSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
@@ -39,7 +39,7 @@ func (s *storage) GetIssuedChequeRecord(ctx context.Context, session chequeHandl
 	return modelFromIssuedChequeRecord(chequeRecord), nil
 }
 
-func (s *storage) UpsertIssuedChequeRecord(ctx context.Context, session chequeHandler.Session, chequeRecord *chequeHandler.IssuedChequeRecord) error {
+func (s *storage) UpsertIssuedChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecord *chequehandler.IssuedChequeRecord) error {
 	tx, err := getSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
@@ -101,15 +101,15 @@ func (s *storage) prepareIssuedChequeRecordsStmts(ctx context.Context) error {
 	return nil
 }
 
-func modelFromIssuedChequeRecord(chequeRecord *issuedChequeRecord) *chequeHandler.IssuedChequeRecord {
-	return &chequeHandler.IssuedChequeRecord{
+func modelFromIssuedChequeRecord(chequeRecord *issuedChequeRecord) *chequehandler.IssuedChequeRecord {
+	return &chequehandler.IssuedChequeRecord{
 		ChequeRecordID: chequeRecord.ChequeRecordID,
 		Counter:        big.NewInt(0).SetBytes(chequeRecord.Counter),
 		Amount:         big.NewInt(0).SetBytes(chequeRecord.Amount),
 	}
 }
 
-func issuedChequeRecordFromModel(model *chequeHandler.IssuedChequeRecord) *issuedChequeRecord {
+func issuedChequeRecordFromModel(model *chequehandler.IssuedChequeRecord) *issuedChequeRecord {
 	return &issuedChequeRecord{
 		ChequeRecordID: model.ChequeRecordID,
 		Counter:        model.Counter.Bytes(),
