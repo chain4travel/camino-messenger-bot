@@ -8,17 +8,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO@ update tests after implementation changes
-
 func TestNewTimer(t *testing.T) {
 	require := require.New(t)
 	clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
 	timer := NewTimer(clock)
 
 	require.Equal(clock, timer.clock)
-	require.Equal(true, timer.stopped.Load())
-	require.Equal(true, timer.IsStopped())
 
+	require.Equal(false, timer.IsTicker())
+	timer.isTicker.Store(true)
+	require.Equal(true, timer.IsTicker())
+
+	require.Equal(true, timer.IsStopped())
 	timer.stopped.Store(false)
 	require.Equal(false, timer.IsStopped())
 }
@@ -40,6 +41,8 @@ func TestTimer_StartOnce(t *testing.T) {
 		stopSignalCh := timer.StartOnce(duration, func(time.Time) {
 			close(called)
 		})
+
+		require.False(timer.IsTicker())
 
 		clock.Advance(duration - 1)
 
@@ -63,6 +66,7 @@ func TestTimer_StartOnce(t *testing.T) {
 			require.FailNow("function was not called within the expected duration")
 		}
 
+		require.False(timer.IsTicker())
 		require.Equal(clock.Since(startTime), duration)
 	})
 
@@ -73,15 +77,17 @@ func TestTimer_StartOnce(t *testing.T) {
 		duration := time.Millisecond
 		timeout := 10 * time.Millisecond
 		epsilon := time.Millisecond
-		called := make(chan struct{})
+		callCh := make(chan struct{})
 		startTime := clock.Now()
 
 		require.Greater(duration, time.Duration(1))
 		require.Less(duration, timeout-epsilon)
 
 		stopSignalCh := timer.StartOnce(duration, func(time.Time) {
-			close(called)
+			close(callCh)
 		})
+
+		require.False(timer.IsTicker())
 
 		runDuration := duration - 1
 		clock.Advance(runDuration)
@@ -90,14 +96,18 @@ func TestTimer_StartOnce(t *testing.T) {
 
 		select {
 		case <-stopSignalCh:
-		case <-called:
-			require.FailNow("function should not have been called after timer was stopped")
 		case <-time.After(timeout):
 			require.FailNow("timer did not stop within the expected duration")
 		}
 
+		require.False(timer.IsTicker())
 		require.Equal(clock.Since(startTime), runDuration)
-		close(called) // ensure the function is not called after the timer is stopped
+
+		select {
+		case <-callCh:
+			require.FailNow("function should not have been called after timer was stopped")
+		case <-time.After(timeout):
+		}
 	})
 }
 
@@ -119,6 +129,8 @@ func TestTimer_Start(t *testing.T) {
 	stopCh := timer.Start(duration, func(time.Time) {
 		callCh <- struct{}{}
 	})
+
+	require.True(timer.IsTicker())
 
 	for i := 0; i < maxCallCount; i++ {
 		require.Equal(duration*time.Duration(i), clock.Since(startTime))
@@ -150,5 +162,12 @@ func TestTimer_Start(t *testing.T) {
 		require.FailNow("timer did not stop within the expected duration")
 	}
 
+	require.True(timer.IsTicker())
 	require.Equal(duration*time.Duration(maxCallCount), clock.Since(startTime))
+
+	select {
+	case <-callCh:
+		require.FailNow("function should not have been called after timer was stopped")
+	case <-time.After(timeout):
+	}
 }
