@@ -187,7 +187,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
-	isBotAllowed, err := p.chequeHandler.IsAllowedToIssueCheque(ctx, p.myBotAddress)
+	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.myBotAddress)
 	if err != nil {
 		return nil, err
 	}

@@ -38,6 +38,19 @@ type Service interface {
 		cmAccountAddress common.Address,
 		serviceFullName string,
 	) (*big.Int, error)
+
+	IsBotAllowed(
+		ctx context.Context,
+		cmAccountAddress common.Address,
+		botAddress common.Address,
+	) (bool, error)
+
+	GetLastCashIn(
+		ctx context.Context,
+		cmAccountAddress common.Address,
+		fromBot common.Address,
+		toBot common.Address,
+	) (counter *big.Int, amount *big.Int, err error)
 }
 
 func NewService(
@@ -177,6 +190,48 @@ func (s *service) GetServiceFee(
 		return nil, fmt.Errorf("failed to get service fee: %w", err)
 	}
 	return serviceFee, nil
+}
+
+func (s *service) IsBotAllowed(
+	ctx context.Context,
+	cmAccountAddress common.Address,
+	botAddress common.Address,
+) (bool, error) {
+	cmAccount, err := s.cmAccount(cmAccountAddress)
+	if err != nil {
+		return false, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+	}
+
+	isBotAllowed, err := cmAccount.IsBotAllowed(
+		&bind.CallOpts{Context: ctx},
+		botAddress,
+	)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if bot is allowed: %w", err)
+	}
+	return isBotAllowed, nil
+}
+
+func (s *service) GetLastCashIn(
+	ctx context.Context,
+	cmAccountAddress common.Address,
+	fromBot common.Address,
+	toBot common.Address,
+) (counter *big.Int, amount *big.Int, err error) {
+	cmAccount, err := s.cmAccount(cmAccountAddress)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+	}
+
+	lastCashIn, err := cmAccount.GetLastCashIn(
+		&bind.CallOpts{Context: ctx},
+		fromBot,
+		toBot,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
+	}
+	return lastCashIn.LastCounter, lastCashIn.LastAmount, nil
 }
 
 func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount, error) {

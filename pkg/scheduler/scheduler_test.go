@@ -178,15 +178,17 @@ func TestScheduler_Start(t *testing.T) {
 				timersRearmChans[jobIndex] = rearmChan
 
 				go func(jobName string) {
+					ticker := time.NewTicker(epsilon)
+					defer ticker.Stop()
 					defer close(rearmChan)
 					for {
-						timer, ok := sch.getJobTimer(jobName)
+						jobTimer, ok := sch.getJobTimer(jobName)
 						require.True(ok)
 						select {
 						case <-ctx.Done():
 							return
-						case <-time.After(epsilon):
-							if timer.IsTicker() {
+						case <-ticker.C:
+							if jobTimer.IsTicker() {
 								rearmChan <- struct{}{}
 								return
 							}

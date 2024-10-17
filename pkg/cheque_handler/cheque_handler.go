@@ -11,12 +11,10 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 )
 
@@ -57,6 +55,10 @@ type Session interface {
 	Abort() error
 }
 
+type TxReceiptGetter interface {
+	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
+}
+
 type ChequeHandler interface {
 	IssueCheque(
 		ctx context.Context,
@@ -65,8 +67,6 @@ type ChequeHandler interface {
 		toBot common.Address,
 		amount *big.Int,
 	) (*cheques.SignedCheque, error)
-
-	IsAllowedToIssueCheque(ctx context.Context, fromBot common.Address) (bool, error)
 
 	CashIn(ctx context.Context) error
 
@@ -82,7 +82,7 @@ type ChequeHandler interface {
 
 func NewChequeHandler(
 	logger *zap.SugaredLogger,
-	ethClient *ethclient.Client,
+	ethClient TxReceiptGetter,
 	botKey *ecdsa.PrivateKey,
 	cmAccountAddress common.Address,
 	chainID *big.Int,
@@ -92,20 +92,14 @@ func NewChequeHandler(
 	chequeExpirationTime *big.Int,
 	cashInTxIssueTimeout time.Duration,
 ) (ChequeHandler, error) {
-	cmAccountInstance, err := cmaccount.NewCmaccount(cmAccountAddress, ethClient)
-	if err != nil {
-		return nil, fmt.Errorf("failed to instantiate contract binding: %w", err)
-	}
-
 	signer, err := cheques.NewSigner(botKey, chainID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create signer: %w", err)
 	}
 
 	return &evmChequeHandler{
-		ethClient:                        ethClient,
+		txReceiptGetter:                  ethClient,
 		cmAccountAddress:                 cmAccountAddress,
-		cmAccountInstance:                cmAccountInstance,
 		chainID:                          chainID,
 		botKey:                           botKey,
 		botAddress:                       crypto.PubkeyToAddress(botKey.PublicKey),
@@ -123,9 +117,8 @@ type evmChequeHandler struct {
 	logger *zap.SugaredLogger
 
 	chainID                          *big.Int
-	ethClient                        *ethclient.Client
+	txReceiptGetter                  TxReceiptGetter
 	cmAccountAddress                 common.Address
-	cmAccountInstance                *cmaccount.Cmaccount
 	botKey                           *ecdsa.PrivateKey
 	botAddress                       common.Address
 	signer                           cheques.Signer
@@ -184,7 +177,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		ch.logger.Errorf("failed to verify cheque with smart contract: %v", err)
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 	} else if !isChequeValid {
-		lastCounter, lastAmount, err := ch.getLastCashIn(ctx, toBot)
+		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot)
 		if err != nil {
 			ch.logger.Errorf("failed to get last cash in: %v", err)
 			return nil, fmt.Errorf("failed to get last cash in: %w", err)
@@ -218,15 +211,6 @@ func (ch *evmChequeHandler) IssueCheque(
 	}
 
 	return signedCheque, nil
-}
-
-func (ch *evmChequeHandler) IsAllowedToIssueCheque(ctx context.Context, fromBot common.Address) (bool, error) {
-	isAllowed, err := ch.cmAccountInstance.IsBotAllowed(&bind.CallOpts{Context: ctx}, fromBot)
-	if err != nil {
-		return false, fmt.Errorf("failed to check if bot has required permissions: %w", err)
-	}
-
-	return isAllowed, nil
 }
 
 func (ch *evmChequeHandler) VerifyCheque(
@@ -397,7 +381,7 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 
 func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.Hash) error {
 	// TODO @evlekht timeout? what to do if timeouted?
-	res, err := waitMined(ctx, ch.ethClient, txID)
+	res, err := ch.waitMined(ctx, txID)
 	if err != nil {
 		ch.logger.Errorf("failed to get cash in transaction receipt %s: %v", txID, err)
 		return err
@@ -430,24 +414,12 @@ func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.H
 	return ch.storage.Commit(session)
 }
 
-func (ch *evmChequeHandler) getLastCashIn(ctx context.Context, toBot common.Address) (counter *big.Int, amount *big.Int, err error) {
-	lastCashIn, err := ch.cmAccountInstance.GetLastCashIn(
-		&bind.CallOpts{Context: ctx},
-		ch.botAddress,
-		toBot,
-	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
-	}
-	return lastCashIn.LastCounter, lastCashIn.LastAmount, nil
-}
-
-func waitMined(ctx context.Context, b bind.DeployBackend, txID common.Hash) (*ethTypes.Receipt, error) {
+func (ch *evmChequeHandler) waitMined(ctx context.Context, txID common.Hash) (*ethTypes.Receipt, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
 	for {
-		receipt, err := b.TransactionReceipt(ctx, txID)
+		receipt, err := ch.txReceiptGetter.TransactionReceipt(ctx, txID)
 		if err == nil {
 			return receipt, nil
 		}
