@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	reflect "reflect"
 	"testing"
 	"time"
 
@@ -168,6 +169,9 @@ func TestScheduler_Start(t *testing.T) {
 			require.True(ok, "some jobs weren't executed within timeout")
 		}
 
+		// if its first step for this timers, means that
+		// those timers will be stopped after and replaced with tickers
+		// we need to make sure that tickers are started before advancing time on next step
 		if step.initialTimer {
 			timersRearmChans := make([]chan struct{}, len(step.jobs))
 			ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -177,6 +181,7 @@ func TestScheduler_Start(t *testing.T) {
 				rearmChan := make(chan struct{})
 				timersRearmChans[jobIndex] = rearmChan
 
+				// this starts goroutine with ticker that will periodically check if timer was replaced with ticker (rearmed)
 				go func(jobName string) {
 					ticker := time.NewTicker(epsilon)
 					defer ticker.Stop()
@@ -189,6 +194,7 @@ func TestScheduler_Start(t *testing.T) {
 							return
 						case <-ticker.C:
 							if _, ok := jobTimer.(clockwork.Ticker); ok {
+								// sending signal, that timer was rearmed
 								rearmChan <- struct{}{}
 								return
 							}
@@ -197,7 +203,11 @@ func TestScheduler_Start(t *testing.T) {
 				}(job.Name)
 			}
 
+			// this gathers all rearm signals and checks that all timers were rearmed
 			for _, rearmChan := range timersRearmChans {
+				// [ok] true means that channel read returns actual written value
+				// and not zero-value from closed channel
+				// if its false, means that channel was closed before value was written, so timer wasn't rearmed within timeout
 				_, ok := <-rearmChan
 				require.True(ok, "some timers weren't rearmed within timeout")
 			}
@@ -208,9 +218,31 @@ func TestScheduler_Start(t *testing.T) {
 
 	require.NoError(sch.Stop())
 
-	// for _, timer := range sch.timers {
-	// TODO@ advance time by period, wait for timeout for nothing to happen - means timer closed and handler wasn't called
-	// }
+	// checking, that all timers were stopped
+
+	maxPeriod := time.Duration(0)
+	for _, job := range jobs {
+		if job.Period > maxPeriod {
+			maxPeriod = job.Period
+		}
+	}
+
+	clock.Advance(maxPeriod)
+
+	selectCases := make([]reflect.SelectCase, len(jobs)+1)
+	for i, job := range jobs {
+		selectCases[i] = reflect.SelectCase{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(jobsExecChansMap[job.Name]),
+		}
+	}
+	selectCases[len(jobs)] = reflect.SelectCase{
+		Dir:  reflect.SelectRecv,
+		Chan: reflect.ValueOf(time.After(timeout)),
+	}
+
+	caseIndex, _, _ := reflect.Select(selectCases)
+	require.Equal(len(jobs), caseIndex, "some jobs were executed after scheduler and job timers were stopped")
 }
 
 func TestScheduler_RegisterJobHandler(t *testing.T) {

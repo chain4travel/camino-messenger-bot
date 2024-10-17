@@ -61,6 +61,7 @@ type scheduler struct {
 	storage      Storage
 	registry     map[string]func()
 	timers       map[string]Stopper
+	stopTimers   func()
 	registryLock sync.RWMutex
 	timersLock   sync.RWMutex
 	clock        clockwork.Clock
@@ -80,6 +81,9 @@ func (s *scheduler) Start(ctx context.Context) error {
 		s.logger.Errorf("failed to get all jobs: %v", err)
 		return err
 	}
+
+	timersCtx, cancel := context.WithCancel(ctx)
+	s.stopTimers = cancel
 
 	for _, job := range jobs {
 		jobHandler, err := s.getJobHandler(job.Name)
@@ -108,12 +112,10 @@ func (s *scheduler) Start(ctx context.Context) error {
 			jobHandler()
 		}
 
-		handlerOnce := func() {
+		timer := s.clock.AfterFunc(durationUntilFirstExecution, func() {
 			handler()
 			close(onceDone)
-		}
-
-		timer := s.clock.AfterFunc(durationUntilFirstExecution, handlerOnce)
+		})
 		s.setJobTimer(job.Name, &timerStopper{timer})
 
 		go func() {
@@ -125,7 +127,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 				select {
 				case <-ticker.Chan():
 					handler()
-				case <-ctx.Done():
+				case <-timersCtx.Done():
 					return
 				}
 			}
@@ -136,9 +138,9 @@ func (s *scheduler) Start(ctx context.Context) error {
 }
 
 func (s *scheduler) Stop() error {
+	s.stopTimers()
 	s.timersLock.Lock()
-	for jobName, timer := range s.timers {
-		timer.Stop() // will block until timer is stopped, but not until the job handler is finished
+	for jobName := range s.timers {
 		delete(s.timers, jobName)
 	}
 	s.timersLock.Unlock()
