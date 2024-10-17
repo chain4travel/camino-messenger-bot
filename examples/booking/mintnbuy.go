@@ -18,6 +18,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
 
@@ -37,6 +38,10 @@ func main() {
 	}
 	defer logger.Sync()
 	sugar := logger.Sugar()
+
+	// initiate token cache
+	// erc20 token cache
+	tokenCache, err := cache.NewTokenCache(20)
 
 	sugar.Info("Starting Mint & Buy Example...")
 
@@ -70,7 +75,7 @@ func main() {
 	}
 
 	sugar.Info("Creating Booking Service...")
-	bs, err := booking.NewService(cmAccountAddr, pk, client, sugar)
+	bs, err := booking.NewService(&cmAccountAddr, pk, client, sugar, tokenCache)
 	if err != nil {
 		sugar.Fatalf("Failed to create Booking Service: %v", err)
 	}
@@ -168,13 +173,9 @@ func main() {
 	sugar.Infof("%v %v %v %v", priceEUR, priceEURSH, priceBTC, priceCAM)
 	sugar.Infof("%v", price)
 
-	// bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceEURSH, int32(5))
-	// bigIntPrice, _ = bs.ConvertPriceToBigInt(*priceCAM, int32(18))
-
 	paymentToken = zeroAddress
 	bigIntPrice = big.NewInt(0)
 	// price = priceEURSH
-	// price = priceBTC // case of unsupported token?
 	price = priceCAM
 
 	switch currency := price.Currency.Currency.(type) {
