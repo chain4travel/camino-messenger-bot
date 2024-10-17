@@ -278,7 +278,7 @@ func TestScheduler_Schedule(t *testing.T) {
 			period:  10 * time.Second,
 		},
 		"OK: Existing job": {
-			storage: func(ctx context.Context, ctrl *gomock.Controller, clock clockwork.Clock, tt *testCase) Storage {
+			storage: func(ctx context.Context, ctrl *gomock.Controller, _ clockwork.Clock, tt *testCase) Storage {
 				storage := NewMockStorage(ctrl)
 				storageSession := &dummySession{}
 				storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
