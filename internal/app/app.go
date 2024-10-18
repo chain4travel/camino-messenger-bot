@@ -3,9 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/jonboulle/clockwork"
@@ -63,6 +63,13 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	// erc20 token cache
+	tokenCache, err := cache.NewTokenCache(20)
+	if err != nil {
+		logger.Errorf("Failed to create token cache: %v", err)
+		return nil, err
+	}
+
 	// partner-plugin rpc client
 	rpcClient, err := client.NewClient(cfg.PartnerPlugin, logger)
 	if err != nil {
@@ -90,6 +97,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.CMAccountAddress,
 		cfg.BookingTokenAddress,
 		serviceRegistry,
+		tokenCache,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create response handler: %v", err)

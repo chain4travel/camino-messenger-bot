@@ -7,7 +7,9 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -17,17 +19,21 @@ import (
 
 // Service provides minting and buying methods to interact with the CM Account contract.
 type Service struct {
-	client       *ethclient.Client
-	logger       *zap.SugaredLogger
-	cmAccount    *cmaccount.Cmaccount
-	transactOpts *bind.TransactOpts
-	chainID      *big.Int
+	client           *ethclient.Client
+	logger           *zap.SugaredLogger
+	cmAccount        *cmaccount.Cmaccount
+	transactOpts     *bind.TransactOpts
+	chainID          *big.Int
+	cmAccountAddress *common.Address
+	TokenCache       *cache.TokenCache
 }
+
+var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
 
 // NewService initializes a new Service. It sets up the transactor with the provided
 // private key and creates the CMAccount contract.
 func NewService(
-	cmAccountAddr common.Address,
+	cmAccountAddr *common.Address,
 	privateKey *ecdsa.PrivateKey,
 	client *ethclient.Client,
 	logger *zap.SugaredLogger,
@@ -51,17 +57,18 @@ func NewService(
 	// transactOpts.GasPrice = big.NewInt(20000000000) // example gas price
 
 	// Initialize the CMAccount
-	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddr, client)
+	cmAccount, err := cmaccount.NewCmaccount(*cmAccountAddr, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CMAccount: %w", err)
 	}
 
 	return &Service{
-		client:       client,
-		logger:       logger,
-		cmAccount:    cmAccount,
-		transactOpts: transactOpts,
-		chainID:      chainID,
+		client:           client,
+		logger:           logger,
+		cmAccount:        cmAccount,
+		transactOpts:     transactOpts,
+		chainID:          chainID,
+		cmAccountAddress: cmAccountAddr,
 	}, nil
 }
 
@@ -86,7 +93,16 @@ func (bs *Service) MintBookingToken(
 	if strings.TrimSpace(uri) == "" {
 		return nil, fmt.Errorf("uri cannot be empty")
 	}
+	if paymentToken != zeroAddress {
+		erc20Contract, err := erc20.NewErc20(paymentToken, bs.client)
+		if err != nil {
+			return nil, fmt.Errorf("failed to instantiate ERC20 contract: %w", err)
+		}
 
+		if err := bs.checkAndApproveAllowance(context.Background(), erc20Contract, reservedFor, *bs.cmAccountAddress, price); err != nil {
+			return nil, fmt.Errorf("error during token approval process: %w", err)
+		}
+	}
 	// Call the MintBookingToken function from the contract
 	tx, err := bs.cmAccount.MintBookingToken(
 		bs.transactOpts,
@@ -143,4 +159,48 @@ func (bs *Service) ConvertPriceToBigInt(value string, decimals int32, totalDecim
 	result := new(big.Int).Mul(valueBigInt, multiplier)
 
 	return result, nil
+}
+
+// checkAndApproveAllowance checks if the allowance is sufficient and approves tokens if necessary
+func (bs *Service) checkAndApproveAllowance(
+	ctx context.Context,
+	erc20Contract *erc20.Erc20,
+	owner, spender common.Address,
+	price *big.Int,
+) error {
+	// Check allowance
+	allowance, err := erc20Contract.Allowance(&bind.CallOpts{Context: ctx}, owner, spender)
+	if err != nil {
+		return fmt.Errorf("failed to get allowance: %w", err)
+	}
+	bs.logger.Infof("current allowance: %s", allowance.String())
+
+	// If allowance is less than the price, approve more tokens
+	if allowance.Cmp(price) < 0 {
+		bs.logger.Infof("Allowance insufficient. Initiating approval for the required amount...")
+
+		// Approve the required amount
+		approveTx, err := erc20Contract.Approve(bs.transactOpts, spender, price)
+		if err != nil {
+			return fmt.Errorf("failed to approve token spending: %w", err)
+		}
+
+		bs.logger.Infof("Approval transaction sent: %s", approveTx.Hash().Hex())
+
+		// Wait for the approval transaction to be mined
+		receipt, err := bind.WaitMined(ctx, bs.client, approveTx)
+		if err != nil {
+			return fmt.Errorf("failed to wait for approval transaction to be mined: %w", err)
+		}
+
+		if receipt.Status != types.ReceiptStatusSuccessful {
+			return fmt.Errorf("approval transaction failed: %v", receipt)
+		}
+
+		bs.logger.Info("Approval transaction mined successfully.")
+	} else {
+		bs.logger.Infof("Sufficient allowance available. Proceeding with the transaction...")
+	}
+
+	return nil
 }

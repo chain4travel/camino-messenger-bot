@@ -22,6 +22,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
@@ -55,8 +56,9 @@ func NewResponseHandler(
 	cmAccountAddress common.Address,
 	bookingTokenAddress common.Address,
 	serviceRegistry ServiceRegistry,
+	tokenCache *cache.TokenCache,
 ) (ResponseHandler, error) {
-	bookingService, err := booking.NewService(cmAccountAddress, botKey, ethClient, logger)
+	bookingService, err := booking.NewService(&cmAccountAddress, botKey, ethClient, logger)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err
@@ -76,6 +78,7 @@ func NewResponseHandler(
 		bookingToken:        *bookingToken,
 		serviceRegistry:     serviceRegistry,
 		evmEventListener:    events.NewEventListener(ethClient, logger),
+		tokenCache:          tokenCache,
 	}, nil
 }
 
@@ -88,6 +91,7 @@ type evmResponseHandler struct {
 	bookingToken        bookingtoken.Bookingtoken
 	serviceRegistry     ServiceRegistry
 	evmEventListener    *events.EventListener
+	tokenCache          *cache.TokenCache
 }
 
 func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
@@ -97,7 +101,7 @@ func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.M
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	case generated.MintServiceV1Response: // supplier will act upon receiving a mint response by minting an NFT
-		if h.handleMintResponseV1(ctx, response, request) {
+		if h.handleMintResponseV1(ctx, response, request, h.tokenCache) {
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	case generated.MintServiceV2Request: // distributor will post-process a mint request to buy the returned NFT
@@ -105,7 +109,7 @@ func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.M
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	case generated.MintServiceV2Response: // supplier will act upon receiving a mint response by minting an NFT
-		if h.handleMintResponseV2(ctx, response, request) {
+		if h.handleMintResponseV2(ctx, response, request, h.tokenCache) {
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	}

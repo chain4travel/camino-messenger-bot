@@ -19,6 +19,44 @@ var _ bookv1grpc.MintServiceServer = (*MintServiceV1Server)(nil)
 
 type MintServiceV1Server struct{}
 
+type PaymentConfigMintV1 struct {
+	NativeToken *typesv1.Price
+	Token       *typesv1.Price
+	Offchain    *typesv1.Price
+}
+
+var priceConfigMintV1 = PaymentConfigMintV1{
+	NativeToken: &typesv1.Price{
+		Value:    "1",
+		Decimals: 9,
+		Currency: &typesv1.Currency{
+			Currency: &typesv1.Currency_NativeToken{
+				NativeToken: &emptypb.Empty{},
+			},
+		},
+	},
+	Offchain: &typesv1.Price{
+		Value:    "1",
+		Decimals: 9,
+		Currency: &typesv1.Currency{
+			Currency: &typesv1.Currency_IsoCurrency{
+				IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR, // EUR
+			},
+		},
+	},
+	Token: &typesv1.Price{
+		Value:    "100",
+		Decimals: 2,
+		Currency: &typesv1.Currency{
+			Currency: &typesv1.Currency_TokenCurrency{
+				TokenCurrency: &typesv1.TokenCurrency{
+					ContractAddress: "0x87a131801978d1ffBa53a6D4180cBef3F8C9e760",
+				},
+			},
+		},
+	},
+}
+
 func (*MintServiceV1Server) Mint(ctx context.Context, _ *bookv1.MintRequest) (*bookv1.MintResponse, error) {
 	md := metadata.Metadata{}
 
@@ -35,15 +73,7 @@ func (*MintServiceV1Server) Mint(ctx context.Context, _ *bookv1.MintRequest) (*b
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		Price: &typesv1.Price{
-			Value:    "1",
-			Decimals: 9,
-			Currency: &typesv1.Currency{
-				Currency: &typesv1.Currency_NativeToken{
-					NativeToken: &emptypb.Empty{},
-				},
-			},
-		},
+		Price: priceConfigMintV1.Token, // change to Token or Offchain to test different scenarios
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
