@@ -1,7 +1,5 @@
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-eb9d7ce26ee3.1 h1:DMIj77yagufDxzZhHCDoKeahFFIr4bp+HPZNBhEaiIk=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-eb9d7ce26ee3.1/go.mod h1:aukXtXx3EJE8511uPpF/A2ubHNcB39D1HrdpjbYtJY4=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20240924170438-a97744087df6.1 h1:4j3jvCR44rCLaemGopM0bTqHCMerP6ke8VeYbhwECUc=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20240924170438-a97744087df6.1/go.mod h1:Rba0rCKD7poCwuxz6+HvmNv6oNvpFZIlUnxpLrzMKFA=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.35.1-00000000000000-eb9d7ce26ee3.1 h1:r7TMifufXe9ALyjYThJcwhsy7G7DrdWa9XYHAaXIS1Y=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.35.1-00000000000000-eb9d7ce26ee3.1/go.mod h1:LmK+gmlFXuCSwq5XtTjWwELUkyP3OyTtQVE11ttdWUA=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
