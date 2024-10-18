@@ -11,9 +11,7 @@ import (
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -29,24 +27,14 @@ func (h *evmResponseHandler) mint(
 	price *big.Int,
 	paymentToken common.Address,
 ) (string, *big.Int, error) {
-	//  TODO:
-	// (in booking package)
-	// define paymentToken from currency
-	// if TokenCurrency get paymentToken contract and call decimals()
-	// calculate the price in big int without loosing precision
-
-	tx, err := h.bookingService.MintBookingToken(
+	receipt, err := h.bookingService.MintBookingToken(
+		ctx,
 		reservedFor,
 		uri,
 		expiration,
 		price,
-		paymentToken)
-	if err != nil {
-		return "", nil, err
-	}
-
-	// Wait for transaction to be mined
-	receipt, err := bind.WaitMined(ctx, h.ethClient, tx)
+		paymentToken,
+	)
 	if err != nil {
 		return "", nil, err
 	}
@@ -61,28 +49,7 @@ func (h *evmResponseHandler) mint(
 		}
 	}
 
-	return tx.Hash().Hex(), tokenID, nil
-}
-
-// TODO @VjeraTurk code that creates and handles context should be improved, since its not doing job in separate goroutine,
-// Buys a token with the buyer private key. Token must be reserved for the buyer address.
-func (h *evmResponseHandler) buy(ctx context.Context, tokenID *big.Int) (string, error) {
-	tx, err := h.bookingService.BuyBookingToken(tokenID)
-	if err != nil {
-		return "", err
-	}
-
-	receipt, err := h.waitTransaction(ctx, tx)
-	if err != nil {
-		return "", err
-	}
-	if receipt.Status != ethTypes.ReceiptStatusSuccessful {
-		return "", fmt.Errorf("transaction failed: %v", receipt)
-	}
-
-	h.logger.Infof("Transaction sent!\nTransaction hash: %s\n", tx.Hash().Hex())
-
-	return tx.Hash().Hex(), nil
+	return receipt.TxHash.Hex(), tokenID, nil
 }
 
 func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv1.UUID, buyableUntil time.Time) {

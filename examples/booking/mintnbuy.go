@@ -10,13 +10,13 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	erc20 "github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
@@ -58,7 +58,12 @@ func main() {
 
 	erc20, err := erc20.NewERC20Service(client, 100)
 	if err != nil {
-		sugar.Fatalf("Failed to create ERC20 Cache: %v", err)
+		sugar.Fatalf("Failed to create ERC20 service: %v", err)
+	}
+
+	cmAccounts, err := cmaccounts.NewService(sugar, 100, client)
+	if err != nil {
+		sugar.Fatalf("Failed to create CMAccounts service: %v", err)
 	}
 
 	pk, err := crypto.HexToECDSA(*pkString)
@@ -67,7 +72,7 @@ func main() {
 	}
 
 	sugar.Info("Creating Booking Service...")
-	bs, err := booking.NewService(&cmAccountAddr, pk, client, sugar, erc20)
+	bs, err := booking.NewService(cmAccountAddr, pk, client, sugar, erc20, cmAccounts)
 	if err != nil {
 		sugar.Fatalf("Failed to create Booking Service: %v", err)
 	}
@@ -83,12 +88,12 @@ func main() {
 	// expiration timestamp
 	expiration := big.NewInt(time.Now().Add(time.Hour).Unix())
 
-	zeroAddress := common.HexToAddress("0x0000000000000000000000000000000000000000")
+	nativeTokenAddress := common.HexToAddress("0x0000000000000000000000000000000000000000")
 	// https://columbus.caminoscan.com/token/0x5b1c852dad36854B0dFFF61d2C13F108D8E01975
-	// var eurshToken = common.HexToAddress("0x5b1c852dad36854B0dFFF61d2C13F108D8E01975")
-	testToken := common.HexToAddress("0x53A0b6A344C8068B211d47f177F0245F5A99eb2d")
+	eurshToken := common.HexToAddress("0x5b1c852dad36854B0dFFF61d2C13F108D8E01975")
+	// testToken := common.HexToAddress("0x53A0b6A344C8068B211d47f177F0245F5A99eb2d")
 
-	var paymentToken common.Address = zeroAddress
+	var paymentToken common.Address = nativeTokenAddress
 	var priceBigInt *big.Int
 	var price *typesv2.Price
 
@@ -110,7 +115,7 @@ func main() {
 		Currency: &typesv2.Currency{
 			Currency: &typesv2.Currency_TokenCurrency{
 				TokenCurrency: &typesv2.TokenCurrency{
-					ContractAddress: testToken.Hex(),
+					ContractAddress: eurshToken.Hex(),
 				},
 			},
 		},
@@ -130,7 +135,7 @@ func main() {
 	sugar.Infof("%v %v %v %v", priceEUR, priceEURSH, priceCAM)
 	sugar.Infof("%v", price)
 
-	paymentToken = zeroAddress
+	paymentToken = nativeTokenAddress
 	priceBigInt = big.NewInt(0)
 	// price = priceEURSH
 	price = priceEURSH
@@ -143,7 +148,7 @@ func main() {
 			return
 		}
 		sugar.Infof("Converted the price big.Int: %v", priceBigInt)
-		paymentToken = zeroAddress
+		paymentToken = nativeTokenAddress
 	case *typesv2.Currency_TokenCurrency:
 		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
 			sugar.Errorf("invalid contract address: %v", currency.TokenCurrency.ContractAddress)
@@ -164,7 +169,7 @@ func main() {
 		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
 		priceBigInt = big.NewInt(0)
-		paymentToken = zeroAddress
+		paymentToken = nativeTokenAddress
 	}
 
 	// Mint a new booking token
@@ -177,7 +182,8 @@ func main() {
 	// Account address, generally the distributor's CM account address. And the
 	// distributor should buy the token.
 
-	mintTx, err := bs.MintBookingToken(
+	receipt, err := bs.MintBookingToken(
+		context.Background(),
 		cmAccountAddr, // reservedFor address
 		tokenURI,
 		expiration,
@@ -188,16 +194,9 @@ func main() {
 		sugar.Fatalf("Failed to mint booking token: %v", err)
 	}
 
-	// Wait for the transaction to be mined and get the receipt
-	sugar.Info("Waiting for mint transaction to be mined...")
-	mintReceipt, err := bind.WaitMined(context.Background(), client, mintTx)
-	if err != nil {
-		sugar.Fatalf("Failed to wait for mint transaction to be mined: %v", err)
-	}
-
 	tokenID := big.NewInt(0)
 
-	for _, mLog := range mintReceipt.Logs {
+	for _, mLog := range receipt.Logs {
 		event, err := bt.ParseTokenReserved(*mLog)
 		if err == nil {
 			tokenID = event.TokenId
@@ -216,18 +215,12 @@ func main() {
 	//
 	// When bots are added to a CMAccount by the `addMessengerBot(address)`
 	// function, this role is granted to the bot.
-	buyTx, err := bs.BuyBookingToken(
+	buyReceipt, err := bs.BuyBookingToken(
+		context.Background(),
 		tokenID,
 	)
 	if err != nil {
 		sugar.Fatalf("Failed to buy booking token: %v", err)
-	}
-
-	// Wait for the transaction to be mined and get the receipt
-	sugar.Info("Waiting for buy transaction to be mined...")
-	buyReceipt, err := bind.WaitMined(context.Background(), client, buyTx)
-	if err != nil {
-		sugar.Fatalf("Failed to wait for buy transaction to be mined: %v", err)
 	}
 
 	// Parse the logs

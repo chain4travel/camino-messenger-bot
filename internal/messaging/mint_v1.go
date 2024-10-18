@@ -55,7 +55,7 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 
 	price, paymentToken, err := h.getPriceAndTokenV1(ctx, mintResp.Price)
 	if err != nil {
-		errMessage := fmt.Sprintf("error minting NFT: %v", err)
+		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
 		h.AddErrorToResponseHeader(response, errMessage)
 		return true
@@ -103,7 +103,7 @@ func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response p
 	value64 := uint64(mintResp.BookingToken.TokenId)
 	tokenID := new(big.Int).SetUint64(value64)
 
-	txID, err := h.buy(ctx, tokenID)
+	receipt, err := h.bookingService.BuyBookingToken(ctx, tokenID)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
@@ -111,8 +111,8 @@ func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response p
 		return true
 	}
 
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintResp.MintTransactionId)
-	mintResp.BuyTransactionId = txID
+	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", receipt, mintResp.MintTransactionId)
+	mintResp.BuyTransactionId = receipt.TxHash.Hex()
 	return false
 }
 
