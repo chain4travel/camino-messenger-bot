@@ -37,6 +37,8 @@ func RegisterServerServices(grpcServer *grpc.Server, reqProcessor rpc.ExternalRe
 	registerSeatMapServiceV1Server(grpcServer, reqProcessor)
 	registerSeatMapAvailabilityServiceV2Server(grpcServer, reqProcessor)
 	registerSeatMapServiceV2Server(grpcServer, reqProcessor)
+	registerTransportProductListServiceV1Server(grpcServer, reqProcessor)
 	registerTransportSearchServiceV1Server(grpcServer, reqProcessor)
 	registerTransportSearchServiceV2Server(grpcServer, reqProcessor)
+	registerTransportSearchServiceV3Server(grpcServer, reqProcessor)
 }
