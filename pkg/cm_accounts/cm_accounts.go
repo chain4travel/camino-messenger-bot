@@ -284,6 +284,10 @@ func (s *service) MintBookingToken(
 		return nil, err
 	}
 
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return nil, fmt.Errorf("transaction failed: %v", receipt)
+	}
+
 	return receipt, nil
 }
 
