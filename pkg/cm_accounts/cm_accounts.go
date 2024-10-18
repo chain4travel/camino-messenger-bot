@@ -10,6 +10,7 @@ import (
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -51,6 +52,23 @@ type Service interface {
 		fromBot common.Address,
 		toBot common.Address,
 	) (counter *big.Int, amount *big.Int, err error)
+
+	MintBookingToken(
+		ctx context.Context,
+		transactOpts *bind.TransactOpts,
+		cmAccountAddress common.Address,
+		reservedFor common.Address,
+		uri string,
+		expirationTimestamp *big.Int,
+		price *big.Int,
+		paymentToken common.Address,
+	) (*types.Receipt, error)
+
+	BuyBookingToken(
+		ctx context.Context,
+		transactOpts *bind.TransactOpts,
+		tokenID *big.Int,
+	) (*types.Receipt, error)
 }
 
 func NewService(
@@ -232,6 +250,79 @@ func (s *service) GetLastCashIn(
 		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
 	}
 	return lastCashIn.LastCounter, lastCashIn.LastAmount, nil
+}
+
+func (s *service) MintBookingToken(
+	ctx context.Context,
+	transactOpts *bind.TransactOpts,
+	cmAccountAddress common.Address,
+	reservedFor common.Address,
+	uri string,
+	expirationTimestamp *big.Int,
+	price *big.Int,
+	paymentToken common.Address,
+) (*types.Receipt, error) {
+	cmAccount, err := s.cmAccount(cmAccountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+	}
+
+	tx, err := cmAccount.MintBookingToken(
+		transactOpts,
+		reservedFor,
+		uri,
+		expirationTimestamp,
+		price,
+		paymentToken,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to mint booking token: %w", err)
+	}
+
+	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return nil, fmt.Errorf("transaction failed: %v", receipt)
+	}
+
+	return receipt, nil
+}
+
+func (s *service) BuyBookingToken(
+	ctx context.Context,
+	transactOpts *bind.TransactOpts,
+	tokenID *big.Int,
+) (*types.Receipt, error) {
+	cmAccount, err := s.cmAccount(transactOpts.From)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+	}
+
+	tx, err := cmAccount.BuyBookingToken(
+		transactOpts,
+		tokenID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to buy booking token: %w", err)
+	}
+
+	s.logger.Infof("Waiting for BuyBookingToken transaction to be mined...\n")
+
+	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return nil, fmt.Errorf("transaction failed: %v", receipt)
+	}
+
+	s.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
+
+	return receipt, nil
 }
 
 func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount, error) {

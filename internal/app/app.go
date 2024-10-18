@@ -31,6 +31,7 @@ const (
 	cashInJobName        = "cash_in"
 	appName              = "camino-messenger-bot"
 	cmAccountsCacheSize  = 100
+	erc20CacheSize       = 100
 	cashInTxIssueTimeout = 10 * time.Second
 )
 
@@ -83,19 +84,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// messaging components
-	responseHandler, err := messaging.NewResponseHandler(
-		cfg.BotKey,
-		evmClient,
-		logger,
-		cfg.CMAccountAddress,
-		cfg.BookingTokenAddress,
-		serviceRegistry,
-	)
-	if err != nil {
-		logger.Errorf("Failed to create response handler: %v", err)
-		return nil, err
-	}
-
 	cmAccounts, err := cmaccounts.NewService(
 		logger,
 		cmAccountsCacheSize,
@@ -103,6 +91,21 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	)
 	if err != nil {
 		logger.Errorf("Failed to create cm accounts service: %v", err)
+		return nil, err
+	}
+
+	responseHandler, err := messaging.NewResponseHandler(
+		cfg.BotKey,
+		evmClient,
+		logger,
+		cfg.CMAccountAddress,
+		cfg.BookingTokenAddress,
+		serviceRegistry,
+		cmAccounts,
+		erc20CacheSize,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create response handler: %v", err)
 		return nil, err
 	}
 

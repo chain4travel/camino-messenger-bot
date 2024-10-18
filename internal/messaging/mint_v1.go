@@ -8,6 +8,7 @@ import (
 
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -54,7 +55,7 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 
 	price, paymentToken, err := h.getPriceAndTokenV1(ctx, mintResp.Price)
 	if err != nil {
-		errMessage := fmt.Sprintf("error minting NFT: %v", err)
+		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
 		h.AddErrorToResponseHeader(response, errMessage)
 		return true
@@ -102,7 +103,7 @@ func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response p
 	value64 := uint64(mintResp.BookingToken.TokenId)
 	tokenID := new(big.Int).SetUint64(value64)
 
-	txID, err := h.buy(ctx, tokenID)
+	receipt, err := h.bookingService.BuyBookingToken(ctx, tokenID)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
@@ -110,25 +111,35 @@ func (h *evmResponseHandler) handleMintRequestV1(ctx context.Context, response p
 		return true
 	}
 
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", txID, mintResp.MintTransactionId)
-	mintResp.BuyTransactionId = txID
+	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", receipt, mintResp.MintTransactionId)
+	mintResp.BuyTransactionId = receipt.TxHash.Hex()
 	return false
 }
 
-func (h *evmResponseHandler) getPriceAndTokenV1(_ context.Context, price *typesv1.Price) (*big.Int, common.Address, error) {
+func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *typesv1.Price) (*big.Int, common.Address, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
-	switch price.Currency.Currency.(type) {
+	var err error
+	switch currency := price.Currency.Currency.(type) {
 	case *typesv1.Currency_NativeToken:
-		var err error
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
 		if err != nil {
 			return nil, zeroAddress, fmt.Errorf("error minting NFT: %w", err)
 		}
 	case *typesv1.Currency_TokenCurrency:
-		// Add logic to handle TokenCurrency
-		// if contract address is zeroAddress, then it is native token
-		return nil, zeroAddress, fmt.Errorf("TokenCurrency not supported yet")
+		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
+			return nil, zeroAddress, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
+		}
+		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
+		tokenDecimals, err := h.erc20.Decimals(ctx, contractAddress)
+		if err != nil {
+			return nil, zeroAddress, fmt.Errorf("failed to fetch token decimals: %w", err)
+		}
+		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
+		if err != nil {
+			return nil, zeroAddress, err
+		}
+		paymentToken = contractAddress
 	case *typesv1.Currency_IsoCurrency:
 		// For IsoCurrency, keep price as 0 and paymentToken as zeroAddress
 	}
