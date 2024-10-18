@@ -22,7 +22,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
+	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
@@ -56,9 +56,14 @@ func NewResponseHandler(
 	cmAccountAddress common.Address,
 	bookingTokenAddress common.Address,
 	serviceRegistry ServiceRegistry,
-	tokenCache *cache.TokenCache,
+	tokenCacheSize int,
 ) (ResponseHandler, error) {
-	bookingService, err := booking.NewService(&cmAccountAddress, botKey, ethClient, logger)
+	erc20, err := erc20.NewERC20Service(ethClient, tokenCacheSize)
+	if err != nil {
+		return nil, err
+	}
+
+	bookingService, err := booking.NewService(&cmAccountAddress, botKey, ethClient, logger, erc20)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err
@@ -69,6 +74,7 @@ func NewResponseHandler(
 		log.Printf("%v", err)
 		return nil, err
 	}
+
 	return &evmResponseHandler{
 		ethClient:           ethClient,
 		logger:              logger,
@@ -78,7 +84,7 @@ func NewResponseHandler(
 		bookingToken:        *bookingToken,
 		serviceRegistry:     serviceRegistry,
 		evmEventListener:    events.NewEventListener(ethClient, logger),
-		tokenCache:          tokenCache,
+		erc20:               erc20,
 	}, nil
 }
 
@@ -91,7 +97,7 @@ type evmResponseHandler struct {
 	bookingToken        bookingtoken.Bookingtoken
 	serviceRegistry     ServiceRegistry
 	evmEventListener    *events.EventListener
-	tokenCache          *cache.TokenCache
+	erc20               erc20.Service
 }
 
 func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
@@ -101,7 +107,7 @@ func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.M
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	case generated.MintServiceV1Response: // supplier will act upon receiving a mint response by minting an NFT
-		if h.handleMintResponseV1(ctx, response, request, h.tokenCache) {
+		if h.handleMintResponseV1(ctx, response, request) {
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	case generated.MintServiceV2Request: // distributor will post-process a mint request to buy the returned NFT
@@ -109,7 +115,7 @@ func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.M
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	case generated.MintServiceV2Response: // supplier will act upon receiving a mint response by minting an NFT
-		if h.handleMintResponseV2(ctx, response, request, h.tokenCache) {
+		if h.handleMintResponseV2(ctx, response, request) {
 			return // TODO @evlekht we don't need this if true/false then do nothing
 		}
 	}

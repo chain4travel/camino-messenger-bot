@@ -7,9 +7,9 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
+	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -25,7 +25,7 @@ type Service struct {
 	transactOpts     *bind.TransactOpts
 	chainID          *big.Int
 	cmAccountAddress *common.Address
-	TokenCache       *cache.TokenCache
+	erc20            erc20.Service
 }
 
 var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
@@ -37,6 +37,7 @@ func NewService(
 	privateKey *ecdsa.PrivateKey,
 	client *ethclient.Client,
 	logger *zap.SugaredLogger,
+	erc20 erc20.Service,
 ) (*Service, error) {
 	// Get the chain ID to prevent replay attacks
 	chainID, err := client.ChainID(context.Background())
@@ -69,6 +70,7 @@ func NewService(
 		transactOpts:     transactOpts,
 		chainID:          chainID,
 		cmAccountAddress: cmAccountAddr,
+		erc20:            erc20,
 	}, nil
 }
 
@@ -94,12 +96,7 @@ func (bs *Service) MintBookingToken(
 		return nil, fmt.Errorf("uri cannot be empty")
 	}
 	if paymentToken != zeroAddress {
-		erc20Contract, err := erc20.NewErc20(paymentToken, bs.client)
-		if err != nil {
-			return nil, fmt.Errorf("failed to instantiate ERC20 contract: %w", err)
-		}
-
-		if err := bs.checkAndApproveAllowance(context.Background(), erc20Contract, reservedFor, *bs.cmAccountAddress, price); err != nil {
+		if err := bs.checkAndApproveAllowance(context.Background(), paymentToken, reservedFor, *bs.cmAccountAddress, price); err != nil {
 			return nil, fmt.Errorf("error during token approval process: %w", err)
 		}
 	}
@@ -164,12 +161,12 @@ func (bs *Service) ConvertPriceToBigInt(value string, decimals int32, totalDecim
 // checkAndApproveAllowance checks if the allowance is sufficient and approves tokens if necessary
 func (bs *Service) checkAndApproveAllowance(
 	ctx context.Context,
-	erc20Contract *erc20.Erc20,
+	paymentToken common.Address,
 	owner, spender common.Address,
 	price *big.Int,
 ) error {
 	// Check allowance
-	allowance, err := erc20Contract.Allowance(&bind.CallOpts{Context: ctx}, owner, spender)
+	allowance, err := bs.erc20.Allowance(ctx, paymentToken, owner, spender)
 	if err != nil {
 		return fmt.Errorf("failed to get allowance: %w", err)
 	}
@@ -180,21 +177,9 @@ func (bs *Service) checkAndApproveAllowance(
 		bs.logger.Infof("Allowance insufficient. Initiating approval for the required amount...")
 
 		// Approve the required amount
-		approveTx, err := erc20Contract.Approve(bs.transactOpts, spender, price)
-		if err != nil {
+
+		if err := bs.erc20.Approve(ctx, bs.transactOpts, paymentToken, spender, price); err != nil {
 			return fmt.Errorf("failed to approve token spending: %w", err)
-		}
-
-		bs.logger.Infof("Approval transaction sent: %s", approveTx.Hash().Hex())
-
-		// Wait for the approval transaction to be mined
-		receipt, err := bind.WaitMined(ctx, bs.client, approveTx)
-		if err != nil {
-			return fmt.Errorf("failed to wait for approval transaction to be mined: %w", err)
-		}
-
-		if receipt.Status != types.ReceiptStatusSuccessful {
-			return fmt.Errorf("approval transaction failed: %v", receipt)
 		}
 
 		bs.logger.Info("Approval transaction mined successfully.")

@@ -10,7 +10,6 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc20"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -18,7 +17,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/pkg/cache"
+	erc20 "github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
 
@@ -32,11 +31,6 @@ func main() {
 	sugar := logger.Sugar()
 
 	sugar.Info("Starting Mint & Buy Example...")
-
-	tokenCache, err := cache.NewTokenCache(20)
-	if err != nil {
-		sugar.Errorf("Failed to create token cache: %v", err)
-	}
 
 	cmAccountAddrString := flag.String("cmaccount", "", "CMAccount Address. Ex: 0x....")
 	// Take private key from command line
@@ -62,13 +56,18 @@ func main() {
 		sugar.Fatalf("Failed to connect to Ethereum client: %v", err)
 	}
 
+	erc20, err := erc20.NewERC20Service(client, 100)
+	if err != nil {
+		sugar.Fatalf("Failed to create ERC20 Cache: %v", err)
+	}
+
 	pk, err := crypto.HexToECDSA(*pkString)
 	if err != nil {
 		sugar.Fatalf("Failed to parse private key: %v", err)
 	}
 
 	sugar.Info("Creating Booking Service...")
-	bs, err := booking.NewService(&cmAccountAddr, pk, client, sugar)
+	bs, err := booking.NewService(&cmAccountAddr, pk, client, sugar, erc20)
 	if err != nil {
 		sugar.Fatalf("Failed to create Booking Service: %v", err)
 	}
@@ -84,10 +83,10 @@ func main() {
 	// expiration timestamp
 	expiration := big.NewInt(time.Now().Add(time.Hour).Unix())
 
-	var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	zeroAddress := common.HexToAddress("0x0000000000000000000000000000000000000000")
 	// https://columbus.caminoscan.com/token/0x5b1c852dad36854B0dFFF61d2C13F108D8E01975
 	// var eurshToken = common.HexToAddress("0x5b1c852dad36854B0dFFF61d2C13F108D8E01975")
-	var testToken = common.HexToAddress("0x53A0b6A344C8068B211d47f177F0245F5A99eb2d")
+	testToken := common.HexToAddress("0x53A0b6A344C8068B211d47f177F0245F5A99eb2d")
 
 	var paymentToken common.Address = zeroAddress
 	var priceBigInt *big.Int
@@ -150,22 +149,15 @@ func main() {
 			sugar.Errorf("invalid contract address: %v", currency.TokenCurrency.ContractAddress)
 		}
 		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-		tokenDecimals, found := tokenCache.Get(contractAddress)
-		if !found {
-			// Fetch decimals from the ERC20 contract
-			token, err := erc20.NewErc20(contractAddress, client)
-			if err != nil {
-				sugar.Errorf("failed to instantiate ERC20 contract: %v", err)
-			}
-			decimals, err := token.Decimals(&bind.CallOpts{})
-			if err != nil {
-				sugar.Errorf("failed to fetch token decimals: %w", err)
-			}
-			// Cache decimals
-			tokenCache.Add(contractAddress, int32(decimals))
-			tokenDecimals = int32(decimals)
+
+		// Fetch decimals from the ERC20 contract
+
+		tokenDecimals, err := erc20.Decimals(context.Background(), contractAddress)
+		if err != nil {
+			sugar.Errorf("failed to fetch token decimals: %w", err)
 		}
-		priceBigInt, err = bs.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
+
+		priceBigInt, err = bs.ConvertPriceToBigInt(price.Value, price.Decimals, int32(tokenDecimals))
 		if err != nil {
 			sugar.Errorf("Failed to convert price to big.Int: %v", err)
 		}
