@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,7 +13,9 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,8 +25,6 @@ import (
 	grpc_metadata "google.golang.org/grpc/metadata"
 	"maunium.net/go/mautrix/id"
 )
-
-const cashInTxIssueTimeout = 10 * time.Second
 
 var (
 	_ Processor = (*processor)(nil)
@@ -65,9 +66,9 @@ func NewProcessor(
 	networkFeeRecipientCMAccountAddress common.Address,
 	registry ServiceRegistry,
 	responseHandler ResponseHandler,
-	identificationHandler IdentificationHandler,
-	chequeHandler ChequeHandler,
+	chequeHandler chequehandler.ChequeHandler,
 	compressor compression.Compressor[*types.Message, [][]byte],
+	cmAccounts cmaccounts.Service,
 ) Processor {
 	return &processor{
 		messenger:                           messenger,
@@ -77,9 +78,10 @@ func NewProcessor(
 		responseChannels:                    make(map[string]chan *types.Message),
 		serviceRegistry:                     registry,
 		responseHandler:                     responseHandler,
-		identificationHandler:               identificationHandler,
 		chequeHandler:                       chequeHandler,
 		compressor:                          compressor,
+		cmAccounts:                          cmAccounts,
+		matrixHost:                          botUserID.Homeserver(),
 		myBotAddress:                        addressFromUserID(botUserID),
 		botUserID:                           botUserID,
 		cmAccountAddress:                    cmAccountAddress,
@@ -93,19 +95,20 @@ type processor struct {
 	logger                              *zap.SugaredLogger
 	tracer                              trace.Tracer
 	responseTimeout                     time.Duration // timeout after which a request is considered failed
+	matrixHost                          string
 	botUserID                           id.UserID
 	myBotAddress                        common.Address
 	cmAccountAddress                    common.Address
 	networkFeeRecipientBotAddress       common.Address
 	networkFeeRecipientCMAccountAddress common.Address
 
-	mu                    sync.Mutex
-	responseChannels      map[string]chan *types.Message
-	serviceRegistry       ServiceRegistry
-	responseHandler       ResponseHandler
-	identificationHandler IdentificationHandler
-	chequeHandler         ChequeHandler
-	compressor            compression.Compressor[*types.Message, [][]byte]
+	mu               sync.Mutex
+	responseChannels map[string]chan *types.Message
+	serviceRegistry  ServiceRegistry
+	responseHandler  ResponseHandler
+	chequeHandler    chequehandler.ChequeHandler
+	compressor       compression.Compressor[*types.Message, [][]byte]
+	cmAccounts       cmaccounts.Service
 }
 
 func (*processor) Checkpoint() string {
@@ -177,14 +180,14 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", msg.Metadata.Recipient)
 	// lookup for CM Account -> bot
 	recipientCMAccAddr := common.HexToAddress(msg.Metadata.Recipient)
-	recipientBotUserID, err := p.identificationHandler.getFirstBotUserIDFromCMAccountAddress(recipientCMAccAddr)
+	recipientBotAddr, err := p.getFirstBotFromCMAccount(ctx, recipientCMAccAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	msg.Metadata.Cheques = []cheques.SignedCheque{}
 
-	isBotAllowed, err := p.chequeHandler.IsBotAllowed(ctx, p.myBotAddress)
+	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.myBotAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +195,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		return nil, ErrBotMissingChequeOperatorRole
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, recipientCMAccAddr, msg.Type.ToServiceName())
+	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccAddr, msg.Type.ToServiceName())
 	if err != nil {
 		// TODO @evlekht explicitly say if service is not supported and its not just some network error
 		return nil, err
@@ -229,7 +232,7 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 		ctx,
 		p.cmAccountAddress,
 		recipientCMAccAddr,
-		addressFromUserID(recipientBotUserID),
+		recipientBotAddr,
 		serviceFee,
 	)
 	if err != nil {
@@ -243,11 +246,17 @@ func (p *processor) Request(ctx context.Context, msg *types.Message) (*types.Mes
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
-	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBotUserID, msg.Metadata.Recipient)
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", msg.Sender, recipientBotAddr, msg.Metadata.Recipient)
 
-	if err := p.messenger.SendAsync(ctx, *msg, compressedContent, recipientBotUserID); err != nil {
+	if err := p.messenger.SendAsync(
+		ctx,
+		*msg,
+		compressedContent,
+		UserIDFromAddress(recipientBotAddr, p.matrixHost),
+	); err != nil {
 		return nil, err
 	}
+
 	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer responseSpan.End()
 	for {
@@ -283,7 +292,7 @@ func (p *processor) Respond(msg *types.Message) error {
 		return ErrMissingCheques
 	}
 
-	serviceFee, err := p.chequeHandler.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), service.Name())
+	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), service.Name())
 	if err != nil {
 		return err
 	}
@@ -377,4 +386,21 @@ func (p *processor) compress(ctx context.Context, msg *types.Message) (context.C
 		return ctx, [][]byte{{}}, err
 	}
 	return ctx, compressedContent, nil
+}
+
+func (p *processor) getFirstBotFromCMAccount(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
+	bots, err := p.cmAccounts.GetChequeOperators(ctx, cmAccountAddress)
+	if err != nil {
+		p.logger.Errorf("failed to get bots from CMAccount: %v", err)
+		return common.Address{}, err
+	}
+	return bots[0], nil
+}
+
+func UserIDFromAddress(address common.Address, host string) id.UserID {
+	return id.NewUserID(strings.ToLower(address.Hex()), host)
+}
+
+func addressFromUserID(userID id.UserID) common.Address {
+	return common.HexToAddress(userID.Localpart())
 }
