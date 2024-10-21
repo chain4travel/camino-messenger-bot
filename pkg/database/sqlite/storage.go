@@ -2,6 +2,8 @@ package sqlite
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -17,7 +19,12 @@ type DBConfig struct {
 }
 
 func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*DB, error) {
-	db, err := sqlx.Open("sqlite3", cfg.DBPath)
+	if err := os.MkdirAll(filepath.Dir(cfg.DBPath), os.ModePerm); err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	db, err := sqlx.Open("sqlite3", cfg.DBPath+".sqlite")
 	if err != nil {
 		logger.Error(err)
 		return nil, err

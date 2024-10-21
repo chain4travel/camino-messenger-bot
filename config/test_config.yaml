@@ -10,7 +10,6 @@ db:
 developer_mode: true
 matrix:
     host: messenger.chain4travel.com
-    store: supplier-matrix.db
 min_cheque_duration_until_expiration: 15552000
 network_fee_recipient_bot_address: 0xff6BAC3d972680515cbB59fCB6Db6deB13Eb0E91
 network_fee_recipient_cm_account: 0xF6bA5c68A505559c170dC7a30448Ed64D8b9Bc3B

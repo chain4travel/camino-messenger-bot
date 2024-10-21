@@ -54,7 +54,6 @@ func Flags() *pflag.FlagSet {
 
 	// Matrix config flags
 	flags.String("matrix.host", "", "Sets the matrix host.")
-	flags.String("matrix.store", "cmb_matrix.db", "Sets the matrix store (sqlite3 db path).")
 
 	return flags
 }
