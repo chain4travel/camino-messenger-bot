@@ -31,7 +31,9 @@ import (
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
+	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
+	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers"
@@ -489,6 +491,67 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.Tran
 
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
+}
+
+func (p *partnerPlugin) TransportProductList(ctx context.Context, _ *transportv1.TransportProductListRequest) (*transportv1.TransportProductListResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s (TransportProductList)", md.RequestID)
+
+	response := transportv1.TransportProductListResponse{
+		Header: nil,
+		Trips: []*transportv3.TripBasic{{
+			SupplierCode: &typesv2.SupplierProductCode{
+				SupplierCode:   "XY123",
+				SupplierNumber: 0123,
+			},
+			Segments: []*transportv3.Segment{{
+				SegmentId:       "SEG123",
+				ProviderCode:    "AA",
+				RetailerCode:    "NS",
+				SubSupplierCode: "SNCF",
+				ProductCode: &typesv2.ProductCode{
+					Code:   "XY123",
+					Number: 0123,
+					Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_UNSPECIFIED,
+				},
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY123",
+					SupplierNumber: 0123,
+				},
+				Departure: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 20, 11, 9, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "LHR",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+					},
+				},
+				Arrival: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 20, 11, 11, 55, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "JFK",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+					},
+				},
+				SegmentDuration: &typesv1.Duration{
+					Minutes: 475,
+				},
+				SegmentDistance: &typesv1.Length{
+					Value: 1000,
+					Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
+				},
+			}},
+		}, {}},
+	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+
 }
 
 func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMapRequest) (*seat_mapv2.SeatMapResponse, error) {
