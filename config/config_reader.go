@@ -147,7 +147,7 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		},
 		Matrix: MatrixConfig{
 			HostURL: *matrixHost,
-			Store:   cfg.Matrix.Store,
+			Store:   cfg.DB.DBPath + "/matrix",
 		},
 		DeveloperMode:                       cfg.DeveloperMode,
 		BotKey:                              botKey,

@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
-	"github.com/chain4travel/camino-messenger-bot/pkg/database"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
 	"github.com/jmoiron/sqlx"
@@ -83,7 +82,7 @@ func getSQLXTx(session chequehandler.Session) (*sqlx.Tx, error) {
 
 func upgradeError(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
-		return database.ErrNotFound
+		return chequehandler.ErrNotFound
 	}
 	return err
 }

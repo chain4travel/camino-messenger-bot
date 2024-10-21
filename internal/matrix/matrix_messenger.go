@@ -31,10 +31,11 @@ import (
 
 var _ messaging.Messenger = (*messenger)(nil)
 
-func NewMessenger(cfg config.MatrixConfig, botKey *ecdsa.PrivateKey, logger *zap.SugaredLogger) messaging.Messenger {
+func NewMessenger(cfg config.MatrixConfig, botKey *ecdsa.PrivateKey, logger *zap.SugaredLogger) (messaging.Messenger, error) {
 	c, err := mautrix.NewClient(cfg.HostURL.String(), "", "")
 	if err != nil {
-		panic(err)
+		logger.Errorf("failed to create matrix client: %v", err)
+		return nil, err
 	}
 	return &messenger{
 		msgChannel:   make(chan types.Message),
@@ -45,7 +46,7 @@ func NewMessenger(cfg config.MatrixConfig, botKey *ecdsa.PrivateKey, logger *zap
 		msgAssembler: NewMessageAssembler(),
 		botKey:       botKey,
 		dbPath:       cfg.Store,
-	}
+	}, nil
 }
 
 type messenger struct {

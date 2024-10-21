@@ -61,9 +61,6 @@ matrix:
     # Hostname of the Matrix server
     host: messenger.chain4travel.com
 
-    # Local DB file to store Matrix data
-    store: supplier-matrix.db
-
 
 
 ### Partner Plugin
