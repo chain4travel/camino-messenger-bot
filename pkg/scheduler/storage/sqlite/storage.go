@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/database"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
@@ -79,7 +78,7 @@ func getSQLXTx(session scheduler.Session) (*sqlx.Tx, error) {
 
 func upgradeError(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
-		return database.ErrNotFound
+		return scheduler.ErrNotFound
 	}
 	return err
 }

@@ -124,8 +124,7 @@ type UnparsedPartnerPluginConfig struct {
 }
 
 type UnparsedMatrixConfig struct {
-	Host  string `mapstructure:"host"`
-	Store string `mapstructure:"store"`
+	Host string `mapstructure:"host"`
 }
 
 type UnparsedSQLiteDBConfig struct {
@@ -151,8 +150,7 @@ func (cfg *Config) unparse() *UnparsedConfig {
 			CACertFile:  cfg.PartnerPlugin.CACertFile,
 		},
 		Matrix: UnparsedMatrixConfig{
-			Host:  cfg.Matrix.HostURL.String(),
-			Store: cfg.Matrix.Store,
+			Host: cfg.Matrix.HostURL.String(),
 		},
 		DeveloperMode:                       cfg.DeveloperMode,
 		BotKey:                              hex.EncodeToString(crypto.FromECDSA(cfg.BotKey)),
