@@ -8,7 +8,7 @@ __debug*
 ./camino-messenger-bot-supplier.yaml
 ./camino-messenger-bot-distributor.yaml
 
-distributor-matrix.db
-supplier-matrix.db
+distributor-bot-db
+supplier-bot-db
 
 coverage.out
