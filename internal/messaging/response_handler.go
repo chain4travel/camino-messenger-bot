@@ -6,7 +6,6 @@ package messaging
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"log"
 	"time"
 
@@ -16,12 +15,11 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	ethTypes "github.com/ethereum/go-ethereum/core/types"
-
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
@@ -55,8 +53,15 @@ func NewResponseHandler(
 	cmAccountAddress common.Address,
 	bookingTokenAddress common.Address,
 	serviceRegistry ServiceRegistry,
+	cmAccounts cmaccounts.Service,
+	tokenCacheSize int,
 ) (ResponseHandler, error) {
-	bookingService, err := booking.NewService(cmAccountAddress, botKey, ethClient, logger)
+	erc20, err := erc20.NewERC20Service(ethClient, tokenCacheSize)
+	if err != nil {
+		return nil, err
+	}
+
+	bookingService, err := booking.NewService(cmAccountAddress, botKey, ethClient, logger, erc20, cmAccounts)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err
@@ -67,6 +72,7 @@ func NewResponseHandler(
 		log.Printf("%v", err)
 		return nil, err
 	}
+
 	return &evmResponseHandler{
 		ethClient:           ethClient,
 		logger:              logger,
@@ -76,6 +82,7 @@ func NewResponseHandler(
 		bookingToken:        *bookingToken,
 		serviceRegistry:     serviceRegistry,
 		evmEventListener:    events.NewEventListener(ethClient, logger),
+		erc20:               erc20,
 	}, nil
 }
 
@@ -88,6 +95,7 @@ type evmResponseHandler struct {
 	bookingToken        bookingtoken.Bookingtoken
 	serviceRegistry     ServiceRegistry
 	evmEventListener    *events.EventListener
+	erc20               erc20.Service
 }
 
 func (h *evmResponseHandler) HandleResponse(ctx context.Context, msgType types.MessageType, request protoreflect.ProtoMessage, response protoreflect.ProtoMessage) {
@@ -127,24 +135,6 @@ func (h *evmResponseHandler) HandleRequest(_ context.Context, msgType types.Mess
 		mintReq.BuyerAddress = h.cmAccountAddress.Hex()
 	}
 	return nil
-}
-
-// Waits for a transaction to be mined
-func (h *evmResponseHandler) waitTransaction(ctx context.Context, tx *ethTypes.Transaction) (receipt *ethTypes.Receipt, err error) {
-	h.logger.Infof("Waiting for transaction to be mined...\n")
-
-	receipt, err = bind.WaitMined(ctx, h.ethClient, tx)
-	if err != nil {
-		return receipt, err
-	}
-
-	if receipt.Status != ethTypes.ReceiptStatusSuccessful {
-		return receipt, fmt.Errorf("transaction failed: %v", receipt)
-	}
-
-	h.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
-
-	return receipt, nil
 }
 
 func (h *evmResponseHandler) AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string) {

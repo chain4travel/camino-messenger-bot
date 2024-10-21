@@ -16,7 +16,9 @@ import (
 	reflect "reflect"
 
 	cheques "github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	bind "github.com/ethereum/go-ethereum/accounts/abi/bind"
 	common "github.com/ethereum/go-ethereum/common"
+	types "github.com/ethereum/go-ethereum/core/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -41,6 +43,21 @@ func NewMockService(ctrl *gomock.Controller) *MockService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
+}
+
+// BuyBookingToken mocks base method.
+func (m *MockService) BuyBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2 *big.Int) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BuyBookingToken", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BuyBookingToken indicates an expected call of BuyBookingToken.
+func (mr *MockServiceMockRecorder) BuyBookingToken(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuyBookingToken", reflect.TypeOf((*MockService)(nil).BuyBookingToken), arg0, arg1, arg2)
 }
 
 // CashInCheque mocks base method.
@@ -117,6 +134,21 @@ func (m *MockService) IsBotAllowed(arg0 context.Context, arg1, arg2 common.Addre
 func (mr *MockServiceMockRecorder) IsBotAllowed(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBotAllowed", reflect.TypeOf((*MockService)(nil).IsBotAllowed), arg0, arg1, arg2)
+}
+
+// MintBookingToken mocks base method.
+func (m *MockService) MintBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2, arg3 common.Address, arg4 string, arg5, arg6 *big.Int, arg7 common.Address) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MintBookingToken", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MintBookingToken indicates an expected call of MintBookingToken.
+func (mr *MockServiceMockRecorder) MintBookingToken(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MintBookingToken", reflect.TypeOf((*MockService)(nil).MintBookingToken), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 }
 
 // VerifyCheque mocks base method.
