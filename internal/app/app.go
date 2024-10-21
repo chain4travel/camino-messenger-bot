@@ -136,7 +136,11 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	matrixMessenger := matrix.NewMessenger(cfg.Matrix, cfg.BotKey, logger)
+	matrixMessenger, err := matrix.NewMessenger(cfg.Matrix, cfg.BotKey, logger)
+	if err != nil {
+		logger.Errorf("Failed to create matrix messenger: %v", err)
+		return nil, err
+	}
 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
 	botUserID := messaging.UserIDFromAddress(botAddress, cfg.Matrix.HostURL.String())
