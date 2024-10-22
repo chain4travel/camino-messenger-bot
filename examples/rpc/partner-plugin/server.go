@@ -586,6 +586,48 @@ func (p *partnerPlugin) TransportProductList(ctx context.Context, _ *transportv3
 				},
 			},
 			},
+		}, {
+			SupplierCode: &typesv2.SupplierProductCode{
+				SupplierCode:   "XY",
+				SupplierNumber: 789,
+			},
+			Segments: []*transportv3.Segment{{
+				SegmentId:       "SEG789",
+				ProviderCode:    "DB",
+				RetailerCode:    "NS",
+				SubSupplierCode: "SNCF",
+				ProductCode: &typesv2.ProductCode{
+					Code:   "XY",
+					Number: 789,
+					Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_UNSPECIFIED,
+				},
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY",
+					SupplierNumber: 789,
+				},
+				Departure: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 27, 15, 30, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "PAR",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+					},
+				},
+				Arrival: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 28, 16, 47, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "LON",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+					},
+				},
+				SegmentDuration: &typesv1.Duration{
+					Minutes: 137,
+				},
+				SegmentDistance: &typesv1.Length{
+					Value: 495,
+					Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
+				},
+			},
+			},
 		}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
