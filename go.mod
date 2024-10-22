@@ -3,8 +3,8 @@ module github.com/chain4travel/camino-messenger-bot
 go 1.23.1
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-eb9d7ce26ee3.1
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.35.1-00000000000000-eb9d7ce26ee3.1
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-009a97e9bd1b.1
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.35.1-00000000000000-009a97e9bd1b.1
 	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20241011074135-9f5c573d3e25
 	github.com/ethereum/go-ethereum v1.14.9
 	github.com/go-viper/mapstructure/v2 v2.2.1

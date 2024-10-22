@@ -127,10 +127,6 @@ func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]st
 		services[SeatMapServiceV2Request] = rpc.NewService(NewSeatMapServiceV2(rpcConn), SeatMapServiceV2)
 		delete(serviceNames, SeatMapServiceV2)
 	}
-	if _, ok := serviceNames[TransportProductListServiceV1]; ok {
-		services[TransportProductListServiceV1Request] = rpc.NewService(NewTransportProductListServiceV1(rpcConn), TransportProductListServiceV1)
-		delete(serviceNames, TransportProductListServiceV1)
-	}
 	if _, ok := serviceNames[TransportSearchServiceV1]; ok {
 		services[TransportSearchServiceV1Request] = rpc.NewService(NewTransportSearchServiceV1(rpcConn), TransportSearchServiceV1)
 		delete(serviceNames, TransportSearchServiceV1)
@@ -138,6 +134,10 @@ func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]st
 	if _, ok := serviceNames[TransportSearchServiceV2]; ok {
 		services[TransportSearchServiceV2Request] = rpc.NewService(NewTransportSearchServiceV2(rpcConn), TransportSearchServiceV2)
 		delete(serviceNames, TransportSearchServiceV2)
+	}
+	if _, ok := serviceNames[TransportProductListServiceV3]; ok {
+		services[TransportProductListServiceV3Request] = rpc.NewService(NewTransportProductListServiceV3(rpcConn), TransportProductListServiceV3)
+		delete(serviceNames, TransportProductListServiceV3)
 	}
 	if _, ok := serviceNames[TransportSearchServiceV3]; ok {
 		services[TransportSearchServiceV3Request] = rpc.NewService(NewTransportSearchServiceV3(rpcConn), TransportSearchServiceV3)

@@ -21,6 +21,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
@@ -31,7 +32,6 @@ import (
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
-	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
@@ -62,6 +62,7 @@ type partnerPlugin struct {
 	infov2grpc.CountryEntryRequirementsServiceServer
 	activityv2grpc.ActivityProductInfoServiceServer
 	notificationv1grpc.NotificationServiceServer
+	transportv3grpc.TransportProductListServiceServer
 }
 
 func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
@@ -493,7 +494,7 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.Tran
 	return &response, nil
 }
 
-func (p *partnerPlugin) TransportProductList(ctx context.Context, _ *transportv1.TransportProductListRequest) (*transportv1.TransportProductListResponse, error) {
+func (p *partnerPlugin) TransportProductList(ctx context.Context, _ *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -502,7 +503,7 @@ func (p *partnerPlugin) TransportProductList(ctx context.Context, _ *transportv1
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (TransportProductList)", md.RequestID)
 
-	response := transportv1.TransportProductListResponse{
+	response := transportv3.TransportProductListResponse{
 		Header: nil,
 		Trips: []*transportv3.TripBasic{{
 			SupplierCode: &typesv2.SupplierProductCode{
@@ -941,6 +942,7 @@ func main() {
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
+	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})

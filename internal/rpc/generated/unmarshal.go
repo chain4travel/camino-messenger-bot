@@ -144,10 +144,6 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &seat_mapv2.SeatMapRequest{}
 	case SeatMapServiceV2Response:
 		*destination = &seat_mapv2.SeatMapResponse{}
-	case TransportProductListServiceV1Request:
-		*destination = &transportv1.TransportProductListRequest{}
-	case TransportProductListServiceV1Response:
-		*destination = &transportv1.TransportProductListResponse{}
 	case TransportSearchServiceV1Request:
 		*destination = &transportv1.TransportSearchRequest{}
 	case TransportSearchServiceV1Response:
@@ -156,6 +152,10 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &transportv2.TransportSearchRequest{}
 	case TransportSearchServiceV2Response:
 		*destination = &transportv2.TransportSearchResponse{}
+	case TransportProductListServiceV3Request:
+		*destination = &transportv3.TransportProductListRequest{}
+	case TransportProductListServiceV3Response:
+		*destination = &transportv3.TransportProductListResponse{}
 	case TransportSearchServiceV3Request:
 		*destination = &transportv3.TransportSearchRequest{}
 	case TransportSearchServiceV3Response:
