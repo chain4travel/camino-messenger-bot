@@ -507,46 +507,86 @@ func (p *partnerPlugin) TransportProductList(ctx context.Context, _ *transportv3
 		Header: nil,
 		Trips: []*transportv3.TripBasic{{
 			SupplierCode: &typesv2.SupplierProductCode{
-				SupplierCode:   "XY123",
-				SupplierNumber: 0123,
+				SupplierCode:   "XY",
+				SupplierNumber: 123,
 			},
 			Segments: []*transportv3.Segment{{
-				SegmentId:       "SEG123",
-				ProviderCode:    "AA",
-				RetailerCode:    "NS",
-				SubSupplierCode: "SNCF",
+				SegmentId:    "SEG123",
+				ProviderCode: "I2",
+				RetailerCode: "IB",
 				ProductCode: &typesv2.ProductCode{
-					Code:   "XY123",
-					Number: 0123,
+					Code:   "XY",
+					Number: 123,
 					Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_UNSPECIFIED,
 				},
 				SupplierCode: &typesv2.SupplierProductCode{
-					SupplierCode:   "XY123",
-					SupplierNumber: 0123,
+					SupplierCode:   "XY",
+					SupplierNumber: 123,
 				},
 				Departure: &transportv3.TransitEvent{
-					DateTime: timestamppb.New(time.Date(2024, 9, 20, 11, 9, 0, 0, time.UTC)),
+					DateTime: timestamppb.New(time.Date(2024, 9, 20, 9, 0, 0, 0, time.UTC)),
 					LocationCode: &typesv2.LocationCode{
 						Code: "LHR",
-						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
 					},
 				},
 				Arrival: &transportv3.TransitEvent{
-					DateTime: timestamppb.New(time.Date(2024, 9, 20, 11, 11, 55, 0, time.UTC)),
+					DateTime: timestamppb.New(time.Date(2024, 9, 20, 11, 55, 0, 0, time.UTC)),
 					LocationCode: &typesv2.LocationCode{
 						Code: "JFK",
-						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
 					},
 				},
 				SegmentDuration: &typesv1.Duration{
 					Minutes: 475,
 				},
 				SegmentDistance: &typesv1.Length{
-					Value: 1000,
+					Value: 5539,
 					Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
 				},
 			}},
-		}, {}},
+		}, {
+			SupplierCode: &typesv2.SupplierProductCode{
+				SupplierCode:   "XY",
+				SupplierNumber: 456,
+			},
+			Segments: []*transportv3.Segment{{
+				SegmentId:    "SEG456",
+				ProviderCode: "I2",
+				RetailerCode: "IB",
+				ProductCode: &typesv2.ProductCode{
+					Code:   "XY",
+					Number: 456,
+					Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_UNSPECIFIED,
+				},
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY",
+					SupplierNumber: 456,
+				},
+				Departure: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 27, 23, 55, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "SIN",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+					},
+				},
+				Arrival: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 28, 9, 30, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "MEL",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+					},
+				},
+				SegmentDuration: &typesv1.Duration{
+					Minutes: 455,
+				},
+				SegmentDistance: &typesv1.Length{
+					Value: 6024,
+					Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
+				},
+			},
+			},
+		}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
