@@ -167,6 +167,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		tracer,
 		messageProcessor,
 		serviceRegistry,
+		cfg.DeveloperMode,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create rpc server: %v", err)
