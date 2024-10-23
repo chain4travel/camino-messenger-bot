@@ -32,7 +32,6 @@ import (
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
-	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
@@ -475,7 +474,7 @@ func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1.PingRequest) (
 	}, nil
 }
 
-func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.TransportSearchRequest) (*transportv2.TransportSearchResponse, error) {
+func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv3.TransportSearchRequest) (*transportv3.TransportSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -484,9 +483,65 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.Tran
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (TransportSearch)", md.RequestID)
 
-	response := transportv2.TransportSearchResponse{
+	// TODO: finish example response
+	response := transportv3.TransportSearchResponse{
 		Header:   nil,
 		Metadata: &typesv2.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
+		Results: []*transportv3.TransportSearchResult{{
+			ResultId:     0,
+			QueryId:      0,
+			OfferId:      "123456",
+			TravellerIds: []int32{123, 456},
+			TravellingTrips: []*transportv3.TripExtended{{
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY",
+					SupplierNumber: 123,
+				},
+				Baggage: &typesv1.Baggage{
+					MaxCount: 5,
+					MaxWeight: &typesv1.Weight{
+						Value: 20,
+						Unit:  typesv1.WeightUnit_WEIGHT_UNIT_KILOGRAM,
+					},
+					MaxDimension: &typesv1.Dimension{
+						Length: 45,
+						Width:  90,
+						Height: 75,
+						Unit:   typesv1.LengthUnit_LENGTH_UNIT_CENTIMETER,
+					},
+				},
+				Price: &typesv2.Price{
+					Value:    "100",
+					Decimals: 2,
+					Currency: &typesv2.Currency{
+						Currency: &typesv2.Currency_IsoCurrency{
+							IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR,
+						},
+					},
+				},
+				Segments: []*transportv3.SegmentExtended{{
+					Info:                   &transportv3.Segment{},
+					ServiceTypeCode:        "",
+					ServiceTypeDescription: "",
+					Services: []*typesv2.ServiceFact{{
+						Code:        "XY",
+						Description: "",
+						PriceDetail: &typesv2.PriceDetail{
+							Price:          &typesv2.Price{},
+							Binding:        false,
+							Description:    "",
+							LocallyPayable: true,
+						},
+						AvailabilityType: typesv2.ServiceAvailabilityType_SERVICE_AVAILABILITY_TYPE_COMPULSORY,
+					}},
+					MinPax: 1,
+					MaxPax: 3,
+				}},
+			}},
+			TotalPrice: &typesv2.PriceDetail{},
+			RateRules:  []*typesv1.RateRule{{}},
+			Links:      []*typesv1.Link{{}},
+		}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
@@ -1023,7 +1078,7 @@ func main() {
 	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
-	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
+	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
