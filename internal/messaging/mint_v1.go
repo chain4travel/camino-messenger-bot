@@ -69,6 +69,7 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 		big.NewInt(mintResp.BuyableUntil.Seconds),
 		price,
 		paymentToken,
+		false,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)

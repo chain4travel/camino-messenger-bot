@@ -6,21 +6,21 @@ import (
 	"math/big"
 	"time"
 
-	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	// TODO: @VjeraTurk  book/v3
+	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response protoreflect.ProtoMessage, request protoreflect.ProtoMessage) bool {
-	mintResp, ok := response.(*bookv2.MintResponse)
+func (h *evmResponseHandler) handleMintResponseV3(ctx context.Context, response protoreflect.ProtoMessage, request protoreflect.ProtoMessage) bool {
+	mintResp, ok := response.(*bookv3.MintResponse)
 	if !ok {
 		return false
 	}
-	mintReq, ok := request.(*bookv2.MintRequest)
+	mintReq, ok := request.(*bookv3.MintRequest)
 	if !ok {
 		return false
 	}
@@ -67,6 +67,9 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 		return true
 	}
 
+	// TODO: @VjeraTurk get isCancellable from request or set to false
+	// isCancellable := mintReq.Cancellable || false
+
 	// MINT TOKEN
 	txID, tokenID, err := h.mint(
 		ctx,
@@ -94,8 +97,8 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 	return false
 }
 
-func (h *evmResponseHandler) handleMintRequestV2(ctx context.Context, response protoreflect.ProtoMessage) bool {
-	mintResp, ok := response.(*bookv2.MintResponse)
+func (h *evmResponseHandler) handleMintRequestV3(ctx context.Context, response protoreflect.ProtoMessage) bool {
+	mintResp, ok := response.(*bookv3.MintResponse)
 	if !ok {
 		return false
 	}
@@ -120,34 +123,4 @@ func (h *evmResponseHandler) handleMintRequestV2(ctx context.Context, response p
 	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", receipt, mintResp.MintTransactionId)
 	mintResp.BuyTransactionId = receipt.TxHash.Hex()
 	return false
-}
-
-func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *typesv2.Price) (*big.Int, common.Address, error) {
-	priceBigInt := big.NewInt(0)
-	paymentToken := zeroAddress
-	var err error
-	switch currency := price.Currency.Currency.(type) {
-	case *typesv2.Currency_NativeToken:
-		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
-		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("error minting NFT: %w", err)
-		}
-	case *typesv2.Currency_TokenCurrency:
-		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
-			return nil, zeroAddress, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
-		}
-		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-		tokenDecimals, err := h.erc20.Decimals(ctx, contractAddress)
-		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("failed to fetch token decimals: %w", err)
-		}
-		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
-		if err != nil {
-			return nil, zeroAddress, err
-		}
-		paymentToken = contractAddress
-	case *typesv2.Currency_IsoCurrency:
-		// For IsoCurrency, keep price as 0 and paymentToken as zeroAddress
-	}
-	return priceBigInt, paymentToken, nil
 }

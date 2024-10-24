@@ -83,6 +83,7 @@ func (bs *Service) MintBookingToken(
 	expirationTimestamp *big.Int,
 	price *big.Int,
 	paymentToken common.Address,
+	isCancellable bool,
 ) (*types.Receipt, error) {
 	bs.logger.Infof("📅 Minting BookingToken for %s with price %s and expiration %s", reservedFor.Hex(), price, expirationTimestamp)
 
@@ -108,6 +109,7 @@ func (bs *Service) MintBookingToken(
 		expirationTimestamp,
 		price,
 		paymentToken,
+		isCancellable,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to mint booking token: %w", err)

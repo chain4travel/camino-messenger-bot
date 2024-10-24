@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenv2"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,7 +36,7 @@ type EventListener struct {
 	logger        *zap.SugaredLogger
 	mu            sync.RWMutex
 	cmAccounts    map[common.Address]*cmaccount.Cmaccount
-	btContracts   map[common.Address]*bookingtoken.Bookingtoken
+	btContracts   map[common.Address]*bookingtokenv2.Bookingtokenv2
 	subscriptions map[string]*subscriptionInfo // Keyed by unique IDs
 }
 
@@ -46,7 +46,7 @@ func NewEventListener(client *ethclient.Client, logger *zap.SugaredLogger) *Even
 		client:        client,
 		logger:        logger,
 		cmAccounts:    make(map[common.Address]*cmaccount.Cmaccount),
-		btContracts:   make(map[common.Address]*bookingtoken.Bookingtoken),
+		btContracts:   make(map[common.Address]*bookingtokenv2.Bookingtokenv2),
 		subscriptions: make(map[string]*subscriptionInfo),
 	}
 }
@@ -72,7 +72,7 @@ func (el *EventListener) getOrCreateCMAccount(addr common.Address) (*cmaccount.C
 }
 
 // getOrCreateBookingToken gets or creates a BookingToken instance
-func (el *EventListener) getOrCreateBookingToken(addr common.Address) (*bookingtoken.Bookingtoken, error) {
+func (el *EventListener) getOrCreateBookingToken(addr common.Address) (*bookingtokenv2.Bookingtokenv2, error) {
 	el.mu.RLock()
 	bt, exists := el.btContracts[addr]
 	el.mu.RUnlock()
@@ -80,7 +80,7 @@ func (el *EventListener) getOrCreateBookingToken(addr common.Address) (*bookingt
 		return bt, nil
 	}
 
-	bt, err := bookingtoken.NewBookingtoken(addr, el.client)
+	bt, err := bookingtokenv2.NewBookingtokenv2(addr, el.client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create BookingToken instance: %w", err)
 	}
@@ -494,7 +494,7 @@ func (el *EventListener) RegisterTokenBoughtHandler(bookingTokenAddress common.A
 }
 
 // resubscribeTokenBought handles resubscription for TokenBought events
-func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenID []*big.Int, buyer []common.Address) {
+func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID string, btContract *bookingtokenv2.Bookingtokenv2, tokenID []*big.Int, buyer []common.Address) {
 	backoffMax := 2 * time.Minute
 
 	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
@@ -502,7 +502,7 @@ func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID strin
 			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
 		}
 
-		eventChan := make(chan *bookingtoken.BookingtokenTokenBought)
+		eventChan := make(chan *bookingtokenv2.Bookingtokenv2TokenBought)
 
 		subInfo, exists := el.getSubscriptionInfo(subID)
 		if !exists {
@@ -534,7 +534,7 @@ func (el *EventListener) resubscribeTokenBought(ctx context.Context, subID strin
 }
 
 // listenForTokenBoughtEvents listens for TokenBought events
-func (el *EventListener) listenForTokenBoughtEvents(subID string, eventChan chan *bookingtoken.BookingtokenTokenBought) {
+func (el *EventListener) listenForTokenBoughtEvents(subID string, eventChan chan *bookingtokenv2.Bookingtokenv2TokenBought) {
 	subInfo, exists := el.getSubscriptionInfo(subID)
 	if !exists {
 		return
@@ -575,7 +575,7 @@ func (el *EventListener) RegisterTokenReservedHandler(bookingTokenAddress common
 }
 
 // resubscribeTokenReserved handles resubscription for TokenReserved events
-func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID string, btContract *bookingtoken.Bookingtoken, tokenID []*big.Int, reservedFor []common.Address, supplier []common.Address) {
+func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID string, btContract *bookingtokenv2.Bookingtokenv2, tokenID []*big.Int, reservedFor []common.Address, supplier []common.Address) {
 	backoffMax := 2 * time.Minute
 
 	resubscribeFn := func(ctx context.Context, lastError error) (event.Subscription, error) {
@@ -583,7 +583,7 @@ func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID str
 			el.logger.Errorf("Resubscribe attempt after error: %v", lastError)
 		}
 
-		eventChan := make(chan *bookingtoken.BookingtokenTokenReserved)
+		eventChan := make(chan *bookingtokenv2.Bookingtokenv2TokenReserved)
 
 		subInfo, exists := el.getSubscriptionInfo(subID)
 		if !exists {
@@ -615,7 +615,7 @@ func (el *EventListener) resubscribeTokenReserved(ctx context.Context, subID str
 }
 
 // listenForTokenReservedEvents listens for TokenReserved events
-func (el *EventListener) listenForTokenReservedEvents(subID string, eventChan chan *bookingtoken.BookingtokenTokenReserved) {
+func (el *EventListener) listenForTokenReservedEvents(subID string, eventChan chan *bookingtokenv2.Bookingtokenv2TokenReserved) {
 	subInfo, exists := el.getSubscriptionInfo(subID)
 	if !exists {
 		return
@@ -714,3 +714,24 @@ func (el *EventListener) listenForChequeCashedInEvents(subID string, eventChan c
 		handler(event)
 	}
 }
+
+// TODO: @VjeraTurk
+// RegisterCancellationPendingHandler
+// resubscribeCancellationPending
+// listenForCancellationPendingEvents
+
+// RegisterCancellationAcceptedHandler
+// resubscribeCancellationAccepted
+// listenForCancellationAcceptedEvents
+
+// RegisterCancellationRejectedHandler
+// resubscribeCancellationRejected
+// listenForCancellationRejectedEvents
+
+// RegisterCancellationCounteredHandler
+// resubscribeCancellationCountered
+// listenForCancellationCounteredEvents
+
+// RegisterTokenCancellableUpdated
+// resubscribeTokenCancellableUpdated
+// listenForTokenCancellableUpdated

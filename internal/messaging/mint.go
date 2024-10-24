@@ -10,7 +10,7 @@ import (
 
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenv2"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
@@ -26,6 +26,7 @@ func (h *evmResponseHandler) mint(
 	expiration *big.Int,
 	price *big.Int,
 	paymentToken common.Address,
+	isCancellable bool,
 ) (string, *big.Int, error) {
 	receipt, err := h.bookingService.MintBookingToken(
 		ctx,
@@ -34,6 +35,7 @@ func (h *evmResponseHandler) mint(
 		expiration,
 		price,
 		paymentToken,
+		isCancellable,
 	)
 	if err != nil {
 		return "", nil, err
@@ -63,7 +65,7 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 		func(e any) {
 			expirationTimer.Stop()
 			h.logger.Infof("Token bought event received for token %s", tokenID.String())
-			event := e.(*bookingtoken.BookingtokenTokenBought)
+			event := e.(*bookingtokenv2.Bookingtokenv2TokenBought)
 
 			if _, err := notificationClient.TokenBoughtNotification(
 				context.Background(),

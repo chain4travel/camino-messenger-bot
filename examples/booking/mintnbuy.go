@@ -18,7 +18,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	erc20 "github.com/chain4travel/camino-messenger-bot/pkg/erc20"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenv2"
 )
 
 // Simple usage example for the BookingService
@@ -77,7 +77,7 @@ func main() {
 		sugar.Fatalf("Failed to create Booking Service: %v", err)
 	}
 
-	bt, err := bookingtoken.NewBookingtoken(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
+	bt, err := bookingtokenv2.NewBookingtokenv2(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
 	if err != nil {
 		sugar.Fatalf("Failed to create BookingToken contract binding: %v", err)
 	}
@@ -137,8 +137,8 @@ func main() {
 
 	paymentToken = nativeTokenAddress
 	priceBigInt = big.NewInt(0)
-	// price = priceEURSH
 	price = priceEURSH
+	// price = priceCAM
 
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
@@ -189,6 +189,7 @@ func main() {
 		expiration,
 		priceBigInt,
 		paymentToken,
+		true,
 	)
 	if err != nil {
 		sugar.Fatalf("Failed to mint booking token: %v", err)

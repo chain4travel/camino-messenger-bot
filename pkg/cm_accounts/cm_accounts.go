@@ -62,12 +62,29 @@ type Service interface {
 		expirationTimestamp *big.Int,
 		price *big.Int,
 		paymentToken common.Address,
+		isCancellable bool,
 	) (*types.Receipt, error)
 
 	BuyBookingToken(
 		ctx context.Context,
 		transactOpts *bind.TransactOpts,
 		tokenID *big.Int,
+	) (*types.Receipt, error)
+
+	InitiateCancellationProposal(
+		ctx context.Context,
+		transactOpts *bind.TransactOpts,
+		cmAccountAddress common.Address,
+		tokenID *big.Int,
+		refoundAmount *big.Int,
+	) (*types.Receipt, error)
+
+	SetCancellable(
+		ctx context.Context,
+		transactOpts *bind.TransactOpts,
+		cmAccountAddress common.Address,
+		tokenID *big.Int,
+		isCancelable bool,
 	) (*types.Receipt, error)
 }
 
@@ -261,6 +278,7 @@ func (s *service) MintBookingToken(
 	expirationTimestamp *big.Int,
 	price *big.Int,
 	paymentToken common.Address,
+	isCancellable bool,
 ) (*types.Receipt, error) {
 	cmAccount, err := s.cmAccount(cmAccountAddress)
 	if err != nil {
@@ -274,6 +292,7 @@ func (s *service) MintBookingToken(
 		expirationTimestamp,
 		price,
 		paymentToken,
+		isCancellable,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to mint booking token: %w", err)
@@ -337,5 +356,80 @@ func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 	}
 	s.cache.Add(cmAccountAddr, cmaccount)
 
+	s.logger.Infof("Cmaccount contract instance: %s\n", cmAccountAddr.Hex())
 	return cmaccount, nil
+}
+
+func (s *service) InitiateCancellationProposal(
+	ctx context.Context,
+	transactOpts *bind.TransactOpts,
+	cmAccountAddress common.Address,
+	tokenID *big.Int,
+	refoundAmount *big.Int,
+) (*types.Receipt, error) {
+	cmAccount, err := s.cmAccount(cmAccountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+	}
+
+	tx, err := cmAccount.InitiateCancellationProposal(
+		transactOpts,
+		tokenID,
+		refoundAmount,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate cancellation: %w", err)
+	}
+
+	s.logger.Infof("Waiting for InitiateCancellationProposal transaction to be mined...\n")
+
+	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return nil, fmt.Errorf("transaction failed: %v", receipt)
+	}
+
+	s.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
+
+	return receipt, nil
+}
+
+func (s *service) SetCancellable(
+	ctx context.Context,
+	transactOpts *bind.TransactOpts,
+	cmAccountAddress common.Address,
+	tokenID *big.Int,
+	isCancelable bool,
+) (*types.Receipt, error) {
+	cmAccount, err := s.cmAccount(cmAccountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+	}
+
+	tx, err := cmAccount.SetCancellable(
+		transactOpts,
+		tokenID,
+		isCancelable,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate cancellation: %w", err)
+	}
+
+	s.logger.Infof("Waiting for SetCancellable transaction to be mined...\n")
+
+	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return nil, fmt.Errorf("transaction failed: %v", receipt)
+	}
+
+	s.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
+
+	return receipt, nil
 }
