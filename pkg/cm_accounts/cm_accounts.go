@@ -275,6 +275,7 @@ func (s *service) MintBookingToken(
 		expirationTimestamp,
 		price,
 		paymentToken,
+		false,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to mint booking token: %w", err)
