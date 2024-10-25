@@ -67,6 +67,7 @@ type Service interface {
 	BuyBookingToken(
 		ctx context.Context,
 		transactOpts *bind.TransactOpts,
+		cmAccountAddr common.Address,
 		tokenID *big.Int,
 	) (*types.Receipt, error)
 }
@@ -294,9 +295,10 @@ func (s *service) MintBookingToken(
 func (s *service) BuyBookingToken(
 	ctx context.Context,
 	transactOpts *bind.TransactOpts,
+	cmAccountAddress common.Address,
 	tokenID *big.Int,
 ) (*types.Receipt, error) {
-	cmAccount, err := s.cmAccount(transactOpts.From)
+	cmAccount, err := s.cmAccount(cmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}

@@ -132,7 +132,7 @@ func (bs *Service) BuyBookingToken(
 	}
 
 	// Call the BuyBookingToken function from the contract
-	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, tokenID)
+	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, bs.cmAccountAddress, tokenID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to buy booking token: %w", err)
 	}

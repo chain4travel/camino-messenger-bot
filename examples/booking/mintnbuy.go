@@ -137,8 +137,8 @@ func main() {
 
 	paymentToken = nativeTokenAddress
 	priceBigInt = big.NewInt(0)
-	// price = priceEURSH
-	price = priceEURSH
+	price = priceCAM
+	// price = priceEURSH //  You can't use EURSH if you are not registered in their system
 
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:

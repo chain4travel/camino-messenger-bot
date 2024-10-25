@@ -46,18 +46,18 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // BuyBookingToken mocks base method.
-func (m *MockService) BuyBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2 *big.Int) (*types.Receipt, error) {
+func (m *MockService) BuyBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2 common.Address, arg3 *big.Int) (*types.Receipt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuyBookingToken", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "BuyBookingToken", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*types.Receipt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BuyBookingToken indicates an expected call of BuyBookingToken.
-func (mr *MockServiceMockRecorder) BuyBookingToken(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockServiceMockRecorder) BuyBookingToken(arg0, arg1, arg2, args3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuyBookingToken", reflect.TypeOf((*MockService)(nil).BuyBookingToken), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuyBookingToken", reflect.TypeOf((*MockService)(nil).BuyBookingToken), arg0, arg1, arg2, args3)
 }
 
 // CashInCheque mocks base method.
