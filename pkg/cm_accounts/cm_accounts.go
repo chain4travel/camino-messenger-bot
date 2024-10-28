@@ -268,7 +268,7 @@ func (s *service) MintBookingToken(
 		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}
 
-	// TODO: @VjeraTurk enable setting isCancellable flag fom mintv3 on.
+	// TODO: @VjeraTurk enable setting isCancellable flag from mintv3 on.
 	tx, err := cmAccount.MintBookingToken(
 		transactOpts,
 		reservedFor,
