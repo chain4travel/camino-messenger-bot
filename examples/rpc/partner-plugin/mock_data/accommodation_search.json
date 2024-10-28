@@ -1,0 +1,52 @@
+{
+    "Header": null,
+    "Metadata": {
+      "SearchId": {
+        "Value": "md.RequestID"
+      }
+    },
+    "Results": [
+      {
+        "ResultId": 0,
+        "QueryId": 0,
+        "Units": [
+          {
+            "Type": "UNIT_TYPE_ROOM",
+            "SupplierRoomCode": "RMSDDB0000",
+            "SupplierRoomName": "Double Standard Room",
+            "OriginalRoomName": "Room with a view",
+            "TravelPeriod": {}
+          }
+        ],
+        "TotalPriceDetail": {
+          "Price": {
+            "Currency": {
+              "Currency": "NativeToken"
+            },
+            "Value": "199",
+            "Decimals": 99
+          },
+          "Binding": false,
+          "LocallyPayable": true,
+          "Description": "Off season price",
+          "Type": {
+            "Code": "POS"
+          }
+        },
+        "RateRules": [
+          {}
+        ],
+        "CancelPolicy": {},
+        "Bookability": {},
+        "Remarks": "A remark"
+      }
+    ],
+    "Travellers": [
+      {
+        "Type": "TRAVEL_TYPE_LEISURE",
+        "Birthdate": {},
+        "Nationality": "COUNTRY_DE"
+      }
+    ]
+  }
+  

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
@@ -885,6 +886,7 @@ func main() {
 
 	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers.MintServiceV2Server{})
 	bookv1grpc.RegisterMintServiceServer(grpcServer, &handlers.MintServiceV1Server{})
+	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers.AccommodationSearchV1Server{})
 
 	port := 55555
 	var err error
