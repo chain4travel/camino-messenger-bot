@@ -35,7 +35,9 @@ import (
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers"
+	handlers_accommodation_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/accommodation/v1"
+	handlers_mint_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/mint/v1"
+	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/mint/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -884,9 +886,13 @@ func main() {
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
 	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &partnerPlugin{})
 
-	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers.MintServiceV2Server{})
-	bookv1grpc.RegisterMintServiceServer(grpcServer, &handlers.MintServiceV1Server{})
-	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers.AccommodationSearchV1Server{})
+	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v2.MintServiceV2Server{})
+	bookv1grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v1.MintServiceV1Server{})
+
+	// Accommodation
+	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers_accommodation_v1.AccommodationSearchV1Server{})
+	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &handlers_accommodation_v1.AccommodationProductInfoV1Server{})
+	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, &handlers_accommodation_v1.AccommodationProductListV1Server{})
 
 	port := 55555
 	var err error

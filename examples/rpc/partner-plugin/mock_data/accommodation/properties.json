@@ -1,0 +1,923 @@
+[
+    {
+        "property": {
+            "last_modified": {
+                "seconds": 1710489022,
+                "nanos": 0
+            },
+            "supplier_code": {
+                "supplier_code": "HTL123456",
+                "supplier_number": 847
+            },
+            "product_codes": [
+                {
+                    "code": "IATA4589",
+                    "type": 3
+                },
+                {
+                    "code": "GDS789",
+                    "type": 0
+                }
+            ],
+            "name": "Sunset Beach Resort & Spa",
+            "chain": "Marriott",
+            "category_rating": 9,
+            "category_unit": 1,
+            "contact_info": {
+                "address": [
+                    {
+                        "line_1": "Playa del Carmen 123",
+                        "line_2": "",
+                        "district": "",
+                        "zip_code": "07001",
+                        "geo_tree": {
+                            "country": 13,
+                            "region": "Balearic Islands",
+                            "city_or_resort": "Mallorca"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+34 971 123 456",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "info@sunsetbeachresort.com",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "links": [
+                    {
+                        "type": 2,
+                        "description": "Official Website",
+                        "ref": "https://www.sunsetbeachresort.com"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 39.5696,
+                "longitude": 2.6502
+            },
+            "status": 1,
+            "airports": ["PMI", "BCN"]
+        },
+        "images": [
+            {
+                "url": "https://example.com/images/sunset-beach-1.jpg",
+                "caption": "Pool View",
+                "type": 1
+            },
+            {
+                "url": "https://example.com/images/sunset-beach-2.jpg",
+                "caption": "Beach Front",
+                "type": 2
+            }
+        ],
+        "videos": [
+            {
+                "url": "https://example.com/videos/resort-tour.mp4",
+                "caption": "Resort Virtual Tour",
+                "duration_seconds": 180
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localized_descriptions": [
+            {
+                "language": 24,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxurious beachfront resort offering spectacular views of the Pacific Ocean"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Located directly on Maui's pristine beach"
+                    }
+                ]
+            }
+        ],
+        "localized_room_descriptions": [
+            {
+                "language": 24,
+                "descriptions": [
+                    {
+                        "type": 3,
+                        "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            }
+        ],
+        "payment_type": "MERCHANT",
+        "rooms": [
+            {
+                "supplier_code": "DBL-SEA",
+                "supplier_name": "Double Room Sea View",
+                "original_name": "Deluxe Double Sea View",
+                "images": [
+                    {
+                        "url": "https://example.com/images/room-sea-view.jpg",
+                        "caption": "Sea View Room",
+                        "type": "IMAGE_TYPE_ROOM"
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": 24,
+                        "descriptions": [
+                            {
+                                "type": 3,
+                                "text": "Elegant room with panoramic sea views"
+                            }
+                        ]
+                    }
+                ],
+                "meal_plans": [
+                    {
+                        "code": 5,
+                        "name": "Bed & Breakfast"
+                    },
+                    {
+                        "code": 9,
+                        "name": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": 2,
+                        "count": 1
+                    }
+                ],
+                "total_occupancy": {
+                    "min_guests": 1,
+                    "max_guests": 3,
+                    "standard_occupancy": 2,
+                    "full_payers": 2,
+                    "infant_counted_in_total_guests": false,
+                    "occupancy_options": [
+                        {
+                            "guest_type": 1,
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guest_type": 2,
+                            "min": 0,
+                            "max": 1,
+                            "min_age": 2,
+                            "max_age": 11
+                        }
+                    ]
+                },
+                "amenities": [
+                    {
+                        "code": "WIFI",
+                        "name": "Free WiFi"
+                    },
+                    {
+                        "code": "BALCONY",
+                        "name": "Private Balcony"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "last_modified": {
+                "seconds": 1710071700,
+                "nanos": 0
+            },
+            "supplier_code": {
+                "supplier_code": "HTL789012",
+                "supplier_number": 231
+            },
+            "product_codes": [
+                {
+                    "code": "GIATA12345",
+                    "type": 1
+                }
+            ],
+            "name": "Alpine Lodge & Spa",
+            "chain": "Hilton",
+            "category_rating": 10,
+            "category_unit": 1,
+            "contact_info": {
+                "address": [
+                    {
+                        "line_1": "Dorfstrasse 45",
+                        "line_2": "",
+                        "district": "Graubünden",
+                        "zip_code": "7050",
+                        "geo_tree": {
+                            "country": 9,
+                            "region": "Graubünden",
+                            "city_or_resort": "Arosa"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+41 81 123 4567",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "info@alpinelodge.ch",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "links": [
+                    {
+                        "type": 2,
+                        "description": "Official Website",
+                        "ref": "https://www.alpinelodge.ch"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 46.0207,
+                "longitude": 7.7491
+            },
+            "status": 1,
+            "airports": ["ZRH", "GVA"]
+        },
+        "images": [
+            {
+                "url": "https://example.com/images/alpine-lodge-1.jpg",
+                "caption": "Mountain View",
+                "type": 1
+            },
+            {
+                "url": "https://example.com/images/alpine-lodge-2.jpg",
+                "caption": "Lodge Exterior",
+                "type": 1
+            }
+        ],
+        "videos": [
+            {
+                "url": "https://example.com/videos/lodge-tour.mp4",
+                "caption": "Lodge Virtual Tour",
+                "duration_seconds": 180
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localized_descriptions": [
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxurious mountain lodge offering spectacular views of the Swiss Alps"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Located in the heart of the Swiss Alps"
+                    }
+                ]
+            }
+        ],
+        "localized_room_descriptions": [
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            }
+        ],
+        "payment_type": "MERCHANT",
+        "rooms": [
+            {
+                "supplier_code": "DBL-MTN",
+                "supplier_name": "Double Room Mountain View",
+                "original_name": "Deluxe Double Mountain View",
+                "images": [
+                    {
+                        "url": "https://example.com/images/room-mountain-view.jpg",
+                        "caption": "Mountain View Room",
+                        "type": "IMAGE_TYPE_ROOM"
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": 12,
+                        "descriptions": [
+                            {
+                                "type": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic mountain views"
+                            }
+                        ]
+                    }
+                ],
+                "meal_plans": [
+                    {
+                        "code": 5,
+                        "name": "Bed & Breakfast"
+                    },
+                    {
+                        "code": 9,
+                        "name": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": 2,
+                        "count": 1
+                    }
+                ],
+                "total_occupancy": {
+                    "min_guests": 1,
+                    "max_guests": 3,
+                    "standard_occupancy": 2,
+                    "full_payers": 2,
+                    "infant_counted_in_total_guests": false,
+                    "occupancy_options": [
+                        {
+                            "guest_type": 1,
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guest_type": 2,
+                            "min": 0,
+                            "max": 1,
+                            "min_age": 2,
+                            "max_age": 11
+                        }
+                    ]
+                },
+                "amenities": [
+                    {
+                        "code": "WIFI",
+                        "name": "Free WiFi"
+                    },
+                    {
+                        "code": "BALCONY",
+                        "name": "Private Balcony"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "last_modified": {
+                "seconds": 1710237630,
+                "nanos": 0
+            },
+            "supplier_code": {
+                "supplier_code": "HTL345678",
+                "supplier_number": 654
+            },
+            "product_codes": [
+                {
+                    "code": "TUI8901",
+                    "type": 0
+                }
+            ],
+            "name": "Palm Paradise Resort",
+            "chain": "Riu Hotels",
+            "category_rating": 8,
+            "category_unit": 1,
+            "contact_info": {
+                "address": [
+                    {
+                        "line_1": "Beach Road 78",
+                        "zip_code": "07100",
+                        "geo_tree": {
+                            "country": 90,
+                            "region": "Antalya",
+                            "city_or_resort": "Antalya"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+90 242 444 5566",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "contact@palmparadise.com",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 36.8969,
+                "longitude": 30.7133
+            },
+            "status": 1,
+            "airports": ["AYT"]
+        },
+        "images": [
+            {
+                "url": "https://example.com/images/palm-paradise-1.jpg",
+                "caption": "Beach Front",
+                "type": 2
+            },
+            {
+                "url": "https://example.com/images/palm-paradise-2.jpg",
+                "caption": "Resort Exterior",
+                "type": 1
+            }
+        ],
+        "videos": [
+            {
+                "url": "https://example.com/videos/resort-tour.mp4",
+                "caption": "Resort Virtual Tour",
+                "duration_seconds": 180
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localized_descriptions": [
+            {
+                "language": 26,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxurious beachfront resort offering spectacular views of the Mediterranean Sea"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Located directly on the pristine beach of Antalya"
+                    }
+                ]
+            }
+        ],
+        "localized_room_descriptions": [
+            {
+                "language": 26,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            }
+        ],
+        "payment_type": "MERCHANT",
+        "rooms": [
+            {
+                "supplier_code": "DBL-SEA",
+                "supplier_name": "Double Room Sea View",
+                "original_name": "Deluxe Double Sea View",
+                "images": [
+                    {
+                        "url": "https://example.com/images/room-sea-view.jpg",
+                        "caption": "Sea View Room",
+                        "type": "IMAGE_TYPE_ROOM"
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": 26,
+                        "descriptions": [
+                            {
+                                "type": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic sea views"
+                            }
+                        ]
+                    }
+                ],
+                "meal_plans": [
+                    {
+                        "code": 5,
+                        "name": "Bed & Breakfast"
+                    },
+                    {
+                        "code": 9,
+                        "name": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": 2,
+                        "count": 1
+                    }
+                ],
+                "total_occupancy": {
+                    "min_guests": 1,
+                    "max_guests": 3,
+                    "standard_occupancy": 2,
+                    "full_payers": 2,
+                    "infant_counted_in_total_guests": false,
+                    "occupancy_options": [
+                        {
+                            "guest_type": 1,
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guest_type": 2,
+                            "min": 0,
+                            "max": 1,
+                            "min_age": 2,
+                            "max_age": 11
+                        }
+                    ]
+                },
+                "amenities": [
+                    {
+                        "code": "WIFI",
+                        "name": "Free WiFi"
+                    },
+                    {
+                        "code": "BALCONY",
+                        "name": "Private Balcony"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "last_modified": {
+                "seconds": 1710407115,
+                "nanos": 0
+            },
+            "supplier_code": {
+                "supplier_code": "HTL901234",
+                "supplier_number": 123
+            },
+            "product_codes": [
+                {
+                    "code": "AMX4567",
+                    "type": 0
+                }
+            ],
+            "name": "City Central Hotel",
+            "chain": "Accor",
+            "category_rating": 7,
+            "category_unit": 1,
+            "contact_info": {
+                "address": [
+                    {
+                        "line_1": "Hauptstrasse 100",
+                        "zip_code": "10115",
+                        "geo_tree": {
+                            "country": 82,
+                            "region": "Berlin",
+                            "city_or_resort": "Berlin"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+49 30 987 6543",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "info@citycentralberlin.de",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 52.5200,
+                "longitude": 13.4050
+            },
+            "status": 1,
+            "airports": ["TXL", "SXF"]
+        },
+        "images": [
+            {
+                "url": "https://example.com/images/city-central-1.jpg",
+                "caption": "Hotel Exterior",
+                "type": 1
+            },
+            {
+                "url": "https://example.com/images/city-central-2.jpg",
+                "caption": "Hotel Lobby",
+                "type": 4
+            }
+        ],
+        "videos": [
+            {
+                "url": "https://example.com/videos/hotel-tour.mp4",
+                "caption": "Hotel Virtual Tour",
+                "duration_seconds": 180
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localized_descriptions": [
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxurious city hotel offering modern amenities and a relaxing spa"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Located in the heart of Berlin"
+                    }
+                ]
+            }
+        ],
+        "localized_room_descriptions": [
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            }
+        ],
+        "payment_type": "MERCHANT",
+        "rooms": [
+            {
+                "supplier_code": "DBL-CIT",
+                "supplier_name": "Double Room City View",
+                "original_name": "Deluxe Double City View",
+                "images": [
+                    {
+                        "url": "https://example.com/images/room-city-view.jpg",
+                        "caption": "City View Room",
+                        "type": "IMAGE_TYPE_ROOM"
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": 12,
+                        "descriptions": [
+                            {
+                                "type": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic city views"
+                            }
+                        ]
+                    }
+                ],
+                "meal_plans": [
+                    {
+                        "code": 5,
+                        "name": "Bed & Breakfast"
+                    },
+                    {
+                        "code": 9,
+                        "name": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": 2,
+                        "count": 1
+                    }
+                ],
+                "total_occupancy": {
+                    "min_guests": 1,
+                    "max_guests": 3,
+                    "standard_occupancy": 2,
+                    "full_payers": 2,
+                    "infant_counted_in_total_guests": false,
+                    "occupancy_options": [
+                        {
+                            "guest_type": 1,
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guest_type": 2,
+                            "min": 0,
+                            "max": 1,
+                            "min_age": 2,
+                            "max_age": 11
+                        }
+                    ]
+                },
+                "amenities": [
+                    {
+                        "code": "WIFI",
+                        "name": "Free WiFi"
+                    },
+                    {
+                        "code": "BALCONY",
+                        "name": "Private Balcony"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "last_modified": {
+                "seconds": 1710343545,
+                "nanos": 0
+            },
+            "supplier_code": {
+                "supplier_code": "HTL567890",
+                "supplier_number": 789
+            },
+            "product_codes": [
+                {
+                    "code": "SBR7890",
+                    "type": 0
+                }
+            ],
+            "name": "Ocean View Resort",
+            "chain": "IHG",
+            "category_rating": 10,
+            "category_unit": 1,
+            "contact_info": {
+                "address": [
+                    {
+                        "line_1": "2750 Kaanapali Parkway",
+                        "line_2": "",
+                        "district": "",
+                        "zip_code": "96761",
+                        "geo_tree": {
+                            "country": 32,
+                            "region": "Hawaii",
+                            "city_or_resort": "Maui"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+1 808 123 4567",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "reservations@oceanviewmaui.com",
+                        "type": 2,
+                        "description": "Reception"
+                    }
+                ],
+                "links": [
+                    {
+                        "type": 2,
+                        "description": "Official Website",
+                        "ref": "https://www.oceanviewmaui.com"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 20.9374,
+                "longitude": -156.6869
+            },
+            "status": 1,
+            "airports": ["OGG", "HNL"]
+        },
+        "images": [
+            {
+                "url": "https://example.com/images/ocean-view-1.jpg",
+                "caption": "Beach Front",
+                "type": 2
+            },
+            {
+                "url": "https://example.com/images/ocean-view-2.jpg",
+                "caption": "Resort Exterior",
+                "type": 1
+            }
+        ],
+        "videos": [
+            {
+                "url": "https://example.com/videos/resort-tour.mp4",
+                "caption": "Resort Virtual Tour",
+                "duration_seconds": 180
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localized_descriptions": [
+            {
+                "language": 9,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxurious beachfront resort offering spectacular views of the Pacific Ocean"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Located directly on Maui's pristine beach"
+                    }
+                ]
+            }
+        ],
+        "localized_room_descriptions": [
+            {
+                "language": 9,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            }
+        ],
+        "payment_type": "MERCHANT",
+        "rooms": [
+            {
+                "supplier_code": "DBL-SEA",
+                "supplier_name": "Double Room Sea View",
+                "original_name": "Deluxe Double Sea View",
+                "images": [
+                    {
+                        "url": "https://example.com/images/room-sea-view.jpg",
+                        "caption": "Sea View Room",
+                        "type": "IMAGE_TYPE_ROOM"
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": 9,
+                        "descriptions": [
+                            {
+                                "type": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic sea views"
+                            }
+                        ]
+                    }
+                ],
+                "meal_plans": [
+                    {
+                        "code": 5,
+                        "name": "Bed & Breakfast"
+                    },
+                    {
+                        "code": 9,
+                        "name": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": 2,
+                        "count": 1
+                    }
+                ],
+                "total_occupancy": {
+                    "min_guests": 1,
+                    "max_guests": 3,
+                    "standard_occupancy": 2,
+                    "full_payers": 2,
+                    "infant_counted_in_total_guests": false,
+                    "occupancy_options": [
+                        {
+                            "guest_type": 1,
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guest_type": 2,
+                            "min": 0,
+                            "max": 1,
+                            "min_age": 2,
+                            "max_age": 11
+                        }
+                    ]
+                },
+                "amenities": [
+                    {
+                        "code": "WIFI",
+                        "name": "Free WiFi"
+                    },
+                    {
+                        "code": "BALCONY",
+                        "name": "Private Balcony"
+                    }
+                ]
+            }
+        ]
+    }
+]
