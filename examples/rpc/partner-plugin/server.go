@@ -22,23 +22,21 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
-	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
-	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	networkv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
-	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	handlers_accommodation_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/accommodation/v1"
 	handlers_accommodation_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/accommodation/v2"
-	handlers_mint_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/mint/v1"
-	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/mint/v2"
+	handlers_mint_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/book/mint/v1"
+	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/book/mint/v2"
+	handlers_validation_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/book/validation/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -64,35 +62,6 @@ type partnerPlugin struct {
 	infov2grpc.CountryEntryRequirementsServiceServer
 	activityv2grpc.ActivityProductInfoServiceServer
 	notificationv1grpc.NotificationServiceServer
-}
-
-func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s (Validation)", md.RequestID)
-
-	response := bookv2.ValidationResponse{
-		Header:           nil,
-		ValidationId:     &typesv1.UUID{Value: md.RequestID},
-		ValidationObject: nil,
-		PriceDetail: &typesv2.PriceDetail{
-			Price: &typesv2.Price{
-				Value:    "100",
-				Decimals: 0,
-				Currency: &typesv2.Currency{
-					Currency: &typesv2.Currency_NativeToken{},
-				},
-			},
-		},
-	}
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
 }
 
 func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activityv2.ActivityProductInfoRequest) (*activityv2.ActivityProductInfoResponse, error) {
@@ -327,100 +296,6 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv2.Activi
 	return &response, nil
 }
 
-func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s (AccommodationProductInfo)", md.RequestID)
-
-	response := accommodationv2.AccommodationProductInfoResponse{
-		Properties: []*accommodationv2.PropertyExtendedInfo{{PaymentType: "cash"}},
-	}
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
-}
-
-func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommodationv2.AccommodationProductListRequest) (*accommodationv2.AccommodationProductListResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s (AccommodationProductList)", md.RequestID)
-
-	response := accommodationv2.AccommodationProductListResponse{
-		Properties: []*accommodationv2.Property{{Name: "Hotel"}},
-	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
-}
-
-func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s (AccommodationSearch)", md.RequestID)
-
-	response := accommodationv2.AccommodationSearchResponse{
-		Header: nil,
-		Metadata: &typesv2.SearchResponseMetadata{
-			SearchId: &typesv1.UUID{Value: md.RequestID},
-		},
-		Results: []*accommodationv2.AccommodationSearchResult{{
-			ResultId: 0,
-			QueryId:  0,
-			Units: []*accommodationv2.Unit{{
-				Type:             *accommodationv2.UnitType_UNIT_TYPE_ROOM.Enum(),
-				SupplierRoomCode: "RMSDDB0000",
-				SupplierRoomName: "Double Standard Room",
-				OriginalRoomName: "Room with a view",
-				TravelPeriod:     &typesv1.TravelPeriod{},
-				// TravellerIds:
-			}},
-			TotalPriceDetail: &typesv2.PriceDetail{
-				Price: &typesv2.Price{
-					Currency: &typesv2.Currency{
-						Currency: &typesv2.Currency_NativeToken{},
-					},
-					Value:    "199",
-					Decimals: 99,
-				},
-				Binding:        false,
-				LocallyPayable: true,
-				Description:    "Off season price",
-				Type: &typesv1.PriceBreakdownType{
-					Code: "POS",
-				},
-			},
-			RateRules:    []*typesv1.RateRule{{}},
-			CancelPolicy: &typesv2.CancelPolicy{},
-			Bookability:  &typesv1.Bookability{},
-			Remarks:      "A remark",
-		}},
-		Travellers: []*typesv2.BasicTraveller{{
-			Type:        typesv2.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
-			Birthdate:   &typesv1.Date{},
-			Nationality: typesv2.Country_COUNTRY_DE,
-		}},
-	}
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
-}
-
 func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1.GetNetworkFeeRequest) (*networkv1.GetNetworkFeeResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
@@ -459,21 +334,6 @@ func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *pa
 
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 	return &response, nil
-}
-
-func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error) {
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s (Ping)", md.RequestID)
-
-	return &pingv1.PingResponse{
-		Header:      nil,
-		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
-	}, nil
 }
 
 func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.TransportSearchRequest) (*transportv2.TransportSearchResponse, error) {
@@ -880,15 +740,12 @@ func main() {
 	// accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
 	// accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
-	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
+	//bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
 	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &partnerPlugin{})
-
-	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v2.MintServiceV2Server{})
-	bookv1grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v1.MintServiceV1Server{})
 
 	// Accommodation V1
 	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers_accommodation_v1.AccommodationSearchV1Server{})
@@ -899,6 +756,14 @@ func main() {
 	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationSearchV2Server{})
 	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationProductInfoV2Server{})
 	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationProductListV2Server{})
+
+	// Book - mint & validation
+	// Book - Mint
+	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v2.MintServiceV2Server{})
+	bookv1grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v1.MintServiceV1Server{})
+	// Book - Validation
+	// bookv1grpc.RegisterValidationServiceServer(grpcServer, &handlers_validation_v1.ValidationServiceV1Server{})
+	bookv2grpc.RegisterValidationServiceServer(grpcServer, &handlers_validation_v2.ValidationServiceV2Server{})
 
 	port := 55555
 	var err error
