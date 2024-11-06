@@ -60,6 +60,8 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		var filtered_props = filterPropertiesByGeoTreeLocation(props, query.SearchParametersAccommodation.GetLocationGeoTree())
 		// filter by product codes
 		filtered_props = filterPropertiesByProductCodes(filtered_props, query.SearchParametersAccommodation.GetProductCodes())
+		// filter by supplier codes
+		filtered_props = filterPropertiesBySupplierCodes(filtered_props, query.SearchParametersAccommodation.GetSupplierCodes())
 
 		// loop filtered properties and check if they are already in available_properties
 		for _, prop := range filtered_props {
@@ -198,6 +200,24 @@ func filterPropertiesByProductCodes(properties []*accommodationv2.PropertyExtend
 	for _, prop := range properties {
 		for _, code := range productCodes {
 			if prop.Property.ProductCodes[0].Code == code.Code {
+				filtered = append(filtered, prop)
+				break
+			}
+		}
+	}
+	return filtered
+}
+
+// filterPropertiesBySupplierCodes filters properties based on supplier codes
+func filterPropertiesBySupplierCodes(properties []*accommodationv2.PropertyExtendedInfo, supplierCodes []*typesv2.SupplierProductCode) []*accommodationv2.PropertyExtendedInfo {
+	if len(supplierCodes) == 0 {
+		return properties
+	}
+
+	filtered := make([]*accommodationv2.PropertyExtendedInfo, 0)
+	for _, prop := range properties {
+		for _, code := range supplierCodes {
+			if prop.Property.SupplierCode.SupplierCode == code.SupplierCode {
 				filtered = append(filtered, prop)
 				break
 			}
