@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/helpers"
+	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 )
@@ -21,9 +21,9 @@ type AccommodationSearchV1Server struct{}
 func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req *accommodationv1.AccommodationSearchRequest) (*accommodationv1.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 
-	var params = req.SearchParametersGeneric
+	var search_generic_params = req.SearchParametersGeneric
 	// print params
-	fmt.Printf("params: %+v\n", params)
+	fmt.Printf("Search generic params: %+v\n", search_generic_params)
 
 	if err := md.ExtractMetadata(ctx); err != nil {
 		log.Print("error extracting metadata")
@@ -39,11 +39,107 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	// log
 	fmt.Printf("properties: %+v\n", properties)
 
-	// Optional: Verify by reading back and printing
-	var searchResults []*accommodationv1.AccommodationSearchResult
+	// if there is no query, return no results
+	if len(req.Queries) == 0 {
+		return &accommodationv1.AccommodationSearchResponse{
+			Header: nil,
+		}, nil
+	}
 
-	// Filter search results by unit supplier room name
-	searchResults = filterSearchResultsBySupplierRoomCode(searchResults, "2")
+	var searchResults []*accommodationv1.AccommodationSearchResult
+	var available_properties []*accommodationv1.PropertyExtendedInfo
+	// loop request queries
+	for _, query := range req.Queries {
+		props := make([]*accommodationv1.PropertyExtendedInfo, len(properties))
+		for i := range properties {
+			props[i] = &properties[i]
+		}
+
+		// get filtered properties
+		var filtered_props = filterPropertiesByGeoTreeLocation(props, query.SearchParametersAccommodation.GetLocationGeoTree())
+		// filter by product codes
+		filtered_props = filterPropertiesByProductCodes(filtered_props, query.SearchParametersAccommodation.GetProductCodes())
+
+		// loop filtered properties and check if they are already in available_properties
+		for _, prop := range filtered_props {
+			// Check if property already exists in available_properties
+			exists := false
+			for _, existingProp := range available_properties {
+				if existingProp.Property.SupplierCode.SupplierCode == prop.Property.SupplierCode.SupplierCode {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				available_properties = append(available_properties, prop)
+			}
+		}
+
+		// generate search result
+		for _, prop := range available_properties {
+
+			// units requested
+			units_requested := query.UnitCount
+
+			// empty units array
+			units := make([]*accommodationv1.Unit, 0)
+
+			// loop all rooms
+			for _, room := range prop.Rooms {
+
+				units = append(units, &accommodationv1.Unit{
+					Type:             0,
+					SupplierRoomCode: room.SupplierCode,
+					SupplierRoomName: room.SupplierName,
+					OriginalRoomName: room.OriginalName,
+					TravelPeriod: &typesv1.TravelPeriod{
+						StartDate: &typesv1.Date{
+							Year:  query.TravelPeriod.GetStartDate().GetYear(),
+							Month: query.TravelPeriod.GetStartDate().GetMonth(),
+							Day:   query.TravelPeriod.GetStartDate().GetDay(),
+						},
+						EndDate: &typesv1.Date{
+							Year:  query.TravelPeriod.GetEndDate().GetYear(),
+							Month: query.TravelPeriod.GetEndDate().GetMonth(),
+							Day:   query.TravelPeriod.GetEndDate().GetDay(),
+						},
+					},
+					TravellerIds:   getTravellerIds(query.Travellers),
+					Beds:           room.Beds,
+					PriceDetail:    &typesv1.PriceDetail{},
+					Services:       []*typesv1.ServiceFact{},
+					MealPlanCode:   &typesv1.MealPlan{},
+					RatePlan:       &typesv1.RatePlan{},
+					RateRule:       &typesv1.RateRule{},
+					CancelPolicies: []*typesv1.CancelPolicy{},
+					RemainingUnits: 0,
+					PropertyCode:   &typesv1.ProductCode{},
+					SupplierCode:   prop.Property.SupplierCode,
+					Remarks:        "",
+				})
+
+				if units_requested == int32(len(units)) {
+					break
+				}
+			}
+
+			// check how many units are requested
+			if units_requested == int32(len(units)) {
+				searchResults = append(searchResults, &accommodationv1.AccommodationSearchResult{
+					ResultId:         int32(len(searchResults) + 1),
+					QueryId:          query.QueryId,
+					TotalPriceDetail: &typesv1.PriceDetail{},
+					Units:            units,
+				})
+			}
+		}
+	}
+
+	// Generate cache key from request
+	cacheKey := req.Metadata.RequestId.GetValue()
+
+	// Store in cache after search
+	cache.Cache.Set(cacheKey, searchResults)
 
 	response := &accommodationv1.AccommodationSearchResponse{
 		Header: nil,
@@ -65,13 +161,43 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	return response, nil
 }
 
-func filterSearchResultsBySupplierRoomCode(results []*accommodationv1.AccommodationSearchResult, pattern string) []*accommodationv1.AccommodationSearchResult {
-	regex := regexp.MustCompile(pattern)
-	filtered := make([]*accommodationv1.AccommodationSearchResult, 0)
-	for _, result := range results {
-		for _, unit := range result.Units {
-			if regex.MatchString(unit.SupplierRoomCode) {
-				filtered = append(filtered, result)
+// FilterPropertiesByGeoTreeLocation filters properties based on city or resort
+func filterPropertiesByGeoTreeLocation(properties []*accommodationv1.PropertyExtendedInfo, geoTreeLocation *typesv1.GeoTree) []*accommodationv1.PropertyExtendedInfo {
+	if geoTreeLocation == nil || geoTreeLocation.CityOrResort == "" || geoTreeLocation.Region == "" {
+		return properties
+	}
+
+	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
+	for _, prop := range properties {
+		var address = prop.Property.ContactInfo.Address[0]
+		if address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort && address.GeoTree.Country == geoTreeLocation.Country && address.GeoTree.Region == geoTreeLocation.Region {
+			filtered = append(filtered, prop)
+		}
+	}
+
+	return filtered
+}
+
+// getTravellerIds extracts traveller IDs from []*typesv1.BasicTraveller
+func getTravellerIds(travellers []*typesv1.BasicTraveller) []int32 {
+	var ids []int32
+	for _, traveller := range travellers {
+		ids = append(ids, traveller.TravellerId)
+	}
+	return ids
+}
+
+// filterPropertiesByProductCodes filters properties based on product codes
+func filterPropertiesByProductCodes(properties []*accommodationv1.PropertyExtendedInfo, productCodes []*typesv1.ProductCode) []*accommodationv1.PropertyExtendedInfo {
+	if len(productCodes) == 0 {
+		return properties
+	}
+
+	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
+	for _, prop := range properties {
+		for _, code := range productCodes {
+			if prop.Property.ProductCodes[0].Code == code.Code {
+				filtered = append(filtered, prop)
 				break
 			}
 		}

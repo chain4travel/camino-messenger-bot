@@ -58,7 +58,7 @@
                         "ref": "https://www.sunsetbeachresort.com"
                     }
                 ]
-            },
+        },
             "coordinates": {
                 "latitude": 39.5696,
                 "longitude": 2.6502
@@ -197,7 +197,7 @@
                 "beds": [
                     {
                         "type": 2,
-                        "count": 1
+                        "count": 2
                     }
                 ],
                 "total_occupancy": {
