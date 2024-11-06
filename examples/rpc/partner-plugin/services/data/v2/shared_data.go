@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 	"sync"
 
-	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
+	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 )
 
 var (
-	properties []accommodationv1.PropertyExtendedInfo
+	properties []accommodationv2.PropertyExtendedInfo
 	loadOnce   sync.Once
 )
 
-func LoadPropertiesMockData() []accommodationv1.PropertyExtendedInfo {
+func LoadPropertiesMockData() []accommodationv2.PropertyExtendedInfo {
 	loadOnce.Do(func() {
 		// Assuming the JSON file is relative to the current file
 		currentDir, err := os.Getwd()
@@ -24,7 +24,7 @@ func LoadPropertiesMockData() []accommodationv1.PropertyExtendedInfo {
 			return
 		}
 
-		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "accommodation", "properties.json")
+		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "accommodation", "v2", "properties.json")
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Printf("Error reading properties file: %v", err)

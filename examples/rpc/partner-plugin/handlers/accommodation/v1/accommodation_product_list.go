@@ -7,7 +7,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/helpers"
+	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 )

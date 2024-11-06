@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"log"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
-	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	v1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
+	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 )
 
-var _ accommodationv1grpc.AccommodationProductInfoServiceServer = (*AccommodationProductInfoV1Server)(nil)
+var _ accommodationv2grpc.AccommodationProductInfoServiceServer = (*AccommodationProductInfoV2Server)(nil)
 
-type AccommodationProductInfoV1Server struct{}
+type AccommodationProductInfoV2Server struct{}
 
-func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Context, req *accommodationv1.AccommodationProductInfoRequest) (*accommodationv1.AccommodationProductInfoResponse, error) {
+func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Context, req *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 
 	if err := md.ExtractMetadata(ctx); err != nil {
@@ -29,10 +29,10 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 	log.Printf("Responding to request (Accommodation Product Info): %s", md.RequestID)
 
 	// Load properties data
-	properties := helpers.LoadPropertiesMockData()
+	properties := mock_data.LoadPropertiesMockData()
 
 	// Initialize suppliersFiltered with the correct type
-	var suppliersFiltered []*accommodationv1.PropertyExtendedInfo
+	var suppliersFiltered []*accommodationv2.PropertyExtendedInfo
 
 	// check if there are supplier codes in the request
 	if req.SupplierCodes != nil {
@@ -46,28 +46,28 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 			}
 		}
 	} else {
-		// Convert []accommodationv1.PropertyExtendedInfo to []*accommodationv1.PropertyExtendedInfo
-		suppliersFiltered = make([]*accommodationv1.PropertyExtendedInfo, len(properties))
+		// Convert []accommodationv2.PropertyExtendedInfo to []*accommodationv2.PropertyExtendedInfo
+		suppliersFiltered = make([]*accommodationv2.PropertyExtendedInfo, len(properties))
 		for i := range properties {
 			suppliersFiltered[i] = &properties[i]
 		}
 	}
 
-	var filteredProperties []*accommodationv1.PropertyExtendedInfo
+	var filteredProperties []*accommodationv2.PropertyExtendedInfo
 
 	if req.Languages != nil {
 		log.Printf("Languages requested: %v", req.Languages)
 
 		if req.SupplierCodes != nil {
-			properties = make([]accommodationv1.PropertyExtendedInfo, len(suppliersFiltered))
+			properties = make([]accommodationv2.PropertyExtendedInfo, len(suppliersFiltered))
 			for i, p := range suppliersFiltered {
 				properties[i] = *p
 			}
 		}
 
 		for _, property := range properties {
-			filteredDescriptions := []*v1.LocalizedDescriptionSet{}
-			filteredRoomDescriptions := []*v1.LocalizedDescriptionSet{}
+			filteredDescriptions := []*typesv1.LocalizedDescriptionSet{}
+			filteredRoomDescriptions := []*typesv1.LocalizedDescriptionSet{}
 
 			for _, descSet := range property.LocalizedDescriptions {
 				for _, reqLang := range req.Languages {
@@ -95,7 +95,7 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 	} else {
 		filteredProperties = suppliersFiltered
 	}
-	response := &accommodationv1.AccommodationProductInfoResponse{
+	response := &accommodationv2.AccommodationProductInfoResponse{
 		Header:     nil,
 		Properties: filteredProperties,
 	}
@@ -108,7 +108,7 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 }
 
 // containsProperty checks if a property already exists in the slice
-func containsProperty(properties []*accommodationv1.PropertyExtendedInfo, property accommodationv1.PropertyExtendedInfo) bool {
+func containsProperty(properties []*accommodationv2.PropertyExtendedInfo, property accommodationv2.PropertyExtendedInfo) bool {
 	for _, p := range properties {
 		if p.Property.SupplierCode.SupplierCode == property.Property.SupplierCode.SupplierCode {
 			return true
@@ -118,8 +118,8 @@ func containsProperty(properties []*accommodationv1.PropertyExtendedInfo, proper
 }
 
 // removeProperty removes a property from the slice and returns the updated slice
-func removeProperty(properties []*accommodationv1.PropertyExtendedInfo, property accommodationv1.PropertyExtendedInfo) []*accommodationv1.PropertyExtendedInfo {
-	result := make([]*accommodationv1.PropertyExtendedInfo, 0)
+func removeProperty(properties []*accommodationv2.PropertyExtendedInfo, property accommodationv2.PropertyExtendedInfo) []*accommodationv2.PropertyExtendedInfo {
+	result := make([]*accommodationv2.PropertyExtendedInfo, 0)
 	for _, p := range properties {
 		if p.Property.SupplierCode.SupplierCode != property.Property.SupplierCode.SupplierCode {
 			result = append(result, p)

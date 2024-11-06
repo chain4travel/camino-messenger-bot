@@ -5,20 +5,21 @@ import (
 	"fmt"
 	"log"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
-	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
+	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
-	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v1"
+	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 )
 
-var _ accommodationv1grpc.AccommodationSearchServiceServer = (*AccommodationSearchV1Server)(nil)
+var _ accommodationv2grpc.AccommodationSearchServiceServer = (*AccommodationSearchV2Server)(nil)
 
-type AccommodationSearchV1Server struct{}
+type AccommodationSearchV2Server struct{}
 
-func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req *accommodationv1.AccommodationSearchRequest) (*accommodationv1.AccommodationSearchResponse, error) {
+func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 
 	var search_generic_params = req.SearchParametersGeneric
@@ -34,23 +35,23 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	log.Printf("Responding to request (Accommodation Search): %s", md.RequestID)
 
 	// load mock data
-	properties := helpers.LoadPropertiesMockData()
+	properties := mock_data.LoadPropertiesMockData()
 
 	// log
 	fmt.Printf("properties: %+v\n", properties)
 
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
-		return &accommodationv1.AccommodationSearchResponse{
+		return &accommodationv2.AccommodationSearchResponse{
 			Header: nil,
 		}, nil
 	}
 
-	var searchResults []*accommodationv1.AccommodationSearchResult
-	var available_properties []*accommodationv1.PropertyExtendedInfo
+	var searchResults []*accommodationv2.AccommodationSearchResult
+	var available_properties []*accommodationv2.PropertyExtendedInfo
 	// loop request queries
 	for _, query := range req.Queries {
-		props := make([]*accommodationv1.PropertyExtendedInfo, len(properties))
+		props := make([]*accommodationv2.PropertyExtendedInfo, len(properties))
 		for i := range properties {
 			props[i] = &properties[i]
 		}
@@ -82,12 +83,12 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			units_requested := query.UnitCount
 
 			// empty units array
-			units := make([]*accommodationv1.Unit, 0)
+			units := make([]*accommodationv2.Unit, 0)
 
 			// loop all rooms
 			for _, room := range prop.Rooms {
 
-				units = append(units, &accommodationv1.Unit{
+				units = append(units, &accommodationv2.Unit{
 					Type:             0,
 					SupplierRoomCode: room.SupplierCode,
 					SupplierRoomName: room.SupplierName,
@@ -106,14 +107,14 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 					},
 					TravellerIds:   getTravellerIds(query.Travellers),
 					Beds:           room.Beds,
-					PriceDetail:    &typesv1.PriceDetail{},
-					Services:       []*typesv1.ServiceFact{},
+					PriceDetail:    &typesv2.PriceDetail{},
+					Services:       []*typesv2.ServiceFact{},
 					MealPlanCode:   &typesv1.MealPlan{},
 					RatePlan:       &typesv1.RatePlan{},
 					RateRule:       &typesv1.RateRule{},
-					CancelPolicies: []*typesv1.CancelPolicy{},
+					CancelPolicies: []*typesv2.CancelPolicy{},
 					RemainingUnits: 0,
-					PropertyCode:   &typesv1.ProductCode{},
+					PropertyCode:   &typesv2.ProductCode{},
 					SupplierCode:   prop.Property.SupplierCode,
 					Remarks:        "",
 				})
@@ -125,10 +126,10 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 			// check how many units are requested
 			if units_requested == int32(len(units)) {
-				searchResults = append(searchResults, &accommodationv1.AccommodationSearchResult{
+				searchResults = append(searchResults, &accommodationv2.AccommodationSearchResult{
 					ResultId:         int32(len(searchResults) + 1),
 					QueryId:          query.QueryId,
-					TotalPriceDetail: &typesv1.PriceDetail{},
+					TotalPriceDetail: &typesv2.PriceDetail{},
 					Units:            units,
 				})
 			}
@@ -139,18 +140,18 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	cacheKey := req.Metadata.RequestId.GetValue()
 
 	// Store in cache after search
-	cache.Cache.SetV1(cacheKey, searchResults)
+	cache.Cache.SetV2(cacheKey, searchResults)
 
-	response := &accommodationv1.AccommodationSearchResponse{
+	response := &accommodationv2.AccommodationSearchResponse{
 		Header: nil,
-		Metadata: &typesv1.SearchResponseMetadata{
+		Metadata: &typesv2.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: md.RequestID},
 		},
 		Results: searchResults,
-		Travellers: []*typesv1.BasicTraveller{{
-			Type:        typesv1.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
+		Travellers: []*typesv2.BasicTraveller{{
+			Type:        typesv2.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
 			Birthdate:   &typesv1.Date{},
-			Nationality: typesv1.Country_COUNTRY_DE,
+			Nationality: typesv2.Country_COUNTRY_DE,
 		}},
 	}
 
@@ -162,12 +163,12 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 }
 
 // FilterPropertiesByGeoTreeLocation filters properties based on city or resort
-func filterPropertiesByGeoTreeLocation(properties []*accommodationv1.PropertyExtendedInfo, geoTreeLocation *typesv1.GeoTree) []*accommodationv1.PropertyExtendedInfo {
+func filterPropertiesByGeoTreeLocation(properties []*accommodationv2.PropertyExtendedInfo, geoTreeLocation *typesv2.GeoTree) []*accommodationv2.PropertyExtendedInfo {
 	if geoTreeLocation == nil || geoTreeLocation.CityOrResort == "" || geoTreeLocation.Region == "" {
 		return properties
 	}
 
-	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
+	filtered := make([]*accommodationv2.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
 		var address = prop.Property.ContactInfo.Address[0]
 		if address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort && address.GeoTree.Country == geoTreeLocation.Country && address.GeoTree.Region == geoTreeLocation.Region {
@@ -179,7 +180,7 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv1.PropertyExt
 }
 
 // getTravellerIds extracts traveller IDs from []*typesv1.BasicTraveller
-func getTravellerIds(travellers []*typesv1.BasicTraveller) []int32 {
+func getTravellerIds(travellers []*typesv2.BasicTraveller) []int32 {
 	var ids []int32
 	for _, traveller := range travellers {
 		ids = append(ids, traveller.TravellerId)
@@ -188,12 +189,12 @@ func getTravellerIds(travellers []*typesv1.BasicTraveller) []int32 {
 }
 
 // filterPropertiesByProductCodes filters properties based on product codes
-func filterPropertiesByProductCodes(properties []*accommodationv1.PropertyExtendedInfo, productCodes []*typesv1.ProductCode) []*accommodationv1.PropertyExtendedInfo {
+func filterPropertiesByProductCodes(properties []*accommodationv2.PropertyExtendedInfo, productCodes []*typesv2.ProductCode) []*accommodationv2.PropertyExtendedInfo {
 	if len(productCodes) == 0 {
 		return properties
 	}
 
-	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
+	filtered := make([]*accommodationv2.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
 		for _, code := range productCodes {
 			if prop.Property.ProductCodes[0].Code == code.Code {

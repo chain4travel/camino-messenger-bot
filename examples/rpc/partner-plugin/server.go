@@ -36,6 +36,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	handlers_accommodation_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/accommodation/v1"
+	handlers_accommodation_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/accommodation/v2"
 	handlers_mint_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/mint/v1"
 	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/mint/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
@@ -875,9 +876,9 @@ func main() {
 	insurancev1grpc.RegisterInsuranceSearchServiceServer(grpcServer, &partnerPlugin{})
 	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
 	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
+	// accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
+	// accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
+	// accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
@@ -889,10 +890,15 @@ func main() {
 	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v2.MintServiceV2Server{})
 	bookv1grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v1.MintServiceV1Server{})
 
-	// Accommodation
+	// Accommodation V1
 	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers_accommodation_v1.AccommodationSearchV1Server{})
 	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &handlers_accommodation_v1.AccommodationProductInfoV1Server{})
 	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, &handlers_accommodation_v1.AccommodationProductListV1Server{})
+
+	// Accommodation V2
+	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationSearchV2Server{})
+	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationProductInfoV2Server{})
+	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationProductListV2Server{})
 
 	port := 55555
 	var err error
