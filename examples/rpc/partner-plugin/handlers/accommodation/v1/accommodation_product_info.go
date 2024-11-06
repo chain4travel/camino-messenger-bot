@@ -7,6 +7,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
+	v1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/helpers"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
@@ -52,14 +53,11 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 		}
 	}
 
-	// Initialize filteredProperties slice for language filtering
 	var filteredProperties []*accommodationv1.PropertyExtendedInfo
 
-	// check if there is a language in the request
 	if req.Languages != nil {
 		log.Printf("Languages requested: %v", req.Languages)
 
-		// loop only on suppliersFiltered if supplier codes were requested
 		if req.SupplierCodes != nil {
 			properties = make([]accommodationv1.PropertyExtendedInfo, len(suppliersFiltered))
 			for i, p := range suppliersFiltered {
@@ -67,30 +65,36 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 			}
 		}
 
-		// filter properties by language
 		for _, property := range properties {
-			// Check if property has any description matching requested languages
-			for _, reqLang := range req.Languages {
-				for _, desc := range property.LocalizedDescriptions {
-					if desc.Language == reqLang {
-						// check if already in filteredProperties
-						if !containsProperty(filteredProperties, property) {
-							filteredProperties = append(filteredProperties, &property)
-						}
-					} else {
-						// check if the propery is already added to the list and remove it (should filter by language)
-						if containsProperty(filteredProperties, property) {
-							filteredProperties = removeProperty(filteredProperties, property)
-						}
+			filteredDescriptions := []*v1.LocalizedDescriptionSet{}
+			filteredRoomDescriptions := []*v1.LocalizedDescriptionSet{}
+
+			for _, descSet := range property.LocalizedDescriptions {
+				for _, reqLang := range req.Languages {
+					if descSet.Language == reqLang {
+						filteredDescriptions = append(filteredDescriptions, descSet)
+						break
 					}
 				}
 			}
+			for _, roomDescSet := range property.LocalizedRoomDescriptions {
+				for _, reqLang := range req.Languages {
+					if roomDescSet.Language == reqLang {
+						filteredRoomDescriptions = append(filteredRoomDescriptions, roomDescSet)
+						break
+					}
+				}
+			}
+
+			if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) && !containsProperty(filteredProperties, property) {
+				property.LocalizedDescriptions = filteredDescriptions
+				property.LocalizedRoomDescriptions = filteredRoomDescriptions
+				filteredProperties = append(filteredProperties, &property)
+			}
 		}
 	} else {
-		// If no language is requested, use all properties
 		filteredProperties = suppliersFiltered
 	}
-
 	response := &accommodationv1.AccommodationProductInfoResponse{
 		Header:     nil,
 		Properties: filteredProperties,

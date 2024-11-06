@@ -96,11 +96,37 @@
                 "descriptions": [
                     {
                         "type": 1,
-                        "text": "Luxurious beachfront resort offering spectacular views of the Pacific Ocean"
+                        "text": "Luxurious beachfront resort offering spectacular views of the Mediterranean Sea"
                     },
                     {
                         "type": 2,
-                        "text": "Located directly on Maui's pristine beach"
+                        "text": "Located directly on Mallorca's pristine beach"
+                    }
+                ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxuriöses Strandresort mit spektakulärem Blick auf das Mittelmeer"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Direkt am unberührten Strand von Mallorca gelegen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Resort di lusso sulla spiaggia con vista spettacolare sul Mar Mediterraneo"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situato direttamente sulla spiaggia incontaminata di Maiorca"
                     }
                 ]
             }
@@ -112,6 +138,24 @@
                     {
                         "type": 3,
                         "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 3,
+                        "text": "Geräumige Zimmer mit modernen Annehmlichkeiten und privaten Balkonen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": 3,
+                        "text": "Camere spaziose con servizi moderni e balconi privati"
                     }
                 ]
             }
@@ -279,7 +323,7 @@
         ],
         "localized_descriptions": [
             {
-                "language": 12,
+                "language": 24,
                 "descriptions": [
                     {
                         "type": 1,
@@ -290,15 +334,59 @@
                         "text": "Located in the heart of the Swiss Alps"
                     }
                 ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxuriöse Berghütte mit spektakulärem Blick auf die Schweizer Alpen"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Im Herzen der Schweizer Alpen gelegen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Lussuoso rifugio di montagna con vista spettacolare sulle Alpi Svizzere"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situato nel cuore delle Alpi Svizzere"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
+            {
+                "language": 24,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            },
             {
                 "language": 12,
                 "descriptions": [
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
-                        "text": "Spacious rooms with modern amenities and private balconies"
+                        "text": "Geräumige Zimmer mit modernen Annehmlichkeiten und privaten Balkonen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Camere spaziose con servizi moderni e balconi privati"
                     }
                 ]
             }
@@ -318,7 +406,7 @@
                 ],
                 "descriptions": [
                     {
-                        "language": 12,
+                        "language": 24,
                         "descriptions": [
                             {
                                 "type": "DESCRIPTION_TYPE_ROOM",
@@ -457,7 +545,7 @@
         ],
         "localized_descriptions": [
             {
-                "language": 26,
+                "language": 24,
                 "descriptions": [
                     {
                         "type": 1,
@@ -468,15 +556,59 @@
                         "text": "Located directly on the pristine beach of Antalya"
                     }
                 ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxuriöses Strandresort mit spektakulärem Blick auf das Mittelmeer"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Direkt am unberührten Strand von Antalya gelegen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Resort di lusso sulla spiaggia con vista spettacolare sul Mar Mediterraneo"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situato direttamente sulla spiaggia incontaminata di Antalya"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
             {
-                "language": 26,
+                "language": 24,
                 "descriptions": [
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Geräumige Zimmer mit modernen Annehmlichkeiten und privaten Balkonen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Camere spaziose con servizi moderni e balconi privati"
                     }
                 ]
             }
@@ -635,7 +767,7 @@
         ],
         "localized_descriptions": [
             {
-                "language": 12,
+                "language": 24,
                 "descriptions": [
                     {
                         "type": 1,
@@ -646,15 +778,59 @@
                         "text": "Located in the heart of Berlin"
                     }
                 ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxuriöses Stadthotel mit modernen Annehmlichkeiten und einem entspannenden Spa"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Im Herzen von Berlin gelegen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Lussuoso hotel in città con servizi moderni e una spa rilassante"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situato nel cuore di Berlino"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
+            {
+                "language": 24,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            },
             {
                 "language": 12,
                 "descriptions": [
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
-                        "text": "Spacious rooms with modern amenities and private balconies"
+                        "text": "Geräumige Zimmer mit modernen Annehmlichkeiten und privaten Balkonen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Camere spaziose con servizi moderni e balconi privati"
                     }
                 ]
             }
@@ -833,6 +1009,32 @@
                         "text": "Located directly on Maui's pristine beach"
                     }
                 ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Luxuriöses Strandresort mit spektakulärem Blick auf den Pazifischen Ozean"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Direkt am unberührten Strand von Maui gelegen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Resort di lusso sulla spiaggia con vista spettacolare sull'Oceano Pacifico"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situato direttamente sulla spiaggia incontaminata di Maui"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
@@ -842,6 +1044,24 @@
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Spacious rooms with modern amenities and private balconies"
+                    }
+                ]
+            },
+            {
+                "language": 12,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Geräumige Zimmer mit modernen Annehmlichkeiten und privaten Balkonen"
+                    }
+                ]
+            },
+            {
+                "language": 15,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Camere spaziose con servizi moderni e balconi privati"
                     }
                 ]
             }
