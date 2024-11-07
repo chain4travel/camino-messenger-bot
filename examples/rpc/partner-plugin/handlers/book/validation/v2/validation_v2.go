@@ -48,6 +48,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv
 	}
 
 	var validationId = typesv1.UUID{Value: uuid.New().String()}
+	cache.ValidationCache.SetValidationV2(validationId.Value)
 
 	response := bookv2.ValidationResponse{
 		Header:           nil,

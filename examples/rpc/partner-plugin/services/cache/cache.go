@@ -6,6 +6,8 @@ import (
 
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/google/uuid"
 )
 
 type searchCache struct {
@@ -22,6 +24,15 @@ type cachedResultV1 struct {
 type cachedResultV2 struct {
 	results []*accommodationv2.AccommodationSearchResult
 	expiry  time.Time
+}
+
+type validationCache struct {
+	mu    sync.RWMutex
+	cache map[string]*typesv1.UUID
+}
+
+var ValidationCache = &validationCache{
+	cache: make(map[string]*typesv1.UUID),
 }
 
 var Cache = &searchCache{
@@ -83,6 +94,23 @@ func (c *searchCache) GetV2(key string) ([]*accommodationv2.AccommodationSearchR
 
 	if cached, ok := c.cache_v2[key]; ok && time.Now().Before(cached.expiry) {
 		return cached.results, true
+	}
+	return nil, false
+}
+
+func (c *validationCache) SetValidationV2(key string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.cache[key] = &typesv1.UUID{Value: uuid.New().String()}
+}
+
+func (c *validationCache) GetValidationV2(key string) (*typesv1.UUID, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if cached, ok := c.cache[key]; ok {
+		return cached, true
 	}
 	return nil, false
 }
