@@ -15,7 +15,6 @@ import (
 
 	// helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/google/uuid"
 )
 
 // Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
@@ -37,7 +36,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv
 	searchId := request.ValidationObject.SearchIdentifier.SearchId
 	resultId := request.ValidationObject.SearchIdentifier.ResultId
 
-	accommodationSearchResponse, ok := cache.Cache.GetV2(searchId.String()) // Directly access using searchId and resultId
+	accommodationSearchResponse, ok := cache.Cache.GetV2(searchId.Value) // Directly access using searchId and resultId
 	if !ok {
 		return nil, fmt.Errorf("no validation data found for searchId: %s", searchId)
 	}
