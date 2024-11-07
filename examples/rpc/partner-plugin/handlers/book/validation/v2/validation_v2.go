@@ -12,6 +12,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/google/uuid"
 )
 
 // Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
@@ -29,6 +30,12 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, _ *bookv2.Vali
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (Validation)", md.RequestID)
+
+	// generate a random UUID base on RFC 4122
+	var test_result = typesv1.UUID{Value: uuid.New().String()}
+
+	// print the UUID
+	fmt.Println(test_result)
 
 	validations, err := helpers.LoadValidationMockData()
 	if err != nil {

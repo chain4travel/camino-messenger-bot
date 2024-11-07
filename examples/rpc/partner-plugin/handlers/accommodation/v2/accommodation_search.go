@@ -12,6 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
 	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"golang.org/x/exp/rand"
 	"google.golang.org/grpc"
 )
 
@@ -138,11 +139,11 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		}
 	}
 
-	// Generate cache key from request
-	cacheKey := req.Metadata.RequestId.GetValue()
+	// generate a random string of 8 numbers
+	md.RequestID = fmt.Sprintf("%08d", rand.Intn(100000000))
 
 	// Store in cache after search
-	cache.Cache.SetV2(cacheKey, searchResults)
+	cache.Cache.SetV2(md.RequestID, searchResults)
 
 	response := &accommodationv2.AccommodationSearchResponse{
 		Header: nil,
