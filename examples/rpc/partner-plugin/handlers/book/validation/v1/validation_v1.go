@@ -6,16 +6,11 @@ import (
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
-	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	cache "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 
-	// helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	cache "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/google/uuid"
 )
 
 // Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
@@ -37,24 +32,17 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv
 	searchId := request.ValidationObject.SearchIdentifier.SearchId
 	resultId := request.ValidationObject.SearchIdentifier.ResultId
 
-	accommodationSearchResponse, ok := cache.Cache.GetV2(searchId.String()) // Directly access using searchId and resultId
+	cache.Cache.GetV2(searchId.String())    // Directly access using searchId and resultId
+	validation, ok := validations[searchId] // Directly access using searchId
 	if !ok {
 		return nil, fmt.Errorf("no validation data found for searchId: %s", searchId)
 	}
-	var priceDetail *typesv2.PriceDetail
-	for _, result := range accommodationSearchResponse {
-		if result.ResultId == resultId {
-			priceDetail = result.TotalPriceDetail
-		}
-	}
-
-	var validationId = typesv1.UUID{Value: uuid.New().String()}
 
 	response := bookv2.ValidationResponse{
 		Header:           nil,
-		ValidationId:     &validationId,
+		ValidationId:     &typesv1.UUID{Value: md.RequestID},
 		ValidationObject: request.ValidationObject,
-		PriceDetail:      priceDetail,
+		PriceDetail:      validation.PriceDetail,
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
