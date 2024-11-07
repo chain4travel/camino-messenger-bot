@@ -116,7 +116,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 						Price: &typesv2.Price{
 							Value: fmt.Sprintf("%d", price),
 							Currency: &typesv2.Currency{
-								Currency: &typesv2.Currency_NativeToken{},
+								Currency: req.SearchParametersGeneric.Currency.Currency,
 							},
 						},
 					},
@@ -147,7 +147,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 						Price: &typesv2.Price{
 							Value: fmt.Sprintf("%d", price),
 							Currency: &typesv2.Currency{
-								Currency: &typesv2.Currency_NativeToken{},
+								Currency: req.SearchParametersGeneric.Currency.Currency,
 							},
 						},
 					},

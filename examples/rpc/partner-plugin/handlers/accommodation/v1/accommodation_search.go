@@ -78,6 +78,8 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			}
 		}
 
+		var price = 500
+
 		// generate search result
 		for _, prop := range available_properties {
 
@@ -107,9 +109,16 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 							Day:   query.TravelPeriod.GetEndDate().GetDay(),
 						},
 					},
-					TravellerIds:   getTravellerIds(query.Travellers),
-					Beds:           room.Beds,
-					PriceDetail:    &typesv1.PriceDetail{},
+					TravellerIds: getTravellerIds(query.Travellers),
+					Beds:         room.Beds,
+					PriceDetail: &typesv1.PriceDetail{
+						Price: &typesv1.Price{
+							Value: fmt.Sprintf("%d", price),
+							Currency: &typesv1.Currency{
+								Currency: req.SearchParametersGeneric.Currency.Currency,
+							},
+						},
+					},
 					Services:       []*typesv1.ServiceFact{},
 					MealPlanCode:   &typesv1.MealPlan{},
 					RatePlan:       &typesv1.RatePlan{},
@@ -121,6 +130,8 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 					Remarks:        "",
 				})
 
+				price += 250
+
 				if units_requested == int32(len(units)) {
 					break
 				}
@@ -129,10 +140,17 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			// check how many units are requested
 			if units_requested == int32(len(units)) {
 				searchResults = append(searchResults, &accommodationv1.AccommodationSearchResult{
-					ResultId:         int32(len(searchResults) + 1),
-					QueryId:          query.QueryId,
-					TotalPriceDetail: &typesv1.PriceDetail{},
-					Units:            units,
+					ResultId: int32(len(searchResults) + 1),
+					QueryId:  query.QueryId,
+					TotalPriceDetail: &typesv1.PriceDetail{
+						Price: &typesv1.Price{
+							Value: fmt.Sprintf("%d", price),
+							Currency: &typesv1.Currency{
+								Currency: req.SearchParametersGeneric.Currency.Currency,
+							},
+						},
+					},
+					Units: units,
 				})
 			}
 		}
