@@ -22,7 +22,7 @@ var _ bookv1grpc.ValidationServiceServer = (*ValidationServiceV2Server)(nil)
 type ValidationServiceV2Server struct{}
 
 // Validate handles ValidationRequest and returns a mock ValidationResponse.
-func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
+func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequest *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -30,9 +30,15 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (Validation)", md.RequestID)
+	if validationRequest.ValidationObject == nil ||
+		validationRequest.ValidationObject.SearchIdentifier == nil ||
+		validationRequest.ValidationObject.SearchIdentifier.ResultId == 0 ||
+		validationRequest.ValidationObject.SearchIdentifier.SearchId == nil {
+		return nil, fmt.Errorf("invalid validation request: missing validation object or search identifier")
+	}
 
-	searchId := request.ValidationObject.SearchIdentifier.SearchId
-	resultId := request.ValidationObject.SearchIdentifier.ResultId
+	searchId := validationRequest.ValidationObject.SearchIdentifier.SearchId
+	resultId := validationRequest.ValidationObject.SearchIdentifier.ResultId
 	validationCache := cache.NewValidationCache()
 	accomodationCache := cache.NewSearchCache()
 
@@ -53,7 +59,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv
 	response := bookv1.ValidationResponse{
 		Header:           nil,
 		ValidationId:     &validationId,
-		ValidationObject: request.ValidationObject,
+		ValidationObject: validationRequest.ValidationObject,
 		PriceDetail:      priceDetail,
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
