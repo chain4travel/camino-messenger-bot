@@ -10,8 +10,7 @@ import (
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/helpers"
+	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 )
 
@@ -31,21 +30,21 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, _ *bookv2.Vali
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (Validation)", md.RequestID)
 
-	validation := helpers.LoadValidationMockData()
+	validations, err := helpers.LoadValidationMockData()
+	if err != nil {
+		return nil, err
+	}
+	searchId := md.RequestID
+	validation, ok := validations[searchId] // Directly access using searchId
+	if !ok {
+		return nil, fmt.Errorf("no validation data found for searchId: %s", searchId)
+	}
 
 	response := bookv2.ValidationResponse{
 		Header:           nil,
 		ValidationId:     &typesv1.UUID{Value: md.RequestID},
-		ValidationObject: nil,
-		PriceDetail: &typesv2.PriceDetail{
-			Price: &typesv2.Price{
-				Value:    "100",
-				Decimals: 0,
-				Currency: &typesv2.Currency{
-					Currency: &typesv2.Currency_NativeToken{},
-				},
-			},
-		},
+		ValidationObject: validation.ValidationObject,
+		PriceDetail:      validation.PriceDetail,
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 

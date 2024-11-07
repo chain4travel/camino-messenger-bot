@@ -2,8 +2,10 @@
     {
       "validation_object": {
         "search_identifier": {
-          "search_id": "search_mock_001",
-          "result_id": "result_mock_001"
+          "search_id": {
+            "value": "search_mock_001"
+          },
+          "result_id": 1
         }
       },
       "price_detail": {
@@ -62,8 +64,10 @@
     {
       "validation_object": {
         "search_identifier": {
-          "search_id": "search_mock_002",
-          "result_id": "result_mock_002"
+          "search_id": {
+            "value": "search_mock_002"
+          },
+          "result_id": 1
         }
       },
       "price_detail": {
@@ -125,8 +129,10 @@
     {
       "validation_object": {
         "search_identifier": {
-          "search_id": "search_mock_003",
-          "result_id": "result_mock_003"
+          "search_id": {
+            "value": "search_mock_003"
+          },
+          "result_id": 3
         }
       },
       "price_detail": {
