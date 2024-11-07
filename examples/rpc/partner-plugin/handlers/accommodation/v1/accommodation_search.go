@@ -158,9 +158,9 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 	// generate a random string of 8 numbers
 	md.RequestID = fmt.Sprintf("%08d", rand.Intn(100000000))
-
+	cache := cache.NewSearchCache()
 	// Store in cache after search
-	cache.Cache.SetV1(md.RequestID, searchResults)
+	cache.SetV1(md.RequestID, searchResults)
 
 	response := &accommodationv1.AccommodationSearchResponse{
 		Header: nil,

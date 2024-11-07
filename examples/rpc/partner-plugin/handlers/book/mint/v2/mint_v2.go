@@ -9,54 +9,15 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ bookv2grpc.MintServiceServer = (*MintServiceV2Server)(nil)
 
 type MintServiceV2Server struct{}
-
-type PaymentConfigMintV2 struct {
-	NativeToken *typesv2.Price
-	Token       *typesv2.Price
-	Offchain    *typesv2.Price
-}
-
-var priceConfigMintV2 = PaymentConfigMintV2{
-	NativeToken: &typesv2.Price{
-		Value:    "1",
-		Decimals: 9,
-		Currency: &typesv2.Currency{
-			Currency: &typesv2.Currency_NativeToken{
-				NativeToken: &emptypb.Empty{},
-			},
-		},
-	},
-	Offchain: &typesv2.Price{
-		Value:    "1",
-		Decimals: 9,
-		Currency: &typesv2.Currency{
-			Currency: &typesv2.Currency_IsoCurrency{
-				IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR, // EUR
-			},
-		},
-	},
-	Token: &typesv2.Price{
-		Value:    "100",
-		Decimals: 2,
-		Currency: &typesv2.Currency{
-			Currency: &typesv2.Currency_TokenCurrency{
-				TokenCurrency: &typesv2.TokenCurrency{
-					ContractAddress: "0x87a131801978d1ffBa53a6D4180cBef3F8C9e760",
-				},
-			},
-		},
-	},
-}
 
 func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv2.MintResponse, error) {
 	md := metadata.Metadata{}
@@ -67,6 +28,12 @@ func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*b
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 
+	cache := cache.NewValidationCache()
+	priceDetail, found := cache.GetV2(md.RequestID)
+	if !found {
+		return nil, fmt.Errorf("no validation data found for validationId: %s", md.RequestID)
+	}
+
 	log.Printf("Responding to request: %s (MintV2)", md.RequestID)
 
 	response := bookv2.MintResponse{
@@ -74,7 +41,7 @@ func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*b
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		Price:           priceConfigMintV2.NativeToken, // change to Token or Offchain to test different scenarios
+		Price:           priceDetail.Price, // change to Token or Offchain to test different scenarios
 		BookingTokenId:  uint64(123456),
 		ValidationId:    &typesv1.UUID{Value: "123456"},
 		BookingTokenUri: "https://example.com/booking-token",

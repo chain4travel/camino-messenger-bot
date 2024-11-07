@@ -7,7 +7,7 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/google/uuid"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 )
 
 type searchCache struct {
@@ -27,19 +27,38 @@ type cachedResultV2 struct {
 }
 
 type validationCache struct {
-	mu    sync.RWMutex
-	cache map[string]*typesv1.UUID
+	mu       sync.RWMutex
+	cache_v1 map[string]*cachedValidationV1
+	cache_v2 map[string]*cachedValidationV2
 }
 
-var ValidationCache = &validationCache{
-	cache: make(map[string]*typesv1.UUID),
+type cachedValidationV1 struct {
+	priceDetail *typesv1.PriceDetail
+	expiry      time.Time
 }
 
-var Cache = &searchCache{
-	cache_v1: make(map[string]*cachedResultV1),
-	cache_v2: make(map[string]*cachedResultV2),
+type cachedValidationV2 struct {
+	priceDetail *typesv2.PriceDetail
+	expiry      time.Time
 }
 
+// Constructor for searchCache
+func NewSearchCache() *searchCache {
+	return &searchCache{
+		cache_v1: make(map[string]*cachedResultV1),
+		cache_v2: make(map[string]*cachedResultV2),
+	}
+}
+
+// Constructor for validationCache
+func NewValidationCache() *validationCache {
+	return &validationCache{
+		cache_v1: make(map[string]*cachedValidationV1),
+		cache_v2: make(map[string]*cachedValidationV2),
+	}
+}
+
+// SetV1 adds a new V1 search result to the cache
 func (c *searchCache) SetV1(key string, results []*accommodationv1.AccommodationSearchResult) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -59,6 +78,7 @@ func (c *searchCache) SetV1(key string, results []*accommodationv1.Accommodation
 	}
 }
 
+// GetV1 retrieves V1 search results from the cache
 func (c *searchCache) GetV1(key string) ([]*accommodationv1.AccommodationSearchResult, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -69,6 +89,7 @@ func (c *searchCache) GetV1(key string) ([]*accommodationv1.AccommodationSearchR
 	return nil, false
 }
 
+// SetV2 adds a new V2 search result to the cache
 func (c *searchCache) SetV2(key string, results []*accommodationv2.AccommodationSearchResult) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -88,6 +109,7 @@ func (c *searchCache) SetV2(key string, results []*accommodationv2.Accommodation
 	}
 }
 
+// GetV2 retrieves V2 search results from the cache
 func (c *searchCache) GetV2(key string) ([]*accommodationv2.AccommodationSearchResult, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -98,19 +120,64 @@ func (c *searchCache) GetV2(key string) ([]*accommodationv2.AccommodationSearchR
 	return nil, false
 }
 
-func (c *validationCache) SetValidationV2(key string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+// Set adds a new priceDetail to the validation cache with the given validationId
+func (vc *validationCache) SetV1(validationId string, priceDetail *typesv1.PriceDetail) {
+	vc.mu.Lock()
+	defer vc.mu.Unlock()
 
-	c.cache[key] = &typesv1.UUID{Value: uuid.New().String()}
+	// Clean up expired entries first
+	now := time.Now()
+	for k, item := range vc.cache_v1 {
+		if now.After(item.expiry) {
+			delete(vc.cache_v1, k)
+		}
+	}
+
+	// Add new entry with 1-hour expiry
+	vc.cache_v1[validationId] = &cachedValidationV1{
+		priceDetail: priceDetail,
+		expiry:      now.Add(1 * time.Hour),
+	}
 }
 
-func (c *validationCache) GetValidationV2(key string) (*typesv1.UUID, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+// Get retrieves the priceDetail associated with the given validationId
+func (vc *validationCache) GetV1(validationId string) (*typesv1.PriceDetail, bool) {
+	vc.mu.RLock()
+	defer vc.mu.RUnlock()
 
-	if cached, ok := c.cache[key]; ok {
-		return cached, true
+	if cached, ok := vc.cache_v1[validationId]; ok && time.Now().Before(cached.expiry) {
+		return cached.priceDetail, true
+	}
+	return nil, false
+}
+
+// Set adds a new priceDetail to the validation cache with the given validationId
+func (vc *validationCache) SetV2(validationId string, priceDetail *typesv2.PriceDetail) {
+	vc.mu.Lock()
+	defer vc.mu.Unlock()
+
+	// Clean up expired entries first
+	now := time.Now()
+	for k, item := range vc.cache_v1 {
+		if now.After(item.expiry) {
+			delete(vc.cache_v1, k)
+		}
+	}
+
+	// Add new entry with 1-hour expiry
+	vc.cache_v2[validationId] = &cachedValidationV2{
+		priceDetail: priceDetail,
+		expiry:      now.Add(1 * time.Hour),
+	}
+}
+
+// Get retrieves the priceDetail associated with the given validationId
+func (vc *validationCache) GetV2(validationId string) (*typesv2.PriceDetail, bool) {
+	vc.mu.RLock()
+	defer vc.mu.RUnlock()
+
+	if cached, ok := vc.cache_v2[validationId]; ok && time.Now().Before(cached.expiry) {
+		return cached.priceDetail, true
 	}
 	return nil, false
 }

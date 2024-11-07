@@ -33,8 +33,10 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv
 
 	searchId := request.ValidationObject.SearchIdentifier.SearchId
 	resultId := request.ValidationObject.SearchIdentifier.ResultId
+	validationCache := cache.NewValidationCache()
+	accomodationCache := cache.NewSearchCache()
 
-	accommodationSearchResponse, ok := cache.Cache.GetV1(searchId.String()) // Directly access using searchId and resultId
+	accommodationSearchResponse, ok := accomodationCache.GetV1(searchId.String()) // Directly access using searchId and resultId
 	if !ok {
 		return nil, fmt.Errorf("no validation data found for searchId: %s", searchId)
 	}
@@ -46,7 +48,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, request *bookv
 	}
 
 	var validationId = typesv1.UUID{Value: uuid.New().String()}
-	cache.ValidationCache.SetValidationV2(validationId.Value)
+	validationCache.SetV1(validationId.Value, priceDetail)
 
 	response := bookv1.ValidationResponse{
 		Header:           nil,
