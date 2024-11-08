@@ -2,20 +2,17 @@ package helpers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
 
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	validationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1" // Adjust the import path based on your actual proto package
 )
 
 var (
-	properties         []accommodationv1.PropertyExtendedInfo
-	loadOnce           sync.Once
-	validationResponse *validationv1.ValidationResponse
+	properties []accommodationv1.PropertyExtendedInfo
+	loadOnce   sync.Once
 )
 
 func LoadPropertiesMockData() []accommodationv1.PropertyExtendedInfo {
@@ -27,7 +24,7 @@ func LoadPropertiesMockData() []accommodationv1.PropertyExtendedInfo {
 			return
 		}
 
-		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "accommodation", "v1", "properties.json")
+		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "properties.json")
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Printf("Error reading properties file: %v", err)
@@ -45,35 +42,35 @@ func LoadPropertiesMockData() []accommodationv1.PropertyExtendedInfo {
 	return properties
 }
 
-func LoadValidationMockData() (*validationv1.ValidationResponse, error) {
-	var err error
-	loadOnce.Do(func() {
-		// Get the current working directory
-		currentDir, err := os.Getwd()
-		if err != nil {
-			log.Printf("Error getting current directory: %v", err)
-			err = fmt.Errorf("failed to get current directory: %w", err)
-			return
-		}
+// ReloadPropertiesMockData reloads the properties data from the JSON file
+func ReloadPropertiesMockData() error {
+	// Reset the sync.Once to allow reloading
+	loadOnce = sync.Once{}
 
-		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "book", "validation_response.json")
+	// Get current directory
+	currentDir, err := os.Getwd()
+	if err != nil {
+		log.Printf("Error getting current directory: %v", err)
+		return err
+	}
 
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			log.Printf("Error reading validation mock data file: %v", err)
-			return
-		}
+	// Read properties file
+	filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "properties.json")
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Printf("Error reading properties file: %v", err)
+		return err
+	}
 
-		var mockResp validationv1.ValidationResponse
-		if err := json.Unmarshal(data, &mockResp); err != nil {
-			log.Printf("Error unmarshaling validation mock data: %v", err)
-			err = fmt.Errorf("failed to unmarshal validation mock data: %w", err)
-			return
-		}
+	// Clear existing properties
+	properties = nil
 
-		validationResponse = &mockResp
-		log.Printf("Successfully loaded mock ValidationResponse with validation_id: %s", validationResponse.ValidationId.GetValue())
-	})
+	// Unmarshal new data
+	if err := json.Unmarshal(data, &properties); err != nil {
+		log.Printf("Error unmarshaling properties: %v", err)
+		return err
+	}
 
-	return validationResponse, err
+	log.Printf("Successfully reloaded %d properties", len(properties))
+	return nil
 }

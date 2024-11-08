@@ -2,21 +2,13 @@ package helpers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
 
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
-	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 )
-
-type ValidationData struct {
-	ValidationObject *bookv2.ValidationObject `json:"validation_object"`
-	PriceDetail      *typesv2.PriceDetail     `json:"price_detail"`
-}
 
 var (
 	properties []accommodationv2.PropertyExtendedInfo
@@ -32,7 +24,7 @@ func LoadPropertiesMockData() []accommodationv2.PropertyExtendedInfo {
 			return
 		}
 
-		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "accommodation", "v2", "properties.json")
+		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "properties.json")
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Printf("Error reading properties file: %v", err)
@@ -50,43 +42,35 @@ func LoadPropertiesMockData() []accommodationv2.PropertyExtendedInfo {
 	return properties
 }
 
-func LoadValidationMockData() (map[string]*ValidationData, error) {
-	var (
-		err           error
-		validationMap map[string]*ValidationData
-	)
+// ReloadPropertiesMockData reloads the properties data from the JSON file
+func ReloadPropertiesMockData() error {
+	// Reset the sync.Once to allow reloading
+	loadOnce = sync.Once{}
 
-	loadOnce.Do(func() {
-		// Get the current working directory
-		currentDir, err := os.Getwd()
-		if err != nil {
-			log.Printf("Error getting current directory: %v", err)
-			err = fmt.Errorf("failed to get current directory: %w", err)
-			return
-		}
+	// Get current directory
+	currentDir, err := os.Getwd()
+	if err != nil {
+		log.Printf("Error getting current directory: %v", err)
+		return err
+	}
 
-		filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "book", "validation.json")
+	// Read properties file
+	filePath := filepath.Join(currentDir, "../../examples", "rpc", "partner-plugin", "mock_data", "properties.json")
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Printf("Error reading properties file: %v", err)
+		return err
+	}
 
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			log.Printf("Error reading validation mock data file: %v", err)
-			err = fmt.Errorf("failed to read validation mock data file: %w", err)
-			return
-		}
+	// Clear existing properties
+	properties = nil
 
-		var mockResp []*ValidationData
-		if err := json.Unmarshal(data, &mockResp); err != nil {
-			log.Printf("Error unmarshaling validation mock data: %v", err)
-			err = fmt.Errorf("failed to unmarshal validation mock data: %w", err)
-			return
-		}
+	// Unmarshal new data
+	if err := json.Unmarshal(data, &properties); err != nil {
+		log.Printf("Error unmarshaling properties: %v", err)
+		return err
+	}
 
-		validationMap = make(map[string]*ValidationData)
-		for _, v := range mockResp {
-			key := v.ValidationObject.SearchIdentifier.SearchId.Value
-			validationMap[key] = v
-		}
-	})
-
-	return validationMap, err
+	log.Printf("Successfully reloaded %d properties", len(properties))
+	return nil
 }

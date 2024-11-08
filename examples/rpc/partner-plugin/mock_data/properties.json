@@ -92,7 +92,7 @@
         ],
         "localized_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
                         "type": 1,
@@ -129,14 +129,27 @@
                         "text": "Situato direttamente sulla spiaggia incontaminata di Maiorca"
                     }
                 ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Complexe hôtelier de luxe en bord de mer offrant une vue spectaculaire sur la mer Méditerranée"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situé directement sur la plage immaculée de Majorque"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
-                        "type": 3,
+                        "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Spacious rooms with modern amenities and private balconies"
                     }
                 ]
@@ -145,7 +158,7 @@
                 "language": 12,
                 "descriptions": [
                     {
-                        "type": 3,
+                        "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Geräumige Zimmer mit modernen Annehmlichkeiten und privaten Balkonen"
                     }
                 ]
@@ -154,8 +167,17 @@
                 "language": 15,
                 "descriptions": [
                     {
-                        "type": 3,
+                        "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Camere spaziose con servizi moderni e balconi privati"
+                    }
+                ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Chambres spacieuses avec équipements modernes et balcons privés"
                     }
                 ]
             }
@@ -323,7 +345,7 @@
         ],
         "localized_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
                         "type": 1,
@@ -360,11 +382,24 @@
                         "text": "Situato nel cuore delle Alpi Svizzere"
                     }
                 ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Rifugio di montagna di lusso offrendo una vista spectacolare sulle Alpi Svizzere"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situé dans le cœur des Alpes suisses"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
@@ -387,6 +422,15 @@
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Camere spaziose con servizi moderni e balconi privati"
+                    }
+                ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Chambres spacieuses avec équipements modernes et balcons privés"
                     }
                 ]
             }
@@ -545,7 +589,7 @@
         ],
         "localized_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
                         "type": 1,
@@ -582,11 +626,24 @@
                         "text": "Situato direttamente sulla spiaggia incontaminata di Antalya"
                     }
                 ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Complexe hôtelier de luxe en bord de mer offrant une vue spectaculaire sur la mer Méditerranée"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situé directement sur la plage immaculée d'Antalya"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
@@ -609,6 +666,15 @@
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Camere spaziose con servizi moderni e balconi privati"
+                    }
+                ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Chambres spacieuses avec équipements modernes et balcons privés"
                     }
                 ]
             }
@@ -767,7 +833,7 @@
         ],
         "localized_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
                         "type": 1,
@@ -804,11 +870,24 @@
                         "text": "Situato nel cuore di Berlino"
                     }
                 ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Hôtel de luxe en ville offrant des services modernes et une spa relaxante"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situé dans le cœur de Berlin"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
             {
-                "language": 24,
+                "language": 9,
                 "descriptions": [
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
@@ -831,6 +910,15 @@
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Camere spaziose con servizi moderni e balconi privati"
+                    }
+                ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Chambres spacieuses avec équipements modernes et balcons privés"
                     }
                 ]
             }
@@ -1035,6 +1123,19 @@
                         "text": "Situato direttamente sulla spiaggia incontaminata di Maui"
                     }
                 ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": 1,
+                        "text": "Complexe hôtelier de luxe en bord de mer offrant une vue spectaculaire sur l'océan Pacifique"
+                    },
+                    {
+                        "type": 2,
+                        "text": "Situé directement sur la plage immaculée de Maui"
+                    }
+                ]
             }
         ],
         "localized_room_descriptions": [
@@ -1062,6 +1163,15 @@
                     {
                         "type": "DESCRIPTION_TYPE_ROOM",
                         "text": "Camere spaziose con servizi moderni e balconi privati"
+                    }
+                ]
+            },
+            {
+                "language": 11,
+                "descriptions": [
+                    {
+                        "type": "DESCRIPTION_TYPE_ROOM",
+                        "text": "Chambres spacieuses avec équipements modernes et balcons privés"
                     }
                 ]
             }

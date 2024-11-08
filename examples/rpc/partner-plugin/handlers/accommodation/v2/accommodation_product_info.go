@@ -38,10 +38,11 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	if req.SupplierCodes != nil {
 		log.Printf("Supplier codes requested: %v", req.SupplierCodes)
 		// filter properties by supplier codes
-		for _, property := range properties {
+		for i := range properties {
+			property := &properties[i]
 			for _, supplierCode := range req.SupplierCodes {
 				if property.Property.SupplierCode.SupplierCode == supplierCode.SupplierCode {
-					suppliersFiltered = append(suppliersFiltered, &property)
+					suppliersFiltered = append(suppliersFiltered, property)
 				}
 			}
 		}
@@ -58,18 +59,12 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	if req.Languages != nil {
 		log.Printf("Languages requested: %v", req.Languages)
 
-		if req.SupplierCodes != nil {
-			properties = make([]accommodationv2.PropertyExtendedInfo, len(suppliersFiltered))
-			for i, p := range suppliersFiltered {
-				properties[i] = *p
-			}
-		}
-
-		for _, property := range properties {
+		for i := range suppliersFiltered {
+			property := &suppliersFiltered[i]
 			filteredDescriptions := []*typesv1.LocalizedDescriptionSet{}
 			filteredRoomDescriptions := []*typesv1.LocalizedDescriptionSet{}
 
-			for _, descSet := range property.LocalizedDescriptions {
+			for _, descSet := range (*property).LocalizedDescriptions {
 				for _, reqLang := range req.Languages {
 					if descSet.Language == reqLang {
 						filteredDescriptions = append(filteredDescriptions, descSet)
@@ -77,7 +72,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 					}
 				}
 			}
-			for _, roomDescSet := range property.LocalizedRoomDescriptions {
+			for _, roomDescSet := range (*property).LocalizedRoomDescriptions {
 				for _, reqLang := range req.Languages {
 					if roomDescSet.Language == reqLang {
 						filteredRoomDescriptions = append(filteredRoomDescriptions, roomDescSet)
@@ -86,10 +81,10 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 				}
 			}
 
-			if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) && !containsProperty(filteredProperties, property) {
-				property.LocalizedDescriptions = filteredDescriptions
-				property.LocalizedRoomDescriptions = filteredRoomDescriptions
-				filteredProperties = append(filteredProperties, &property)
+			if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) && !containsProperty(filteredProperties, *property) {
+				(*property).LocalizedDescriptions = filteredDescriptions
+				(*property).LocalizedRoomDescriptions = filteredRoomDescriptions
+				filteredProperties = append(filteredProperties, *property)
 			}
 		}
 	} else {
@@ -102,28 +97,22 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
+	// reload properties data
+	if err := mock_data.ReloadPropertiesMockData(); err != nil {
+		log.Printf("Error reloading properties data: %v", err)
+	}
+
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 
 	return response, nil
 }
 
 // containsProperty checks if a property already exists in the slice
-func containsProperty(properties []*accommodationv2.PropertyExtendedInfo, property accommodationv2.PropertyExtendedInfo) bool {
+func containsProperty(properties []*accommodationv2.PropertyExtendedInfo, property *accommodationv2.PropertyExtendedInfo) bool {
 	for _, p := range properties {
 		if p.Property.SupplierCode.SupplierCode == property.Property.SupplierCode.SupplierCode {
 			return true
 		}
 	}
 	return false
-}
-
-// removeProperty removes a property from the slice and returns the updated slice
-func removeProperty(properties []*accommodationv2.PropertyExtendedInfo, property accommodationv2.PropertyExtendedInfo) []*accommodationv2.PropertyExtendedInfo {
-	result := make([]*accommodationv2.PropertyExtendedInfo, 0)
-	for _, p := range properties {
-		if p.Property.SupplierCode.SupplierCode != property.Property.SupplierCode.SupplierCode {
-			result = append(result, p)
-		}
-	}
-	return result
 }

@@ -32,7 +32,8 @@ func (*AccommodationProductListV2Server) AccommodationProductList(ctx context.Co
 
 	// filter only property objects
 	filteredProperties := []*accommodationv2.Property{}
-	for _, property := range properties {
+	for i := range properties {
+		property := &properties[i]
 		filteredProperties = append(filteredProperties, property.Property)
 	}
 

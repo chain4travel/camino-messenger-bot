@@ -38,10 +38,11 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 	if req.SupplierCodes != nil {
 		log.Printf("Supplier codes requested: %v", req.SupplierCodes)
 		// filter properties by supplier codes
-		for _, property := range properties {
+		for i := range properties {
+			property := &properties[i]
 			for _, supplierCode := range req.SupplierCodes {
 				if property.Property.SupplierCode.SupplierCode == supplierCode.SupplierCode {
-					suppliersFiltered = append(suppliersFiltered, &property)
+					suppliersFiltered = append(suppliersFiltered, property)
 				}
 			}
 		}
@@ -58,14 +59,7 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 	if req.Languages != nil {
 		log.Printf("Languages requested: %v", req.Languages)
 
-		if req.SupplierCodes != nil {
-			properties = make([]accommodationv1.PropertyExtendedInfo, len(suppliersFiltered))
-			for i, p := range suppliersFiltered {
-				properties[i] = *p
-			}
-		}
-
-		for _, property := range properties {
+		for _, property := range suppliersFiltered {
 			filteredDescriptions := []*v1.LocalizedDescriptionSet{}
 			filteredRoomDescriptions := []*v1.LocalizedDescriptionSet{}
 
@@ -89,15 +83,21 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 			if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) && !containsProperty(filteredProperties, property) {
 				property.LocalizedDescriptions = filteredDescriptions
 				property.LocalizedRoomDescriptions = filteredRoomDescriptions
-				filteredProperties = append(filteredProperties, &property)
+				filteredProperties = append(filteredProperties, property)
 			}
 		}
 	} else {
 		filteredProperties = suppliersFiltered
 	}
+
 	response := &accommodationv1.AccommodationProductInfoResponse{
 		Header:     nil,
 		Properties: filteredProperties,
+	}
+
+	// reload properties data
+	if err := helpers.ReloadPropertiesMockData(); err != nil {
+		log.Printf("Error reloading properties data: %v", err)
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -108,22 +108,11 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 }
 
 // containsProperty checks if a property already exists in the slice
-func containsProperty(properties []*accommodationv1.PropertyExtendedInfo, property accommodationv1.PropertyExtendedInfo) bool {
+func containsProperty(properties []*accommodationv1.PropertyExtendedInfo, property *accommodationv1.PropertyExtendedInfo) bool {
 	for _, p := range properties {
 		if p.Property.SupplierCode.SupplierCode == property.Property.SupplierCode.SupplierCode {
 			return true
 		}
 	}
 	return false
-}
-
-// removeProperty removes a property from the slice and returns the updated slice
-func removeProperty(properties []*accommodationv1.PropertyExtendedInfo, property accommodationv1.PropertyExtendedInfo) []*accommodationv1.PropertyExtendedInfo {
-	result := make([]*accommodationv1.PropertyExtendedInfo, 0)
-	for _, p := range properties {
-		if p.Property.SupplierCode.SupplierCode != property.Property.SupplierCode.SupplierCode {
-			result = append(result, p)
-		}
-	}
-	return result
 }
