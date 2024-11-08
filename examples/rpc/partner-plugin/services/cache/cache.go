@@ -43,19 +43,32 @@ type cachedValidationV2 struct {
 }
 
 // Constructor for searchCache
+var (
+	searchOnce         sync.Once
+	validationOnce     sync.Once
+	searchInstance     *searchCache
+	validationInstance *validationCache
+)
+
 func NewSearchCache() *searchCache {
-	return &searchCache{
-		cache_v1: make(map[string]*cachedResultV1),
-		cache_v2: make(map[string]*cachedResultV2),
-	}
+	searchOnce.Do(func() {
+		searchInstance = &searchCache{
+			cache_v1: make(map[string]*cachedResultV1),
+			cache_v2: make(map[string]*cachedResultV2),
+		}
+	})
+	return searchInstance
 }
 
 // Constructor for validationCache
 func NewValidationCache() *validationCache {
-	return &validationCache{
-		cache_v1: make(map[string]*cachedValidationV1),
-		cache_v2: make(map[string]*cachedValidationV2),
-	}
+	validationOnce.Do(func() {
+		validationInstance = &validationCache{
+			cache_v1: make(map[string]*cachedValidationV1),
+			cache_v2: make(map[string]*cachedValidationV2),
+		}
+	})
+	return validationInstance
 }
 
 // SetV1 adds a new V1 search result to the cache
