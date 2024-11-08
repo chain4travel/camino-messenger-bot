@@ -19,7 +19,7 @@ var _ bookv2grpc.MintServiceServer = (*MintServiceV2Server)(nil)
 
 type MintServiceV2Server struct{}
 
-func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*bookv2.MintResponse, error) {
+func (*MintServiceV2Server) Mint(ctx context.Context, req *bookv2.MintRequest) (*bookv2.MintResponse, error) {
 	md := metadata.Metadata{}
 
 	if err := md.ExtractMetadata(ctx); err != nil {
@@ -29,12 +29,12 @@ func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*b
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 
 	cache := cache.NewValidationCache()
-	priceDetail, found := cache.GetV2(md.RequestID)
+	priceDetail, found := cache.GetV2(req.ValidationId.Value)
 	if !found {
-		return nil, fmt.Errorf("no validation data found for validationId: %s", md.RequestID)
+		return nil, fmt.Errorf("no validation data found for validationId: %s", req.ValidationId.Value)
 	}
 
-	log.Printf("Responding to request: %s (MintV2)", md.RequestID)
+	log.Printf("Responding to request: %s (MintV2)", req.ValidationId.Value)
 
 	response := bookv2.MintResponse{
 		MintId: &typesv1.UUID{Value: md.RequestID},
