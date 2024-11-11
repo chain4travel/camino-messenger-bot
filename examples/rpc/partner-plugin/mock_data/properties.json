@@ -74,16 +74,13 @@
             },
             "width": 600,
             "height": 750,
-            "category": " beach",
-            "format": "IMAGE_FORMAT_JPEG"
-        }
+            "category": "beach"        }
         ],
         "videos": [
             {
             "file": {
                 "url": "https://example.com/videos/resort-tour.mp4"
-            },
-            "format": "VIDEO_FORMAT_MP4"
+            }
             }
         ],
         "classifications": [
@@ -197,8 +194,7 @@
             },
             "width": 600,
             "height": 750,
-            "category": " beach",
-            "format": "IMAGE_FORMAT_JPEG"
+            "category": "beach"
         }
         ],
                 "descriptions": [
@@ -333,16 +329,14 @@
             },
             "width": 600,
             "height": 7500,
-            "category": " beach",
-            "format": "IMAGE_FORMAT_JPEG"
+            "category": "beach"
         }
         ],
         "videos": [
             {
             "file": {
                 "url": "https://example.com/videos/resort-tour.mp4"
-            },
-            "format": "VIDEO_FORMAT_MP4"
+            }
             }
         ],
         "classifications": [
@@ -574,20 +568,22 @@
         {
             "file": {
                 "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House"
+                "name": "Beach House",
+                "last_modified": {
+                    "seconds": 1710071700,
+                    "nanos": 0
+                }
             },
             "width": 600,
             "height": 750,
-            "category": "beach",
-            "format": "IMAGE_FORMAT_JPEG"
+            "category": "beach"
         }
         ],
         "videos": [
             {
             "file": {
                 "url": "https://example.com/videos/resort-tour.mp4"
-            },
-            "format": "VIDEO_FORMAT_MP4"
+            }
             }
         ],
         "classifications": [
@@ -819,20 +815,22 @@
         {
             "file": {
                 "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House"
+                "name": "Beach House",
+                "last_modified": {
+                    "seconds": 1710071700,
+                    "nanos": 0
+                }
             },
             "width": 600,
             "height": 750,
-            "category": " beach",
-            "format": "IMAGE_FORMAT_JPEG"
+            "category": "beach"
         }
         ],
         "videos": [
             {
             "file": {
                 "url": "https://example.com/videos/resort-tour.mp4"
-            },
-            "format": "VIDEO_FORMAT_MP4"
+            }
             }
         ],
         "classifications": [
@@ -1073,19 +1071,22 @@
         {
             "file": {
                 "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House"            },
+                "name": "Beach House",
+                "last_modified": {
+                        "seconds": 1710071700,
+                        "nanos": 0
+                }
+            },
             "width": 600,
             "height": 750,
-            "category": " beach",
-            "format": "IMAGE_FORMAT_JPEG"
+            "category": "beach"
         }
         ],
         "videos": [
             {
             "file": {
                 "url": "https://example.com/videos/resort-tour.mp4"
-            },
-            "format": "VIDEO_FORMAT_MP4"
+            }
             }
         ],
         "classifications": [
