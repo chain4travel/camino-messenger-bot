@@ -66,23 +66,25 @@
             "status": 1,
             "airports": ["PMI", "BCN"]
         },
-        "images": [
-            {
-                "url": "https://example.com/images/sunset-beach-1.jpg",
-                "caption": "Pool View",
-                "type": 1
+      "images": [
+        {
+            "file": {
+                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                "name": "Beach House",
+                "last_modified": "2024-04-27T12:34:56Z"
             },
-            {
-                "url": "https://example.com/images/sunset-beach-2.jpg",
-                "caption": "Beach Front",
-                "type": 2
-            }
+            "width": 600,
+            "height": 750,
+            "category": " beach",
+            "format": "IMAGE_FORMAT_JPEG"
+        }
         ],
         "videos": [
             {
-                "url": "https://example.com/videos/resort-tour.mp4",
-                "caption": "Resort Virtual Tour",
-                "duration_seconds": 180
+            "file": {
+                "url": "https://example.com/videos/resort-tour.mp4"
+            },
+            "format": "VIDEO_FORMAT_MP4"
             }
         ],
         "classifications": [
@@ -188,13 +190,19 @@
                 "supplier_code": "DBL-SEA",
                 "supplier_name": "Double Room Sea View",
                 "original_name": "Deluxe Double Sea View",
-                "images": [
-                    {
-                        "url": "https://example.com/images/room-sea-view.jpg",
-                        "caption": "Sea View Room",
-                        "type": "IMAGE_TYPE_ROOM"
-                    }
-                ],
+               "images": [
+        {
+            "file": {
+                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                "name": "Beach House",
+                "last_modified": "2024-04-27T12:34:56Z"
+            },
+            "width": 600,
+            "height": 750,
+            "category": " beach",
+            "format": "IMAGE_FORMAT_JPEG"
+        }
+        ],
                 "descriptions": [
                     {
                         "language": 24,
@@ -320,22 +328,24 @@
             "airports": ["ZRH", "GVA"]
         },
         "images": [
-            {
-                "url": "https://example.com/images/alpine-lodge-1.jpg",
-                "caption": "Mountain View",
-                "type": 1
+        {
+            "file": {
+                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                "name": "Beach House",
+                "last_modified": "2024-04-27T12:34:56Z"
             },
-            {
-                "url": "https://example.com/images/alpine-lodge-2.jpg",
-                "caption": "Lodge Exterior",
-                "type": 1
-            }
+            "width": 600,
+            "height": 7500,
+            "category": " beach",
+            "format": "IMAGE_FORMAT_JPEG"
+        }
         ],
         "videos": [
             {
-                "url": "https://example.com/videos/lodge-tour.mp4",
-                "caption": "Lodge Virtual Tour",
-                "duration_seconds": 180
+            "file": {
+                "url": "https://example.com/videos/resort-tour.mp4"
+            },
+            "format": "VIDEO_FORMAT_MP4"
             }
         ],
         "classifications": [
@@ -563,23 +573,25 @@
             "status": 1,
             "airports": ["AYT"]
         },
-        "images": [
-            {
-                "url": "https://example.com/images/palm-paradise-1.jpg",
-                "caption": "Beach Front",
-                "type": 2
+       "images": [
+        {
+            "file": {
+                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                "name": "Beach House",
+                "last_modified": "2024-04-27T12:34:56Z"
             },
-            {
-                "url": "https://example.com/images/palm-paradise-2.jpg",
-                "caption": "Resort Exterior",
-                "type": 1
-            }
+            "width": 600,
+            "height": 750,
+            "category": "beach",
+            "format": "IMAGE_FORMAT_JPEG"
+        }
         ],
         "videos": [
             {
-                "url": "https://example.com/videos/resort-tour.mp4",
-                "caption": "Resort Virtual Tour",
-                "duration_seconds": 180
+            "file": {
+                "url": "https://example.com/videos/resort-tour.mp4"
+            },
+            "format": "VIDEO_FORMAT_MP4"
             }
         ],
         "classifications": [
@@ -808,22 +820,24 @@
             "airports": ["TXL", "SXF"]
         },
         "images": [
-            {
-                "url": "https://example.com/images/city-central-1.jpg",
-                "caption": "Hotel Exterior",
-                "type": 1
+        {
+            "file": {
+                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                "name": "Beach House",
+                "last_modified": "2024-04-27T12:34:56Z"
             },
-            {
-                "url": "https://example.com/images/city-central-2.jpg",
-                "caption": "Hotel Lobby",
-                "type": 4
-            }
+            "width": 600,
+            "height": 750,
+            "category": " beach",
+            "format": "IMAGE_FORMAT_JPEG"
+        }
         ],
         "videos": [
             {
-                "url": "https://example.com/videos/hotel-tour.mp4",
-                "caption": "Hotel Virtual Tour",
-                "duration_seconds": 180
+            "file": {
+                "url": "https://example.com/videos/resort-tour.mp4"
+            },
+            "format": "VIDEO_FORMAT_MP4"
             }
         ],
         "classifications": [
@@ -1060,23 +1074,25 @@
             "status": 1,
             "airports": ["OGG", "HNL"]
         },
-        "images": [
-            {
-                "url": "https://example.com/images/ocean-view-1.jpg",
-                "caption": "Beach Front",
-                "type": 2
+       "images": [
+        {
+            "file": {
+                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                "name": "Beach House",
+                "last_modified": "2024-04-27T12:34:56Z"
             },
-            {
-                "url": "https://example.com/images/ocean-view-2.jpg",
-                "caption": "Resort Exterior",
-                "type": 1
-            }
+            "width": 600,
+            "height": 750,
+            "category": " beach",
+            "format": "IMAGE_FORMAT_JPEG"
+        }
         ],
         "videos": [
             {
-                "url": "https://example.com/videos/resort-tour.mp4",
-                "caption": "Resort Virtual Tour",
-                "duration_seconds": 180
+            "file": {
+                "url": "https://example.com/videos/resort-tour.mp4"
+            },
+            "format": "VIDEO_FORMAT_MP4"
             }
         ],
         "classifications": [
