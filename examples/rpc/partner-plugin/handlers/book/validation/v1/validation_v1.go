@@ -16,13 +16,13 @@ import (
 )
 
 // Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
-var _ bookv1grpc.ValidationServiceServer = (*ValidationServiceV2Server)(nil)
+var _ bookv1grpc.ValidationServiceServer = (*ValidationServiceV1Server)(nil)
 
 // ValidationServiceV1Server is the server that provides Validation services.
-type ValidationServiceV2Server struct{}
+type ValidationServiceV1Server struct{}
 
 // Validate handles ValidationRequest and returns a mock ValidationResponse.
-func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequest *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
+func (*ValidationServiceV1Server) Validation(ctx context.Context, validationRequest *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
