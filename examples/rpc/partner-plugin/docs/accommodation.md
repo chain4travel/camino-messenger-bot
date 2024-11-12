@@ -1,7 +1,7 @@
 # Accommodation Product List V1 & V2
-Used to retrieve a list of all accommodation products of a supplier.
-Modified after is optional, if not provided, all products will be returned. If provided, only products modified after the provided timestamp will be returned.
 
+Used to retrieve a list of all accommodation products of a supplier.
+Modified after is optional, if not provided, all products will be returned. <!-- TODO: If provided, only products modified after the provided timestamp will be returned. -->
 
 ### Request message example
 
@@ -25,6 +25,7 @@ Modified after is optional, if not provided, all products will be returned. If p
 ```
 
 ### Response message example
+
 ```
 {
     "properties": [
@@ -34,7 +35,7 @@ Modified after is optional, if not provided, all products will be returned. If p
             "last_modified": {...},
             "supplier_code": {...},
             "name": "Sunset Beach Resort & Spa",
-            "chain": "Marriott", 
+            "chain": "Marriott",
             "category_rating": "CATEGORY_RATING_4_5",
             "category_unit": "CATEGORY_UNIT_STARS",
             "contact_info": {...},
@@ -48,17 +49,20 @@ Modified after is optional, if not provided, all products will be returned. If p
 ```
 
 # Accommodation Product Info V1 & V2
+
 Used to retrieve detailed information about a specific accommodation product.
 
 **Required fields:**
+
 - supplier_codes (array of supplier codes to filter by)
 
 **Optional fields:**
+
 - languages (array of language codes to be provided in the response)
 - modified_after (timestamp to filter by, only products modified after the provided timestamp will be returned)
 
-
 ### Mock data service available supplier codes for testing:
+
 - HTL123456
 - HTL789012
 - HTL345678
@@ -66,6 +70,7 @@ Used to retrieve detailed information about a specific accommodation product.
 - HTL567890
 
 ### Mock data service available languages for testing:
+
 - 9 (English)
 - 12 (German)
 - 15 (Italian)
@@ -74,6 +79,7 @@ Used to retrieve detailed information about a specific accommodation product.
 ---
 
 ### Request message example
+
 ```
 {
     "header": {
@@ -108,6 +114,7 @@ Used to retrieve detailed information about a specific accommodation product.
 ```
 
 ### Response message example
+
 ```
 {
     "properties": [
@@ -179,5 +186,5 @@ Used to retrieve detailed information about a specific accommodation product.
 ```
 
 # Accommodation Search V1 & V2
-Used to search availability for accommodation products based on the provided criteria.
 
+Used to search availability for accommodation products based on the provided criteria.
