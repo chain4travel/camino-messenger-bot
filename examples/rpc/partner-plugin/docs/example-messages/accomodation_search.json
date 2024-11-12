@@ -1,0 +1,154 @@
+{
+    "header": {
+        "base_header": {
+            "end_user_wallet_address": "enim tempor ad aliqua",
+            "version": {
+                "major": -333443382,
+                "minor": -2064758523,
+                "patch": -1139049495
+            }
+        }
+    },
+    "metadata": {
+        "external_session_id": "123session"
+    },
+    "queries": [
+        {
+            "query_id": 1,
+            "search_parameters_accommodation": {
+                "location_geo_tree": {
+                    "country": 13,
+                    "region": "Balearic Islands",
+                    "city_or_resort": "Mallorca"
+                }
+            },
+            "travel_period": {
+                "start_date": {
+                    "year": 2024,
+                    "month": 11,
+                    "day": 15
+                },
+                "end_date": {
+                    "year": 2024,
+                    "month": 11,
+                    "day": 18
+                },
+                "flexible": true,
+                "los_from_nights": 0,
+                "los_to_nights": 0,
+                "dow": {
+                    "dow": 0
+                }
+            },
+            "travellers": [
+                {
+                    "traveller_id": 1785472694,
+                    "type": "TRAVELLER_TYPE_CHILD",
+                    "birthdate": {
+                        "year": 2011,
+                        "month": 2,
+                        "day": 16
+                    },
+                    "nationality": 142
+                },
+                {
+                    "traveller_id": 1156774514,
+                    "type": 4,
+                    "birthdate": {
+                        "year": 2006,
+                        "month": 4,
+                        "day": 2
+                    },
+                    "nationality": 9
+                },
+                {
+                    "traveller_id": 614918586,
+                    "type": 0
+                }
+            ],
+            "unit_count": 1,
+            "unit_type": 0
+        },
+        {
+            "query_id": 2,
+            "search_parameters_accommodation": {
+                "location_geo_tree": {
+                    "country": 13,
+                    "region": "Balearic Islands",
+                    "city_or_resort": "Mallorca"
+                }
+            },
+            "travel_period": {
+                "start_date": {
+                    "year": 2024,
+                    "month": 11,
+                    "day": 15
+                },
+                "end_date": {
+                    "year": 2024,
+                    "month": 11,
+                    "day": 18
+                },
+                "flexible": false,
+                "los_from_nights": 894374666,
+                "los_to_nights": -1834212935,
+                "dow": {
+                    "dow": 1149139476
+                }
+            },
+            "travellers": [
+                {
+                    "traveller_id": 634858524,
+                    "type": 2,
+                    "birthdate": {
+                        "year": 0,
+                        "month": 0,
+                        "day": 0
+                    },
+                    "nationality": 82
+                },
+                {
+                    "traveller_id": 636494631,
+                    "type": "TRAVELLER_TYPE_INFANT",
+                    "birthdate": {
+                        "year": 0,
+                        "month": 0,
+                        "day": 0
+                    },
+                    "nationality": "COUNTRY_ZA"
+                },
+                {
+                    "traveller_id": 302639283,
+                    "type": 2,
+                    "birthdate": {
+                        "year": 0,
+                        "month": 0,
+                        "day": 0
+                    },
+                    "nationality": "COUNTRY_VA"
+                },
+                {
+                    "traveller_id": 804646516,
+                    "type": "TRAVELLER_TYPE_UNSPECIFIED",
+                    "birthdate": {
+                        "year": 1316763251,
+                        "month": -602525769,
+                        "day": 402351684
+                    },
+                    "nationality": "COUNTRY_AO"
+                }
+            ],
+            "unit_count": 2,
+            "unit_type": "UNIT_TYPE_UNSPECIFIED"
+        }
+    ],
+    "search_parameters_generic": {
+        "currency": {
+            "native_token": {}
+        },
+        "include_combinations": true,
+        "include_on_request": false,
+        "language": "LANGUAGE_ND",
+        "market": "COUNTRY_KP"
+    }
+}

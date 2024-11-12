@@ -1,0 +1,25 @@
+{
+    "header": {
+        "base_header": {
+            "end_user_wallet_address": "esse laboris Lorem nulla consequat",
+            "version": {
+                "major": -700654324,
+                "minor": 249806849,
+                "patch": -1120427268
+            }
+        }
+    },
+    "languages": [
+        12
+    ],
+    "modified_after": {
+        "nanos": 2047622387,
+        "seconds": "868177941"
+    },
+    "supplier_codes": [
+        {
+            "supplier_code": "HTL123456",
+            "supplier_number": 847
+        }
+    ]
+}

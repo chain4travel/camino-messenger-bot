@@ -569,10 +569,7 @@
             "file": {
                 "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
                 "name": "Beach House",
-                "last_modified": {
-                    "seconds": 1710071700,
-                    "nanos": 0
-                }
+                "last_modified":1710071700
             },
             "width": 600,
             "height": 750,
@@ -759,10 +756,7 @@
     },
     {
         "property": {
-            "last_modified": {
-                "seconds": 1710407115,
-                "nanos": 0
-            },
+            "last_modified":1710071700,
             "supplier_code": {
                 "supplier_code": "HTL901234",
                 "supplier_number": 123
@@ -816,10 +810,7 @@
             "file": {
                 "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
                 "name": "Beach House",
-                "last_modified": {
-                    "seconds": 1710071700,
-                    "nanos": 0
-                }
+                "last_modified":1710071700
             },
             "width": 600,
             "height": 750,
@@ -1006,10 +997,7 @@
     },
     {
         "property": {
-            "last_modified": {
-                "seconds": 1710343545,
-                "nanos": 0
-            },
+            "last_modified":1710071700,
             "supplier_code": {
                 "supplier_code": "HTL567890",
                 "supplier_number": 789
@@ -1072,10 +1060,7 @@
             "file": {
                 "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
                 "name": "Beach House",
-                "last_modified": {
-                        "seconds": 1710071700,
-                        "nanos": 0
-                }
+                "last_modified":1710071700
             },
             "width": 600,
             "height": 750,
