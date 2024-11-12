@@ -1,26 +1,20 @@
-package handlers_mock
+package handlers
 
 import (
 	"context"
 	"fmt"
 	"log"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 )
 
-type PingResponseHandler interface {
-	Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error)
-}
+var _ pingv1grpc.PingServiceServer = (*PingServiceV1Server)(nil)
 
-func NewPingResponseHandler() PingResponseHandler {
-	return &pingResponseHandler{}
-}
+type PingServiceV1Server struct{}
 
-type pingResponseHandler struct{}
-
-func (p *pingResponseHandler) Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error) {
+func (*PingServiceV1Server) Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {

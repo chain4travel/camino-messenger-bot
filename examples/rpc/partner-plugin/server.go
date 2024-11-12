@@ -37,6 +37,7 @@ import (
 	handlers_mint_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/book/mint/v1"
 	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/book/mint/v2"
 	handlers_validation_v2 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/book/validation/v2"
+	handlers_ping_v1 "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/handlers/ping/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -47,7 +48,6 @@ import (
 
 type partnerPlugin struct {
 	networkv1grpc.GetNetworkFeeServiceServer
-	pingv1grpc.PingServiceServer
 	insurancev1grpc.InsuranceProductInfoServiceClient
 	insurancev1grpc.InsuranceProductListServiceClient
 	insurancev1grpc.InsuranceSearchServiceServer
@@ -730,7 +730,6 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	networkv1grpc.RegisterGetNetworkFeeServiceServer(grpcServer, &partnerPlugin{})
-	pingv1grpc.RegisterPingServiceServer(grpcServer, &partnerPlugin{})
 	insurancev1grpc.RegisterInsuranceProductInfoServiceServer(grpcServer, &partnerPlugin{})
 	insurancev1grpc.RegisterInsuranceProductListServiceServer(grpcServer, &partnerPlugin{})
 	insurancev1grpc.RegisterInsuranceSearchServiceServer(grpcServer, &partnerPlugin{})
@@ -764,6 +763,8 @@ func main() {
 	// Book - Validation
 	// bookv1grpc.RegisterValidationServiceServer(grpcServer, &handlers_validation_v1.ValidationServiceV1Server{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &handlers_validation_v2.ValidationServiceV2Server{})
+	// Ping
+	pingv1grpc.RegisterPingServiceServer(grpcServer, &handlers_ping_v1.PingServiceV1Server{})
 
 	port := 55555
 	var err error
