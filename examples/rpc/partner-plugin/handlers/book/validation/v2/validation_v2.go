@@ -60,7 +60,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	validationCache.SetV2(validationId.Value, priceDetail)
 
 	response := bookv2.ValidationResponse{
-		Header:           nil,
+		Header:           &typesv1.ResponseHeader{},
 		ValidationId:     &validationId,
 		ValidationObject: validationRequest.ValidationObject,
 		PriceDetail:      priceDetail,
