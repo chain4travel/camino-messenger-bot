@@ -43,7 +43,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv1.AccommodationSearchResponse{
-			Header: nil,
+			Header: &typesv1.ResponseHeader{},
 		}, nil
 	}
 
