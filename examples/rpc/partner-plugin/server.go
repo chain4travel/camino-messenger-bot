@@ -75,7 +75,9 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 	log.Printf("Responding to request: %s (ActivityProductInfo)", md.RequestID)
 
 	response := activityv2.ActivityProductInfoResponse{
-		Header: nil,
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Activities: []*activityv2.ActivityExtendedInfo{
 			{
 				Activity: &activityv2.Activity{
@@ -251,7 +253,9 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.A
 	log.Printf("Responding to request: %s (ActivityProductList)", md.RequestID)
 
 	response := activityv2.ActivityProductListResponse{
-		Header: nil,
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Activities: []*activityv2.Activity{
 			{
 				Context:           "ActivityTest", // context
@@ -288,7 +292,9 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv2.Activi
 	log.Printf("Responding to request: %s (ActivitySearch)", md.RequestID)
 
 	response := activityv2.ActivitySearchResponse{
-		Header:   nil,
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Metadata: &typesv2.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -347,7 +353,9 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.Tran
 	log.Printf("Responding to request: %s (TransportSearch)", md.RequestID)
 
 	response := transportv2.TransportSearchResponse{
-		Header:   nil,
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Metadata: &typesv2.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -366,7 +374,9 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMap
 	log.Printf("Responding to request: %s (SeatMap)", md.RequestID)
 
 	response := seat_mapv2.SeatMapResponse{
-		Header: nil,
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		SeatMap: &typesv2.SeatMap{
 			Id: md.RequestID,
 			Sections: []*typesv2.Section{
@@ -539,7 +549,9 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 	log.Printf("Responding to request: %s (SeatMapAvailability)", md.RequestID)
 
 	response := seat_mapv2.SeatMapAvailabilityResponse{
-		Header: nil,
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		SeatMap: &typesv2.SeatMapInventory{
 			Id: "123ST",
 			Sections: []*typesv2.SectionInventory{
@@ -575,7 +587,9 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	log.Printf("Responding to request: %s (CountryEntryRequirements)", md.RequestID)
 
 	response := infov2.CountryEntryRequirementsResponse{
-		Header: nil,
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Categories: []*infov2.CountryEntryRequirementCategory{{
 			Key: "entry",
 			Names: []*typesv1.LocalizedString{{

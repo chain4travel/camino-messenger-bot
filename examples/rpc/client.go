@@ -80,7 +80,7 @@ func createClientAndRunRequest(
 		return
 	}
 	request := &accommodationv1.AccommodationSearchRequest{
-		Header: nil,
+		Header: &typesv1.RequestHeader{},
 		SearchParametersGeneric: &typesv1.SearchParameters{
 			Language:   typesv1.Language_LANGUAGE_UG,
 			Market:     1,

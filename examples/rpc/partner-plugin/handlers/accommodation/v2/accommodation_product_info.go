@@ -91,7 +91,9 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 		filteredProperties = suppliersFiltered
 	}
 	response := &accommodationv2.AccommodationProductInfoResponse{
-		Header:     &typesv1.ResponseHeader{},
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Properties: filteredProperties,
 	}
 

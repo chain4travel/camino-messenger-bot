@@ -43,7 +43,12 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv1.AccommodationSearchResponse{
-			Header: &typesv1.ResponseHeader{},
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{
+					{Message: "No queries provided"},
+				},
+			},
 		}, nil
 	}
 
@@ -165,7 +170,9 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	cache.SetV1(searchId, searchResults)
 
 	response := &accommodationv1.AccommodationSearchResponse{
-		Header: &typesv1.ResponseHeader{},
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Metadata: &typesv1.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: searchId},
 		},
