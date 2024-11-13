@@ -171,9 +171,9 @@ func (vc *validationCache) SetV2(validationId string, priceDetail *typesv2.Price
 
 	// Clean up expired entries first
 	now := time.Now()
-	for k, item := range vc.cache_v1 {
+	for k, item := range vc.cache_v2 {
 		if now.After(item.expiry) {
-			delete(vc.cache_v1, k)
+			delete(vc.cache_v2, k)
 		}
 	}
 
