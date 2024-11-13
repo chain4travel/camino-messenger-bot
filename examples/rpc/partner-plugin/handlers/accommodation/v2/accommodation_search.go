@@ -48,8 +48,8 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		}, nil
 	}
 
-	var searchResults []*accommodationv2.AccommodationSearchResult
-	var available_properties []*accommodationv2.PropertyExtendedInfo
+	searchResults := []*accommodationv2.AccommodationSearchResult{}
+	available_properties := []*accommodationv2.PropertyExtendedInfo{}
 	// loop request queries
 	for _, query := range req.Queries {
 		props := make([]*accommodationv2.PropertyExtendedInfo, len(properties))

@@ -47,8 +47,8 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		}, nil
 	}
 
-	var searchResults []*accommodationv1.AccommodationSearchResult
-	var available_properties []*accommodationv1.PropertyExtendedInfo
+	searchResults := []*accommodationv1.AccommodationSearchResult{}
+	available_properties := []*accommodationv1.PropertyExtendedInfo{}
 	// loop request queries
 	for _, query := range req.Queries {
 		props := make([]*accommodationv1.PropertyExtendedInfo, len(properties))
