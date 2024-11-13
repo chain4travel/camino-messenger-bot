@@ -43,9 +43,9 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	searchId := validationRequest.ValidationObject.SearchIdentifier.SearchId
 	resultId := validationRequest.ValidationObject.SearchIdentifier.ResultId
 
-	accomodationCache := cache.NewSearchCache()
+	accommodationCache := cache.NewSearchCache()
 	validationCache := cache.NewValidationCache()
-	accommodationSearchResponse, found := accomodationCache.GetV2(searchId.Value) // Directly access using searchId and resultId
+	accommodationSearchResponse, found := accommodationCache.GetV2(searchId.Value) // Directly access using searchId and resultId
 	if !found {
 		return nil, fmt.Errorf("no validation data found for searchId: %s", searchId)
 	}
