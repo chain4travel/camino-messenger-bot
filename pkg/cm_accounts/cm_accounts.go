@@ -67,6 +67,7 @@ type Service interface {
 	BuyBookingToken(
 		ctx context.Context,
 		transactOpts *bind.TransactOpts,
+		cmAccountAddr common.Address,
 		tokenID *big.Int,
 	) (*types.Receipt, error)
 }
@@ -267,6 +268,7 @@ func (s *service) MintBookingToken(
 		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}
 
+	// TODO: @VjeraTurk enable setting isCancellable flag from mintv3 on.
 	tx, err := cmAccount.MintBookingToken(
 		transactOpts,
 		reservedFor,
@@ -274,6 +276,7 @@ func (s *service) MintBookingToken(
 		expirationTimestamp,
 		price,
 		paymentToken,
+		false, // In mintv1 and mintv2 isCancellable is always false - as tokens are not cancellable.
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to mint booking token: %w", err)
@@ -294,9 +297,10 @@ func (s *service) MintBookingToken(
 func (s *service) BuyBookingToken(
 	ctx context.Context,
 	transactOpts *bind.TransactOpts,
+	cmAccountAddress common.Address,
 	tokenID *big.Int,
 ) (*types.Receipt, error) {
-	cmAccount, err := s.cmAccount(transactOpts.From)
+	cmAccount, err := s.cmAccount(cmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}

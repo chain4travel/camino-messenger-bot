@@ -18,7 +18,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	erc20 "github.com/chain4travel/camino-messenger-bot/pkg/erc20"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenv2"
 )
 
 // Simple usage example for the BookingService
@@ -77,7 +77,7 @@ func main() {
 		sugar.Fatalf("Failed to create Booking Service: %v", err)
 	}
 
-	bt, err := bookingtoken.NewBookingtoken(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
+	bt, err := bookingtokenv2.NewBookingtokenv2(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
 	if err != nil {
 		sugar.Fatalf("Failed to create BookingToken contract binding: %v", err)
 	}
@@ -90,8 +90,8 @@ func main() {
 
 	nativeTokenAddress := common.HexToAddress("0x0000000000000000000000000000000000000000")
 	// https://columbus.caminoscan.com/token/0x5b1c852dad36854B0dFFF61d2C13F108D8E01975
-	eurshToken := common.HexToAddress("0x5b1c852dad36854B0dFFF61d2C13F108D8E01975")
-	// testToken := common.HexToAddress("0x53A0b6A344C8068B211d47f177F0245F5A99eb2d")
+	eurshToken := common.HexToAddress("0x5b1c852dad36854B0dFFF61d2C13F108D8E01975") // You can't use EURSH if you are not registered in their system
+	testToken := common.HexToAddress("0x53A0b6A344C8068B211d47f177F0245F5A99eb2d")  // Requires having Test Token in your CM- account
 
 	var paymentToken common.Address = nativeTokenAddress
 	var priceBigInt *big.Int
@@ -121,6 +121,19 @@ func main() {
 		},
 	}
 
+	// Example prices for Test Token Currency
+	priceTestToken := &typesv2.Price{
+		Value:    "100",
+		Decimals: 2,
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_TokenCurrency{
+				TokenCurrency: &typesv2.TokenCurrency{
+					ContractAddress: testToken.Hex(),
+				},
+			},
+		},
+	}
+
 	// Example prices for Native Token
 	priceCAM := &typesv2.Price{
 		Value:    "1",
@@ -132,13 +145,17 @@ func main() {
 		},
 	}
 
-	sugar.Infof("%v %v %v %v", priceEUR, priceEURSH, priceCAM)
+	sugar.Infof("%v %v %v %v", priceEUR, priceEURSH, priceTestToken, priceCAM)
 	sugar.Infof("%v", price)
 
 	paymentToken = nativeTokenAddress
 	priceBigInt = big.NewInt(0)
-	// price = priceEURSH
-	price = priceEURSH
+
+	// price = priceEUR
+	// price = priceEURSH     //  You can't use EURSH if you are not registered in their system
+	// price = priceTestToken // Requires having Test Token in your CM- account
+
+	price = priceCAM
 
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:

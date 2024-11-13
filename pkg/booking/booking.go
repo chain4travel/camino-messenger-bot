@@ -28,8 +28,6 @@ type Service struct {
 	cmAccounts       cmaccounts.Service
 }
 
-var zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
-
 // NewService initializes a new Service. It sets up the transactor with the provided
 // private key and creates the CMAccount contract.
 func NewService(
@@ -91,12 +89,6 @@ func (bs *Service) MintBookingToken(
 	if strings.TrimSpace(uri) == "" {
 		return nil, fmt.Errorf("uri cannot be empty")
 	}
-	// if paymentToken is zeroAddress, then it is either native token or iso currency payment
-	if paymentToken != zeroAddress {
-		if err := bs.checkAndApproveAllowance(ctx, paymentToken, reservedFor, bs.cmAccountAddress, price); err != nil {
-			return nil, fmt.Errorf("error during token approval process: %w", err)
-		}
-	}
 	// Call the MintBookingToken function from the contract
 
 	receipt, err := bs.cmAccounts.MintBookingToken(
@@ -132,7 +124,7 @@ func (bs *Service) BuyBookingToken(
 	}
 
 	// Call the BuyBookingToken function from the contract
-	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, tokenID)
+	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, bs.cmAccountAddress, tokenID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to buy booking token: %w", err)
 	}
@@ -157,36 +149,4 @@ func (bs *Service) ConvertPriceToBigInt(value string, decimals int32, totalDecim
 	result := new(big.Int).Mul(valueBigInt, multiplier)
 
 	return result, nil
-}
-
-// checkAndApproveAllowance checks if the allowance is sufficient and approves tokens if necessary
-func (bs *Service) checkAndApproveAllowance(
-	ctx context.Context,
-	paymentToken common.Address,
-	owner, spender common.Address,
-	price *big.Int,
-) error {
-	// Check allowance
-	allowance, err := bs.erc20.Allowance(ctx, paymentToken, owner, spender)
-	if err != nil {
-		return fmt.Errorf("failed to get allowance: %w", err)
-	}
-	bs.logger.Infof("current allowance: %s", allowance.String())
-
-	// If allowance is less than the price, approve more tokens
-	if allowance.Cmp(price) < 0 {
-		bs.logger.Infof("Allowance insufficient. Initiating approval for the required amount...")
-
-		// Approve the required amount
-
-		if err := bs.erc20.Approve(ctx, bs.transactOpts, paymentToken, spender, price); err != nil {
-			return fmt.Errorf("failed to approve token spending: %w", err)
-		}
-
-		bs.logger.Info("Approval transaction mined successfully.")
-	} else {
-		bs.logger.Infof("Sufficient allowance available. Proceeding with the transaction...")
-	}
-
-	return nil
 }

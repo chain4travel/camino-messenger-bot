@@ -21,7 +21,7 @@ import (
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenv2"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -67,7 +67,7 @@ func NewResponseHandler(
 		return nil, err
 	}
 
-	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenAddress, ethClient)
+	bookingToken, err := bookingtokenv2.NewBookingtokenv2(bookingTokenAddress, ethClient)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err
@@ -92,7 +92,7 @@ type evmResponseHandler struct {
 	cmAccountAddress    common.Address
 	bookingTokenAddress common.Address
 	bookingService      booking.Service
-	bookingToken        bookingtoken.Bookingtoken
+	bookingToken        bookingtokenv2.Bookingtokenv2
 	serviceRegistry     ServiceRegistry
 	evmEventListener    *events.EventListener
 	erc20               erc20.Service
