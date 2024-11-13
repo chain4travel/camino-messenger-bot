@@ -26,7 +26,6 @@ func (*MintServiceV1Server) Mint(ctx context.Context, mintRequest *bookv1.MintRe
 	if err := md.ExtractMetadata(ctx); err != nil {
 		log.Print("error extracting metadata")
 	}
-	md.RequestID = uuid.New().String()
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request (MintV1): %s", md.RequestID)
 
@@ -35,9 +34,8 @@ func (*MintServiceV1Server) Mint(ctx context.Context, mintRequest *bookv1.MintRe
 	if !found {
 		return nil, fmt.Errorf("no validation data found for validationId: %s", mintRequest.ValidationId.Value)
 	}
-
 	response := bookv1.MintResponse{
-		MintId: &typesv1.UUID{Value: md.RequestID},
+		MintId: &typesv1.UUID{Value: uuid.New().String()},
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
