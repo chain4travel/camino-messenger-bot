@@ -42,7 +42,6 @@ func (*MintServiceV2Server) Mint(ctx context.Context, req *bookv2.MintRequest) (
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
 		Price:           priceDetail.Price, // change to Token or Offchain to test different scenarios
-		BookingTokenId:  uint64(123456),
 		ValidationId:    &typesv1.UUID{Value: "123456"},
 		BookingTokenUri: "https://example.com/booking-token",
 	}

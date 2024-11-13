@@ -11,7 +11,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
 	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"golang.org/x/exp/rand"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
 
@@ -157,15 +157,17 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	}
 
 	// generate a random string of 8 numbers
-	md.RequestID = fmt.Sprintf("%08d", rand.Intn(100000000))
 	cache := cache.NewSearchCache()
+
+	searchId := uuid.New().String()
+
 	// Store in cache after search
-	cache.SetV1(md.RequestID, searchResults)
+	cache.SetV1(searchId, searchResults)
 
 	response := &accommodationv1.AccommodationSearchResponse{
 		Header: nil,
 		Metadata: &typesv1.SearchResponseMetadata{
-			SearchId: &typesv1.UUID{Value: md.RequestID},
+			SearchId: &typesv1.UUID{Value: searchId},
 		},
 		Results: searchResults,
 		Travellers: []*typesv1.BasicTraveller{{
