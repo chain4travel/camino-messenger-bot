@@ -165,7 +165,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	cache.SetV1(searchId, searchResults)
 
 	response := &accommodationv1.AccommodationSearchResponse{
-		Header: nil,
+		Header: &typesv1.ResponseHeader{},
 		Metadata: &typesv1.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: searchId},
 		},

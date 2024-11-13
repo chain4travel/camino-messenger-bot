@@ -32,7 +32,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	properties := mock_data.LoadPropertiesMockData()
 
 	// Initialize suppliersFiltered with the correct type
-	var suppliersFiltered []*accommodationv2.PropertyExtendedInfo
+	suppliersFiltered := []*accommodationv2.PropertyExtendedInfo{}
 
 	// check if there are supplier codes in the request
 	if req.SupplierCodes != nil {
@@ -54,7 +54,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 		}
 	}
 
-	var filteredProperties []*accommodationv2.PropertyExtendedInfo
+	filteredProperties := []*accommodationv2.PropertyExtendedInfo{}
 
 	if req.Languages != nil {
 		log.Printf("Languages requested: %v", req.Languages)
@@ -91,7 +91,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 		filteredProperties = suppliersFiltered
 	}
 	response := &accommodationv2.AccommodationProductInfoResponse{
-		Header:     nil,
+		Header:     &typesv1.ResponseHeader{},
 		Properties: filteredProperties,
 	}
 

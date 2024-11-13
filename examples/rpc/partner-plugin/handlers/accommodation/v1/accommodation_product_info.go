@@ -7,7 +7,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	v1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
@@ -32,7 +32,7 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 	properties := helpers.LoadPropertiesMockData()
 
 	// Initialize suppliersFiltered with the correct type
-	var suppliersFiltered []*accommodationv1.PropertyExtendedInfo
+	suppliersFiltered := []*accommodationv1.PropertyExtendedInfo{}
 
 	// check if there are supplier codes in the request
 	if req.SupplierCodes != nil {
@@ -54,14 +54,14 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 		}
 	}
 
-	var filteredProperties []*accommodationv1.PropertyExtendedInfo
+	filteredProperties := []*accommodationv1.PropertyExtendedInfo{}
 
 	if req.Languages != nil {
 		log.Printf("Languages requested: %v", req.Languages)
 
 		for _, property := range suppliersFiltered {
-			filteredDescriptions := []*v1.LocalizedDescriptionSet{}
-			filteredRoomDescriptions := []*v1.LocalizedDescriptionSet{}
+			filteredDescriptions := []*typesv1.LocalizedDescriptionSet{}
+			filteredRoomDescriptions := []*typesv1.LocalizedDescriptionSet{}
 
 			for _, descSet := range property.LocalizedDescriptions {
 				for _, reqLang := range req.Languages {
@@ -91,7 +91,7 @@ func (*AccommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Co
 	}
 
 	response := &accommodationv1.AccommodationProductInfoResponse{
-		Header:     nil,
+		Header:     &typesv1.ResponseHeader{},
 		Properties: filteredProperties,
 	}
 
