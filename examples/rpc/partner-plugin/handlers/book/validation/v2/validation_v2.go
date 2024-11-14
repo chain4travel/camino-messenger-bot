@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 
-	// helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 )
 
@@ -37,7 +36,18 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 		validationRequest.ValidationObject.SearchIdentifier == nil ||
 		validationRequest.ValidationObject.SearchIdentifier.ResultId == 0 ||
 		validationRequest.ValidationObject.SearchIdentifier.SearchId == nil {
-		return nil, fmt.Errorf("invalid validation request: missing validation object or search identifier")
+		response := &bookv2.ValidationResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{
+					{
+						Message: "Invalid validation request: missing validation object or search identifier",
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
+				},
+			},
+		}
+		return response, nil
 	}
 
 	searchId := validationRequest.ValidationObject.SearchIdentifier.SearchId
@@ -47,12 +57,34 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	validationCache := cache.NewValidationCache()
 	accommodationSearchResponse, found := accommodationCache.GetV2(searchId.Value) // Directly access using searchId and resultId
 	if !found {
-		return nil, fmt.Errorf("no validation data found for searchId: %s", searchId)
+		return &bookv2.ValidationResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{
+					{
+						Message: fmt.Sprintf("no validation data found for searchId: %v", searchId),
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
+				},
+			},
+		}, nil
 	}
 	var priceDetail *typesv2.PriceDetail
 	for _, result := range accommodationSearchResponse {
 		if result.ResultId == resultId {
 			priceDetail = result.TotalPriceDetail
+		} else {
+			return &bookv2.ValidationResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{
+						{
+							Message: fmt.Sprintf("no validation data found for resultId: %d", resultId),
+							Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+						},
+					},
+				},
+			}, nil
 		}
 	}
 
@@ -60,7 +92,9 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	validationCache.SetV2(validationId.Value, priceDetail)
 
 	response := bookv2.ValidationResponse{
-		Header:           &typesv1.ResponseHeader{},
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		ValidationId:     &validationId,
 		ValidationObject: validationRequest.ValidationObject,
 		PriceDetail:      priceDetail,

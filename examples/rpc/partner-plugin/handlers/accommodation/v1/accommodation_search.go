@@ -46,7 +46,10 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 				Alerts: []*typesv1.Alert{
-					{Message: "No queries provided"},
+					{
+						Message: "No queries provided",
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
 				},
 			},
 		}, nil
@@ -159,6 +162,20 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 				})
 			}
 		}
+	}
+
+	if len(searchResults) == 0 {
+		return &accommodationv1.AccommodationSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+				Alerts: []*typesv1.Alert{
+					{
+						Message: fmt.Sprintf("No results found for search %v", req.Queries),
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
+				},
+			},
+		}, nil
 	}
 
 	// generate a random string of 8 numbers

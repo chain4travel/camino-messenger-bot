@@ -90,6 +90,22 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	} else {
 		filteredProperties = suppliersFiltered
 	}
+
+	if len(filteredProperties) == 0 {
+		// TODO: @VjeraTurk Should grpc.SendHeader(ctx, md.ToGrpcMD()) be before any return?
+		return &accommodationv2.AccommodationProductInfoResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+				Alerts: []*typesv1.Alert{
+					{
+						Message: fmt.Sprintf("No properties found for supplier codes: %v", req.SupplierCodes),
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
+				},
+			},
+		}, nil
+	}
+
 	response := &accommodationv2.AccommodationProductInfoResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,

@@ -32,7 +32,17 @@ func (*MintServiceV1Server) Mint(ctx context.Context, mintRequest *bookv1.MintRe
 	cache := cache.NewValidationCache()
 	priceDetail, found := cache.GetV1(mintRequest.ValidationId.Value)
 	if !found {
-		return nil, fmt.Errorf("no validation data found for validationId: %s", mintRequest.ValidationId.Value)
+		return &bookv1.MintResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{
+					{
+						Message: fmt.Sprintf("no validation data found for validationId: %s", mintRequest.ValidationId.Value),
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
+				},
+			},
+		}, nil
 	}
 	response := bookv1.MintResponse{
 		MintId: &typesv1.UUID{Value: uuid.New().String()},

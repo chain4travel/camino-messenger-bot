@@ -44,7 +44,15 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv2.AccommodationSearchResponse{
-			Header: &typesv1.ResponseHeader{},
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{
+					{
+						Message: "No queries provided",
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
+				},
+			},
 		}, nil
 	}
 
@@ -157,6 +165,17 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		}
 	}
 
+	if len(searchResults) == 0 {
+		return &accommodationv2.AccommodationSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+				Alerts: []*typesv1.Alert{
+					{Message: fmt.Sprintf("No results found for search %v", req.Queries)},
+				},
+			},
+		}, nil
+	}
+
 	cache := cache.NewSearchCache()
 	// Store in cache after search
 
@@ -165,7 +184,9 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	cache.SetV2(searchId, searchResults)
 
 	response := &accommodationv2.AccommodationSearchResponse{
-		Header: &typesv1.ResponseHeader{},
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Metadata: &typesv2.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: searchId},
 		},

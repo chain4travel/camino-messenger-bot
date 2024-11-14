@@ -39,7 +39,9 @@ func (*AccommodationProductListV2Server) AccommodationProductList(ctx context.Co
 	}
 
 	response := &accommodationv2.AccommodationProductListResponse{
-		Header:     &typesv1.ResponseHeader{},
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		Properties: filteredProperties,
 	}
 
