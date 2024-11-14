@@ -29,7 +29,7 @@ func (h *evmResponseHandler) handleMintResponseV2(ctx context.Context, response 
 	}
 
 	// Check if the response from plugin is successful before minting
-	if mintResp.Header != nil && mintResp.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
+	if mintResp.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
 		return false
 	}
 	// TODO: @VjeraTurk check if CMAccount exists
