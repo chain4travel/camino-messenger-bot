@@ -26,7 +26,7 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 		mintResp.Header = &typesv1.ResponseHeader{}
 	}
 
-	if mintResp.Header != nil && mintResp.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
+	if mintResp.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
 		return false
 	}
 
