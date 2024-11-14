@@ -32,7 +32,8 @@ func (*MintServiceV2Server) Mint(ctx context.Context, req *bookv2.MintRequest) (
 	cache := cache.NewValidationCache()
 	priceDetail, found := cache.GetV2(req.ValidationId.Value)
 	if !found {
-		return &bookv2.MintResponse{
+		grpc.SendHeader(ctx, md.ToGrpcMD())
+		response := bookv2.MintResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 				Alerts: []*typesv1.Alert{
@@ -42,7 +43,10 @@ func (*MintServiceV2Server) Mint(ctx context.Context, req *bookv2.MintRequest) (
 					},
 				},
 			},
-		}, nil
+		}
+		return &response, nil
+		// Fatal:
+		// return nil, fmt.Errorf("no validation data found for validationId: %s", req.ValidationId.Value)
 	}
 
 	log.Printf("Responding to request: %s (MintV2)", req.ValidationId.Value)

@@ -87,7 +87,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			}
 		}
 
-		var price = 500
+		var price = 2
 
 		// generate search result
 		for _, prop := range available_properties {
@@ -139,7 +139,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					Remarks:        "",
 				})
 
-				price += 250
+				price += 2
 
 				if units_requested == int32(len(units)) {
 					break
