@@ -26,6 +26,10 @@ func (h *evmResponseHandler) handleMintResponseV1(ctx context.Context, response 
 		mintResp.Header = &typesv1.ResponseHeader{}
 	}
 
+	if mintResp.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
+		return false
+	}
+
 	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format,
 	// TODO not x/p/t chain or anything else. Currently it will not error
 	// TODO if address is invalid and will just get zero addr
