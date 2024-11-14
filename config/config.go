@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"math/big"
-	"net/url"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -21,7 +20,7 @@ type Config struct {
 	BotKey           *ecdsa.PrivateKey
 	CMAccountAddress common.Address
 
-	ChainRPCURL         url.URL
+	ChainRPCURL         string
 	BookingTokenAddress common.Address
 
 	NetworkFeeRecipientBotAddress       common.Address
@@ -40,26 +39,6 @@ type Config struct {
 	Matrix        MatrixConfig
 }
 
-type TracingConfig struct {
-	Enabled  bool
-	HostURL  url.URL
-	Insecure bool
-	CertFile string
-	KeyFile  string
-}
-
-type PartnerPluginConfig struct {
-	Enabled     bool
-	HostURL     url.URL
-	Unencrypted bool
-	CACertFile  string
-}
-
-type MatrixConfig struct {
-	HostURL url.URL
-	Store   string
-}
-
 type SQLiteDBConfig struct {
 	Common        UnparsedSQLiteDBConfig
 	Scheduler     UnparsedSQLiteDBConfig
@@ -69,6 +48,26 @@ type SQLiteDBConfig struct {
 // ******* Common *******
 //
 //
+
+type TracingConfig struct {
+	Enabled  bool   `mapstructure:"enabled"`
+	Host     string `mapstructure:"host"`
+	Insecure bool   `mapstructure:"insecure"`
+	CertFile string `mapstructure:"cert_file"`
+	KeyFile  string `mapstructure:"key_file"`
+}
+
+type PartnerPluginConfig struct {
+	Enabled     bool   `mapstructure:"enabled"`
+	Host        string `mapstructure:"host"`
+	Unencrypted bool   `mapstructure:"unencrypted"`
+	CACertFile  string `mapstructure:"ca_file"`
+}
+
+type MatrixConfig struct {
+	Host  string `mapstructure:"host"`
+	Store string
+}
 
 type RPCServerConfig struct {
 	Enabled        bool   `mapstructure:"enabled"`
@@ -100,31 +99,12 @@ type UnparsedConfig struct {
 
 	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
 
-	PartnerPlugin UnparsedPartnerPluginConfig `mapstructure:"partner_plugin"`
-	Tracing       UnparsedTracingConfig       `mapstructure:"tracing"`
-	Matrix        UnparsedMatrixConfig        `mapstructure:"matrix"`
+	PartnerPlugin PartnerPluginConfig `mapstructure:"partner_plugin"`
+	Tracing       TracingConfig       `mapstructure:"tracing"`
+	RPCServer     RPCServerConfig     `mapstructure:"rpc_server"`
 
-	RPCServer RPCServerConfig        `mapstructure:"rpc_server"`
-	DB        UnparsedSQLiteDBConfig `mapstructure:"db"`
-}
-
-type UnparsedTracingConfig struct {
-	Enabled  bool   `mapstructure:"enabled"`
-	Host     string `mapstructure:"host"`
-	Insecure bool   `mapstructure:"insecure"`
-	CertFile string `mapstructure:"cert_file"`
-	KeyFile  string `mapstructure:"key_file"`
-}
-
-type UnparsedPartnerPluginConfig struct {
-	Enabled     bool   `mapstructure:"enabled"`
-	Host        string `mapstructure:"host"`
-	Unencrypted bool   `mapstructure:"unencrypted"`
-	CACertFile  string `mapstructure:"ca_file"`
-}
-
-type UnparsedMatrixConfig struct {
-	Host string `mapstructure:"host"`
+	Matrix UnparsedMatrixConfig   `mapstructure:"matrix"`
+	DB     UnparsedSQLiteDBConfig `mapstructure:"db"`
 }
 
 type UnparsedSQLiteDBConfig struct {
@@ -132,30 +112,23 @@ type UnparsedSQLiteDBConfig struct {
 	MigrationsPath string `mapstructure:"migrations_path"`
 }
 
+type UnparsedMatrixConfig struct {
+	Host string `mapstructure:"host"`
+}
+
 func (cfg *Config) unparse() *UnparsedConfig {
 	return &UnparsedConfig{
-		DB:        cfg.DB.Common,
-		RPCServer: cfg.RPCServer,
-		Tracing: UnparsedTracingConfig{
-			Enabled:  cfg.Tracing.Enabled,
-			Host:     cfg.Tracing.HostURL.String(),
-			Insecure: cfg.Tracing.Insecure,
-			CertFile: cfg.Tracing.CertFile,
-			KeyFile:  cfg.Tracing.KeyFile,
-		},
-		PartnerPlugin: UnparsedPartnerPluginConfig{
-			Enabled:     cfg.PartnerPlugin.Enabled,
-			Host:        cfg.PartnerPlugin.HostURL.String(),
-			Unencrypted: cfg.PartnerPlugin.Unencrypted,
-			CACertFile:  cfg.PartnerPlugin.CACertFile,
-		},
+		DB:            cfg.DB.Common,
+		RPCServer:     cfg.RPCServer,
+		Tracing:       cfg.Tracing,
+		PartnerPlugin: cfg.PartnerPlugin,
 		Matrix: UnparsedMatrixConfig{
-			Host: cfg.Matrix.HostURL.String(),
+			Host: cfg.Matrix.Host,
 		},
 		DeveloperMode:                       cfg.DeveloperMode,
 		BotKey:                              hex.EncodeToString(crypto.FromECDSA(cfg.BotKey)),
 		CMAccountAddress:                    cfg.CMAccountAddress.Hex(),
-		ChainRPCURL:                         cfg.ChainRPCURL.String(),
+		ChainRPCURL:                         cfg.ChainRPCURL,
 		BookingTokenAddress:                 cfg.BookingTokenAddress.Hex(),
 		NetworkFeeRecipientBotAddress:       cfg.NetworkFeeRecipientBotAddress.Hex(),
 		NetworkFeeRecipientCMAccountAddress: cfg.NetworkFeeRecipientCMAccountAddress.Hex(),

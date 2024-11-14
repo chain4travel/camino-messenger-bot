@@ -32,7 +32,7 @@ import (
 var _ messaging.Messenger = (*messenger)(nil)
 
 func NewMessenger(cfg config.MatrixConfig, botKey *ecdsa.PrivateKey, logger *zap.SugaredLogger) (messaging.Messenger, error) {
-	c, err := mautrix.NewClient(cfg.HostURL.String(), "", "")
+	c, err := mautrix.NewClient(cfg.Host, "", "")
 	if err != nil {
 		logger.Errorf("failed to create matrix client: %v", err)
 		return nil, err
