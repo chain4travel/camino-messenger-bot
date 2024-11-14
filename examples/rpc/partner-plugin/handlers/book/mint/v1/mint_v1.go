@@ -49,7 +49,8 @@ func (*MintServiceV1Server) Mint(ctx context.Context, mintRequest *bookv1.MintRe
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		Price: priceDetail.Price, // change to Token or Offchain to test different scenarios
+		ValidationId: mintRequest.ValidationId,
+		Price:        priceDetail.Price, // change to Token or Offchain to test different scenarios
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
