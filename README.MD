@@ -25,7 +25,44 @@ Camino-Messenger-Bot is designed to facilitate communication through various mes
 
 This application depends on the [camino-messenger-protocol](https://github.com/chain4travel/camino-messenger-protocol), which is a separate repository. The protocol defines the protobuf messages and services used for communication between the gRPC server and client.
 
-Currently [release-9](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-9) of Camino Messenger Protocol is used.
+Currently [release-11](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-11) of Camino Messenger Protocol is used.
+
+## Camino Messenger Account (CM Account)
+
+To run the camino-bot-messenger as intended you will need a **CM Account** with a **bot** added to it and **registered services**.
+
+### Creating the CM account
+If you don't already have a **CM account**, for development purposes a CM Account can be created via [camino messenger contract](https://github.com/chain4travel/camino-messenger-contracts) `hardhat` tool or via [suite](https://dev.suite.camino.network/create) as explained [here](https://docs.camino.network/partners/partner-config/#step-by-step-configuration-guide).
+
+To create a **CM account** and add the bot to it - you will need **two KYC verified** (test) **wallets** - one for the **CM Account**, and one for the **bot**.
+Creating and KYC verifying the test wallets can be done via [suite](https://dev.suite.camino.network/create) as explained [here](https://docs.camino.network/guides/how-to-create-a-wallet) and [here](https://docs.camino.network/guides/kyc#kyc-verification-process).
+
+### Creating the CM acocunt via hardhat
+After you have your two KYC verified wallets ready, clone the contracts repo, position inside the repo, and run:
+```
+yarn hardhat account --help
+yarn hardhat account create --help
+yarn hardhat account bot:add --help
+yarn hardhat account service:add --help  
+```
+
+To see how to use the tool.
+
+1. To create the CM Account run:
+```
+yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
+```
+The command will output an **address of your new CM Account** in format 0x<\...\>.
+
+2. To add the bot to the CM Account run:
+```
+yarn hardhat account add:bot --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
+```
+3. To register a service supported by your CM Account e.g.
+```
+yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.transport.v3.TransportSearchService --fee 3 --network columbus
+```
+
 
 ## Examples and Docker Support
 
