@@ -36,6 +36,9 @@ If you don't already have a **CM Account**, for development purposes, a CM Accou
 
 To create a **CM Account** and add the bot to it - you will need **two** (test) **wallets** - one for the **CM Account**, and one for the **bot**. The CM Account wallet has to be **KYC verified**. Creating and KYC verifying the test wallets can be done via [suite](https://suite.camino.network/create) as explained [here](https://docs.camino.network/guides/how-to-create-a-wallet) and [here](https://docs.camino.network/guides/kyc#kyc-verification-process).
 
+> [!IMPORTANT]
+> Remember to ensure the suite is connected to testnet Columbus if you are doing this for development purposes. 
+
 ### Creating the CM Account via hardhat
 After you have your two wallets ready, clone the contracts repo, position inside the repo, and run:
 ```
