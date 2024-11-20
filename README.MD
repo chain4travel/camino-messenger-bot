@@ -55,7 +55,8 @@ To see how to use the tool.
 yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
 ```
 The command will output your new **CM Account Address** in format 0x<\...\>. Store it and add it to your `.yml` configuration under `cm_account_addess`.
-To retrieve your bot wallet static private key, follow the instructions [here](https://docs.camino.network/guides/how-to-login-to-your-wallet#how-to-retrieve-your-private-key).
+To retrieve your bot wallet static private key, follow the instructions [here](https://docs.camino.network/guides/how-to-login-to-your-wallet#how-to-retrieve-your-private-key).  
+
 2. To **add the bot** to the CM Account run:
 ```
 yarn hardhat account add:bot --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
