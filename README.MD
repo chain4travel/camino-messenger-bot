@@ -59,23 +59,26 @@ To see how to use the tool.
 yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
 ```
 The command will output your new **CM Account Address** in format 0x<\...\>. Store it and add it to your `.yml` configuration under `cm_account_addess`.
-To retrieve your bot wallet static private key, follow the instructions [here](https://docs.camino.network/guides/how-to-login-to-your-wallet#how-to-retrieve-your-private-key).  
+To retrieve your wallet static private key, follow the instructions [here](https://docs.camino.network/guides/how-to-login-to-your-wallet#how-to-retrieve-your-private-key).  
 
 2. To **add the bot** to the CM Account run:
 ```
 yarn hardhat account add:bot --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
 ```
-Add this bot's private key to your `.yml` configuration under `bot_key`.
+Add this **bot's wallet static private key** to your `.yml` configuration under `bot_key`.
 
-3. To **register a service** supported by your CM Account e.g.
+3. To **register a service** supported by your CM Account run e.g.
 ```
-yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.transport.v3.TransportSearchService --fee 3 --network Columbus
+yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network Columbus
 ```
 To see all the services you can support, run:
 ```
 yarn hardhat manager services:list --network columbus
 ```
-
+To see a list of services that are supported by a specific CM Account:
+```
+yarn hardhat account service:list --cm-account <0xCMAccount-address> --network columbus
+```
 ## Examples and Docker Support
 
 The repository includes examples demonstrating the setup of gRPC servers and clients under the `examples` folder. Additionally, Dockerfiles and a docker-compose.yml file are provided to simplify the deployment of a provider, distributor bot, and a partner plugin application that mocks responses.
