@@ -69,7 +69,11 @@ Add this bot's private key to your `.yml` configuration under `bot_key`.
 
 3. To **register a service** supported by your CM Account e.g.
 ```
-yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.transport.v3.TransportSearchService --fee 3 --network columbus
+yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.transport.v3.TransportSearchService --fee 3 --network Columbus
+```
+To see all the services you can support, run:
+```
+yarn hardhat manager services:list --network columbus
 ```
 
 ## Examples and Docker Support
