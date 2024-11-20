@@ -32,7 +32,7 @@ Currently [release-10](https://github.com/chain4travel/camino-messenger-protocol
 To run the camino-bot-messenger as intended you will need a **CM Account** with a **bot** added to it and **registered services**.
 
 ### Creating the CM Account
-If you don't already have a **CM Account**, for development purposes, a CM Account can be created via [camino messenger contracts](https://github.com/chain4travel/camino-messenger-contracts) `hardhat` tool or via [suite](https://suite.camino.network/create) as explained [here](https://docs.camino.network/partners/partner-config/#step-by-step-configuration-guide).
+If you don't already have a **CM Account**, for development purposes, a CM Account can be created via [camino messenger contracts](https://github.com/chain4travel/camino-messenger-contracts) `hardhat` tool or via [suite](https://suite.camino.network) as explained [here](https://docs.camino.network/partners/partner-config/#step-by-step-configuration-guide).
 
 To create a **CM Account** and add the bot to it - you will need **two** (test) **wallets** - one for the **CM Account**, and one for the **bot**. The CM Account wallet has to be **KYC verified**. Creating and KYC verifying the test wallets can be done via [suite](https://suite.camino.network/create) as explained [here](https://docs.camino.network/guides/how-to-create-a-wallet) and [here](https://docs.camino.network/guides/kyc#kyc-verification-process).
 
