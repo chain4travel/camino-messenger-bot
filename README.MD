@@ -42,6 +42,10 @@ To create a **CM Account** and add the bot to it - you will need **two** (test) 
 ### Creating the CM Account via hardhat
 After you have your two wallets ready, clone the contracts repo, position inside the repo, and run:
 ```
+yarn install
+```
+And then
+```
 yarn hardhat account --help
 yarn hardhat account create --help
 yarn hardhat account bot:add --help
