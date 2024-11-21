@@ -69,9 +69,9 @@ Add this **bot's wallet static private key** to your `.yml` configuration under 
 
 3. Granting Withdrawer role  
 
-In case you want to withdraw funds from the Cm Account wallet to another wallet, you have to grant it the `WITHDRAWER_ROLE`. To do this run:
+In case you want to withdraw funds from the CM Account contract, you have to grant the `WITHDRAWER_ROLE` to an address, even for the default admin (creator of the CM Account). To do this run:
 ```
-yarn hardhat --network columbus account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
+yarn hardhat --network columbus account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-default-admin-of-the-cm-account> --network columbus
 
 ```
 4. To **register a service** supported by your CM Account run e.g.
