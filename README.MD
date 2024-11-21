@@ -67,7 +67,8 @@ yarn hardhat account add:bot --bot <0xc-chain-address-of-the-bot-wallet> --cm-ac
 ```
 Add this **bot's wallet static private key** to your `.yml` configuration under `bot_key`.
 
-3. Granting Withdrawer role 
+3. Granting Withdrawer role  
+
 In case you want to withdraw funds from the Cm Account wallet to another wallet, you have to grant it the `WITHDRAWER_ROLE`. To do this run:
 ```
 yarn hardhat --network columbus account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
