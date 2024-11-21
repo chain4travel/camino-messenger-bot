@@ -94,6 +94,30 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		return nil, err
 	}
 
+	if !common.IsHexAddress(cfg.CMAccountAddress) {
+		err := errors.New("invalid CM account address")
+		cr.logger.Error(err)
+		return nil, err
+	}
+
+	if !common.IsHexAddress(cfg.BookingTokenAddress) {
+		err := errors.New("invalid booking token address")
+		cr.logger.Error(err)
+		return nil, err
+	}
+
+	if !common.IsHexAddress(cfg.NetworkFeeRecipientBotAddress) {
+		err := errors.New("invalid network fee recipient bot address")
+		cr.logger.Error(err)
+		return nil, err
+	}
+
+	if !common.IsHexAddress(cfg.NetworkFeeRecipientCMAccountAddress) {
+		err := errors.New("invalid network fee recipient CM account address")
+		cr.logger.Error(err)
+		return nil, err
+	}
+
 	return &Config{
 		DB: SQLiteDBConfig{
 			Common: cfg.DB,
