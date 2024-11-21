@@ -67,7 +67,13 @@ yarn hardhat account add:bot --bot <0xc-chain-address-of-the-bot-wallet> --cm-ac
 ```
 Add this **bot's wallet static private key** to your `.yml` configuration under `bot_key`.
 
-3. To **register a service** supported by your CM Account run e.g.
+3. Granting Withdrawer role 
+In case you want to withdraw funds from the Cm Account wallet to another wallet, you have to grant it the `WITHDRAWER_ROLE`. To do this run:
+```
+yarn hardhat --network columbus account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
+
+```
+4. To **register a service** supported by your CM Account run e.g.
 ```
 yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network Columbus
 ```
