@@ -13,7 +13,7 @@ UNMARSHALLING_FILE="${GEN_OUTPATH}/unmarshal.go"
 
 DEFAULT_BLACKLIST="notification" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
 
-SCRIPT=$0
+SCRIPT=$(realpath --relative-to="${PWD}" "$0")
 FILTER=$1 #optional filter for files -- used for testing
 
 function generate_with_templates() {
@@ -106,9 +106,9 @@ function generate_register_services_server() {
 	echo "    \"google.golang.org/grpc\"" >> $OUTFILE
 	echo ")" >> $OUTFILE
 	echo >> $OUTFILE
-	echo "func RegisterServerServices(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {" >> $OUTFILE
+	echo "func RegisterServerServices(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {" >> $OUTFILE
 	for service in "${_SERVICES[@]}" ; do
-		echo "    register${service}Server(grpcServer, reqProcessor)" >> $OUTFILE
+		echo "    register${service}Server(grpcServer, reqHandler)" >> $OUTFILE
 	done
 	echo "}" >> $OUTFILE
 }

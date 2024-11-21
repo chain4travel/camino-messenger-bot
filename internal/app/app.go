@@ -145,7 +145,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
 	botUserID := messaging.UserIDFromAddress(botAddress, cfg.Matrix.Host)
 
-	messageProcessor := messaging.NewProcessor(
+	messageProcessor := messaging.NewMessageProcessor(
 		matrixMessenger,
 		logger,
 		cfg.ResponseTimeout,
@@ -208,7 +208,7 @@ type App struct {
 	chequeHandler    chequehandler.ChequeHandler
 	rpcClient        *client.RPCClient
 	rpcServer        server.Server
-	messageProcessor messaging.Processor
+	messageProcessor messaging.MessageProcessor
 	messenger        messaging.Messenger
 	botUserID        id.UserID
 }

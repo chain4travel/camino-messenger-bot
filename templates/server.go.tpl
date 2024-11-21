@@ -13,9 +13,9 @@ import (
 var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}{{SERVICE}}Server)(nil)
 
 type {{TYPE_PACKAGE}}{{SERVICE}}Server struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqHandler rpc.RequestHandler
 }
 
-func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
-	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Server{reqProcessor})
+func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Server{reqHandler})
 }

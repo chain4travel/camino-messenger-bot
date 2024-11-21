@@ -20,11 +20,13 @@ import (
 var (
 	_ Service = &service{}
 
+	bigZero            = big.NewInt(0)
 	chequeOperatorRole = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
 )
 
 type Service interface {
 	GetChequeOperators(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error)
+	GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error)
 
 	VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error)
 
@@ -128,6 +130,32 @@ func (s *service) GetChequeOperators(ctx context.Context, cmAccountAddress commo
 	}
 
 	return botsAddresses, nil
+}
+
+func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
+	cmAccount, err := s.cmAccount(cmAccountAddress)
+	if err != nil {
+		s.logger.Errorf("Failed to get cm account: %v", err)
+		return common.Address{}, err
+	}
+
+	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{Context: ctx}, chequeOperatorRole)
+	if err != nil {
+		s.logger.Errorf("Failed to get role member count: %v", err)
+		return common.Address{}, err
+	}
+
+	if countBig.Cmp(bigZero) <= 0 { // count <= 0
+		s.logger.Error("No cheque operators found")
+		return common.Address{}, nil
+	}
+
+	botsAddress, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: ctx}, chequeOperatorRole, big.NewInt(0))
+	if err != nil {
+		s.logger.Errorf("Failed to get role member: %v", err)
+		return common.Address{}, err
+	}
+	return botsAddress, nil
 }
 
 func (s *service) CashInCheque(

@@ -27,7 +27,7 @@ type Messenger interface {
 	StopReceiver() error
 
 	// asynchronous call (fire and forget)
-	SendAsync(ctx context.Context, m types.Message, content [][]byte, sendTo id.UserID) error
+	SendAsync(ctx context.Context, m *types.Message, sendTo id.UserID) error
 
 	// channel where incoming messages are written
 	Inbound() chan types.Message

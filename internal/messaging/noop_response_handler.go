@@ -16,12 +16,12 @@ var _ ResponseHandler = (*NoopResponseHandler)(nil)
 
 type NoopResponseHandler struct{}
 
-func (NoopResponseHandler) HandleResponse(context.Context, types.MessageType, protoreflect.ProtoMessage, protoreflect.ProtoMessage) {
-}
+func (NoopResponseHandler) ProcessResponseMessage(context.Context, *types.Message, *types.Message) {}
 
-func (NoopResponseHandler) HandleRequest(context.Context, types.MessageType, protoreflect.ProtoMessage) error {
+func (NoopResponseHandler) PrepareResponseMessage(context.Context, *types.Message, *types.Message) {}
+
+func (NoopResponseHandler) PrepareRequest(types.MessageType, protoreflect.ProtoMessage) error {
 	return nil
 }
 
-func (NoopResponseHandler) AddErrorToResponseHeader(protoreflect.ProtoMessage, string) {
-}
+func (NoopResponseHandler) AddErrorToResponseHeader(protoreflect.ProtoMessage, string) {}
