@@ -81,7 +81,7 @@ To see all the services you can support, run:
 ```
 yarn hardhat manager services:list --network columbus
 ```
-To see a list of services that are supported by a specific CM Account:
+5. To see a list of services that are supported by a specific CM Account:
 ```
 yarn hardhat account service:list --cm-account <0xCMAccount-address> --network columbus
 ```
