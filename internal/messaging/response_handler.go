@@ -40,10 +40,6 @@ var (
 	zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
 )
 
-// TODO@ move this to processor?
-// TODO@ two reason its there:
-// TODO@ 1) to make processor not depend on protobuf types (but package depends regardless)
-// TODO@ 2) to abstract all message-specific logic into response handler. But I'm not sure if it worth it.
 type ResponseHandler interface {
 	// Processes incoming response
 	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)

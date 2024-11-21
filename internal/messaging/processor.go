@@ -168,9 +168,6 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 
 	requestMsg.Metadata.Cheques = []cheques.SignedCheque{}
 
-	// TODO@ do we want to check this every time? or just once at startup?
-	// TODO@ we can also listen chain for bot permission changes and shut down bot if it loses
-	// TODO@ or not shutdown, but set some bool that will block all incoming requests with noop
 	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.myBotAddress)
 	if err != nil {
 		return nil, err
@@ -217,10 +214,6 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	select {
 	case responseMsg := <-responseChan:
 		if responseMsg.Metadata.RequestID == requestMsg.Metadata.RequestID {
-			// TODO@ do we still care about context timeout here? if not, context must be freed of timeout
-			// TODO@ currently, timeout is described as its only for receiving response from matrix
-			// TODO@ but maybe it will make more sense to use timeout for whole bot request-response cycle?
-			// TODO@ like, its timeout meaningful for external requester
 			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
 			return responseMsg, nil
 		}
