@@ -13,9 +13,9 @@ import (
 var _ bookv1grpc.ValidationServiceServer = (*bookv1ValidationServiceServer)(nil)
 
 type bookv1ValidationServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqHandler rpc.RequestHandler
 }
 
-func registerValidationServiceV1Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
-	bookv1grpc.RegisterValidationServiceServer(grpcServer, &bookv1ValidationServiceServer{reqProcessor})
+func registerValidationServiceV1Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+	bookv1grpc.RegisterValidationServiceServer(grpcServer, &bookv1ValidationServiceServer{reqHandler})
 }

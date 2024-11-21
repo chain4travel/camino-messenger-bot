@@ -13,9 +13,9 @@ import (
 var _ insurancev1grpc.InsuranceProductListServiceServer = (*insurancev1InsuranceProductListServiceServer)(nil)
 
 type insurancev1InsuranceProductListServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqHandler rpc.RequestHandler
 }
 
-func registerInsuranceProductListServiceV1Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
-	insurancev1grpc.RegisterInsuranceProductListServiceServer(grpcServer, &insurancev1InsuranceProductListServiceServer{reqProcessor})
+func registerInsuranceProductListServiceV1Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+	insurancev1grpc.RegisterInsuranceProductListServiceServer(grpcServer, &insurancev1InsuranceProductListServiceServer{reqHandler})
 }

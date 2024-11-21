@@ -11,7 +11,7 @@ import (
 )
 
 func (s *activityv1ActivitySearchServiceServer) ActivitySearch(ctx context.Context, request *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
-	response, err := s.reqProcessor.ProcessExternalRequest(ctx, ActivitySearchServiceV1Request, request)
+	response, err := s.reqHandler.HandleRequest(ctx, ActivitySearchServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ActivitySearchServiceV1Request, err)
 	}

@@ -13,9 +13,9 @@ import (
 var _ networkv1grpc.GetNetworkFeeServiceServer = (*networkv1GetNetworkFeeServiceServer)(nil)
 
 type networkv1GetNetworkFeeServiceServer struct {
-	reqProcessor rpc.ExternalRequestProcessor
+	reqHandler rpc.RequestHandler
 }
 
-func registerGetNetworkFeeServiceV1Server(grpcServer *grpc.Server, reqProcessor rpc.ExternalRequestProcessor) {
-	networkv1grpc.RegisterGetNetworkFeeServiceServer(grpcServer, &networkv1GetNetworkFeeServiceServer{reqProcessor})
+func registerGetNetworkFeeServiceV1Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+	networkv1grpc.RegisterGetNetworkFeeServiceServer(grpcServer, &networkv1GetNetworkFeeServiceServer{reqHandler})
 }
