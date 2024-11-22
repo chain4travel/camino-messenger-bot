@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
@@ -20,5 +21,10 @@ func (s AccommodationProductInfoServiceV1Client) Call(ctx context.Context, reque
 		return nil, AccommodationProductInfoServiceV1Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.AccommodationProductInfo(ctx, request, opts...)
+	if response == nil {
+		response = &accommodationv1.AccommodationProductInfoResponse{
+			Header: &typesv1.ResponseHeader{},
+		}
+	}
 	return response, AccommodationProductInfoServiceV1Response, err
 }

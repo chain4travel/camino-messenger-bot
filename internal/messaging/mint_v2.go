@@ -19,6 +19,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	request *bookv2.MintRequest,
 ) {
 	ensureHeaderV1(&response.Header)
+	
 	if response.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
 		return
 	}

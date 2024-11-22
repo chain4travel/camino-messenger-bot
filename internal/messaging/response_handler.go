@@ -149,15 +149,6 @@ func (h *evmResponseHandler) AddErrorToResponseHeader(response protoreflect.Prot
 	headerFieldDescriptor := response.ProtoReflect().Descriptor().Fields().ByName("header")
 	headerReflectValue := response.ProtoReflect().Get(headerFieldDescriptor)
 
-	if !headerReflectValue.IsValid() || !headerReflectValue.Message().IsValid() {
-		// TODO: @VjeraTurk support more than 1 version! Or ensure header is not nil elsewhere
-		// Initialize the header if it is not set
-		header := &typesv1.ResponseHeader{}
-		response.ProtoReflect().Set(headerFieldDescriptor, protoreflect.ValueOfMessage(header.ProtoReflect()))
-		addErrorToResponseHeaderV1(header, errMessage)
-		return
-	}
-
 	switch header := headerReflectValue.Message().Interface().(type) {
 	case *typesv1.ResponseHeader:
 		addErrorToResponseHeaderV1(header, errMessage)
