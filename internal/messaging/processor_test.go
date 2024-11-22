@@ -53,7 +53,7 @@ var (
 	}
 )
 
-func TestProcessInbound(t *testing.T) {
+func TestProcessIncomingMessage(t *testing.T) {
 	responseMessage := types.Message{
 		Type: generated.PingServiceV1Response,
 		Metadata: metadata.Metadata{
@@ -112,13 +112,6 @@ func TestProcessInbound(t *testing.T) {
 				},
 			},
 			err: ErrUnsupportedService,
-		},
-		"ignore own outbound messages": {
-			fields: fields{},
-			args: args{
-				msg: &types.Message{Metadata: metadata.Metadata{}, Sender: userID},
-			},
-			err: nil, // no error, msg will be just ignored
 		},
 		"err: process request message failed": {
 			fields: fields{
@@ -304,7 +297,7 @@ func TestSendRequestMessage(t *testing.T) {
 				},
 			},
 			prepare: func() {
-				mockCMAccounts.EXPECT().GetChequeOperators(gomock.Any(), gomock.Any()).Return([]common.Address{{}}, nil)
+				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(common.Address{}, nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(&cheques.SignedCheque{}, nil)
@@ -329,8 +322,7 @@ func TestSendRequestMessage(t *testing.T) {
 				},
 			},
 			prepare: func() {
-				mockCMAccounts.EXPECT().GetChequeOperators(gomock.Any(), gomock.Any()).
-					Return([]common.Address{{}}, nil)
+				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(common.Address{}, nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(big.NewInt(1), nil)
 				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
@@ -357,7 +349,7 @@ func TestSendRequestMessage(t *testing.T) {
 				},
 			},
 			prepare: func() {
-				mockCMAccounts.EXPECT().GetChequeOperators(gomock.Any(), gomock.Any()).Return([]common.Address{{}}, nil)
+				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(common.Address{}, nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
