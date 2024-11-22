@@ -98,17 +98,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	response.MintTransactionId = txID
 }
 
-func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, responseIntf protoreflect.ProtoMessage) {
-	response, ok := responseIntf.(*bookv2.MintResponse)
-	// TODO@ its impossible, its ensured by grpc client down the stack, even if its not clear here
-	if !ok {
-		// TODO@ we might not have header here! ensure header before that
-		err := fmt.Errorf("%w: expected *bookv2.MintResponse, got %T", errUnexpectedResponseType, responseIntf)
-		h.logger.Error(err)
-		h.AddErrorToResponseHeader(response, err.Error())
-		return
-	}
-
+func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response *bookv2.MintResponse) {
 	ensureHeaderV1(&response.Header)
 
 	if response.MintTransactionId == "" {

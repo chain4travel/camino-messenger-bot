@@ -106,19 +106,21 @@ type evmResponseHandler struct {
 	erc20               erc20.Service
 }
 
+// Processes incoming response
 func (h *evmResponseHandler) ProcessResponseMessage(
 	ctx context.Context,
 	requestMsg *types.Message,
 	responseMsg *types.Message,
 ) {
-	switch requestMsg.Type {
-	case generated.MintServiceV1Request: // distributor will post-process a mint request to buy the returned NFT
-		h.processMintResponseV1(ctx, responseMsg.Content)
-	case generated.MintServiceV2Request: // distributor will post-process a mint request to buy the returned NFT
-		h.processMintResponseV2(ctx, responseMsg.Content)
+	switch response := responseMsg.Content.(type) {
+	case *bookv1.MintResponse: // distributor will post-process a mint request to buy the returned NFT
+		h.processMintResponseV1(ctx, response)
+	case *bookv2.MintResponse: // distributor will post-process a mint request to buy the returned NFT
+		h.processMintResponseV2(ctx, response)
 	}
 }
 
+// Prepares response by performing any necessary modifications to it
 func (h *evmResponseHandler) PrepareResponseMessage(
 	ctx context.Context,
 	requestMsg *types.Message,
@@ -132,6 +134,7 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 	}
 }
 
+// Prepares request by performing any necessary modifications to it
 func (h *evmResponseHandler) PrepareRequest(msgType types.MessageType, request protoreflect.ProtoMessage) error {
 	switch msgType {
 	case generated.MintServiceV2Request:
