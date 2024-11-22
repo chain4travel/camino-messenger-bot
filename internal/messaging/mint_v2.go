@@ -101,6 +101,9 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, responseIntf protoreflect.ProtoMessage) {
 	response, ok := responseIntf.(*bookv2.MintResponse)
 	if !ok {
+		// TODO@ we might not have header here, especially since response type is unexpected
+		// TODO@ should we create dummy error response of correct type here and pass it?
+		// TODO@ how this could even happen?
 		err := fmt.Errorf("%w: expected *bookv2.MintResponse, got %T", errUnexpectedResponseType, responseIntf)
 		h.logger.Error(err)
 		h.AddErrorToResponseHeader(response, err.Error())

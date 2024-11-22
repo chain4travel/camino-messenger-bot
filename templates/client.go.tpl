@@ -21,9 +21,9 @@ var _ rpc.Client = (*{{SERVICE}}V{{VERSION}}Client)(nil)
 
 func New{{SERVICE}}V{{VERSION}}(grpcCon *grpc.ClientConn) *{{SERVICE}}V{{VERSION}}Client {
 	client := {{GRPC_PACKAGE}}.New{{SERVICE}}Client(grpcCon)
-	return &{{SERVICE}}V{{VERSION}}Client{client: &client}
+	return &{{SERVICE}}V{{VERSION}}Client{client: client}
 }
 
 type {{SERVICE}}V{{VERSION}}Client struct {
-	client *{{GRPC_PACKAGE}}.{{SERVICE}}Client
+	client {{GRPC_PACKAGE}}.{{SERVICE}}Client
 }

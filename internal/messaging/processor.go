@@ -292,6 +292,8 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 		responseMsg.Content = response
 	}
 
+	// TODO@ ensure response header, ensure that response has correct type ?
+
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)

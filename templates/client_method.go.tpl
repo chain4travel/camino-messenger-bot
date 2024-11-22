@@ -19,6 +19,6 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 	if !ok {
 		return nil, {{SERVICE}}V{{VERSION}}Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).{{METHOD}}(ctx, request, opts...)
+	response, err := s.client.{{METHOD}}(ctx, request, opts...)
 	return response, {{SERVICE}}V{{VERSION}}Response, err
 }

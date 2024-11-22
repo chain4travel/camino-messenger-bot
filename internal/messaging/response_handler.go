@@ -40,6 +40,7 @@ var (
 	zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
 )
 
+// TODO@ rename ?
 type ResponseHandler interface {
 	// Processes incoming response
 	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
