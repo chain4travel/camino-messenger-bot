@@ -216,13 +216,15 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 		if responseMsg.Metadata.RequestID == requestMsg.Metadata.RequestID {
 			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
 			return responseMsg, nil
+		} else {
+			err := fmt.Errorf("unexpected response (%s) for request (%s)", responseMsg.Metadata.RequestID, requestMsg.Metadata.RequestID)
+			p.logger.Error(err)
+			return nil, err
 		}
 	case <-ctx.Done():
 		return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, requestMsg.Metadata.RequestID)
 	}
 
-	// TODO@ not correct, responseChan case has if block. if IF is bypassed, we won't return
-	panic("unreachable") // will never get there, but compiler doesn't know that, so we need to satisfy return
 }
 
 func (p *messageProcessor) respond(msg *types.Message) error {
