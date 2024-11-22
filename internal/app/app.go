@@ -273,21 +273,21 @@ func (a *App) Run(ctx context.Context) error {
 
 	if a.rpcClient != nil { // rpcClient will be nil, if its disabled in partner plugin config section
 		g.Go(func() error {
-			<-ctx.Done()
+			<-gCtx.Done()
 			return a.rpcClient.Shutdown()
 		})
 	}
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		g.Go(func() error {
-			<-ctx.Done()
+			<-gCtx.Done()
 			a.rpcServer.Stop()
 			return nil
 		})
 	}
 
 	g.Go(func() error {
-		<-ctx.Done()
+		<-gCtx.Done()
 		return a.messenger.StopReceiver()
 	})
 
