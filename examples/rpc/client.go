@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -41,10 +40,10 @@ func main() {
 	recipient := flag.String("recipient", "@0xeb3D6560a5eCf3e00b68a4b2899FEc93419F06B9:", "Recipient c-chain address (format: @[...]:messenger.chain4travel.com")
 	caCertFile := flag.String("ca-cert-file", "", "CA certificate file (optional)")
 	flag.Parse()
-	hostURL, _ := url.Parse(fmt.Sprintf("%s:%d", *host, *port))
+	hostURL := fmt.Sprintf("%s:%d", *host, *port)
 
 	ppConfig := config.PartnerPluginConfig{
-		HostURL:     *hostURL,
+		Host:        hostURL,
 		Unencrypted: *caCertFile == "",
 	}
 	ppConfig.CACertFile = *caCertFile

@@ -8,6 +8,7 @@ __debug*
 ./camino-messenger-bot-supplier.yaml
 ./camino-messenger-bot-distributor.yaml
 
+cmb-config
 distributor-bot-db
 supplier-bot-db
 

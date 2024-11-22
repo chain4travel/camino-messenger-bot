@@ -35,7 +35,7 @@ func NewClient(cfg config.PartnerPluginConfig, logger *zap.SugaredLogger) (*RPCC
 		opts = append(opts, grpc.WithTransportCredentials(tlsCreds))
 	}
 
-	clientConnection, err := grpc.NewClient(cfg.HostURL.String(), opts...)
+	clientConnection, err := grpc.NewClient(cfg.Host, opts...)
 	if err != nil {
 		return nil, err
 	}

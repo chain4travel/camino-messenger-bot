@@ -37,7 +37,7 @@ const (
 
 func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) (*App, error) {
 	// c-chain evm client && chain id
-	evmClient, err := ethclient.Dial(cfg.ChainRPCURL.String())
+	evmClient, err := ethclient.Dial(cfg.ChainRPCURL)
 	if err != nil {
 		logger.Errorf("Failed to connect to the Ethereum client: %v", err)
 		return nil, err
@@ -143,7 +143,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
-	botUserID := messaging.UserIDFromAddress(botAddress, cfg.Matrix.HostURL.String())
+	botUserID := messaging.UserIDFromAddress(botAddress, cfg.Matrix.Host)
 
 	messageProcessor := messaging.NewProcessor(
 		matrixMessenger,

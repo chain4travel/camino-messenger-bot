@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -95,27 +94,27 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		return nil, err
 	}
 
-	chainRPC, err := url.Parse(cfg.ChainRPCURL)
-	if err != nil {
-		cr.logger.Errorf("Error parsing C-Chain RPC URL: %s", err)
+	if !common.IsHexAddress(cfg.CMAccountAddress) {
+		err := errors.New("invalid CM account address")
+		cr.logger.Error(err)
 		return nil, err
 	}
 
-	tracingHost, err := url.Parse(cfg.Tracing.Host)
-	if err != nil {
-		cr.logger.Errorf("Error parsing tracing host: %s", err)
+	if !common.IsHexAddress(cfg.BookingTokenAddress) {
+		err := errors.New("invalid booking token address")
+		cr.logger.Error(err)
 		return nil, err
 	}
 
-	partnerPluginHost, err := url.Parse(cfg.PartnerPlugin.Host)
-	if err != nil {
-		cr.logger.Errorf("Error parsing partner plugin host: %s", err)
+	if !common.IsHexAddress(cfg.NetworkFeeRecipientBotAddress) {
+		err := errors.New("invalid network fee recipient bot address")
+		cr.logger.Error(err)
 		return nil, err
 	}
 
-	matrixHost, err := url.Parse(cfg.Matrix.Host)
-	if err != nil {
-		cr.logger.Errorf("Error parsing matrix host: %s", err)
+	if !common.IsHexAddress(cfg.NetworkFeeRecipientCMAccountAddress) {
+		err := errors.New("invalid network fee recipient CM account address")
+		cr.logger.Error(err)
 		return nil, err
 	}
 
@@ -131,28 +130,17 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 				MigrationsPath: cfg.DB.MigrationsPath + "/cheque_handler",
 			},
 		},
-		RPCServer: cfg.RPCServer,
-		Tracing: TracingConfig{
-			Enabled:  cfg.Tracing.Enabled,
-			HostURL:  *tracingHost,
-			Insecure: cfg.Tracing.Insecure,
-			CertFile: cfg.Tracing.CertFile,
-			KeyFile:  cfg.Tracing.KeyFile,
-		},
-		PartnerPlugin: PartnerPluginConfig{
-			Enabled:     cfg.PartnerPlugin.Enabled,
-			HostURL:     *partnerPluginHost,
-			Unencrypted: cfg.PartnerPlugin.Unencrypted,
-			CACertFile:  cfg.PartnerPlugin.CACertFile,
-		},
+		RPCServer:     cfg.RPCServer,
+		Tracing:       cfg.Tracing,
+		PartnerPlugin: cfg.PartnerPlugin,
 		Matrix: MatrixConfig{
-			HostURL: *matrixHost,
-			Store:   cfg.DB.DBPath + "/matrix",
+			Host:  cfg.Matrix.Host,
+			Store: cfg.DB.DBPath + "/matrix",
 		},
 		DeveloperMode:                       cfg.DeveloperMode,
 		BotKey:                              botKey,
 		CMAccountAddress:                    common.HexToAddress(cfg.CMAccountAddress),
-		ChainRPCURL:                         *chainRPC,
+		ChainRPCURL:                         cfg.ChainRPCURL,
 		BookingTokenAddress:                 common.HexToAddress(cfg.BookingTokenAddress),
 		NetworkFeeRecipientBotAddress:       common.HexToAddress(cfg.NetworkFeeRecipientBotAddress),
 		NetworkFeeRecipientCMAccountAddress: common.HexToAddress(cfg.NetworkFeeRecipientCMAccountAddress),
