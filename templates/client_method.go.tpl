@@ -20,5 +20,10 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 		return nil, {{SERVICE}}V{{VERSION}}Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
+	if response == nil {
+		response = &{{TYPE_PACKAGE}}.AccommodationProductInfoResponse{
+			Header: &typesv1.ResponseHeader{},
+		}
+	}
 	return response, {{SERVICE}}V{{VERSION}}Response, err
 }

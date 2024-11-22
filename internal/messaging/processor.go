@@ -282,26 +282,15 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	}
 
 	ctx = grpc_metadata.NewOutgoingContext(ctx, requestMsg.Metadata.ToGrpcMD())
+	var err error
 	header := &grpc_metadata.MD{}
 	ctx, partnerPluginSpan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	response, msgType, err := service.Call(ctx, requestMsg.Content, grpc.Header(header))
+	responseMsg.Content, responseMsg.Type, err = service.Call(ctx, requestMsg.Content, grpc.Header(header))
 	partnerPluginSpan.End()
-
-	responseMsg.Type = msgType
-	if response != nil {
-		responseMsg.Content = response
-	}
-
-	// TODO@ ensure response header there instead of doing it in mint specifically
-	// TODO@ that way it will be ensured for all response types and in just one place
-
-	// TODO@ what do we do if pp responded without header, btw? is it ok?
-	// TODO@ should we add some default header?
-	// TODO@ should we consider this error?
-
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
+		// non-nil response header is ensured by the grpc client generated code
 		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 		return ctx, responseMsg
 	}
