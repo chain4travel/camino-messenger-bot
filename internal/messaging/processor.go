@@ -224,7 +224,6 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	case <-ctx.Done():
 		return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, requestMsg.Metadata.RequestID)
 	}
-
 }
 
 func (p *messageProcessor) respond(msg *types.Message) error {
