@@ -19,8 +19,6 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	request *bookv2.MintRequest,
 ) {
 	ensureHeaderV1(&response.Header)
-
-	// Check if the response from plugin is successful before minting
 	if response.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
 		return
 	}
