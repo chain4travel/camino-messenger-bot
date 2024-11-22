@@ -293,8 +293,7 @@ while read file ; do
 	# "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	# "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	# We already have the base URL in BUF_SDK_URL_GO - now we only need the suffixes for the protocolbuffers and grpc
-	# And store them into the INCLUDES array
-	declare -a INCLUDES=()
+	# And store them into the PROTO_INCLUDES_FOR_UNMARSHALLING array
 	# First the protocolbuffers
 	SUFFIX=$(echo ${FQPN%.*} | tr "." "/")
 	PROTO_INCLUDE="${BUF_SDK_BASE}/protocolbuffers/go/${SUFFIX}"
