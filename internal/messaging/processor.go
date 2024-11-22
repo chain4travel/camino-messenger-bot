@@ -214,7 +214,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	select {
 	case responseMsg := <-responseChan:
 		if responseMsg.Metadata.RequestID == requestMsg.Metadata.RequestID {
-			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
+			p.responseHandler.ProcessResponseMessage(ctx, responseMsg)
 			return responseMsg, nil
 		} else {
 			err := fmt.Errorf("unexpected response (%s) for request (%s)", responseMsg.Metadata.RequestID, requestMsg.Metadata.RequestID)

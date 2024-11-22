@@ -41,7 +41,7 @@ var (
 
 type ResponseHandler interface {
 	// Processes incoming response
-	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
+	ProcessResponseMessage(ctx context.Context, responseMsg *types.Message)
 
 	// Prepares response by performing any necessary modifications to it
 	// It expects the request and response to be of the same service.
@@ -109,7 +109,6 @@ type evmResponseHandler struct {
 // Processes incoming response
 func (h *evmResponseHandler) ProcessResponseMessage(
 	ctx context.Context,
-	requestMsg *types.Message,
 	responseMsg *types.Message,
 ) {
 	switch response := responseMsg.Content.(type) {
