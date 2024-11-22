@@ -19,6 +19,6 @@ func (s ActivitySearchServiceV1Client) Call(ctx context.Context, requestIntf pro
 	if !ok {
 		return nil, ActivitySearchServiceV1Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).ActivitySearch(ctx, request, opts...)
+	response, err := s.client.ActivitySearch(ctx, request, opts...)
 	return response, ActivitySearchServiceV1Response, err
 }

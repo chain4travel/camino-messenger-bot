@@ -21,9 +21,9 @@ var _ rpc.Client = (*GetPartnerConfigurationServiceV1Client)(nil)
 
 func NewGetPartnerConfigurationServiceV1(grpcCon *grpc.ClientConn) *GetPartnerConfigurationServiceV1Client {
 	client := partnerv1grpc.NewGetPartnerConfigurationServiceClient(grpcCon)
-	return &GetPartnerConfigurationServiceV1Client{client: &client}
+	return &GetPartnerConfigurationServiceV1Client{client: client}
 }
 
 type GetPartnerConfigurationServiceV1Client struct {
-	client *partnerv1grpc.GetPartnerConfigurationServiceClient
+	client partnerv1grpc.GetPartnerConfigurationServiceClient
 }

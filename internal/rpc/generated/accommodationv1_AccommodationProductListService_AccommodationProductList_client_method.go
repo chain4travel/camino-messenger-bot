@@ -19,6 +19,6 @@ func (s AccommodationProductListServiceV1Client) Call(ctx context.Context, reque
 	if !ok {
 		return nil, AccommodationProductListServiceV1Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).AccommodationProductList(ctx, request, opts...)
+	response, err := s.client.AccommodationProductList(ctx, request, opts...)
 	return response, AccommodationProductListServiceV1Response, err
 }

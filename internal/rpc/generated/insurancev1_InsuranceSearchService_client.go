@@ -21,9 +21,9 @@ var _ rpc.Client = (*InsuranceSearchServiceV1Client)(nil)
 
 func NewInsuranceSearchServiceV1(grpcCon *grpc.ClientConn) *InsuranceSearchServiceV1Client {
 	client := insurancev1grpc.NewInsuranceSearchServiceClient(grpcCon)
-	return &InsuranceSearchServiceV1Client{client: &client}
+	return &InsuranceSearchServiceV1Client{client: client}
 }
 
 type InsuranceSearchServiceV1Client struct {
-	client *insurancev1grpc.InsuranceSearchServiceClient
+	client insurancev1grpc.InsuranceSearchServiceClient
 }

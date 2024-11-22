@@ -21,9 +21,9 @@ var _ rpc.Client = (*TransportSearchServiceV2Client)(nil)
 
 func NewTransportSearchServiceV2(grpcCon *grpc.ClientConn) *TransportSearchServiceV2Client {
 	client := transportv2grpc.NewTransportSearchServiceClient(grpcCon)
-	return &TransportSearchServiceV2Client{client: &client}
+	return &TransportSearchServiceV2Client{client: client}
 }
 
 type TransportSearchServiceV2Client struct {
-	client *transportv2grpc.TransportSearchServiceClient
+	client transportv2grpc.TransportSearchServiceClient
 }

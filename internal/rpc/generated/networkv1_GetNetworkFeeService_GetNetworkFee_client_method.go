@@ -19,6 +19,6 @@ func (s GetNetworkFeeServiceV1Client) Call(ctx context.Context, requestIntf prot
 	if !ok {
 		return nil, GetNetworkFeeServiceV1Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).GetNetworkFee(ctx, request, opts...)
+	response, err := s.client.GetNetworkFee(ctx, request, opts...)
 	return response, GetNetworkFeeServiceV1Response, err
 }

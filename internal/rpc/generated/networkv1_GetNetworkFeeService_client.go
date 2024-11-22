@@ -21,9 +21,9 @@ var _ rpc.Client = (*GetNetworkFeeServiceV1Client)(nil)
 
 func NewGetNetworkFeeServiceV1(grpcCon *grpc.ClientConn) *GetNetworkFeeServiceV1Client {
 	client := networkv1grpc.NewGetNetworkFeeServiceClient(grpcCon)
-	return &GetNetworkFeeServiceV1Client{client: &client}
+	return &GetNetworkFeeServiceV1Client{client: client}
 }
 
 type GetNetworkFeeServiceV1Client struct {
-	client *networkv1grpc.GetNetworkFeeServiceClient
+	client networkv1grpc.GetNetworkFeeServiceClient
 }

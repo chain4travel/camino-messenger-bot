@@ -19,6 +19,6 @@ func (s SeatMapAvailabilityServiceV2Client) Call(ctx context.Context, requestInt
 	if !ok {
 		return nil, SeatMapAvailabilityServiceV2Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).SeatMapAvailability(ctx, request, opts...)
+	response, err := s.client.SeatMapAvailability(ctx, request, opts...)
 	return response, SeatMapAvailabilityServiceV2Response, err
 }

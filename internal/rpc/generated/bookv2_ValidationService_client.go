@@ -21,9 +21,9 @@ var _ rpc.Client = (*ValidationServiceV2Client)(nil)
 
 func NewValidationServiceV2(grpcCon *grpc.ClientConn) *ValidationServiceV2Client {
 	client := bookv2grpc.NewValidationServiceClient(grpcCon)
-	return &ValidationServiceV2Client{client: &client}
+	return &ValidationServiceV2Client{client: client}
 }
 
 type ValidationServiceV2Client struct {
-	client *bookv2grpc.ValidationServiceClient
+	client bookv2grpc.ValidationServiceClient
 }

@@ -21,9 +21,9 @@ var _ rpc.Client = (*ActivityProductListServiceV2Client)(nil)
 
 func NewActivityProductListServiceV2(grpcCon *grpc.ClientConn) *ActivityProductListServiceV2Client {
 	client := activityv2grpc.NewActivityProductListServiceClient(grpcCon)
-	return &ActivityProductListServiceV2Client{client: &client}
+	return &ActivityProductListServiceV2Client{client: client}
 }
 
 type ActivityProductListServiceV2Client struct {
-	client *activityv2grpc.ActivityProductListServiceClient
+	client activityv2grpc.ActivityProductListServiceClient
 }

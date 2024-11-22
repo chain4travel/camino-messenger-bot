@@ -19,6 +19,6 @@ func (s ValidationServiceV2Client) Call(ctx context.Context, requestIntf protore
 	if !ok {
 		return nil, ValidationServiceV2Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).Validation(ctx, request, opts...)
+	response, err := s.client.Validation(ctx, request, opts...)
 	return response, ValidationServiceV2Response, err
 }

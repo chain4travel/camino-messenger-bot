@@ -21,9 +21,9 @@ var _ rpc.Client = (*CountryEntryRequirementsServiceV1Client)(nil)
 
 func NewCountryEntryRequirementsServiceV1(grpcCon *grpc.ClientConn) *CountryEntryRequirementsServiceV1Client {
 	client := infov1grpc.NewCountryEntryRequirementsServiceClient(grpcCon)
-	return &CountryEntryRequirementsServiceV1Client{client: &client}
+	return &CountryEntryRequirementsServiceV1Client{client: client}
 }
 
 type CountryEntryRequirementsServiceV1Client struct {
-	client *infov1grpc.CountryEntryRequirementsServiceClient
+	client infov1grpc.CountryEntryRequirementsServiceClient
 }

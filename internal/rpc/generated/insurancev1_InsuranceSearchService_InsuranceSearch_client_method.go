@@ -19,6 +19,6 @@ func (s InsuranceSearchServiceV1Client) Call(ctx context.Context, requestIntf pr
 	if !ok {
 		return nil, InsuranceSearchServiceV1Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).InsuranceSearch(ctx, request, opts...)
+	response, err := s.client.InsuranceSearch(ctx, request, opts...)
 	return response, InsuranceSearchServiceV1Response, err
 }

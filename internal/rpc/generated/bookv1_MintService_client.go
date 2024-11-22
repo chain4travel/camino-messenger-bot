@@ -21,9 +21,9 @@ var _ rpc.Client = (*MintServiceV1Client)(nil)
 
 func NewMintServiceV1(grpcCon *grpc.ClientConn) *MintServiceV1Client {
 	client := bookv1grpc.NewMintServiceClient(grpcCon)
-	return &MintServiceV1Client{client: &client}
+	return &MintServiceV1Client{client: client}
 }
 
 type MintServiceV1Client struct {
-	client *bookv1grpc.MintServiceClient
+	client bookv1grpc.MintServiceClient
 }

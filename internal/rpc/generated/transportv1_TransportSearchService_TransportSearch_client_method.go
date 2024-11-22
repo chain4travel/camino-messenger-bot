@@ -19,6 +19,6 @@ func (s TransportSearchServiceV1Client) Call(ctx context.Context, requestIntf pr
 	if !ok {
 		return nil, TransportSearchServiceV1Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).TransportSearch(ctx, request, opts...)
+	response, err := s.client.TransportSearch(ctx, request, opts...)
 	return response, TransportSearchServiceV1Response, err
 }

@@ -19,6 +19,6 @@ func (s PingServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 	if !ok {
 		return nil, PingServiceV1Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).Ping(ctx, request, opts...)
+	response, err := s.client.Ping(ctx, request, opts...)
 	return response, PingServiceV1Response, err
 }

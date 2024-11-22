@@ -19,6 +19,6 @@ func (s ActivityProductListServiceV2Client) Call(ctx context.Context, requestInt
 	if !ok {
 		return nil, ActivityProductListServiceV2Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).ActivityProductList(ctx, request, opts...)
+	response, err := s.client.ActivityProductList(ctx, request, opts...)
 	return response, ActivityProductListServiceV2Response, err
 }

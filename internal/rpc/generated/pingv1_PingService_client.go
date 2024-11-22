@@ -21,9 +21,9 @@ var _ rpc.Client = (*PingServiceV1Client)(nil)
 
 func NewPingServiceV1(grpcCon *grpc.ClientConn) *PingServiceV1Client {
 	client := pingv1grpc.NewPingServiceClient(grpcCon)
-	return &PingServiceV1Client{client: &client}
+	return &PingServiceV1Client{client: client}
 }
 
 type PingServiceV1Client struct {
-	client *pingv1grpc.PingServiceClient
+	client pingv1grpc.PingServiceClient
 }

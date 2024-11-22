@@ -19,6 +19,6 @@ func (s MintServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 	if !ok {
 		return nil, MintServiceV1Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).Mint(ctx, request, opts...)
+	response, err := s.client.Mint(ctx, request, opts...)
 	return response, MintServiceV1Response, err
 }

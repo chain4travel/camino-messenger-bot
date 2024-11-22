@@ -19,6 +19,6 @@ func (s GetPartnerConfigurationServiceV2Client) Call(ctx context.Context, reques
 	if !ok {
 		return nil, GetPartnerConfigurationServiceV2Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).GetPartnerConfiguration(ctx, request, opts...)
+	response, err := s.client.GetPartnerConfiguration(ctx, request, opts...)
 	return response, GetPartnerConfigurationServiceV2Response, err
 }

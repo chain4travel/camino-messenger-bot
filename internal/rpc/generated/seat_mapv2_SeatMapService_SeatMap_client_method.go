@@ -19,6 +19,6 @@ func (s SeatMapServiceV2Client) Call(ctx context.Context, requestIntf protorefle
 	if !ok {
 		return nil, SeatMapServiceV2Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).SeatMap(ctx, request, opts...)
+	response, err := s.client.SeatMap(ctx, request, opts...)
 	return response, SeatMapServiceV2Response, err
 }

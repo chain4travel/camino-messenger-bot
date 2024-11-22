@@ -19,6 +19,6 @@ func (s CountryEntryRequirementsServiceV2Client) Call(ctx context.Context, reque
 	if !ok {
 		return nil, CountryEntryRequirementsServiceV2Response, fmt.Errorf("invalid request type")
 	}
-	response, err := (*s.client).CountryEntryRequirements(ctx, request, opts...)
+	response, err := s.client.CountryEntryRequirements(ctx, request, opts...)
 	return response, CountryEntryRequirementsServiceV2Response, err
 }

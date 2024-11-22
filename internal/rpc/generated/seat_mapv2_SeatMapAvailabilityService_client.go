@@ -21,9 +21,9 @@ var _ rpc.Client = (*SeatMapAvailabilityServiceV2Client)(nil)
 
 func NewSeatMapAvailabilityServiceV2(grpcCon *grpc.ClientConn) *SeatMapAvailabilityServiceV2Client {
 	client := seat_mapv2grpc.NewSeatMapAvailabilityServiceClient(grpcCon)
-	return &SeatMapAvailabilityServiceV2Client{client: &client}
+	return &SeatMapAvailabilityServiceV2Client{client: client}
 }
 
 type SeatMapAvailabilityServiceV2Client struct {
-	client *seat_mapv2grpc.SeatMapAvailabilityServiceClient
+	client seat_mapv2grpc.SeatMapAvailabilityServiceClient
 }
