@@ -172,7 +172,7 @@ Start the bot using the related config file depending on your need.
 > [!TIP]
 > For testing and development, you can also start two bots, one supplier and one distributor.
 
-Feel free to explore and customize the application based on your specific requirements. If you encounter any issues or have questions, please refer to the documentation or open an issue in the repository.
+In this case, make sure to **use 2 different CM Accounts**. Feel free to explore and customize the application based on your specific requirements. If you encounter any issues or have questions, please refer to the documentation or open an issue in the repository.
 
 ### Running partner plugin example
 
