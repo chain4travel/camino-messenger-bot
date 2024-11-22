@@ -10,22 +10,13 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 
 	"github.com/ethereum/go-ethereum/common"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func (h *evmResponseHandler) prepareMintResponseV1(
 	ctx context.Context,
 	response *bookv1.MintResponse,
-	requestIntf protoreflect.ProtoMessage,
+	request *bookv1.MintRequest,
 ) {
-	request, ok := requestIntf.(*bookv1.MintRequest)
-	if !ok {
-		err := fmt.Errorf("%w: expected *bookv1.MintRequest, got %T", errUnexpectedRequestType, requestIntf)
-		h.logger.Error(err)
-		h.AddErrorToResponseHeader(response, err.Error())
-		return
-	}
-
 	ensureHeaderV1(&response.Header)
 
 	if response.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {

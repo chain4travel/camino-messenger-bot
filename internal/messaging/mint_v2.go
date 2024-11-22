@@ -11,23 +11,13 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
 	"github.com/ethereum/go-ethereum/common"
-
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func (h *evmResponseHandler) prepareMintResponseV2(
 	ctx context.Context,
 	response *bookv2.MintResponse,
-	requestIntf protoreflect.ProtoMessage,
+	request *bookv2.MintRequest,
 ) {
-	request, ok := requestIntf.(*bookv2.MintRequest)
-	if !ok {
-		err := fmt.Errorf("%w: expected *bookv2.MintRequest, got %T", errUnexpectedRequestType, requestIntf)
-		h.logger.Error(err)
-		h.AddErrorToResponseHeader(response, err.Error())
-		return
-	}
-
 	ensureHeaderV1(&response.Header)
 
 	// Check if the response from plugin is successful before minting

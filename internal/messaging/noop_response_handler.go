@@ -20,7 +20,7 @@ func (NoopResponseHandler) ProcessResponseMessage(context.Context, *types.Messag
 
 func (NoopResponseHandler) PrepareResponseMessage(context.Context, *types.Message, *types.Message) {}
 
-func (NoopResponseHandler) PrepareRequest(types.MessageType, protoreflect.ProtoMessage) error {
+func (NoopResponseHandler) PrepareRequest(protoreflect.ProtoMessage) error {
 	return nil
 }
 

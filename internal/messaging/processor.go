@@ -182,7 +182,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 		return nil, err
 	}
 
-	if err := p.responseHandler.PrepareRequest(requestMsg.Type, requestMsg.Content); err != nil {
+	if err := p.responseHandler.PrepareRequest(requestMsg.Content); err != nil {
 		return nil, err
 	}
 
@@ -292,7 +292,12 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 		responseMsg.Content = response
 	}
 
-	// TODO@ ensure response header, ensure that response has correct type ?
+	// TODO@ ensure response header there instead of doing it in mint specifically
+	// TODO@ that way it will be ensured for all response types and in just one place
+
+	// TODO@ what do we do if pp responded without header, btw? is it ok?
+	// TODO@ should we add some default header?
+	// TODO@ should we consider this error?
 
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)

@@ -19,8 +19,6 @@ import (
 )
 
 var errMissingMintTxID = errors.New("missing mint transaction id")
-var errUnexpectedRequestType = errors.New("unexpected request type")
-var errUnexpectedResponseType = errors.New("unexpected response type")
 
 // Mints a BookingToken with the supplier private key and reserves it for the buyer address
 // For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="

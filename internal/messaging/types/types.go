@@ -48,7 +48,7 @@ func ServiceNameToRequestMessageType(serviceName string) MessageType {
 // Message is the message format used for communication between the messenger and the service
 // TODO @evlekht why json tags? where is this shown? Its not passed into matrix message
 type Message struct {
-	Type              MessageType               `json:"msgtype"`
+	Type              MessageType               `json:"msgtype"` // TODO @evlekht it might be possible to get rid of this field
 	Content           protoreflect.ProtoMessage `json:"content"`
 	Metadata          metadata.Metadata         `json:"metadata"`
 	Sender            id.UserID

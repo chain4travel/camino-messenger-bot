@@ -16,7 +16,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
@@ -45,10 +44,11 @@ type ResponseHandler interface {
 	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
 
 	// Prepares response by performing any necessary modifications to it
+	// It expects the request and response to be of the same service.
 	PrepareResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
 
 	// Prepares request by performing any necessary modifications to it
-	PrepareRequest(msgType types.MessageType, request protoreflect.ProtoMessage) error
+	PrepareRequest(request protoreflect.ProtoMessage) error
 
 	// Adds an error message to the response header
 	AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string)
@@ -120,7 +120,8 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 	}
 }
 
-// Prepares response by performing any necessary modifications to it
+// Prepares response by performing any necessary modifications to it.
+// It expects the request and response to be of the same service.
 func (h *evmResponseHandler) PrepareResponseMessage(
 	ctx context.Context,
 	requestMsg *types.Message,
@@ -128,27 +129,19 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 ) {
 	switch response := responseMsg.Content.(type) {
 	case *bookv1.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		h.prepareMintResponseV1(ctx, response, requestMsg.Content)
+		h.prepareMintResponseV1(ctx, response, requestMsg.Content.(*bookv1.MintRequest))
 	case *bookv2.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		h.prepareMintResponseV2(ctx, response, requestMsg.Content)
+		h.prepareMintResponseV2(ctx, response, requestMsg.Content.(*bookv2.MintRequest))
 	}
 }
 
 // Prepares request by performing any necessary modifications to it
-func (h *evmResponseHandler) PrepareRequest(msgType types.MessageType, request protoreflect.ProtoMessage) error {
-	switch msgType {
-	case generated.MintServiceV2Request:
-		mintReq, ok := request.(*bookv2.MintRequest)
-		if !ok {
-			return nil
-		}
-		mintReq.BuyerAddress = h.cmAccountAddress.Hex()
-	case generated.MintServiceV1Request:
-		mintReq, ok := request.(*bookv1.MintRequest)
-		if !ok {
-			return nil
-		}
-		mintReq.BuyerAddress = h.cmAccountAddress.Hex()
+func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) error {
+	switch request := request.(type) {
+	case *bookv1.MintRequest:
+		request.BuyerAddress = h.cmAccountAddress.Hex()
+	case *bookv2.MintRequest:
+		request.BuyerAddress = h.cmAccountAddress.Hex()
 	}
 	return nil
 }
