@@ -35,7 +35,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 	if err != nil {
 		errMsg := fmt.Sprintf("error creating token URI: %v", err)
 		h.logger.Debugf(errMsg) // TODO: @VjeraTurk change to Error after we stop using mocked uri data
-		h.AddErrorToResponseHeader(request, errMsg)
+		h.AddErrorToResponseHeader(response, errMsg)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 	buyableUntil, err := verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
-		h.AddErrorToResponseHeader(request, err.Error())
+		h.AddErrorToResponseHeader(response, err.Error())
 		return
 	}
 	response.BuyableUntil = buyableUntil
@@ -53,7 +53,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(request, errMessage)
+		h.AddErrorToResponseHeader(response, errMessage)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(request, errMessage)
+		h.AddErrorToResponseHeader(response, errMessage)
 		return
 	}
 
