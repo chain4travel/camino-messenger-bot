@@ -94,10 +94,9 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 
 func (h *evmResponseHandler) processMintResponseV1(ctx context.Context, responseIntf protoreflect.ProtoMessage) {
 	response, ok := responseIntf.(*bookv1.MintResponse)
+	// TODO@ its impossible, its ensured by grpc client down the stack, even if its not clear here
 	if !ok {
-		// TODO@ we might not have header here, especially since response type is unexpected
-		// TODO@ should we create dummy error response of correct type here and pass it?
-		// TODO@ how this could even happen?
+		// TODO@ we might not have header here! ensure header before that
 		err := fmt.Errorf("%w: expected *bookv1.MintResponse, got %T", errUnexpectedResponseType, responseIntf)
 		h.logger.Error(err)
 		h.AddErrorToResponseHeader(response, err.Error())

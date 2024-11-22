@@ -212,7 +212,6 @@ func verifyAndFixBuyableUntil(buyableUntil *timestamppb.Timestamp, currentTime t
 	return buyableUntil, nil
 }
 
-// TODO@ test that its working, its not c++ after all
 func ensureHeaderV1(response **typesv1.ResponseHeader) {
 	if *response == nil {
 		*response = &typesv1.ResponseHeader{}
