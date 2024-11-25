@@ -2,11 +2,14 @@ package rpc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+var ErrNilResponseHeader = errors.New("response header is nil")
 
 type RequestHandler interface {
 	HandleRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
