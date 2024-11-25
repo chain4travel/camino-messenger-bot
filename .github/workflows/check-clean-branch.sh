@@ -1,5 +1,5 @@
 #!/bin/bash
 set -euo pipefail
 
-git update-index --really-refresh >> /dev/null
-git diff-index --quiet HEAD
+git update-index --really-refresh
+git diff-index --name-status HEAD
