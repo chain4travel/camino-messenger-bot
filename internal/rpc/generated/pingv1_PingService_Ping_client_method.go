@@ -22,9 +22,10 @@ func (s PingServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 	}
 	response, err := s.client.Ping(ctx, request, opts...)
 	if response == nil {
-		response = &pingv1.PingResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &pingv1.PingResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, PingServiceV1Response, err
 }

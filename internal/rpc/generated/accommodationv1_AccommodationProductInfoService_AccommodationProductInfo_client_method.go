@@ -22,9 +22,10 @@ func (s AccommodationProductInfoServiceV1Client) Call(ctx context.Context, reque
 	}
 	response, err := s.client.AccommodationProductInfo(ctx, request, opts...)
 	if response == nil {
-		response = &accommodationv1.AccommodationProductInfoResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &accommodationv1.AccommodationProductInfoResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, AccommodationProductInfoServiceV1Response, err
 }

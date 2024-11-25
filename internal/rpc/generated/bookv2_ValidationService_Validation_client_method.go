@@ -22,9 +22,10 @@ func (s ValidationServiceV2Client) Call(ctx context.Context, requestIntf protore
 	}
 	response, err := s.client.Validation(ctx, request, opts...)
 	if response == nil {
-		response = &bookv2.ValidationResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &bookv2.ValidationResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, ValidationServiceV2Response, err
 }

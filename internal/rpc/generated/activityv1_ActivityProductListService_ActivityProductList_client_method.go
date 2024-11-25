@@ -22,9 +22,10 @@ func (s ActivityProductListServiceV1Client) Call(ctx context.Context, requestInt
 	}
 	response, err := s.client.ActivityProductList(ctx, request, opts...)
 	if response == nil {
-		response = &activityv1.ActivityProductListResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &activityv1.ActivityProductListResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, ActivityProductListServiceV1Response, err
 }

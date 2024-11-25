@@ -22,9 +22,10 @@ func (s CountryEntryRequirementsServiceV1Client) Call(ctx context.Context, reque
 	}
 	response, err := s.client.CountryEntryRequirements(ctx, request, opts...)
 	if response == nil {
-		response = &infov1.CountryEntryRequirementsResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &infov1.CountryEntryRequirementsResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, CountryEntryRequirementsServiceV1Response, err
 }

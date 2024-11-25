@@ -22,9 +22,10 @@ func (s ActivitySearchServiceV2Client) Call(ctx context.Context, requestIntf pro
 	}
 	response, err := s.client.ActivitySearch(ctx, request, opts...)
 	if response == nil {
-		response = &activityv2.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &activityv2.ActivitySearchResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, ActivitySearchServiceV2Response, err
 }

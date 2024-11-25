@@ -22,9 +22,10 @@ func (s SeatMapServiceV1Client) Call(ctx context.Context, requestIntf protorefle
 	}
 	response, err := s.client.SeatMap(ctx, request, opts...)
 	if response == nil {
-		response = &seat_mapv1.SeatMapResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &seat_mapv1.SeatMapResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, SeatMapServiceV1Response, err
 }

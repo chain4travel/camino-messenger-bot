@@ -22,9 +22,10 @@ func (s SeatMapAvailabilityServiceV1Client) Call(ctx context.Context, requestInt
 	}
 	response, err := s.client.SeatMapAvailability(ctx, request, opts...)
 	if response == nil {
-		response = &seat_mapv1.SeatMapAvailabilityResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &seat_mapv1.SeatMapAvailabilityResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, SeatMapAvailabilityServiceV1Response, err
 }

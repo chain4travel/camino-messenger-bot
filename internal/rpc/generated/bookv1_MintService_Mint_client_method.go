@@ -22,9 +22,10 @@ func (s MintServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 	}
 	response, err := s.client.Mint(ctx, request, opts...)
 	if response == nil {
-		response = &bookv1.MintResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &bookv1.MintResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, MintServiceV1Response, err
 }

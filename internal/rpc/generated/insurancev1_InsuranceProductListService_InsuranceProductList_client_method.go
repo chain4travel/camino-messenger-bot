@@ -22,9 +22,10 @@ func (s InsuranceProductListServiceV1Client) Call(ctx context.Context, requestIn
 	}
 	response, err := s.client.InsuranceProductList(ctx, request, opts...)
 	if response == nil {
-		response = &insurancev1.InsuranceProductListResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &insurancev1.InsuranceProductListResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, InsuranceProductListServiceV1Response, err
 }

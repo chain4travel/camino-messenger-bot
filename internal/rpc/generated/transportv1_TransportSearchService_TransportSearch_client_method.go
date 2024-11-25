@@ -22,9 +22,10 @@ func (s TransportSearchServiceV1Client) Call(ctx context.Context, requestIntf pr
 	}
 	response, err := s.client.TransportSearch(ctx, request, opts...)
 	if response == nil {
-		response = &transportv1.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{},
-		}
+		response = &transportv1.TransportSearchResponse{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv1.ResponseHeader{}
 	}
 	return response, TransportSearchServiceV1Response, err
 }
