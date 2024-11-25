@@ -18,7 +18,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	response *bookv2.MintResponse,
 	request *bookv2.MintRequest,
 ) {
-	if response.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
+	if response.Header.Status != typesv1.StatusType_STATUS_TYPE_SUCCESS {
 		return
 	}
 	// TODO: @VjeraTurk check if CMAccount exists

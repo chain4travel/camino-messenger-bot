@@ -17,7 +17,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 	response *bookv1.MintResponse,
 	request *bookv1.MintRequest,
 ) {
-	if response.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
+	if response.Header.Status != typesv1.StatusType_STATUS_TYPE_SUCCESS {
 		return
 	}
 
