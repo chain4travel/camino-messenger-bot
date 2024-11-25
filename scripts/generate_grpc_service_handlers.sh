@@ -186,19 +186,19 @@ echo "🧹 Cleaning and generating output directories"
 rm -rf $GEN_OUTPATH
 mkdir -p $GEN_OUTPATH
 
-BUF_SDK_URL_GO_GRPC="${BUF_SDK_BASE}/grpc/go"
-echo "⌛ Downloading SDK from $BUF_SDK_URL_GO_GRPC"
-go get $BUF_SDK_URL_GO_GRPC
-
-BUF_SDK_URL_GO_PB="${BUF_SDK_BASE}/protocolbuffers/go"
-echo "⌛ Downloading SDK from $BUF_SDK_URL_GO_PB"
-go get $BUF_SDK_URL_GO_PB
-
 BUF_GRPC_VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go.*" go.mod | cut -d" " -f2)
 echo "🔗 Extracting SDK GRPC version from go.mod: $BUF_GRPC_VERSION"
 
 BUF_PB_VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go.*" go.mod | cut -d" " -f2)
 echo "🔗 Extracting SDK PB version from go.mod: $BUF_PB_VERSION"
+
+BUF_SDK_URL_GO_GRPC="${BUF_SDK_BASE}/grpc/go"
+echo "⌛ Downloading SDK ${BUF_GRPC_VERSION} from $BUF_SDK_URL_GO_GRPC"
+go get "${BUF_SDK_URL_GO_GRPC}@${BUF_GRPC_VERSION}"
+
+BUF_SDK_URL_GO_PB="${BUF_SDK_BASE}/protocolbuffers/go"
+echo "⌛ Downloading SDK ${BUF_PB_VERSION} from ${BUF_SDK_URL_GO_PB}"
+go get "${BUF_SDK_URL_GO_PB}@${BUF_PB_VERSION}"
 
 echo "🔍 Searching for go path"
 if [ ! -z "$GOPATH" ] ; then
