@@ -22,9 +22,10 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 	}
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
 	if response == nil {
-		response = &{{TYPE_PACKAGE}}.{{RESPONSE}}{
-			Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{},
-		}
+		response = &{{TYPE_PACKAGE}}.{{RESPONSE}}{}
+	}
+	if response.Header == nil {
+		response.Header = &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{}
 	}
 	return response, {{SERVICE}}V{{VERSION}}Response, err
 }
