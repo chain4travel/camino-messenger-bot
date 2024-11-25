@@ -54,8 +54,8 @@ jobs:
         shell: bash
         run: ./scripts/lint.sh
         
-  go_mod_tidy:
-    name: Check state of go.mod and go.sum
+  check_clean_branch:
+    name: Check that go mod tidy and code-gen are performed
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -67,6 +67,9 @@ jobs:
       - name: Go Mod Tidy
         shell: bash
         run: go mod tidy
+      - name: codegen
+        shell: bash
+        run: ./scripts/generate_grpc_service_handlers.sh
       - name: Check Clean Branch
         shell: bash
         run: .github/workflows/check-clean-branch.sh

@@ -11,7 +11,7 @@ REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH}/register_server_services.go"
 REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH}/register_client_services.go"
 UNMARSHALLING_FILE="${GEN_OUTPATH}/unmarshal.go"
 
-DEFAULT_BLACKLIST="notification" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
+DEFAULT_BLACKLIST="notification partner network" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
 
 SCRIPT=$(realpath --relative-to="${PWD}" "$0")
 FILTER=$1 #optional filter for files -- used for testing
@@ -28,6 +28,7 @@ function generate_with_templates() {
 	PROTO_INCLUDE="$9"
 	_VERSION="${10}"
 	GENERATOR="${11}"
+	COMMON_TYPES_VERSION="${12}"
 
 	# From here on it's very easy in case it's just search replace
 	# Simply copy the template to the target directory
@@ -41,6 +42,7 @@ function generate_with_templates() {
 	GENERAL_PARAM_REPLACE+=" -e s#{{PROTO_INC}}#$PROTO_INCLUDE#g"
 	GENERAL_PARAM_REPLACE+=" -e s#{{VERSION}}#$_VERSION#g"
 	GENERAL_PARAM_REPLACE+=" -e s#{{GENERATOR}}#$GENERATOR#g"
+	GENERAL_PARAM_REPLACE+=" -e s#{{COMMON_TYPES_VERSION}}#$COMMON_TYPES_VERSION#g"
 
 	# Generate client
 	CLIENT_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_client.go"
@@ -184,12 +186,19 @@ echo "🧹 Cleaning and generating output directories"
 rm -rf $GEN_OUTPATH
 mkdir -p $GEN_OUTPATH
 
-BUF_SDK_URL_GO="${BUF_SDK_BASE}/grpc/go"
-echo "⌛ Downloading SDK from $BUF_SDK_URL_GO"
-go get $BUF_SDK_URL_GO
+BUF_SDK_URL_GO_GRPC="${BUF_SDK_BASE}/grpc/go"
+echo "⌛ Downloading SDK from $BUF_SDK_URL_GO_GRPC"
+go get $BUF_SDK_URL_GO_GRPC
 
-BUF_VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go.*" go.mod | cut -d" " -f2)
-echo "🔗 Extracting version from go.mod: $BUF_VERSION"
+BUF_SDK_URL_GO_PB="${BUF_SDK_BASE}/protocolbuffers/go"
+echo "⌛ Downloading SDK from $BUF_SDK_URL_GO_PB"
+go get $BUF_SDK_URL_GO_PB
+
+BUF_GRPC_VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go.*" go.mod | cut -d" " -f2)
+echo "🔗 Extracting SDK GRPC version from go.mod: $BUF_GRPC_VERSION"
+
+BUF_PB_VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go.*" go.mod | cut -d" " -f2)
+echo "🔗 Extracting SDK PB version from go.mod: $BUF_PB_VERSION"
 
 echo "🔍 Searching for go path"
 if [ ! -z "$GOPATH" ] ; then
@@ -216,8 +225,11 @@ if [ -z "$GO_PATH" ] ; then
 	exit 1
 fi
 
-SDK_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${BUF_VERSION}"
-echo "SDK_PATH: $SDK_PATH"
+SDK_GRPC_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go@${BUF_GRPC_VERSION}"
+echo "SDK_GRPC_PATH: $SDK_GRPC_PATH"
+
+SDK_PB_PATH="${GO_PATH}/pkg/mod/buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go@${BUF_PB_VERSION}"
+echo "SDK_PB_PATH: $SDK_PB_PATH"
 
 echo "⌛ Making sure gofumpt is installed"
 go install mvdan.cc/gofumpt@latest
@@ -239,19 +251,35 @@ while read file ; do
 		fi
 	fi
 
-	if [[ $file =~ $DEFAULT_BLACKLIST ]] ; then
-		echo "⚠️ Skipping (blacklisted): $file"
-		echo 
-		continue 
-	fi
+	for blacklisted in $DEFAULT_BLACKLIST ; do
+		if [[ $file =~ $blacklisted ]] ; then
+			echo "⚠️ Skipping (blacklisted): $file"
+			echo 
+			continue 2
+		fi
+	done
 
 	echo "🔍 Scanning file $file"
 
 	FQPN=$(grep -P 'FullMethodName' $file | grep -oP 'cmp\.services\.[^/]+' | head -n1) # only 1 - it may contain more
 	SERVICE=${FQPN##*.}
 	PACKAGE=$(grep -oP '^package \S+$' $file | cut -d" " -f2)
-	TYPE=${PACKAGE%*grpc}	
+	TYPE=${PACKAGE%*grpc}
 	VERSION=$(echo "$FQPN" | grep -oP "\.v[0-9]+\." | cut -d"." -f2 )
+	PACKAGE_VERSION=${TYPE##*v}
+	PACKAGE_NAME=${TYPE%v*}
+
+	file_name=$(basename $file)
+	file_name_prefix=${file_name%_grpc.pb.go}
+	pb_file="$SDK_PB_PATH/cmp/services/${PACKAGE_NAME}/v${PACKAGE_VERSION}/${file_name_prefix}.pb.go"
+
+	if [ ! -f $pb_file ] ; then
+		echo "❌ Can't find corresponding pb file (${pb_file}) for $file"
+		exit 1
+	fi
+
+	COMMON_TYPES_VERSION=$(grep -oP '(?<=Header \*v)\d+(?=\.ResponseHeader)' $pb_file)
+
 
 	echo "🔑 FQPN      : $FQPN"
 	echo "⚙️ Service   : $SERVICE"
@@ -292,19 +320,19 @@ while read file ; do
 	# We also need something like:
 	# "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	# "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
-	# We already have the base URL in BUF_SDK_URL_GO - now we only need the suffixes for the protocolbuffers and grpc
+	# We already have the base URL in BUF_SDK_URL_GO_GRPC - now we only need the suffixes for the protocolbuffers and grpc
 	# And store them into the PROTO_INCLUDES_FOR_UNMARSHALLING array
 	# First the protocolbuffers
 	SUFFIX=$(echo ${FQPN%.*} | tr "." "/")
 	PROTO_INCLUDE="${BUF_SDK_BASE}/protocolbuffers/go/${SUFFIX}"
 	# Now the grpc which is quite similar by just adding the package name at the end
 	GRPC_INCLUDE="${BUF_SDK_BASE}/grpc/go/${SUFFIX}/${PACKAGE}"
-	generate_with_templates "$FQPN" "$SERVICE" "$PACKAGE" "$TYPE" METHODS INPUTS OUTPUTS "$GRPC_INCLUDE" "$PROTO_INCLUDE" "${VERSION:1}" "$SCRIPT" 
+	generate_with_templates "$FQPN" "$SERVICE" "$PACKAGE" "$TYPE" METHODS INPUTS OUTPUTS "$GRPC_INCLUDE" "$PROTO_INCLUDE" "${VERSION:1}" "$SCRIPT" "$COMMON_TYPES_VERSION"
 	SERVICES_TO_REGISTER+=("${SERVICE}V${VERSION:1}")
 	PROTO_INCLUDES_FOR_UNMARSHALLING+=("$PROTO_INCLUDE")
 
 	echo 
-done < <(find "$SDK_PATH/cmp/services/" -name "*_grpc.pb.go" | sort)
+done < <(find "$SDK_GRPC_PATH/cmp/services/" -name "*_grpc.pb.go" | sort)
 
 generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER 
 generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER 

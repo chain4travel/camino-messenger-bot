@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
+	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
@@ -21,8 +22,8 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 	}
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
 	if response == nil {
-		response = &{{TYPE_PACKAGE}}.AccommodationProductInfoResponse{
-			Header: &typesv1.ResponseHeader{},
+		response = &{{TYPE_PACKAGE}}.{{RESPONSE}}{
+			Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{},
 		}
 	}
 	return response, {{SERVICE}}V{{VERSION}}Response, err

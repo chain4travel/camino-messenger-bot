@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20240924170438-a97744087df6.1
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.34.2-20240924170438-a97744087df6.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.35.2-20240924170438-a97744087df6.1
 	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20241024152339-d7c3c6e5c377
 	github.com/ethereum/go-ethereum v1.14.9
 	github.com/go-viper/mapstructure/v2 v2.2.1
@@ -100,7 +100,7 @@ require (
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.2
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
 	maunium.net/go/mautrix v0.15.1
