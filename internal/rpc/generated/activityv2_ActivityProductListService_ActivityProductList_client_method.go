@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
@@ -20,5 +21,10 @@ func (s ActivityProductListServiceV2Client) Call(ctx context.Context, requestInt
 		return nil, ActivityProductListServiceV2Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.ActivityProductList(ctx, request, opts...)
+	if response == nil {
+		response = &activityv2.ActivityProductListResponse{
+			Header: &typesv1.ResponseHeader{},
+		}
+	}
 	return response, ActivityProductListServiceV2Response, err
 }

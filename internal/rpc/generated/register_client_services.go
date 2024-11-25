@@ -95,18 +95,6 @@ func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]st
 		services[InsuranceSearchServiceV1Request] = rpc.NewService(NewInsuranceSearchServiceV1(rpcConn), InsuranceSearchServiceV1)
 		delete(serviceNames, InsuranceSearchServiceV1)
 	}
-	if _, ok := serviceNames[GetNetworkFeeServiceV1]; ok {
-		services[GetNetworkFeeServiceV1Request] = rpc.NewService(NewGetNetworkFeeServiceV1(rpcConn), GetNetworkFeeServiceV1)
-		delete(serviceNames, GetNetworkFeeServiceV1)
-	}
-	if _, ok := serviceNames[GetPartnerConfigurationServiceV1]; ok {
-		services[GetPartnerConfigurationServiceV1Request] = rpc.NewService(NewGetPartnerConfigurationServiceV1(rpcConn), GetPartnerConfigurationServiceV1)
-		delete(serviceNames, GetPartnerConfigurationServiceV1)
-	}
-	if _, ok := serviceNames[GetPartnerConfigurationServiceV2]; ok {
-		services[GetPartnerConfigurationServiceV2Request] = rpc.NewService(NewGetPartnerConfigurationServiceV2(rpcConn), GetPartnerConfigurationServiceV2)
-		delete(serviceNames, GetPartnerConfigurationServiceV2)
-	}
 	if _, ok := serviceNames[PingServiceV1]; ok {
 		services[PingServiceV1Request] = rpc.NewService(NewPingServiceV1(rpcConn), PingServiceV1)
 		delete(serviceNames, PingServiceV1)

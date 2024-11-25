@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
@@ -20,5 +21,10 @@ func (s PingServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 		return nil, PingServiceV1Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.Ping(ctx, request, opts...)
+	if response == nil {
+		response = &pingv1.PingResponse{
+			Header: &typesv1.ResponseHeader{},
+		}
+	}
 	return response, PingServiceV1Response, err
 }

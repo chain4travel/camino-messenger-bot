@@ -12,9 +12,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/network/v1"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v1"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
@@ -111,18 +108,6 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &insurancev1.InsuranceSearchRequest{}
 	case InsuranceSearchServiceV1Response:
 		*destination = &insurancev1.InsuranceSearchResponse{}
-	case GetNetworkFeeServiceV1Request:
-		*destination = &networkv1.GetNetworkFeeRequest{}
-	case GetNetworkFeeServiceV1Response:
-		*destination = &networkv1.GetNetworkFeeResponse{}
-	case GetPartnerConfigurationServiceV1Request:
-		*destination = &partnerv1.GetPartnerConfigurationRequest{}
-	case GetPartnerConfigurationServiceV1Response:
-		*destination = &partnerv1.GetPartnerConfigurationResponse{}
-	case GetPartnerConfigurationServiceV2Request:
-		*destination = &partnerv2.GetPartnerConfigurationRequest{}
-	case GetPartnerConfigurationServiceV2Response:
-		*destination = &partnerv2.GetPartnerConfigurationResponse{}
 	case PingServiceV1Request:
 		*destination = &pingv1.PingRequest{}
 	case PingServiceV1Response:

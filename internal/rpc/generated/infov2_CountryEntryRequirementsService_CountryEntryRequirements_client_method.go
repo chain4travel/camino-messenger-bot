@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	infov2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
@@ -20,5 +21,10 @@ func (s CountryEntryRequirementsServiceV2Client) Call(ctx context.Context, reque
 		return nil, CountryEntryRequirementsServiceV2Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.CountryEntryRequirements(ctx, request, opts...)
+	if response == nil {
+		response = &infov2.CountryEntryRequirementsResponse{
+			Header: &typesv1.ResponseHeader{},
+		}
+	}
 	return response, CountryEntryRequirementsServiceV2Response, err
 }
