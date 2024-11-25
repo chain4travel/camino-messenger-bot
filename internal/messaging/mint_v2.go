@@ -18,8 +18,6 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	response *bookv2.MintResponse,
 	request *bookv2.MintRequest,
 ) {
-	ensureHeaderV1(&response.Header)
-	
 	if response.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
 		return
 	}
@@ -88,8 +86,6 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 }
 
 func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response *bookv2.MintResponse) {
-	ensureHeaderV1(&response.Header)
-
 	if response.MintTransactionId == "" {
 		h.logger.Error(errMissingMintTxID)
 		h.AddErrorToResponseHeader(response, errMissingMintTxID.Error())
