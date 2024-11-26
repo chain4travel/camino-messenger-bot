@@ -32,7 +32,7 @@ Currently [release-10](https://github.com/chain4travel/camino-messenger-protocol
 To run the camino-bot-messenger as intended you will need a **CM Account** with a **bot** added to it and **registered services**.
 
 ### Creating the CM Account
-If you don't already have a **CM Account** your company should [get listed as a Partner](https://docs.camino.network/partners/partner-showroom/index.html#being-listed-as-a-partner) and [configure its partner profile][https://docs.camino.network/partners/partner-config] via [suite](https://suite.camino.network). Following this process will result in a CM account and all requirements to run the bot on main net Camino. Creating the CM Account this way is necessary for the main net Camino.  
+If you don't already have a **CM Account** your company should [get listed as a Partner](https://docs.camino.network/partners/partner-showroom/index.html#being-listed-as-a-partner) and [configure its partner profile](https://docs.camino.network/partners/partner-config) via [suite](https://suite.camino.network). Following this process will result in a CM account and all requirements to run the bot on main net Camino. Creating the CM Account this way is necessary for the main net Camino.  
 
 For development purposes, it is also possible to be listed as a Partner and configure the partner profile on test net Columbus < ? HOW EXACTLY - PARTNER SHOWROOM or just PARTNER CONFIG ?>  
 
