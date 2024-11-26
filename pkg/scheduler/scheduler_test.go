@@ -17,7 +17,7 @@ func TestScheduler_Start(t *testing.T) {
 
 	require := require.New(t)
 	ctx := context.Background()
-	clock := clockwork.NewFakeClockAt(time.Unix(0, 100))
+	clock := clockwork.NewFakeClockAt(time.Unix(0, 10_000))
 	ctrl := gomock.NewController(t)
 	storage := NewMockStorage(ctrl)
 	epsilon := time.Millisecond
@@ -25,38 +25,60 @@ func TestScheduler_Start(t *testing.T) {
 
 	earlyJobExecuted := make(chan string)
 	nowJobExecuted := make(chan string)
+	freshJobExecuted := make(chan string)
 	lateJobExecuted := make(chan string)
 
+	// job that was executed before scheduler starts
+	// and next execution should be scheduled before scheduler starts
+	earlyJobPeriod := time.Duration(1000)
 	earlyJob := Job{
-		Name:      "early_job",
-		ExecuteAt: clock.Now().Add(-1),
-		Period:    1000,
+		Name:           "early_job",
+		LastExecutedAt: clock.Now().Add(-earlyJobPeriod - 1),
+		Period:         earlyJobPeriod,
 	}
+
+	// job that was executed before scheduler starts
+	// and next execution should be scheduled right when scheduler starts
+	nowJobPeriod := time.Duration(1003)
 	nowJob := Job{
-		Name:      "now_job",
-		ExecuteAt: clock.Now(),
-		Period:    1003,
+		Name:           "now_job",
+		LastExecutedAt: clock.Now().Add(-nowJobPeriod),
+		Period:         nowJobPeriod,
 	}
+
+	// job that was never executed
+	// and next execution should be scheduled right when scheduler starts
+	freshJob := Job{
+		Name:   "fresh_job",
+		Period: time.Duration(1005),
+	}
+
+	// job that was executed before scheduler starts
+	// and next execution should be scheduled after scheduler starts
+	lateJobPeriod := time.Duration(1007)
 	lateJob := Job{
-		Name:      "late_job",
-		ExecuteAt: clock.Now().Add(1),
-		Period:    1007,
+		Name:           "late_job",
+		LastExecutedAt: clock.Now().Add(-lateJobPeriod + 1),
+		Period:         lateJobPeriod,
 	}
-	jobs := []*Job{&earlyJob, &nowJob, &lateJob}
+
+	jobs := []*Job{&earlyJob, &nowJob, &freshJob, &lateJob}
 	jobsExecChansMap := map[string]chan string{
 		earlyJob.Name: earlyJobExecuted,
 		nowJob.Name:   nowJobExecuted,
+		freshJob.Name: freshJobExecuted,
 		lateJob.Name:  lateJobExecuted,
 	}
-	jobsExecChans := []chan string{earlyJobExecuted, nowJobExecuted, lateJobExecuted}
+	jobsExecChans := []chan string{earlyJobExecuted, nowJobExecuted, freshJobExecuted, lateJobExecuted}
 
 	// this is needed for correct time-advancement sequence
 
-	require.Less(earlyJob.ExecuteAt, clock.Now())
-	require.Equal(nowJob.ExecuteAt, clock.Now())
+	require.Less(earlyJob.LastExecutedAt.Add(earlyJob.Period), clock.Now())
+	require.Equal(nowJob.LastExecutedAt.Add(nowJob.Period), clock.Now())
 
 	require.Less(earlyJob.Period, nowJob.Period)
-	require.Less(nowJob.Period, lateJob.Period)
+	require.Less(nowJob.Period, freshJob.Period)
+	require.Less(freshJob.Period, lateJob.Period)
 	require.Less(lateJob.Period, timeout-epsilon)
 
 	// *** mock & executionSequence setup
@@ -77,29 +99,37 @@ func TestScheduler_Start(t *testing.T) {
 	storage.EXPECT().GetAllJobs(ctx, storageSession).Return(jobs, nil)
 	storage.EXPECT().Abort(storageSession)
 
-	// startOnce and periodic start goroutines
+	// timers and tickers goroutines
 
-	// its clock.Now().Add(-1), but we need real execution time for next mock setup steps
-	// it will be corrected after
-	earlyJob.ExecuteAt = clock.Now() // real execution time
-
+	lastJobExecutionTime := map[string]time.Time{
+		earlyJob.Name: earlyJob.LastExecutedAt,
+		nowJob.Name:   nowJob.LastExecutedAt,
+		freshJob.Name: freshJob.LastExecutedAt,
+		lateJob.Name:  lateJob.LastExecutedAt,
+	}
 	for i := 0; i < numberOfFullCycles; i++ {
 		for _, originalJob := range jobs {
 			currentJob := Job{
-				Name:      originalJob.Name,
-				ExecuteAt: originalJob.ExecuteAt.Add(originalJob.Period * time.Duration(i)),
-				Period:    originalJob.Period,
+				Name:           originalJob.Name,
+				LastExecutedAt: lastJobExecutionTime[originalJob.Name],
+				Period:         originalJob.Period,
 			}
+
+			executionTime := lastJobExecutionTime[originalJob.Name].Add(originalJob.Period)
+			if executionTime.Before(clock.Now()) {
+				executionTime = clock.Now()
+			}
+			lastJobExecutionTime[originalJob.Name] = executionTime
 
 			newJob := &Job{
-				Name:      originalJob.Name,
-				ExecuteAt: currentJob.ExecuteAt.Add(originalJob.Period),
-				Period:    originalJob.Period,
+				Name:           originalJob.Name,
+				LastExecutedAt: executionTime,
+				Period:         originalJob.Period,
 			}
 
-			if len(executionSequence) == 0 || executionSequence[len(executionSequence)-1].time != currentJob.ExecuteAt {
+			if len(executionSequence) == 0 || executionSequence[len(executionSequence)-1].time != newJob.LastExecutedAt {
 				executionSequence = append(executionSequence, executionStep{
-					time:         currentJob.ExecuteAt,
+					time:         newJob.LastExecutedAt,
 					jobs:         []Job{currentJob},
 					initialTimer: i == 0,
 				})
@@ -116,9 +146,6 @@ func TestScheduler_Start(t *testing.T) {
 		}
 	}
 
-	// correct earlyJob.ExecuteAt
-	earlyJob.ExecuteAt = clock.Now().Add(-1)
-
 	// *** scheduler
 
 	sch := New(zap.NewNop().Sugar(), storage, clock).(*scheduler)
@@ -127,6 +154,9 @@ func TestScheduler_Start(t *testing.T) {
 	})
 	sch.RegisterJobHandler(nowJob.Name, func() {
 		nowJobExecuted <- nowJob.Name + " executed"
+	})
+	sch.RegisterJobHandler(freshJob.Name, func() {
+		freshJobExecuted <- freshJob.Name + " executed"
 	})
 	sch.RegisterJobHandler(lateJob.Name, func() {
 		lateJobExecuted <- lateJob.Name + " executed"
@@ -250,9 +280,8 @@ func TestScheduler_Schedule(t *testing.T) {
 				storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
 				storage.EXPECT().GetJobByName(ctx, storageSession, tt.jobName).Return(nil, ErrNotFound)
 				storage.EXPECT().UpsertJob(ctx, storageSession, &Job{
-					Name:      tt.jobName,
-					ExecuteAt: clock.Now().Add(tt.period),
-					Period:    tt.period,
+					Name:   tt.jobName,
+					Period: tt.period,
 				}).Return(nil)
 				storage.EXPECT().Commit(storageSession).Return(nil)
 				storage.EXPECT().Abort(storageSession)
@@ -268,18 +297,18 @@ func TestScheduler_Schedule(t *testing.T) {
 				storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
 				storage.EXPECT().GetJobByName(ctx, storageSession, tt.jobName).Return(tt.existingJob, nil)
 				storage.EXPECT().UpsertJob(ctx, storageSession, &Job{
-					Name:      tt.jobName,
-					ExecuteAt: tt.existingJob.ExecuteAt,
-					Period:    tt.period,
+					Name:           tt.jobName,
+					LastExecutedAt: tt.existingJob.LastExecutedAt,
+					Period:         tt.period,
 				}).Return(nil)
 				storage.EXPECT().Commit(storageSession).Return(nil)
 				storage.EXPECT().Abort(storageSession)
 				return storage
 			},
 			existingJob: &Job{
-				Name:      "existing_job",
-				ExecuteAt: time.Now(),
-				Period:    10 * time.Second,
+				Name:           "existing_job",
+				LastExecutedAt: time.Now(),
+				Period:         10 * time.Second,
 			},
 			jobName: "existing_job",
 			period:  15 * time.Second,

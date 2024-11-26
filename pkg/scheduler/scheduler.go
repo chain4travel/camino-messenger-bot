@@ -96,28 +96,35 @@ func (s *scheduler) Start(ctx context.Context) error {
 		period := job.Period
 
 		now := s.clock.Now()
-		durationUntilFirstExecution := time.Duration(0)
-		if job.ExecuteAt.After(now) {
-			durationUntilFirstExecution = job.ExecuteAt.Sub(now)
+		durationUntilFirstExecution := job.LastExecutedAt.Add(job.Period).Sub(now)
+		if durationUntilFirstExecution < 0 {
+			durationUntilFirstExecution = 0
 		}
 
 		onceDone := make(chan struct{})
 
-		handler := func() {
+		handler := func(tickTime time.Time) {
 			// TODO @evlekht panic handling?
-			if err := s.updateJobExecutionTime(ctx, jobName); err != nil {
+			if err := s.updateJobExecutionTime(ctx, jobName, tickTime); err != nil {
 				s.logger.Errorf("failed to update job execution time: %v", err)
 				return // TODO @evlekht handle error, maybe retry ?
 			}
 			jobHandler()
 		}
 
-		timer := s.clock.AfterFunc(durationUntilFirstExecution, func() {
-			handler()
-			close(onceDone)
-		})
+		// first execution
+		timer := s.clock.NewTimer(durationUntilFirstExecution)
 		s.setJobTimer(job.Name, &timerStopper{timer})
+		go func() {
+			select {
+			case tickTime := <-timer.Chan():
+				handler(tickTime)
+			case <-timersCtx.Done():
+			}
+			close(onceDone)
+		}()
 
+		// periodic execution
 		go func() {
 			<-onceDone
 			ticker := s.clock.NewTicker(period)
@@ -125,8 +132,8 @@ func (s *scheduler) Start(ctx context.Context) error {
 			s.setJobTimer(job.Name, ticker)
 			for {
 				select {
-				case <-ticker.Chan():
-					handler()
+				case tickTime := <-ticker.Chan():
+					handler(tickTime)
 				case <-timersCtx.Done():
 					return
 				}
@@ -164,22 +171,16 @@ func (s *scheduler) Schedule(ctx context.Context, period time.Duration, jobName 
 		return err
 	}
 
-	executeAt := s.clock.Now().Add(period)
-
+	lastExecutedAt := time.Time{}
 	if job != nil {
-		job.Period = period
-		if executeAt.Before(job.ExecuteAt) {
-			job.ExecuteAt = executeAt
-		}
-	} else {
-		job = &Job{
-			Name:      jobName,
-			ExecuteAt: executeAt,
-			Period:    period,
-		}
+		lastExecutedAt = job.LastExecutedAt
 	}
 
-	if err := s.storage.UpsertJob(ctx, session, job); err != nil {
+	if err := s.storage.UpsertJob(ctx, session, &Job{
+		Name:           jobName,
+		LastExecutedAt: lastExecutedAt,
+		Period:         period,
+	}); err != nil {
 		s.logger.Errorf("failed to store scheduled job: %v", err)
 		return err
 	}
@@ -193,7 +194,7 @@ func (s *scheduler) RegisterJobHandler(jobName string, jobHandler func()) {
 	s.registryLock.Unlock()
 }
 
-func (s *scheduler) updateJobExecutionTime(ctx context.Context, jobName string) error {
+func (s *scheduler) updateJobExecutionTime(ctx context.Context, jobName string, executionTime time.Time) error {
 	session, err := s.storage.NewSession(ctx)
 	if err != nil {
 		s.logger.Errorf("failed to create storage session: %v", err)
@@ -207,7 +208,7 @@ func (s *scheduler) updateJobExecutionTime(ctx context.Context, jobName string) 
 		return err
 	}
 
-	job.ExecuteAt = s.clock.Now().Add(job.Period)
+	job.LastExecutedAt = executionTime
 
 	if err := s.storage.UpsertJob(ctx, session, job); err != nil {
 		s.logger.Errorf("failed to store scheduled job: %v", err)

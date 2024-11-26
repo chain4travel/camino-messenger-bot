@@ -3,7 +3,7 @@ package scheduler
 import "time"
 
 type Job struct {
-	Name      string
-	ExecuteAt time.Time
-	Period    time.Duration
+	Name           string
+	LastExecutedAt time.Time
+	Period         time.Duration
 }
