@@ -265,7 +265,7 @@ func TestScheduler_RegisterJobHandler(t *testing.T) {
 
 func TestScheduler_Schedule(t *testing.T) {
 	type testCase struct {
-		storage     func(context.Context, *gomock.Controller, clockwork.Clock, *testCase) Storage
+		storage     func(context.Context, *gomock.Controller, *testCase) Storage
 		existingJob *Job
 		jobName     string
 		period      time.Duration
@@ -274,7 +274,7 @@ func TestScheduler_Schedule(t *testing.T) {
 
 	tests := map[string]testCase{
 		"OK: New job": {
-			storage: func(ctx context.Context, ctrl *gomock.Controller, clock clockwork.Clock, tt *testCase) Storage {
+			storage: func(ctx context.Context, ctrl *gomock.Controller, tt *testCase) Storage {
 				storage := NewMockStorage(ctrl)
 				storageSession := &dummySession{}
 				storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
@@ -291,7 +291,7 @@ func TestScheduler_Schedule(t *testing.T) {
 			period:  10 * time.Second,
 		},
 		"OK: Existing job": {
-			storage: func(ctx context.Context, ctrl *gomock.Controller, _ clockwork.Clock, tt *testCase) Storage {
+			storage: func(ctx context.Context, ctrl *gomock.Controller, tt *testCase) Storage {
 				storage := NewMockStorage(ctrl)
 				storageSession := &dummySession{}
 				storage.EXPECT().NewSession(ctx).Return(storageSession, nil)
@@ -322,7 +322,7 @@ func TestScheduler_Schedule(t *testing.T) {
 
 			sch := New(
 				zap.NewNop().Sugar(),
-				tt.storage(ctx, gomock.NewController(t), clock, &tt),
+				tt.storage(ctx, gomock.NewController(t), &tt),
 				clock,
 			).(*scheduler)
 
