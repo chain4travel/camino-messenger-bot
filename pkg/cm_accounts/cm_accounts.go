@@ -3,6 +3,7 @@ package cmaccounts
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -127,6 +128,11 @@ func (s *service) GetChequeOperators(ctx context.Context, cmAccountAddress commo
 			continue
 		}
 		botsAddresses = append(botsAddresses, address)
+	}
+
+	if len(botsAddresses) == 0 {
+		s.logger.Error("No bot addresses found for CM account")
+		return nil, errors.New("no bot addresses found")
 	}
 
 	return botsAddresses, nil
