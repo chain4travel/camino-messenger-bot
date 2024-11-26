@@ -63,7 +63,7 @@ To retrieve your wallet static private key, follow the instructions [here](https
 
 2. To **add the bot** to the CM Account run:
 ```
-yarn hardhat account add:bot --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
+yarn hardhat account bot:add --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
 ```
 Add this **bot's wallet static private key** to your `.yml` configuration under `bot_key`.
 
@@ -71,7 +71,7 @@ Add this **bot's wallet static private key** to your `.yml` configuration under 
 
 In case you want to withdraw funds from the CM Account contract, you have to grant the `WITHDRAWER_ROLE` to an address, even for the default admin (creator of the CM Account). To do this run:
 ```
-yarn hardhat --network columbus account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-default-admin-of-the-cm-account> --network columbus
+yarn hardhat account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-default-admin-of-the-cm-account> --network columbus
 
 ```
 4. To **register a service** supported by your CM Account run e.g.
