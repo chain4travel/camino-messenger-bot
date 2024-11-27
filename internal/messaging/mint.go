@@ -210,8 +210,8 @@ func verifyAndFixBuyableUntil(buyableUntil *timestamppb.Timestamp, currentTime t
 	return buyableUntil, nil
 }
 
-func ensureHeaderV1(response **typesv1.ResponseHeader) {
-	if *response == nil {
-		*response = &typesv1.ResponseHeader{}
+func ensureHeaderV1(responseHeader **typesv1.ResponseHeader) {
+	if *responseHeader == nil {
+		*responseHeader = &typesv1.ResponseHeader{}
 	}
 }
