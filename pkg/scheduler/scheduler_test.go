@@ -49,8 +49,9 @@ func TestScheduler_Start(t *testing.T) {
 	// job that was never executed
 	// and next execution should be scheduled right when scheduler starts
 	freshJob := Job{
-		Name:   "fresh_job",
-		Period: time.Duration(1005),
+		Name:           "fresh_job",
+		LastExecutedAt: time.Unix(0, 0),
+		Period:         time.Duration(1005),
 	}
 
 	// job that was executed before scheduler starts

@@ -35,7 +35,7 @@ func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*DB, error) {
 		DB:     db,
 	}
 
-	if err := s.migrate(dbName, cfg.MigrationsPath); err != nil {
+	if err := s.migrate(dbName, cfg.MigrationsPath, false); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,21 @@ func (s *DB) Close() error {
 	return nil
 }
 
-func (s *DB) migrate(dbName, migrationsPath string) error {
+var _ migrate.Logger = (*migrationLogger)(nil)
+
+type migrationLogger struct {
+	*zap.SugaredLogger
+}
+
+func (l *migrationLogger) Printf(format string, v ...interface{}) {
+	l.Infof(format, v...)
+}
+
+func (l *migrationLogger) Verbose() bool {
+	return false
+}
+
+func (s *DB) migrate(dbName, migrationsPath string, logMigrations bool) error {
 	s.Logger.Infof("Performing db migrations...")
 
 	driver, err := sqlite3.WithInstance(s.DB.DB, &sqlite3.Config{})
@@ -68,6 +82,10 @@ func (s *DB) migrate(dbName, migrationsPath string) error {
 	if err != nil {
 		s.Logger.Error(err)
 		return err
+	}
+
+	if logMigrations {
+		migration.Log = &migrationLogger{s.Logger}
 	}
 
 	version, dirty, err := migration.Version()

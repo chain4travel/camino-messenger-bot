@@ -103,15 +103,17 @@ func (s *storage) prepareJobsStmts(ctx context.Context) error {
 	upsertJob, err := s.base.DB.PrepareNamedContext(ctx, fmt.Sprintf(`
 		INSERT INTO %s (
 			name,
-			execute_at,
+			last_executed_at,
 			period
 		) VALUES (
 			:name,
-			:execute_at,
+			:last_executed_at,
 			:period
 		)
 		ON CONFLICT(name)
-		DO UPDATE SET period = excluded.period
+		DO UPDATE SET
+			period = excluded.period,
+			last_executed_at = excluded.last_executed_at
 	`, jobsTableName))
 	if err != nil {
 		s.base.Logger.Error(err)
