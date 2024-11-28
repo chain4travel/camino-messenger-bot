@@ -90,21 +90,6 @@ func (mr *MockServiceMockRecorder) GetFirstChequeOperator(arg0, arg1 any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFirstChequeOperator", reflect.TypeOf((*MockService)(nil).GetFirstChequeOperator), arg0, arg1)
 }
 
-// GetFirstChequeOperator mocks base method.
-func (m *MockService) GetFirstChequeOperator(arg0 context.Context, arg1 common.Address) (common.Address, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFirstChequeOperator", arg0, arg1)
-	ret0, _ := ret[0].(common.Address)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetFirstChequeOperator indicates an expected call of GetFirstChequeOperator.
-func (mr *MockServiceMockRecorder) GetFirstChequeOperator(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFirstChequeOperator", reflect.TypeOf((*MockService)(nil).GetFirstChequeOperator), arg0, arg1)
-}
-
 // GetLastCashIn mocks base method.
 func (m *MockService) GetLastCashIn(arg0 context.Context, arg1, arg2, arg3 common.Address) (*big.Int, *big.Int, error) {
 	m.ctrl.T.Helper()
