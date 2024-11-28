@@ -3,7 +3,6 @@ package cmaccounts
 import (
 	"context"
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"math/big"
 
@@ -26,7 +25,6 @@ var (
 )
 
 type Service interface {
-	GetChequeOperators(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error)
 	GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error)
 
 	VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error)
@@ -104,38 +102,6 @@ type service struct {
 	cache     *lru.Cache[common.Address, *cmaccount.Cmaccount]
 	logger    *zap.SugaredLogger
 	chainID   *big.Int
-}
-
-func (s *service) GetChequeOperators(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
-	if err != nil {
-		s.logger.Errorf("Failed to get cm account: %v", err)
-		return nil, err
-	}
-
-	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{Context: ctx}, chequeOperatorRole)
-	if err != nil {
-		s.logger.Errorf("Failed to call contract function: %v", err)
-		return nil, err
-	}
-
-	count := countBig.Int64()
-	botsAddresses := make([]common.Address, 0, count)
-	for i := int64(0); i < count; i++ {
-		address, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: ctx}, chequeOperatorRole, big.NewInt(i))
-		if err != nil {
-			s.logger.Errorf("Failed to call contract function: %v", err)
-			continue
-		}
-		botsAddresses = append(botsAddresses, address)
-	}
-
-	if len(botsAddresses) == 0 {
-		s.logger.Error("No bot addresses found for CM account")
-		return nil, errors.New("no bot addresses found")
-	}
-
-	return botsAddresses, nil
 }
 
 func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {

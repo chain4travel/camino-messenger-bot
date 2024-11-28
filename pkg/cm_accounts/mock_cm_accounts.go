@@ -75,21 +75,6 @@ func (mr *MockServiceMockRecorder) CashInCheque(arg0, arg1, arg2 any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CashInCheque", reflect.TypeOf((*MockService)(nil).CashInCheque), arg0, arg1, arg2)
 }
 
-// GetChequeOperators mocks base method.
-func (m *MockService) GetChequeOperators(arg0 context.Context, arg1 common.Address) ([]common.Address, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChequeOperators", arg0, arg1)
-	ret0, _ := ret[0].([]common.Address)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetChequeOperators indicates an expected call of GetChequeOperators.
-func (mr *MockServiceMockRecorder) GetChequeOperators(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChequeOperators", reflect.TypeOf((*MockService)(nil).GetChequeOperators), arg0, arg1)
-}
-
 // GetFirstChequeOperator mocks base method.
 func (m *MockService) GetFirstChequeOperator(arg0 context.Context, arg1 common.Address) (common.Address, error) {
 	m.ctrl.T.Helper()
