@@ -18,14 +18,16 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            echo "Unknown option: $1"
+            echo "Unknown option: $1" 
             exit 1
             ;;
     esac
 done
 
-# Camino-messenger-bot root folder
-CAMINOBOT_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )"; cd .. && pwd )
+if [ -z "${CAMINOBOT_PATH}" ]; then
+    # Camino-messenger-bot root folder
+    CAMINOBOT_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )"; cd .. && pwd )
+fi
 # Load the constants
 source "$CAMINOBOT_PATH"/scripts/constants.sh
 
