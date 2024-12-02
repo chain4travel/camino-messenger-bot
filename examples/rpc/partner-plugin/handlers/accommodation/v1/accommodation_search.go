@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -9,7 +10,7 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
-	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v1"
+	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -34,8 +35,15 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 	log.Printf("Responding to request (Accommodation Search): %s", md.RequestID)
 
-	// load mock data
-	properties := helpers.LoadPropertiesMockData()
+	// Load properties data
+	var properties []accommodationv1.PropertyExtendedInfo
+	jsonProperties := mock_data.PropertiesJSON
+
+	// Unmarshal properties
+	err := json.Unmarshal([]byte(jsonProperties), &properties)
+	if err != nil {
+		log.Printf("Error unmarshalling properties: %v", err)
+	}
 
 	// log
 	fmt.Printf("properties: %+v\n", properties)
@@ -101,7 +109,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			for _, room := range prop.Rooms {
 
 				units = append(units, &accommodationv1.Unit{
-					Type:             0,
+					Type:             accommodationv1.UnitType(prop.Property.CategoryUnit),
 					SupplierRoomCode: room.SupplierCode,
 					SupplierRoomName: room.SupplierName,
 					OriginalRoomName: room.OriginalName,
@@ -194,11 +202,6 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			SearchId: &typesv1.UUID{Value: searchId},
 		},
 		Results: searchResults,
-		Travellers: []*typesv1.BasicTraveller{{
-			Type:        typesv1.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
-			Birthdate:   &typesv1.Date{},
-			Nationality: typesv1.Country_COUNTRY_DE,
-		}},
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)

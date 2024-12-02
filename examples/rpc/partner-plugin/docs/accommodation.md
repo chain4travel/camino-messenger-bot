@@ -1,28 +1,6 @@
 # Accommodation Product List V1 & V2
 
 Used to retrieve a list of all accommodation products of a supplier.
-Modified after is optional, if not provided, all products will be returned. <!-- TODO: If provided, only products modified after the provided timestamp will be returned. -->
-
-### Request message example
-
-```
-{
-    "header": {
-        "base_header": {
-            "end_user_wallet_address": "nulla cupidatat adipisicing",
-            "version": {
-                "major": 1435022022,
-                "minor": 749426816,
-                "patch": 106982721
-            }
-        }
-    },
-    "modified_after": {
-        "nanos": 1643852629,
-        "seconds": "76332021931"
-    }
-}
-```
 
 ### Response message example
 
@@ -52,14 +30,13 @@ Modified after is optional, if not provided, all products will be returned. <!--
 
 Used to retrieve detailed information about a specific accommodation product.
 
-**Required fields:**
+**Required message body fields:**
 
 - supplier_codes (array of supplier codes to filter by)
 
-**Optional fields:**
+**Optional message body fields:**
 
 - languages (array of language codes to be provided in the response)
-- modified_after (timestamp to filter by, only products modified after the provided timestamp will be returned)
 
 ### Mock data service available supplier codes for testing:
 
@@ -82,16 +59,6 @@ Used to retrieve detailed information about a specific accommodation product.
 
 ```
 {
-    "header": {
-        "base_header": {
-            "end_user_wallet_address": "mollit",
-            "version": {
-                "major": 1631864601,
-                "minor": 1460812095,
-                "patch": 1365431389
-            }
-        }
-    },
     "supplier_codes": [
         {
             "supplier_code": "HTL567890",
@@ -106,10 +73,6 @@ Used to retrieve detailed information about a specific accommodation product.
         9,
         12
     ],
-    "modified_after": {
-        "nanos": 1643852629,
-        "seconds": "76332021931"
-    }
 }
 ```
 

@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	helpers "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v1"
+	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 )
@@ -29,7 +30,14 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
 	// Load properties data
-	properties := helpers.LoadPropertiesMockData()
+	var properties []accommodationv1.PropertyExtendedInfo
+	jsonProperties := mock_data.PropertiesJSON
+
+	// Unmarshal properties
+	err := json.Unmarshal([]byte(jsonProperties), &properties)
+	if err != nil {
+		log.Printf("Error unmarshalling properties: %v", err)
+	}
 
 	// filter only property objects
 	filteredProperties := []*accommodationv1.Property{}
@@ -40,7 +48,7 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 
 	response := &accommodationv1.AccommodationProductListResponse{
 		Header: &typesv1.ResponseHeader{
-			Status:  typesv1.StatusType_STATUS_TYPE_SUCCESS,
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		Properties: filteredProperties,
 	}
