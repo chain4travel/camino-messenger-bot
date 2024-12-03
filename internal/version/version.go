@@ -19,13 +19,12 @@ var (
 func init() {
 	info, _ := debug.ReadBuildInfo()
 	for _, dependency := range info.Deps {
-		if dependency.Path == "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go" {
+		switch dependency.Path {
+		case "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go":
 			BufBuildPBCommit = dependency.Version
-		}
-		if dependency.Path == "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go" {
+		case "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go":
 			BufBuildGRPCCommit = dependency.Version
-		}
-		if dependency.Path == "github.com/chain4travel/camino-messenger-contracts/go/contracts" {
+		case "github.com/chain4travel/camino-messenger-contracts/go/contracts":
 			ContractsGitCommit = dependency.Version
 		}
 	}
