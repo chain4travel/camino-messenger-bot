@@ -46,7 +46,7 @@ To create a **CM Account** and add the bot to it - you will need **two** (test) 
 ## Funding your wallet 
 
 > [!IMPORTANT]
-> Funds must be available on both wallets before you can create the CM account. At least 100 CAM (+ gas price and transaction fee) in the wallet used to create the CM Account and 100 CAM (+ gas price and transaction fee) on bot wallet. To request testnet funds, go to our (discord)[https://discord.gg/XhrZTBXv] and use the command `/faucet <columbus-x-chain-address> <amount>` (max amount is 150CAM every 72 hours)
+> Funds must be available on both wallets before you can create the CM account. At least 100 CAM (+ gas price and transaction fee) in the wallet used to create the CM Account and 100 CAM (+ gas price and transaction fee) on bot wallet. To request testnet funds, go to our [discord](https://discord.gg/XhrZTBXv) and use the command `/faucet <columbus-x-chain-address> <amount>` (max amount is 150CAM every 72 hours)
 
 ### Creating the CM Account via hardhat
 After you have your two wallets ready, clone the contracts repo, position inside the repo, and run:
