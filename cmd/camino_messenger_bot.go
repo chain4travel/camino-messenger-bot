@@ -8,7 +8,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/app"
-	"github.com/chain4travel/camino-messenger-bot/internal/constants"
+	"github.com/chain4travel/camino-messenger-bot/internal/version"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -16,7 +16,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:        "camino-messenger-bot",
 	Short:      "starts camino messenger bot",
-	Version:    constants.AppVersion,
+	Version:    version.AppVersion,
 	SuggestFor: []string{"camino-messenger", "camino-messenger-bot", "camino-bot", "cmb"},
 	RunE:       rootFunc,
 }
@@ -58,8 +58,11 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	logger := zapLogger.Sugar()
 	defer func() { _ = logger.Sync() }()
 
-	logger.Infof("App version: %s (git: %s)", constants.AppVersion, constants.AppGitCommit)
-	logger.Infof("Protocol version: %s", constants.ProtocolVersion)
+	logger.Infof("App version: %s (git: %s)", version.AppVersion, version.AppGitCommit)
+	logger.Infof("Protocol version: %s", version.ProtocolVersion)
+	logger.Infof("buf.build protocolbuffers git: %s", version.BufBuildPBCommit)
+	logger.Infof("buf.build grpc git: %s", version.BufBuildGRPCCommit)
+	logger.Infof("camino-messenger-contracts git: %s", version.ContractsGitCommit)
 
 	app, err := app.NewApp(ctx, cfg, logger)
 	if err != nil {

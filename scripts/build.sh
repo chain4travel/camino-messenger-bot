@@ -31,8 +31,8 @@ fi
 # Load the constants
 source "$CAMINOBOT_PATH"/scripts/constants.sh
 
-LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/internal/constants.AppGitCommit=$git_commit"
-LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/internal/constants.AppVersion=$git_tag"
+LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/internal/version.AppGitCommit=$git_commit"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/internal/version.AppVersion=$git_tag"
 
 # Build the Go application
 echo "Building camino-messenger-bot..."
