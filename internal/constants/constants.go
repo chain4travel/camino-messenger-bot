@@ -1,15 +1,11 @@
 package constants
 
-const (
-	ProtocolVersion = "v10.0.0"
+const ProtocolVersion = "v10.0.0"
 
-	// BotVersion and BotGitCommit are set by go build -ldflags
-	BotVersion   = ""
-	BotGitCommit = ""
+var (
+	// AppVersion is set by go build -ldflags
+	AppVersion = ""
+
+	// AppGitCommit is set by go build -ldflags
+	AppGitCommit = ""
 )
-
-// var (
-// 	// BotVersion and BotGitCommit are set by go build -ldflags
-// 	BotVersion   string
-// 	BotGitCommit string
-// )

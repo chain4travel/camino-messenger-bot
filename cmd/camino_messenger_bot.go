@@ -16,7 +16,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:        "camino-messenger-bot",
 	Short:      "starts camino messenger bot",
-	Version:    constants.BotVersion,
+	Version:    constants.AppVersion,
 	SuggestFor: []string{"camino-messenger", "camino-messenger-bot", "camino-bot", "cmb"},
 	RunE:       rootFunc,
 }
@@ -58,7 +58,8 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	logger := zapLogger.Sugar()
 	defer func() { _ = logger.Sync() }()
 
-	logger.Infof("App version: %s (git: %s)", constants.BotVersion, constants.BotGitCommit) // TODO@
+	logger.Infof("App version: %s (git: %s)", constants.AppVersion, constants.AppGitCommit)
+	logger.Infof("Protocol version: %s", constants.ProtocolVersion)
 
 	app, err := app.NewApp(ctx, cfg, logger)
 	if err != nil {
