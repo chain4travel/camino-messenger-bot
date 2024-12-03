@@ -73,3 +73,22 @@ jobs:
       - name: Check Clean Branch
         shell: bash
         run: .github/workflows/check-clean-branch.sh
+
+  build_docker:
+    name: Build docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true      
+          
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: |
+            c4tplatform/camino-messenger-bot:temp
