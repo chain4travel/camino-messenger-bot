@@ -155,8 +155,8 @@ func (s *scheduler) Stop() error {
 	return nil
 }
 
-// Schedule schedules a job to be executed every period. If jobID is empty, a new job is created.
-// Otherwise, the existing job period is updated and expiration time is set to min(current expiration time, now + period).
+// Schedules a job to be executed every period.
+// If there is already scheduled job with the same name, then its period is updated.
 func (s *scheduler) Schedule(ctx context.Context, period time.Duration, jobName string) error {
 	session, err := s.storage.NewSession(ctx)
 	if err != nil {
