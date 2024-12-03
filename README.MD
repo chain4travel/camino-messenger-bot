@@ -43,7 +43,7 @@ To create a **CM Account** and add the bot to it - you will need **two** (test) 
 > [!IMPORTANT]
 > Remember to ensure the suite is connected to testnet Columbus if you are doing this for development purposes. 
 
-## Funding your wallet 
+### Funding your wallets 
 
 > [!IMPORTANT]
 > Funds must be available on both wallets before you can create the CM account. At least 100 CAM in the wallet used to create the CM Account and 100 CAM on bot wallet. To request testnet funds, go to our [discord](https://discord.gg/XhrZTBXv) and use the command `/faucet <columbus-x-chain-address> <amount>` (max amount is 150CAM every 72 hours)
