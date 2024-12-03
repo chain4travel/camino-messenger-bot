@@ -46,7 +46,7 @@ To create a **CM Account** and add the bot to it - you will need **two** (test) 
 ### Funding your wallets 
 
 > [!IMPORTANT]
-> Funds must be available on both wallets before you can create the CM account. At least 100 CAM in the wallet used to create the CM Account and 100 CAM on bot wallet. To request testnet funds, go to our [discord](https://discord.gg/XhrZTBXv) and use the command `/faucet <columbus-x-chain-address> <amount>` (max amount is 150 CAM every week)
+> Funds must be available on both wallets before you can create the CM account. At least 100 CAM in the wallet used to create the CM Account and 100 CAM on bot wallet. To request testnet funds, go to our [discord](https://discord.gg/XhrZTBXv) and use the command `/faucet <columbus-x-chain-address> <amount>`. More details about the faucet can be found [here](https://docs.camino.network/developer/guides/how-to-deploy-a-smart-contract/#3-request-funds-from-the-discord-faucet)
 
 ### Creating the CM Account via hardhat
 After you have your two wallets ready, clone the contracts repo, position inside the repo, and run:
