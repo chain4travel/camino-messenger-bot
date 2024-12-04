@@ -16,7 +16,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:        "camino-messenger-bot",
 	Short:      "starts camino messenger bot",
-	Version:    version.AppVersion,
+	Version:    version.FullVersion,
 	SuggestFor: []string{"camino-messenger", "camino-messenger-bot", "camino-bot", "cmb"},
 	RunE:       rootFunc,
 }
@@ -59,9 +59,8 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	defer func() { _ = logger.Sync() }()
 
 	logger.Infof("App version: %s (git: %s)", version.AppVersion, version.AppGitCommit)
-	logger.Infof("Protocol version: %s", version.ProtocolVersion)
-	logger.Infof("buf.build protocolbuffers version: %s", version.BufBuildPBCommit)
-	logger.Infof("buf.build grpc version: %s", version.BufBuildGRPCCommit)
+	logger.Infof("buf.build protocolbuffers version: %s (CMP %s)", version.BufBuildPBCommit, version.BufBuildPBCMPRelease)
+	logger.Infof("buf.build grpc version: %s (CMP %s)", version.BufBuildGRPCCommit, version.BufBuildGRPCCMPRelease)
 	logger.Infof("camino-messenger-contracts version: %s", version.ContractsGitCommit)
 
 	app, err := app.NewApp(ctx, cfg, logger)

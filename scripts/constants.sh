@@ -9,3 +9,7 @@ current_branch=${current_branch_temp////-}
 # camino-messenger-bot and caminoethvm git tag and sha
 git_commit=${CAMINO_BOT_COMMIT:-$(git rev-parse --short HEAD)}
 git_tag=${CAMINO_BOT_TAG:-$(git describe --tags --abbrev=0 --always || echo unknown)}
+
+# get protocol releases from buf.build
+grpc_release=$(scripts/resolve_protocol_release.sh buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go)
+protocolbuffers_release=$(scripts/resolve_protocol_release.sh buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go)
