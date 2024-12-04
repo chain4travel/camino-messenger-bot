@@ -24,6 +24,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+echo "Starting build process..."
+
 if [ -z "${CAMINOBOT_PATH}" ]; then
     # camino-messenger-bot root folder
     CAMINOBOT_PATH=$(
@@ -31,6 +33,9 @@ if [ -z "${CAMINOBOT_PATH}" ]; then
         cd .. && pwd
     )
 fi
+echo "cd $CAMINOBOT_PATH"
+cd "$CAMINOBOT_PATH"
+
 # Load the constants
 echo "Preparing constants..."
 source "$CAMINOBOT_PATH"/scripts/constants.sh
@@ -58,8 +63,8 @@ echo "$BUILD_CMD"
 eval "$BUILD_CMD"
 
 if [ $? -eq 0 ]; then
+    echo "Output binary: ${CAMINOBOT_PATH}/${OUTPUT_BINARY}"
     echo "Build successful!"
-    echo "Output binary: ${OUTPUT_BINARY}"
 else
     echo "Build failed."
     exit 1
