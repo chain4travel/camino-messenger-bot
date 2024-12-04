@@ -8,9 +8,9 @@ RUN apk add olm-dev
 
 # build
 COPY . .
-RUN apk --no-cache add git
+RUN apk --no-cache add git bash
 RUN git submodule update --init
-RUN CAMINOBOT_PATH=$(pwd) sh scripts/build.sh
+RUN CAMINOBOT_PATH=$(pwd) bash ./scripts/build.sh
 
 
 #runtime stage
