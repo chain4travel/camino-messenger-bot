@@ -6,18 +6,29 @@ import (
 )
 
 var (
-	// set by go build -ldflags
-	AppVersion   = "Unspecified"
+	// AppVersion set by go build -ldflags
+	AppVersion = "Unspecified"
+
+	// AppGitCommi set by go build -ldflags
 	AppGitCommit = "Unspecified"
 
-	BufBuildPBCMPRelease   = "Unspecified"
+	// BufBuildPBCMPRelease is set by go build -ldflags
+	BufBuildPBCMPRelease = "Unspecified"
+
+	// BufBuildGRPCCMPRelease is set by go build -ldflags
 	BufBuildGRPCCMPRelease = "Unspecified"
 
-	// set during init
-	BufBuildPBCommit   = "Unspecified"
+	// BufBuildPBCommit set during init from pkg dependency version
+	BufBuildPBCommit = "Unspecified"
+
+	// BufBuildGRPCCommit set during init from pkg dependency version
 	BufBuildGRPCCommit = "Unspecified"
+
+	// ContractsGitCommit set during init from pkg dependency version
 	ContractsGitCommit = "Unspecified"
-	FullVersion        = "Unspecified"
+
+	// FullVersion is set during init by combining all version info
+	FullVersion = "Unspecified"
 )
 
 func init() {
