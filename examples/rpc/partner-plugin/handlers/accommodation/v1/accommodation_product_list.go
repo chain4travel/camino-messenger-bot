@@ -37,6 +37,15 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 	err := json.Unmarshal([]byte(jsonProperties), &properties)
 	if err != nil {
 		log.Printf("Error unmarshalling properties: %v", err)
+		return &accommodationv1.AccommodationProductListResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Internal server error",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// filter only property objects
