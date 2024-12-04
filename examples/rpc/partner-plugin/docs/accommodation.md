@@ -151,3 +151,114 @@ Used to retrieve detailed information about a specific accommodation product.
 # Accommodation Search V1 & V2
 
 Used to search availability for accommodation products based on the provided criteria.
+
+Search criteria:
+
+- location_geo_tree (country, region, city_or_resort)
+- travel_period (start_date, end_date)
+- supplier_codes (array of supplier codes to filter by)
+
+There are restrictions on the travel period. Searching accommodations for travel period outside of mentioned dates is considered invalid - meaning there are no bookings available. Valid search query that will return results for this partner plugin:
+
+- start_date (year, month, day) 2025-06-01
+- end_date (year, month, day) 2025-06-30
+
+Available supplier codes for the accommodation search:
+- HTL123456
+- HTL789012
+- HTL345678
+- HTL901234
+- HTL567890
+
+Available geo tree locations for the accommodation search (country, region, city_or_resort):
+
+- country (13, 9, 90, 82, 32)
+- region (Balearic Islands, Graubünden, Antalya, Berlin, Hawaii)
+- city_or_resort (Mallorca, Arosa, Alanya, Berlin, Maui)
+
+## Request message example
+```
+{
+    "queries": [
+        {
+            "query_id": 1,
+            "search_parameters_accommodation": {
+                "location_geo_tree": {
+                    "country": 13,
+                    "region": "Balearic Islands",
+                    "city_or_resort": "Mallorca"
+                }
+            },
+            "travel_period": {
+                "start_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 15
+                },
+                "end_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 18
+                }
+            }
+        },
+        {
+            "query_id": 2,
+            "search_parameters_accommodation": {
+                "supplier_codes": [
+                    {
+                        "supplier_code": "HTL123456"
+                    }
+                ]
+            },
+            "travel_period": {
+                "start_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 15
+                },
+                "end_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 18
+                }
+            }
+        }
+    ],
+    "search_parameters_generic": {
+        "currency": {
+            "native_token": {}
+        }
+    }
+}
+```
+
+# Validation
+
+Used for validating the availability of the search query (accommodation search).
+
+## Request message example
+```
+{
+    "validation_object": {
+        "search_identifier": {
+            "result_id": 1,
+            "search_id": {
+                "value": "a3e2fb81-b632-4533-bfa4-86912847b5c8"
+            }
+        }
+    }
+}
+```
+
+# Mint
+
+## Request message example
+```
+{
+    "buyer_address": "0x1d32f368d8dc947270576773cc5E4778D7cA30Ba",
+    "validation_id": {
+        "value": "d731c098-826d-422c-b964-02775427f604"
+    }
+}
+```
