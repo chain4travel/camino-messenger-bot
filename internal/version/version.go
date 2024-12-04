@@ -36,7 +36,7 @@ func init() {
 	FullVersion = fmt.Sprintf("%s (git: %s)\n\nlibs:\n  %s: %s (%s)\n  %s: %s (%s)\n  %s: %s",
 		AppVersion,
 		AppGitCommit,
-		"buf.build protocolbuffers ",
+		"buf.build protocolbuffers  ",
 		BufBuildPBCommit,
 		BufBuildPBCMPRelease,
 		"buf.build grpc            ",
