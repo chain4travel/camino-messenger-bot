@@ -262,7 +262,7 @@ func filterPropertiesByProductCodes(properties []*accommodationv1.PropertyExtend
 	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
 		for _, code := range productCodes {
-			if prop.Property.ProductCodes[0].Code == code.Code {
+			if len(prop.Property.ProductCodes) > 0 && prop.Property.ProductCodes[0].Code == code.Code {
 				filtered = append(filtered, prop)
 				break
 			}
