@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
+	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"google.golang.org/grpc"
 )
@@ -29,7 +30,14 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	log.Printf("Responding to request (Accommodation Product Info): %s", md.RequestID)
 
 	// Load properties data
-	properties := mock_data.LoadPropertiesMockData()
+	var properties []accommodationv2.PropertyExtendedInfo
+	jsonProperties := mock_data.PropertiesJSON
+
+	// Unmarshal properties
+	err := json.Unmarshal([]byte(jsonProperties), &properties)
+	if err != nil {
+		log.Printf("Error unmarshalling properties: %v", err)
+	}
 
 	// Initialize suppliersFiltered with the correct type
 	suppliersFiltered := []*accommodationv2.PropertyExtendedInfo{}
@@ -59,12 +67,11 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	if req.Languages != nil {
 		log.Printf("Languages requested: %v", req.Languages)
 
-		for i := range suppliersFiltered {
-			property := &suppliersFiltered[i]
+		for _, property := range suppliersFiltered {
 			filteredDescriptions := []*typesv1.LocalizedDescriptionSet{}
 			filteredRoomDescriptions := []*typesv1.LocalizedDescriptionSet{}
 
-			for _, descSet := range (*property).LocalizedDescriptions {
+			for _, descSet := range property.LocalizedDescriptions {
 				for _, reqLang := range req.Languages {
 					if descSet.Language == reqLang {
 						filteredDescriptions = append(filteredDescriptions, descSet)
@@ -72,7 +79,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 					}
 				}
 			}
-			for _, roomDescSet := range (*property).LocalizedRoomDescriptions {
+			for _, roomDescSet := range property.LocalizedRoomDescriptions {
 				for _, reqLang := range req.Languages {
 					if roomDescSet.Language == reqLang {
 						filteredRoomDescriptions = append(filteredRoomDescriptions, roomDescSet)
@@ -81,10 +88,10 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 				}
 			}
 
-			if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) && !containsProperty(filteredProperties, *property) {
-				(*property).LocalizedDescriptions = filteredDescriptions
-				(*property).LocalizedRoomDescriptions = filteredRoomDescriptions
-				filteredProperties = append(filteredProperties, *property)
+			if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) && !containsProperty(filteredProperties, property) {
+				property.LocalizedDescriptions = filteredDescriptions
+				property.LocalizedRoomDescriptions = filteredRoomDescriptions
+				filteredProperties = append(filteredProperties, property)
 			}
 		}
 	} else {
@@ -92,7 +99,6 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	}
 
 	if len(filteredProperties) == 0 {
-		// TODO: @VjeraTurk Should grpc.SendHeader(ctx, md.ToGrpcMD()) be before any return?
 		return &accommodationv2.AccommodationProductInfoResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
@@ -114,11 +120,6 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	// reload properties data
-	if err := mock_data.ReloadPropertiesMockData(); err != nil {
-		log.Printf("Error reloading properties data: %v", err)
-	}
 
 	grpc.SendHeader(ctx, md.ToGrpcMD())
 

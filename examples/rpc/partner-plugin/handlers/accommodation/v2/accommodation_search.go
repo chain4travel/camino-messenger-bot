@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -9,8 +10,7 @@ import (
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
-	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data/v2"
+	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -35,11 +35,15 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 
 	log.Printf("Responding to request (Accommodation Search): %s", md.RequestID)
 
-	// load mock data
-	properties := mock_data.LoadPropertiesMockData()
+	// Load properties data
+	var properties []accommodationv2.PropertyExtendedInfo
+	jsonProperties := mock_data.PropertiesJSON
 
-	// log
-	fmt.Printf("properties: %+v\n", properties)
+	// Unmarshal properties
+	err := json.Unmarshal([]byte(jsonProperties), &properties)
+	if err != nil {
+		log.Printf("Error unmarshalling properties: %v", err)
+	}
 
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
@@ -54,6 +58,39 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 				},
 			},
 		}, nil
+	}
+
+	// loop queries and check if there is travel period
+	for _, query := range req.Queries {
+		if query.TravelPeriod == nil {
+			return &accommodationv2.AccommodationSearchResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{
+						{
+							Message: "No travel period provided",
+							Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+						},
+					},
+				},
+			}, nil
+		}
+
+		// only period between 01.06.2025 and 30.06.2025 is allowed - represents available period for the booking
+		if query.TravelPeriod.GetStartDate().GetYear() != 2025 || query.TravelPeriod.GetStartDate().GetMonth() != 6 || query.TravelPeriod.GetStartDate().GetDay() <= 1 &&
+			query.TravelPeriod.GetEndDate().GetYear() != 2025 || query.TravelPeriod.GetEndDate().GetMonth() != 6 || query.TravelPeriod.GetEndDate().GetDay() >= 30 {
+			return &accommodationv2.AccommodationSearchResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{
+						{
+							Message: "No results available for the period",
+							Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+						},
+					},
+				},
+			}, nil
+		}
 	}
 
 	searchResults := []*accommodationv2.AccommodationSearchResult{}
@@ -87,8 +124,6 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			}
 		}
 
-		var price = 2
-
 		// generate search result
 		for _, prop := range available_properties {
 
@@ -102,7 +137,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			for _, room := range prop.Rooms {
 
 				units = append(units, &accommodationv2.Unit{
-					Type:             0,
+					Type:             accommodationv2.UnitType(prop.Property.CategoryUnit),
 					SupplierRoomCode: room.SupplierCode,
 					SupplierRoomName: room.SupplierName,
 					OriginalRoomName: room.OriginalName,
@@ -122,9 +157,9 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					Beds:         room.Beds,
 					PriceDetail: &typesv2.PriceDetail{
 						Price: &typesv2.Price{
-							Value: fmt.Sprintf("%d", price),
+							Value: "100",
 							Currency: &typesv2.Currency{
-								Currency: req.SearchParametersGeneric.Currency.Currency,
+								Currency: &typesv2.Currency_NativeToken{},
 							},
 						},
 					},
@@ -139,8 +174,6 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					Remarks:        "",
 				})
 
-				price += 2
-
 				if units_requested == int32(len(units)) {
 					break
 				}
@@ -153,10 +186,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					QueryId:  query.QueryId,
 					TotalPriceDetail: &typesv2.PriceDetail{
 						Price: &typesv2.Price{
-							Value: fmt.Sprintf("%d", price),
-							Currency: &typesv2.Currency{
-								Currency: req.SearchParametersGeneric.Currency.Currency,
-							},
+							Value: "100",
 						},
 					},
 					Units: units,
@@ -170,18 +200,16 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 				Alerts: []*typesv1.Alert{
-					{Message: fmt.Sprintf("No results found for search %v", req.Queries)},
+					{
+						Message: fmt.Sprintf("No results found for search %v", req.Queries),
+						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					},
 				},
 			},
 		}, nil
 	}
 
-	cache := cache.NewSearchCache()
-	// Store in cache after search
-
 	searchId := uuid.New().String()
-
-	cache.SetV2(searchId, searchResults)
 
 	response := &accommodationv2.AccommodationSearchResponse{
 		Header: &typesv1.ResponseHeader{
@@ -191,11 +219,6 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			SearchId: &typesv1.UUID{Value: searchId},
 		},
 		Results: searchResults,
-		Travellers: []*typesv2.BasicTraveller{{
-			Type:        typesv2.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
-			Birthdate:   &typesv1.Date{},
-			Nationality: typesv2.Country_COUNTRY_DE,
-		}},
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -222,7 +245,7 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv2.PropertyExt
 	return filtered
 }
 
-// getTravellerIds extracts traveller IDs from []*typesv1.BasicTraveller
+// getTravellerIds extracts traveller IDs from []*typesv2.BasicTraveller
 func getTravellerIds(travellers []*typesv2.BasicTraveller) []int32 {
 	var ids []int32
 	for _, traveller := range travellers {

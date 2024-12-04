@@ -9,7 +9,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
 	mock_data "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/data"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/google/uuid"
@@ -45,9 +44,6 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		log.Printf("Error unmarshalling properties: %v", err)
 	}
 
-	// log
-	fmt.Printf("properties: %+v\n", properties)
-
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv1.AccommodationSearchResponse{
@@ -61,6 +57,39 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 				},
 			},
 		}, nil
+	}
+
+	// loop queries and check if there is travel period
+	for _, query := range req.Queries {
+		if query.TravelPeriod == nil {
+			return &accommodationv1.AccommodationSearchResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{
+						{
+							Message: "No travel period provided",
+							Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+						},
+					},
+				},
+			}, nil
+		}
+
+		// only period between 01.06.2025 and 30.06.2025 is allowed - represents available period for the booking
+		if query.TravelPeriod.GetStartDate().GetYear() != 2025 || query.TravelPeriod.GetStartDate().GetMonth() != 6 || query.TravelPeriod.GetStartDate().GetDay() <= 1 &&
+			query.TravelPeriod.GetEndDate().GetYear() != 2025 || query.TravelPeriod.GetEndDate().GetMonth() != 6 || query.TravelPeriod.GetEndDate().GetDay() >= 30 {
+			return &accommodationv1.AccommodationSearchResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{
+						{
+							Message: "No results available for the period",
+							Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+						},
+					},
+				},
+			}, nil
+		}
 	}
 
 	searchResults := []*accommodationv1.AccommodationSearchResult{}
@@ -93,8 +122,6 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 				available_properties = append(available_properties, prop)
 			}
 		}
-
-		var price = 2
 
 		// generate search result
 		for _, prop := range available_properties {
@@ -129,9 +156,9 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 					Beds:         room.Beds,
 					PriceDetail: &typesv1.PriceDetail{
 						Price: &typesv1.Price{
-							Value: fmt.Sprintf("%d", price),
+							Value: "100",
 							Currency: &typesv1.Currency{
-								Currency: req.SearchParametersGeneric.Currency.Currency,
+								Currency: &typesv1.Currency_NativeToken{},
 							},
 						},
 					},
@@ -146,8 +173,6 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 					Remarks:        "",
 				})
 
-				price += 2
-
 				if units_requested == int32(len(units)) {
 					break
 				}
@@ -160,10 +185,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 					QueryId:  query.QueryId,
 					TotalPriceDetail: &typesv1.PriceDetail{
 						Price: &typesv1.Price{
-							Value: fmt.Sprintf("%d", price),
-							Currency: &typesv1.Currency{
-								Currency: req.SearchParametersGeneric.Currency.Currency,
-							},
+							Value: "100",
 						},
 					},
 					Units: units,
@@ -186,13 +208,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		}, nil
 	}
 
-	// generate a random string of 8 numbers
-	cache := cache.NewSearchCache()
-
 	searchId := uuid.New().String()
-
-	// Store in cache after search
-	cache.SetV1(searchId, searchResults)
 
 	response := &accommodationv1.AccommodationSearchResponse{
 		Header: &typesv1.ResponseHeader{

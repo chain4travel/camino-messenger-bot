@@ -1,8 +1,7 @@
 {
     "supplier_codes": [
         {
-            "supplier_code": "HTL123456",
-            "supplier_number": 847
+            "supplier_code": "HTL123456"
         }
     ],
     "languages": [

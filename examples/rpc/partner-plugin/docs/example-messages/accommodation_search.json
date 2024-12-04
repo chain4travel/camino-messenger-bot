@@ -11,48 +11,38 @@
             },
             "travel_period": {
                 "start_date": {
-                    "year": 2024,
-                    "month": 11,
+                    "year": 2025,
+                    "month": 6,
                     "day": 15
                 },
                 "end_date": {
-                    "year": 2024,
-                    "month": 11,
+                    "year": 2025,
+                    "month": 6,
                     "day": 18
                 }
-            },
-            "unit_count": 1,
-            "unit_type": 0
+            }
         },
         {
             "query_id": 2,
             "search_parameters_accommodation": {
-                "location_geo_tree": {
-                    "country": 13,
-                    "region": "Balearic Islands",
-                    "city_or_resort": "Mallorca"
-                }
+                "supplier_codes": [
+                    {
+                        "supplier_code": "HTL123456"
+                    }
+                ]
             },
             "travel_period": {
                 "start_date": {
-                    "year": 2024,
-                    "month": 11,
+                    "year": 2025,
+                    "month": 6,
                     "day": 15
                 },
                 "end_date": {
-                    "year": 2024,
-                    "month": 11,
+                    "year": 2025,
+                    "month": 6,
                     "day": 18
-                },
-                "flexible": false,
-                "los_from_nights": 894374666,
-                "los_to_nights": -1834212935,
-                "dow": {
-                    "dow": 1149139476
                 }
-            },
-            "unit_count": 2,
-            "unit_type": "UNIT_TYPE_UNSPECIFIED"
+            }
         }
     ],
     "search_parameters_generic": {

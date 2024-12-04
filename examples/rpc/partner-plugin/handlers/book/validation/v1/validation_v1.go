@@ -8,11 +8,10 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	cache "github.com/chain4travel/camino-messenger-bot/examples/rpc/partner-plugin/services/cache"
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/google/uuid"
 )
 
 // Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
@@ -48,57 +47,20 @@ func (*ValidationServiceV1Server) Validation(ctx context.Context, validationRequ
 		return &response, nil
 	}
 
-	searchId := validationRequest.ValidationObject.SearchIdentifier.SearchId
-	resultId := validationRequest.ValidationObject.SearchIdentifier.ResultId
-	validationCache := cache.NewValidationCache()
-	accommodationCache := cache.NewSearchCache()
-
-	accommodationSearchResponse, found := accommodationCache.GetV1(searchId.String()) // Directly access using searchId and resultId
-	if !found {
-		response := bookv1.ValidationResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{
-					{
-						Message: fmt.Sprintf("no validation data found for searchId: %v", searchId),
-						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-					},
-				},
-			},
-		}
-		return &response, nil
-	}
-	var priceDetail *typesv1.PriceDetail
-	for _, result := range accommodationSearchResponse {
-		if result.ResultId == resultId {
-			priceDetail = result.TotalPriceDetail
-		} else {
-			response := bookv1.ValidationResponse{
-				Header: &typesv1.ResponseHeader{
-					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-					Alerts: []*typesv1.Alert{
-						{
-							Message: fmt.Sprintf("no validation data found for resultId: %v", resultId),
-							Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-						},
-					},
-				},
-			}
-			return &response, nil
-		}
-
-	}
-
-	var validationId = typesv1.UUID{Value: uuid.New().String()}
-	validationCache.SetV1(validationId.Value, priceDetail)
-
 	response := bookv1.ValidationResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		ValidationId:     &validationId,
+		ValidationId:     &typesv1.UUID{Value: uuid.New().String()},
 		ValidationObject: validationRequest.ValidationObject,
-		PriceDetail:      priceDetail,
+		PriceDetail: &typesv1.PriceDetail{
+			Price: &typesv1.Price{
+				Value: "100",
+				Currency: &typesv1.Currency{
+					Currency: &typesv1.Currency_NativeToken{},
+				},
+			},
+		},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
