@@ -6,10 +6,10 @@ import (
 )
 
 var (
-	// AppVersion set by go build -ldflags
+	// AppVersion is set by go build -ldflags
 	AppVersion = "Unspecified"
 
-	// AppGitCommi set by go build -ldflags
+	// AppGitCommit is set by go build -ldflags
 	AppGitCommit = "Unspecified"
 
 	// BufBuildPBCMPRelease is set by go build -ldflags
