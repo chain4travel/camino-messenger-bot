@@ -29,7 +29,7 @@ if [ -z "$short_hash" ]; then
     exit 0
 fi
 
-label=$(curl -s -X POST "https://buf.build/buf.registry.module.v1beta1.LabelService/ListLabels" \
+label=$(curl -s -f --max-time 10 -X POST "https://buf.build/buf.registry.module.v1beta1.LabelService/ListLabels" \
     -H "Content-Type: application/json" \
     --data '{
        "pageSize": 25,
