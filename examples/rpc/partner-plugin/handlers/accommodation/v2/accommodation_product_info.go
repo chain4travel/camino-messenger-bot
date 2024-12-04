@@ -64,7 +64,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 
 	filteredProperties := []*accommodationv2.PropertyExtendedInfo{}
 
-	if req.Languages != nil {
+	if len(req.Languages) > 0 {
 		log.Printf("Languages requested: %v", req.Languages)
 
 		for _, property := range suppliersFiltered {
