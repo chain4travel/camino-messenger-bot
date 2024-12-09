@@ -1,0 +1,53 @@
+{
+    "queries": [
+        {
+            "query_id": 1,
+            "search_parameters_accommodation": {
+                "location_geo_tree": {
+                    "country": 13,
+                    "region": "Balearic Islands",
+                    "city_or_resort": "Mallorca"
+                }
+            },
+            "travel_period": {
+                "start_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 15
+                },
+                "end_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 18
+                }
+            }
+        },
+        {
+            "query_id": 2,
+            "search_parameters_accommodation": {
+                "supplier_codes": [
+                    {
+                        "supplier_code": "HTL123456"
+                    }
+                ]
+            },
+            "travel_period": {
+                "start_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 15
+                },
+                "end_date": {
+                    "year": 2025,
+                    "month": 6,
+                    "day": 18
+                }
+            }
+        }
+    ],
+    "search_parameters_generic": {
+        "currency": {
+            "native_token": {}
+        }
+    }
+}
