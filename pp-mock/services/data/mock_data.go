@@ -21,7 +21,7 @@ func init() {
 	if err := json.Unmarshal(propertiesJSON, &PropertiesV1); err != nil {
 		panic(fmt.Errorf("error unmarshaling properties v1: %w", err))
 	}
-	if err := json.Unmarshal(propertiesJSON, &PropertiesV1); err != nil {
+	if err := json.Unmarshal(propertiesJSON, &PropertiesV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling properties v2: %w", err))
 	}
 }
