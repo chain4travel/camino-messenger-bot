@@ -10,7 +10,7 @@ import (
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	mockData "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
+	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
 )
 
@@ -34,7 +34,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 
 	// Load properties data
 	var properties []accommodationv2.PropertyExtendedInfo
-	jsonProperties := mockData.PropertiesJSON
+	jsonProperties := mockdata.PropertiesJSON
 
 	// Unmarshal properties
 	err := json.Unmarshal(jsonProperties, &properties)

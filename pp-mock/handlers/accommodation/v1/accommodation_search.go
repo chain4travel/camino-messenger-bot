@@ -10,7 +10,7 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	mockData "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
+	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
@@ -22,9 +22,9 @@ type AccommodationSearchV1Server struct{}
 func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req *accommodationv1.AccommodationSearchRequest) (*accommodationv1.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 
-	var search_generic_params = req.SearchParametersGeneric
+	searchGenericParams := req.SearchParametersGeneric
 	// print params
-	fmt.Printf("Search generic params: %+v\n", search_generic_params)
+	fmt.Printf("Search generic params: %+v\n", searchGenericParams)
 
 	if err := md.ExtractMetadata(ctx); err != nil {
 		log.Print("error extracting metadata")
@@ -36,7 +36,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 	// Load properties data
 	var properties []accommodationv1.PropertyExtendedInfo
-	jsonProperties := mockData.PropertiesJSON
+	jsonProperties := mockdata.PropertiesJSON
 
 	// Unmarshal properties
 	err := json.Unmarshal(jsonProperties, &properties)
@@ -78,6 +78,8 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		}
 	}
 
+	var resultIDnum int32 = 1
+
 	searchResults := []*accommodationv1.AccommodationSearchResult{}
 	availableProperties := []*accommodationv1.PropertyExtendedInfo{}
 	// loop request queries
@@ -88,14 +90,14 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		}
 
 		// get filtered properties
-		var filtered_props = filterPropertiesByGeoTreeLocation(props, query.SearchParametersAccommodation.GetLocationGeoTree())
+		filteredProps := filterPropertiesByGeoTreeLocation(props, query.SearchParametersAccommodation.GetLocationGeoTree())
 		// filter by product codes
-		filtered_props = filterPropertiesByProductCodes(filtered_props, query.SearchParametersAccommodation.GetProductCodes())
+		filteredProps = filterPropertiesByProductCodes(filteredProps, query.SearchParametersAccommodation.GetProductCodes())
 		// filter by supplier codes
-		filtered_props = filterPropertiesBySupplierCodes(filtered_props, query.SearchParametersAccommodation.GetSupplierCodes())
+		filteredProps = filterPropertiesBySupplierCodes(filteredProps, query.SearchParametersAccommodation.GetSupplierCodes())
 
 		// loop filtered properties and check if they are already in availableProperties
-		for _, prop := range filtered_props {
+		for _, prop := range filteredProps {
 			// Check if property already exists in availableProperties
 			exists := false
 			for _, existingProp := range availableProperties {
@@ -155,7 +157,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			}
 
 			searchResults = append(searchResults, &accommodationv1.AccommodationSearchResult{
-				ResultId: int32(len(searchResults) + 1),
+				ResultId: resultIDnum,
 				QueryId:  query.QueryId,
 				TotalPriceDetail: &typesv1.PriceDetail{
 					Price: &typesv1.Price{
@@ -165,6 +167,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 				Units: units,
 			})
 
+			resultIDnum++
 		}
 	}
 
@@ -211,7 +214,7 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv1.PropertyExt
 
 	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
-		var address = prop.Property.ContactInfo.Address[0]
+		address := prop.Property.ContactInfo.Address[0]
 		if address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort && address.GeoTree.Country == geoTreeLocation.Country && address.GeoTree.Region == geoTreeLocation.Region {
 			filtered = append(filtered, prop)
 		}
