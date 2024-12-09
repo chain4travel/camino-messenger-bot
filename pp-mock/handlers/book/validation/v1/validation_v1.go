@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	"github.com/google/uuid"
 )
 
@@ -55,7 +56,7 @@ func (*ValidationServiceV1Server) Validation(ctx context.Context, validationRequ
 		ValidationObject: validationRequest.ValidationObject,
 		PriceDetail: &typesv1.PriceDetail{
 			Price: &typesv1.Price{
-				Value: "100",
+				Value: common.DefaultPrice,
 				Currency: &typesv1.Currency{
 					Currency: &typesv1.Currency_NativeToken{},
 				},

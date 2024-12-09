@@ -10,7 +10,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation"
+	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -52,7 +52,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 
 	// loop queries and check if there is travel period
 	for _, query := range req.Queries {
-		if accommodation.IsTravelPeriodAllowed(query.TravelPeriod) {
+		if common.IsTravelPeriodAllowed(query.TravelPeriod) {
 			return &accommodationv2.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -122,7 +122,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					Beds:         room.Beds,
 					PriceDetail: &typesv2.PriceDetail{
 						Price: &typesv2.Price{
-							Value: "100",
+							Value: common.DefaultPrice,
 							Currency: &typesv2.Currency{
 								Currency: &typesv2.Currency_NativeToken{},
 							},
@@ -145,7 +145,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 				QueryId:  query.QueryId,
 				TotalPriceDetail: &typesv2.PriceDetail{
 					Price: &typesv2.Price{
-						Value: "100",
+						Value: common.DefaultPrice,
 					},
 				},
 				Units: units,

@@ -12,8 +12,10 @@ import (
 //go:embed properties.json
 var propertiesJSON []byte
 
-var PropertiesV1 []*accommodationv1.PropertyExtendedInfo
-var PropertiesV2 []*accommodationv2.PropertyExtendedInfo
+var (
+	PropertiesV1 []*accommodationv1.PropertyExtendedInfo
+	PropertiesV2 []*accommodationv2.PropertyExtendedInfo
+)
 
 func init() {
 	if err := json.Unmarshal(propertiesJSON, &PropertiesV1); err != nil {

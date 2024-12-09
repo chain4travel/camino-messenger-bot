@@ -1,10 +1,12 @@
-package accommodation
+package common
 
 import (
 	"time"
 
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 )
+
+const DefaultPrice = "100"
 
 var (
 	allowedTimePeriodStart = time.Date(2025, time.June, 1, 0, 0, 0, 0, time.UTC)
