@@ -63,8 +63,8 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	// loop queries and check if there is travel period
 	for _, query := range req.Queries {
 		// only period between 01.06.2025 and 30.06.2025 is allowed - represents available period for the booking
-		if query.TravelPeriod.GetStartDate().GetYear() != 2025 || query.TravelPeriod.GetStartDate().GetMonth() != 6 || query.TravelPeriod.GetStartDate().GetDay() <= 1 &&
-			query.TravelPeriod.GetEndDate().GetYear() != 2025 || query.TravelPeriod.GetEndDate().GetMonth() != 6 || query.TravelPeriod.GetEndDate().GetDay() >= 30 {
+		if (query.TravelPeriod.GetStartDate().GetYear() != 2025 || query.TravelPeriod.GetStartDate().GetMonth() != 6 || query.TravelPeriod.GetStartDate().GetDay() <= 1) ||
+			(query.TravelPeriod.GetEndDate().GetYear() != 2025 || query.TravelPeriod.GetEndDate().GetMonth() != 6 || query.TravelPeriod.GetEndDate().GetDay() >= 30) {
 			return &accommodationv2.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
