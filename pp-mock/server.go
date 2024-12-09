@@ -43,9 +43,11 @@ func main() {
 	// Book - Validation
 	bookv1grpc.RegisterValidationServiceServer(grpcServer, &handlers_validation_v1.ValidationServiceV1Server{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &handlers_validation_v2.ValidationServiceV2Server{})
+	// TODO@ newline
 	// Ping
 	pingv1grpc.RegisterPingServiceServer(grpcServer, &handlers_ping_v1.PingServiceV1Server{})
 
+	// TODO@ do normal cobra/viper cmd+config ?
 	port := 55555
 	var err error
 	p, found := os.LookupEnv("PORT")
@@ -55,13 +57,14 @@ func main() {
 			panic(err)
 		}
 	}
+	// TODO@ use zap logger ?
 	log.Printf("Starting server on port: %d", port)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	reflection.Register(grpcServer)
+	reflection.Register(grpcServer) // TODO@ move next to server registration
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

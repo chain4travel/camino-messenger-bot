@@ -58,29 +58,33 @@
                         "ref": "https://www.sunsetbeachresort.com"
                     }
                 ]
-        },
+            },
             "coordinates": {
                 "latitude": 39.5696,
                 "longitude": 2.6502
             },
             "status": 1,
-            "airports": ["PMI", "BCN"]
+            "airports": [
+                "PMI",
+                "BCN"
+            ]
         },
-      "images": [
-        {
-            "file": {
-                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House"
-            },
-            "width": 600,
-            "height": 750,
-            "category": "beach"        }
+        "images": [
+            {
+                "file": {
+                    "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "name": "Beach House"
+                },
+                "width": 600,
+                "height": 750,
+                "category": "beach"
+            }
         ],
         "videos": [
             {
-            "file": {
-                "url": "https://example.com/videos/resort-tour.mp4"
-            }
+                "file": {
+                    "url": "https://example.com/videos/resort-tour.mp4"
+                }
             }
         ],
         "classifications": [
@@ -186,17 +190,17 @@
                 "supplier_code": "DBL-SEA",
                 "supplier_name": "Double Room Sea View",
                 "original_name": "Deluxe Double Sea View",
-               "images": [
-        {
-            "file": {
-                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House"
-            },
-            "width": 600,
-            "height": 750,
-            "category": "beach"
-        }
-        ],
+                "images": [
+                    {
+                        "file": {
+                            "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                            "name": "Beach House"
+                        },
+                        "width": 600,
+                        "height": 750,
+                        "category": "beach"
+                    }
+                ],
                 "descriptions": [
                     {
                         "language": 24,
@@ -319,24 +323,27 @@
                 "longitude": 7.7491
             },
             "status": 1,
-            "airports": ["ZRH", "GVA"]
+            "airports": [
+                "ZRH",
+                "GVA"
+            ]
         },
         "images": [
-        {
-            "file": {
-                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House"
-            },
-            "width": 600,
-            "height": 750,
-            "category": "beach"
-        }
+            {
+                "file": {
+                    "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "name": "Beach House"
+                },
+                "width": 600,
+                "height": 750,
+                "category": "beach"
+            }
         ],
         "videos": [
             {
-            "file": {
-                "url": "https://example.com/videos/resort-tour.mp4"
-            }
+                "file": {
+                    "url": "https://example.com/videos/resort-tour.mp4"
+                }
             }
         ],
         "classifications": [
@@ -562,25 +569,27 @@
                 "longitude": 30.7133
             },
             "status": 1,
-            "airports": ["AYT"]
+            "airports": [
+                "AYT"
+            ]
         },
-       "images": [
-        {
-            "file": {
-                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House",
-                "last_modified":1710071700
-            },
-            "width": 600,
-            "height": 750,
-            "category": "beach"
-        }
+        "images": [
+            {
+                "file": {
+                    "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "name": "Beach House",
+                    "last_modified": 1710071700
+                },
+                "width": 600,
+                "height": 750,
+                "category": "beach"
+            }
         ],
         "videos": [
             {
-            "file": {
-                "url": "https://example.com/videos/resort-tour.mp4"
-            }
+                "file": {
+                    "url": "https://example.com/videos/resort-tour.mp4"
+                }
             }
         ],
         "classifications": [
@@ -756,7 +765,7 @@
     },
     {
         "property": {
-            "last_modified":1710071700,
+            "last_modified": 1710071700,
             "supplier_code": {
                 "supplier_code": "HTL901234",
                 "supplier_number": 123
@@ -803,25 +812,28 @@
                 "longitude": 13.4050
             },
             "status": 1,
-            "airports": ["TXL", "SXF"]
+            "airports": [
+                "TXL",
+                "SXF"
+            ]
         },
         "images": [
-        {
-            "file": {
-                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House",
-                "last_modified":1710071700
-            },
-            "width": 600,
-            "height": 750,
-            "category": "beach"
-        }
+            {
+                "file": {
+                    "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "name": "Beach House",
+                    "last_modified": 1710071700
+                },
+                "width": 600,
+                "height": 750,
+                "category": "beach"
+            }
         ],
         "videos": [
             {
-            "file": {
-                "url": "https://example.com/videos/resort-tour.mp4"
-            }
+                "file": {
+                    "url": "https://example.com/videos/resort-tour.mp4"
+                }
             }
         ],
         "classifications": [
@@ -997,7 +1009,7 @@
     },
     {
         "property": {
-            "last_modified":1710071700,
+            "last_modified": 1710071700,
             "supplier_code": {
                 "supplier_code": "HTL567890",
                 "supplier_number": 789
@@ -1053,25 +1065,28 @@
                 "longitude": -156.6869
             },
             "status": 1,
-            "airports": ["OGG", "HNL"]
+            "airports": [
+                "OGG",
+                "HNL"
+            ]
         },
-       "images": [
-        {
-            "file": {
-                "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                "name": "Beach House",
-                "last_modified":1710071700
-            },
-            "width": 600,
-            "height": 750,
-            "category": "beach"
-        }
+        "images": [
+            {
+                "file": {
+                    "url": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "name": "Beach House",
+                    "last_modified": 1710071700
+                },
+                "width": 600,
+                "height": 750,
+                "category": "beach"
+            }
         ],
         "videos": [
             {
-            "file": {
-                "url": "https://example.com/videos/resort-tour.mp4"
-            }
+                "file": {
+                    "url": "https://example.com/videos/resort-tour.mp4"
+                }
             }
         ],
         "classifications": [

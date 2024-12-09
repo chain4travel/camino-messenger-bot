@@ -38,6 +38,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	var properties []accommodationv1.PropertyExtendedInfo
 	jsonProperties := mockdata.PropertiesJSON
 
+	// TODO@ do this once in init()
 	// Unmarshal properties
 	err := json.Unmarshal(jsonProperties, &properties)
 	if err != nil {
@@ -61,6 +62,10 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 	// loop queries and check if there is travel period
 	for _, query := range req.Queries {
+		// TODO@ I would suggest to do 2 things to improve readability:
+		// TODO@ 1) add function that will cast TravelPeriod or Date to time.Time
+		// TODO@ 2) extract constants, move them as time.Time to some common package accessible by v1 and v2
+		// TODO@ 3) maybe even create a function in common package that will check if the date is in the allowed period
 		// only period between 01.06.2025 and 30.06.2025 is allowed - represents available period for the booking
 		if (query.TravelPeriod.GetStartDate().GetYear() != 2025 || query.TravelPeriod.GetStartDate().GetMonth() != 6 || query.TravelPeriod.GetStartDate().GetDay() < 1) ||
 			(query.TravelPeriod.GetEndDate().GetYear() != 2025 || query.TravelPeriod.GetEndDate().GetMonth() != 6 || query.TravelPeriod.GetEndDate().GetDay() > 30) {
@@ -84,6 +89,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	availableProperties := []*accommodationv1.PropertyExtendedInfo{}
 	// loop request queries
 	for _, query := range req.Queries {
+		// TODO@ just unmarshal to []*accommodationv2.PropertyExtendedInfo in a first place
 		props := make([]*accommodationv1.PropertyExtendedInfo, len(properties))
 		for i := range properties {
 			props[i] = &properties[i]

@@ -18,6 +18,7 @@ var _ accommodationv2grpc.AccommodationProductInfoServiceServer = (*Accommodatio
 
 type AccommodationProductInfoV2Server struct{}
 
+// TODO@ refactor with generics ?
 func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Context, req *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 
@@ -36,6 +37,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	var properties []accommodationv2.PropertyExtendedInfo
 	jsonProperties := mockdata.PropertiesJSON
 
+	// TODO@ do this once in init()
 	// Unmarshal properties
 	err := json.Unmarshal(jsonProperties, &properties)
 	if err != nil {
@@ -58,6 +60,7 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 			}
 		}
 	} else {
+		// TODO@ just unmarshal to []*accommodationv2.PropertyExtendedInfo in a first place
 		// Convert []accommodationv2.PropertyExtendedInfo to []*accommodationv2.PropertyExtendedInfo
 		suppliersFiltered = make([]*accommodationv2.PropertyExtendedInfo, len(properties))
 		for i := range properties {
