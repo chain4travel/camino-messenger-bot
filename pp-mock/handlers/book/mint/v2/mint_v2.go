@@ -30,7 +30,9 @@ func (*MintServiceV2Server) Mint(ctx context.Context, mintRequest *bookv2.MintRe
 	log.Printf("Responding to request (MintV1): %s", md.RequestID)
 
 	response := bookv2.MintResponse{
-		// TODO@ missing header
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
 		MintId: &typesv1.UUID{Value: uuid.New().String()},
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),

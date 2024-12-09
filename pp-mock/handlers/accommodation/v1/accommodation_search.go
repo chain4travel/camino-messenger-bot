@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -10,6 +9,7 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -34,17 +34,6 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 	log.Printf("Responding to request (Accommodation Search): %s", md.RequestID)
 
-	// Load properties data
-	var properties []accommodationv1.PropertyExtendedInfo
-	jsonProperties := mockdata.PropertiesJSON
-
-	// TODO@ do this once in init()
-	// Unmarshal properties
-	err := json.Unmarshal(jsonProperties, &properties)
-	if err != nil {
-		log.Printf("Error unmarshalling properties: %v", err)
-	}
-
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv1.AccommodationSearchResponse{
@@ -62,13 +51,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 	// loop queries and check if there is travel period
 	for _, query := range req.Queries {
-		// TODO@ I would suggest to do 2 things to improve readability:
-		// TODO@ 1) add function that will cast TravelPeriod or Date to time.Time
-		// TODO@ 2) extract constants, move them as time.Time to some common package accessible by v1 and v2
-		// TODO@ 3) maybe even create a function in common package that will check if the date is in the allowed period
-		// only period between 01.06.2025 and 30.06.2025 is allowed - represents available period for the booking
-		if (query.TravelPeriod.GetStartDate().GetYear() != 2025 || query.TravelPeriod.GetStartDate().GetMonth() != 6 || query.TravelPeriod.GetStartDate().GetDay() < 1) ||
-			(query.TravelPeriod.GetEndDate().GetYear() != 2025 || query.TravelPeriod.GetEndDate().GetMonth() != 6 || query.TravelPeriod.GetEndDate().GetDay() > 30) {
+		if accommodation.IsTravelPeriodAllowed(query.TravelPeriod) {
 			return &accommodationv1.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -89,14 +72,8 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	availableProperties := []*accommodationv1.PropertyExtendedInfo{}
 	// loop request queries
 	for _, query := range req.Queries {
-		// TODO@ just unmarshal to []*accommodationv2.PropertyExtendedInfo in a first place
-		props := make([]*accommodationv1.PropertyExtendedInfo, len(properties))
-		for i := range properties {
-			props[i] = &properties[i]
-		}
-
 		// get filtered properties
-		filteredProps := filterPropertiesByGeoTreeLocation(props, query.SearchParametersAccommodation.GetLocationGeoTree())
+		filteredProps := filterPropertiesByGeoTreeLocation(mockdata.PropertiesV1, query.SearchParametersAccommodation.GetLocationGeoTree())
 		// filter by product codes
 		filteredProps = filterPropertiesByProductCodes(filteredProps, query.SearchParametersAccommodation.GetProductCodes())
 		// filter by supplier codes

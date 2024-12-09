@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -12,13 +11,13 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ accommodationv2grpc.AccommodationProductInfoServiceServer = (*AccommodationProductInfoV2Server)(nil)
 
 type AccommodationProductInfoV2Server struct{}
 
-// TODO@ refactor with generics ?
 func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Context, req *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 
@@ -33,17 +32,6 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 
 	log.Printf("Responding to request (Accommodation Product Info): %s", md.RequestID)
 
-	// Load properties data
-	var properties []accommodationv2.PropertyExtendedInfo
-	jsonProperties := mockdata.PropertiesJSON
-
-	// TODO@ do this once in init()
-	// Unmarshal properties
-	err := json.Unmarshal(jsonProperties, &properties)
-	if err != nil {
-		log.Printf("Error unmarshalling properties: %v", err)
-	}
-
 	// Initialize suppliersFiltered with the correct type
 	suppliersFiltered := []*accommodationv2.PropertyExtendedInfo{}
 
@@ -51,20 +39,19 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	if req.SupplierCodes != nil {
 		log.Printf("Supplier codes requested: %v", req.SupplierCodes)
 		// filter properties by supplier codes
-		for i := range properties {
-			property := &properties[i]
+		for _, property := range mockdata.PropertiesV2 {
 			for _, supplierCode := range req.SupplierCodes {
 				if property.Property.SupplierCode.SupplierCode == supplierCode.SupplierCode {
-					suppliersFiltered = append(suppliersFiltered, property)
+					suppliersFiltered = append(
+						suppliersFiltered,
+						proto.Clone(property).(*accommodationv2.PropertyExtendedInfo),
+					)
 				}
 			}
 		}
 	} else {
-		// TODO@ just unmarshal to []*accommodationv2.PropertyExtendedInfo in a first place
-		// Convert []accommodationv2.PropertyExtendedInfo to []*accommodationv2.PropertyExtendedInfo
-		suppliersFiltered = make([]*accommodationv2.PropertyExtendedInfo, len(properties))
-		for i := range properties {
-			suppliersFiltered[i] = &properties[i]
+		for i := range mockdata.PropertiesV2 {
+			suppliersFiltered[i] = proto.Clone(mockdata.PropertiesV1[i]).(*accommodationv2.PropertyExtendedInfo)
 		}
 	}
 

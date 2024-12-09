@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -20,7 +19,6 @@ var _ accommodationv1grpc.AccommodationProductListServiceServer = (*Accommodatio
 
 type AccommodationProductListV1Server struct{}
 
-// TODO@ refactor with generics ?
 func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Context, req *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
 	md := metadata.Metadata{}
 
@@ -37,21 +35,9 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
-	// Load properties data
-	var properties []accommodationv1.PropertyExtendedInfo
-	jsonProperties := mockdata.PropertiesJSON
-
-	// TODO@ do this once in init()
-	// Unmarshal properties
-	err := json.Unmarshal(jsonProperties, &properties)
-	if err != nil {
-		log.Printf("Error unmarshalling properties: %v", err)
-	}
-
 	// filter only property objects
 	filteredProperties := []*accommodationv1.Property{}
-	for i := range properties {
-		property := &properties[i]
+	for _, property := range mockdata.PropertiesV1 {
 		filteredProperties = append(filteredProperties, property.Property)
 	}
 
