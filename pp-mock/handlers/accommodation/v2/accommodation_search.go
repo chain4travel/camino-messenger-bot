@@ -40,7 +40,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	jsonProperties := mock_data.PropertiesJSON
 
 	// Unmarshal properties
-	err := json.Unmarshal([]byte(jsonProperties), &properties)
+	err := json.Unmarshal(jsonProperties, &properties)
 	if err != nil {
 		log.Printf("Error unmarshalling properties: %v", err)
 	}
@@ -139,7 +139,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 							Day:   query.TravelPeriod.GetEndDate().GetDay(),
 						},
 					},
-					TravellerIds: getTravellerIds(query.Travellers),
+					TravellerIds: getTravellerIDs(query.Travellers),
 					Beds:         room.Beds,
 					PriceDetail: &typesv2.PriceDetail{
 						Price: &typesv2.Price{
@@ -195,21 +195,23 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		}, nil
 	}
 
-	searchId := uuid.New().String()
+	searchID := uuid.New().String()
 
 	response := &accommodationv2.AccommodationSearchResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		Metadata: &typesv2.SearchResponseMetadata{
-			SearchId: &typesv1.UUID{Value: searchId},
+			SearchId: &typesv1.UUID{Value: searchID},
 		},
 		Results: searchResults,
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
+	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
+		log.Printf("Failed to set header: %v", err)
+	}
 
 	return response, nil
 }
@@ -231,8 +233,8 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv2.PropertyExt
 	return filtered
 }
 
-// getTravellerIds extracts traveller IDs from []*typesv2.BasicTraveller
-func getTravellerIds(travellers []*typesv2.BasicTraveller) []int32 {
+// getTravellerIDs extracts traveller IDs from []*typesv2.BasicTraveller
+func getTravellerIDs(travellers []*typesv2.BasicTraveller) []int32 {
 	var ids []int32
 	for _, traveller := range travellers {
 		ids = append(ids, traveller.TravellerId)

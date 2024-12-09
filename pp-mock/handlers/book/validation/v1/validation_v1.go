@@ -64,6 +64,8 @@ func (*ValidationServiceV1Server) Validation(ctx context.Context, validationRequ
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
+	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
+		log.Printf("Failed to set header: %v", err)
+	}
 	return &response, nil
 }

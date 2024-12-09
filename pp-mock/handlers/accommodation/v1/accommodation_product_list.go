@@ -34,7 +34,7 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 	jsonProperties := mock_data.PropertiesJSON
 
 	// Unmarshal properties
-	err := json.Unmarshal([]byte(jsonProperties), &properties)
+	err := json.Unmarshal(jsonProperties, &properties)
 	if err != nil {
 		log.Printf("Error unmarshalling properties: %v", err)
 		return &accommodationv1.AccommodationProductListResponse{
@@ -64,7 +64,9 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
+	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
+		log.Printf("Failed to set header: %v", err)
+	}
 
 	return response, nil
 }
