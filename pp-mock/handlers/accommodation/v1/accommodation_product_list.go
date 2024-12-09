@@ -10,8 +10,10 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	mock_data "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
+	mockData "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ accommodationv1grpc.AccommodationProductListServiceServer = (*AccommodationProductListV1Server)(nil)
@@ -20,6 +22,11 @@ type AccommodationProductListV1Server struct{}
 
 func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Context, req *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
 	md := metadata.Metadata{}
+
+	// check if req is nil
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "request is nil")
+	}
 
 	if err := md.ExtractMetadata(ctx); err != nil {
 		log.Print("error extracting metadata")
@@ -31,21 +38,12 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 
 	// Load properties data
 	var properties []accommodationv1.PropertyExtendedInfo
-	jsonProperties := mock_data.PropertiesJSON
+	jsonProperties := mockData.PropertiesJSON
 
 	// Unmarshal properties
 	err := json.Unmarshal(jsonProperties, &properties)
 	if err != nil {
 		log.Printf("Error unmarshalling properties: %v", err)
-		return &accommodationv1.AccommodationProductListResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Internal server error",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
 	}
 
 	// filter only property objects

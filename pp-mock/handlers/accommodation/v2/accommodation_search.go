@@ -11,7 +11,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	mock_data "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
+	mockData "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
@@ -37,7 +37,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 
 	// Load properties data
 	var properties []accommodationv2.PropertyExtendedInfo
-	jsonProperties := mock_data.PropertiesJSON
+	jsonProperties := mockData.PropertiesJSON
 
 	// Unmarshal properties
 	err := json.Unmarshal(jsonProperties, &properties)
@@ -80,7 +80,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	}
 
 	searchResults := []*accommodationv2.AccommodationSearchResult{}
-	available_properties := []*accommodationv2.PropertyExtendedInfo{}
+	availableProperties := []*accommodationv2.PropertyExtendedInfo{}
 	// loop request queries
 	for _, query := range req.Queries {
 		props := make([]*accommodationv2.PropertyExtendedInfo, len(properties))
@@ -95,33 +95,27 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		// filter by supplier codes
 		filtered_props = filterPropertiesBySupplierCodes(filtered_props, query.SearchParametersAccommodation.GetSupplierCodes())
 
-		// loop filtered properties and check if they are already in available_properties
+		// loop filtered properties and check if they are already in availableProperties
 		for _, prop := range filtered_props {
-			// Check if property already exists in available_properties
+			// Check if property already exists in availableProperties
 			exists := false
-			for _, existingProp := range available_properties {
+			for _, existingProp := range availableProperties {
 				if existingProp.Property.SupplierCode.SupplierCode == prop.Property.SupplierCode.SupplierCode {
 					exists = true
 					break
 				}
 			}
 			if !exists {
-				available_properties = append(available_properties, prop)
+				availableProperties = append(availableProperties, prop)
 			}
 		}
 
 		// generate search result
-		for _, prop := range available_properties {
-
-			// units requested
-			units_requested := query.UnitCount
-
+		for _, prop := range availableProperties {
 			// empty units array
 			units := make([]*accommodationv2.Unit, 0)
-
 			// loop all rooms
 			for _, room := range prop.Rooms {
-
 				units = append(units, &accommodationv2.Unit{
 					Type:             accommodationv2.UnitType(prop.Property.CategoryUnit),
 					SupplierRoomCode: room.SupplierCode,
@@ -159,25 +153,19 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					SupplierCode:   prop.Property.SupplierCode,
 					Remarks:        "",
 				})
-
-				if units_requested == int32(len(units)) {
-					break
-				}
 			}
 
-			// check how many units are requested
-			if units_requested == int32(len(units)) {
-				searchResults = append(searchResults, &accommodationv2.AccommodationSearchResult{
-					ResultId: int32(len(searchResults) + 1),
-					QueryId:  query.QueryId,
-					TotalPriceDetail: &typesv2.PriceDetail{
-						Price: &typesv2.Price{
-							Value: "100",
-						},
+			searchResults = append(searchResults, &accommodationv2.AccommodationSearchResult{
+				ResultId: int32(len(searchResults) + 1),
+				QueryId:  query.QueryId,
+				TotalPriceDetail: &typesv2.PriceDetail{
+					Price: &typesv2.Price{
+						Value: "100",
 					},
-					Units: units,
-				})
-			}
+				},
+				Units: units,
+			})
+
 		}
 	}
 
@@ -235,7 +223,8 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv2.PropertyExt
 
 // getTravellerIDs extracts traveller IDs from []*typesv2.BasicTraveller
 func getTravellerIDs(travellers []*typesv2.BasicTraveller) []int32 {
-	var ids []int32
+	// Preallocate slice with exact capacity needed
+	ids := make([]int32, 0, len(travellers))
 	for _, traveller := range travellers {
 		ids = append(ids, traveller.TravellerId)
 	}

@@ -1,4 +1,4 @@
-package mock_data
+package mockData
 
 import _ "embed"
 
