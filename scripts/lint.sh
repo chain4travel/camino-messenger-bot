@@ -21,6 +21,14 @@ install_golangci_lint() {
     go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v$EXPECTED_VERSION
 }
 
+# Function to check license headers in go files
+check_license_header() {
+  go install -v github.com/chain4travel/camino-license@228ce5f90b99b1f9b20554ac207bef4c623594c5
+  CAMINOBOT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)
+  echo "camino-license check --config=./header.yaml '${CAMINOBOT_PATH}'"
+  camino-license check --config=./header.yaml "${CAMINOBOT_PATH}"
+}
+
 # Check if golangci-lint is installed
 if golangci_lint_installed; then
     echo "golangci-lint is already installed."
@@ -32,3 +40,8 @@ fi
 # Run golangci-lint
 echo "Running golangci-lint..."
 golangci-lint run --config .golangci.yml
+
+
+# Run camino-license
+echo "Running camino-license"
+check_license_header
