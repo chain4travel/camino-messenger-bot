@@ -198,7 +198,7 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv1.PropertyExt
 	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
 		address := prop.Property.ContactInfo.Address[0]
-		if address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort && address.GeoTree.Country == geoTreeLocation.Country && address.GeoTree.Region == geoTreeLocation.Region {
+		if address.GeoTree != nil && address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort && address.GeoTree.Country == geoTreeLocation.Country && address.GeoTree.Region == geoTreeLocation.Region {
 			filtered = append(filtered, prop)
 		}
 	}
