@@ -51,7 +51,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 
 	// loop queries and check if there is travel period
 	for _, query := range req.Queries {
-		if common.IsTravelPeriodAllowed(query.TravelPeriod) {
+		if !common.IsTravelPeriodAllowed(query.TravelPeriod) {
 			return &accommodationv1.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,

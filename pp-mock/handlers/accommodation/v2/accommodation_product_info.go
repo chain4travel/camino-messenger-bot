@@ -21,9 +21,6 @@ type AccommodationProductInfoV2Server struct{}
 func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Context, req *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 
-	// print req id - to fix lint error :?
-	fmt.Printf("Request Major Version: %d\n", req.Header.BaseHeader.Version.Major)
-
 	if err := md.ExtractMetadata(ctx); err != nil {
 		log.Print("error extracting metadata")
 	}
