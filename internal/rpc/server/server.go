@@ -22,6 +22,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
@@ -128,6 +129,6 @@ func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadat
 	return md, err
 }
 
-func (s *server) Readiness(_ context.Context, req *readiness.ReadinessRequest) (*readiness.ReadinessResponse, error) {
+func (s *server) Readiness(context.Context, *emptypb.Empty) (*readiness.ReadinessResponse, error) {
 	return &readiness.ReadinessResponse{Status: "ready"}, nil
 }

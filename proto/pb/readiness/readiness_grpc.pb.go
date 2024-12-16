@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -26,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReadinessServiceClient interface {
-	Readiness(ctx context.Context, in *ReadinessRequest, opts ...grpc.CallOption) (*ReadinessResponse, error)
+	Readiness(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ReadinessResponse, error)
 }
 
 type readinessServiceClient struct {
@@ -37,7 +38,7 @@ func NewReadinessServiceClient(cc grpc.ClientConnInterface) ReadinessServiceClie
 	return &readinessServiceClient{cc}
 }
 
-func (c *readinessServiceClient) Readiness(ctx context.Context, in *ReadinessRequest, opts ...grpc.CallOption) (*ReadinessResponse, error) {
+func (c *readinessServiceClient) Readiness(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ReadinessResponse, error) {
 	out := new(ReadinessResponse)
 	err := c.cc.Invoke(ctx, ReadinessService_Readiness_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -50,7 +51,7 @@ func (c *readinessServiceClient) Readiness(ctx context.Context, in *ReadinessReq
 // All implementations must embed UnimplementedReadinessServiceServer
 // for forward compatibility
 type ReadinessServiceServer interface {
-	Readiness(context.Context, *ReadinessRequest) (*ReadinessResponse, error)
+	Readiness(context.Context, *emptypb.Empty) (*ReadinessResponse, error)
 	mustEmbedUnimplementedReadinessServiceServer()
 }
 
@@ -58,7 +59,7 @@ type ReadinessServiceServer interface {
 type UnimplementedReadinessServiceServer struct {
 }
 
-func (UnimplementedReadinessServiceServer) Readiness(context.Context, *ReadinessRequest) (*ReadinessResponse, error) {
+func (UnimplementedReadinessServiceServer) Readiness(context.Context, *emptypb.Empty) (*ReadinessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Readiness not implemented")
 }
 func (UnimplementedReadinessServiceServer) mustEmbedUnimplementedReadinessServiceServer() {}
@@ -75,7 +76,7 @@ func RegisterReadinessServiceServer(s grpc.ServiceRegistrar, srv ReadinessServic
 }
 
 func _ReadinessService_Readiness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReadinessRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ func _ReadinessService_Readiness_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: ReadinessService_Readiness_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReadinessServiceServer).Readiness(ctx, req.(*ReadinessRequest))
+		return srv.(ReadinessServiceServer).Readiness(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

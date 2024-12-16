@@ -2,13 +2,13 @@ syntax = "proto3";
 
 package readiness;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/chain4travel/camino-messenger-bot/proto/pb/readiness";
 
 service ReadinessService {
-  rpc Readiness(ReadinessRequest) returns (ReadinessResponse);
+  rpc Readiness(google.protobuf.Empty) returns (ReadinessResponse);
 }
-
-message ReadinessRequest {}
 
 message ReadinessResponse {
   string status = 1;
