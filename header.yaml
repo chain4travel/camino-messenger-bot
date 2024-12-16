@@ -9,3 +9,4 @@ headers-excluded-paths:
   - "./camino-matrix-go/**/*.go"
   - "./**/mock_*.go"
   - "./internal/rpc/generated/**/*.go"
+  - "./proto/**/*.go"
