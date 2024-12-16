@@ -153,11 +153,11 @@ func main() {
 
 	priceBigInt = big.NewInt(0)
 
-	price = priceEUR
+	// price = priceEUR
 	// price = priceEURSH     //  You can't use EURSH if you are not registered in their system
 	// price = priceTestToken // Requires having Test Token in your CM- account
 
-	// price = priceCAM
+	price = priceCAM
 
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
