@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package readiness;
+
+option go_package = "github.com/chain4travel/camino-messenger-bot/proto/pb/readiness";
+
+service ReadinessService {
+  rpc Readiness(ReadinessRequest) returns (ReadinessResponse);
+}
+
+message ReadinessRequest {}
+
+message ReadinessResponse {
+  string status = 1;
+}

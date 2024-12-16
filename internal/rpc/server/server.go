@@ -12,7 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb/ping"
+	"github.com/chain4travel/camino-messenger-bot/proto/pb/readiness"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
@@ -22,13 +22,12 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
-	_ Server                 = (*server)(nil)
-	_ rpc.RequestHandler     = (*server)(nil)
-	_ ping.PingServiceServer = (*server)(nil)
+	_ Server                           = (*server)(nil)
+	_ rpc.RequestHandler               = (*server)(nil)
+	_ readiness.ReadinessServiceServer = (*server)(nil)
 )
 
 type Server interface {
@@ -67,7 +66,7 @@ func NewServer(
 		grpcServer:      grpc.NewServer(opts...),
 	}
 	generated.RegisterServerServices(server.grpcServer, server)
-	ping.RegisterPingServiceServer(server.grpcServer, server)
+	readiness.RegisterReadinessServiceServer(server.grpcServer, server)
 	return server, nil
 }
 
@@ -79,7 +78,7 @@ type server struct {
 	processor       messaging.MessageProcessor
 	serviceRegistry messaging.ServiceRegistry
 
-	ping.UnimplementedPingServiceServer
+	readiness.UnimplementedReadinessServiceServer
 }
 
 func (*server) Checkpoint() string {
@@ -129,9 +128,6 @@ func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadat
 	return md, err
 }
 
-func (s *server) Ping(_ context.Context, req *ping.PingRequest) (*ping.PingResponse, error) {
-	return &ping.PingResponse{
-		Message:   "Pong: " + req.Message,
-		Timestamp: timestamppb.Now(),
-	}, nil
+func (s *server) Readiness(_ context.Context, req *readiness.ReadinessRequest) (*readiness.ReadinessResponse, error) {
+	return &readiness.ReadinessResponse{Status: "ready"}, nil
 }
