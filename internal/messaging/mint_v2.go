@@ -55,7 +55,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	}
 	response.BuyableUntil = buyableUntil
 
-	price, paymentToken, err := h.getPriceAndTokenV2(ctx, response.Price)
+	price, paymentToken, isoCurrency, err := h.getPriceAndTokenV2(ctx, response.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
@@ -71,6 +71,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 		big.NewInt(response.BuyableUntil.Seconds),
 		price,
 		paymentToken,
+		isoCurrency,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
@@ -109,32 +110,34 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 	response.BuyTransactionId = receipt.TxHash.Hex()
 }
 
-func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *typesv2.Price) (*big.Int, common.Address, error) {
+func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *typesv2.Price) (*big.Int, common.Address, *big.Int, error) {
 	priceBigInt := big.NewInt(0)
 	paymentToken := zeroAddress
+	isoCurrency := big.NewInt(0)
 	var err error
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
 		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("error minting NFT: %w", err)
+			return nil, zeroAddress, nil, fmt.Errorf("error minting NFT: %w", err)
 		}
 	case *typesv2.Currency_TokenCurrency:
 		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
-			return nil, zeroAddress, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
+			return nil, zeroAddress, nil, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
 		}
 		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
 		tokenDecimals, err := h.erc20.Decimals(ctx, contractAddress)
 		if err != nil {
-			return nil, zeroAddress, fmt.Errorf("failed to fetch token decimals: %w", err)
+			return nil, zeroAddress, nil, fmt.Errorf("failed to fetch token decimals: %w", err)
 		}
 		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
 		if err != nil {
-			return nil, zeroAddress, err
+			return nil, zeroAddress, nil, err
 		}
 		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
 		// For IsoCurrency, keep price as 0 and paymentToken as zeroAddress
+		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
 	}
-	return priceBigInt, paymentToken, nil
+	return priceBigInt, paymentToken, isoCurrency, nil
 }

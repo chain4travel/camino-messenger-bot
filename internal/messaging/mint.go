@@ -32,6 +32,7 @@ func (h *evmResponseHandler) mint(
 	expiration *big.Int,
 	price *big.Int,
 	paymentToken common.Address,
+	offchainPaymentCurrency *big.Int,
 ) (string, *big.Int, error) {
 	receipt, err := h.bookingService.MintBookingToken(
 		ctx,
@@ -40,6 +41,7 @@ func (h *evmResponseHandler) mint(
 		expiration,
 		price,
 		paymentToken,
+		offchainPaymentCurrency,
 	)
 	if err != nil {
 		return "", nil, err

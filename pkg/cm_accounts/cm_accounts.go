@@ -66,6 +66,7 @@ type Service interface {
 		expirationTimestamp *big.Int,
 		price *big.Int,
 		paymentToken common.Address,
+		isoCurrency *big.Int,
 	) (*types.Receipt, error)
 
 	BuyBookingToken(
@@ -265,6 +266,7 @@ func (s *service) MintBookingToken(
 	expirationTimestamp *big.Int,
 	price *big.Int,
 	paymentToken common.Address,
+	offchainPaymentCurrency *big.Int,
 ) (*types.Receipt, error) {
 	cmAccount, err := s.cmAccount(cmAccountAddress)
 	if err != nil {
@@ -279,6 +281,7 @@ func (s *service) MintBookingToken(
 		expirationTimestamp,
 		price,
 		paymentToken,
+		offchainPaymentCurrency,
 		false, // In mintv1 and mintv2 isCancellable is always false - as tokens are not cancellable.
 	)
 	if err != nil {

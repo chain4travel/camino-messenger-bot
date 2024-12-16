@@ -99,6 +99,7 @@ func main() {
 	var paymentToken common.Address = nativeTokenAddress
 	var priceBigInt *big.Int
 	var price *typesv2.Price
+	offchainPaymentCurrency := big.NewInt(0)
 
 	// Example prices for ISO Currency
 	priceEUR := &typesv2.Price{
@@ -154,11 +155,11 @@ func main() {
 	paymentToken = nativeTokenAddress
 	priceBigInt = big.NewInt(0)
 
-	// price = priceEUR
+	price = priceEUR
 	// price = priceEURSH     //  You can't use EURSH if you are not registered in their system
 	// price = priceTestToken // Requires having Test Token in your CM- account
 
-	price = priceCAM
+	// price = priceCAM
 
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
@@ -190,6 +191,7 @@ func main() {
 	case *typesv2.Currency_IsoCurrency:
 		priceBigInt = big.NewInt(0)
 		paymentToken = nativeTokenAddress
+		offchainPaymentCurrency = big.NewInt(int64(currency.IsoCurrency))
 	}
 
 	// Mint a new booking token
@@ -209,6 +211,7 @@ func main() {
 		expiration,
 		priceBigInt,
 		paymentToken,
+		offchainPaymentCurrency,
 	)
 	if err != nil {
 		sugar.Fatalf("Failed to mint booking token: %v", err)
