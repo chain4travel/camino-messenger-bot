@@ -20,6 +20,14 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	NativePaymentToken  = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	NativeTokenDecimals = int32(18)
+
+	ISOPaymentToken = common.HexToAddress("0x0000000000000000000000000000000000000001")
+	ISODecimals     = int32(6)
+)
+
 // Service provides minting and buying methods to interact with the CM Account contract.
 type Service struct {
 	client           *ethclient.Client
@@ -139,7 +147,7 @@ func (bs *Service) BuyBookingToken(
 }
 
 // convertPriceToBigInt converts the price to its integer representation
-func (bs *Service) ConvertPriceToBigInt(value string, decimals int32, totalDecimals int32) (*big.Int, error) {
+func ConvertPriceToBigInt(value string, decimals int32, totalDecimals int32) (*big.Int, error) {
 	// Convert the value string to a big.Int
 	valueBigInt := new(big.Int)
 	_, ok := valueBigInt.SetString(value, 10)

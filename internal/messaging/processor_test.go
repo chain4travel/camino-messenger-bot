@@ -39,9 +39,9 @@ var (
 
 	dummyCheque = cheques.SignedCheque{
 		Cheque: cheques.Cheque{
-			FromCMAccount: zeroAddress,
-			ToCMAccount:   zeroAddress,
-			ToBot:         zeroAddress,
+			FromCMAccount: common.Address{},
+			ToCMAccount:   common.Address{},
+			ToBot:         common.Address{},
 			Counter:       big.NewInt(0),
 			Amount:        big.NewInt(0),
 			CreatedAt:     big.NewInt(0),

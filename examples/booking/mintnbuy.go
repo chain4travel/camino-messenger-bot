@@ -91,17 +91,16 @@ func main() {
 	// expiration timestamp
 	expiration := big.NewInt(time.Now().Add(time.Hour).Unix())
 
-	nativeTokenAddress := common.HexToAddress("0x0000000000000000000000000000000000000000")
 	// https://columbus.caminoscan.com/token/0x5b1c852dad36854B0dFFF61d2C13F108D8E01975
 	eurshToken := common.HexToAddress("0x5b1c852dad36854B0dFFF61d2C13F108D8E01975") // You can't use EURSH if you are not registered in their system
 	testToken := common.HexToAddress("0x53A0b6A344C8068B211d47f177F0245F5A99eb2d")  // Requires having Test Token in your CM- account
 
-	var paymentToken common.Address = nativeTokenAddress
+	paymentToken := booking.NativePaymentToken
 	var priceBigInt *big.Int
 	var price *typesv2.Price
 	offchainPaymentCurrency := big.NewInt(0)
 
-	// Example prices for ISO Currency
+	// Example prices for ISO Currency (100 EUR)
 	priceEUR := &typesv2.Price{
 		Value:    "10000",
 		Decimals: 2,
@@ -152,7 +151,6 @@ func main() {
 	sugar.Infof("%v %v %v %v", priceEUR, priceEURSH, priceTestToken, priceCAM)
 	sugar.Infof("%v", price)
 
-	paymentToken = nativeTokenAddress
 	priceBigInt = big.NewInt(0)
 
 	price = priceEUR
@@ -163,35 +161,30 @@ func main() {
 
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		priceBigInt, err = bs.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
+		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
+		sugar.Infof("Converted the price big.Int: %v", priceBigInt)
+		paymentToken = booking.NativePaymentToken
+	case *typesv2.Currency_TokenCurrency:
+		// Fetch decimals from the ERC20 contract
+		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
+		var tokenDecimals int32
+		tokenDecimals, err = erc20.Decimals(context.Background(), contractAddress)
 		if err != nil {
-			sugar.Errorf("Failed to convert price to big.Int: %v", err)
+			sugar.Errorf("Failed to fetch token decimals: %v", err)
 			return
 		}
-		sugar.Infof("Converted the price big.Int: %v", priceBigInt)
-		paymentToken = nativeTokenAddress
-	case *typesv2.Currency_TokenCurrency:
-		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
-			sugar.Errorf("invalid contract address: %v", currency.TokenCurrency.ContractAddress)
-		}
-		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
 
-		// Fetch decimals from the ERC20 contract
-
-		tokenDecimals, err := erc20.Decimals(context.Background(), contractAddress)
-		if err != nil {
-			sugar.Errorf("failed to fetch token decimals: %w", err)
-		}
-
-		priceBigInt, err = bs.ConvertPriceToBigInt(price.Value, price.Decimals, int32(tokenDecimals))
-		if err != nil {
-			sugar.Errorf("Failed to convert price to big.Int: %v", err)
-		}
+		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, int32(tokenDecimals))
 		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
-		priceBigInt = big.NewInt(0)
-		paymentToken = nativeTokenAddress
+		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.ISODecimals)
+		paymentToken = booking.ISOPaymentToken
 		offchainPaymentCurrency = big.NewInt(int64(currency.IsoCurrency))
+	}
+
+	if err != nil {
+		sugar.Errorf("Failed to convert price to big.Int: %v", err)
+		return
 	}
 
 	// Mint a new booking token

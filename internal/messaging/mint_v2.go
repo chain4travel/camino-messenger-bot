@@ -13,6 +13,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
+	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -111,33 +112,36 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 }
 
 func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, price *typesv2.Price) (*big.Int, common.Address, *big.Int, error) {
+	paymentToken := booking.NativePaymentToken
 	priceBigInt := big.NewInt(0)
-	paymentToken := zeroAddress
 	isoCurrency := big.NewInt(0)
 	var err error
+
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, int32(18)) // CAM uses 18 decimals
-		if err != nil {
-			return nil, zeroAddress, nil, fmt.Errorf("error minting NFT: %w", err)
-		}
+		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
 	case *typesv2.Currency_TokenCurrency:
+		var tokenDecimals int32
 		if !common.IsHexAddress(currency.TokenCurrency.ContractAddress) {
-			return nil, zeroAddress, nil, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
+			return nil, common.Address{}, nil, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
 		}
 		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-		tokenDecimals, err := h.erc20.Decimals(ctx, contractAddress)
+		tokenDecimals, err = h.erc20.Decimals(ctx, contractAddress)
 		if err != nil {
-			return nil, zeroAddress, nil, fmt.Errorf("failed to fetch token decimals: %w", err)
+			return nil, common.Address{}, nil, fmt.Errorf("failed to fetch token decimals: %w", err)
 		}
-		priceBigInt, err = h.bookingService.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
-		if err != nil {
-			return nil, zeroAddress, nil, err
-		}
+
+		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
 		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
-		// For IsoCurrency, keep price as 0 and paymentToken as zeroAddress
+		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.ISODecimals)
+		paymentToken = booking.ISOPaymentToken
 		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
 	}
+
+	if err != nil {
+		return nil, common.Address{}, nil, fmt.Errorf("failed to convert price to big.Int: %w", err)
+	}
+
 	return priceBigInt, paymentToken, isoCurrency, nil
 }

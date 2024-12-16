@@ -33,11 +33,7 @@ const (
 	buyableUntilDurationMaximal = 600 * time.Second
 )
 
-var (
-	_ ResponseHandler = (*evmResponseHandler)(nil)
-
-	zeroAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
-)
+var _ ResponseHandler = (*evmResponseHandler)(nil)
 
 type ResponseHandler interface {
 	// Processes incoming response
