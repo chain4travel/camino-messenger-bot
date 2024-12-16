@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package ping;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/chain4travel/camino-messenger-bot/proto/pb/ping";
+
+service PingService {
+  // Ping Method
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message PingRequest {
+  // Ping message
+  string message = 1;
+
+  // DateTime of the ping request
+  google.protobuf.Timestamp timestamp = 2;
+}
+
+message PingResponse {
+  string message = 1;
+  // DateTime of the ping response
+  google.protobuf.Timestamp timestamp = 2;
+}

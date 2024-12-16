@@ -227,8 +227,17 @@ func (a *App) Run(ctx context.Context) error {
 
 	// run
 
+	messengerReceiverStarted := make(chan struct{})
+	cashInStatusCheckDone := make(chan struct{})
+	schedulerStarted := make(chan struct{})
+	messageProcessorStarted := make(chan struct{})
+
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		g.Go(func() error {
+			<-messengerReceiverStarted
+			<-cashInStatusCheckDone
+			<-schedulerStarted
+			<-messageProcessorStarted
 			a.logger.Info("Starting gRPC server...")
 			return a.rpcServer.Start()
 		})
@@ -239,6 +248,7 @@ func (a *App) Run(ctx context.Context) error {
 		if err := a.chequeHandler.CheckCashInStatus(gCtx); err != nil {
 			return fmt.Errorf("failed to check start-up cash-in status: %w", err)
 		}
+		close(cashInStatusCheckDone)
 		return nil
 	})
 
@@ -250,10 +260,14 @@ func (a *App) Run(ctx context.Context) error {
 		if err := a.scheduler.Start(gCtx); err != nil {
 			return fmt.Errorf("failed to start scheduler: %w", err)
 		}
+		close(schedulerStarted)
 		return nil
 	})
 
 	g.Go(func() error {
+		<-cashInStatusCheckDone
+		<-schedulerStarted
+		<-messageProcessorStarted
 		a.logger.Info("Starting message receiver...")
 		matrixUserID, err := a.messenger.StartReceiver()
 		if err != nil {
@@ -262,11 +276,13 @@ func (a *App) Run(ctx context.Context) error {
 		if a.botUserID != matrixUserID {
 			return fmt.Errorf("bot user ID mismatch: expected %s, got %s", a.botUserID, matrixUserID)
 		}
+		close(messengerReceiverStarted)
 		return nil
 	})
 
 	g.Go(func() error {
 		a.logger.Info("Starting message processor...")
+		close(messageProcessorStarted)
 		a.messageProcessor.Start(gCtx)
 		return nil
 	})

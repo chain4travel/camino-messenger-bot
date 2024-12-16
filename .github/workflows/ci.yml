@@ -70,6 +70,9 @@ jobs:
       - name: codegen
         shell: bash
         run: ./scripts/generate_grpc_service_handlers.sh
+      - name: protobuf codegen
+        shell: bash
+        run: ./scripts/protobuf_codegen.sh
       - name: Check Clean Branch
         shell: bash
         run: .github/workflows/check-clean-branch.sh
