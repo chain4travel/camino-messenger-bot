@@ -70,6 +70,7 @@ jobs:
       - name: codegen
         shell: bash
         run: ./scripts/generate_grpc_service_handlers.sh
+      - uses: bufbuild/buf-setup-action@v1.26.1
       - name: protobuf codegen
         shell: bash
         run: ./scripts/protobuf_codegen.sh
