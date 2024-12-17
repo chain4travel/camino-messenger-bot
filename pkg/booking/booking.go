@@ -21,9 +21,12 @@ import (
 )
 
 var (
+	// Special address that indicates BookinToken payment will be in native coin of
+	// the network (CAM).
 	NativePaymentToken  = common.HexToAddress("0x0000000000000000000000000000000000000000")
 	NativeTokenDecimals = int32(18)
 
+	// Special address that indicates BookinToken payment will occur off-chain.
 	ISOPaymentToken = common.HexToAddress("0x0000000000000000000000000000000000000001")
 	ISODecimals     = int32(6)
 )
