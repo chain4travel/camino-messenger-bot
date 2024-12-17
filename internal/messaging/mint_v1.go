@@ -109,11 +109,16 @@ func (h *evmResponseHandler) processMintResponseV1(ctx context.Context, response
 }
 
 func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *typesv1.Price) (*big.Int, common.Address, *big.Int, error) {
-	priceBigInt := big.NewInt(0)
-	paymentToken := booking.NativePaymentToken
+	if price == nil {
+		return nil, common.Address{}, nil, errMissingPrice
+	}
+
+	var priceBigInt *big.Int
 	isoCurrency := big.NewInt(0)
+	paymentToken := booking.NativePaymentToken
 	var err error
-	switch currency := price.Currency.Currency.(type) {
+
+	switch currency := price.Currency.GetCurrency().(type) {
 	case *typesv1.Currency_NativeToken:
 		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
 	case *typesv1.Currency_TokenCurrency:
@@ -133,6 +138,8 @@ func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *type
 		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.ISODecimals)
 		paymentToken = booking.ISOPaymentToken
 		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
+	default:
+		return nil, common.Address{}, nil, fmt.Errorf("%w (%T)", errUnknownCurrency, currency)
 	}
 
 	if err != nil {

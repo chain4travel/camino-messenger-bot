@@ -21,6 +21,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var errMissingPrice = errors.New("missing price")
+var errUnknownCurrency = errors.New("unknown currency type")
 var errMissingMintTxID = errors.New("missing mint transaction id")
 
 // Mints a BookingToken with the supplier private key and reserves it for the buyer address
