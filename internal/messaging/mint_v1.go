@@ -123,10 +123,7 @@ func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *type
 		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
 	case *typesv1.Currency_TokenCurrency:
 		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-		if contractAddress == booking.NativePaymentToken || contractAddress == booking.ISOPaymentToken {
-			return nil, common.Address{}, nil, fmt.Errorf("invalid contract address: %s", currency.TokenCurrency.ContractAddress)
-		}
-
+		// if contract address is invalid in any way, Decimals() will return an error
 		tokenDecimals, decErr := h.erc20.Decimals(ctx, contractAddress)
 		if decErr != nil {
 			return nil, common.Address{}, nil, fmt.Errorf("failed to fetch token decimals: %w", decErr)
