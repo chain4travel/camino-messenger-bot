@@ -85,7 +85,7 @@ yarn hardhat account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount
 ```
 4. To **register a service** supported by your CM Account run e.g.
 ```
-yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network Columbus
+yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network columbus
 ```
 To see all the services you can support, run:
 ```
