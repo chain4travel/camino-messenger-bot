@@ -6,6 +6,8 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
@@ -145,8 +147,19 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	// get matrix hostname without schema
+	matrixHostname := cfg.Matrix.Host
+	if !strings.Contains(matrixHostname, "://") {
+		matrixHostname = "dummy://" + matrixHostname
+	}
+	u, err := url.Parse(matrixHostname)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse matrix host: %w", err)
+	}
+	matrixHostname = u.Hostname()
+
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
-	botUserID := messaging.UserIDFromAddress(botAddress, cfg.Matrix.Host)
+	botUserID := messaging.UserIDFromAddress(botAddress, matrixHostname)
 
 	messageProcessor := messaging.NewMessageProcessor(
 		matrixMessenger,
