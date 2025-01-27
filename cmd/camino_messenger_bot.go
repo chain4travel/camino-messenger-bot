@@ -14,6 +14,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/version"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var rootCmd = &cobra.Command{
@@ -48,15 +49,17 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 
 	_ = sugaredConfigReaderLogger.Sync()
 
+	var zapLogger *zap.Logger
 	var zapLoggerConfig zap.Config
 	if configReader.IsDevelopmentMode() {
-		zapLoggerConfig = zap.NewDevelopmentConfig()
+		zapLogger, err = zap.NewDevelopment()
+		zapLoggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	} else {
 		zapLoggerConfig = zap.NewProductionConfig()
 	}
 	zapLoggerConfig.OutputPaths = []string{"stdout"}
 	zapLoggerConfig.ErrorOutputPaths = []string{"stderr"}
-	zapLogger, err := zapLoggerConfig.Build()
+	zapLogger, err = zapLoggerConfig.Build()
 	if err != nil {
 		return fmt.Errorf("failed to create logger: %w", err)
 	}

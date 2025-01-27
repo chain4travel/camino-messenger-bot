@@ -91,6 +91,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// messaging components
 	cmAccounts, err := cmaccounts.NewService(
+		cfg.CMAccountAddress,
 		logger,
 		cmAccountsCacheSize,
 		evmClient,

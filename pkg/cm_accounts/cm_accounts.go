@@ -11,6 +11,8 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -80,6 +82,7 @@ type Service interface {
 }
 
 func NewService(
+	cmAccountAddress common.Address,
 	logger *zap.SugaredLogger,
 	cacheSize int,
 	ethClient *ethclient.Client,
@@ -93,6 +96,47 @@ func NewService(
 	cache, err := lru.New[common.Address, *cmaccount.Cmaccount](cacheSize)
 	if err != nil {
 		return nil, err
+	}
+
+	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, ethClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch CM account: %w", err)
+	}
+
+	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{})
+	if err != nil {
+		logger.Fatalf("Failed to fetch CM account Manager Address: %s", err)
+	}
+	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, ethClient)
+	if err != nil {
+		logger.Fatalf("Failed to get Manager: %s", err)
+	}
+
+	currentImplOnManager, err := manager.GetAccountImplementation(&bind.CallOpts{})
+	if err != nil {
+		logger.Fatalf("Failed to get AccountImplementation: %s", err)
+	}
+
+	// Implementation slot for ERC1967Proxy
+	implementationSlot := common.HexToHash("0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc")
+
+	// Read implementation from proxy
+	implAddress, err := ethClient.StorageAt(context.Background(), cmAccountAddress, implementationSlot, nil)
+	if err != nil {
+		logger.Fatalf("Failed to get implementation address from proxy: %s", err)
+	}
+
+	// Convert to address (last 20 bytes)
+	currentImplOnProxy := common.BytesToAddress(implAddress[12:])
+
+	logger.Info("📜 Implementation:")
+	logger.Info("   - Active:  " + currentImplOnProxy.Hex())
+	logger.Info("   - Latest:  " + currentImplOnManager.Hex())
+
+	if currentImplOnProxy != currentImplOnManager {
+		logger.Warn("⏫ CMAccount needs an upgrade!")
+	} else {
+		logger.Info("✅ CMAccount is using the latest implementation.")
 	}
 
 	return &service{
