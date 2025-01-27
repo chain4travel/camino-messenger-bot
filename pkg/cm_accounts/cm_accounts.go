@@ -105,16 +105,16 @@ func NewService(
 
 	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{})
 	if err != nil {
-		logger.Fatalf("Failed to fetch CM account Manager Address: %s", err)
+		logger.Errorf("Failed to fetch CM account Manager Address: %s", err)
 	}
 	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, ethClient)
 	if err != nil {
-		logger.Fatalf("Failed to get Manager: %s", err)
+		logger.Errorf("Failed to get Manager: %s", err)
 	}
 
 	currentImplOnManager, err := manager.GetAccountImplementation(&bind.CallOpts{})
 	if err != nil {
-		logger.Fatalf("Failed to get AccountImplementation: %s", err)
+		logger.Errorf("Failed to get AccountImplementation: %s", err)
 	}
 
 	// Implementation slot for ERC1967Proxy
@@ -123,7 +123,7 @@ func NewService(
 	// Read implementation from proxy
 	implAddress, err := ethClient.StorageAt(context.Background(), cmAccountAddress, implementationSlot, nil)
 	if err != nil {
-		logger.Fatalf("Failed to get implementation address from proxy: %s", err)
+		logger.Errorf("Failed to get implementation address from proxy: %s", err)
 	}
 
 	// Convert to address (last 20 bytes)

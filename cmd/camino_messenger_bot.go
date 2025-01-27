@@ -52,7 +52,7 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	var zapLogger *zap.Logger
 	var zapLoggerConfig zap.Config
 	if configReader.IsDevelopmentMode() {
-		zapLogger, err = zap.NewDevelopment()
+		zapLoggerConfig = zap.NewDevelopmentConfig()
 		zapLoggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	} else {
 		zapLoggerConfig = zap.NewProductionConfig()
