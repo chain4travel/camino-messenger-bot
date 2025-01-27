@@ -8,16 +8,16 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/chain4travel/camino-messenger-bot/config"
+	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/proto/pb/readiness"
+	"github.com/chain4travel/camino-messenger-bot/utils/tls"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -52,7 +52,7 @@ func NewServer(
 	if cfg.Unencrypted {
 		logger.Warn("Running gRPC server without TLS!")
 	} else {
-		creds, err := utils.LoadTLSCredentials(cfg.ServerCertFile, cfg.ServerKeyFile)
+		creds, err := tls.LoadTLSCredentials(cfg.ServerCertFile, cfg.ServerKeyFile)
 		if err != nil {
 			return nil, fmt.Errorf("could not load TLS keys: %w", err)
 		}
@@ -95,7 +95,6 @@ func (s *server) Start() error {
 }
 
 func (s *server) Stop() {
-	s.logger.Info("Stopping gRPC server...")
 	s.grpcServer.Stop()
 }
 
@@ -129,6 +128,8 @@ func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadat
 	return md, err
 }
 
+const StatusReady = "ready"
+
 func (s *server) Readiness(context.Context, *emptypb.Empty) (*readiness.ReadinessResponse, error) {
-	return &readiness.ReadinessResponse{Status: "ready"}, nil
+	return &readiness.ReadinessResponse{Status: StatusReady}, nil
 }

@@ -232,17 +232,6 @@ func (a *App) Run(ctx context.Context) error {
 	schedulerStarted := make(chan struct{})
 	messageProcessorStarted := make(chan struct{})
 
-	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
-		g.Go(func() error {
-			<-messengerReceiverStarted
-			<-cashInStatusCheckDone
-			<-schedulerStarted
-			<-messageProcessorStarted
-			a.logger.Info("Starting gRPC server...")
-			return a.rpcServer.Start()
-		})
-	}
-
 	g.Go(func() error {
 		a.logger.Info("Starting start-up cash-in status check...")
 		if err := a.chequeHandler.CheckCashInStatus(gCtx); err != nil {
@@ -265,9 +254,27 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	g.Go(func() error {
+		a.logger.Info("Starting message processor...")
+		close(messageProcessorStarted)
+		a.messageProcessor.Start(gCtx)
+		return nil
+	})
+
+	g.Go(func() error {
 		<-cashInStatusCheckDone
 		<-schedulerStarted
 		<-messageProcessorStarted
+
+		if !awaitChans(
+			gCtx,
+			[]<-chan struct{}{
+				cashInStatusCheckDone,
+				schedulerStarted,
+				messageProcessorStarted,
+			},
+		) {
+			return nil
+		}
 		a.logger.Info("Starting message receiver...")
 		matrixUserID, err := a.messenger.StartReceiver()
 		if err != nil {
@@ -280,19 +287,31 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	g.Go(func() error {
-		a.logger.Info("Starting message processor...")
-		close(messageProcessorStarted)
-		a.messageProcessor.Start(gCtx)
-		return nil
-	})
+	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
+		g.Go(func() error {
+			if !awaitChans(
+				gCtx,
+				[]<-chan struct{}{
+					messengerReceiverStarted,
+					cashInStatusCheckDone,
+					schedulerStarted,
+					messageProcessorStarted,
+				},
+			) {
+				return nil
+			}
+
+			a.logger.Info("Starting gRPC server...")
+			return a.rpcServer.Start()
+		})
+	}
 
 	// stop
-	// <-gCtx.Done() means that all "run" goroutines are finished
 
 	if a.rpcClient != nil { // rpcClient will be nil, if its disabled in partner plugin config section
 		g.Go(func() error {
 			<-gCtx.Done()
+			a.logger.Info("Stopping gRPC client...")
 			return a.rpcClient.Shutdown()
 		})
 	}
@@ -300,6 +319,7 @@ func (a *App) Run(ctx context.Context) error {
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		g.Go(func() error {
 			<-gCtx.Done()
+			a.logger.Info("Stopping gRPC server...")
 			a.rpcServer.Stop()
 			return nil
 		})
@@ -307,7 +327,14 @@ func (a *App) Run(ctx context.Context) error {
 
 	g.Go(func() error {
 		<-gCtx.Done()
+		a.logger.Info("Stopping message receiver...")
 		return a.messenger.StopReceiver()
+	})
+
+	g.Go(func() error {
+		<-gCtx.Done()
+		a.logger.Info("Stopping scheduler...")
+		return a.scheduler.Stop()
 	})
 
 	// wait
@@ -316,5 +343,24 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		a.logger.Error(err) // will log first run/stop error
 	}
+
 	return err
+}
+
+func awaitChan(ctx context.Context, ch <-chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	case <-ctx.Done():
+		return false
+	}
+}
+
+func awaitChans(ctx context.Context, chans []<-chan struct{}) bool {
+	for _, ch := range chans {
+		if !awaitChan(ctx, ch) {
+			return false
+		}
+	}
+	return true
 }
