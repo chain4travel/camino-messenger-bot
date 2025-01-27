@@ -64,7 +64,7 @@ func main() {
 		sugar.Fatalf("Failed to create ERC20 service: %v", err)
 	}
 
-	cmAccounts, err := cmaccounts.NewService(sugar, 100, client)
+	cmAccounts, err := cmaccounts.NewService(cmAccountAddr, sugar, 100, client)
 	if err != nil {
 		sugar.Fatalf("Failed to create CMAccounts service: %v", err)
 	}
