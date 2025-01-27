@@ -261,10 +261,6 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	g.Go(func() error {
-		<-cashInStatusCheckDone
-		<-schedulerStarted
-		<-messageProcessorStarted
-
 		if !awaitChans(
 			gCtx,
 			[]<-chan struct{}{
