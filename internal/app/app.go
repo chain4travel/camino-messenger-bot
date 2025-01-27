@@ -150,7 +150,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	// get matrix hostname without schema
 	matrixHostname := cfg.Matrix.Host
 	if !strings.Contains(matrixHostname, "://") {
-		// Add dummy protocol to make the url pkg happy, 
+		// Add dummy protocol to make the url pkg happy,
 		// we just want to extract the hostname
 		matrixHostname = "dummy://" + matrixHostname
 	}
