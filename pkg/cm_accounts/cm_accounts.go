@@ -86,7 +86,6 @@ type service struct {
 	chainID   *big.Int
 }
 
-
 func NewService(
 	logger *zap.SugaredLogger,
 	cacheSize int,
@@ -110,7 +109,6 @@ func NewService(
 		chainID:   chainID,
 	}, nil
 }
-
 
 func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
 	cmAccount, err := s.cmAccount(cmAccountAddress)
