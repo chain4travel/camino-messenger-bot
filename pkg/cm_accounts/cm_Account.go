@@ -68,9 +68,9 @@ func (s *cmAccountService) WarnIfUpgradeNeeded() error {
 	implementationSlot := common.HexToHash(implementationSlotString)
 	// Read implementation from proxy
 
-	_, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	implAddress, err := s.ethClient.StorageAt(context.Background(), *s.cmAccountAddress, implementationSlot, nil)
+	implAddress, err := s.ethClient.StorageAt(ctx, *s.cmAccountAddress, implementationSlot, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get implementation address from proxy: %w", err)
 	}
