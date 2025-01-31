@@ -6,6 +6,7 @@ package cmaccounts
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
@@ -62,15 +63,21 @@ func (s *cmAccountService) WarnIfUpgradeNeeded() error {
 	}
 
 	// Implementation slot for ERC1967Proxy
-	implementationSlot := common.HexToHash("0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc")
-
+	// See: https://eips.ethereum.org/EIPS/eip-1967#logic-contract-address
+	const implementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
+	implementationSlot := common.HexToHash(implementationSlotString)
 	// Read implementation from proxy
+
+	_, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 	implAddress, err := s.ethClient.StorageAt(context.Background(), *s.cmAccountAddress, implementationSlot, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get implementation address from proxy: %w", err)
 	}
 
-	// Convert to address (last 20 bytes)
+	if len(implAddress) < 32 {
+		return fmt.Errorf("implementation address storage read returned unexpected size: %d", len(implAddress))
+	}
 	currentImplOnProxy := common.BytesToAddress(implAddress[12:])
 
 	s.logger.Info("Implementation:")
