@@ -8,5 +8,5 @@ headers-excluded-paths:
   - ".vscode/*.go"
   - "./camino-matrix-go/**/*.go"
   - "./**/mock_*.go"
-  - "./internal/rpc/generated/**/*.go"
+  - "./internal/rpc/generated/*.go"
   - "./proto/**/*.go"

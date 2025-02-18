@@ -37,6 +37,7 @@ jobs:
       - name: build_test
         shell: bash
         run: ./scripts/build_test.sh
+
   # When the golangci-lint version is updated here, also update it in scripts/lint.sh
   lint:
     name: Static Analysis
