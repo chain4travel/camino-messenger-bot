@@ -79,7 +79,7 @@ func TestE2E(t *testing.T) {
 	flagTestsDataDir = path.Join(flagTestsDataDir, time.Now().Format("2006-01-02_15-04-05"))
 
 	os.RemoveAll(flagTestsDataDir)
-	os.MkdirAll(flagTestsDataDir, 0o644)
+	os.MkdirAll(flagTestsDataDir, 0o755)
 
 	var existingNetworkAdminKey *secp256k1.PrivateKey
 	if len(flagExistingNetworkAdminKey) > 0 {
@@ -113,7 +113,7 @@ func TestE2E(t *testing.T) {
 		require.NoError(t, err)
 	}
 	if maxParallelRuns > 1 {
-		require.NoError(t, testsRunner.RunParallel(t))
+		testsRunner.RunParallel(t)
 	} else {
 		testsRunner.Run(t)
 	}

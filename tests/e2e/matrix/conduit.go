@@ -74,7 +74,7 @@ func StartNewMatrixServer(
 	}
 
 	dbDir := path.Join(matrixDir, "db")
-	os.MkdirAll(dbDir, 0o644)
+	os.MkdirAll(dbDir, 0o755)
 
 	cmd := exec.Command(matrixBinPath)
 	cmd.Env = append(os.Environ(),

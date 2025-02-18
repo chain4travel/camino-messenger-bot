@@ -148,7 +148,7 @@ func (f *Factory) CreateBot(
 		return nil, nil, fmt.Errorf("failed to remove bot data dir: %w", err)
 	}
 
-	if err := os.MkdirAll(botDir, 0o644); err != nil {
+	if err := os.MkdirAll(botDir, 0o755); err != nil {
 		return nil, nil, fmt.Errorf("failed to create bot data dir: %w", err)
 	}
 

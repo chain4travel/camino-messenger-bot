@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	startupTimeout     = 30 * time.Second * 100
-	shutdownTimeout    = 30 * time.Second * 100
-	defaultTestTimeout = 10 * time.Second * 100
+	startupTimeout     = 120 * time.Second
+	shutdownTimeout    = 30 * time.Second
+	defaultTestTimeout = 120 * time.Second
 	validatorsCount    = 2
 )
 

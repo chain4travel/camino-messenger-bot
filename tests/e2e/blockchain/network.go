@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/chain4travel/caminogoeth-compat/caminoethvm/ethadmin"
@@ -196,14 +197,7 @@ func StartNewNetwork(
 
 	logger.Info("Blockchain network started")
 
-	combinedErrChan := make(chan error)
-	for _, errChan := range errChans {
-		go func(errChan chan error) {
-			combinedErrChan <- <-errChan
-		}(errChan)
-	}
-
-	return n, combinedErrChan, nil
+	return n, combineErrChannels(errChans...), nil
 }
 
 func UseExistingNetwork(
@@ -335,4 +329,28 @@ func (n *Network) Stop(ctx context.Context) error {
 	}
 	n.logger.Info("Blockchain network stopped")
 	return nil
+}
+
+func combineErrChannels(errChans ...chan error) chan error {
+	wg := sync.WaitGroup{}
+	out := make(chan error)
+
+	forward := func(c <-chan error) {
+		defer wg.Done()
+		for err := range c {
+			out <- err
+		}
+	}
+
+	wg.Add(len(errChans))
+	for _, c := range errChans {
+		go forward(c)
+	}
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	return out
 }

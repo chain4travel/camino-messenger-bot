@@ -11,7 +11,7 @@ For VS Code to work correctly with e2e, following settings must be added because
 
 Example launch json debug config:
 
-```json
+```jsonc
 { // e2e
     "name": "e2e",
     "type": "go",

@@ -27,6 +27,7 @@ func New[T any](
 	}
 }
 
+// Not safe for concurrent use.
 type Runner[T any] struct {
 	beforeRun beforeRunFunc[T]
 	afterRun  afterRunFunc[T]
@@ -58,7 +59,7 @@ func (r *Runner[T]) Run(t *testing.T) {
 	}
 }
 
-func (r *Runner[T]) RunParallel(t *testing.T) error {
+func (r *Runner[T]) RunParallel(t *testing.T) {
 	for name, test := range r.funcs {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -77,5 +78,4 @@ func (r *Runner[T]) RunParallel(t *testing.T) error {
 			test(t, tt)
 		})
 	}
-	return nil
 }
