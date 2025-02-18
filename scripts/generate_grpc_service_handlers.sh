@@ -9,7 +9,7 @@ SERVER_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_method.go.tpl"
 GEN_OUTPATH="internal/rpc/generated"
 REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH}/register_server_services.go"
 REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH}/register_client_services.go"
-UNMARSHALLING_FILE="${GEN_OUTPATH}/unmarshal.go"
+UNMARSHALING="${GEN_OUTPATH}/unmarshal.go"
 
 DEFAULT_BLACKLIST="notification partner network" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
 
@@ -336,7 +336,7 @@ done < <(find "$SDK_GRPC_PATH/cmp/services/" -name "*_grpc.pb.go" | sort)
 
 generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER 
 generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER 
-generate_unmarshalling "$UNMARSHALLING_FILE" PROTO_INCLUDES_FOR_UNMARSHALLING UNMARSHAL_METHODS
+generate_unmarshalling "$UNMARSHALING" PROTO_INCLUDES_FOR_UNMARSHALLING UNMARSHAL_METHODS
 
 echo "🧹 Running gofumpt on all generated files"
 $FUMPT -w $GEN_OUTPATH
