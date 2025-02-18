@@ -83,6 +83,8 @@ func (f *Factory) CreateBot(
 		return nil, nil, fmt.Errorf("failed to generate key: %w", err)
 	}
 
+	// Prepare CM account
+
 	ownerAddr := crypto.PubkeyToAddress(key.PublicKey)
 
 	cmAccountAddress, _, err := f.networkClient.CreateCMAccount(ctx, key)
@@ -103,6 +105,8 @@ func (f *Factory) CreateBot(
 			return nil, nil, fmt.Errorf("failed to add %s service to CM account: %w", service.Name, err)
 		}
 	}
+
+	// Prepare bot config
 
 	port := 0
 	if enableRPCServer {
@@ -167,6 +171,8 @@ func (f *Factory) CreateBot(
 		return nil, nil, fmt.Errorf("failed to write config file: %w", err)
 	}
 
+	// Prepare grpc client for bot
+
 	clientConnection, err := grpc.NewClient(
 		fmt.Sprintf("localhost:%d", config.RPCServer.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -174,6 +180,8 @@ func (f *Factory) CreateBot(
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create grpc client: %w", err)
 	}
+
+	// Start bot
 
 	cmd := exec.Command(f.binPath, "--config", configPath)
 	cmd.Stdout = out
@@ -193,6 +201,8 @@ func (f *Factory) CreateBot(
 		cmAccountAddress: cmAccountAddress,
 	}
 
+	// Await bot readiness
+
 	if config.RPCServer.Enabled {
 		if err := bot.awaitReady(ctx); err != nil {
 			return bot, nil, fmt.Errorf("failed to await bot readiness: %w", err)
@@ -204,6 +214,8 @@ func (f *Factory) CreateBot(
 	f.logger.Infof("bot (pid %d) started", cmd.Process.Pid)
 
 	f.bots = append(f.bots, bot)
+
+	// Await bot process error async
 
 	errChan := make(chan error)
 	go func() {
