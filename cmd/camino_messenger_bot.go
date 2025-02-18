@@ -48,12 +48,15 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 
 	_ = sugaredConfigReaderLogger.Sync()
 
-	var zapLogger *zap.Logger
+	var zapLoggerConfig zap.Config
 	if configReader.IsDevelopmentMode() {
-		zapLogger, err = zap.NewDevelopment()
+		zapLoggerConfig = zap.NewDevelopmentConfig()
 	} else {
-		zapLogger, err = zap.NewProduction()
+		zapLoggerConfig = zap.NewProductionConfig()
 	}
+	zapLoggerConfig.OutputPaths = []string{"stdout"}
+	zapLoggerConfig.ErrorOutputPaths = []string{"stderr"}
+	zapLogger, err := zapLoggerConfig.Build()
 	if err != nil {
 		return fmt.Errorf("failed to create logger: %w", err)
 	}

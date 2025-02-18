@@ -4,11 +4,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
@@ -27,6 +30,15 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		os.Exit(1)
+	}
+}
+
+func run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	grpcServer := grpc.NewServer()
 
 	// Accommodation V1
@@ -54,21 +66,32 @@ func main() {
 
 	port := 55555
 	var err error
-	p, found := os.LookupEnv("PORT")
+	p, found := os.LookupEnv("CMB_PARTNER_PLUGIN_MOCK_PORT")
 	if found {
 		port, err = strconv.Atoi(p)
 		if err != nil {
-			panic(err)
+			log.Printf("failed to parse port: %v", err)
+			return err
 		}
 	}
 
+	log.SetOutput(os.Stdout)
 	log.Printf("Starting server on port: %d", port)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Printf("failed to listen: %v", err)
+		return err
 	}
 
+	go func() {
+		<-ctx.Done()
+		log.Printf("Shutting down server")
+		grpcServer.Stop()
+	}()
+
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Printf("grpc server stopped serving: %v", err)
 	}
+
+	return nil
 }

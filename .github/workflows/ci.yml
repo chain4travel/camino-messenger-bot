@@ -107,3 +107,25 @@ jobs:
           push: false
           tags: |
             c4tplatform/camino-messenger-bot:temp
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update dependencies
+        run: git submodule update --init
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.go_version }}
+      - name: Install libolm
+        run: sudo apt update && sudo apt-get install -y libolm-dev
+      - name: build bot
+        shell: bash
+        run: ./scripts/build.sh
+      - name: build partner-plugin mock
+        shell: bash
+        run: ./scripts/build_partner_plugin_mock.sh
+      - name: e2e
+        shell: bash
+        run: ./scripts/e2e.sh

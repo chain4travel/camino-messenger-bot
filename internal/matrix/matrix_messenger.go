@@ -131,7 +131,7 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 		return "", err
 	}
 
-	signature, message, err := signPublicKey(m.botKey)
+	signature, message, err := SignPublicKey(m.botKey)
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +206,7 @@ func (m *messenger) Inbound() chan types.Message {
 	return m.msgChannel
 }
 
-func signPublicKey(key *ecdsa.PrivateKey) (signature string, message string, err error) {
+func SignPublicKey(key *ecdsa.PrivateKey) (signature string, message string, err error) {
 	pubKeyBytes := crypto.FromECDSAPub(&key.PublicKey)
 	signatureBytes, err := sign(pubKeyBytes, key)
 	if err != nil {
