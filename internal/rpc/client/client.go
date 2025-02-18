@@ -10,7 +10,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/utils/tls"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -31,7 +31,7 @@ func NewClient(cfg config.PartnerPluginConfig, logger *zap.SugaredLogger) (*RPCC
 	if cfg.Unencrypted {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	} else {
-		tlsCreds, err := utils.LoadCATLSCredentials(cfg.CACertFile)
+		tlsCreds, err := tls.LoadCATLSCredentials(cfg.CACertFile)
 		if err != nil {
 			return nil, fmt.Errorf("could not load TLS keys: %w", err)
 		}

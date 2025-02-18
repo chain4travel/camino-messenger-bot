@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	utils "github.com/chain4travel/camino-messenger-bot/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/utils/tls"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -30,7 +30,7 @@ func newExporter(cfg *config.TracingConfig) (trace.SpanExporter, error) {
 	if cfg.Insecure {
 		opts = append(opts, otlptracegrpc.WithInsecure())
 	} else {
-		creds, err := utils.LoadTLSCredentials(cfg.CertFile, cfg.KeyFile)
+		creds, err := tls.LoadTLSCredentials(cfg.CertFile, cfg.KeyFile)
 		if err != nil {
 			return nil, fmt.Errorf("could not load TLS keys: %w", err)
 		}
