@@ -29,12 +29,12 @@ echo "Starting build process..."
 if [ -z "${CAMINOBOT_PATH}" ]; then
 	# camino-messenger-bot root folder
 	CAMINOBOT_PATH=$(
-		cd "$(dirname "${BASH_SOURCE[0]}")"
+		cd "$(dirname "${BASH_SOURCE[0]}")" || exit
 		cd .. && pwd
 	)
 fi
 echo "cd $CAMINOBOT_PATH"
-cd "$CAMINOBOT_PATH"
+cd "$CAMINOBOT_PATH" || exit
 
 # Load the constants
 echo "Preparing constants..."
@@ -60,9 +60,10 @@ else
 fi
 
 echo "$BUILD_CMD"
-eval "$BUILD_CMD"
 
-if [ $? -eq 0 ]; then
+
+if eval "$BUILD_CMD"
+then
 	echo "Output binary: ${CAMINOBOT_PATH}/${OUTPUT_BINARY}"
 	echo "Build successful!"
 else

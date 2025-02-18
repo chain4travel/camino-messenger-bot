@@ -10,4 +10,4 @@ if ! ./scripts/build.sh; then
 	exit 1
 fi
 
-go test -shuffle=on -race -timeout="${TIMEOUT:-120s}" -coverprofile="coverage.out" -covermode="atomic" $(go list ./...)
+go test -shuffle=on -race -timeout="${TIMEOUT:-120s}" -coverprofile="coverage.out" -covermode="atomic" ./...

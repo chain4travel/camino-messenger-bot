@@ -17,7 +17,7 @@ fi
 input="scripts/mocks.mockgen.txt"
 while IFS= read -r line
 do
-	IFS='=' read src_import_path interface_name output_path package_name <<< "${line}"
+	IFS='=' read -r src_import_path interface_name output_path package_name <<< "${line}"
 	# If package_name is not provided, use the basename of the directory containing the output file
 	if [[ -z "$package_name" ]]; then
 	package_name=$(basename "$(dirname "$output_path")")
@@ -25,7 +25,7 @@ do
 
 	[[ $src_import_path == \#* ]] && continue
 	echo "Generating ${output_path}..."
-	mockgen -package=${package_name} -destination=${output_path} ${src_import_path} ${interface_name}
+	mockgen -package="${package_name}" -destination="${output_path}" "${src_import_path}" "${interface_name}"
 done < "$input"
 
 

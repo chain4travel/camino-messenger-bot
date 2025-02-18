@@ -26,7 +26,7 @@ calculate_average() {
 }
 
 # Sort the array
-sorted_data=($(for i in "${data[@]}"; do echo $i; done | sort -n))
+sorted_data=$(for i in "${data[@]}"; do echo "$i"; done | sort -n)
 
 # Calculate min, max, median, and average
 min=${sorted_data[0]}

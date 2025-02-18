@@ -6,8 +6,8 @@ EXPECTED_VERSION="1.60"
 
 # Function to check if a command exists
 golangci_lint_installed() {
-	golangci-lint --version | grep $EXPECTED_VERSION > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
+	if golangci-lint --version | grep $EXPECTED_VERSION > /dev/null 2>&1 
+	then
 		return 0
 	else
 		return 1

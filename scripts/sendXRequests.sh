@@ -16,4 +16,4 @@ times_to_run=$1
 
 # Change the path to your Go file below
 go_file_path="examples/rpc/client.go"
-go run $go_file_path $times_to_run
+go run $go_file_path "$times_to_run"

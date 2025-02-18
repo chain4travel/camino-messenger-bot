@@ -13,5 +13,11 @@ git_commit=${CAMINO_BOT_COMMIT:-$(git rev-parse --short HEAD)}
 git_tag=${CAMINO_BOT_TAG:-$(git describe --tags --always --dirty || echo unknown)}
 
 # get protocol releases from buf.build
-grpc_release=$(${SCRIPT_DIR}/resolve_protocol_release.sh buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go)
-protocolbuffers_release=$(${SCRIPT_DIR}/resolve_protocol_release.sh buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go)
+grpc_release=$("${SCRIPT_DIR}"/resolve_protocol_release.sh buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go)
+protocolbuffers_release=$("${SCRIPT_DIR}"/resolve_protocol_release.sh buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go)
+
+export current_branch
+export git_commit
+export git_tag
+export grpc_release
+export protocolbuffers_release
