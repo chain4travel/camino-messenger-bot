@@ -40,32 +40,32 @@ func (m *Metadata) ExtractMetadata(ctx context.Context) error {
 }
 
 func (m *Metadata) FromGrpcMD(mdPairs metadata.MD) error {
-	if requestID, found := mdPairs["request_id"]; found {
+	if requestID, found := mdPairs["request_id"]; found && len(requestID[0]) > 0 {
 		m.RequestID = requestID[0]
 	}
 
-	if sender, found := mdPairs["sender"]; found {
+	if sender, found := mdPairs["sender"]; found && len(sender[0]) > 0 {
 		m.Sender = sender[0]
 	}
 
-	if recipient, found := mdPairs["recipient"]; found {
+	if recipient, found := mdPairs["recipient"]; found && len(recipient[0]) > 0 {
 		m.Recipient = recipient[0]
 	}
 
-	if cheques, found := mdPairs["cheques"]; found {
+	if cheques, found := mdPairs["cheques"]; found && len(cheques[0]) > 0 {
 		chequesJSON := strings.Join(cheques, "")
 		if err := json.Unmarshal([]byte(chequesJSON), &m.Cheques); err != nil {
 			return fmt.Errorf("error unmarshalling cheques: %w", err)
 		}
 	}
 
-	if timestamps, found := mdPairs["timestamps"]; found {
+	if timestamps, found := mdPairs["timestamps"]; found && len(timestamps[0]) > 0 {
 		timestampsJSON := strings.Join(timestamps, "")
 		if err := json.Unmarshal([]byte(timestampsJSON), &m.Timestamps); err != nil {
 			return fmt.Errorf("error unmarshalling timestamps: %w", err)
 		}
 	}
-	if providerOperator, found := mdPairs["provider_operator"]; found {
+	if providerOperator, found := mdPairs["provider_operator"]; found && len(providerOperator[0]) > 0 {
 		m.ProviderOperator = providerOperator[0]
 	}
 	return nil
