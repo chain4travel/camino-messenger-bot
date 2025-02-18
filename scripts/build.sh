@@ -11,27 +11,27 @@ DEBUG=false
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
-    key="$1"
-    case $key in
-    -d | --debug)
-        DEBUG=true
-        shift
-        ;;
-    *)
-        echo "Unknown option: $1"
-        exit 1
-        ;;
-    esac
+	key="$1"
+	case $key in
+	-d | --debug)
+		DEBUG=true
+		shift
+		;;
+	*)
+		echo "Unknown option: $1"
+		exit 1
+		;;
+	esac
 done
 
 echo "Starting build process..."
 
 if [ -z "${CAMINOBOT_PATH}" ]; then
-    # camino-messenger-bot root folder
-    CAMINOBOT_PATH=$(
-        cd "$(dirname "${BASH_SOURCE[0]}")"
-        cd .. && pwd
-    )
+	# camino-messenger-bot root folder
+	CAMINOBOT_PATH=$(
+		cd "$(dirname "${BASH_SOURCE[0]}")"
+		cd .. && pwd
+	)
 fi
 echo "cd $CAMINOBOT_PATH"
 cd "$CAMINOBOT_PATH"
@@ -54,18 +54,18 @@ LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/internal/versi
 # Build the Go application
 echo "Building camino-messenger-bot..."
 if [ "$DEBUG" = true ]; then
-    BUILD_CMD="go build -o ${OUTPUT_BINARY} -ldflags \"$LDFLAGS\" -gcflags \"all=-N -l\" ${MAIN_SOURCE}"
+	BUILD_CMD="go build -o ${OUTPUT_BINARY} -ldflags \"$LDFLAGS\" -gcflags \"all=-N -l\" ${MAIN_SOURCE}"
 else
-    BUILD_CMD="go build -o ${OUTPUT_BINARY} -ldflags \"$LDFLAGS\" ${MAIN_SOURCE}"
+	BUILD_CMD="go build -o ${OUTPUT_BINARY} -ldflags \"$LDFLAGS\" ${MAIN_SOURCE}"
 fi
 
 echo "$BUILD_CMD"
 eval "$BUILD_CMD"
 
 if [ $? -eq 0 ]; then
-    echo "Output binary: ${CAMINOBOT_PATH}/${OUTPUT_BINARY}"
-    echo "Build successful!"
+	echo "Output binary: ${CAMINOBOT_PATH}/${OUTPUT_BINARY}"
+	echo "Build successful!"
 else
-    echo "Build failed."
-    exit 1
+	echo "Build failed."
+	exit 1
 fi
