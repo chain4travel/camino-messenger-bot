@@ -27,6 +27,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+ORIG_DIR=$(pwd)
 dependency_dir="build/dependencies"
 mkdir -p "$dependency_dir"
 
@@ -69,8 +70,8 @@ download_and_extract() {
         fi
         
         cd "$dest_dir"
-        ./scripts/build.sh
-        cd -
+        ./scripts/build.sh        
+        cd "$ORIG_DIR"
     fi
 }
 
