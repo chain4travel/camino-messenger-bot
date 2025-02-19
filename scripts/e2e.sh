@@ -104,7 +104,10 @@ echo "Building e2e tests..."
 
 E2E_BIN_OUT=build/tests_e2e
 
-go test -tags=e2e -c -o $E2E_BIN_OUT
+ORIG_DIR=$(pwd)
+cd tests/e2e
+go test -tags=e2e -c -o ../../$E2E_BIN_OUT e2e_test.go
+cd "$ORIG_DIR"
 
 CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
 MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
