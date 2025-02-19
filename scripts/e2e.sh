@@ -13,6 +13,8 @@ CONDUIT_VERSION="$default_version"
 FALLBACK_BRANCH="dev"
 BUILD_SCRIPT="./scripts/build.sh"
 
+OUT_BINARY=""
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --caminogo)
@@ -34,13 +36,15 @@ ORIG_DIR=$(pwd)
 dependency_dir="build/dependencies"
 mkdir -p "$dependency_dir"
 
-download_and_extract() {
+function download_and_extract() {
     local repo_name=$1
     local version=$2
     local repo_url=$3
     local dest_dir="$dependency_dir/$repo_name"
 
 	echo "Attemting to download $repo_name"
+
+	OUT_BINARY=""
 
     # Remove existing directory to ensure fresh download
     if [ -d "$dest_dir" ]; then
@@ -61,7 +65,7 @@ download_and_extract() {
 			branch=$version
 		fi
 
-		echo "ERROR: Unable to get the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
+		echo "WARN: Unable to get the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
 
 		if git ls-remote --heads --tags "$repo_url" | grep -q "$branch"; then
             git clone --depth 1 --branch "$branch" "$repo_url" "$dest_dir"
@@ -94,14 +98,41 @@ download_and_extract() {
 			exit 1
 		fi
 	fi
+
+	# if build from source
+	OUT_BINARY=$dest_dir/build/$repo_name
+
+	if [ -f $OUT_BINARY ] ; then
+		return 0
+	fi
+
+	# camino conduit release is build like this:
+	OUT_BINARY=$dest_dir/$repo_name
+
+	if [ -f $OUT_BINARY ] ; then
+		return 0
+	fi
+	
+	# caminogo release is build like this:
+	OUT_BINARY=$dest_dir/$repo_name-$release_version/$repo_name
+
+	if [ -f $OUT_BINARY ] ; then
+		return 0
+	fi
+
+	echo "CRIT: Could not find executable for '$repo_name'"
+	exit 1
 }
 
 download_and_extract "caminogo" "$CAMINOGO_VERSION" "$CAMINOGO_REPO"
+CAMINOGO_BIN_PATH=$OUT_BINARY
+
 download_and_extract "camino-conduit" "$CONDUIT_VERSION" "$CONDUIT_REPO"
+MATRIX_BIN_PATH=$OUT_BINARY
 
 echo "Checking dependency binaries..."
-CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
-MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
+#CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
+#MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
 
 if [ ! -f $CAMINOGO_BIN_PATH ] ; then
 	echo "CRIT: Unable to find caminogo executable in '$CAMINOGO_BIN_PATH'"
