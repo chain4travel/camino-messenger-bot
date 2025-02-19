@@ -49,7 +49,7 @@ version_lt() {
 }
 
 if version_lt "$(go_version)" "$go_version_minimum"; then
-    echo "camino-messanger-bot requires Go >= $go_version_minimum, Go $(go_version) found." >&2
+    echo "camino-messenger-bot requires Go >= $go_version_minimum, Go $(go_version) found." >&2
     exit 1
 fi
 
