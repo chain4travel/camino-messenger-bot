@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -xe
+set -e
 
 CAMINOGO_REPO="https://github.com/chain4travel/caminogo"
 CONDUIT_REPO="https://github.com/chain4travel/camino-conduit"
