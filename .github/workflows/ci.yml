@@ -24,7 +24,7 @@ permissions:
 jobs:
   unit:
     name: Unit Tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Update dependencies
@@ -41,7 +41,7 @@ jobs:
   # When the golangci-lint version is updated here, also update it in scripts/lint.sh
   lint:
     name: Static Analysis
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Update dependencies
@@ -56,7 +56,7 @@ jobs:
         run: ./scripts/lint.sh
   shellcheck:
     name: Shellcheck
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Update dependencies
@@ -67,7 +67,7 @@ jobs:
         
   check_clean_branch:
     name: Check that go mod tidy and code-gen are performed
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Update dependencies
@@ -110,7 +110,7 @@ jobs:
 
   e2e:
     name: E2E Tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Update dependencies
