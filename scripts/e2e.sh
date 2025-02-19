@@ -10,6 +10,9 @@ default_version="latest"
 CAMINOGO_VERSION="$default_version"
 CONDUIT_VERSION="$default_version"
 
+FALLBACK_BRANCH="c4t"
+BUILD_SCRIPT="./scripts/build.sh"
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --caminogo)
@@ -37,6 +40,8 @@ download_and_extract() {
     local repo_url=$3
     local dest_dir="$dependency_dir/$repo_name"
 
+	echo "Attemting to download $repo_name"
+
     # Remove existing directory to ensure fresh download
     if [ -d "$dest_dir" ]; then
         echo "Removing existing $repo_name directory..."
@@ -46,33 +51,49 @@ download_and_extract() {
     mkdir -p "$dest_dir"
 
     if [ "$version" = "latest" ]; then
-        version=$(curl -s "https://api.github.com/repos/chain4travel/$repo_name/releases/latest" | grep -Po '"tag_name": "\K[^"]*')
+        release_version=$(curl -s "https://api.github.com/repos/chain4travel/$repo_name/releases/latest" | grep -Po '"tag_name": "\K[^"]*' || echo "")
     fi
 
-    local url="https://github.com/chain4travel/$repo_name/releases/download/$version/${repo_name}-linux-amd64-${version}.tar.gz"
+	if [ -z "$release_version" ] ; then
+		if [ "$version" = "latest" ]; then
+			branch=$FALLBACK_BRANCH
+		else
+			branch=$version
+		fi
 
-    echo "Downloading $repo_name version $version..."
-    if curl --output /dev/null --silent --head --fail "$url"; then
-        curl -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
-        tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
-        rm "$dest_dir/${repo_name}.tar.gz"
-    else
-        echo "Release not found for $repo_name version $version, attempting to clone and build..."
-        if git ls-remote --heads --tags "$repo_url" | grep -q "$version"; then
-            git clone --depth 1 --branch "$version" "$repo_url" "$dest_dir"
-        elif git ls-remote "$repo_url" | grep -q "$version"; then
+		echo "ERROR: Unable to get the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
+
+		if git ls-remote --heads --tags "$repo_url" | grep -q "$version"; then
+            git clone --depth 1 --branch "$branch" "$repo_url" "$dest_dir"
+        elif git ls-remote "$repo_url" | grep -q "$branch"; then
             git clone --depth 1 "$repo_url" "$dest_dir"
             cd "$dest_dir"
-            git checkout "$version"
+            git checkout "$branch"
         else
-            echo "Version/tag/commit not found for $repo_name, aborting."
+            echo "Version/tag/commit '$branch' not found for $repo_name, aborting."
             exit 1
         fi
         
-        cd "$dest_dir"
-        ./scripts/build.sh        
+        cd "${ORIG_DIR}/$dest_dir"
+		if [ ! -f $BUILD_SCRIPT ] ; then
+			echo "CRIT: No build script found at '$BUILD_SCRIPT' in cloned repository. Abort."
+			exit 1
+		fi
+		$BUILD_SCRIPT
         cd "$ORIG_DIR"
-    fi
+	else
+	    local url="https://github.com/chain4travel/$repo_name/releases/download/$release_version/${repo_name}-linux-amd64-${release_version}.tar.gz"
+
+	    echo "Downloading $repo_name version $release_version..."
+	    if curl --output /dev/null --silent --head --fail "$url"; then
+    	    curl -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
+	        tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
+	        rm "$dest_dir/${repo_name}.tar.gz"
+    	else
+			echo "CRIT: Unable to download the release '$release_version' of $repo_name."
+			exit 1
+		fi
+	fi
 }
 
 download_and_extract "caminogo" "$CAMINOGO_VERSION" "$CAMINOGO_REPO"
