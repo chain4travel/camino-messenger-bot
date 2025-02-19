@@ -102,21 +102,21 @@ function download_and_extract() {
 	# if build from source
 	OUT_BINARY=$dest_dir/build/$repo_name
 
-	if [ -f $OUT_BINARY ] ; then
+	if [ -f "$OUT_BINARY" ] ; then
 		return 0
 	fi
 
 	# camino conduit release is build like this:
 	OUT_BINARY=$dest_dir/$repo_name
 
-	if [ -f $OUT_BINARY ] ; then
+	if [ -f "$OUT_BINARY" ] ; then
 		return 0
 	fi
 	
 	# caminogo release is build like this:
 	OUT_BINARY=$dest_dir/$repo_name-$release_version/$repo_name
 
-	if [ -f $OUT_BINARY ] ; then
+	if [ -f "$OUT_BINARY" ] ; then
 		return 0
 	fi
 
@@ -125,21 +125,21 @@ function download_and_extract() {
 }
 
 download_and_extract "caminogo" "$CAMINOGO_VERSION" "$CAMINOGO_REPO"
-CAMINOGO_BIN_PATH=$OUT_BINARY
+CAMINOGO_BIN_PATH="$OUT_BINARY"
 
 download_and_extract "camino-conduit" "$CONDUIT_VERSION" "$CONDUIT_REPO"
-MATRIX_BIN_PATH=$OUT_BINARY
+MATRIX_BIN_PATH="$OUT_BINARY"
 
 echo "Checking dependency binaries..."
 #CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
 #MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
 
-if [ ! -f $CAMINOGO_BIN_PATH ] ; then
+if [ ! -f "$CAMINOGO_BIN_PATH" ] ; then
 	echo "CRIT: Unable to find caminogo executable in '$CAMINOGO_BIN_PATH'"
 	exit 1
 fi
 
-if [ ! -f $MATRIX_BIN_PATH ] ; then
+if [ ! -f "$MATRIX_BIN_PATH" ] ; then
 	echo "CRIT: Unable to find camino-conduit executable in '$MATRIX_BIN_PATH'"
 	exit 1
 fi
