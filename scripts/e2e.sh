@@ -86,7 +86,7 @@ download_and_extract() {
 
 	    echo "Downloading $repo_name version $release_version..."
 	    if curl --output /dev/null --silent --head --fail "$url"; then
-    	    curl -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
+    	    curl -s -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
 	        tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
 	        rm "$dest_dir/${repo_name}.tar.gz"
     	else
