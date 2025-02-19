@@ -10,7 +10,7 @@ default_version="latest"
 CAMINOGO_VERSION="$default_version"
 CONDUIT_VERSION="$default_version"
 
-FALLBACK_BRANCH="c4t"
+FALLBACK_BRANCH="dev"
 BUILD_SCRIPT="./scripts/build.sh"
 
 while [[ $# -gt 0 ]]; do
