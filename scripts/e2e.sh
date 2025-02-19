@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -xe
 
 CAMINOGO_REPO="https://github.com/chain4travel/caminogo"
 CONDUIT_REPO="https://github.com/chain4travel/camino-conduit"
@@ -63,7 +63,7 @@ download_and_extract() {
 
 		echo "ERROR: Unable to get the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
 
-		if git ls-remote --heads --tags "$repo_url" | grep -q "$version"; then
+		if git ls-remote --heads --tags "$repo_url" | grep -q "$branch"; then
             git clone --depth 1 --branch "$branch" "$repo_url" "$dest_dir"
         elif git ls-remote "$repo_url" | grep -q "$branch"; then
             git clone --depth 1 "$repo_url" "$dest_dir"
