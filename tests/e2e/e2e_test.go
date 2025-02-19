@@ -128,5 +128,5 @@ func TestE2E(t *testing.T) {
 
 func checkFileExist(t *testing.T, path string) {
 	_, err := os.Stat(path)
-	require.NoError(t, err)
+	require.NoErrorf(t, err, "file %s does not exist", path)
 }
