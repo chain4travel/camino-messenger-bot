@@ -5,6 +5,7 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
@@ -32,16 +33,21 @@ func TestPingV1(t *testing.T, tt *Test) {
 	// bot without partnerPlugin and with rpc server (distributor)
 	distributorBot := tt.CreateBot(ctx, t, true, nil, nil, nil)
 
+	pingMessage := "ping"
+	expectedResponceMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
+
 	resp, err := distributorBot.PingServiceV1.Ping(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
 		&pingv1.PingRequest{
 			Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			PingMessage: "ping",
+			PingMessage: pingMessage,
 			Timestamp:   timestamppb.Now(),
 		},
 	)
 	require.NoError(t, err)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	require.Contains(t, resp.PingMessage, expectedResponceMessageSubString, "unexpected response message")
 }
