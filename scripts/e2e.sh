@@ -101,7 +101,10 @@ download_and_extract "camino-conduit" "$CONDUIT_VERSION" "$CONDUIT_REPO"
 
 echo "Building e2e tests..."
 
-go test -tags=e2e -c -o build/tests_e2e
+
+E2E_BIN_OUT=build/tests_e2e
+
+go test -tags=e2e -c -o $E2E_BIN_OUT
 
 CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
 MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
@@ -117,7 +120,7 @@ CMB_DB_MIGRATIONS_PATH="$(realpath "${CMB_DB_MIGRATIONS_PATH}")"
 
 echo "Running e2e tests..."
 
-./e2e.test \
+./$E2E_BIN_OUT \
 	-test.v \
 	-node="${CAMINOGO_BIN_PATH}" \
 	-matrix="${MATRIX_BIN_PATH}" \
