@@ -99,8 +99,21 @@ download_and_extract() {
 download_and_extract "caminogo" "$CAMINOGO_VERSION" "$CAMINOGO_REPO"
 download_and_extract "camino-conduit" "$CONDUIT_VERSION" "$CONDUIT_REPO"
 
-echo "Building e2e tests..."
+echo "Checking dependency binaries..."
+CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
+MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
 
+if [ ! -f $CAMINOGO_BIN_PATH ] ; then
+	echo "CRIT: Unable to find caminogo executable in '$CAMINOGO_BIN_PATH'"
+	exit 1
+fi
+
+if [ ! -f $MATRIX_BIN_PATH ] ; then
+	echo "CRIT: Unable to find camino-conduit executable in '$MATRIX_BIN_PATH'"
+	exit 1
+fi
+
+echo "Building e2e tests..."
 
 E2E_BIN_OUT=build/tests_e2e
 
@@ -109,8 +122,6 @@ cd tests/e2e
 go test -tags=e2e -c -o ../../$E2E_BIN_OUT e2e_test.go
 cd "$ORIG_DIR"
 
-CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
-MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
 PARTNER_PLUGIN_BIN_PATH=build/pp-mock
 CMB_BIN_PATH=build/camino-messenger-bot
 CMB_DB_MIGRATIONS_PATH=migrations
