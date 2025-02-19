@@ -51,7 +51,7 @@ var (
 	}
 )
 
-func TestProcessIncomingMessage(t *testing.T) {
+func TestProcessIncomingP2PMessage(t *testing.T) {
 	responseMessage := types.Message{
 		Type: generated.PingServiceV1Response,
 		Metadata: metadata.Metadata{
@@ -208,7 +208,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			if tt.prepare != nil {
 				tt.prepare(p.(*messageProcessor))
 			}
-			err := p.ProcessIncomingMessage(tt.args.msg)
+			err := p.ProcessIncomingP2PMessage(tt.args.msg)
 			require.ErrorIs(t, err, tt.err)
 
 			if tt.assert != nil {

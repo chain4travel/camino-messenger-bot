@@ -46,6 +46,9 @@ type ResponseHandler interface {
 	// Prepares request by performing any necessary modifications to it
 	PrepareRequest(request protoreflect.ProtoMessage) error
 
+	// Processes incoming request
+	ProcessRequestMessage(ctx context.Context, response *types.Message, request protoreflect.ProtoMessage) error
+
 	// Adds an error message to the response header
 	AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string)
 }
@@ -112,7 +115,20 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 		h.processMintResponseV1(ctx, response)
 	case *bookv2.MintResponse: // distributor will post-process a mint request to buy the returned NFT
 		h.processMintResponseV2(ctx, response)
+		// TODO: @VjeraTurk Add bookv3.MintResponse
 	}
+}
+
+func (h *evmResponseHandler) ProcessRequestMessage(
+	_ context.Context,
+	_ *types.Message,
+	_ protoreflect.ProtoMessage,
+) error {
+	// TODO: @VjeraTurk A the logic for processing these request messages
+	/*
+		Cancellation messages will serve as an example of this type
+	*/
+	return nil
 }
 
 // Prepares response by performing any necessary modifications to it.

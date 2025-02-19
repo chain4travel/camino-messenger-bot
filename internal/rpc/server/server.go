@@ -105,8 +105,8 @@ func (s *server) Stop() {
 	s.grpcServer.Stop()
 }
 
-func (s *server) HandleRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
-	ctx, span := s.tracer.Start(ctx, "server.HandleRequest", trace.WithSpanKind(trace.SpanKindServer))
+func (s *server) HandleP2PMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+	ctx, span := s.tracer.Start(ctx, "server.HandleP2PMessageRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
 	if err != nil {
@@ -120,6 +120,26 @@ func (s *server) HandleRequest(ctx context.Context, requestType types.MessageTyp
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error processing outbound request: %w", err)
+	}
+	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
+	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
+	return response.Content, err // TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+}
+
+func (s *server) HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+	ctx, span := s.tracer.Start(ctx, "server.HandleMessageRequest", trace.WithSpanKind(trace.SpanKindServer))
+	defer span.End()
+	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
+	if err != nil {
+		return nil, fmt.Errorf("error processing metadata: %w", err)
+	}
+	response, err := s.processor.ProcessIncomingLocalMessage(ctx, &types.Message{
+		Type:     requestType,
+		Content:  request,
+		Metadata: md,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error processing request: %w", err)
 	}
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
 	err = grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())

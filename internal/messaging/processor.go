@@ -50,8 +50,9 @@ type MessageProcessor interface {
 	metadata.Checkpoint
 
 	Start(ctx context.Context)
-	ProcessIncomingMessage(message *types.Message) error
+	ProcessIncomingP2PMessage(message *types.Message) error
 	SendRequestMessage(ctx context.Context, message *types.Message) (*types.Message, error)
+	ProcessIncomingLocalMessage(ctx context.Context, message *types.Message) (*types.Message, error)
 }
 
 func NewMessageProcessor(
@@ -119,7 +120,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 		case msgEvent := <-p.messenger.Inbound():
 			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
 			go func() {
-				if err := p.ProcessIncomingMessage(&msgEvent); err != nil {
+				if err := p.ProcessIncomingP2PMessage(&msgEvent); err != nil {
 					p.logger.Warnf("could not process message: %v", err)
 				}
 			}()
@@ -130,7 +131,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 	}
 }
 
-func (p *messageProcessor) ProcessIncomingMessage(msg *types.Message) error {
+func (p *messageProcessor) ProcessIncomingP2PMessage(msg *types.Message) error {
 	switch msg.Type.Category() {
 	case types.Request:
 		return p.respond(msg)
@@ -268,6 +269,35 @@ func (p *messageProcessor) respond(msg *types.Message) error {
 	}
 
 	return p.messenger.SendAsync(ctx, responseMsg, msg.Sender)
+}
+
+func (p *messageProcessor) ProcessIncomingLocalMessage(
+	ctx context.Context,
+	msg *types.Message,
+) (*types.Message, error) {
+	_, responseMsg, err := p.ProcessIncomingLocalMessageAndGetResponse(ctx, msg)
+	if err != nil {
+		return responseMsg, err
+	}
+	return responseMsg, nil
+}
+
+func (p *messageProcessor) ProcessIncomingLocalMessageAndGetResponse(
+	ctx context.Context,
+	requestMsg *types.Message,
+) (context.Context, *types.Message, error) {
+	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
+	responseMsg := &types.Message{
+		Metadata: requestMsg.Metadata,
+	}
+	p.logger.Infof("responseMsg before processing %v", responseMsg.Content)
+	if err := p.responseHandler.ProcessRequestMessage(ctx, responseMsg, requestMsg.Content); err != nil {
+		// TODO: @VjeraTurk or AddErrorToResponseHeader earlier?!
+		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, err.Error())
+		return ctx, responseMsg, fmt.Errorf("failed to process request message: %w", err)
+	}
+	p.logger.Infof("responseMsg after processing %v", responseMsg.Content)
+	return ctx, responseMsg, nil
 }
 
 func (p *messageProcessor) callPartnerPluginAndGetResponse(
