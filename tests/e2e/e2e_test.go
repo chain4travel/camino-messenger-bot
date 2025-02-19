@@ -73,8 +73,15 @@ func TestE2E(t *testing.T) {
 	require.NoError(t, err)
 	flagCMBBinPath, err = filepath.Abs(flagCMBBinPath)
 	require.NoError(t, err)
+	flagPartnerPluginBinPath, err = filepath.Abs(flagPartnerPluginBinPath)
+	require.NoError(t, err)
 	flagMigrationsDir, err = filepath.Abs(flagMigrationsDir)
 	require.NoError(t, err)
+
+	checkFileExist(t, flagNodeBinPath)
+	checkFileExist(t, flagMatrixBinPath)
+	checkFileExist(t, flagCMBBinPath)
+	checkFileExist(t, flagPartnerPluginBinPath)
 
 	flagTestsDataDir = path.Join(flagTestsDataDir, time.Now().Format("2006-01-02_15-04-05"))
 
@@ -117,4 +124,9 @@ func TestE2E(t *testing.T) {
 	} else {
 		testsRunner.Run(t)
 	}
+}
+
+func checkFileExist(t *testing.T, path string) {
+	_, err := os.Stat(path)
+	require.NoError(t, err)
 }
