@@ -49,7 +49,7 @@ download_and_extract() {
     fi
 
     mkdir -p "$dest_dir"
-
+    release_version=""
     if [ "$version" = "latest" ]; then
         release_version=$(curl -s "https://api.github.com/repos/chain4travel/$repo_name/releases/latest" | grep -Po '"tag_name": "\K[^"]*' || echo "")
     fi
