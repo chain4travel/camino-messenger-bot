@@ -158,7 +158,7 @@ func (m *MatrixServer) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop matrix server process with pid %d: %w", m.pid, err)
 	}
 	if err := m.logfile.Close(); err != nil {
-		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
+		return fmt.Errorf("failed to close matrix server logfile: %w", err)
 	}
 	m.logger.Infof("Matrix server (pid %d) stopped", m.pid)
 	return nil
