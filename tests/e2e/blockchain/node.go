@@ -31,7 +31,7 @@ func (n *Node) Stop(ctx context.Context) error {
 	}
 	n.logger.Infof("Blockchain node (pid %d) stopped", n.pid)
 	if err := n.logfile.Close(); err != nil {
-		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
+		return fmt.Errorf("failed to close node logfile: %w", err)
 	}
 	return nil
 }
