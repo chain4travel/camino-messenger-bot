@@ -14,6 +14,7 @@ import (
 )
 
 const processTickerInterval = 50 * time.Millisecond
+const killTimeout = 2 * time.Second
 
 func ListenForProcessError(cmd *exec.Cmd) chan error {
 	errChan := make(chan error)
@@ -41,16 +42,20 @@ func StopProcess(ctx context.Context, pid int) error {
 		return fmt.Errorf("failed to send SIGTERM to process with pid %d: %w", pid, err)
 	}
 
-	if err := waitForProcessToStop(ctx, pid); err != nil {
+	if err := waitKillProcess(ctx, pid); err != nil {
 		return fmt.Errorf("failed to wait for process with pid %d to stop: %w", pid, err)
 	}
 
 	return nil
 }
 
-func waitForProcessToStop(ctx context.Context, pid int) error {
+func waitKillProcess(ctx context.Context, pid int) error {
 	ticker := time.NewTicker(processTickerInterval)
 	defer ticker.Stop()
+
+	killTimeoutCtx, cancelKillTimeout := context.WithTimeout(ctx, killTimeout)
+	defer cancelKillTimeout()
+
 	for {
 		process, err := getProcess(pid)
 		switch {
@@ -63,6 +68,13 @@ func waitForProcessToStop(ctx context.Context, pid int) error {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to see process %d stop: %w", pid, ctx.Err())
+		case <-killTimeoutCtx.Done():
+			// Process did not stop in time (killTimeout), killing it
+			if err := process.Signal(syscall.SIGKILL); err != nil {
+				return fmt.Errorf("failed to send SIGKILL to process with pid %d: %w", pid, err)
+			}
+			// The timeout is done - prevent it from triggering again
+			cancelKillTimeout()
 		case <-ticker.C:
 		}
 	}

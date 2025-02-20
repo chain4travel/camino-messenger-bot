@@ -6,7 +6,6 @@ package tests
 import (
 	"context"
 	"crypto/ecdsa"
-	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,11 +36,10 @@ func (tt *Test) CreateBot(
 	t *testing.T,
 	enableRPCServer bool,
 	partnerPlugin *partnerplugin.PartnerPlugin,
-	out io.Writer,
 	services []bot.CMService,
 ) *bot.Bot {
 	t.Helper()
-	bot, errChan, err := tt.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, services, out)
+	bot, errChan, err := tt.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, services)
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
 	return bot
@@ -50,10 +48,9 @@ func (tt *Test) CreateBot(
 func (tt *Test) CreatePartnerPlugin(
 	ctx context.Context,
 	t *testing.T,
-	out io.Writer,
 ) *partnerplugin.PartnerPlugin {
 	t.Helper()
-	partnerPlugin, errChan, err := tt.partnerPluginFactory.CreatePartnerPlugin(ctx, out)
+	partnerPlugin, errChan, err := tt.partnerPluginFactory.CreatePartnerPlugin(ctx)
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
 	return partnerPlugin

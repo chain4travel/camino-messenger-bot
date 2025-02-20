@@ -6,6 +6,7 @@ package bot
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"go.uber.org/zap"
@@ -24,6 +25,7 @@ type Bot struct {
 	logger           *zap.SugaredLogger
 	pid              int
 	cmAccountAddress common.Address
+	logfile          *os.File
 
 	*rpcClient
 }
@@ -36,6 +38,7 @@ func (b *Bot) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop cmb process with pid %d: %w", b.pid, err)
 	}
 	b.logger.Infof("Bot (pid %d) stopped", b.pid)
+	b.logfile.Close()
 	return nil
 }
 

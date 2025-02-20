@@ -7,7 +7,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"io"
 	"math/big"
 	"os"
 	"os/exec"
@@ -57,7 +56,6 @@ func StartNewNetwork(
 	dataDir string,
 	nodeBinPath string,
 	validatorsCount int,
-	w io.Writer,
 ) (*Network, chan error, error) {
 	logger.Infof("Starting blockchain network (%d validators)...", validatorsCount)
 
@@ -160,7 +158,6 @@ func StartNewNetwork(
 		errGroup.Go(func() error {
 			n.nodes[i], errChans[i], err = n.startNewNode(
 				gCtx,
-				w,
 				path.Join(networkDir, validators[i].nodeID.String(), "node"),
 				path.Join(networkDir, validators[i].nodeID.String(), "staker.key"),
 				path.Join(networkDir, validators[i].nodeID.String(), "staker.crt"),
@@ -252,7 +249,6 @@ type Network struct {
 
 func (n *Network) startNewNode(
 	ctx context.Context,
-	w io.Writer,
 	nodeDir string,
 	stakerKeyPath string,
 	stakerCertPath string,
@@ -280,8 +276,17 @@ func (n *Network) startNewNode(
 		fmt.Sprintf("--%s=%s", config.BootstrapIPsKey, bootstrapIPsArg),
 		fmt.Sprintf("--%s=%s", config.NetworkNameKey, n.networkName),
 	)
-	cmd.Stdout = w
-	cmd.Stderr = w
+
+	if err := os.MkdirAll(nodeDir, 0o755); err != nil {
+		return nil, nil, fmt.Errorf("failed to create node directory: %w", err)
+	}
+	logfile, err := os.OpenFile(nodeDir+"/node.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	cmd.Stdout = logfile
+	cmd.Stderr = logfile
 
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start node (%d): %w", cmd.Process.Pid, err)
@@ -291,6 +296,7 @@ func (n *Network) startNewNode(
 		logger:  n.logger,
 		pid:     cmd.Process.Pid,
 		nodeURI: fmt.Sprintf("http://localhost:%d", httpPort),
+		logfile: logfile,
 	}
 
 	// health check will fail if its 1 node network, so we're doing bootstrap check

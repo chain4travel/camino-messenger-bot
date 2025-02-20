@@ -6,6 +6,7 @@ package blockchain
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/chain4travel/caminogoeth-compat/caminogo/info"
@@ -21,6 +22,7 @@ type Node struct {
 	pid     int
 	client  *Client
 	nodeURI string
+	logfile *os.File
 }
 
 func (n *Node) Stop(ctx context.Context) error {
@@ -28,6 +30,7 @@ func (n *Node) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop node process with pid %d: %w", n.pid, err)
 	}
 	n.logger.Infof("Blockchain node (pid %d) stopped", n.pid)
+	n.logfile.Close()
 	return nil
 }
 

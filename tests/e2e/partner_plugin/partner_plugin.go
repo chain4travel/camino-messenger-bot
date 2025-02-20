@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
@@ -26,6 +27,7 @@ type PartnerPlugin struct {
 	pid        int
 	host       *url.URL
 	pingClient pingv1grpc.PingServiceClient
+	logfile    *os.File
 }
 
 func (pp *PartnerPlugin) Host() string {
@@ -43,6 +45,7 @@ func (pp *PartnerPlugin) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop partner plugin process with pid %d: %w", pp.pid, err)
 	}
 	pp.logger.Infof("Partner plugin (pid %d) stopped", pp.pid)
+	pp.logfile.Close()
 	return nil
 }
 

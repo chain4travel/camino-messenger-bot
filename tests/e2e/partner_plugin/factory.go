@@ -7,9 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/url"
+	"os"
 	"os/exec"
+	"path"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -23,12 +24,14 @@ import (
 func NewFactory(
 	logger *zap.SugaredLogger,
 	resourceManagerSession *resources.Session,
+	e2eTmpDir string,
 	binPath string,
 ) *Factory {
 	return &Factory{
 		logger:                 logger,
 		resourceManagerSession: resourceManagerSession,
 		binPath:                binPath,
+		dir:                    path.Join(e2eTmpDir, "pp-mock"),
 	}
 }
 
@@ -36,6 +39,7 @@ func NewFactory(
 type Factory struct {
 	logger                 *zap.SugaredLogger
 	resourceManagerSession *resources.Session
+	dir                    string
 	binPath                string
 	partnerPlugins         []*PartnerPlugin
 }
@@ -44,7 +48,7 @@ func (f *Factory) PartnerPluginsCount() int {
 	return len(f.partnerPlugins)
 }
 
-func (f *Factory) CreatePartnerPlugin(ctx context.Context, out io.Writer) (*PartnerPlugin, chan error, error) {
+func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan error, error) {
 	port, err := f.resourceManagerSession.GetNetworkPort()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get free port: %w", err)
@@ -64,8 +68,18 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context, out io.Writer) (*Part
 
 	cmd := exec.Command(f.binPath)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("CMB_PARTNER_PLUGIN_MOCK_PORT=%d", port))
-	cmd.Stdout = out
-	cmd.Stderr = out
+
+	if err := os.MkdirAll(f.dir, 0o755); err != nil {
+		return nil, nil, fmt.Errorf("failed to create pp-mock directory: %w", err)
+	}
+	logfile_name := path.Join(f.dir, fmt.Sprintf("partner-plugin-%d.log", port))
+	logfile, err := os.OpenFile(logfile_name, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to open pp-mock log file: %w", err)
+	}
+
+	cmd.Stdout = logfile
+	cmd.Stderr = logfile
 
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start partner-plugin (%d): %w", cmd.Process.Pid, err)
@@ -76,6 +90,7 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context, out io.Writer) (*Part
 		pid:        cmd.Process.Pid,
 		host:       hostURL,
 		pingClient: pingv1grpc.NewPingServiceClient(clientConnection),
+		logfile:    logfile,
 	}
 
 	if err := pp.awaitReady(ctx); err != nil {

@@ -8,7 +8,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"fmt"
-	"io"
 	"net/url"
 	"os"
 	"os/exec"
@@ -44,6 +43,7 @@ func init() {
 	// os.Setenv("CONDUIT_LOG", "debug,rocket=off,_=off,sled=off")
 	os.Setenv("CONDUIT_ADDRESS", "0.0.0.0")
 	os.Setenv("CONDUIT_NETWORK_ID", "1002")
+	os.Setenv("CONDUIT_LOG", "trace,rocket=off,_=off,sled=off")
 }
 
 func StartNewMatrixServer(
@@ -54,7 +54,6 @@ func StartNewMatrixServer(
 	matrixBinPath string,
 	networkFeeKey *ecdsa.PrivateKey,
 	networkClient *blockchain.Client,
-	w io.Writer,
 ) (*MatrixServer, chan error, error) {
 	logger.Info("Starting matrix server...")
 
@@ -81,8 +80,14 @@ func StartNewMatrixServer(
 		"CONDUIT_DATABASE_PATH="+dbDir,
 		"CONDUIT_PORT="+strconv.Itoa(port),
 	)
-	cmd.Stdout = w
-	cmd.Stderr = w
+
+	logfile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	cmd.Stdout = logfile
+	cmd.Stderr = logfile
 
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start matrix server (%d): %w", cmd.Process.Pid, err)
@@ -94,6 +99,7 @@ func StartNewMatrixServer(
 		matrixDir:            matrixDir,
 		client:               client,
 		networkFeeBotAddress: crypto.PubkeyToAddress(networkFeeKey.PublicKey),
+		logfile:              logfile,
 	}
 
 	if err := m.awaitReady(ctx); err != nil {
@@ -137,6 +143,7 @@ type MatrixServer struct {
 	client                     *mautrix.Client
 	networkFeeBotAddress       common.Address
 	networkFeeCMAccountAddress common.Address
+	logfile                    *os.File
 }
 
 func (m *MatrixServer) Host() *url.URL {
@@ -147,9 +154,11 @@ func (m *MatrixServer) Stop(ctx context.Context) error {
 	if m == nil {
 		return nil
 	}
+
 	if err := process.StopProcess(ctx, m.pid); err != nil {
 		return fmt.Errorf("failed to stop matrix server process with pid %d: %w", m.pid, err)
 	}
+	m.logfile.Close()
 	m.logger.Infof("Matrix server (pid %d) stopped", m.pid)
 	return nil
 }

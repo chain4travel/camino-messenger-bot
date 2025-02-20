@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -76,7 +75,6 @@ func (f *Factory) CreateBot(
 	enableRPCServer bool,
 	partnerPlugin *partnerplugin.PartnerPlugin,
 	services []CMService,
-	out io.Writer,
 ) (*Bot, chan error, error) {
 	key, err := ecdsa.GenerateKey(crypto.S256(), rand.Reader)
 	if err != nil {
@@ -184,8 +182,13 @@ func (f *Factory) CreateBot(
 	// Start bot
 
 	cmd := exec.Command(f.binPath, "--config", configPath)
-	cmd.Stdout = out
-	cmd.Stderr = out
+
+	logfile, err := os.OpenFile(path.Join(botDir, "bot.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to open bot log file: %w", err)
+	}
+	cmd.Stdout = logfile
+	cmd.Stderr = logfile
 
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start bot (%d): %w", cmd.Process.Pid, err)
@@ -199,6 +202,7 @@ func (f *Factory) CreateBot(
 			Client:                 e2eGenerated.NewClient(clientConnection),
 		},
 		cmAccountAddress: cmAccountAddress,
+		logfile:          logfile,
 	}
 
 	// Await bot readiness

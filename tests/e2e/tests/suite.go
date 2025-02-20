@@ -6,6 +6,7 @@ package tests
 import (
 	"context"
 	"path"
+	"sync"
 	"testing"
 	"time"
 
@@ -102,7 +103,6 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 			dataDir,
 			s.nodeBinPath,
 			validatorsCount,
-			nil,
 		)
 		require.NoError(t, err)
 		expectNoErrorAsync(t, errChan)
@@ -116,7 +116,6 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 		s.matrixBinPath,
 		tt.networkFeeKey,
 		tt.caminoNetwork.Client,
-		nil,
 	)
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
@@ -124,6 +123,7 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 	tt.partnerPluginFactory = partnerplugin.NewFactory(
 		s.logger,
 		tt.resourceManagerSession,
+		dataDir,
 		s.partnerPluginBinPath,
 	)
 
@@ -144,10 +144,35 @@ func (s *Suite) Cleanup(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*10)
 	defer cancel()
 
-	require.NoError(t, tt.matrix.Stop(ctx))
-	require.NoError(t, tt.caminoNetwork.Stop(ctx))
-	require.NoError(t, tt.botFactory.StopBots(ctx))
-	require.NoError(t, tt.partnerPluginFactory.StopPartnerPlugins(ctx))
+	var wg sync.WaitGroup
+
+	tt.logger.Info("Stopping all services")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		require.NoError(t, tt.botFactory.StopBots(ctx))
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		require.NoError(t, tt.partnerPluginFactory.StopPartnerPlugins(ctx))
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		require.NoError(t, tt.matrix.Stop(ctx))
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		require.NoError(t, tt.caminoNetwork.Stop(ctx))
+	}()
+
+	wg.Wait()
+	tt.logger.Info("All services stopped")
 
 	tt.resourceManagerSession.ReleaseResources()
 }

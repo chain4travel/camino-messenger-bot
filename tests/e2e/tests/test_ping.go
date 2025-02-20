@@ -23,15 +23,15 @@ func TestPingV1(t *testing.T, tt *Test) {
 
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMService(ctx, botGenerated.PingServiceV1))
 
-	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t, nil)
+	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot := tt.CreateBot(ctx, t, false, supplierPartnerPlugin, nil, []bot.CMService{
+	supplierBot := tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.PingServiceV1, Fee: 100},
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot := tt.CreateBot(ctx, t, true, nil, nil, nil)
+	distributorBot := tt.CreateBot(ctx, t, true, nil, nil)
 
 	pingMessage := "ping"
 	expectedResponceMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
@@ -46,6 +46,7 @@ func TestPingV1(t *testing.T, tt *Test) {
 			Timestamp:   timestamppb.Now(),
 		},
 	)
+
 	require.NoError(t, err)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
