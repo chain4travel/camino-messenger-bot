@@ -83,12 +83,11 @@ func StartNewMatrixServer(
 
 	logfile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
-		panic(err)
+		return nil, nil, fmt.Errorf("failed to create conduit server log file: %w", err)
 	}
 
 	cmd.Stdout = logfile
 	cmd.Stderr = logfile
-
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start matrix server (%d): %w", cmd.Process.Pid, err)
 	}
@@ -158,7 +157,9 @@ func (m *MatrixServer) Stop(ctx context.Context) error {
 	if err := process.StopProcess(ctx, m.pid); err != nil {
 		return fmt.Errorf("failed to stop matrix server process with pid %d: %w", m.pid, err)
 	}
-	m.logfile.Close()
+	if err := m.logfile.Close(); err != nil {
+		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
+	}
 	m.logger.Infof("Matrix server (pid %d) stopped", m.pid)
 	return nil
 }

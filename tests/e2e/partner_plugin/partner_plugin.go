@@ -45,7 +45,9 @@ func (pp *PartnerPlugin) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop partner plugin process with pid %d: %w", pp.pid, err)
 	}
 	pp.logger.Infof("Partner plugin (pid %d) stopped", pp.pid)
-	pp.logfile.Close()
+	if err := pp.logfile.Close(); err != nil {
+		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
+	}
 	return nil
 }
 

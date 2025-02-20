@@ -280,9 +280,9 @@ func (n *Network) startNewNode(
 	if err := os.MkdirAll(nodeDir, 0o755); err != nil {
 		return nil, nil, fmt.Errorf("failed to create node directory: %w", err)
 	}
-	logfile, err := os.OpenFile(nodeDir+"/node.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	logfile, err := os.OpenFile(path.Join(nodeDir, fmt.Sprintf("node-%d.log", nodeIndex)), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
-		panic(err)
+		return nil, nil, fmt.Errorf("failed to create node log file: %w", err)
 	}
 
 	cmd.Stdout = logfile
