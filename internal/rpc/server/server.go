@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
@@ -43,6 +44,7 @@ func NewServer(
 	tracer tracing.Tracer,
 	processor messaging.MessageProcessor,
 	serviceRegistry messaging.ServiceRegistry,
+	developerMode bool,
 ) (Server, error) {
 	if !cfg.Enabled {
 		return nil, nil
@@ -68,6 +70,11 @@ func NewServer(
 	}
 	generated.RegisterServerServices(server.grpcServer, server)
 	readiness.RegisterReadinessServiceServer(server.grpcServer, server)
+
+	// Register reflection service on gRPC server in developerMode.
+	if developerMode {
+		reflection.Register(server.grpcServer)
+	}
 	return server, nil
 }
 

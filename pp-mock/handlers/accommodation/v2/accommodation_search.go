@@ -71,11 +71,11 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	}
 
 	searchResults := []*accommodationv2.AccommodationSearchResult{}
-	availableProperties := []*accommodationv2.PropertyExtendedInfo{}
 	var resultIDnum int32 = 1
 
 	// loop request queries
 	for _, query := range req.Queries {
+		availableProperties := []*accommodationv2.PropertyExtendedInfo{}
 		// get filtered properties
 		filteredProps := filterPropertiesByGeoTreeLocation(mockdata.PropertiesV2, query.SearchParametersAccommodation.GetLocationGeoTree())
 		// filter by product codes

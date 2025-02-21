@@ -38,17 +38,16 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
-	// filter only property objects
-	filteredProperties := []*accommodationv1.Property{}
+	properties := make([]*accommodationv1.Property, 0, len(mockdata.PropertiesV1))
 	for _, property := range mockdata.PropertiesV1 {
-		filteredProperties = append(filteredProperties, property.Property)
+		properties = append(properties, property.Property)
 	}
 
 	response := &accommodationv1.AccommodationProductListResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Properties: filteredProperties,
+		Properties: properties,
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)

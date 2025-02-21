@@ -24,7 +24,6 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-
 # Changes to the minimum golang version must also be replicated in
 # scripts/build.sh (here)
 # Dockerfile

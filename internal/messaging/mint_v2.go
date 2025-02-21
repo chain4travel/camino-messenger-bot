@@ -26,10 +26,14 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 		return
 	}
 	// TODO: @VjeraTurk check if CMAccount exists
-
-	// TODO @evlekht ensure that mintReq.BuyerAddress is c-chain address format,
-	// TODO not x/p/t chain or anything else. Currently it will not error
 	// TODO if address is invalid and will just get zero addr
+	if !common.IsHexAddress(request.BuyerAddress) {
+		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
+		h.logger.Error(errMsg)
+		h.AddErrorToResponseHeader(response, errMsg)
+		return
+	}
+
 	buyerAddress := common.HexToAddress(request.BuyerAddress)
 
 	if response.BookingTokenUri == "" {
