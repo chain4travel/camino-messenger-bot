@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	insurancev1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
+	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
@@ -16,14 +16,14 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s InsuranceProductInfoServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
-	request, ok := requestIntf.(*insurancev1.InsuranceProductInfoRequest)
+func (s TransportProductListServiceV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+	request, ok := requestIntf.(*transportv3.TransportProductListRequest)
 	if !ok {
-		return nil, InsuranceProductInfoServiceV1Response, fmt.Errorf("invalid request type")
+		return nil, TransportProductListServiceV3Response, fmt.Errorf("invalid request type")
 	}
-	response, err := s.client.InsuranceProductInfo(ctx, request, opts...)
+	response, err := s.client.TransportProductList(ctx, request, opts...)
 	if response == nil {
-		response = &insurancev1.InsuranceProductInfoResponse{}
+		response = &transportv3.TransportProductListResponse{}
 	}
 	if response.Header == nil {
 		response.Header = &typesv1.ResponseHeader{}
@@ -31,5 +31,5 @@ func (s InsuranceProductInfoServiceV1Client) Call(ctx context.Context, requestIn
 			err = rpc.ErrNilResponseHeader
 		}
 	}
-	return response, InsuranceProductInfoServiceV1Response, err
+	return response, TransportProductListServiceV3Response, err
 }
