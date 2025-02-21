@@ -6,17 +6,12 @@
                 "nanos": 0
             },
             "supplier_code": {
-                "supplier_code": "HTL123456",
-                "supplier_number": 847
+                "supplier_code": "HOTEL123456"
             },
             "product_codes": [
                 {
-                    "code": "IATA4589",
-                    "type": 3
-                },
-                {
-                    "code": "GDS789",
-                    "type": 0
+                    "code": "87456",
+                    "type": 1
                 }
             ],
             "name": "Sunset Beach Resort & Spa",
@@ -269,13 +264,16 @@
                 "nanos": 0
             },
             "supplier_code": {
-                "supplier_code": "HTL789012",
-                "supplier_number": 231
+                "supplier_code": "HOTEL789012"
             },
             "product_codes": [
                 {
-                    "code": "GIATA12345",
+                    "code": "9874326",
                     "type": 1
+                },
+				{
+                    "code": "784365",
+                    "type": 2
                 }
             ],
             "name": "Alpine Lodge & Spa",
@@ -524,13 +522,13 @@
                 "nanos": 0
             },
             "supplier_code": {
-                "supplier_code": "HTL345678",
+                "supplier_code": "HOTEL345678",
                 "supplier_number": 654
             },
             "product_codes": [
                 {
-                    "code": "TUI8901",
-                    "type": 0
+                    "code": "34679",
+                    "type": 1
                 }
             ],
             "name": "Palm Paradise Resort",
@@ -769,13 +767,13 @@
                 "nanos": 0
             },
             "supplier_code": {
-                "supplier_code": "HTL901234",
+                "supplier_code": "HOTEL901234",
                 "supplier_number": 123
             },
             "product_codes": [
                 {
-                    "code": "AMX4567",
-                    "type": 0
+                    "code": "97364342",
+                    "type": 2
                 }
             ],
             "name": "City Central Hotel",
@@ -1015,13 +1013,12 @@
                 "nanos": 0
             },
             "supplier_code": {
-                "supplier_code": "HTL567890",
-                "supplier_number": 789
+                "supplier_code": "HOTEL567890"
             },
             "product_codes": [
                 {
-                    "code": "SBR7890",
-                    "type": 0
+                    "code": "656753",
+                    "type": 1
                 }
             ],
             "name": "Ocean View Resort",
