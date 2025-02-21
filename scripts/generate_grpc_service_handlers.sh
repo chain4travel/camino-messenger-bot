@@ -416,8 +416,7 @@ while read -r file ; do
 		exit 1
 	fi
 
-	COMMON_TYPES_VERSION=$(grep -oP '(?<=Header \*v)\d+(?=\.ResponseHeader)' "$pb_file"  | tail -n 1)
-
+	COMMON_TYPES_VERSION=$(grep -oP '(?<=Header \*v)\d+(?=\.ResponseHeader)' "$pb_file" | tail -n 1)
 
 	echo "🔑 FQPN      : $FQPN"
 	echo "⚙️ Service   : $SERVICE"
