@@ -9,6 +9,7 @@ import (
 
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
@@ -70,9 +71,10 @@ func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBo
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		},
 	)
+	require.NoError(t, err)
+
 	tt.logger.Debug("AccommodationProductListServiceV2.AccommodationProductList response:\n", protoMessageToJSON(tt, resp))
 
-	require.NoError(t, err)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
@@ -98,9 +100,10 @@ func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, dis
 			},
 		},
 	)
+	require.NoError(t, err)
+
 	tt.logger.Debug("AccommodationProductListServiceV2.AccommodationProductList response:\n", protoMessageToJSON(tt, resp))
 
-	require.NoError(t, err)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
@@ -114,6 +117,52 @@ func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, dis
 	require.Equal(t, "HOTEL567890", resp.Properties[0].SupplierCode.SupplierCode, "unexpected response properties[0].SupplierCode.SupplierCode")
 }
 
+func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+	resp, err := distributorBot.AccommodationProductInfoServiceV2.AccommodationProductInfo(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		&accommodationv2.AccommodationProductInfoRequest{
+			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			SupplierCodes: []*typesv2.SupplierProductCode{
+				{SupplierCode: "HOTEL789012"},
+			},
+		},
+	)
+	require.NoError(t, err)
+
+	tt.logger.Debug("AccommodationProductInfoServiceV2.AccommodationProductInfo response:\n", protoMessageToJSON(tt, resp))
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	// The response should contain only the one property filtered in the request
+	require.NotEmpty(t, resp.Properties, "unexpected empty response properties")
+	require.Len(t, resp.Properties, 1, "unexpected number of properties in response")
+
+	require.NotEmpty(t, resp.Properties[0].Property, "unexpected empty response properties[0].Property")
+	require.NotEmpty(t, resp.Properties[0].Property.SupplierCode, "unexpected empty response properties[0].SupplierCode")
+	require.NotEmpty(t, resp.Properties[0].Property.SupplierCode.SupplierCode, "unexpected empty response properties[0].SupplierCode.SupplierCode")
+	require.Equal(t, "HOTEL789012", resp.Properties[0].Property.SupplierCode.SupplierCode, "unexpected response properties[0].SupplierCode.SupplierCode")
+
+	// Let's also check for some other properties of the response
+	require.NotEmpty(t, resp.Properties[0].Images, "unexpected empty response properties[0].Images")
+	require.Len(t, resp.Properties[0].Images, 1, "unexpected number of images in response")
+	require.Equal(t, resp.Properties[0].Images[0].File.Name, "Beach House", "unexpected image name")
+
+	require.NotEmpty(t, resp.Properties[0].Videos, "unexpected empty response properties[0].Videos")
+	require.Len(t, resp.Properties[0].Videos, 1, "unexpected number of videos in response")
+	require.Equal(t, resp.Properties[0].Videos[0].File.Url, "https://example.com/videos/resort-tour.mp4", "unexpected video url")
+
+	require.NotEmpty(t, resp.Properties[0].Rooms, "unexpected empty response properties[0].Rooms")
+	require.Len(t, resp.Properties[0].Rooms, 1, "unexpected number of rooms in response")
+	require.Equal(t, resp.Properties[0].Rooms[0].SupplierCode, "DBL-MTN", "unexpected room code")
+	require.Equal(t, resp.Properties[0].Rooms[0].TotalOccupancy.MinGuests, int32(1), "unexpected min guests")
+	require.Equal(t, resp.Properties[0].Rooms[0].TotalOccupancy.MaxGuests, int32(3), "unexpected max guests")
+	require.Equal(t, resp.Properties[0].Rooms[0].TotalOccupancy.StandardOccupancy, int32(2), "unexpected standard occupancy")
+	require.Equal(t, resp.Properties[0].Rooms[0].TotalOccupancy.FullPayers, int32(2), "unexpected full payers")
+}
+
 func TestAccommodationV2(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
@@ -121,5 +170,5 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 
 	TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx)
 	TestAccommodationProductListServiceV2WithFilter(t, tt, distributorBot, supplierBot, ctx)
-
+	TestAccommodationProductInfoServiceV2(t, tt, distributorBot, supplierBot, ctx)
 }
