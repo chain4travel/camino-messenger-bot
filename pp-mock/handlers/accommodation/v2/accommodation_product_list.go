@@ -36,18 +36,24 @@ func (*AccommodationProductListV2Server) AccommodationProductList(ctx context.Co
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 
+	last_modified_filter := req.ModifiedAfter.AsTime()
+
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
-	properties := make([]*accommodationv2.Property, 0, len(mockdata.PropertiesV2))
+	filteredProperties := []*accommodationv2.Property{}
 	for _, property := range mockdata.PropertiesV2 {
-		properties = append(properties, property.Property)
+		if property.Property.LastModified.AsTime().Before(last_modified_filter) {
+			continue
+		}
+
+		filteredProperties = append(filteredProperties, property.Property)
 	}
 
 	response := &accommodationv2.AccommodationProductListResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Properties: properties,
+		Properties: filteredProperties,
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
