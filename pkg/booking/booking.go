@@ -137,8 +137,8 @@ func (bs *Service) BuyBookingToken(
 	bs.logger.Infof("🛒 Buying BookingToken with TokenID %s", tokenID.String())
 
 	// Validate tokenId
-	if tokenID.Sign() <= 0 {
-		return nil, fmt.Errorf("tokenId must be a positive integer")
+	if tokenID.Sign() < 0 {
+		return nil, fmt.Errorf("tokenId must be a positive integer (>= 0)")
 	}
 
 	// Call the BuyBookingToken function from the contract
