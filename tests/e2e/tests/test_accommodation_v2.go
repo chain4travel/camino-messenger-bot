@@ -208,8 +208,9 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-/* Test product search without the mandatory travel period given. Expect an error to be returned back. */
+/* Test product search with wrong travel periods given. Expect errors to be returned. */
 func TestAccommodationProductSearchServiceV2WrongTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+	// 1st error case - travel period outside of allowed constraints
 	hotelCode := "HOTEL345678"
 
 	nights := 12                                      // 12 nights
@@ -251,7 +252,6 @@ func TestAccommodationProductSearchServiceV2WrongTravelPeriod(t *testing.T, tt *
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 
 	// 2nd error case - start date after end date
-
 	endDate = time.Now().Add(time.Hour * 24)                        // tomorrow
 	startDate = endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
 
