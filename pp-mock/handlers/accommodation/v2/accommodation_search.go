@@ -76,7 +76,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 					Alerts: []*typesv1.Alert{
 						{
-							Message: "Travel period is outside of the allowed range (now() / now() + 60 days)",
+							Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						},
 					},

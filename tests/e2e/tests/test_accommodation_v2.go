@@ -208,6 +208,88 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
+/* Test product search without the mandatory travel period given. Expect an error to be returned back. */
+func TestAccommodationProductSearchServiceV2WrongTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+	hotelCode := "HOTEL345678"
+
+	nights := 12                                      // 12 nights
+	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
+	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+
+	resp, err := distributorBot.AccommodationSearchServiceV2.AccommodationSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		&accommodationv2.AccommodationSearchRequest{
+			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			Queries: []*accommodationv2.AccommodationSearchQuery{
+				{
+					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+						SupplierCodes: []*typesv2.SupplierProductCode{
+							{SupplierCode: hotelCode},
+						},
+					},
+					TravelPeriod: &typesv1.TravelPeriod{
+						StartDate: &typesv1.Date{
+							Year:  int32(startDate.Year()),
+							Month: int32(startDate.Month()),
+							Day:   int32(startDate.Day()),
+						},
+						EndDate: &typesv1.Date{
+							Year:  int32(endDate.Year()),
+							Month: int32(endDate.Month()),
+							Day:   int32(endDate.Day()),
+						},
+					},
+				},
+			},
+		},
+	)
+	require.NoError(t, err)
+
+	tt.logger.Debug("AccommodationSearchServiceV2.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
+
+	// 2nd error case - start date after end date
+
+	endDate = time.Now().Add(time.Hour * 24)                        // tomorrow
+	startDate = endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
+
+	resp, err = distributorBot.AccommodationSearchServiceV2.AccommodationSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		&accommodationv2.AccommodationSearchRequest{
+			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			Queries: []*accommodationv2.AccommodationSearchQuery{
+				{
+					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+						SupplierCodes: []*typesv2.SupplierProductCode{
+							{SupplierCode: hotelCode},
+						},
+					},
+					TravelPeriod: &typesv1.TravelPeriod{
+						StartDate: &typesv1.Date{
+							Year:  int32(startDate.Year()),
+							Month: int32(startDate.Month()),
+							Day:   int32(startDate.Day()),
+						},
+						EndDate: &typesv1.Date{
+							Year:  int32(endDate.Year()),
+							Month: int32(endDate.Month()),
+							Day:   int32(endDate.Day()),
+						},
+					},
+				},
+			},
+		},
+	)
+	require.NoError(t, err)
+
+	tt.logger.Debug("AccommodationSearchServiceV2.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
+}
+
 /* Test product search with a valid travel period. Expect valid search results. */
 func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) (string, int32, float64) {
 
@@ -377,6 +459,7 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 	TestAccommodationProductListServiceV2WithFilter(t, tt, distributorBot, supplierBot, ctx)                                              // Happy path: will return only one property
 	TestAccommodationProductInfoServiceV2(t, tt, distributorBot, supplierBot, ctx)                                                        // Happy path: will return the detailed info of a property
 	TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t, tt, distributorBot, supplierBot, ctx)                                   // ERROR path: without travel period it should return an error
+	TestAccommodationProductSearchServiceV2WrongTravelPeriod(t, tt, distributorBot, supplierBot, ctx)                                     // ERROR path: with wrong travel period it should return an error
 	searchId, resultId, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return the search results
 	validationId := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchId, resultId, pricePerNight)                            // Happy path: will return the validationId
 	mintId, mintTxId, buyTxId := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationId)                                        // Happy path: will return the mint information

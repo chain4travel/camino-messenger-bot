@@ -20,5 +20,5 @@ func IsTravelPeriodAllowed(travelPeriod *typesv1.TravelPeriod) bool {
 	startDate := time.Now()
 	endDate := time.Now().Add(time.Hour * 24 * 60) // 60 days from now
 
-	return DateV1ToTime(travelPeriod.StartDate).After(startDate) && DateV1ToTime(travelPeriod.EndDate).Before(endDate)
+	return DateV1ToTime(travelPeriod.StartDate).After(startDate) && DateV1ToTime(travelPeriod.EndDate).Before(endDate) && DateV1ToTime(travelPeriod.StartDate).Before(DateV1ToTime(travelPeriod.EndDate))
 }
