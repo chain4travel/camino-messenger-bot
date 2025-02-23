@@ -109,8 +109,7 @@ func TestE2E(t *testing.T) {
 		suite.Cleanup,
 	)
 
-	// TODO @Noctunus: Reactivate ping test when accommodation is implemented
-	//testsRunner.Register(t, "PingV1 request", tests.TestPingV1)
+	testsRunner.Register(t, "PingV1 request", tests.TestPingV1)
 	testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
 
 	maxParallelRuns := 0
