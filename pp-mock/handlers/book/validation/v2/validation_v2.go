@@ -60,11 +60,14 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 		ValidationObject: validationRequest.ValidationObject,
 		PriceDetail: &typesv2.PriceDetail{
 			Price: &typesv2.Price{
-				Value: common.DefaultPrice,
+				Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
+				Decimals: 2,
+
 				Currency: &typesv2.Currency{
 					Currency: &typesv2.Currency_NativeToken{},
 				},
 			},
+			Description: "price per night",
 		},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)

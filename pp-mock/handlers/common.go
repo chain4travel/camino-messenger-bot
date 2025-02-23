@@ -9,21 +9,16 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 )
 
-const DefaultPrice = "100"
-
-var (
-	allowedTimePeriodStart = time.Date(2025, time.June, 1, 0, 0, 0, 0, time.UTC)
-	allowedTimePeriodEnd   = time.Date(2025, time.June, 30, 0, 0, 0, 0, time.UTC)
-)
+const DefaultPricePerNight = 105.33
 
 func DateV1ToTime(date *typesv1.Date) time.Time {
 	return time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 0, 0, 0, 0, time.UTC)
 }
 
-// only period between 01.06.2025 and 30.06.2025 is allowed - represents available period for the booking
+// only period between now + 60 days is allowed for bookings
 func IsTravelPeriodAllowed(travelPeriod *typesv1.TravelPeriod) bool {
-	startDate := DateV1ToTime(travelPeriod.GetStartDate())
-	endDate := DateV1ToTime(travelPeriod.GetEndDate())
+	startDate := time.Now()
+	endDate := time.Now().Add(time.Hour * 24 * 60) // 60 days from now
 
-	return !startDate.Before(allowedTimePeriodStart) && !endDate.After(allowedTimePeriodEnd)
+	return DateV1ToTime(travelPeriod.StartDate).After(startDate) && DateV1ToTime(travelPeriod.EndDate).Before(endDate)
 }

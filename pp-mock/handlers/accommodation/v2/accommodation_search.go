@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
@@ -46,7 +47,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 				Alerts: []*typesv1.Alert{
 					{
 						Message: "No queries provided",
-						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 					},
 				},
 			},
@@ -55,14 +56,28 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 
 	// loop queries and check if there is travel period
 	for _, query := range req.Queries {
+		if query.TravelPeriod == nil {
+			return &accommodationv2.AccommodationSearchResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{
+						{
+							Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)",
+							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+						},
+					},
+				},
+			}, nil
+		}
+
 		if !common.IsTravelPeriodAllowed(query.TravelPeriod) {
 			return &accommodationv2.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 					Alerts: []*typesv1.Alert{
 						{
-							Message: "No results available for the period",
-							Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+							Message: "Travel period is outside of the allowed range (now() / now() + 60 days)",
+							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						},
 					},
 				},
@@ -98,6 +113,11 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			}
 		}
 
+		// extract the duration of the travel period in days
+		// and round up the result to full days
+		duration := common.DateV1ToTime(query.TravelPeriod.GetEndDate()).Sub(common.DateV1ToTime(query.TravelPeriod.GetStartDate())).Hours() / 24
+		duration = math.Ceil(duration)
+
 		// generate search result
 		for _, prop := range availableProperties {
 			// empty units array
@@ -125,11 +145,14 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					Beds:         room.Beds,
 					PriceDetail: &typesv2.PriceDetail{
 						Price: &typesv2.Price{
-							Value: common.DefaultPrice,
+							Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
+							Decimals: 2,
+
 							Currency: &typesv2.Currency{
 								Currency: &typesv2.Currency_NativeToken{},
 							},
 						},
+						Description: "price per night",
 					},
 					Services:       []*typesv2.ServiceFact{},
 					MealPlanCode:   &typesv1.MealPlan{},
@@ -148,7 +171,8 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 				QueryId:  query.QueryId,
 				TotalPriceDetail: &typesv2.PriceDetail{
 					Price: &typesv2.Price{
-						Value: common.DefaultPrice,
+						Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*duration*100),
+						Decimals: 2,
 					},
 				},
 				Units: units,
