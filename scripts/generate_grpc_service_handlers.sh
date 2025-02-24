@@ -6,7 +6,7 @@ CLIENT_TEMPLATE="${TEMPLATES_DIR}/client.go.tpl"
 CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
 SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
 SERVER_P2P_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_p2p_method.go.tpl"
-SERVER_LOCAL_ON_CHAIN_TEMPLATE="${TEMPLATES_DIR}/server_local_on_chain_method.go.tpl"
+SERVER_LOCAL_TEMPLATE="${TEMPLATES_DIR}/server_local_method.go.tpl"
 
 P2P_OUTPATH="internal/rpc/generated"
 LOCAL_OUTPATH="internal/rpc/generated"
@@ -57,7 +57,7 @@ function generate_with_templates() {
 	eval "replace_params+=( $GENERAL_PARAM_REPLACE )"
 
     EMPTY_IMPORT=""
-	# Generate client and server code based on routing and on-chain status
+	# Generate client and server code based on routing
 	if [[ "$ROUTING" == "p2p" ]]; then
 		# Generate client
 		CLIENT_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_client.go"
@@ -125,7 +125,7 @@ function generate_with_templates() {
 			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
 			sed -i -e "s#{{TEMPLATE}}#$SERVER_P2P_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
 		done
-	elif [[ "$ROUTING" == "local" && "$ON_CHAIN" == "true" ]]; then
+	elif [[ "$ROUTING" == "local" ]]; then
 		SERVER_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
 		echo "🔨 Generating server: $SERVER_GEN_FILE"
 		cp "$SERVER_TEMPLATE" "$SERVER_GEN_FILE"
@@ -133,7 +133,7 @@ function generate_with_templates() {
 		sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" "$SERVER_GEN_FILE"
 
 	    EMPTY_IMPORT=""
-		# Generate server methods for local on-chain services
+		# Generate server methods for local services
 		for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
 			METHOD=${_METHODS[$num]}
 			INPUT=${_INPUTS[$num]}
@@ -147,11 +147,11 @@ function generate_with_templates() {
 				TYPE_PACKAGE="emptypb"
 			fi
 			METHOD_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
-			echo "🔨 Generating local on-chain server method: $METHOD_GEN_FILE"
-			cp "$SERVER_LOCAL_ON_CHAIN_TEMPLATE" "$METHOD_GEN_FILE"
+			echo "🔨 Generating local server method: $METHOD_GEN_FILE"
+			cp "$SERVER_LOCAL_TEMPLATE" "$METHOD_GEN_FILE"
 			sed -i "$GENERAL_PARAM_REPLACE" "$METHOD_GEN_FILE"
 			sed -i "$METHOD_PARAM_REPLACE" "$METHOD_GEN_FILE"
-			sed -i -e "s#{{TEMPLATE}}#$SERVER_LOCAL_ON_CHAIN_TEMPLATE#g" "$METHOD_GEN_FILE"
+			sed -i -e "s#{{TEMPLATE}}#$SERVER_LOCAL_TEMPLATE#g" "$METHOD_GEN_FILE"
 		done
 	fi
 }
