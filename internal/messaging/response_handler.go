@@ -123,7 +123,7 @@ func (h *evmResponseHandler) ProcessRequestMessage(
 	_ *types.Message,
 	_ protoreflect.ProtoMessage,
 ) error {
-	// TODO: @VjeraTurk A the logic for processing these request messages
+	// TODO: @VjeraTurk Add the logic for processing these request messages
 	/*
 		Cancellation messages will serve as an example of this type
 	*/
