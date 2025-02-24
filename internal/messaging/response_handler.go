@@ -115,7 +115,6 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 		h.processMintResponseV1(ctx, response)
 	case *bookv2.MintResponse: // distributor will post-process a mint request to buy the returned NFT
 		h.processMintResponseV2(ctx, response)
-		// TODO: @VjeraTurk Add bookv3.MintResponse
 	}
 }
 
