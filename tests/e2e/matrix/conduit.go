@@ -54,7 +54,7 @@ func StartNewMatrixServer(
 	matrixBinPath string,
 	networkFeeKey *ecdsa.PrivateKey,
 	networkClient *blockchain.Client,
-) (*MatrixServer, chan error, error) {
+) (*Server, chan error, error) {
 	logger.Debug("Starting matrix server...")
 
 	matrixDir := path.Join(dataDir, "matrix")
@@ -73,12 +73,14 @@ func StartNewMatrixServer(
 	}
 
 	dbDir := path.Join(matrixDir, "db")
-	os.MkdirAll(dbDir, 0o755)
+	if err := os.MkdirAll(dbDir, 0o755); err != nil {
+		return nil, nil, fmt.Errorf("failed to create matrix server db dir: %w", err)
+	}
 
 	cmd := exec.Command(matrixBinPath)
 	cmd.Env = append(os.Environ(),
 		"CONDUIT_DATABASE_PATH="+dbDir,
-		"CONDUIT_PORT="+strconv.Itoa(port),
+		"CONDUIT_PORT="+strconv.Itoa(int(port)),
 	)
 
 	logfile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
@@ -92,7 +94,7 @@ func StartNewMatrixServer(
 		return nil, nil, fmt.Errorf("failed to start matrix server (%d): %w", cmd.Process.Pid, err)
 	}
 
-	m := &MatrixServer{
+	m := &Server{
 		logger:               logger,
 		pid:                  cmd.Process.Pid,
 		matrixDir:            matrixDir,
@@ -133,9 +135,9 @@ func StartNewMatrixServer(
 	return m, errChan, nil
 }
 
-// Conduit.
+// Conduit server.
 // Not safe for concurrent use.
-type MatrixServer struct {
+type Server struct {
 	logger                     *zap.SugaredLogger
 	pid                        int
 	matrixDir                  string
@@ -145,11 +147,11 @@ type MatrixServer struct {
 	logfile                    *os.File
 }
 
-func (m *MatrixServer) Host() *url.URL {
+func (m *Server) Host() *url.URL {
 	return m.client.HomeserverURL
 }
 
-func (m *MatrixServer) Stop(ctx context.Context) error {
+func (m *Server) Stop(ctx context.Context) error {
 	if m == nil {
 		return nil
 	}
@@ -164,16 +166,16 @@ func (m *MatrixServer) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (m *MatrixServer) NetworkFeeRecipientBotAddress() common.Address {
+func (m *Server) NetworkFeeRecipientBotAddress() common.Address {
 	return m.networkFeeBotAddress
 }
 
-func (m *MatrixServer) NetworkFeeRecipientCMAccountAddress() common.Address {
+func (m *Server) NetworkFeeRecipientCMAccountAddress() common.Address {
 	return m.networkFeeCMAccountAddress
 }
 
 // Will try to do periodic login
-func (m *MatrixServer) awaitReady(ctx context.Context) error {
+func (m *Server) awaitReady(ctx context.Context) error {
 	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client, []byte("meow"), path.Join(m.matrixDir, "client-db"))
 	if err != nil {
 		return fmt.Errorf("failed to create matrix crypto helper: %w", err)

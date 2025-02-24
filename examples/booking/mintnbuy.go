@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
-	defer logger.Sync()
+	defer func() { _ = logger.Sync() }()
 	sugar := logger.Sugar()
 
 	sugar.Info("Starting Mint & Buy Example...")

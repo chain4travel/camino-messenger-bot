@@ -35,7 +35,7 @@ func main() {
 	cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	logger, _ = cfg.Build()
 	sLogger := logger.Sugar()
-	logger.Sync()
+	defer func() { _ = logger.Sync() }()
 
 	times := flag.Int("requests", 1, "Repeat the request n times")
 	host := flag.String("host", "127.0.0.1", "Distributor bot host")
@@ -120,7 +120,7 @@ func createClientAndRunRequest(
 
 	addToDataset(int64(i), totalTime.Milliseconds(), resp, metadata, loadTestData, mu)
 	fmt.Printf("Received response after %s => ID: %s\n", time.Since(begin), resp.Metadata.SearchId)
-	c.Shutdown()
+	_ = c.Shutdown()
 }
 
 func addToDataset(
@@ -131,11 +131,14 @@ func addToDataset(
 	loadTestData [][]string,
 	mu *sync.Mutex,
 ) {
-	var data []string
-	var entries []struct {
+	type entry struct {
 		Key   string
 		Value int64
 	}
+	entries := make([]entry, 0, len(metadata.Timestamps))
+	// var data []string
+	data := make([]string, 0, cap(entries)+2)
+
 	// Populate the slice with map entries
 	for key, value := range metadata.Timestamps {
 		entries = append(entries, struct {

@@ -92,11 +92,10 @@ func (p *partnerPlugin) Validation(ctx context.Context, _ *bookv2.ValidationRequ
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activityv2.ActivityProductInfoRequest) (*activityv2.ActivityProductInfoResponse, error) {
+func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, _ *activityv2.ActivityProductInfoRequest) (*activityv2.ActivityProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -270,8 +269,7 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, request *activi
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.ActivityProductListRequest) (*activityv2.ActivityProductListResponse, error) {
@@ -309,8 +307,7 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.A
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv2.ActivitySearchRequest) (*activityv2.ActivitySearchResponse, error) {
@@ -330,8 +327,7 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv2.Activi
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
@@ -348,8 +344,7 @@ func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommo
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommodationv2.AccommodationProductListRequest) (*accommodationv2.AccommodationProductListResponse, error) {
@@ -367,8 +362,7 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommo
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
@@ -426,8 +420,7 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1.GetNetworkFeeRequest) (*networkv1.GetNetworkFeeResponse, error) {
@@ -447,8 +440,7 @@ func (p *partnerPlugin) GetNetworkFee(ctx context.Context, request *networkv1.Ge
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *partnerv2.GetPartnerConfigurationRequest) (*partnerv2.GetPartnerConfigurationResponse, error) {
@@ -466,8 +458,7 @@ func (p *partnerPlugin) GetPartnerConfiguration(ctx context.Context, request *pa
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error) {
@@ -502,11 +493,10 @@ func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.Tran
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMapRequest) (*seat_mapv2.SeatMapResponse, error) {
+func (p *partnerPlugin) SeatMap(ctx context.Context, _ *seat_mapv2.SeatMapRequest) (*seat_mapv2.SeatMapResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -677,11 +667,10 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, request *seat_mapv2.SeatMap
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_mapv2.SeatMapAvailabilityRequest) (*seat_mapv2.SeatMapAvailabilityResponse, error) {
+func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, _ *seat_mapv2.SeatMapAvailabilityRequest) (*seat_mapv2.SeatMapAvailabilityResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -715,11 +704,10 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, request *seat_m
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *infov2.CountryEntryRequirementsRequest) (*infov2.CountryEntryRequirementsResponse, error) {
+func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, _ *infov2.CountryEntryRequirementsRequest) (*infov2.CountryEntryRequirementsResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -807,11 +795,10 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, request *i
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) InsuranceProductInfo(ctx context.Context, request *insurancev1.InsuranceProductInfoRequest) (*insurancev1.InsuranceProductInfoResponse, error) {
+func (p *partnerPlugin) InsuranceProductInfo(ctx context.Context, _ *insurancev1.InsuranceProductInfoRequest) (*insurancev1.InsuranceProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -823,11 +810,11 @@ func (p *partnerPlugin) InsuranceProductInfo(ctx context.Context, request *insur
 	response := insurancev1.InsuranceProductInfoResponse{
 		// TODO: add an example
 	}
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) InsuranceProductList(ctx context.Context, request *insurancev1.InsuranceProductListRequest) (*insurancev1.InsuranceProductListResponse, error) {
+func (p *partnerPlugin) InsuranceProductList(ctx context.Context, _ *insurancev1.InsuranceProductListRequest) (*insurancev1.InsuranceProductListResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -839,11 +826,11 @@ func (p *partnerPlugin) InsuranceProductList(ctx context.Context, request *insur
 	response := insurancev1.InsuranceProductListResponse{
 		// TODO: add an example
 	}
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) InsuranceSearch(ctx context.Context, request *insurancev1.InsuranceSearchRequest) (*insurancev1.InsuranceSearchResponse, error) {
+func (p *partnerPlugin) InsuranceSearch(ctx context.Context, _ *insurancev1.InsuranceSearchRequest) (*insurancev1.InsuranceSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -855,11 +842,11 @@ func (p *partnerPlugin) InsuranceSearch(ctx context.Context, request *insurancev
 	response := insurancev1.InsuranceSearchResponse{
 		// TODO: add an example
 	}
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-	return &response, nil
+
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) TokenBoughtNotification(ctx context.Context, request *notificationv1.TokenBought) (*emptypb.Empty, error) {
+func (p *partnerPlugin) TokenBoughtNotification(ctx context.Context, _ *notificationv1.TokenBought) (*emptypb.Empty, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -871,7 +858,7 @@ func (p *partnerPlugin) TokenBoughtNotification(ctx context.Context, request *no
 	return &emptypb.Empty{}, nil
 }
 
-func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, request *notificationv1.TokenExpired) (*emptypb.Empty, error) {
+func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, _ *notificationv1.TokenExpired) (*emptypb.Empty, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -923,5 +910,5 @@ func main() {
 	}
 
 	reflection.Register(grpcServer)
-	grpcServer.Serve(lis)
+	_ = grpcServer.Serve(lis)
 }

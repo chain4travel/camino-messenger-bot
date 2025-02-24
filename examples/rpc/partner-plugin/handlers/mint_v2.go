@@ -14,7 +14,6 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -84,8 +83,6 @@ func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*b
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
-
-	grpc.SendHeader(ctx, md.ToGrpcMD())
 
 	return &response, nil
 }

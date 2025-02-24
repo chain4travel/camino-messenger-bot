@@ -45,7 +45,7 @@ func NewFactory(
 	binPath string,
 	migrationsDir string,
 	networkClient *blockchain.Client,
-	matrix *matrix.MatrixServer,
+	matrix *matrix.Server,
 ) *Factory {
 	return &Factory{
 		logger:                 logger,
@@ -66,7 +66,7 @@ type Factory struct {
 	binPath                string
 	migrationsPath         string
 	networkClient          *blockchain.Client
-	matrix                 *matrix.MatrixServer
+	matrix                 *matrix.Server
 	bots                   []*Bot
 }
 
@@ -106,7 +106,7 @@ func (f *Factory) CreateBot(
 
 	// Prepare bot config
 
-	port := 0
+	port := int32(0)
 	if enableRPCServer {
 		port, err = f.resourceManagerSession.GetNetworkPort()
 		if err != nil {
@@ -165,7 +165,7 @@ func (f *Factory) CreateBot(
 
 	configPath := path.Join(botDir, "config.yaml")
 
-	if err := os.WriteFile(configPath, configBytes, 0o644); err != nil {
+	if err := os.WriteFile(configPath, configBytes, 0o600); err != nil {
 		return nil, nil, fmt.Errorf("failed to write config file: %w", err)
 	}
 

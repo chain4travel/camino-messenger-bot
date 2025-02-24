@@ -81,7 +81,5 @@ func (*MintServiceV1Server) Mint(ctx context.Context, _ *bookv1.MintRequest) (*b
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
-	grpc.SendHeader(ctx, md.ToGrpcMD())
-
-	return &response, nil
+	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }

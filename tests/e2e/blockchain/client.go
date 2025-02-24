@@ -25,7 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191"
+const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolint:gosec
 
 var kycAdminRole = big.NewInt(0b100)
 
@@ -139,7 +139,7 @@ func (c *Client) AddBotToCMAccount(
 		return fmt.Errorf("failed to create transactor: %w", err)
 	}
 
-	cmAccount, err := c.CMAccount(ctx, cmAccountAddress)
+	cmAccount, err := c.CMAccount(cmAccountAddress)
 	if err != nil {
 		return fmt.Errorf("failed to get cm account binding: %w", err)
 	}
@@ -168,7 +168,7 @@ func (c *Client) AddCMService(
 		return fmt.Errorf("failed to create transactor: %w", err)
 	}
 
-	cmAccount, err := c.CMAccount(ctx, cmAccountAddress)
+	cmAccount, err := c.CMAccount(cmAccountAddress)
 	if err != nil {
 		return fmt.Errorf("failed to get cm account binding: %w", err)
 	}
@@ -247,7 +247,7 @@ func (c *Client) Transfer(
 	return nil
 }
 
-func (c *Client) CMAccount(ctx context.Context, addr common.Address) (*cmaccount.Cmaccount, error) {
+func (c *Client) CMAccount(addr common.Address) (*cmaccount.Cmaccount, error) {
 	return cmaccount.NewCmaccount(addr, c.ethClient)
 }
 
@@ -374,11 +374,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to parse cmAccount ABI: %w", err)
 	}
 
-	bookingTokenOperatorLinkingRegExp, err := regexp.Compile("__\\$" + bookingTokenOperatorLibName + "\\$__")
-	if err != nil {
-		return fmt.Errorf("failed to compile pattern regexp: %w", err)
-	}
-
+	bookingTokenOperatorLinkingRegExp := regexp.MustCompile("__\\$" + bookingTokenOperatorLibName + "\\$__")
 	cmAccountImplBytecode := bookingTokenOperatorLinkingRegExp.ReplaceAllString(
 		cmaccount.CmaccountBin,
 		strings.ToLower(bookingTokenOperatorAddress.String()[2:]),

@@ -60,8 +60,8 @@ func StartNewNetwork(
 	logger.Debugf("Starting blockchain network (%d validators)...", validatorsCount)
 
 	var err error
-	httpPorts := make([]int, validatorsCount)
-	stakingPorts := make([]int, validatorsCount)
+	httpPorts := make([]int32, validatorsCount)
+	stakingPorts := make([]int32, validatorsCount)
 	for i := 0; i < validatorsCount; i++ {
 		httpPorts[i], err = resourceManagerSession.GetNetworkPort()
 		if err != nil {
@@ -252,8 +252,8 @@ func (n *Network) startNewNode(
 	nodeDir string,
 	stakerKeyPath string,
 	stakerCertPath string,
-	httpPort int,
-	stakingPort int,
+	httpPort int32,
+	stakingPort int32,
 	bootstrapIDsArg string,
 	bootstrapIPsArg string,
 	nodeIndex int,

@@ -26,18 +26,18 @@ func main() {
 	// Set BookingToken address here
 	bookingTokenAddr := common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC")
 
-	// Initialize Ethereum, default value here is for Columbus testnet
-	client, err := ethclient.Dial("wss://columbus.camino.network/ext/bc/C/ws")
-	if err != nil {
-		log.Fatalf("Failed to connect to Ethereum client: %v", err)
-	}
-
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
-	defer logger.Sync()
+	defer func() { _ = logger.Sync() }()
 	sugar := logger.Sugar()
+
+	// Initialize Ethereum, default value here is for Columbus testnet
+	client, err := ethclient.Dial("wss://columbus.camino.network/ext/bc/C/ws")
+	if err != nil {
+		sugar.Fatalf("Failed to connect to Ethereum client: %v", err)
+	}
 
 	// Create EventListener
 	sugar.Info("Creating EventListener...")
@@ -49,7 +49,7 @@ func main() {
 		sugar.Infof("Received ServiceAdded event: \n CMAccount: %s \n ServiceName: %s", cmAccountAddr, e.ServiceName)
 	})
 	if err != nil {
-		log.Fatalf("Failed to register handler: %v", err)
+		sugar.Fatalf("Failed to register handler: %v", err)
 	}
 
 	_, err = el.RegisterServiceRemovedHandler(cmAccountAddr, nil, func(event interface{}) {
@@ -60,7 +60,7 @@ func main() {
 		cancelServiceAdded()
 	})
 	if err != nil {
-		log.Fatalf("Failed to register handler: %v", err)
+		sugar.Fatalf("Failed to register handler: %v", err)
 	}
 
 	_, err = el.RegisterServiceFeeUpdatedHandler(cmAccountAddr, nil, func(event interface{}) {
@@ -68,7 +68,7 @@ func main() {
 		sugar.Infof("Received ServiceFeeUpdated event: \n CMAccount: %s \n ServiceName: %s", cmAccountAddr, e.ServiceName)
 	})
 	if err != nil {
-		log.Fatalf("Failed to register handler: %v", err)
+		sugar.Fatalf("Failed to register handler: %v", err)
 	}
 
 	_, err = el.RegisterTokenBoughtHandler(bookingTokenAddr, nil, nil, func(event interface{}) {
@@ -76,7 +76,7 @@ func main() {
 		sugar.Infof("Received TokenBought event: \n BookingToken: %s \n TokenID: %s \n Buyer: %s", bookingTokenAddr, e.TokenId, e.Buyer)
 	})
 	if err != nil {
-		log.Fatalf("Failed to register handler: %v", err)
+		sugar.Fatalf("Failed to register handler: %v", err)
 	}
 
 	_, err = el.RegisterTokenReservedHandler(bookingTokenAddr, nil, nil, nil, func(event interface{}) {
@@ -84,7 +84,7 @@ func main() {
 		sugar.Infof("Received TokenReserved event: \n BookingToken: %s \n TokenID: %s \n ReservedFor: %s \n Supplier: %s \n Price: %s \n PaymentToken: %s \n Expiration: %s", bookingTokenAddr, e.TokenId, e.ReservedFor, e.Supplier, e.Price, e.PaymentToken, e.ExpirationTimestamp)
 	})
 	if err != nil {
-		log.Fatalf("Failed to register handler: %v", err)
+		sugar.Fatalf("Failed to register handler: %v", err)
 	}
 
 	// Block forever until Ctrl+C is pressed

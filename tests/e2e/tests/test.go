@@ -23,7 +23,7 @@ import (
 // Not safe for concurrent use.
 type Test struct {
 	logger                 *zap.SugaredLogger
-	matrix                 *matrix.MatrixServer
+	matrix                 *matrix.Server
 	caminoNetwork          *blockchain.Network
 	partnerPluginFactory   *partnerplugin.Factory
 	botFactory             *bot.Factory

@@ -33,7 +33,7 @@ type Manager struct {
 	maxPort        int32
 }
 
-func (m *Manager) getNetworkPort() (int, error) {
+func (m *Manager) getNetworkPort() (int32, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -43,25 +43,25 @@ func (m *Manager) getNetworkPort() (int, error) {
 	case len(m.availablePorts) == 0:
 		port := m.nextPort
 		m.nextPort++
-		return int(port), nil
+		return port, nil
 	}
 
 	for port := range m.availablePorts {
 		delete(m.availablePorts, port)
-		return int(port), nil
+		return port, nil
 	}
 
 	return 0, errors.New("no available ports")
 }
 
-func (m *Manager) releaseNetworkPort(port int) {
+func (m *Manager) releaseNetworkPort(port int32) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	if port >= int(m.nextPort) {
+	if port >= m.nextPort {
 		return
 	}
-	m.availablePorts[int32(port)] = struct{}{}
+	m.availablePorts[port] = struct{}{}
 }
 
 func (m *Manager) NewSession() *Session {
@@ -73,10 +73,10 @@ func (m *Manager) NewSession() *Session {
 // Not safe for concurrent use.
 type Session struct {
 	manager     *Manager
-	lockedPorts []int
+	lockedPorts []int32
 }
 
-func (s *Session) GetNetworkPort() (int, error) {
+func (s *Session) GetNetworkPort() (int32, error) {
 	port, err := s.manager.getNetworkPort()
 	if err != nil {
 		return 0, err
