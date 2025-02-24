@@ -1,9 +1,14 @@
-# Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
-# See the file LICENSE for licensing terms.
-
 # https://golangci-lint.run/usage/configuration/
 run:
   timeout: 5m
+  exclude-files:
+    - ".*\\.pb\\.go$"
+    - ".*mock.*"
+  skip-dirs-use-default: false
+  modules-download-mode: readonly
+  relative-path-mode: gomod
+  build-tags:
+    - e2e
 
 issues:
   # Maximum count of issues with the same text. Set to 0 to disable. Default: 3.

@@ -21,8 +21,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/tests"
 )
 
-// TODO@ add ci
-
 const (
 	flagKeyNodeBinPath          = "node"
 	flagKeyMatrixBinPath        = "matrix"
