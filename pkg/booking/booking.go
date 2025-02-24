@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	BookingStatusUnspecified = iota
+	BookingStatusUnspecified uint8 = iota
 	BookingStatusReserved
 	BookingStatusReservationExpired
 	BookingStatusBought
