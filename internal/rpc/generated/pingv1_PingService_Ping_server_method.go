@@ -11,7 +11,7 @@ import (
 )
 
 func (s *pingv1PingServiceServer) Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, PingServiceV1Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, PingServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", PingServiceV1Request, err)
 	}

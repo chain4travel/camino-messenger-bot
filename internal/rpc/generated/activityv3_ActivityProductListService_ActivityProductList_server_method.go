@@ -11,7 +11,7 @@ import (
 )
 
 func (s *activityv3ActivityProductListServiceServer) ActivityProductList(ctx context.Context, request *activityv3.ActivityProductListRequest) (*activityv3.ActivityProductListResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, ActivityProductListServiceV3Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivityProductListServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ActivityProductListServiceV3Request, err)
 	}

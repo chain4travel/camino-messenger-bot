@@ -11,7 +11,7 @@ import (
 )
 
 func (s *activityv3ActivitySearchServiceServer) ActivitySearch(ctx context.Context, request *activityv3.ActivitySearchRequest) (*activityv3.ActivitySearchResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, ActivitySearchServiceV3Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ActivitySearchServiceV3Request, err)
 	}

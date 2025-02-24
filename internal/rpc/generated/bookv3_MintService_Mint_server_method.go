@@ -11,7 +11,7 @@ import (
 )
 
 func (s *bookv3MintServiceServer) Mint(ctx context.Context, request *bookv3.MintRequest) (*bookv3.MintResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, MintServiceV3Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, MintServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", MintServiceV3Request, err)
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *seat_mapv3SeatMapAvailabilityServiceServer) SeatMapAvailability(ctx context.Context, request *seat_mapv3.SeatMapAvailabilityRequest) (*seat_mapv3.SeatMapAvailabilityResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, SeatMapAvailabilityServiceV3Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, SeatMapAvailabilityServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", SeatMapAvailabilityServiceV3Request, err)
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *transportv3TransportProductListServiceServer) TransportProductList(ctx context.Context, request *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, TransportProductListServiceV3Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, TransportProductListServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", TransportProductListServiceV3Request, err)
 	}

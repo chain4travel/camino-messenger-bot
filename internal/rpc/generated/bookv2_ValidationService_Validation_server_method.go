@@ -11,7 +11,7 @@ import (
 )
 
 func (s *bookv2ValidationServiceServer) Validation(ctx context.Context, request *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, ValidationServiceV2Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV2Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ValidationServiceV2Request, err)
 	}

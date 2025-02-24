@@ -11,7 +11,7 @@ import (
 )
 
 func (s *accommodationv2AccommodationProductInfoServiceServer) AccommodationProductInfo(ctx context.Context, request *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, AccommodationProductInfoServiceV2Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationProductInfoServiceV2Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", AccommodationProductInfoServiceV2Request, err)
 	}
