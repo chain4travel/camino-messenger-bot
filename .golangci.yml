@@ -4,7 +4,7 @@ run:
   exclude-files:
     - ".*\\.pb\\.go$"
     - ".*mock.*"
-  skip-dirs-use-default: false
+  exclude-dirs-use-default: false
   modules-download-mode: readonly
   relative-path-mode: gomod
   build-tags:
