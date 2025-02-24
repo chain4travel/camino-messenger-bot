@@ -335,11 +335,10 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *T
 
 	tt.logger.Debug("AccommodationSearchServiceV2.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
 
-	/* We expect 2 results - let's check for the 2nd one */
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	// The response should contain only one property as only one is modified after the given timestamp
+	// We expect 2 results - let's check for the 2nd one
 	require.Len(t, resp.Results, 2, "unexpected number of results in response")
 
 	// Let's check if result is as expected
@@ -349,10 +348,10 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *T
 	// Extract the price per night from the response
 	pricePerNight, err := strconv.ParseFloat(resp.Results[1].Units[0].PriceDetail.Price.Value, 64)
 	require.NoError(t, err)
+
 	// Check if this adds up with the total price of the unit
 	totalPrice, err := strconv.ParseFloat(resp.Results[1].TotalPriceDetail.Price.Value, 64)
 	require.NoError(t, err)
-
 	require.Equal(t, pricePerNight*float64(nights), totalPrice, "unexpected total price")
 
 	// Now extract all the values needed for the validate step which comes next
@@ -367,7 +366,7 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *T
 	return searchId, resultId, pricePerNight
 }
 
-/* Let's test the validation step witht he values extracted from the search request */
+/* Let's test the validation step with the values extracted from the search request */
 func TestValidateV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context, searchId string, resultId int32, pricePerNight float64) string {
 	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
