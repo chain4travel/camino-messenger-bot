@@ -6,7 +6,6 @@ package messaging
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"log"
 	"time"
 
@@ -46,9 +45,6 @@ type ResponseHandler interface {
 
 	// Prepares request by performing any necessary modifications to it
 	PrepareRequest(request protoreflect.ProtoMessage) error
-
-	// Processes incoming request
-	ProcessRequestMessage(ctx context.Context, response *types.Message, request protoreflect.ProtoMessage) error
 
 	// Adds an error message to the response header
 	AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string)
@@ -117,18 +113,6 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 	case *bookv2.MintResponse: // distributor will post-process a mint request to buy the returned NFT
 		h.processMintResponseV2(ctx, response)
 	}
-}
-
-func (h *evmResponseHandler) ProcessRequestMessage(
-	_ context.Context,
-	_ *types.Message,
-	_ protoreflect.ProtoMessage,
-) error {
-	// TODO: @VjeraTurk Add the logic for processing these request messages
-	/*
-		Cancellation messages will serve as an example of this type
-	*/
-	return fmt.Errorf("method ProcessRequestMessage: not implemented")
 }
 
 // Prepares response by performing any necessary modifications to it.

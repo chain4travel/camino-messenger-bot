@@ -11,7 +11,7 @@ import (
 )
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
-	response, err := s.reqHandler.HandleP2PMessageRequest(ctx, {{SERVICE}}V{{VERSION}}Request, request)
+	response, err := s.reqHandler.HandleMessageRequest(ctx, {{SERVICE}}V{{VERSION}}Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", {{SERVICE}}V{{VERSION}}Request, err)
 	}
