@@ -1,3 +1,6 @@
+// Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 package local
 
 import (
@@ -33,9 +36,9 @@ type service struct {
 }
 
 func (s *service) HandleLocalRequest(
-	ctx context.Context,
+	_ context.Context,
 	metadata *metadata.Metadata,
-	request protoreflect.ProtoMessage,
+	_ protoreflect.ProtoMessage,
 ) (protoreflect.ProtoMessage, error) {
 	metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "request"))
 	return nil, errors.New("not implemented")
