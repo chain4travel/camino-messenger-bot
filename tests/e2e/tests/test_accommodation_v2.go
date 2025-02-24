@@ -23,8 +23,15 @@ import (
 )
 
 // Setting up the basic applications and services used in all sub-test-cases
-func testAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
-
+func testAccommodationV2Setup(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+) (
+	supplierPartnerPlugin *partnerplugin.PartnerPlugin,
+	supplierBot *bot.Bot,
+	distributorBot *bot.Bot,
+) {
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.AccommodationProductListServiceV2,
 		botGenerated.AccommodationProductInfoServiceV2,
@@ -32,10 +39,10 @@ func testAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*par
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV2,
 	))
-	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t)
+	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot := tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
+	supplierBot = tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.AccommodationProductListServiceV2, Fee: 100},
 		{Name: botGenerated.AccommodationProductInfoServiceV2, Fee: 110},
 		{Name: botGenerated.AccommodationSearchServiceV2, Fee: 120},
@@ -44,13 +51,19 @@ func testAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*par
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot := tt.CreateBot(ctx, t, true, nil, nil)
+	distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
 
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
 
 // Simple product list request which shall return all properties. Checking if all are present
-func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+func TestAccommodationProductListServiceV2(
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	ctx context.Context,
+) {
 	hotelCodes := []string{
 		"HOTEL123456",
 		"HOTEL789012",
@@ -87,7 +100,13 @@ func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBo
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
-func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+func TestAccommodationProductListServiceV2WithFilter(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
 	// Modification timestamp which should exactly return one result (see hotelCode).
 	// See the properties.json file in the pp-mock for more info
 	const modifiedAfterSecs int64 = 1710489050
@@ -120,7 +139,13 @@ func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, dis
 }
 
 // Get detailed accommodation information for a specific hotel code (supplier code).
-func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+func TestAccommodationProductInfoServiceV2(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
 	const hotelCode = "HOTEL789012"
 
 	resp, err := distributorBot.AccommodationProductInfoServiceV2.AccommodationProductInfo(
@@ -168,7 +193,13 @@ func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBo
 }
 
 // Test product search without the mandatory travel period given. Expect an error to be returned back.
-func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
 	const hotelCode = "HOTEL345678"
 
 	resp, err := distributorBot.AccommodationSearchServiceV2.AccommodationSearch(
@@ -195,7 +226,13 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt
 }
 
 // Test product search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned.
-func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
 	const hotelCode = "HOTEL345678"
 
 	const nights = 12                                 // 12 nights
@@ -238,7 +275,13 @@ func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t *testing.T
 }
 
 // Test product search with wrong travel periods given: start date after end date. Expect errors to be returned.
-func TestAccommodationProductSearchServiceV2TravelPeriodReversed(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	ctx context.Context,
+) {
 	const hotelCode = "HOTEL345678"
 
 	const nights = 12                                                // 12 nights
@@ -281,7 +324,17 @@ func TestAccommodationProductSearchServiceV2TravelPeriodReversed(t *testing.T, t
 }
 
 // Test product search with a valid travel period. Expect valid search results.
-func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) (string, int32, float64) {
+func TestAccommodationProductSearchServiceV2WithTravelPeriod(
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	ctx context.Context,
+) (
+	searchID string,
+	resultID int32,
+	pricePerNight float64,
+) {
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
@@ -335,7 +388,7 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *T
 	require.Equal(t, resp.Results[1].Units[0].SupplierCode.SupplierCode, "HOTEL345678", "unexpected response Results[1].Units[0].SupplierCode.SupplierCode")
 
 	// Extract the price per night from the response
-	pricePerNight, err := strconv.ParseFloat(resp.Results[1].Units[0].PriceDetail.Price.Value, 64)
+	pricePerNight, err = strconv.ParseFloat(resp.Results[1].Units[0].PriceDetail.Price.Value, 64)
 	require.NoError(t, err)
 
 	// Check if this adds up with the total price of the unit
@@ -347,16 +400,23 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *T
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
 	require.NotEmpty(t, resp.Metadata.SearchId, "unexpected empty response Metadata.SearchId")
 	require.NotEmpty(t, resp.Metadata.SearchId.Value, "unexpected empty response Metadata.SearchId.Value")
-	searchId := resp.Metadata.SearchId.Value
 
 	require.NotEmpty(t, resp.Results[1].ResultId, "unexpected empty response Results[1].ResultId")
-	resultId := resp.Results[1].ResultId
 
-	return searchId, resultId, pricePerNight
+	return resp.Metadata.SearchId.Value, resp.Results[1].ResultId, pricePerNight
 }
 
 // Let's test the validation step with the values extracted from the search request
-func TestValidateV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context, searchId string, resultId int32, pricePerNight float64) string {
+func TestValidateV2(
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	ctx context.Context,
+	searchId string,
+	resultId int32,
+	pricePerNight float64,
+) (validateID string) {
 	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
@@ -400,7 +460,19 @@ func TestValidateV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot
 }
 
 // Lastly we do the mint request based on the validation id
-func TestMintV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context, validationId string) (string, string, string) {
+func TestMintV2(
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	ctx context.Context,
+	validationId string,
+) (
+	mintID string,
+	mintTxID string,
+	buyTxID string,
+	tokenID uint64,
+) {
 	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
@@ -424,7 +496,7 @@ func TestMintV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bo
 	// check if the transaction ids are set and return them for further tests
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
-	return resp.MintId.Value, resp.MintTransactionId, resp.BuyTransactionId
+	return resp.MintId.Value, resp.MintTransactionId, resp.BuyTransactionId, resp.BookingTokenId
 }
 
 func VerifyBlockchainState(t *testing.T, tt *Test, distributorBot *bot.Bot, mintId string, mintTxId string, buyTxId string) {
@@ -444,27 +516,33 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 	_, supplierBot, distributorBot := testAccommodationV2Setup(ctx, t, tt)
 
 	t.Run("Product list", func(t *testing.T) {
-		TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx) // Happy path: will just return all the properties
+		// Happy path: will just return all the properties
+		TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx)
 	})
 	t.Run("Product list with filter", func(t *testing.T) {
-		TestAccommodationProductListServiceV2WithFilter(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return only one property
+		// Happy path: will return only one property
+		TestAccommodationProductListServiceV2WithFilter(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product info", func(t *testing.T) {
-		TestAccommodationProductInfoServiceV2(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return the detailed info of a property
+		// Happy path: will return the detailed info of a property
+		TestAccommodationProductInfoServiceV2(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search w/o travel period", func(t *testing.T) {
-		TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t, tt, distributorBot, supplierBot, ctx) // ERROR path: without travel period it should return an error
+		// ERROR path: without travel period it should return an error
+		TestAccommodationProductSearchServiceV2WithoutTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search with travel period oob", func(t *testing.T) {
-		TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t, tt, distributorBot, supplierBot, ctx) // ERROR path: with travel period outside of allowed constraints it should return an error
+		// ERROR path: with travel period outside of allowed constraints it should return an error
+		TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search with travel period reversed", func(t *testing.T) {
-		TestAccommodationProductSearchServiceV2TravelPeriodReversed(t, tt, distributorBot, supplierBot, ctx) // ERROR path: with travel period reversed it should return an error
+		// ERROR path: with travel period reversed it should return an error
+		TestAccommodationProductSearchServiceV2TravelPeriodReversed(t, tt, distributorBot, supplierBot, ctx)
 	})
 	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
-		searchId, resultId, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return the search results
-		validationId := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchId, resultId, pricePerNight)                            // Happy path: will return the validationId
-		mintId, mintTxId, buyTxId := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationId)                                        // Happy path: will return the mint information
-		VerifyBlockchainState(t, tt, distributorBot, mintId, mintTxId, buyTxId)                                                               // Verify the blockchain state
+		searchId, resultId, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx)
+		validationId := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchId, resultId, pricePerNight)
+		mintId, mintTxId, buyTxId, _ := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationId)
+		VerifyBlockchainState(t, tt, distributorBot, mintId, mintTxId, buyTxId)
 	})
 }
