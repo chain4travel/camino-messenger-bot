@@ -5,7 +5,7 @@ go 1.23.5
 require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20240924170438-a97744087df6.1
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.34.2-20240924170438-a97744087df6.2
-	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20250127144858-625ff6fdf846
+	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20250129104547-90f8b12cd935
 	github.com/chain4travel/caminogoeth-compat v1.1.0-rc1
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/go-viper/mapstructure/v2 v2.2.1
