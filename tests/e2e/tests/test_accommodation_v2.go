@@ -52,10 +52,17 @@ func testAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*par
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
 
-/* Simple product list request which shall return all properties. Checking if one is the right one */
+/* Simple product list request which shall return all properties. Checking if all are present */
 func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
-	hotelCode := "HOTEL123456"
-	const expectedTotalResults = 5
+	hotelCodes := []string{
+		"HOTEL123456",
+		"HOTEL789012",
+		"HOTEL345678",
+		"HOTEL901234",
+		"HOTEL567890",
+	}
+
+	expectedTotalResults := len(hotelCodes)
 
 	resp, err := distributorBot.AccommodationProductListServiceV2.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
@@ -72,20 +79,25 @@ func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBo
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	// The response should contain all properties defined by the pp-mock (defined by expectedTotalResults)
+	// The response should contain all properties defined by the pp-mock (defined by hotelCodes/expectedTotalResults)
 	require.Len(t, resp.Properties, expectedTotalResults, "unexpected number of properties in response")
 
-	// Let's check if the first one is as expected
+	// Let's check if all of them are present
 	require.NotEmpty(t, resp.Properties, "unexpected empty response properties")
-	require.NotEmpty(t, resp.Properties[0].SupplierCode, "unexpected empty response properties[0].SupplierCode")
-	require.NotEmpty(t, resp.Properties[0].SupplierCode.SupplierCode, "unexpected empty response properties[0].SupplierCode.SupplierCode")
-	require.Equal(t, hotelCode, resp.Properties[0].SupplierCode.SupplierCode, "unexpected response properties[0].SupplierCode.SupplierCode")
+
+	for i := range hotelCodes {
+		require.NotEmpty(t, resp.Properties[i].SupplierCode, "unexpected empty response properties[%d].SupplierCode", i)
+		require.NotEmpty(t, resp.Properties[i].SupplierCode.SupplierCode, "unexpected empty response properties[%d].SupplierCode.SupplierCode", i)
+		require.Contains(t, hotelCodes, resp.Properties[i].SupplierCode.SupplierCode, "unexpected response properties[%d].SupplierCode.SupplierCode", i)
+	}
 }
 
 /* Product list request with a modification filter set. It should only return one fitting result. */
 func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
-	var modifiedAfterSecs int64 = 1710489050
-	hotelCode := "HOTEL567890"
+	// Modification timestamp which should exactly return one result (see hotelCode).
+	// See the properties.json file in the pp-mock for more info
+	const modifiedAfterSecs int64 = 1710489050
+	const hotelCode = "HOTEL567890"
 
 	resp, err := distributorBot.AccommodationProductListServiceV2.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
@@ -117,7 +129,7 @@ func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, dis
 
 /* Get detailed accommodation information for a specific hotel code (supplier code). */
 func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
-	hotelCode := "HOTEL789012"
+	const hotelCode = "HOTEL789012"
 
 	resp, err := distributorBot.AccommodationProductInfoServiceV2.AccommodationProductInfo(
 		requestContext(ctx, &metadata.Metadata{
@@ -166,7 +178,7 @@ func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBo
 
 /* Test product search without the mandatory travel period given. Expect an error to be returned back. */
 func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
-	hotelCode := "HOTEL345678"
+	const hotelCode = "HOTEL345678"
 
 	resp, err := distributorBot.AccommodationSearchServiceV2.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
@@ -191,12 +203,11 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-/* Test product search with wrong travel periods given. Expect errors to be returned. */
-func TestAccommodationProductSearchServiceV2WrongTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
-	// 1st error case - travel period outside of allowed constraints
-	hotelCode := "HOTEL345678"
+/* Test product search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned. */
+func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+	const hotelCode = "HOTEL345678"
 
-	nights := 12                                      // 12 nights
+	const nights = 12                                 // 12 nights
 	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
@@ -233,12 +244,17 @@ func TestAccommodationProductSearchServiceV2WrongTravelPeriod(t *testing.T, tt *
 
 	tt.logger.Debug("AccommodationSearchServiceV2.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
+}
 
-	// 2nd error case - start date after end date
-	endDate = time.Now().Add(time.Hour * 24)                        // tomorrow
-	startDate = endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
+/* Test product search with wrong travel periods given: start date after end date. Expect errors to be returned. */
+func TestAccommodationProductSearchServiceV2TravelPeriodReversed(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
+	const hotelCode = "HOTEL345678"
 
-	resp, err = distributorBot.AccommodationSearchServiceV2.AccommodationSearch(
+	const nights = 12                                                // 12 nights
+	endDate := time.Now().Add(time.Hour * 24)                        // tomorrow
+	startDate := endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
+
+	resp, err := distributorBot.AccommodationSearchServiceV2.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
@@ -275,8 +291,7 @@ func TestAccommodationProductSearchServiceV2WrongTravelPeriod(t *testing.T, tt *
 
 /* Test product search with a valid travel period. Expect valid search results. */
 func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) (string, int32, float64) {
-
-	nights := 12                                // 12 nights
+	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
@@ -437,11 +452,12 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 	defer cancel()
 	_, supplierBot, distributorBot := testAccommodationV2Setup(ctx, t, tt)
 
-	TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx)                                                        // Happy path: will just return the properties
+	TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx)                                                        // Happy path: will just return all the properties
 	TestAccommodationProductListServiceV2WithFilter(t, tt, distributorBot, supplierBot, ctx)                                              // Happy path: will return only one property
 	TestAccommodationProductInfoServiceV2(t, tt, distributorBot, supplierBot, ctx)                                                        // Happy path: will return the detailed info of a property
 	TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t, tt, distributorBot, supplierBot, ctx)                                   // ERROR path: without travel period it should return an error
-	TestAccommodationProductSearchServiceV2WrongTravelPeriod(t, tt, distributorBot, supplierBot, ctx)                                     // ERROR path: with wrong travel period it should return an error
+	TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t, tt, distributorBot, supplierBot, ctx)                               // ERROR path: with travel period outside of allowed constraints it should return an error
+	TestAccommodationProductSearchServiceV2TravelPeriodReversed(t, tt, distributorBot, supplierBot, ctx)                                  // ERROR path: with travel period reversed it should return an error
 	searchId, resultId, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return the search results
 	validationId := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchId, resultId, pricePerNight)                            // Happy path: will return the validationId
 	mintId, mintTxId, buyTxId := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationId)                                        // Happy path: will return the mint information
