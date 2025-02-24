@@ -22,29 +22,26 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-/* Setting up the basic applications and services used in all sub-test-cases */
+// Setting up the basic applications and services used in all sub-test-cases
 func testAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
-	// Register all the services needed for the tests
-	registerServices := []string{
+
+	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.AccommodationProductListServiceV2,
 		botGenerated.AccommodationProductInfoServiceV2,
 		botGenerated.AccommodationSearchServiceV2,
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV2,
-	}
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, registerServices))
+	))
 	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t)
 
-	supplierServices := []bot.CMService{
+	// bot with partnerPlugin and without rpc server (supplier)
+	supplierBot := tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.AccommodationProductListServiceV2, Fee: 100},
 		{Name: botGenerated.AccommodationProductInfoServiceV2, Fee: 110},
 		{Name: botGenerated.AccommodationSearchServiceV2, Fee: 120},
 		{Name: botGenerated.ValidationServiceV2, Fee: 130},
 		{Name: botGenerated.MintServiceV2, Fee: 140},
-	}
-
-	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot := tt.CreateBot(ctx, t, false, supplierPartnerPlugin, supplierServices)
+	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
 	distributorBot := tt.CreateBot(ctx, t, true, nil, nil)
@@ -52,7 +49,7 @@ func testAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*par
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
 
-/* Simple product list request which shall return all properties. Checking if all are present */
+// Simple product list request which shall return all properties. Checking if all are present
 func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
 	hotelCodes := []string{
 		"HOTEL123456",
@@ -82,9 +79,6 @@ func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBo
 	// The response should contain all properties defined by the pp-mock (defined by hotelCodes/expectedTotalResults)
 	require.Len(t, resp.Properties, expectedTotalResults, "unexpected number of properties in response")
 
-	// Let's check if all of them are present
-	require.NotEmpty(t, resp.Properties, "unexpected empty response properties")
-
 	for i := range hotelCodes {
 		require.NotEmpty(t, resp.Properties[i].SupplierCode, "unexpected empty response properties[%d].SupplierCode", i)
 		require.NotEmpty(t, resp.Properties[i].SupplierCode.SupplierCode, "unexpected empty response properties[%d].SupplierCode.SupplierCode", i)
@@ -92,7 +86,7 @@ func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBo
 	}
 }
 
-/* Product list request with a modification filter set. It should only return one fitting result. */
+// Product list request with a modification filter set. It should only return one fitting result.
 func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
 	// Modification timestamp which should exactly return one result (see hotelCode).
 	// See the properties.json file in the pp-mock for more info
@@ -120,14 +114,12 @@ func TestAccommodationProductListServiceV2WithFilter(t *testing.T, tt *Test, dis
 	// The response should contain only one property as only one is modified after the given timestamp
 	require.Len(t, resp.Properties, 1, "unexpected number of properties in response")
 
-	// Let's check if result is as expected
-	require.NotEmpty(t, resp.Properties, "unexpected empty response properties")
 	require.NotEmpty(t, resp.Properties[0].SupplierCode, "unexpected empty response properties[0].SupplierCode")
 	require.NotEmpty(t, resp.Properties[0].SupplierCode.SupplierCode, "unexpected empty response properties[0].SupplierCode.SupplierCode")
 	require.Equal(t, hotelCode, resp.Properties[0].SupplierCode.SupplierCode, "unexpected response properties[0].SupplierCode.SupplierCode")
 }
 
-/* Get detailed accommodation information for a specific hotel code (supplier code). */
+// Get detailed accommodation information for a specific hotel code (supplier code).
 func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
 	const hotelCode = "HOTEL789012"
 
@@ -150,7 +142,6 @@ func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBo
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
 	// The response should contain only the one property filtered in the request
-	require.NotEmpty(t, resp.Properties, "unexpected empty response properties")
 	require.Len(t, resp.Properties, 1, "unexpected number of properties in response")
 
 	require.NotEmpty(t, resp.Properties[0].Property, "unexpected empty response properties[0].Property")
@@ -176,7 +167,7 @@ func TestAccommodationProductInfoServiceV2(t *testing.T, tt *Test, distributorBo
 	require.Equal(t, resp.Properties[0].Rooms[0].TotalOccupancy.FullPayers, int32(2), "unexpected full payers")
 }
 
-/* Test product search without the mandatory travel period given. Expect an error to be returned back. */
+// Test product search without the mandatory travel period given. Expect an error to be returned back.
 func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
 	const hotelCode = "HOTEL345678"
 
@@ -203,7 +194,7 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t *testing.T, tt
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-/* Test product search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned. */
+// Test product search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned.
 func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
 	const hotelCode = "HOTEL345678"
 
@@ -246,7 +237,7 @@ func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t *testing.T
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-/* Test product search with wrong travel periods given: start date after end date. Expect errors to be returned. */
+// Test product search with wrong travel periods given: start date after end date. Expect errors to be returned.
 func TestAccommodationProductSearchServiceV2TravelPeriodReversed(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
 	const hotelCode = "HOTEL345678"
 
@@ -289,7 +280,7 @@ func TestAccommodationProductSearchServiceV2TravelPeriodReversed(t *testing.T, t
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-/* Test product search with a valid travel period. Expect valid search results. */
+// Test product search with a valid travel period. Expect valid search results.
 func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) (string, int32, float64) {
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
@@ -364,7 +355,7 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(t *testing.T, tt *T
 	return searchId, resultId, pricePerNight
 }
 
-/* Let's test the validation step with the values extracted from the search request */
+// Let's test the validation step with the values extracted from the search request
 func TestValidateV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context, searchId string, resultId int32, pricePerNight float64) string {
 	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
@@ -408,7 +399,7 @@ func TestValidateV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot
 	return resp.ValidationId.Value
 }
 
-/* Lastly we do the mint request based on the validation id */
+// Lastly we do the mint request based on the validation id
 func TestMintV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context, validationId string) (string, string, string) {
 	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{

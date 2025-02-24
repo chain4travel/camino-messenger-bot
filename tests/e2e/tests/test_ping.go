@@ -20,10 +20,7 @@ import (
 
 func testPingV1Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
 	// Register all the services needed for the tests
-	registerServices := []string{
-		botGenerated.PingServiceV1,
-	}
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, registerServices))
+	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
 	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)

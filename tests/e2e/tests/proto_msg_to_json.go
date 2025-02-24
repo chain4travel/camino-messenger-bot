@@ -8,10 +8,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-/*
-Service function to convert the responses into pretty-printed JSON.
-Only used for debugging and test creation.
-*/
+// Service function to convert the responses into pretty-printed JSON.
+// Only used for debugging and test creation.
 func protoMessageToJSON(tt *Test, message proto.Message) string {
 	// Pretty-print using protojson.MarshalOptions
 	marshaler := protojson.MarshalOptions{
@@ -23,6 +21,5 @@ func protoMessageToJSON(tt *Test, message proto.Message) string {
 		tt.logger.Errorf("Error marshalling: %v", err)
 		return ""
 	}
-	// return the json data as string
 	return string(jsonData)
 }

@@ -214,7 +214,7 @@ func (c *Client) RegisterCMService(
 
 func (c *Client) RegisterCMServices(
 	ctx context.Context,
-	serviceNames []string,
+	serviceNames ...string,
 ) error {
 	for _, serviceName := range serviceNames {
 		if err := c.RegisterCMService(ctx, serviceName); err != nil {
