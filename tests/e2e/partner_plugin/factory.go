@@ -66,7 +66,7 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 		return nil, nil, fmt.Errorf("failed to parse host url: %w", err)
 	}
 
-	cmd := exec.Command(f.binPath)
+	cmd := exec.Command(f.binPath) //nolint:gosec
 	cmd.Env = append(cmd.Env, fmt.Sprintf("CMB_PARTNER_PLUGIN_MOCK_PORT=%d", port))
 
 	if err := os.MkdirAll(f.dir, 0o755); err != nil {
