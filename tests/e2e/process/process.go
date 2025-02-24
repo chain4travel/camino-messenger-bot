@@ -13,8 +13,10 @@ import (
 	"time"
 )
 
-const processTickerInterval = 50 * time.Millisecond
-const killTimeout = 2 * time.Second
+const (
+	processTickerInterval = 50 * time.Millisecond
+	killTimeout           = 2 * time.Second
+)
 
 func ListenForProcessError(cmd *exec.Cmd) chan error {
 	errChan := make(chan error)

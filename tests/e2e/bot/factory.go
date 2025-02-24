@@ -183,7 +183,7 @@ func (f *Factory) CreateBot(
 
 	cmd := exec.Command(f.binPath, "--config", configPath)
 
-	logfile, err := os.OpenFile(path.Join(botDir, "bot.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	logfile, err := os.OpenFile(path.Join(botDir, "bot.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open bot log file: %w", err)
 	}

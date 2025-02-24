@@ -69,7 +69,7 @@ func StartNewMatrixServer(
 
 	client, err := mautrix.NewClient(fmt.Sprintf("http://localhost:%d", port), "", "")
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create matrix client: %v", err)
+		return nil, nil, fmt.Errorf("failed to create matrix client: %w", err)
 	}
 
 	dbDir := path.Join(matrixDir, "db")
@@ -81,7 +81,7 @@ func StartNewMatrixServer(
 		"CONDUIT_PORT="+strconv.Itoa(port),
 	)
 
-	logfile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	logfile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create conduit server log file: %w", err)
 	}

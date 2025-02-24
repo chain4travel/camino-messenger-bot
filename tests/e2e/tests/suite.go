@@ -46,7 +46,6 @@ func NewSuite(
 		zapConfig.Level.SetLevel(zap.DebugLevel)
 	}
 	logger, err := zapConfig.Build()
-
 	if err != nil {
 		return nil, err
 	}

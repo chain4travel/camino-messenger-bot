@@ -152,7 +152,6 @@ func addToDataset(
 	data = append(data, strconv.FormatInt(counter+1, 10))
 	data = append(data, strconv.FormatInt(totalTime, 10))
 	for _, entry := range entries {
-
 		if entry.Key == "request-gateway-request" {
 			lastValue = entry.Value
 			continue // skip
