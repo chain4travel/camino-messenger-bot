@@ -13,6 +13,9 @@ CONDUIT_VERSION="$default_version"
 FALLBACK_BRANCH="dev"
 BUILD_SCRIPT="./scripts/build.sh"
 
+DEBUG=0
+CLEAN=0
+
 OUT_BINARY=""
 
 while [[ $# -gt 0 ]]; do
@@ -25,6 +28,14 @@ while [[ $# -gt 0 ]]; do
             CONDUIT_VERSION="$2"
             shift 2
             ;;
+		--clean)
+			CLEAN=1
+			shift
+			;;
+		--debug)
+			DEBUG=1
+			shift
+			;;
         *)
             echo "Unknown argument: $1"
             exit 1
@@ -42,60 +53,64 @@ function download_and_extract() {
     local repo_url=$3
     local dest_dir="$dependency_dir/$repo_name"
 
-	echo "Attemting to download $repo_name"
+	echo "Processing dependency: $repo_name"
 
 	OUT_BINARY=""
 
     # Remove existing directory to ensure fresh download
-    if [ -d "$dest_dir" ]; then
-        echo "Removing existing $repo_name directory..."
-        rm -rf "$dest_dir"
-    fi
+	if [ $CLEAN -eq 1 ] ; then
+		echo "Removing existing $repo_name directory..."
+		rm -rf "$dest_dir"
+	fi
 
-    mkdir -p "$dest_dir"
-    release_version=""
-    if [ "$version" = "latest" ]; then
-        release_version=$(curl -s "https://api.github.com/repos/chain4travel/$repo_name/releases/latest" | grep -Po '"tag_name": "\K[^"]*' || echo "")
-    fi
+	release_version=""
+	if [ "$version" = "latest" ]; then
+		release_version=$(curl -s "https://api.github.com/repos/chain4travel/$repo_name/releases/latest" | grep -Po '"tag_name": "\K[^"]*' || echo "")
+	fi
 
-	if [ -z "$release_version" ] ; then
-		if [ "$version" = "latest" ]; then
-			branch=$FALLBACK_BRANCH
+	if [ -d "$dest_dir" ] ; then
+		echo "Directory $dest_dir already exists. Skipping download and build."
+	else 
+		mkdir -p "$dest_dir"
+		if [ -z "$release_version" ] ; then
+			if [ "$version" = "latest" ]; then
+				branch=$FALLBACK_BRANCH
+			else
+				branch=$version
+			fi
+
+			echo "WARN: Unable to get the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
+
+			if git ls-remote --heads --tags "$repo_url" | grep -q "$branch"; then
+				git clone --depth 1 --branch "$branch" "$repo_url" "$dest_dir"
+			elif git ls-remote "$repo_url" | grep -q "$branch"; then
+				git clone --depth 1 "$repo_url" "$dest_dir"
+				cd "$dest_dir"
+				git checkout "$branch"
+			else
+				echo "Version/tag/commit '$branch' not found for $repo_name, aborting."
+				exit 1
+			fi
+			
+			cd "${ORIG_DIR}/$dest_dir"
+			if [ ! -f $BUILD_SCRIPT ] ; then
+				echo "CRIT: No build script found at '$BUILD_SCRIPT' in cloned repository. Abort."
+				exit 1
+			fi
+			$BUILD_SCRIPT
+			cd "$ORIG_DIR"
 		else
-			branch=$version
-		fi
+			local url="https://github.com/chain4travel/$repo_name/releases/download/$release_version/${repo_name}-linux-amd64-${release_version}.tar.gz"
 
-		echo "WARN: Unable to get the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
-
-		if git ls-remote --heads --tags "$repo_url" | grep -q "$branch"; then
-            git clone --depth 1 --branch "$branch" "$repo_url" "$dest_dir"
-        elif git ls-remote "$repo_url" | grep -q "$branch"; then
-            git clone --depth 1 "$repo_url" "$dest_dir"
-            cd "$dest_dir"
-            git checkout "$branch"
-        else
-            echo "Version/tag/commit '$branch' not found for $repo_name, aborting."
-            exit 1
-        fi
-        
-        cd "${ORIG_DIR}/$dest_dir"
-		if [ ! -f $BUILD_SCRIPT ] ; then
-			echo "CRIT: No build script found at '$BUILD_SCRIPT' in cloned repository. Abort."
-			exit 1
-		fi
-		$BUILD_SCRIPT
-        cd "$ORIG_DIR"
-	else
-	    local url="https://github.com/chain4travel/$repo_name/releases/download/$release_version/${repo_name}-linux-amd64-${release_version}.tar.gz"
-
-	    echo "Downloading $repo_name version $release_version..."
-	    if curl --output /dev/null --silent --head --fail "$url"; then
-    	    curl -s -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
-	        tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
-	        rm "$dest_dir/${repo_name}.tar.gz"
-    	else
-			echo "CRIT: Unable to download the release '$release_version' of $repo_name."
-			exit 1
+			echo "Downloading $repo_name version $release_version..."
+			if curl --output /dev/null --silent --head --fail "$url"; then
+				curl -s -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
+				tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
+				rm "$dest_dir/${repo_name}.tar.gz"
+			else
+				echo "CRIT: Unable to download the release '$release_version' of $repo_name."
+				exit 1
+			fi
 		fi
 	fi
 
@@ -165,10 +180,16 @@ CMB_DB_MIGRATIONS_PATH="$(realpath "${CMB_DB_MIGRATIONS_PATH}")"
 
 echo "Running e2e tests..."
 
+ADD_PARAM=()
+if [ $DEBUG -eq 1 ] ; then
+	ADD_PARAM+=("-debug")
+fi
+
 ./$E2E_BIN_OUT \
 	-test.v \
 	-node="${CAMINOGO_BIN_PATH}" \
 	-matrix="${MATRIX_BIN_PATH}" \
 	-partner-plugin="${PARTNER_PLUGIN_BIN_PATH}" \
 	-cmb="${CMB_BIN_PATH}" \
-	-migration="${CMB_DB_MIGRATIONS_PATH}"
+	-migration="${CMB_DB_MIGRATIONS_PATH}" \
+	"${ADD_PARAM[@]}"

@@ -97,7 +97,7 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 		return pp, nil, fmt.Errorf("failed to wait for partner-plugin to be ready: %w", err)
 	}
 
-	f.logger.Infof("Partner-plugin (pid %d) started", cmd.Process.Pid)
+	f.logger.Debugf("Partner-plugin (pid %d) started", cmd.Process.Pid)
 
 	f.partnerPlugins = append(f.partnerPlugins, pp)
 

@@ -38,8 +38,15 @@ func NewSuite(
 	testsDataDir string,
 	existingNetworkNodeURI string,
 	existingNetworkAdminKey *secp256k1.PrivateKey,
+	debug bool,
 ) (*Suite, error) {
-	logger, err := zap.NewDevelopment()
+	zapConfig := zap.NewDevelopmentConfig()
+	zapConfig.Level.SetLevel(zap.InfoLevel)
+	if debug {
+		zapConfig.Level.SetLevel(zap.DebugLevel)
+	}
+	logger, err := zapConfig.Build()
+
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +153,7 @@ func (s *Suite) Cleanup(t *testing.T, tt *Test) {
 
 	var wg sync.WaitGroup
 
-	tt.logger.Info("Stopping all services")
+	tt.logger.Debug("Stopping all services")
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -172,7 +179,7 @@ func (s *Suite) Cleanup(t *testing.T, tt *Test) {
 	}()
 
 	wg.Wait()
-	tt.logger.Info("All services stopped")
+	tt.logger.Debug("All services stopped")
 
 	tt.resourceManagerSession.ReleaseResources()
 }

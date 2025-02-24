@@ -29,7 +29,7 @@ func (n *Node) Stop(ctx context.Context) error {
 	if err := process.StopProcess(ctx, n.pid); err != nil {
 		return fmt.Errorf("failed to stop node process with pid %d: %w", n.pid, err)
 	}
-	n.logger.Infof("Blockchain node (pid %d) stopped", n.pid)
+	n.logger.Debugf("Blockchain node (pid %d) stopped", n.pid)
 	if err := n.logfile.Close(); err != nil {
 		return fmt.Errorf("failed to close node logfile: %w", err)
 	}

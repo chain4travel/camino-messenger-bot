@@ -212,10 +212,10 @@ func (f *Factory) CreateBot(
 			return bot, nil, fmt.Errorf("failed to await bot readiness: %w", err)
 		}
 	} else {
-		f.logger.Warnf("bot (pid %d) started without RPC server: no readiness check", cmd.Process.Pid)
+		f.logger.Debugf("bot (pid %d) started without RPC server: no readiness check", cmd.Process.Pid)
 	}
 
-	f.logger.Infof("bot (pid %d) started", cmd.Process.Pid)
+	f.logger.Debugf("bot (pid %d) started", cmd.Process.Pid)
 
 	f.bots = append(f.bots, bot)
 

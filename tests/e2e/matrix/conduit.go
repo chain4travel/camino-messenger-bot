@@ -55,7 +55,7 @@ func StartNewMatrixServer(
 	networkFeeKey *ecdsa.PrivateKey,
 	networkClient *blockchain.Client,
 ) (*MatrixServer, chan error, error) {
-	logger.Info("Starting matrix server...")
+	logger.Debug("Starting matrix server...")
 
 	matrixDir := path.Join(dataDir, "matrix")
 	if err := os.RemoveAll(matrixDir); err != nil {
@@ -119,7 +119,7 @@ func StartNewMatrixServer(
 		return nil, nil, fmt.Errorf("failed to add bot to CM account: %w", err)
 	}
 
-	logger.Infof("Matrix server (pid %d) started", cmd.Process.Pid)
+	logger.Debugf("Matrix server (pid %d) started", cmd.Process.Pid)
 
 	errChan := make(chan error)
 	go func() {
@@ -160,7 +160,7 @@ func (m *MatrixServer) Stop(ctx context.Context) error {
 	if err := m.logfile.Close(); err != nil {
 		return fmt.Errorf("failed to close matrix server logfile: %w", err)
 	}
-	m.logger.Infof("Matrix server (pid %d) stopped", m.pid)
+	m.logger.Debugf("Matrix server (pid %d) stopped", m.pid)
 	return nil
 }
 

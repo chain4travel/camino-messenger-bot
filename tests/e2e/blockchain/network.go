@@ -57,7 +57,7 @@ func StartNewNetwork(
 	nodeBinPath string,
 	validatorsCount int,
 ) (*Network, chan error, error) {
-	logger.Infof("Starting blockchain network (%d validators)...", validatorsCount)
+	logger.Debugf("Starting blockchain network (%d validators)...", validatorsCount)
 
 	var err error
 	httpPorts := make([]int, validatorsCount)
@@ -180,19 +180,19 @@ func StartNewNetwork(
 
 	n.Client = n.nodes[0].client
 
-	logger.Info("Preparing EVM admin...")
+	logger.Debug("Preparing EVM admin...")
 
 	if err := n.Client.prepareAdmin(ctx); err != nil {
 		return n, nil, fmt.Errorf("failed to prepare EVM admin: %w", err)
 	}
 
-	logger.Info("Preparing CMB contracts...")
+	logger.Debug("Preparing CMB contracts...")
 
 	if err := n.Client.prepareCMBContracts(ctx); err != nil {
 		return n, nil, fmt.Errorf("failed to prepare CMB contracts: %w", err)
 	}
 
-	logger.Info("Blockchain network started")
+	logger.Debug("Blockchain network started")
 
 	return n, combineErrChannels(errChans...), nil
 }
@@ -258,7 +258,7 @@ func (n *Network) startNewNode(
 	bootstrapIPsArg string,
 	nodeIndex int,
 ) (*Node, chan error, error) {
-	n.logger.Infof("Starting blockchain node %d (http port %d)...", nodeIndex, httpPort)
+	n.logger.Debugf("Starting blockchain node %d (http port %d)...", nodeIndex, httpPort)
 
 	if err := os.RemoveAll(nodeDir); err != nil {
 		return nil, nil, fmt.Errorf("failed to remove blockchain node tmp dir: %w", err)
@@ -310,7 +310,7 @@ func (n *Network) startNewNode(
 	}
 	node.client = client
 
-	n.logger.Infof("Blockchain node %d (pid %d) started", nodeIndex, node.pid)
+	n.logger.Debugf("Blockchain node %d (pid %d) started", nodeIndex, node.pid)
 
 	errChan := make(chan error)
 	go func() {
@@ -333,7 +333,7 @@ func (n *Network) Stop(ctx context.Context) error {
 			return fmt.Errorf("failed to stop node: %w", err)
 		}
 	}
-	n.logger.Info("Blockchain network stopped")
+	n.logger.Debug("Blockchain network stopped")
 	return nil
 }
 

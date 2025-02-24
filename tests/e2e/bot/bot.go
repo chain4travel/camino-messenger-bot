@@ -37,7 +37,7 @@ func (b *Bot) Stop(ctx context.Context) error {
 	if err := process.StopProcess(ctx, b.pid); err != nil {
 		return fmt.Errorf("failed to stop cmb process with pid %d: %w", b.pid, err)
 	}
-	b.logger.Infof("Bot (pid %d) stopped", b.pid)
+	b.logger.Debugf("Bot (pid %d) stopped", b.pid)
 	if err := b.logfile.Close(); err != nil {
 		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
 	}

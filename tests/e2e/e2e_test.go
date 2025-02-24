@@ -29,6 +29,7 @@ const (
 	flagKeyPartnerPluginBinPath = "partner-plugin"
 	flagKeyCMBBinPath           = "cmb"
 	flagKeyMigrationsDir        = "migration"
+	flagKeyDebug                = "debug"
 )
 
 var (
@@ -40,21 +41,19 @@ var (
 	flagTestsDataDir            string
 	flagExistingNetworkNodeURI  string
 	flagExistingNetworkAdminKey string
+	flagDebug                   bool
 )
 
 func init() {
 	flag.StringVar(&flagNodeBinPath, flagKeyNodeBinPath, "", "Path to node binary.")
 	flag.StringVar(&flagExistingNetworkNodeURI, "existing-network-node-uri", "", "URI of existing network node.")
 	flag.StringVar(&flagExistingNetworkAdminKey, "existing-network-admin-key", "", "Admin key of existing network.")
-
 	flag.StringVar(&flagMatrixBinPath, flagKeyMatrixBinPath, "", "Path to matrix binary.")
-
 	flag.StringVar(&flagPartnerPluginBinPath, flagKeyPartnerPluginBinPath, "", "Path to partner plugin binary.")
-
 	flag.StringVar(&flagCMBBinPath, flagKeyCMBBinPath, "", "Path to CMB binary.")
 	flag.StringVar(&flagMigrationsDir, flagKeyMigrationsDir, "", "Path to migration files dir.")
-
 	flag.StringVar(&flagTestsDataDir, "tests-data-dir", "/tmp/cmb-e2e", "Path to dir with temp tests data.")
+	flag.BoolVar(&flagDebug, flagKeyDebug, false, "Debug mode")
 }
 
 func TestE2E(t *testing.T) {
@@ -103,6 +102,7 @@ func TestE2E(t *testing.T) {
 		flagTestsDataDir,
 		flagExistingNetworkNodeURI,
 		existingNetworkAdminKey,
+		flagDebug,
 	)
 	require.NoError(t, err)
 
