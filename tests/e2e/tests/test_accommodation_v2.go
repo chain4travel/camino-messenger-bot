@@ -62,11 +62,11 @@ func testAccommodationV2Setup(
 
 // Simple product list request which shall return all properties. Checking if all are present
 func TestAccommodationProductListServiceV2(
+	ctx context.Context,
 	t *testing.T,
 	tt *Test,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
-	ctx context.Context,
 ) {
 	hotelCodes := []string{
 		"HOTEL123456",
@@ -258,14 +258,14 @@ func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(
 					},
 					TravelPeriod: &typesv1.TravelPeriod{
 						StartDate: &typesv1.Date{
-							Year:  int32(startDate.Year()),
-							Month: int32(startDate.Month()),
-							Day:   int32(startDate.Day()),
+							Year:  int32(startDate.Year()),  //nolint:gosec
+							Month: int32(startDate.Month()), //nolint:gosec
+							Day:   int32(startDate.Day()),   //nolint:gosec
 						},
 						EndDate: &typesv1.Date{
-							Year:  int32(endDate.Year()),
-							Month: int32(endDate.Month()),
-							Day:   int32(endDate.Day()),
+							Year:  int32(endDate.Year()),  //nolint:gosec
+							Month: int32(endDate.Month()), //nolint:gosec
+							Day:   int32(endDate.Day()),   //nolint:gosec
 						},
 					},
 				},
@@ -280,11 +280,11 @@ func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(
 
 // Test product search with wrong travel periods given: start date after end date. Expect errors to be returned.
 func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
+	ctx context.Context,
 	t *testing.T,
 	tt *Test,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
-	ctx context.Context,
 ) {
 	const hotelCode = "HOTEL345678"
 
@@ -307,14 +307,14 @@ func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
 					},
 					TravelPeriod: &typesv1.TravelPeriod{
 						StartDate: &typesv1.Date{
-							Year:  int32(startDate.Year()),
-							Month: int32(startDate.Month()),
-							Day:   int32(startDate.Day()),
+							Year:  int32(startDate.Year()),  //nolint:gosec
+							Month: int32(startDate.Month()), //nolint:gosec
+							Day:   int32(startDate.Day()),   //nolint:gosec
 						},
 						EndDate: &typesv1.Date{
-							Year:  int32(endDate.Year()),
-							Month: int32(endDate.Month()),
-							Day:   int32(endDate.Day()),
+							Year:  int32(endDate.Year()),  //nolint:gosec
+							Month: int32(endDate.Month()), //nolint:gosec
+							Day:   int32(endDate.Day()),   //nolint:gosec
 						},
 					},
 				},
@@ -329,11 +329,11 @@ func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
 
 // Test product search with a valid travel period. Expect valid search results.
 func TestAccommodationProductSearchServiceV2WithTravelPeriod(
+	ctx context.Context,
 	t *testing.T,
 	tt *Test,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
-	ctx context.Context,
 ) (
 	searchID string,
 	resultID int32,
@@ -355,14 +355,14 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(
 				},
 				TravelPeriod: &typesv1.TravelPeriod{
 					StartDate: &typesv1.Date{
-						Year:  int32(startDate.Year()),
-						Month: int32(startDate.Month()),
-						Day:   int32(startDate.Day()),
+						Year:  int32(startDate.Year()),  //nolint:gosec
+						Month: int32(startDate.Month()), //nolint:gosec
+						Day:   int32(startDate.Day()),   //nolint:gosec
 					},
 					EndDate: &typesv1.Date{
-						Year:  int32(endDate.Year()),
-						Month: int32(endDate.Month()),
-						Day:   int32(endDate.Day()),
+						Year:  int32(endDate.Year()),  //nolint:gosec
+						Month: int32(endDate.Month()), //nolint:gosec
+						Day:   int32(endDate.Day()),   //nolint:gosec
 					},
 				},
 			},
@@ -417,8 +417,8 @@ func TestValidateV2(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 	ctx context.Context,
-	searchId string,
-	resultId int32,
+	searchID string,
+	resultID int32,
 	pricePerNight float64,
 ) (validateID string) {
 	resp, err := distributorBot.ValidationServiceV2.Validation(
@@ -428,8 +428,8 @@ func TestValidateV2(
 		&bookv2.ValidationRequest{
 			ValidationObject: &bookv2.ValidationObject{
 				SearchIdentifier: &typesv2.SearchIdentifier{
-					SearchId: &typesv1.UUID{Value: searchId},
-					ResultId: resultId,
+					SearchId: &typesv1.UUID{Value: searchID},
+					ResultId: resultID,
 				},
 			},
 		},
@@ -446,8 +446,8 @@ func TestValidateV2(
 	require.NotEmpty(t, resp.ValidationObject.SearchIdentifier, "unexpected empty response ValidationObject.SearchIdentifier")
 	require.NotEmpty(t, resp.ValidationObject.SearchIdentifier.SearchId, "unexpected empty response ValidationObject.SearchIdentifier.SearchId")
 	require.NotEmpty(t, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected empty response ValidationObject.SearchIdentifier.SearchId.Value")
-	require.Equal(t, searchId, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected searchId in response")
-	require.Equal(t, resultId, resp.ValidationObject.SearchIdentifier.ResultId, "unexpected resultId in response")
+	require.Equal(t, searchID, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected searchID in response")
+	require.Equal(t, resultID, resp.ValidationObject.SearchIdentifier.ResultId, "unexpected resultID in response")
 
 	// Check if the price per night is as expected
 	require.NotEmpty(t, resp.PriceDetail, "unexpected empty response PriceDetail")
@@ -457,9 +457,9 @@ func TestValidateV2(
 	require.NoError(t, err)
 	require.Equal(t, pricePerNight, pricePerNightResponse, "unexpected price per night")
 
-	// Last check if the validationId is set and if yes extract it and pass it back for the mint step
-	require.NotEmpty(t, resp.ValidationId, "unexpected empty response ValidationId")
-	require.NotEmpty(t, resp.ValidationId.Value, "unexpected empty response ValidationId.Value")
+	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
+	require.NotEmpty(t, resp.ValidationId, "unexpected empty response validationID")
+	require.NotEmpty(t, resp.ValidationId.Value, "unexpected empty response validationID.Value")
 	return resp.ValidationId.Value
 }
 
@@ -470,7 +470,7 @@ func TestMintV2(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 	ctx context.Context,
-	validationId string,
+	validationID string,
 ) (
 	tokenID uint64,
 	price *typesv2.Price,
@@ -481,7 +481,7 @@ func TestMintV2(
 		}),
 		&bookv2.MintRequest{
 			Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			ValidationId: &typesv1.UUID{Value: validationId},
+			ValidationId: &typesv1.UUID{Value: validationID},
 		},
 	)
 	require.NoError(t, err)
@@ -491,7 +491,7 @@ func TestMintV2(
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	// Check if the mintId is set
+	// Check if the MintId is set
 	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
 	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
 
@@ -552,7 +552,7 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the properties
-		TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx)
+		TestAccommodationProductListServiceV2(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product list with filter", func(t *testing.T) {
 		// Happy path: will return only one property
@@ -572,10 +572,10 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 	})
 	t.Run("Product search with travel period reversed", func(t *testing.T) {
 		// ERROR path: with travel period reversed it should return an error
-		TestAccommodationProductSearchServiceV2TravelPeriodReversed(t, tt, distributorBot, supplierBot, ctx)
+		TestAccommodationProductSearchServiceV2TravelPeriodReversed(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
-		searchID, resultID, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx)
+		searchID, resultID, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 		validationID := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchID, resultID, pricePerNight)
 		tokenID, price := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationID)
 		VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
