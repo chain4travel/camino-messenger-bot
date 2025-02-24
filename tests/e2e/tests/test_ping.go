@@ -18,9 +18,12 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func TestPingV1Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMService(ctx, botGenerated.PingServiceV1))
-
+func testPingV1Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
+	// Register all the services needed for the tests
+	registerServices := []string{
+		botGenerated.PingServiceV1,
+	}
+	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, registerServices))
 	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
@@ -37,7 +40,7 @@ func TestPingV1Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugi
 func TestPingV1(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	_, supplierBot, distributorBot := TestPingV1Setup(ctx, t, tt)
+	_, supplierBot, distributorBot := testPingV1Setup(ctx, t, tt)
 
 	pingMessage := "ping"
 	expectedResponceMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)

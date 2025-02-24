@@ -19,38 +19,20 @@ import (
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
 
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-/*
-Service function to convert the responses into pretty-printed JSON.
-Only used for debugging and test creation.
-*/
-func protoMessageToJSON(tt *Test, message proto.Message) string {
-	// Pretty-print using protojson.MarshalOptions
-	marshaler := protojson.MarshalOptions{
-		Multiline: true,
-		Indent:    "  ",
-	}
-	jsonData, err := marshaler.Marshal(message)
-	if err != nil {
-		tt.logger.Errorf("Error marshalling: %v", err)
-		return ""
-	}
-	// return the json data as string
-	return string(jsonData)
-}
-
 /* Setting up the basic applications and services used in all sub-test-cases */
-func TestAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMService(ctx, botGenerated.AccommodationProductListServiceV2))
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMService(ctx, botGenerated.AccommodationProductInfoServiceV2))
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMService(ctx, botGenerated.AccommodationSearchServiceV2))
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMService(ctx, botGenerated.ValidationServiceV2))
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMService(ctx, botGenerated.MintServiceV2))
-
+func testAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
+	// Register all the services needed for the tests
+	registerServices := []string{
+		botGenerated.AccommodationProductListServiceV2,
+		botGenerated.AccommodationProductInfoServiceV2,
+		botGenerated.AccommodationSearchServiceV2,
+		botGenerated.ValidationServiceV2,
+		botGenerated.MintServiceV2,
+	}
+	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, registerServices))
 	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t)
 
 	supplierServices := []bot.CMService{
@@ -73,6 +55,7 @@ func TestAccommodationV2Setup(ctx context.Context, t *testing.T, tt *Test) (*par
 /* Simple product list request which shall return all properties. Checking if one is the right one */
 func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot, ctx context.Context) {
 	hotelCode := "HOTEL123456"
+	const expectedTotalResults = 5
 
 	resp, err := distributorBot.AccommodationProductListServiceV2.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
@@ -89,8 +72,8 @@ func TestAccommodationProductListServiceV2(t *testing.T, tt *Test, distributorBo
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	// The response should contain all 5 properties defined by the pp-mock
-	require.Len(t, resp.Properties, 5, "unexpected number of properties in response")
+	// The response should contain all properties defined by the pp-mock (defined by expectedTotalResults)
+	require.Len(t, resp.Properties, expectedTotalResults, "unexpected number of properties in response")
 
 	// Let's check if the first one is as expected
 	require.NotEmpty(t, resp.Properties, "unexpected empty response properties")
@@ -452,7 +435,7 @@ func VerifyBlockchainState(t *testing.T, tt *Test, distributorBot *bot.Bot, mint
 func TestAccommodationV2(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	_, supplierBot, distributorBot := TestAccommodationV2Setup(ctx, t, tt)
+	_, supplierBot, distributorBot := testAccommodationV2Setup(ctx, t, tt)
 
 	TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx)                                                        // Happy path: will just return the properties
 	TestAccommodationProductListServiceV2WithFilter(t, tt, distributorBot, supplierBot, ctx)                                              // Happy path: will return only one property

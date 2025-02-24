@@ -212,6 +212,18 @@ func (c *Client) RegisterCMService(
 	return nil
 }
 
+func (c *Client) RegisterCMServices(
+	ctx context.Context,
+	serviceNames []string,
+) error {
+	for _, serviceName := range serviceNames {
+		if err := c.RegisterCMService(ctx, serviceName); err != nil {
+			return fmt.Errorf("failed to register service %s: %w", serviceName, err)
+		}
+	}
+	return nil
+}
+
 func (c *Client) Transfer(
 	ctx context.Context,
 	from *ecdsa.PrivateKey,
