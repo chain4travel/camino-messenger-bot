@@ -83,9 +83,7 @@ func TestE2E(t *testing.T) {
 	flagTestsDataDir = path.Join(flagTestsDataDir, time.Now().Format("2006-01-02_15-04-05"))
 
 	os.RemoveAll(flagTestsDataDir)
-	if err := os.MkdirAll(flagTestsDataDir, 0o755); err != nil {
-		t.Fatalf("failed to create tests data dir: %v", err)
-	}
+	require.NoError(t, os.MkdirAll(flagTestsDataDir, 0o755))
 
 	var existingNetworkAdminKey *secp256k1.PrivateKey
 	if len(flagExistingNetworkAdminKey) > 0 {

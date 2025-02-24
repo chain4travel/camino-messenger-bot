@@ -910,5 +910,7 @@ func main() {
 	}
 
 	reflection.Register(grpcServer)
-	_ = grpcServer.Serve(lis)
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }
