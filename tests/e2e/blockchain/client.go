@@ -459,7 +459,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// create bookingToken binding
 
-	bookingToken, err := bookingtoken.NewBookingtokenv2(bookingTokenProxyAddress, c.ethClient)
+	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenProxyAddress, c.ethClient)
 	if err != nil {
 		return fmt.Errorf("failed to create bookingToken binding: %w", err)
 	}

@@ -71,7 +71,7 @@ func NewResponseHandler(
 		return nil, err
 	}
 
-	bookingToken, err := bookingtokenv2.NewBookingtokenv2(bookingTokenAddress, ethClient)
+	bookingToken, err := bookingtokenv2.NewBookingtoken(bookingTokenAddress, ethClient)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil, err

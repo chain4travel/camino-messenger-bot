@@ -83,7 +83,7 @@ func (el *EventListener) getOrCreateBookingToken(addr common.Address) (*bookingt
 		return bt, nil
 	}
 
-	bt, err := bookingtoken.NewBookingtokenv2(addr, el.client)
+	bt, err := bookingtoken.NewBookingtoken(addr, el.client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create BookingToken instance: %w", err)
 	}

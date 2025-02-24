@@ -80,7 +80,7 @@ func main() {
 		sugar.Fatalf("Failed to create Booking Service: %v", err)
 	}
 
-	bt, err := bookingtoken.NewBookingtokenv2(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
+	bt, err := bookingtoken.NewBookingtoken(common.HexToAddress("0xe55E387F5474a012D1b048155E25ea78C7DBfBBC"), client)
 	if err != nil {
 		sugar.Fatalf("Failed to create BookingToken contract binding: %v", err)
 	}
