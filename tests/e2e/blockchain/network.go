@@ -264,7 +264,7 @@ func (n *Network) startNewNode(
 		return nil, nil, fmt.Errorf("failed to remove blockchain node tmp dir: %w", err)
 	}
 
-	cmd := exec.Command(n.nodeBinPath, //nolint:gosec
+	cmd := exec.Command(n.nodeBinPath, //nolint:gosec // this is a caminogo node binary, not some injection.
 		fmt.Sprintf("--%s=%d", config.HTTPPortKey, httpPort),
 		fmt.Sprintf("--%s=%d", config.StakingPortKey, stakingPort),
 		fmt.Sprintf("--%s=%s", config.StakingTLSKeyPathKey, stakerKeyPath),

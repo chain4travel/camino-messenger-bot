@@ -25,7 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolint:gosec
+const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolint:gosec // this is not credentials.
 
 var kycAdminRole = big.NewInt(0b100)
 

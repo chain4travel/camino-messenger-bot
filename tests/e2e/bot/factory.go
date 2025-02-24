@@ -181,7 +181,7 @@ func (f *Factory) CreateBot(
 
 	// Start bot
 
-	cmd := exec.Command(f.binPath, "--config", configPath) //nolint:gosec
+	cmd := exec.Command(f.binPath, "--config", configPath) //nolint:gosec // this is a cmb binary, not some injection.
 
 	logfile, err := os.OpenFile(path.Join(botDir, "bot.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
