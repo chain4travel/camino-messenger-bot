@@ -452,14 +452,28 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 	defer cancel()
 	_, supplierBot, distributorBot := testAccommodationV2Setup(ctx, t, tt)
 
-	TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx)                                                        // Happy path: will just return all the properties
-	TestAccommodationProductListServiceV2WithFilter(t, tt, distributorBot, supplierBot, ctx)                                              // Happy path: will return only one property
-	TestAccommodationProductInfoServiceV2(t, tt, distributorBot, supplierBot, ctx)                                                        // Happy path: will return the detailed info of a property
-	TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t, tt, distributorBot, supplierBot, ctx)                                   // ERROR path: without travel period it should return an error
-	TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t, tt, distributorBot, supplierBot, ctx)                               // ERROR path: with travel period outside of allowed constraints it should return an error
-	TestAccommodationProductSearchServiceV2TravelPeriodReversed(t, tt, distributorBot, supplierBot, ctx)                                  // ERROR path: with travel period reversed it should return an error
-	searchId, resultId, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return the search results
-	validationId := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchId, resultId, pricePerNight)                            // Happy path: will return the validationId
-	mintId, mintTxId, buyTxId := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationId)                                        // Happy path: will return the mint information
-	VerifyBlockchainState(t, tt, distributorBot, mintId, mintTxId, buyTxId)                                                               // Verify the blockchain state
+	t.Run("Product list", func(t *testing.T) {
+		TestAccommodationProductListServiceV2(t, tt, distributorBot, supplierBot, ctx) // Happy path: will just return all the properties
+	})
+	t.Run("Product list with filter", func(t *testing.T) {
+		TestAccommodationProductListServiceV2WithFilter(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return only one property
+	})
+	t.Run("Product info", func(t *testing.T) {
+		TestAccommodationProductInfoServiceV2(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return the detailed info of a property
+	})
+	t.Run("Product search w/o travel period", func(t *testing.T) {
+		TestAccommodationProductSearchServiceV2WithoutTravelPeriod(t, tt, distributorBot, supplierBot, ctx) // ERROR path: without travel period it should return an error
+	})
+	t.Run("Product search with travel period oob", func(t *testing.T) {
+		TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(t, tt, distributorBot, supplierBot, ctx) // ERROR path: with travel period outside of allowed constraints it should return an error
+	})
+	t.Run("Product search with travel period reversed", func(t *testing.T) {
+		TestAccommodationProductSearchServiceV2TravelPeriodReversed(t, tt, distributorBot, supplierBot, ctx) // ERROR path: with travel period reversed it should return an error
+	})
+	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
+		searchId, resultId, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx) // Happy path: will return the search results
+		validationId := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchId, resultId, pricePerNight)                            // Happy path: will return the validationId
+		mintId, mintTxId, buyTxId := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationId)                                        // Happy path: will return the mint information
+		VerifyBlockchainState(t, tt, distributorBot, mintId, mintTxId, buyTxId)                                                               // Verify the blockchain state
+	})
 }
