@@ -222,7 +222,6 @@ func (c *Client) RegisterCMServices(
 			return fmt.Errorf("failed to register service %s: %w", serviceName, err)
 		}
 	}
-	// c.BookingToken.GetTokenReservation()
 	return nil
 }
 

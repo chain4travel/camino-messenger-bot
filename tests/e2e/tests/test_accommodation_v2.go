@@ -20,7 +20,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -529,20 +528,6 @@ func VerifyBlockchainState(
 	tokenStatus, err := tt.caminoNetwork.Client.BookingToken.GetBookingStatus(callOpts, bigTokenID)
 	require.NoError(t, err)
 	require.Equal(t, booking.BookingStatusBought, tokenStatus)
-}
-
-func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {
-	require.NotNil(t, price, "unexpected nil price")
-	switch currency := price.GetCurrency().GetCurrency().(type) {
-	case *typesv2.Currency_NativeToken:
-		return booking.NativePaymentToken
-	case *typesv2.Currency_IsoCurrency:
-		return booking.ISOPaymentToken
-	case *typesv2.Currency_TokenCurrency:
-		return common.HexToAddress(currency.TokenCurrency.ContractAddress)
-	}
-	require.Fail(t, "unexpected currency type")
-	return common.Address{}
 }
 
 func TestAccommodationV2(t *testing.T, tt *Test) {
