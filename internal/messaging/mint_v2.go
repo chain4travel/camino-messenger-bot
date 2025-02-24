@@ -103,7 +103,15 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 
 	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
 
-	receipt, err := h.bookingService.BuyBookingToken(ctx, tokenID)
+	price, paymentToken, _, err := h.getPriceAndTokenV2(ctx, response.Price)
+	if err != nil {
+		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
+		h.logger.Errorf(errMessage)
+		h.AddErrorToResponseHeader(response, errMessage)
+		return
+	}
+
+	receipt, err := h.bookingService.BuyBookingToken(ctx, tokenID, price, paymentToken)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)

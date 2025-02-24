@@ -75,7 +75,7 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 		func(e any) {
 			expirationTimer.Stop()
 			h.logger.Infof("Token bought event received for token %s", tokenID.String())
-			event := e.(*bookingtoken.Bookingtokenv2TokenBought)
+			event := e.(*bookingtoken.BookingtokenTokenBought)
 
 			if _, err := notificationClient.TokenBoughtNotification(
 				context.Background(),

@@ -234,6 +234,8 @@ func main() {
 	buyReceipt, err := bs.BuyBookingToken(
 		context.Background(),
 		tokenID,
+		priceBigInt,
+		paymentToken,
 	)
 	if err != nil {
 		sugar.Fatalf("Failed to buy booking token: %v", err)

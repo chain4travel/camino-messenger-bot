@@ -74,6 +74,8 @@ type Service interface {
 		transactOpts *bind.TransactOpts,
 		cmAccountAddr common.Address,
 		tokenID *big.Int,
+		price *big.Int,
+		paymentToken common.Address,
 	) (*types.Receipt, error)
 }
 
@@ -305,6 +307,8 @@ func (s *service) BuyBookingToken(
 	transactOpts *bind.TransactOpts,
 	cmAccountAddress common.Address,
 	tokenID *big.Int,
+	price *big.Int,
+	paymentToken common.Address,
 ) (*types.Receipt, error) {
 	cmAccount, err := s.cmAccount(cmAccountAddress)
 	if err != nil {
@@ -314,6 +318,8 @@ func (s *service) BuyBookingToken(
 	tx, err := cmAccount.BuyBookingToken(
 		transactOpts,
 		tokenID,
+		price,
+		paymentToken,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to buy booking token: %w", err)

@@ -72,7 +72,7 @@ func main() {
 	}
 
 	_, err = el.RegisterTokenBoughtHandler(bookingTokenAddr, nil, nil, func(event interface{}) {
-		e := event.(*bookingtoken.Bookingtokenv2TokenBought)
+		e := event.(*bookingtoken.BookingtokenTokenBought)
 		sugar.Infof("Received TokenBought event: \n BookingToken: %s \n TokenID: %s \n Buyer: %s", bookingTokenAddr, e.TokenId, e.Buyer)
 	})
 	if err != nil {
@@ -80,7 +80,7 @@ func main() {
 	}
 
 	_, err = el.RegisterTokenReservedHandler(bookingTokenAddr, nil, nil, nil, func(event interface{}) {
-		e := event.(*bookingtoken.Bookingtokenv2TokenReserved)
+		e := event.(*bookingtoken.BookingtokenTokenReserved)
 		sugar.Infof("Received TokenReserved event: \n BookingToken: %s \n TokenID: %s \n ReservedFor: %s \n Supplier: %s \n Price: %s \n PaymentToken: %s \n Expiration: %s", bookingTokenAddr, e.TokenId, e.ReservedFor, e.Supplier, e.Price, e.PaymentToken, e.ExpirationTimestamp)
 	})
 	if err != nil {

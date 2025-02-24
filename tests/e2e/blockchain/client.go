@@ -344,7 +344,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// block 1 (deploy BookingToken impl, CM Account Manager impl, BookingTokenOperator)
 
-	bookingTokenImplAddress, bookingTokenImplTx, _, err := bookingtoken.DeployBookingtokenv2(transactor, c.ethClient)
+	bookingTokenImplAddress, bookingTokenImplTx, _, err := bookingtoken.DeployBookingtoken(transactor, c.ethClient)
 	if err != nil {
 		return fmt.Errorf("failed to deploy bookingToken implementation contract: %w", err)
 	}
@@ -413,7 +413,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// prepare Booking Token proxy initialization data
 
-	bookingTokenABI, err := abi.JSON(strings.NewReader(bookingtoken.Bookingtokenv2ABI))
+	bookingTokenABI, err := abi.JSON(strings.NewReader(bookingtoken.BookingtokenABI))
 	if err != nil {
 		return fmt.Errorf("failed to parse cmAccountManager ABI: %w", err)
 	}

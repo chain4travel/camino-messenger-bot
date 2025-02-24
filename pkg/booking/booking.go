@@ -131,6 +131,8 @@ func (bs *Service) MintBookingToken(
 func (bs *Service) BuyBookingToken(
 	ctx context.Context,
 	tokenID *big.Int,
+	price *big.Int,
+	paymentToken common.Address,
 ) (*types.Receipt, error) {
 	bs.logger.Infof("🛒 Buying BookingToken with TokenID %s", tokenID.String())
 
@@ -140,7 +142,7 @@ func (bs *Service) BuyBookingToken(
 	}
 
 	// Call the BuyBookingToken function from the contract
-	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, bs.cmAccountAddress, tokenID)
+	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, bs.cmAccountAddress, tokenID, price, paymentToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to buy booking token: %w", err)
 	}
