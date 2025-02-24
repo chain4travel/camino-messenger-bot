@@ -499,7 +499,16 @@ func TestMintV2(
 	return resp.MintId.Value, resp.MintTransactionId, resp.BuyTransactionId, resp.BookingTokenId
 }
 
-func VerifyBlockchainState(t *testing.T, tt *Test, distributorBot *bot.Bot, mintId string, mintTxId string, buyTxId string) {
+func VerifyBlockchainState(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	mintId string,
+	mintTxId string,
+	buyTxId string,
+	tokenID uint64,
+) {
 	// TODO - implement the verification of the blockchain state where the
 	// mintTxId and buyTxId are used to verify the state of the blockchain
 	// after the buy operation
@@ -508,6 +517,10 @@ func VerifyBlockchainState(t *testing.T, tt *Test, distributorBot *bot.Bot, mint
 	// - currency: native token
 	// - value: 1 CAM
 	// - booking token in the possession of the distributor
+
+	// reservation, err := tt.caminoNetwork.Client.BookingToken.GetTokenReservation(&bind.CallOpts{Context: ctx}, tokenID)
+	// require.NoError(t, err)
+	// require.Equal(t, reservation.PaymentToken, bookingtokenv2.asd)
 }
 
 func TestAccommodationV2(t *testing.T, tt *Test) {
@@ -540,9 +553,9 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 		TestAccommodationProductSearchServiceV2TravelPeriodReversed(t, tt, distributorBot, supplierBot, ctx)
 	})
 	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
-		searchId, resultId, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx)
-		validationId := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchId, resultId, pricePerNight)
-		mintId, mintTxId, buyTxId, _ := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationId)
-		VerifyBlockchainState(t, tt, distributorBot, mintId, mintTxId, buyTxId)
+		searchID, resultID, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(t, tt, distributorBot, supplierBot, ctx)
+		validationID := TestValidateV2(t, tt, distributorBot, supplierBot, ctx, searchID, resultID, pricePerNight)
+		mintID, mintTxID, buyTxID, tokenID := TestMintV2(t, tt, distributorBot, supplierBot, ctx, validationID)
+		VerifyBlockchainState(t, tt, distributorBot, mintID, mintTxID, buyTxID, tokenID)
 	})
 }

@@ -71,7 +71,7 @@ type Client struct {
 	ethChainID                  *big.Int
 	bookingTokenContractAddress common.Address
 	cmAccountManager            *cmaccountmanager.Cmaccountmanager
-	bookingToken                *bookingtokenv2.Bookingtokenv2
+	BookingToken                *bookingtoken.Bookingtoken
 	adminContract               *contracts.CaminoAdmin
 }
 
@@ -222,6 +222,7 @@ func (c *Client) RegisterCMServices(
 			return fmt.Errorf("failed to register service %s: %w", serviceName, err)
 		}
 	}
+	// c.BookingToken.GetTokenReservation()
 	return nil
 }
 
@@ -472,7 +473,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// create bookingToken binding
 
-	c.bookingToken, err = bookingtoken.NewBookingtoken(bookingTokenProxyAddress, c.ethClient)
+	c.BookingToken, err = bookingtoken.NewBookingtoken(bookingTokenProxyAddress, c.ethClient)
 	if err != nil {
 		return fmt.Errorf("failed to create bookingToken binding: %w", err)
 	}
@@ -495,7 +496,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to issue cmAccountManager.SetAccountImplementation tx: %w", err)
 	}
 
-	reinitializeV2Tx, err := c.bookingToken.ReinitializeV2(transactor, "BookingToken", "BToken")
+	reinitializeV2Tx, err := c.BookingToken.ReinitializeV2(transactor, "BookingToken", "BToken")
 	if err != nil {
 		return fmt.Errorf("failed to issue bookingToken.ReinitializeV2 tx: %w", err)
 	}
