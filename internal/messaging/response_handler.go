@@ -6,6 +6,7 @@ package messaging
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"log"
 	"time"
 
@@ -127,7 +128,7 @@ func (h *evmResponseHandler) ProcessRequestMessage(
 	/*
 		Cancellation messages will serve as an example of this type
 	*/
-	return nil
+	return fmt.Errorf("method ProcessRequestMessage: not implemented")
 }
 
 // Prepares response by performing any necessary modifications to it.

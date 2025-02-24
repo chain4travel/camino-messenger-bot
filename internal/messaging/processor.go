@@ -292,7 +292,6 @@ func (p *messageProcessor) ProcessIncomingLocalMessageAndGetResponse(
 	}
 	p.logger.Infof("responseMsg before processing %v", responseMsg.Content)
 	if err := p.responseHandler.ProcessRequestMessage(ctx, responseMsg, requestMsg.Content); err != nil {
-		// TODO: @VjeraTurk or AddErrorToResponseHeader earlier?!
 		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, err.Error())
 		return ctx, responseMsg, fmt.Errorf("failed to process request message: %w", err)
 	}
