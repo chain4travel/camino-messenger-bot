@@ -123,7 +123,7 @@ function generate_with_templates() {
 			cp $SERVER_P2P_METHOD_TEMPLATE "$METHOD_GEN_FILE"
 			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
 			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
-			sed -i -e "s#{{TEMPLATE}}#$SERVER_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
+			sed -i -e "s#{{TEMPLATE}}#$SERVER_P2P_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
 		done
 	elif [[ "$ROUTING" == "local" && "$ON_CHAIN" == "true" ]]; then
 		SERVER_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
