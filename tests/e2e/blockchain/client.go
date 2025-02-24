@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenoperator"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenv2"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc1967proxy"
@@ -344,7 +344,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// block 1 (deploy BookingToken impl, CM Account Manager impl, BookingTokenOperator)
 
-	bookingTokenImplAddress, bookingTokenImplTx, _, err := bookingtokenv2.DeployBookingtokenv2(transactor, c.ethClient)
+	bookingTokenImplAddress, bookingTokenImplTx, _, err := bookingtoken.DeployBookingtokenv2(transactor, c.ethClient)
 	if err != nil {
 		return fmt.Errorf("failed to deploy bookingToken implementation contract: %w", err)
 	}
@@ -413,7 +413,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// prepare Booking Token proxy initialization data
 
-	bookingTokenABI, err := abi.JSON(strings.NewReader(bookingtokenv2.Bookingtokenv2ABI))
+	bookingTokenABI, err := abi.JSON(strings.NewReader(bookingtoken.Bookingtokenv2ABI))
 	if err != nil {
 		return fmt.Errorf("failed to parse cmAccountManager ABI: %w", err)
 	}
@@ -459,7 +459,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// create bookingToken binding
 
-	bookingToken, err := bookingtokenv2.NewBookingtokenv2(bookingTokenProxyAddress, c.ethClient)
+	bookingToken, err := bookingtoken.NewBookingtokenv2(bookingTokenProxyAddress, c.ethClient)
 	if err != nil {
 		return fmt.Errorf("failed to create bookingToken binding: %w", err)
 	}
