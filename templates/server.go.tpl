@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-
 var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}{{SERVICE}}Server)(nil)
 
 type {{TYPE_PACKAGE}}{{SERVICE}}Server struct {
