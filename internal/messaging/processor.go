@@ -50,7 +50,7 @@ type MessageProcessor interface {
 	metadata.Checkpoint
 
 	Start(ctx context.Context)
-	ProcessIncomingP2PMessage(message *types.Message) error
+	ProcessIncomingMessage(message *types.Message) error
 	SendRequestMessage(ctx context.Context, message *types.Message) (*types.Message, error)
 }
 
@@ -119,7 +119,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 		case msgEvent := <-p.messenger.Inbound():
 			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
 			go func() {
-				if err := p.ProcessIncomingP2PMessage(&msgEvent); err != nil {
+				if err := p.ProcessIncomingMessage(&msgEvent); err != nil {
 					p.logger.Warnf("could not process message: %v", err)
 				}
 			}()
@@ -130,7 +130,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 	}
 }
 
-func (p *messageProcessor) ProcessIncomingP2PMessage(msg *types.Message) error {
+func (p *messageProcessor) ProcessIncomingMessage(msg *types.Message) error {
 	switch msg.Type.Category() {
 	case types.Request:
 		return p.respond(msg)
