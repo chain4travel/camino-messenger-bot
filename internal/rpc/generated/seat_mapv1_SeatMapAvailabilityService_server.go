@@ -5,16 +5,9 @@ package generated
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 
 	"google.golang.org/grpc"
-)
-
-const (
-	SeatMapAvailabilityServiceV1                           = "cmp.services.seat_map.v1.SeatMapAvailabilityService"
-	SeatMapAvailabilityServiceV1Request  types.MessageType = types.MessageType(SeatMapAvailabilityServiceV1 + ".Request")
-	SeatMapAvailabilityServiceV1Response types.MessageType = types.MessageType(SeatMapAvailabilityServiceV1 + ".Response")
 )
 
 var _ seat_mapv1grpc.SeatMapAvailabilityServiceServer = (*seat_mapv1SeatMapAvailabilityServiceServer)(nil)

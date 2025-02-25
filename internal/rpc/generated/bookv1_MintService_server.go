@@ -5,16 +5,9 @@ package generated
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 
 	"google.golang.org/grpc"
-)
-
-const (
-	MintServiceV1                           = "cmp.services.book.v1.MintService"
-	MintServiceV1Request  types.MessageType = types.MessageType(MintServiceV1 + ".Request")
-	MintServiceV1Response types.MessageType = types.MessageType(MintServiceV1 + ".Response")
 )
 
 var _ bookv1grpc.MintServiceServer = (*bookv1MintServiceServer)(nil)

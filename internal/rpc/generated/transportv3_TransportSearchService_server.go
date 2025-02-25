@@ -5,16 +5,9 @@ package generated
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 
 	"google.golang.org/grpc"
-)
-
-const (
-	TransportSearchServiceV3                           = "cmp.services.transport.v3.TransportSearchService"
-	TransportSearchServiceV3Request  types.MessageType = types.MessageType(TransportSearchServiceV3 + ".Request")
-	TransportSearchServiceV3Response types.MessageType = types.MessageType(TransportSearchServiceV3 + ".Response")
 )
 
 var _ transportv3grpc.TransportSearchServiceServer = (*transportv3TransportSearchServiceServer)(nil)

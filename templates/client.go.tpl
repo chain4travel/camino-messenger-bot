@@ -6,8 +6,15 @@ package generated
 import (
 	"{{GRPC_INC}}"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+    "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 
 	"google.golang.org/grpc"
+)
+
+const (
+	{{SERVICE}}V{{VERSION}} = "{{FQPN}}"
+	{{SERVICE}}V{{VERSION}}Request  types.MessageType = types.MessageType({{SERVICE}}V{{VERSION}} + ".Request")
+	{{SERVICE}}V{{VERSION}}Response types.MessageType = types.MessageType({{SERVICE}}V{{VERSION}} + ".Response")
 )
 
 var _ rpc.Client = (*{{SERVICE}}V{{VERSION}}Client)(nil)
