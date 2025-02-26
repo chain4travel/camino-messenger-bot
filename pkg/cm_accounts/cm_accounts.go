@@ -8,7 +8,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
-	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
@@ -26,8 +25,9 @@ import (
 var (
 	_ Service = &service{}
 
-	bigZero            = big.NewInt(0)
-	chequeOperatorRole = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
+	bigZero                  = big.NewInt(0)
+	chequeOperatorRole       = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
+	implementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
 )
 
 type Service interface {
@@ -81,7 +81,7 @@ type Service interface {
 		paymentToken common.Address,
 	) (*types.Receipt, error)
 
-	WarnIfUpgradeNeeded() error
+	WarnIfUpgradeNeeded(ctx context.Context) error
 }
 type service struct {
 	ethClient        *ethclient.Client
@@ -379,7 +379,7 @@ func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 	return cmaccount, nil
 }
 
-func (s *service) WarnIfUpgradeNeeded() error {
+func (s *service) WarnIfUpgradeNeeded(ctx context.Context) error {
 	currentImplOnManager, err := s.manager.GetAccountImplementation(&bind.CallOpts{})
 	if err != nil {
 		return fmt.Errorf("failed to get Account Implementation: %w", err)
@@ -387,12 +387,9 @@ func (s *service) WarnIfUpgradeNeeded() error {
 
 	// Implementation slot for ERC1967Proxy
 	// See: https://eips.ethereum.org/EIPS/eip-1967#logic-contract-address
-	const implementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
 	implementationSlot := common.HexToHash(implementationSlotString)
 	// Read implementation from proxy
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
 	implAddress, err := s.ethClient.StorageAt(ctx, *s.cmAccountAddress, implementationSlot, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get implementation address from proxy: %w", err)

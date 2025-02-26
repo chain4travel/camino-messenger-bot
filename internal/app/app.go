@@ -101,7 +101,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	err = cmAccounts.WarnIfUpgradeNeeded()
+	err = cmAccounts.WarnIfUpgradeNeeded(ctx)
 	if err != nil {
 		logger.Errorf("Failed to check if cm Account upgrade is needed: %v", err)
 		return nil, err
