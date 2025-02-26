@@ -25,16 +25,15 @@ import (
 const (
 	// Implementation slot for ERC1967Proxy
 	// See: https://eips.ethereum.org/EIPS/eip-1967#logic-contract-address
-	managerCMImplementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
-	ethereumAddressLength             = 20
+	managerCMAccountImplementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
 )
 
 var (
 	_ Service = &service{}
 
-	bigZero                     = big.NewInt(0)
-	chequeOperatorRole          = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
-	managerCMImplementationSlot = common.HexToHash(managerCMImplementationSlotString)
+	bigZero                            = big.NewInt(0)
+	chequeOperatorRole                 = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
+	managerCMAccountImplementationSlot = common.HexToHash(managerCMAccountImplementationSlotString)
 )
 
 type Service interface {
@@ -90,6 +89,7 @@ type Service interface {
 
 	IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error)
 }
+
 type service struct {
 	ethClient *ethclient.Client
 	cache     *lru.Cache[common.Address, *cmaccount.Cmaccount]
@@ -367,12 +367,12 @@ func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 	return cmaccount, nil
 }
 
-func (s *service) getCurrentImplementationOnManager(cmAccountAddress common.Address) (common.Address, error) {
+func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
 	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, s.ethClient)
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to fetch CM account: %w", err)
 	}
-	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{})
+	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{Context: ctx})
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to fetch CM account Manager Address: %w", err)
 	}
@@ -380,7 +380,7 @@ func (s *service) getCurrentImplementationOnManager(cmAccountAddress common.Addr
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to get Manager: %w", err)
 	}
-	currentImplOnManager, err := manager.GetAccountImplementation(&bind.CallOpts{})
+	currentImplOnManager, err := manager.GetAccountImplementation(&bind.CallOpts{Context: ctx})
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to get Account Implementation: %w", err)
 	}
@@ -388,21 +388,15 @@ func (s *service) getCurrentImplementationOnManager(cmAccountAddress common.Addr
 }
 
 func (s *service) getCurrentImplementationOnProxy(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
-	implAddress, err := s.ethClient.StorageAt(ctx, cmAccountAddress, managerCMImplementationSlot, nil)
+	implAddressSlotValue, err := s.ethClient.StorageAt(ctx, cmAccountAddress, managerCMAccountImplementationSlot, nil)
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to get implementation address from proxy: %w", err)
 	}
-	if len(implAddress) < 32 {
-		return common.Address{}, fmt.Errorf("implementation address storage read returned unexpected size: %d", len(implAddress))
-	}
-	// We take the last 20 bytes because Ethereum addresses are 20 bytes (40 hex chars) but storage slots are 32 bytes
-	// The address is right-aligned in the 32 byte slot
-	currentImplOnProxy := common.BytesToAddress(implAddress[:ethereumAddressLength])
-	return currentImplOnProxy, nil
+	return slotValueToAddress(implAddressSlotValue)
 }
 
 func (s *service) IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error) {
-	currentImplOnManager, err := s.getCurrentImplementationOnManager(cmAccountAddress)
+	currentImplOnManager, err := s.getLatestCMAccountImplementation(ctx, cmAccountAddress)
 	if err != nil {
 		return false, fmt.Errorf("failed to get current implementation on manager: %w", err)
 	}
@@ -416,4 +410,13 @@ func (s *service) IsCMAccountImplementationUpToDate(ctx context.Context, cmAccou
 	s.logger.Info("   - Latest:  " + currentImplOnManager.Hex())
 
 	return currentImplOnManager == currentImplOnProxy, nil
+}
+
+func slotValueToAddress(slotValue []byte) (common.Address, error) {
+	if len(slotValue) < 32 {
+		return common.Address{}, fmt.Errorf("slot value storage read returned unexpected size: %d", len(slotValue))
+	}
+	// We take the last 20 bytes because Ethereum addresses are 20 bytes (40 hex chars) but storage slots are 32 bytes
+	// The address is right-aligned in the 32 byte slot
+	return common.BytesToAddress(slotValue[12:]), nil
 }
