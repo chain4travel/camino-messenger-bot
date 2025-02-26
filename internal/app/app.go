@@ -94,23 +94,14 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		logger,
 		cmAccountsCacheSize,
 		evmClient,
+		cfg.CMAccountAddress,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create cm accounts service: %v", err)
 		return nil, err
 	}
 
-	cmAccount, err := cmaccounts.NewCmAccountService(
-		cfg.CMAccountAddress,
-		logger,
-		evmClient,
-	)
-	if err != nil {
-		logger.Errorf("Failed to create cm account service: %v", err)
-		return nil, err
-	}
-
-	err = cmAccount.WarnIfUpgradeNeeded()
+	err = cmAccounts.WarnIfUpgradeNeeded()
 	if err != nil {
 		logger.Errorf("Failed to check if cm Account upgrade is needed: %v", err)
 		return nil, err

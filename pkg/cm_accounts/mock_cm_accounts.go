@@ -165,3 +165,17 @@ func (mr *MockServiceMockRecorder) VerifyCheque(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyCheque", reflect.TypeOf((*MockService)(nil).VerifyCheque), arg0, arg1)
 }
+
+// WarnIfUpgradeNeeded mocks base method.
+func (m *MockService) WarnIfUpgradeNeeded() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WarnIfUpgradeNeeded")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WarnIfUpgradeNeeded indicates an expected call of WarnIfUpgradeNeeded.
+func (mr *MockServiceMockRecorder) WarnIfUpgradeNeeded() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WarnIfUpgradeNeeded", reflect.TypeOf((*MockService)(nil).WarnIfUpgradeNeeded))
+}

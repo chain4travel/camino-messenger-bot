@@ -8,9 +8,11 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -78,18 +80,23 @@ type Service interface {
 		price *big.Int,
 		paymentToken common.Address,
 	) (*types.Receipt, error)
+
+	WarnIfUpgradeNeeded() error
 }
 type service struct {
-	ethClient *ethclient.Client
-	cache     *lru.Cache[common.Address, *cmaccount.Cmaccount]
-	logger    *zap.SugaredLogger
-	chainID   *big.Int
+	ethClient        *ethclient.Client
+	cache            *lru.Cache[common.Address, *cmaccount.Cmaccount]
+	logger           *zap.SugaredLogger
+	chainID          *big.Int
+	cmAccountAddress *common.Address
+	manager          *cmaccountmanager.Cmaccountmanager
 }
 
 func NewService(
 	logger *zap.SugaredLogger,
 	cacheSize int,
 	ethClient *ethclient.Client,
+	cmAccountAddress common.Address,
 ) (Service, error) {
 	chainID, err := ethClient.ChainID(context.Background())
 	if err != nil {
@@ -102,11 +109,27 @@ func NewService(
 		return nil, err
 	}
 
+	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, ethClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch CM account: %w", err)
+	}
+
+	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch CM account Manager Address: %w", err)
+	}
+	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, ethClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Manager: %w", err)
+	}
+
 	return &service{
-		ethClient: ethClient,
-		cache:     cache,
-		logger:    logger,
-		chainID:   chainID,
+		ethClient:        ethClient,
+		cache:            cache,
+		logger:           logger,
+		chainID:          chainID,
+		cmAccountAddress: &cmAccountAddress,
+		manager:          manager,
 	}, nil
 }
 
@@ -354,4 +377,42 @@ func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 	s.cache.Add(cmAccountAddr, cmaccount)
 
 	return cmaccount, nil
+}
+
+func (s *service) WarnIfUpgradeNeeded() error {
+	currentImplOnManager, err := s.manager.GetAccountImplementation(&bind.CallOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to get Account Implementation: %w", err)
+	}
+
+	// Implementation slot for ERC1967Proxy
+	// See: https://eips.ethereum.org/EIPS/eip-1967#logic-contract-address
+	const implementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
+	implementationSlot := common.HexToHash(implementationSlotString)
+	// Read implementation from proxy
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	implAddress, err := s.ethClient.StorageAt(ctx, *s.cmAccountAddress, implementationSlot, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get implementation address from proxy: %w", err)
+	}
+
+	if len(implAddress) < 32 {
+		return fmt.Errorf("implementation address storage read returned unexpected size: %d", len(implAddress))
+	}
+	currentImplOnProxy := common.BytesToAddress(implAddress[12:])
+
+	s.logger.Info("Implementation:")
+	s.logger.Info("   - Active:  " + currentImplOnProxy.Hex())
+	s.logger.Info("   - Latest:  " + currentImplOnManager.Hex())
+
+	if currentImplOnProxy != currentImplOnManager {
+		// TODO: @VjeraTurk Ensure multiple versions compatibility
+		// TODO: @VjeraTurk Inform about the consequences of not upgrading for specific cases (bookingtoken, manager, cmaccount ...)
+		s.logger.Error("CMAccount needs an upgrade!")
+	} else {
+		s.logger.Info("CMAccount is using the latest implementation.")
+	}
+	return nil
 }
