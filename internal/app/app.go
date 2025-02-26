@@ -101,7 +101,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// TODO: @VjeraTurk Ensure multiple versions compatibility
-	cmAccountUpToDate, err := cmAccounts.IsCmAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)
+	cmAccountUpToDate, err := cmAccounts.IsCMAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)
 	if err != nil {
 		logger.Errorf("Failed to compare implementations: %v", err)
 		return nil, err
