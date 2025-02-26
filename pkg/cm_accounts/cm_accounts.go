@@ -412,7 +412,7 @@ func (s *service) IsCmAccountImplementationUpToDate(ctx context.Context, cmAccou
 	if err != nil {
 		return false, fmt.Errorf("failed to get current implementation on proxy: %w", err)
 	}
-	s.logger.Info("Implementation:")
+	s.logger.Info("📜 Implementation:")
 	s.logger.Info("   - Active:  " + currentImplOnProxy.Hex())
 	s.logger.Info("   - Latest:  " + currentImplOnManager.Hex())
 
