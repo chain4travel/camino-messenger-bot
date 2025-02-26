@@ -136,19 +136,19 @@ func (mr *MockServiceMockRecorder) IsBotAllowed(arg0, arg1, arg2 any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBotAllowed", reflect.TypeOf((*MockService)(nil).IsBotAllowed), arg0, arg1, arg2)
 }
 
-// IsCmAccountImplementationUpToDate mocks base method.
-func (m *MockService) IsCmAccountImplementationUpToDate(arg0 context.Context, arg1 common.Address) (bool, error) {
+// IsCMAccountImplementationUpToDate mocks base method.
+func (m *MockService) IsCMAccountImplementationUpToDate(arg0 context.Context, arg1 common.Address) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsCmAccountImplementationUpToDate", arg0, arg1)
+	ret := m.ctrl.Call(m, "IsCMAccountImplementationUpToDate", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IsCmAccountImplementationUpToDate indicates an expected call of IsCmAccountImplementationUpToDate.
-func (mr *MockServiceMockRecorder) IsCmAccountImplementationUpToDate(arg0, arg1 any) *gomock.Call {
+// IsCMAccountImplementationUpToDate indicates an expected call of IsCMAccountImplementationUpToDate.
+func (mr *MockServiceMockRecorder) IsCMAccountImplementationUpToDate(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsCmAccountImplementationUpToDate", reflect.TypeOf((*MockService)(nil).IsCmAccountImplementationUpToDate), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsCMAccountImplementationUpToDate", reflect.TypeOf((*MockService)(nil).IsCMAccountImplementationUpToDate), arg0, arg1)
 }
 
 // MintBookingToken mocks base method.
@@ -179,34 +179,4 @@ func (m *MockService) VerifyCheque(arg0 context.Context, arg1 *cheques.SignedChe
 func (mr *MockServiceMockRecorder) VerifyCheque(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyCheque", reflect.TypeOf((*MockService)(nil).VerifyCheque), arg0, arg1)
-}
-
-// getCurrentImplementationOnManager mocks base method.
-func (m *MockService) getCurrentImplementationOnManager(arg0 common.Address) (common.Address, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "getCurrentImplementationOnManager", arg0)
-	ret0, _ := ret[0].(common.Address)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// getCurrentImplementationOnManager indicates an expected call of getCurrentImplementationOnManager.
-func (mr *MockServiceMockRecorder) getCurrentImplementationOnManager(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getCurrentImplementationOnManager", reflect.TypeOf((*MockService)(nil).getCurrentImplementationOnManager), arg0)
-}
-
-// getCurrentImplementationOnProxy mocks base method.
-func (m *MockService) getCurrentImplementationOnProxy(arg0 context.Context, arg1 common.Address) (common.Address, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "getCurrentImplementationOnProxy", arg0, arg1)
-	ret0, _ := ret[0].(common.Address)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// getCurrentImplementationOnProxy indicates an expected call of getCurrentImplementationOnProxy.
-func (mr *MockServiceMockRecorder) getCurrentImplementationOnProxy(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getCurrentImplementationOnProxy", reflect.TypeOf((*MockService)(nil).getCurrentImplementationOnProxy), arg0, arg1)
 }
