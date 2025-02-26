@@ -368,7 +368,7 @@ func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 }
 
 func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
-	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, s.ethClient)
+	cmAccount, err := s.cmAccount(cmAccountAddress)
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to fetch CM account: %w", err)
 	}
