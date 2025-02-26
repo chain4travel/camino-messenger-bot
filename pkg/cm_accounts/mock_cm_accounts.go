@@ -136,6 +136,21 @@ func (mr *MockServiceMockRecorder) IsBotAllowed(arg0, arg1, arg2 any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBotAllowed", reflect.TypeOf((*MockService)(nil).IsBotAllowed), arg0, arg1, arg2)
 }
 
+// IsCmAccountImplementationUpToDate mocks base method.
+func (m *MockService) IsCmAccountImplementationUpToDate(arg0 context.Context, arg1 common.Address) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsCmAccountImplementationUpToDate", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsCmAccountImplementationUpToDate indicates an expected call of IsCmAccountImplementationUpToDate.
+func (mr *MockServiceMockRecorder) IsCmAccountImplementationUpToDate(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsCmAccountImplementationUpToDate", reflect.TypeOf((*MockService)(nil).IsCmAccountImplementationUpToDate), arg0, arg1)
+}
+
 // MintBookingToken mocks base method.
 func (m *MockService) MintBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2, arg3 common.Address, arg4 string, arg5, arg6 *big.Int, arg7 common.Address, arg8 *big.Int) (*types.Receipt, error) {
 	m.ctrl.T.Helper()
@@ -166,16 +181,32 @@ func (mr *MockServiceMockRecorder) VerifyCheque(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyCheque", reflect.TypeOf((*MockService)(nil).VerifyCheque), arg0, arg1)
 }
 
-// WarnIfUpgradeNeeded mocks base method.
-func (m *MockService) WarnIfUpgradeNeeded(arg0 context.Context) error {
+// getCurrentImplementationOnManager mocks base method.
+func (m *MockService) getCurrentImplementationOnManager(arg0 common.Address) (common.Address, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WarnIfUpgradeNeeded", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "getCurrentImplementationOnManager", arg0)
+	ret0, _ := ret[0].(common.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// WarnIfUpgradeNeeded indicates an expected call of WarnIfUpgradeNeeded.
-func (mr *MockServiceMockRecorder) WarnIfUpgradeNeeded(arg0 any) *gomock.Call {
+// getCurrentImplementationOnManager indicates an expected call of getCurrentImplementationOnManager.
+func (mr *MockServiceMockRecorder) getCurrentImplementationOnManager(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WarnIfUpgradeNeeded", reflect.TypeOf((*MockService)(nil).WarnIfUpgradeNeeded), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getCurrentImplementationOnManager", reflect.TypeOf((*MockService)(nil).getCurrentImplementationOnManager), arg0)
+}
+
+// getCurrentImplementationOnProxy mocks base method.
+func (m *MockService) getCurrentImplementationOnProxy(arg0 context.Context, arg1 common.Address) (common.Address, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getCurrentImplementationOnProxy", arg0, arg1)
+	ret0, _ := ret[0].(common.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getCurrentImplementationOnProxy indicates an expected call of getCurrentImplementationOnProxy.
+func (mr *MockServiceMockRecorder) getCurrentImplementationOnProxy(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getCurrentImplementationOnProxy", reflect.TypeOf((*MockService)(nil).getCurrentImplementationOnProxy), arg0, arg1)
 }

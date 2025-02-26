@@ -22,12 +22,18 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	// Implementation slot for ERC1967Proxy
+	// See: https://eips.ethereum.org/EIPS/eip-1967#logic-contract-address
+	implementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
+)
+
 var (
 	_ Service = &service{}
 
-	bigZero                  = big.NewInt(0)
-	chequeOperatorRole       = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
-	implementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
+	bigZero            = big.NewInt(0)
+	chequeOperatorRole = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
+	implementationSlot = common.HexToHash(implementationSlotString)
 )
 
 type Service interface {
@@ -81,22 +87,23 @@ type Service interface {
 		paymentToken common.Address,
 	) (*types.Receipt, error)
 
-	WarnIfUpgradeNeeded(ctx context.Context) error
+	getCurrentImplementationOnManager(cmAccountAddress common.Address) (common.Address, error)
+
+	getCurrentImplementationOnProxy(ctx context.Context, cmAccountAddress common.Address) (common.Address, error)
+
+	IsCmAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error)
 }
 type service struct {
-	ethClient        *ethclient.Client
-	cache            *lru.Cache[common.Address, *cmaccount.Cmaccount]
-	logger           *zap.SugaredLogger
-	chainID          *big.Int
-	cmAccountAddress *common.Address
-	manager          *cmaccountmanager.Cmaccountmanager
+	ethClient *ethclient.Client
+	cache     *lru.Cache[common.Address, *cmaccount.Cmaccount]
+	logger    *zap.SugaredLogger
+	chainID   *big.Int
 }
 
 func NewService(
 	logger *zap.SugaredLogger,
 	cacheSize int,
 	ethClient *ethclient.Client,
-	cmAccountAddress common.Address,
 ) (Service, error) {
 	chainID, err := ethClient.ChainID(context.Background())
 	if err != nil {
@@ -109,27 +116,11 @@ func NewService(
 		return nil, err
 	}
 
-	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, ethClient)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch CM account: %w", err)
-	}
-
-	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch CM account Manager Address: %w", err)
-	}
-	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, ethClient)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Manager: %w", err)
-	}
-
 	return &service{
-		ethClient:        ethClient,
-		cache:            cache,
-		logger:           logger,
-		chainID:          chainID,
-		cmAccountAddress: &cmAccountAddress,
-		manager:          manager,
+		ethClient: ethClient,
+		cache:     cache,
+		logger:    logger,
+		chainID:   chainID,
 	}, nil
 }
 
@@ -379,37 +370,51 @@ func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 	return cmaccount, nil
 }
 
-func (s *service) WarnIfUpgradeNeeded(ctx context.Context) error {
-	currentImplOnManager, err := s.manager.GetAccountImplementation(&bind.CallOpts{})
+func (s *service) getCurrentImplementationOnManager(cmAccountAddress common.Address) (common.Address, error) {
+	cmAccount, err := cmaccount.NewCmaccount(cmAccountAddress, s.ethClient)
 	if err != nil {
-		return fmt.Errorf("failed to get Account Implementation: %w", err)
+		return common.Address{}, fmt.Errorf("failed to fetch CM account: %w", err)
 	}
-
-	// Implementation slot for ERC1967Proxy
-	// See: https://eips.ethereum.org/EIPS/eip-1967#logic-contract-address
-	implementationSlot := common.HexToHash(implementationSlotString)
-	// Read implementation from proxy
-
-	implAddress, err := s.ethClient.StorageAt(ctx, *s.cmAccountAddress, implementationSlot, nil)
+	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{})
 	if err != nil {
-		return fmt.Errorf("failed to get implementation address from proxy: %w", err)
+		return common.Address{}, fmt.Errorf("failed to fetch CM account Manager Address: %w", err)
 	}
+	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, s.ethClient)
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to get Manager: %w", err)
+	}
+	currentImplOnManager, err := manager.GetAccountImplementation(&bind.CallOpts{})
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to get Account Implementation: %w", err)
+	}
+	return currentImplOnManager, nil
+}
 
+func (s *service) getCurrentImplementationOnProxy(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
+	implAddress, err := s.ethClient.StorageAt(ctx, cmAccountAddress, implementationSlot, nil)
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to get implementation address from proxy: %w", err)
+	}
 	if len(implAddress) < 32 {
-		return fmt.Errorf("implementation address storage read returned unexpected size: %d", len(implAddress))
+		return common.Address{}, fmt.Errorf("implementation address storage read returned unexpected size: %d", len(implAddress))
 	}
 	currentImplOnProxy := common.BytesToAddress(implAddress[12:])
+	return currentImplOnProxy, nil
+}
 
+func (s *service) IsCmAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error) {
+	currentImplOnManager, err := s.getCurrentImplementationOnManager(cmAccountAddress)
+	if err != nil {
+		return false, fmt.Errorf("failed to get current implementation on manager: %w", err)
+	}
+
+	currentImplOnProxy, err := s.getCurrentImplementationOnProxy(ctx, cmAccountAddress)
+	if err != nil {
+		return false, fmt.Errorf("failed to get current implementation on proxy: %w", err)
+	}
 	s.logger.Info("Implementation:")
 	s.logger.Info("   - Active:  " + currentImplOnProxy.Hex())
 	s.logger.Info("   - Latest:  " + currentImplOnManager.Hex())
 
-	if currentImplOnProxy != currentImplOnManager {
-		// TODO: @VjeraTurk Ensure multiple versions compatibility
-		// TODO: @VjeraTurk Inform about the consequences of not upgrading for specific cases (bookingtoken, manager, cmaccount ...)
-		s.logger.Error("CMAccount needs an upgrade!")
-	} else {
-		s.logger.Info("CMAccount is using the latest implementation.")
-	}
-	return nil
+	return currentImplOnManager == currentImplOnProxy, nil
 }

@@ -94,17 +94,23 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		logger,
 		cmAccountsCacheSize,
 		evmClient,
-		cfg.CMAccountAddress,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create cm accounts service: %v", err)
 		return nil, err
 	}
 
-	err = cmAccounts.WarnIfUpgradeNeeded(ctx)
+	// TODO: @VjeraTurk Ensure multiple versions compatibility
+	cmAccountUpToDate, err := cmAccounts.IsCmAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)
 	if err != nil {
-		logger.Errorf("Failed to check if cm Account upgrade is needed: %v", err)
+		logger.Errorf("Failed to compare implementations: %v", err)
 		return nil, err
+	}
+
+	if !cmAccountUpToDate {
+		logger.Warn("⏫ CMAccount needs an upgrade!")
+	} else {
+		logger.Info("✅ CMAccount is using the latest implementation.")
 	}
 
 	responseHandler, err := messaging.NewResponseHandler(
