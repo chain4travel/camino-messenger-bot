@@ -20,8 +20,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// TODO@ all changes/comments from v1 should be applied to v2 and v3
-
 var _ transportv1grpc.TransportSearchServiceServer = (*TransportSearchV1Server)(nil)
 
 type TransportSearchV1Server struct{}
@@ -124,9 +122,8 @@ func (*TransportSearchV1Server) TransportSearch(ctx context.Context, req *transp
 	searchResults := []*transportv1.TransportSearchResult{}
 
 	for _, query := range req.Queries {
-		queryTrips := query.GetTrips()
 		filteredTrips := mockdata.TripsV1
-		for _, queryTrip := range queryTrips {
+		for _, queryTrip := range query.GetTrips() {
 			if queryTrip == nil {
 				continue
 			}
