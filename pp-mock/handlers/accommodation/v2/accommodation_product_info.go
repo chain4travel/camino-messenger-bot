@@ -29,7 +29,6 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	}
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-
 	log.Printf("Responding to request (Accommodation Product Info): %s", md.RequestID)
 
 	// Initialize suppliersFiltered with the correct type
@@ -95,12 +94,10 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 		return &accommodationv2.AccommodationProductInfoResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-				Alerts: []*typesv1.Alert{
-					{
-						Message: fmt.Sprintf("No properties found for supplier codes: %v", req.SupplierCodes),
-						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-					},
-				},
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("No properties found for supplier codes: %v", req.SupplierCodes),
+					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+				}},
 			},
 		}, nil
 	}

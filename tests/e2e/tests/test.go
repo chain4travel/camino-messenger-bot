@@ -10,9 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	grpcMetadata "google.golang.org/grpc/metadata"
 
-	messageMetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/blockchain"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/matrix"
@@ -61,8 +59,4 @@ func expectNoErrorAsync(t *testing.T, errChan chan error) {
 	go func() {
 		require.NoError(t, <-errChan)
 	}()
-}
-
-func requestContext(ctx context.Context, metadata *messageMetadata.Metadata) context.Context {
-	return grpcMetadata.NewOutgoingContext(ctx, metadata.ToGrpcMD())
 }

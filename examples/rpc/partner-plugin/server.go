@@ -112,164 +112,147 @@ func (p *partnerPlugin) ActivityProductInfo(ctx context.Context, _ *activityv3.A
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Activities: []*activityv3.ActivityExtendedInfo{
-			{
-				Activity: &activityv3.Activity{
-					Context:           "ActivityTest", // context
-					LastModified:      timestamppb.New(time.Now()),
-					ExternalSessionId: "23456", // external_session_id
-					ProductCode: &typesv2.ProductCode{
-						Code: "XPTFAOH15O", // supplier_code
-					},
-					UnitCode:    "ActivityTest", // supplier_unit_code
-					ServiceCode: "TRF",          // service_code
-					Bookability: &typesv1.Bookability{
-						Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
-						ConfirmationTime: &typesv1.Time{
-							Hours:   18,
-							Minutes: 0o0,
-						},
-					},
+		Activities: []*activityv3.ActivityExtendedInfo{{
+			Activity: &activityv3.Activity{
+				Context:           "ActivityTest", // context
+				LastModified:      timestamppb.New(time.Now()),
+				ExternalSessionId: "23456", // external_session_id
+				ProductCode: &typesv2.ProductCode{
+					Code: "XPTFAOH15O", // supplier_code
 				},
-				Units: []*activityv3.ActivityUnit{
-					{
-						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(2024, 9, 20, 11, 0o0, 0, 0, time.UTC)), // summary.start
-							EndDatetime:   timestamppb.New(time.Date(2024, 9, 20, 12, 0o0, 0, 0, time.UTC)),
-						},
-						Code:        "TK0001H1",                               // unit_code
-						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", // unit_code_description
-						Description: "starts at 11h00",                        // descriptive_text
-					},
-					{
-						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(2024, 9, 20, 9, 30, 0, 0, time.UTC)), // summary.start
-							EndDatetime:   timestamppb.New(time.Date(2024, 9, 20, 10, 30, 0, 0, time.UTC)),
-						},
-						Code:        "TK0001H0",                               // unit_code
-						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", // unit_code_description
-						Description: "starts at 09h30",                        // descriptive_text
-					},
-					{
-						Schedule: &typesv1.DateTimeRange{
-							StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)), // summary.start
-							EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 17, 30, 0, 0, time.UTC)),
-						},
-						Code:        "TK0001H2",                               // unit_code
-						Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [2]", // unit_code_description
-						Description: "starts at 16h30",                        // descriptive_text
-					},
-				},
-				Services: []*activityv3.ActivityService{
-					{
-						Code:        "TRF",
-						Name:        "incl. pickUp & dropOff",
-						Description: "incl. pickUp & dropOff",
-						Included:    []string{"Exclusive English or Italian-speaking Musement guide", "Skip-the-line entrance to Leonardo da Vinci's Last Supper"},
-						Excluded:    []string{},
-					},
-				},
-				Zones: []*activityv3.TransferZone{
-					{
-						Code: "ALT", // zone_code
-						GeoTree: &typesv2.GeoTree{
-							Country:      typesv2.Country_COUNTRY_PT,
-							Region:       "Algarve",
-							CityOrResort: "Albufeira",
-						},
-						PickupDropoffEvents: []*activityv3.PickupDropoffEvent{
-							{
-								LocationCode:    "AMTSPT0026",
-								LocationName:    "HOTELENTRANCE / HotelEntrance",
-								PickupIndicator: true,
-								OtherInfo:       "HOTELENTRANCE",
-								DateTime:        timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)),
-								Coordinates: &typesv2.Coordinates{
-									Latitude:  37.08472,
-									Longitude: -8.31469,
-								},
-							},
-						},
-					},
-				},
-				Descriptions: []*typesv1.LocalizedDescriptionSet{
-					{
-						Language: typesv1.Language_LANGUAGE_EN,
-						Descriptions: []*typesv1.Description{{
-							Category: "Tours",
-							Text:     "Albufeira Tuk Tuk Experiences offers a range of exciting tours and experiences in the beautiful city of Albufeira.\n\nEmbark on a city tour aboard our comfortable and stylish Tuk Tuks. Explore the vibrant city of Albufeira in a fun and unique way with our City Tour.\n\nLearn about the Albufeira's fascinating past. Our knowledgeable and friendly guides will take you on a journey through the city's charming neighborhoods, the narrow streets of the old town, traditional architecture, local culture and iconic landmarks.\n\nIf you are a tourist visiting Albufeira or a local looking for a new perspective, our tours are designed to provide you with an immersive and memorable experience. \nGet ready to capture stunning photos and create lasting memories.\n\n- City Tour duration: \nChoose how much time you want to spend 1h, 2h or 3h.\n\nIMPORTANT NOTES:\n- Minimum 1  - Maximum 6 people.\n- Price is per vehicle and not per person.\n- Minors must be accompanied by an adult. \n- Reservations can be cancelled free of charge up to 24h before the tour starts. Less than 24h no refund. No shows are not refundable.\n\nNOT RECOMMENDED TO:\n- It\u00b4s not recommended for pregnant women and intoxicated people.\n- Not recommended to mentally or physically incapacitated people.",
-						}},
-					},
-				},
-				Location: &activityv3.ActivityLocation{},
-				Features: []*activityv3.ActivityFeature{
-					{
-						Description: "Difficulty|Easy|",
-						Code:        "EX_DIFFIC|EX_DIF_1",
-					},
-					{
-						Description: "What`s included|Hotel pickup and drop-off|",
-						Code:        "EX_INCL|EX_INCL_HPD",
-					},
-					{
-						Description: "English, Spanish, Russian, Portuguese, Romanian",
-						Code:        "Languages:",
-					},
-					{
-						Description: "We invite you to discover Albufeira  by Tuk Tuk!\nEmbark on our City Tour and explore the vibrant streets and rich history of Albufeira.\nGet ready to capture stunning photos and create lasting memories.",
-						Code:        "EN Description",
-					},
-				},
-				Tags: []*activityv3.ActivityTag{
-					{
-						Active: true,
-						Id:     111,
-						Name:   "Guided Tour",
-						Slug:   "guided-tour",
-					},
-					{
-						Active: true,
-						Id:     2,
-						Name:   "Entrance Tickets",
-						Slug:   "entrance-tickets",
-					},
-				},
-				Languages: []typesv1.Language{
-					typesv1.Language_LANGUAGE_EN,
-					typesv1.Language_LANGUAGE_IT,
-				},
-				ContactInfo: &typesv2.ContactInfo{
-					Address: []*typesv2.Address{
-						{
-							Line_1:  "Calle Sant Joan 38",
-							Line_2:  "Quarter La Vileta",
-							ZipCode: "07008",
-							GeoTree: &typesv2.GeoTree{
-								Country:      typesv2.Country_COUNTRY_ES,
-								Region:       "Mallorca",
-								CityOrResort: "Palma",
-							},
-						},
-					},
-				},
-				Images: []*typesv3.Image{},
-				Videos: []*typesv3.Video{
-					{
-						File: &typesv3.File{
-							Name:         "Tuk Tuk Experiences",
-							Url:          "video_url",
-							LastModified: timestamppb.New(time.Now()),
-						},
-						Bitrate:   90,
-						Framerate: 90,
-						Category:  "Commercial",
-						Width:     1920,
-						Height:    1080,
-						Format:    typesv3.VideoFormat_VIDEO_FORMAT_AVI,
+				UnitCode:    "ActivityTest", // supplier_unit_code
+				ServiceCode: "TRF",          // service_code
+				Bookability: &typesv1.Bookability{
+					Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
+					ConfirmationTime: &typesv1.Time{
+						Hours:   18,
+						Minutes: 0o0,
 					},
 				},
 			},
-		},
+			Units: []*activityv3.ActivityUnit{
+				{
+					Schedule: &typesv1.DateTimeRange{
+						StartDatetime: timestamppb.New(time.Date(2024, 9, 20, 11, 0o0, 0, 0, time.UTC)), // summary.start
+						EndDatetime:   timestamppb.New(time.Date(2024, 9, 20, 12, 0o0, 0, 0, time.UTC)),
+					},
+					Code:        "TK0001H1",                               // unit_code
+					Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", // unit_code_description
+					Description: "starts at 11h00",                        // descriptive_text
+				}, {
+					Schedule: &typesv1.DateTimeRange{
+						StartDatetime: timestamppb.New(time.Date(2024, 9, 20, 9, 30, 0, 0, time.UTC)), // summary.start
+						EndDatetime:   timestamppb.New(time.Date(2024, 9, 20, 10, 30, 0, 0, time.UTC)),
+					},
+					Code:        "TK0001H0",                               // unit_code
+					Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [1]", // unit_code_description
+					Description: "starts at 09h30",                        // descriptive_text
+				}, {
+					Schedule: &typesv1.DateTimeRange{
+						StartDatetime: timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)), // summary.start
+						EndDatetime:   timestamppb.New(time.Date(20024, 9, 20, 17, 30, 0, 0, time.UTC)),
+					},
+					Code:        "TK0001H2",                               // unit_code
+					Name:        "Tuk-Tuk Sightseeing Tour (1 hour ) [2]", // unit_code_description
+					Description: "starts at 16h30",                        // descriptive_text
+				},
+			},
+			Services: []*activityv3.ActivityService{{
+				Code:        "TRF",
+				Name:        "incl. pickUp & dropOff",
+				Description: "incl. pickUp & dropOff",
+				Included: []string{
+					"Exclusive English or Italian-speaking Musement guide",
+					"Skip-the-line entrance to Leonardo da Vinci's Last Supper",
+				},
+				Excluded: []string{},
+			}},
+			Zones: []*activityv3.TransferZone{{
+				Code: "ALT", // zone_code
+				GeoTree: &typesv2.GeoTree{
+					Country:      typesv2.Country_COUNTRY_PT,
+					Region:       "Algarve",
+					CityOrResort: "Albufeira",
+				},
+				PickupDropoffEvents: []*activityv3.PickupDropoffEvent{{
+					LocationCode:    "AMTSPT0026",
+					LocationName:    "HOTELENTRANCE / HotelEntrance",
+					PickupIndicator: true,
+					OtherInfo:       "HOTELENTRANCE",
+					DateTime:        timestamppb.New(time.Date(20024, 9, 20, 16, 30, 0, 0, time.UTC)),
+					Coordinates: &typesv2.Coordinates{
+						Latitude:  37.08472,
+						Longitude: -8.31469,
+					},
+				}},
+			}},
+			Descriptions: []*typesv1.LocalizedDescriptionSet{{
+				Language: typesv1.Language_LANGUAGE_EN,
+				Descriptions: []*typesv1.Description{{
+					Category: "Tours",
+					Text:     "Albufeira Tuk Tuk Experiences offers a range of exciting tours and experiences in the beautiful city of Albufeira.\n\nEmbark on a city tour aboard our comfortable and stylish Tuk Tuks. Explore the vibrant city of Albufeira in a fun and unique way with our City Tour.\n\nLearn about the Albufeira's fascinating past. Our knowledgeable and friendly guides will take you on a journey through the city's charming neighborhoods, the narrow streets of the old town, traditional architecture, local culture and iconic landmarks.\n\nIf you are a tourist visiting Albufeira or a local looking for a new perspective, our tours are designed to provide you with an immersive and memorable experience. \nGet ready to capture stunning photos and create lasting memories.\n\n- City Tour duration: \nChoose how much time you want to spend 1h, 2h or 3h.\n\nIMPORTANT NOTES:\n- Minimum 1  - Maximum 6 people.\n- Price is per vehicle and not per person.\n- Minors must be accompanied by an adult. \n- Reservations can be cancelled free of charge up to 24h before the tour starts. Less than 24h no refund. No shows are not refundable.\n\nNOT RECOMMENDED TO:\n- It\u00b4s not recommended for pregnant women and intoxicated people.\n- Not recommended to mentally or physically incapacitated people.",
+				}},
+			}},
+			Location: &activityv3.ActivityLocation{},
+			Features: []*activityv3.ActivityFeature{
+				{
+					Description: "Difficulty|Easy|",
+					Code:        "EX_DIFFIC|EX_DIF_1",
+				}, {
+					Description: "What`s included|Hotel pickup and drop-off|",
+					Code:        "EX_INCL|EX_INCL_HPD",
+				}, {
+					Description: "English, Spanish, Russian, Portuguese, Romanian",
+					Code:        "Languages:",
+				}, {
+					Description: "We invite you to discover Albufeira  by Tuk Tuk!\nEmbark on our City Tour and explore the vibrant streets and rich history of Albufeira.\nGet ready to capture stunning photos and create lasting memories.",
+					Code:        "EN Description",
+				},
+			},
+			Tags: []*activityv3.ActivityTag{
+				{
+					Active: true,
+					Id:     111,
+					Name:   "Guided Tour",
+					Slug:   "guided-tour",
+				}, {
+					Active: true,
+					Id:     2,
+					Name:   "Entrance Tickets",
+					Slug:   "entrance-tickets",
+				},
+			},
+			Languages: []typesv1.Language{
+				typesv1.Language_LANGUAGE_EN,
+				typesv1.Language_LANGUAGE_IT,
+			},
+			ContactInfo: &typesv2.ContactInfo{
+				Address: []*typesv2.Address{{
+					Line_1:  "Calle Sant Joan 38",
+					Line_2:  "Quarter La Vileta",
+					ZipCode: "07008",
+					GeoTree: &typesv2.GeoTree{
+						Country:      typesv2.Country_COUNTRY_ES,
+						Region:       "Mallorca",
+						CityOrResort: "Palma",
+					},
+				}},
+			},
+			Images: []*typesv3.Image{},
+			Videos: []*typesv3.Video{{
+				File: &typesv3.File{
+					Name:         "Tuk Tuk Experiences",
+					Url:          "video_url",
+					LastModified: timestamppb.New(time.Now()),
+				},
+				Bitrate:   90,
+				Framerate: 90,
+				Category:  "Commercial",
+				Width:     1920,
+				Height:    1080,
+				Format:    typesv3.VideoFormat_VIDEO_FORMAT_AVI,
+			}},
+		}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
@@ -289,25 +272,23 @@ func (p *partnerPlugin) ActivityProductList(ctx context.Context, _ *activityv2.A
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Activities: []*activityv2.Activity{
-			{
-				Context:           "ActivityTest", // context
-				LastModified:      timestamppb.New(time.Now()),
-				ExternalSessionId: "23456", // external_session_id
-				ProductCode: &typesv2.ProductCode{
-					Code: "XPTFAOH15O", // supplier_code
-				},
-				UnitCode:    "ActivityTest", // supplier_unit_code
-				ServiceCode: "TRF",          // service_code
-				Bookability: &typesv1.Bookability{
-					Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
-					ConfirmationTime: &typesv1.Time{
-						Hours:   18,
-						Minutes: 0o0,
-					},
+		Activities: []*activityv2.Activity{{
+			Context:           "ActivityTest", // context
+			LastModified:      timestamppb.New(time.Now()),
+			ExternalSessionId: "23456", // external_session_id
+			ProductCode: &typesv2.ProductCode{
+				Code: "XPTFAOH15O", // supplier_code
+			},
+			UnitCode:    "ActivityTest", // supplier_unit_code
+			ServiceCode: "TRF",          // service_code
+			Bookability: &typesv1.Bookability{
+				Type: typesv1.BookabilityType_BOOKABILITY_TYPE_ON_REQUEST,
+				ConfirmationTime: &typesv1.Time{
+					Hours:   18,
+					Minutes: 0o0,
 				},
 			},
-		},
+		}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
@@ -522,8 +503,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, _ *seat_mapv3.SeatMapReques
 						{
 							Language: typesv1.Language_LANGUAGE_EN,
 							Text:     "North Stand",
-						},
-						{
+						}, {
 							Language: typesv1.Language_LANGUAGE_DE,
 							Text:     "Nordtribüne",
 						},
@@ -540,8 +520,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, _ *seat_mapv3.SeatMapReques
 											},
 										},
 									},
-								},
-								{
+								}, {
 									Id: "2A",
 									Location: &typesv3.SeatLocation{
 										Location: &typesv3.SeatLocation_Vector{
@@ -553,34 +532,27 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, _ *seat_mapv3.SeatMapReques
 									Restrictions: []*typesv3.LocalizedSeatAttributeSet{
 										{
 											Language: typesv1.Language_LANGUAGE_EN,
-											SeatAttributes: []*typesv3.SeatAttribute{
-												{
-													Name:        "Restricted Vision",
-													Description: "Seat behind a column",
-												},
-											},
+											SeatAttributes: []*typesv3.SeatAttribute{{
+												Name:        "Restricted Vision",
+												Description: "Seat behind a column",
+											}},
 										},
 									},
 									Features: []*typesv3.LocalizedSeatAttributeSet{
 										{
 											Language: typesv1.Language_LANGUAGE_EN,
-											SeatAttributes: []*typesv3.SeatAttribute{
-												{
-													Name:        "Discount",
-													Description: "Discount due to restricted vision up to 80%",
-													Value:       int32(80),
-												},
-											},
-										},
-										{
+											SeatAttributes: []*typesv3.SeatAttribute{{
+												Name:        "Discount",
+												Description: "Discount due to restricted vision up to 80%",
+												Value:       int32(80),
+											}},
+										}, {
 											Language: typesv1.Language_LANGUAGE_DE,
-											SeatAttributes: []*typesv3.SeatAttribute{
-												{
-													Name:        "Rabatt",
-													Description: "Hinter der Säule - bis zu 80% Rabatt",
-													Value:       int32(80),
-												},
-											},
+											SeatAttributes: []*typesv3.SeatAttribute{{
+												Name:        "Rabatt",
+												Description: "Hinter der Säule - bis zu 80% Rabatt",
+												Value:       int32(80),
+											}},
 										},
 									},
 								},
@@ -596,25 +568,24 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, _ *seat_mapv3.SeatMapReques
 						Width:  50,
 						Height: 50,
 					},
-					LocalizedDescriptions: []*typesv1.LocalizedDescriptionSet{
+					LocalizedDescriptions: []*typesv1.LocalizedDescriptionSet{{
+						Language: typesv1.Language_LANGUAGE_EN,
+						Descriptions: []*typesv1.Description{{
+							Category: "General",
+							Text:     "Leather Seats",
+						}},
+					}},
+				}, {
+					Id: "124ST",
+					Names: []*typesv1.LocalizedString{
 						{
 							Language: typesv1.Language_LANGUAGE_EN,
-							Descriptions: []*typesv1.Description{{
-								Category: "General",
-								Text:     "Leather Seats",
-							}},
+							Text:     "East Stand",
+						}, {
+							Language: typesv1.Language_LANGUAGE_DE,
+							Text:     "Osttribüne",
 						},
 					},
-				},
-				{
-					Id: "124ST",
-					Names: []*typesv1.LocalizedString{{
-						Language: typesv1.Language_LANGUAGE_EN,
-						Text:     "East Stand",
-					}, {
-						Language: typesv1.Language_LANGUAGE_DE,
-						Text:     "Osttribüne",
-					}},
 					SeatInfo: &typesv3.Section_SeatList{
 						SeatList: &typesv3.SeatList{
 							Seats: []*typesv3.Seat{
@@ -627,8 +598,7 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, _ *seat_mapv3.SeatMapReques
 											},
 										},
 									},
-								},
-								{
+								}, {
 									Id: "32F",
 									Location: &typesv3.SeatLocation{
 										Location: &typesv3.SeatLocation_Vector{
@@ -697,8 +667,7 @@ func (p *partnerPlugin) SeatMapAvailability(ctx context.Context, _ *seat_mapv3.S
 							Ids: []string{"1A", "1B"},
 						},
 					},
-				},
-				{
+				}, {
 					Id:       "B",
 					SeatInfo: &typesv3.SectionInventory_SeatCount{SeatCount: &wrapperspb.Int32Value{Value: 32}},
 				},
@@ -726,26 +695,30 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, _ *infov2.
 		},
 		Categories: []*infov2.CountryEntryRequirementCategory{{
 			Key: "entry",
-			Names: []*typesv1.LocalizedString{{
-				Text:     "Entry",
-				Language: typesv1.Language_LANGUAGE_EN,
-			}, {
-				Text:     "Einreise",
-				Language: typesv1.Language_LANGUAGE_DE,
-			}},
-			SubCategories: []*infov2.CountryEntryRequirementCategory{{
-				Key: "entry_documents",
-				Names: []*typesv1.LocalizedString{{
-					Text:     "Required entry forms and documents",
+			Names: []*typesv1.LocalizedString{
+				{
+					Text:     "Entry",
 					Language: typesv1.Language_LANGUAGE_EN,
 				}, {
-					Text:     "Erforderliche Formulare und Dokumente für die Einreise",
+					Text:     "Einreise",
 					Language: typesv1.Language_LANGUAGE_DE,
-				}},
-				Items: []*infov2.CountryEntryRequirementItem{
+				},
+			},
+			SubCategories: []*infov2.CountryEntryRequirementCategory{{
+				Key: "entry_documents",
+				Names: []*typesv1.LocalizedString{
 					{
-						Key: "ErVisaText",
-						Info: []*infov2.LocalizedItemInfo{{
+						Text:     "Required entry forms and documents",
+						Language: typesv1.Language_LANGUAGE_EN,
+					}, {
+						Text:     "Erforderliche Formulare und Dokumente für die Einreise",
+						Language: typesv1.Language_LANGUAGE_DE,
+					},
+				},
+				Items: []*infov2.CountryEntryRequirementItem{{
+					Key: "ErVisaText",
+					Info: []*infov2.LocalizedItemInfo{
+						{
 							Name:        "Visa required for stay",
 							Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
 							Language:    typesv1.Language_LANGUAGE_EN,
@@ -753,11 +726,11 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, _ *infov2.
 							Name:        "Visum erforderlich für Aufenthalt",
 							Description: "<div><p>Es ist ein Visum für den Aufenthalt erforderlich. Dieses kann als e-Visum oder bei Ankunft als \"Visa on Arrival\" beantragt werden. </p></div><div><div>Reisende mit eVisa dürfen sich bis zu 30 Tage im Land aufhalten.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visumgebühren</a></p><div>Die Visumgebühren sind in Euro oder US-Dollar bar zu zahlen.</div>",
 							Language:    typesv1.Language_LANGUAGE_DE,
-						}},
-						LastSignificantUpdate: timestamppb.New(time.Now()),
-						Status:                infov2.ItemStatus_ITEM_STATUS_TRUE,
+						},
 					},
-				},
+					LastSignificantUpdate: timestamppb.New(time.Now()),
+					Status:                infov2.ItemStatus_ITEM_STATUS_TRUE,
+				}},
 			}},
 		}},
 		Items: []*infov2.CountryEntryRequirementItem{
@@ -768,8 +741,7 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, _ *infov2.
 						Name:        "Entry forms",
 						Description: "<div><p>Individuals must fill out a <a href=\"https://www.egyptair.com/en/about-egyptair/news-and-press/Documents/%D8%A7%D9%84%D8%A7%D9%95%D9%82%D8%B1%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B5%D8%AD%D9%8A%20%D9%84%D8%BA%D9%8A%D8%B1%20%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A%D9%8A%D9%86%20%28%D8%A7%D9%84%D8%A7%D9%94%D8%AC%D8%A7%D9%86%D8%A8%29.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">health form</a> upon entry, which they can complete either at the airport, on the plane, or beforehand.</p></div>",
 						Language:    typesv1.Language_LANGUAGE_EN,
-					},
-					{
+					}, {
 						Name:        "Einreiseformulare",
 						Description: "<div><div><p>Personen müssen bei Einreise ein <a href=\"https://www.egyptair.com/en/about-egyptair/news-and-press/Documents/%D8%A7%D9%84%D8%A7%D9%95%D9%82%D8%B1%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B5%D8%AD%D9%8A%20%D9%84%D8%BA%D9%8A%D8%B1%20%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A%D9%8A%D9%86%20%28%D8%A7%D9%84%D8%A7%D9%94%D8%AC%D8%A7%D9%86%D8%A8%29.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Gesundheitsformular</a> abgeben, welches entweder am Flughafen, im Flugzeug oder vor Antritt der Reise ausfüllen.</p></div></div>",
 						Language:    typesv1.Language_LANGUAGE_DE,
@@ -777,16 +749,14 @@ func (p *partnerPlugin) CountryEntryRequirements(ctx context.Context, _ *infov2.
 				},
 				LastSignificantUpdate: timestamppb.New(time.Now()),
 				Status:                infov2.ItemStatus_ITEM_STATUS_FALSE,
-			},
-			{
+			}, {
 				Key: "ErVisaText",
 				Info: []*infov2.LocalizedItemInfo{
 					{
 						Name:        "Visa required for stay",
 						Description: "<div><p>A visa is required for the stay. This can be applied for as an e-Visa or on arrival as a \"Visa on Arrival\". </p></div><div><div>Travellers with eVisa are permitted to stay up to 30 days in Egypt.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visa fees</a></p><div>Visa fees must be paid in cash in euros or US dollars.</div>",
 						Language:    typesv1.Language_LANGUAGE_EN,
-					},
-					{
+					}, {
 						Name:        "Visum erforderlich für Aufenthalt",
 						Description: "<div><p>Es ist ein Visum für den Aufenthalt erforderlich. Dieses kann als e-Visum oder bei Ankunft als \"Visa on Arrival\" beantragt werden. </p></div><div><div>Reisende mit eVisa dürfen sich bis zu 30 Tage im Land aufhalten.</div></div><p><a href=\"https://visa2egypt.gov.eg/eVisa/Home\" target=\"_blank\"><div>Electronic Visa Portal</div></a></p><p><a href=\"https://visa2egypt.gov.eg/eVisa/FAQ?VISTK=4N4T-00SQ-1JY3-6SA4-BSGM-RHA8-VTWB-JK1L-PU27-3H7K-Y7CV-C7BX-BH94-A1RD-DW7O-CHD8\" target=\"_blank\">Visumgebühren</a></p><div>Die Visumgebühren sind in Euro oder US-Dollar bar zu zahlen.</div>",
 						Language:    typesv1.Language_LANGUAGE_DE,

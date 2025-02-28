@@ -17,6 +17,7 @@ import (
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ accommodationv1grpc.AccommodationSearchServiceServer = (*AccommodationSearchV1Server)(nil)
@@ -43,12 +44,10 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		return &accommodationv1.AccommodationSearchResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{
-					{
-						Message: "No queries provided",
-						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-					},
-				},
+				Alerts: []*typesv1.Alert{{
+					Message: "No queries provided",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
 			},
 		}, nil
 	}
@@ -59,12 +58,10 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			return &accommodationv1.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-					Alerts: []*typesv1.Alert{
-						{
-							Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						},
-					},
+					Alerts: []*typesv1.Alert{{
+						Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)",
+						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+					}},
 				},
 			}, nil
 		}
@@ -73,12 +70,10 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 			return &accommodationv1.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-					Alerts: []*typesv1.Alert{
-						{
-							Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						},
-					},
+					Alerts: []*typesv1.Alert{{
+						Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
+						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+					}},
 				},
 			}, nil
 		}
@@ -121,7 +116,7 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		// generate search result
 		for _, prop := range availableProperties {
 			// empty units array
-			units := make([]*accommodationv1.Unit, 0)
+			units := []*accommodationv1.Unit{}
 			// loop all rooms
 			for _, room := range prop.Rooms {
 				units = append(units, &accommodationv1.Unit{
@@ -186,12 +181,10 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 		return &accommodationv1.AccommodationSearchResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-				Alerts: []*typesv1.Alert{
-					{
-						Message: fmt.Sprintf("No results found for search %v", req.Queries),
-						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-					},
-				},
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("No results found for search %v", req.Queries),
+					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+				}},
 			},
 		}, nil
 	}
@@ -217,16 +210,26 @@ func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req
 	return response, nil
 }
 
-// FilterPropertiesByGeoTreeLocation filters properties based on city or resort
-func filterPropertiesByGeoTreeLocation(properties []*accommodationv1.PropertyExtendedInfo, geoTreeLocation *typesv1.GeoTree) []*accommodationv1.PropertyExtendedInfo {
-	if geoTreeLocation == nil || geoTreeLocation.CityOrResort == "" || geoTreeLocation.Region == "" {
+// Filters properties based on city or resort
+func filterPropertiesByGeoTreeLocation(
+	properties []*accommodationv1.PropertyExtendedInfo,
+	geoTreeLocation *typesv1.GeoTree,
+) []*accommodationv1.PropertyExtendedInfo {
+	if geoTreeLocation == nil ||
+		(geoTreeLocation.CityOrResort == "" &&
+			geoTreeLocation.Region == "" &&
+			geoTreeLocation.Country == typesv1.Country_COUNTRY_UNSPECIFIED) {
 		return properties
 	}
 
 	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
+		// Mock simplification: mock data only has one address
 		address := prop.Property.ContactInfo.Address[0]
-		if address.GeoTree != nil && address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort && address.GeoTree.Country == geoTreeLocation.Country && address.GeoTree.Region == geoTreeLocation.Region {
+		if address.GeoTree != nil &&
+			(geoTreeLocation.CityOrResort == "" || address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort) &&
+			(geoTreeLocation.Country == typesv1.Country_COUNTRY_UNSPECIFIED || address.GeoTree.Country == geoTreeLocation.Country) &&
+			(geoTreeLocation.Region == "" || address.GeoTree.Region == geoTreeLocation.Region) {
 			filtered = append(filtered, prop)
 		}
 	}
@@ -234,35 +237,35 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv1.PropertyExt
 	return filtered
 }
 
-// getTravellerIDs extracts traveller IDs from []*typesv1.BasicTraveller
-func getTravellerIDs(travellers []*typesv1.BasicTraveller) []int32 {
-	ids := make([]int32, 0, len(travellers))
-	for _, traveller := range travellers {
-		ids = append(ids, traveller.TravellerId)
-	}
-	return ids
-}
-
-// filterPropertiesByProductCodes filters properties based on product codes
-func filterPropertiesByProductCodes(properties []*accommodationv1.PropertyExtendedInfo, productCodes []*typesv1.ProductCode) []*accommodationv1.PropertyExtendedInfo {
+// Filters properties based on product codes
+func filterPropertiesByProductCodes(
+	properties []*accommodationv1.PropertyExtendedInfo,
+	productCodes []*typesv1.ProductCode,
+) []*accommodationv1.PropertyExtendedInfo {
 	if len(productCodes) == 0 {
 		return properties
 	}
 
 	filtered := make([]*accommodationv1.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
+	productCodesLoop:
 		for _, code := range productCodes {
-			if len(prop.Property.ProductCodes) > 0 && prop.Property.ProductCodes[0].Code == code.Code {
-				filtered = append(filtered, prop)
-				break
+			for _, propCode := range prop.Property.ProductCodes {
+				if proto.Equal(propCode, code) {
+					filtered = append(filtered, prop)
+					break productCodesLoop
+				}
 			}
 		}
 	}
 	return filtered
 }
 
-// filterPropertiesBySupplierCodes filters properties based on supplier codes
-func filterPropertiesBySupplierCodes(properties []*accommodationv1.PropertyExtendedInfo, supplierCodes []*typesv1.SupplierProductCode) []*accommodationv1.PropertyExtendedInfo {
+// Filters properties based on supplier codes
+func filterPropertiesBySupplierCodes(
+	properties []*accommodationv1.PropertyExtendedInfo,
+	supplierCodes []*typesv1.SupplierProductCode,
+) []*accommodationv1.PropertyExtendedInfo {
 	if len(supplierCodes) == 0 {
 		return properties
 	}
@@ -277,4 +280,13 @@ func filterPropertiesBySupplierCodes(properties []*accommodationv1.PropertyExten
 		}
 	}
 	return filtered
+}
+
+// Extracts traveller IDs from []*typesv1.BasicTraveller
+func getTravellerIDs(travellers []*typesv1.BasicTraveller) []int32 {
+	ids := make([]int32, len(travellers))
+	for i := range travellers {
+		ids[i] = travellers[i].TravellerId
+	}
+	return ids
 }

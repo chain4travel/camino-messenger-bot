@@ -18,6 +18,7 @@ import (
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ accommodationv2grpc.AccommodationSearchServiceServer = (*AccommodationSearchV2Server)(nil)
@@ -36,7 +37,6 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	}
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-
 	log.Printf("Responding to request (Accommodation Search): %s", md.RequestID)
 
 	// if there is no query, return no results
@@ -44,12 +44,10 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		return &accommodationv2.AccommodationSearchResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{
-					{
-						Message: "No queries provided",
-						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-					},
-				},
+				Alerts: []*typesv1.Alert{{
+					Message: "No queries provided",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
 			},
 		}, nil
 	}
@@ -60,12 +58,10 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			return &accommodationv2.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-					Alerts: []*typesv1.Alert{
-						{
-							Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						},
-					},
+					Alerts: []*typesv1.Alert{{
+						Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)",
+						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+					}},
 				},
 			}, nil
 		}
@@ -74,19 +70,17 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 			return &accommodationv2.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-					Alerts: []*typesv1.Alert{
-						{
-							Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						},
-					},
+					Alerts: []*typesv1.Alert{{
+						Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
+						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+					}},
 				},
 			}, nil
 		}
 	}
 
 	searchResults := []*accommodationv2.AccommodationSearchResult{}
-	var resultIDnum int32 = 1
+	resultIDnum := int32(1)
 
 	// loop request queries
 	for _, query := range req.Queries {
@@ -121,7 +115,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		// generate search result
 		for _, prop := range availableProperties {
 			// empty units array
-			units := make([]*accommodationv2.Unit, 0)
+			units := []*accommodationv2.Unit{}
 			// loop all rooms
 			for _, room := range prop.Rooms {
 				units = append(units, &accommodationv2.Unit{
@@ -147,7 +141,6 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 						Price: &typesv2.Price{
 							Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
 							Decimals: 2,
-
 							Currency: &typesv2.Currency{
 								Currency: &typesv2.Currency_NativeToken{},
 							},
@@ -186,12 +179,10 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		return &accommodationv2.AccommodationSearchResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-				Alerts: []*typesv1.Alert{
-					{
-						Message: fmt.Sprintf("No results found for search %v", req.Queries),
-						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-					},
-				},
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("No results found for search %v", req.Queries),
+					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+				}},
 			},
 		}, nil
 	}
@@ -218,15 +209,25 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 }
 
 // FilterPropertiesByGeoTreeLocation filters properties based on city or resort
-func filterPropertiesByGeoTreeLocation(properties []*accommodationv2.PropertyExtendedInfo, geoTreeLocation *typesv2.GeoTree) []*accommodationv2.PropertyExtendedInfo {
-	if geoTreeLocation == nil || geoTreeLocation.CityOrResort == "" || geoTreeLocation.Region == "" {
+func filterPropertiesByGeoTreeLocation(
+	properties []*accommodationv2.PropertyExtendedInfo,
+	geoTreeLocation *typesv2.GeoTree,
+) []*accommodationv2.PropertyExtendedInfo {
+	if geoTreeLocation == nil ||
+		(geoTreeLocation.CityOrResort == "" &&
+			geoTreeLocation.Region == "" &&
+			geoTreeLocation.Country == typesv2.Country_COUNTRY_UNSPECIFIED) {
 		return properties
 	}
 
 	filtered := make([]*accommodationv2.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
+		// Mock simplification: mock data only has one address
 		address := prop.Property.ContactInfo.Address[0]
-		if address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort && address.GeoTree.Country == geoTreeLocation.Country && address.GeoTree.Region == geoTreeLocation.Region {
+		if address.GeoTree != nil &&
+			(geoTreeLocation.CityOrResort == "" || address.GeoTree.CityOrResort == geoTreeLocation.CityOrResort) &&
+			(geoTreeLocation.Country == typesv2.Country_COUNTRY_UNSPECIFIED || address.GeoTree.Country == geoTreeLocation.Country) &&
+			(geoTreeLocation.Region == "" || address.GeoTree.Region == geoTreeLocation.Region) {
 			filtered = append(filtered, prop)
 		}
 	}
@@ -234,28 +235,24 @@ func filterPropertiesByGeoTreeLocation(properties []*accommodationv2.PropertyExt
 	return filtered
 }
 
-// getTravellerIDs extracts traveller IDs from []*typesv2.BasicTraveller
-func getTravellerIDs(travellers []*typesv2.BasicTraveller) []int32 {
-	// Preallocate slice with exact capacity needed
-	ids := make([]int32, 0, len(travellers))
-	for _, traveller := range travellers {
-		ids = append(ids, traveller.TravellerId)
-	}
-	return ids
-}
-
 // filterPropertiesByProductCodes filters properties based on product codes
-func filterPropertiesByProductCodes(properties []*accommodationv2.PropertyExtendedInfo, productCodes []*typesv2.ProductCode) []*accommodationv2.PropertyExtendedInfo {
+func filterPropertiesByProductCodes(
+	properties []*accommodationv2.PropertyExtendedInfo,
+	productCodes []*typesv2.ProductCode,
+) []*accommodationv2.PropertyExtendedInfo {
 	if len(productCodes) == 0 {
 		return properties
 	}
 
 	filtered := make([]*accommodationv2.PropertyExtendedInfo, 0)
 	for _, prop := range properties {
+	productCodesLoop:
 		for _, code := range productCodes {
-			if prop.Property.ProductCodes[0].Code == code.Code {
-				filtered = append(filtered, prop)
-				break
+			for _, propCode := range prop.Property.ProductCodes {
+				if proto.Equal(propCode, code) {
+					filtered = append(filtered, prop)
+					break productCodesLoop
+				}
 			}
 		}
 	}
@@ -263,7 +260,10 @@ func filterPropertiesByProductCodes(properties []*accommodationv2.PropertyExtend
 }
 
 // filterPropertiesBySupplierCodes filters properties based on supplier codes
-func filterPropertiesBySupplierCodes(properties []*accommodationv2.PropertyExtendedInfo, supplierCodes []*typesv2.SupplierProductCode) []*accommodationv2.PropertyExtendedInfo {
+func filterPropertiesBySupplierCodes(
+	properties []*accommodationv2.PropertyExtendedInfo,
+	supplierCodes []*typesv2.SupplierProductCode,
+) []*accommodationv2.PropertyExtendedInfo {
 	if len(supplierCodes) == 0 {
 		return properties
 	}
@@ -278,4 +278,13 @@ func filterPropertiesBySupplierCodes(properties []*accommodationv2.PropertyExten
 		}
 	}
 	return filtered
+}
+
+// Extracts traveller IDs from []*typesv2.BasicTraveller
+func getTravellerIDs(travellers []*typesv2.BasicTraveller) []int32 {
+	ids := make([]int32, len(travellers))
+	for i := range travellers {
+		ids[i] = travellers[i].TravellerId
+	}
+	return ids
 }

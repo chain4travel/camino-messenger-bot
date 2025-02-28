@@ -36,10 +36,14 @@ func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Co
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 
+	lastModifiedFilter := req.ModifiedAfter.AsTime()
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
 	properties := make([]*accommodationv1.Property, 0, len(mockdata.PropertiesV1))
 	for _, property := range mockdata.PropertiesV1 {
+		if property.Property.LastModified.AsTime().Before(lastModifiedFilter) {
+			continue
+		}
 		properties = append(properties, property.Property)
 	}
 

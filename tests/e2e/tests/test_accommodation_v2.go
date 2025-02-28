@@ -212,15 +212,13 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*accommodationv2.AccommodationSearchQuery{
-				{
-					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-						SupplierCodes: []*typesv2.SupplierProductCode{
-							{SupplierCode: hotelCode},
-						},
+			Queries: []*accommodationv2.AccommodationSearchQuery{{
+				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+					SupplierCodes: []*typesv2.SupplierProductCode{
+						{SupplierCode: hotelCode},
 					},
 				},
-			},
+			}},
 		},
 	)
 	require.NoError(t, err)
@@ -249,27 +247,25 @@ func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*accommodationv2.AccommodationSearchQuery{
-				{
-					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-						SupplierCodes: []*typesv2.SupplierProductCode{
-							{SupplierCode: hotelCode},
-						},
-					},
-					TravelPeriod: &typesv1.TravelPeriod{
-						StartDate: &typesv1.Date{
-							Year:  int32(startDate.Year()),  //nolint:gosec
-							Month: int32(startDate.Month()), //nolint:gosec
-							Day:   int32(startDate.Day()),   //nolint:gosec
-						},
-						EndDate: &typesv1.Date{
-							Year:  int32(endDate.Year()),  //nolint:gosec
-							Month: int32(endDate.Month()), //nolint:gosec
-							Day:   int32(endDate.Day()),   //nolint:gosec
-						},
+			Queries: []*accommodationv2.AccommodationSearchQuery{{
+				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+					SupplierCodes: []*typesv2.SupplierProductCode{
+						{SupplierCode: hotelCode},
 					},
 				},
-			},
+				TravelPeriod: &typesv1.TravelPeriod{
+					StartDate: &typesv1.Date{
+						Year:  int32(startDate.Year()),  //nolint:gosec
+						Month: int32(startDate.Month()), //nolint:gosec
+						Day:   int32(startDate.Day()),   //nolint:gosec
+					},
+					EndDate: &typesv1.Date{
+						Year:  int32(endDate.Year()),  //nolint:gosec
+						Month: int32(endDate.Month()), //nolint:gosec
+						Day:   int32(endDate.Day()),   //nolint:gosec
+					},
+				},
+			}},
 		},
 	)
 	require.NoError(t, err)
@@ -298,27 +294,25 @@ func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*accommodationv2.AccommodationSearchQuery{
-				{
-					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-						SupplierCodes: []*typesv2.SupplierProductCode{
-							{SupplierCode: hotelCode},
-						},
-					},
-					TravelPeriod: &typesv1.TravelPeriod{
-						StartDate: &typesv1.Date{
-							Year:  int32(startDate.Year()),  //nolint:gosec
-							Month: int32(startDate.Month()), //nolint:gosec
-							Day:   int32(startDate.Day()),   //nolint:gosec
-						},
-						EndDate: &typesv1.Date{
-							Year:  int32(endDate.Year()),  //nolint:gosec
-							Month: int32(endDate.Month()), //nolint:gosec
-							Day:   int32(endDate.Day()),   //nolint:gosec
-						},
+			Queries: []*accommodationv2.AccommodationSearchQuery{{
+				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+					SupplierCodes: []*typesv2.SupplierProductCode{
+						{SupplierCode: hotelCode},
 					},
 				},
-			},
+				TravelPeriod: &typesv1.TravelPeriod{
+					StartDate: &typesv1.Date{
+						Year:  int32(startDate.Year()),  //nolint:gosec
+						Month: int32(startDate.Month()), //nolint:gosec
+						Day:   int32(startDate.Day()),   //nolint:gosec
+					},
+					EndDate: &typesv1.Date{
+						Year:  int32(endDate.Year()),  //nolint:gosec
+						Month: int32(endDate.Month()), //nolint:gosec
+						Day:   int32(endDate.Day()),   //nolint:gosec
+					},
+				},
+			}},
 		},
 	)
 	require.NoError(t, err)
@@ -345,28 +339,26 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(
 
 	req := &accommodationv2.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		Queries: []*accommodationv2.AccommodationSearchQuery{
-			{
-				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-					SupplierCodes: []*typesv2.SupplierProductCode{
-						{SupplierCode: "HOTEL345678"},
-						{SupplierCode: "HOTEL789012"},
-					},
-				},
-				TravelPeriod: &typesv1.TravelPeriod{
-					StartDate: &typesv1.Date{
-						Year:  int32(startDate.Year()),  //nolint:gosec
-						Month: int32(startDate.Month()), //nolint:gosec
-						Day:   int32(startDate.Day()),   //nolint:gosec
-					},
-					EndDate: &typesv1.Date{
-						Year:  int32(endDate.Year()),  //nolint:gosec
-						Month: int32(endDate.Month()), //nolint:gosec
-						Day:   int32(endDate.Day()),   //nolint:gosec
-					},
+		Queries: []*accommodationv2.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: "HOTEL345678"},
+					{SupplierCode: "HOTEL789012"},
 				},
 			},
-		},
+			TravelPeriod: &typesv1.TravelPeriod{
+				StartDate: &typesv1.Date{
+					Year:  int32(startDate.Year()),  //nolint:gosec
+					Month: int32(startDate.Month()), //nolint:gosec
+					Day:   int32(startDate.Day()),   //nolint:gosec
+				},
+				EndDate: &typesv1.Date{
+					Year:  int32(endDate.Year()),  //nolint:gosec
+					Month: int32(endDate.Month()), //nolint:gosec
+					Day:   int32(endDate.Day()),   //nolint:gosec
+				},
+			},
+		}},
 	}
 
 	tt.logger.Debug("AccommodationSearchServiceV2.AccommodationSearch request:\n", protoMessageToJSON(tt, req))
