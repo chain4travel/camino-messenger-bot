@@ -132,7 +132,7 @@ func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, priceV1 *ty
 
 	switch currency := priceV1.Currency.GetCurrency().(type) {
 	case *typesv1.Currency_NativeToken:
-		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, booking.NativeTokenDecimals)
+		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, price.NativeTokenDecimals)
 	case *typesv1.Currency_TokenCurrency:
 		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
 		// if contract address is invalid in any way, Decimals() will return an error
@@ -144,7 +144,7 @@ func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, priceV1 *ty
 		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, tokenDecimals)
 		paymentToken = contractAddress
 	case *typesv1.Currency_IsoCurrency:
-		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, booking.ISODecimals)
+		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, price.ISODecimals)
 		paymentToken = booking.ISOPaymentToken
 		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
 	default:

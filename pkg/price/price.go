@@ -5,6 +5,11 @@ import (
 	"math/big"
 )
 
+const (
+	NativeTokenDecimals = int32(18)
+	ISODecimals         = int32(6)
+)
+
 // Converts the price to its integer representation
 func ToBigInt(value string, decimals int32, totalDecimals int32) (*big.Int, error) {
 	// Validate decimal parameters

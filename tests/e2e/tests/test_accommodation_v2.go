@@ -514,7 +514,7 @@ func VerifyBlockchainState(
 	callOpts := &bind.CallOpts{Context: ctx}
 
 	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, tokenPrice))
-	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, tokenPrice.Decimals, booking.NativeTokenDecimals)
+	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, tokenPrice.Decimals, price.NativeTokenDecimals)
 	require.NoError(t, err)
 
 	reservationPrice, err := tt.caminoNetwork.Client.BookingToken.GetReservationPrice(callOpts, bigTokenID)

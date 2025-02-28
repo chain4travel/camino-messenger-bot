@@ -162,7 +162,7 @@ func main() {
 
 	switch currency := priceV2.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, booking.NativeTokenDecimals)
+		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.NativeTokenDecimals)
 		sugar.Infof("Converted the price big.Int: %v", priceBigInt)
 		paymentToken = booking.NativePaymentToken
 	case *typesv2.Currency_TokenCurrency:
@@ -178,7 +178,7 @@ func main() {
 		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, tokenDecimals)
 		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, booking.ISODecimals)
+		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.ISODecimals)
 		paymentToken = booking.ISOPaymentToken
 		offchainPaymentCurrency = big.NewInt(int64(currency.IsoCurrency))
 	}
