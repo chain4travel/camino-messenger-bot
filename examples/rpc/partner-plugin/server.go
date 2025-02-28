@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
@@ -26,7 +26,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v3/seat_mapv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
-	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
@@ -57,9 +57,9 @@ type partnerPlugin struct {
 	insurancev1grpc.InsuranceProductListServiceClient
 	insurancev1grpc.InsuranceSearchServiceServer
 	activityv2grpc.ActivitySearchServiceServer
-	accommodationv2grpc.AccommodationProductInfoServiceServer
-	accommodationv2grpc.AccommodationProductListServiceServer
-	accommodationv2grpc.AccommodationSearchServiceServer
+	accommodationv3grpc.AccommodationProductInfoServiceServer
+	accommodationv3grpc.AccommodationProductListServiceServer
+	accommodationv3grpc.AccommodationSearchServiceServer
 	partnerv2grpc.GetPartnerConfigurationServiceServer
 	transportv2grpc.TransportSearchServiceServer
 	seat_mapv2grpc.SeatMapServiceServer
@@ -315,7 +315,7 @@ func (p *partnerPlugin) ActivitySearch(ctx context.Context, _ *activityv3.Activi
 	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv2.AccommodationProductInfoRequest) (*accommodationv2.AccommodationProductInfoResponse, error) {
+func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommodationv3.AccommodationProductInfoRequest) (*accommodationv3.AccommodationProductInfoResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -324,15 +324,15 @@ func (p *partnerPlugin) AccommodationProductInfo(ctx context.Context, _ *accommo
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (AccommodationProductInfo)", md.RequestID)
 
-	response := accommodationv2.AccommodationProductInfoResponse{
-		Properties: []*accommodationv2.PropertyExtendedInfo{{PaymentType: "cash"}},
+	response := accommodationv3.AccommodationProductInfoResponse{
+		Properties: []*accommodationv3.PropertyExtendedInfo{{PaymentType: "cash"}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
 	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommodationv2.AccommodationProductListRequest) (*accommodationv2.AccommodationProductListResponse, error) {
+func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommodationv3.AccommodationProductListRequest) (*accommodationv3.AccommodationProductListResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -341,8 +341,8 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommo
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (AccommodationProductList)", md.RequestID)
 
-	response := accommodationv2.AccommodationProductListResponse{
-		Properties: []*accommodationv2.Property{{Name: "Hotel"}},
+	response := accommodationv3.AccommodationProductListResponse{
+		Properties: []*accommodationv3.Property{{Name: "Hotel"}},
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -350,7 +350,7 @@ func (p *partnerPlugin) AccommodationProductList(ctx context.Context, _ *accommo
 	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
-func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
+func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodationv3.AccommodationSearchRequest) (*accommodationv3.AccommodationSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -359,29 +359,27 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (AccommodationSearch)", md.RequestID)
 
-	response := accommodationv2.AccommodationSearchResponse{
+	response := accommodationv3.AccommodationSearchResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Metadata: &typesv2.SearchResponseMetadata{
+		Metadata: &typesv3.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: md.RequestID},
 		},
-		Results: []*accommodationv2.AccommodationSearchResult{{
+		Results: []*accommodationv3.AccommodationSearchResult{{
 			ResultId: 0,
 			QueryId:  0,
-			Units: []*accommodationv2.Unit{{
-				Type:             *accommodationv2.UnitType_UNIT_TYPE_ROOM.Enum(),
+			Units: []*accommodationv3.Unit{{
+				Type:             *accommodationv3.UnitType_UNIT_TYPE_ROOM.Enum(),
 				SupplierRoomCode: "RMSDDB0000",
 				SupplierRoomName: "Double Standard Room",
 				OriginalRoomName: "Room with a view",
 				TravelPeriod:     &typesv1.TravelPeriod{},
 				// TravellerIds:
 			}},
-			TotalPriceDetail: &typesv2.PriceDetail{
-				Price: &typesv2.Price{
-					Currency: &typesv2.Currency{
-						Currency: &typesv2.Currency_NativeToken{},
-					},
+			TotalPriceDetail: &typesv3.PriceDetail{
+				Price: &typesv3.Price{
+					Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
 					Value:    "199",
 					Decimals: 99,
 				},
@@ -393,12 +391,12 @@ func (p *partnerPlugin) AccommodationSearch(ctx context.Context, _ *accommodatio
 				},
 			},
 			RateRules:    []*typesv1.RateRule{{}},
-			CancelPolicy: &typesv2.CancelPolicy{},
+			CancelPolicy: &typesv3.CancelPolicy{},
 			Bookability:  &typesv1.Bookability{},
 			Remarks:      "A remark",
 		}},
-		Travellers: []*typesv2.BasicTraveller{{
-			Type:        typesv2.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
+		Travellers: []*typesv3.BasicTraveller{{
+			Type:        typesv3.TravellerType(typesv1.TravelType_TRAVEL_TYPE_LEISURE),
 			Birthdate:   &typesv1.Date{},
 			Nationality: typesv2.Country_COUNTRY_DE,
 		}},
@@ -854,9 +852,9 @@ func main() {
 	insurancev1grpc.RegisterInsuranceSearchServiceServer(grpcServer, &partnerPlugin{})
 	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, &partnerPlugin{})
 	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
-	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, &partnerPlugin{})
+	accommodationv3grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
