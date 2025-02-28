@@ -62,8 +62,8 @@ func (*AccommodationSearchV3Server) AccommodationSearch(ctx context.Context, req
 					Alerts: []*typesv1.Alert{{
 						Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)",
 						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-					},
 					}},
+				},
 			}, nil
 		}
 
@@ -74,8 +74,8 @@ func (*AccommodationSearchV3Server) AccommodationSearch(ctx context.Context, req
 					Alerts: []*typesv1.Alert{{
 						Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
 						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-					},
 					}},
+				},
 			}, nil
 		}
 	}
@@ -161,7 +161,8 @@ func (*AccommodationSearchV3Server) AccommodationSearch(ctx context.Context, req
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*duration*100),
 						Decimals: 2,
-					}},
+					},
+				},
 				Units: units,
 			})
 
