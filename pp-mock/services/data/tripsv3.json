@@ -1,0 +1,140 @@
+[
+    {
+        "supplier_code": {
+            "supplier_code": "SUP123",
+            "supplier_number": 124
+        },
+        "price": {
+            "value": "20000",
+            "decimals": 2,
+            "currency": {
+                "iso_currency": "ISO_CURRENCY_EUR"
+            }
+        },
+        "segments": [
+            {
+                "product_code": {
+                    "code": "IATA4589",
+                    "type": 3
+                },
+                "info": {
+                    "departure": {
+                        "date_time": {
+                            "seconds": 1715775600,
+                            "nanos": 0
+                        },
+                        "location_code": {
+                            "code": "PMI",
+                            "type": 0
+                        }
+                    },
+                    "arrival": {
+                        "date_time": {
+                            "seconds": 1715779200,
+                            "nanos": 0
+                        },
+                        "location_code": {
+                            "code": "BCN",
+                            "type": 2
+                        }
+                    },
+                    "product_code": {
+                        "code": "IATA4589",
+                        "type": 3
+                    },
+                    "segment_id": "SEG1234",
+                    "provider_code": "EW",
+                    "retailer_code": "IB",
+                    "sub_supplier_code": "NS"
+                }
+            }
+        ]
+    },
+    {
+        "supplier_code": {
+            "supplier_code": "SUP456",
+            "supplier_number": 456
+        },
+        "price": {
+            "value": "75000",
+            "decimals": 2,
+            "currency": {
+                "iso_currency": "ISO_CURRENCY_EUR"
+            }
+        },
+        "segments": [
+            {
+                "product_code": {
+                    "code": "IATA1234",
+                    "type": 3
+                },
+                "info": {
+                    "departure": {
+                        "date_time": {
+                            "seconds": 1715782800,
+                            "nanos": 0
+                        },
+                        "location_code": {
+                            "code": "BCN",
+                            "type": 0
+                        }
+                    },
+                    "arrival": {
+                        "date_time": {
+                            "seconds": 1715786400,
+                            "nanos": 0
+                        },
+                        "location_code": {
+                            "code": "MAD",
+                            "type": 2
+                        }
+                    },
+                    "product_code": {
+                        "code": "IATA1234",
+                        "type": 3
+                    },
+                    "segment_id": "SEG5678",
+                    "provider_code": "LH",
+                    "retailer_code": "BA",
+                    "sub_supplier_code": "NS"
+                }
+            },
+            {
+                "product_code": {
+                    "code": "IATA5678",
+                    "type": 3
+                },
+                "info": {
+                    "departure": {
+                        "date_time": {
+                            "seconds": 1715790000,
+                            "nanos": 0
+                        },
+                        "location_code": {
+                            "code": "MAD",
+                            "type": 0
+                        }
+                    },
+                    "arrival": {
+                        "date_time": {
+                            "seconds": 1715793600,
+                            "nanos": 0
+                        },
+                        "location_code": {
+                            "code": "LIS",
+                            "type": 2
+                        }
+                    },
+                    "product_code": {
+                        "code": "IATA5678",
+                        "type": 3
+                    },
+                    "segment_id": "SEG91011",
+                    "provider_code": "AF",
+                    "retailer_code": "KL",
+                    "sub_supplier_code": "NS"
+                }
+            }
+        ]
+    }
+]

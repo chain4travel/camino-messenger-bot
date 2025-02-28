@@ -25,7 +25,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v3/seat_mapv3grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
@@ -37,7 +37,7 @@ import (
 	partnerv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/partner/v2"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	seat_mapv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v3"
-	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
+	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
@@ -61,7 +61,8 @@ type partnerPlugin struct {
 	accommodationv3grpc.AccommodationProductListServiceServer
 	accommodationv3grpc.AccommodationSearchServiceServer
 	partnerv2grpc.GetPartnerConfigurationServiceServer
-	transportv2grpc.TransportSearchServiceServer
+	transportv3grpc.TransportSearchServiceServer
+	transportv3grpc.TransportProductListServiceServer
 	seat_mapv2grpc.SeatMapServiceServer
 	seat_mapv2grpc.SeatMapAvailabilityServiceServer
 	infov2grpc.CountryEntryRequirementsServiceServer
@@ -461,18 +462,410 @@ func (p *partnerPlugin) Ping(ctx context.Context, request *pingv1.PingRequest) (
 	}, nil
 }
 
-func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv2.TransportSearchRequest) (*transportv2.TransportSearchResponse, error) {
+func (p *partnerPlugin) TransportSearch(ctx context.Context, _ *transportv3.TransportSearchRequest) (*transportv3.TransportSearchResponse, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
 		log.Print("error extracting metadata")
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-	log.Printf("Responding to request: %s (TransportSearch)", md.RequestID)
+	log.Printf("Responding to request: %s (TransportSearch) v3", md.RequestID)
 
-	response := transportv2.TransportSearchResponse{
-		Header:   nil,
-		Metadata: &typesv2.SearchResponseMetadata{SearchId: &typesv1.UUID{Value: md.RequestID}},
+	response := transportv3.TransportSearchResponse{
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		Metadata: &typesv3.SearchResponseMetadata{
+			SearchId: &typesv1.UUID{Value: md.RequestID},
+		},
+		ContentSourceTypes: []typesv1.ContentSourceType{
+			typesv1.ContentSourceType_CONTENT_SOURCE_TYPE_GDS,
+			typesv1.ContentSourceType_CONTENT_SOURCE_TYPE_NDC,
+		},
+		Results: []*transportv3.TransportSearchResult{{
+			ResultId:     0,
+			QueryId:      0,
+			OfferId:      "123456",
+			TravellerIds: []int32{123, 456},
+			TravellingTrips: []*transportv3.TripExtended{{
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY",
+					SupplierNumber: 123,
+				},
+				Baggage: &typesv1.Baggage{
+					MaxCount: 5,
+					MaxWeight: &typesv1.Weight{
+						Value: 20,
+						Unit:  typesv1.WeightUnit_WEIGHT_UNIT_KILOGRAM,
+					},
+					MaxDimension: &typesv1.Dimension{
+						Length: 45,
+						Width:  90,
+						Height: 75,
+						Unit:   typesv1.LengthUnit_LENGTH_UNIT_CENTIMETER,
+					},
+				},
+				Price: &typesv3.Price{
+					Value:    "180",
+					Decimals: 2,
+					Currency: &typesv3.Currency{
+						Currency: &typesv3.Currency_IsoCurrency{
+							IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+						},
+					},
+				},
+				Segments: []*transportv3.SegmentExtended{{
+					Info: &transportv3.Segment{
+						SegmentId:    "SEG123",
+						ProviderCode: "BAW", // British Airways
+						ProductCode: &typesv2.ProductCode{
+							Code:   "BA",
+							Number: 123,
+							Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_SUPPLIER,
+						},
+						SupplierCode: &typesv2.SupplierProductCode{
+							SupplierCode:   "BAW",
+							SupplierNumber: 123,
+						},
+						Departure: &transportv3.TransitEvent{
+							DateTime: timestamppb.New(time.Date(2024, 9, 20, 9, 0, 0, 0, time.UTC)),
+							LocationCode: &typesv2.LocationCode{
+								Code: "LHR",
+								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+							},
+						},
+						Arrival: &transportv3.TransitEvent{
+							DateTime: timestamppb.New(time.Date(2024, 9, 20, 11, 55, 0, 0, time.UTC)),
+							LocationCode: &typesv2.LocationCode{
+								Code: "JFK",
+								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+							},
+						},
+						SegmentDuration: &typesv1.Duration{
+							Minutes: 475,
+						},
+						SegmentDistance: &typesv1.Length{
+							Value: 5539,
+							Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
+						},
+					},
+					ServiceTypeCode:        "Y",
+					ServiceTypeDescription: "Economy Class",
+					Services: []*typesv3.ServiceFact{{
+						Code:        "EC",
+						Description: "Early Check-in with Priority Boarding",
+						PriceDetail: &typesv3.PriceDetail{
+							Price: &typesv3.Price{
+								Value:    "10",
+								Decimals: 2,
+								Currency: &typesv3.Currency{
+									Currency: &typesv3.Currency_IsoCurrency{
+										IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+									},
+								},
+							},
+							Binding:        false,
+							Description:    "Early Check-in with Priority Boarding",
+							LocallyPayable: true,
+						},
+						AvailabilityType: typesv3.ServiceAvailabilityType_SERVICE_AVAILABILITY_TYPE_OPTIONAL,
+						ChargeBasis:      typesv3.ChargeBasisType_CHARGE_BASIS_TYPE_PER_PAX,
+						Quantity:         1,
+						Details: []*typesv3.ServiceFact{
+							{
+								Code:             "PB",
+								Description:      "Priority Boarding",
+								AvailabilityType: typesv3.ServiceAvailabilityType_SERVICE_AVAILABILITY_TYPE_INCLUDED,
+								ChargeBasis:      typesv3.ChargeBasisType_CHARGE_BASIS_TYPE_PER_PAX,
+							}, {
+								Code:             "HB",
+								Description:      "Hand Baggage 10kg",
+								AvailabilityType: typesv3.ServiceAvailabilityType_SERVICE_AVAILABILITY_TYPE_INCLUDED,
+								ChargeBasis:      typesv3.ChargeBasisType_CHARGE_BASIS_TYPE_PER_PAX,
+								Quantity:         1,
+							},
+						},
+					}},
+					MinPax: 1,
+					MaxPax: 3,
+				}},
+			}},
+			TotalPrice: &typesv3.PriceDetail{
+				Price: &typesv3.Price{
+					Value:    "180",
+					Decimals: 2,
+					Currency: &typesv3.Currency{
+						Currency: &typesv3.Currency_IsoCurrency{
+							IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+						},
+					},
+				},
+				Binding:     true,
+				Description: "Total price including all taxes and fees",
+				Breakdowns: []*typesv3.PriceDetail{
+					{
+						Price: &typesv3.Price{
+							Value:    "150",
+							Decimals: 2,
+							Currency: &typesv3.Currency{
+								Currency: &typesv3.Currency_IsoCurrency{
+									IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+								},
+							},
+						},
+						Description: "Base price",
+						Type: &typesv1.PriceBreakdownType{
+							Code: "BASE",
+							Type: &typesv1.PriceBreakdownType_PriceType{
+								PriceType: typesv1.PriceType_PRICE_TYPE_BASE_RATE,
+							},
+						},
+					}, {
+						Price: &typesv3.Price{
+							Value:    "30",
+							Decimals: 2,
+							Currency: &typesv3.Currency{
+								Currency: &typesv3.Currency_IsoCurrency{
+									IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+								},
+							},
+						},
+						Description: "VAT",
+						Type: &typesv1.PriceBreakdownType{
+							Code: "VAT",
+							Type: &typesv1.PriceBreakdownType_TaxCode{
+								TaxCode: typesv1.TaxCode_TAX_CODE_VALUE_ADDED_TAX,
+							},
+						},
+					},
+				},
+			},
+			RateRules: []*typesv1.RateRule{{
+				RateType:        typesv1.RateRuleType_RATE_RULE_TYPE_NON_REFUNDABLE,
+				RateDescription: "Non-refundable fare",
+			}},
+			Links: []*typesv1.Link{{
+				Type:        typesv1.LinkType_LINK_TYPE_BOOKING,
+				Description: "Booking link",
+				Ref:         "https://api.example.com/bookings/123456",
+			}},
+			Bookability: &typesv1.Bookability{
+				Type: typesv1.BookabilityType_BOOKABILITY_TYPE_AVAILABLE,
+				ConfirmationTime: &typesv1.Time{
+					Hours:   1,
+					Minutes: 0,
+				},
+			},
+			Validity: &typesv1.DateTimeRange{
+				StartDatetime: &timestamppb.Timestamp{
+					Seconds: time.Now().Unix(),
+				},
+				EndDatetime: &timestamppb.Timestamp{
+					Seconds: time.Now().Add(24 * time.Hour).Unix(),
+				},
+			},
+			CancelPolicy: &typesv3.CancelPolicy{
+				Refundable: true,
+				FreeCancellationUpto: &timestamppb.Timestamp{
+					Seconds: time.Now().Add(48 * time.Hour).Unix(),
+				},
+				CancelPenalties: []*typesv3.CancelPenalty{{
+					DatetimeRange: &typesv1.DateTimeRange{
+						StartDatetime: &timestamppb.Timestamp{
+							Seconds: time.Now().Add(48 * time.Hour).Unix(),
+						},
+						EndDatetime: &timestamppb.Timestamp{
+							Seconds: time.Now().Add(72 * time.Hour).Unix(),
+						},
+					},
+					Value: &typesv3.Price{
+						Value:    "50",
+						Decimals: 2,
+						Currency: &typesv3.Currency{
+							Currency: &typesv3.Currency_IsoCurrency{
+								IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+							},
+						},
+					},
+					Description: "Late cancellation fee",
+				}},
+			},
+			ChangePolicy: &typesv3.ChangePolicy{
+				ChangeAllowed: true,
+				FreeChangeUpto: &timestamppb.Timestamp{
+					Seconds: time.Now().Add(48 * time.Hour).Unix(),
+				},
+				ChangeTypes: []*typesv3.ChangeType{{
+					Code: "CHANGE",
+					DatetimeRange: &typesv1.DateTimeRange{
+						StartDatetime: &timestamppb.Timestamp{
+							Seconds: time.Now().Add(48 * time.Hour).Unix(),
+						},
+						EndDatetime: &timestamppb.Timestamp{
+							Seconds: time.Now().Add(72 * time.Hour).Unix(),
+						},
+					},
+					Value: &typesv3.Price{
+						Value:    "30",
+						Decimals: 2,
+						Currency: &typesv3.Currency{
+							Currency: &typesv3.Currency_IsoCurrency{
+								IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+							},
+						},
+					},
+					Description: "Late change fee",
+				}},
+			},
+			Observations: "Example transport search result with all fields populated",
+		}},
+		Travellers: []*typesv3.BasicTraveller{
+			{
+				TravellerId: 123,
+				Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+			}, {
+				TravellerId: 456,
+				Type:        typesv3.TravellerType_TRAVELLER_TYPE_CHILD,
+			},
+		},
+	}
+	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+
+	grpc.SendHeader(ctx, md.ToGrpcMD())
+	return &response, nil
+}
+
+func (p *partnerPlugin) TransportProductList(ctx context.Context, _ *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
+	md := metadata.Metadata{}
+	err := md.ExtractMetadata(ctx)
+	if err != nil {
+		log.Print("error extracting metadata")
+	}
+	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	log.Printf("Responding to request: %s (TransportProductList)", md.RequestID)
+
+	response := transportv3.TransportProductListResponse{
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		Trips: []*transportv3.TripBasic{{
+			SupplierCode: &typesv2.SupplierProductCode{
+				SupplierCode:   "XY",
+				SupplierNumber: 123,
+			},
+			Segments: []*transportv3.Segment{{
+				SegmentId:    "SEG123",
+				ProviderCode: "I2",
+				ProductCode: &typesv2.ProductCode{
+					Code:   "XY",
+					Number: 123,
+					Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_SUPPLIER,
+				},
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY",
+					SupplierNumber: 123,
+				},
+				Departure: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 20, 9, 0, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "LHR",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+					},
+				},
+				Arrival: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 20, 11, 55, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "JFK",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+					},
+				},
+				SegmentDuration: &typesv1.Duration{
+					Minutes: 475,
+				},
+				SegmentDistance: &typesv1.Length{
+					Value: 5539,
+					Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
+				},
+			}},
+		}, {
+			SupplierCode: &typesv2.SupplierProductCode{
+				SupplierCode:   "XY",
+				SupplierNumber: 456,
+			},
+			Segments: []*transportv3.Segment{{
+				SegmentId:    "SEG456",
+				ProviderCode: "I2",
+				ProductCode: &typesv2.ProductCode{
+					Code:   "XY",
+					Number: 456,
+					Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_SUPPLIER,
+				},
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY",
+					SupplierNumber: 456,
+				},
+				Departure: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 27, 23, 55, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "SIN",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+					},
+				},
+				Arrival: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 28, 9, 30, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "MEL",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_ICAO_CODE,
+					},
+				},
+				SegmentDuration: &typesv1.Duration{
+					Minutes: 455,
+				},
+				SegmentDistance: &typesv1.Length{
+					Value: 6024,
+					Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
+				},
+			}},
+		}, {
+			SupplierCode: &typesv2.SupplierProductCode{
+				SupplierCode:   "XY",
+				SupplierNumber: 789,
+			},
+			Segments: []*transportv3.Segment{{
+				SegmentId:    "SEG789",
+				ProviderCode: "DB",
+				ProductCode: &typesv2.ProductCode{
+					Code:   "XY",
+					Number: 789,
+					Type:   typesv2.ProductCodeType_PRODUCT_CODE_TYPE_SUPPLIER,
+				},
+				SupplierCode: &typesv2.SupplierProductCode{
+					SupplierCode:   "XY",
+					SupplierNumber: 789,
+				},
+				Departure: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 27, 15, 30, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "PAR",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+					},
+				},
+				Arrival: &transportv3.TransitEvent{
+					DateTime: timestamppb.New(time.Date(2024, 9, 28, 16, 47, 0, 0, time.UTC)),
+					LocationCode: &typesv2.LocationCode{
+						Code: "LON",
+						Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_UNSPECIFIED,
+					},
+				},
+				SegmentDuration: &typesv1.Duration{
+					Minutes: 137,
+				},
+				SegmentDistance: &typesv1.Length{
+					Value: 495,
+					Unit:  typesv1.LengthUnit_LENGTH_UNIT_KILOMETER,
+				},
+			}},
+		}},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
@@ -527,15 +920,13 @@ func (p *partnerPlugin) SeatMap(ctx context.Context, _ *seat_mapv3.SeatMapReques
 											},
 										},
 									},
-									Restrictions: []*typesv3.LocalizedSeatAttributeSet{
-										{
-											Language: typesv1.Language_LANGUAGE_EN,
-											SeatAttributes: []*typesv3.SeatAttribute{{
-												Name:        "Restricted Vision",
-												Description: "Seat behind a column",
-											}},
-										},
-									},
+									Restrictions: []*typesv3.LocalizedSeatAttributeSet{{
+										Language: typesv1.Language_LANGUAGE_EN,
+										SeatAttributes: []*typesv3.SeatAttribute{{
+											Name:        "Restricted Vision",
+											Description: "Seat behind a column",
+										}},
+									}},
 									Features: []*typesv3.LocalizedSeatAttributeSet{
 										{
 											Language: typesv1.Language_LANGUAGE_EN,
@@ -857,7 +1248,8 @@ func main() {
 	accommodationv3grpc.RegisterAccommodationSearchServiceServer(grpcServer, &partnerPlugin{})
 	partnerv2grpc.RegisterGetPartnerConfigurationServiceServer(grpcServer, &partnerPlugin{})
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, &partnerPlugin{})
-	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
+	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, &partnerPlugin{})
+	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv3grpc.RegisterSeatMapServiceServer(grpcServer, &partnerPlugin{})
 	seat_mapv3grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &partnerPlugin{})
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &partnerPlugin{})
