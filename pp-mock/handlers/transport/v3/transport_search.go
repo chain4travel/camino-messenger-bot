@@ -73,7 +73,8 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 							Message: fmt.Sprintf("Invalid query[%d].QueryTrips[%d]: can't be nil", queryIndex, queryTripIndex),
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
-					}}, nil
+					},
+				}, nil
 			}
 
 			if queryTrip.Departure == nil || queryTrip.Arrival == nil ||
@@ -86,7 +87,8 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 							Message: "Invalid trip: departure and arrival must be provided",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
-					}}, nil
+					},
+				}, nil
 			}
 
 			if !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
@@ -97,7 +99,8 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 							Message: "Invalid travel dates: departure date must be in the future and departure must be before arrival",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
-					}}, nil
+					},
+				}, nil
 			}
 
 			searchParametersTransport := queryTrip.GetSearchParametersTransport()
@@ -116,7 +119,8 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 							Message: fmt.Sprintf("Invalid min price: decimals must be less than or equal to %d", price.NativeTokenDecimals),
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
-					}}, nil
+					},
+				}, nil
 			}
 		}
 	}

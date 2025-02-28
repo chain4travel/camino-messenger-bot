@@ -25,7 +25,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
-	
+
 	handlers_accommodation_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v1"
 	handlers_accommodation_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v2"
 	handlers_accommodation_v3 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v3"
