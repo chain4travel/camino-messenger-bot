@@ -161,21 +161,3 @@ func (bs *Service) BuyBookingToken(
 	bs.logger.Infof("BuyBookingToken tx sent: %s", receipt.TxHash.Hex())
 	return receipt, nil
 }
-
-// convertPriceToBigInt converts the price to its integer representation
-func ConvertPriceToBigInt(value string, decimals int32, totalDecimals int32) (*big.Int, error) {
-	// Convert the value string to a big.Int
-	valueBigInt := new(big.Int)
-	_, ok := valueBigInt.SetString(value, 10)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert value to big.Int: %s", value)
-	}
-
-	// Calculate the multiplier as 10^(totalDecimals - price.Decimals)
-	multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(totalDecimals-decimals)), nil)
-
-	// Multiply the value by the multiplier
-	result := new(big.Int).Mul(valueBigInt, multiplier)
-
-	return result, nil
-}
