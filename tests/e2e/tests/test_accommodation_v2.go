@@ -17,6 +17,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -507,13 +508,13 @@ func VerifyBlockchainState(
 	tt *Test,
 	distributorBot *bot.Bot,
 	tokenID uint64,
-	price *typesv2.Price,
+	tokenPrice *typesv2.Price,
 ) {
 	bigTokenID := big.NewInt(0).SetUint64(tokenID)
 	callOpts := &bind.CallOpts{Context: ctx}
 
-	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, price))
-	expectedReservationPrice, err := booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
+	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, tokenPrice))
+	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, tokenPrice.Decimals, booking.NativeTokenDecimals)
 	require.NoError(t, err)
 
 	reservationPrice, err := tt.caminoNetwork.Client.BookingToken.GetReservationPrice(callOpts, bigTokenID)
