@@ -145,25 +145,23 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 		totalPrice := big.NewInt(0)
 
 		for _, trip := range filteredTrips {
-			for _, segment := range trip.Segments {
-				price, err := price.ToBigInt(
-					segment.Price.Value,
-					segment.Price.Decimals,
-					price.NativeTokenDecimals, // max possible decimals
-				)
-				if err != nil {
-					return &transportv3.TransportSearchResponse{
-						Header: &typesv1.ResponseHeader{
-							Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-							Alerts: []*typesv1.Alert{{
-								Message: fmt.Sprintf("Failed to convert tripSegment price: %v", err),
-								Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-							}},
-						},
-					}, nil
-				}
-				totalPrice = new(big.Int).Add(totalPrice, price)
+			price, err := price.ToBigInt(
+				trip.Price.Value,
+				trip.Price.Decimals,
+				price.NativeTokenDecimals, // max possible decimals
+			)
+			if err != nil {
+				return &transportv3.TransportSearchResponse{
+					Header: &typesv1.ResponseHeader{
+						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+						Alerts: []*typesv1.Alert{{
+							Message: fmt.Sprintf("Failed to convert tripSegment price: %v", err),
+							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+						}},
+					},
+				}, nil
 			}
+			totalPrice = new(big.Int).Add(totalPrice, price)
 		}
 
 		searchResults = append(searchResults, &transportv3.TransportSearchResult{
