@@ -30,6 +30,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
 
 	if err := md.ExtractMetadata(ctx); err != nil {
+		// TODO @evlekht Improve error handling for metadata extraction - handle consistently across all files. Must either return error or error response.
 		log.Print("error extracting metadata")
 	}
 

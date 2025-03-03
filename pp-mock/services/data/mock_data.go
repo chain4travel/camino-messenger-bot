@@ -24,4 +24,5 @@ func init() {
 	if err := json.Unmarshal(propertiesJSON, &PropertiesV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling properties v2: %w", err))
 	}
+	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }
