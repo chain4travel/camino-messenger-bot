@@ -122,7 +122,7 @@ func (*AccommodationProductInfoV3Server) AccommodationProductInfo(ctx context.Co
 // containsProperty checks if a property already exists in the slice
 func containsProperty(properties []*accommodationv3.PropertyExtendedInfo, property *accommodationv3.PropertyExtendedInfo) bool {
 	for _, p := range properties {
-		if p.Property.SupplierCode.SupplierCode == property.Property.SupplierCode.SupplierCode {
+		if proto.Equal(p.Property.SupplierCode, property.Property.SupplierCode) {
 			return true
 		}
 	}
