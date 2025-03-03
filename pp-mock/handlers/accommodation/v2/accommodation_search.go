@@ -18,7 +18,6 @@ import (
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/proto"
 )
 
 var _ accommodationv2grpc.AccommodationSearchServiceServer = (*AccommodationSearchV2Server)(nil)
@@ -120,7 +119,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 						Price: &typesv2.Price{
 							Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
 							Decimals: 2,
-							Currency: proto.Clone(req.SearchParametersGeneric.Currency).(*typesv2.Currency),
+							Currency: common.CloneProto(req.SearchParametersGeneric.Currency),
 						},
 						Description: "price per night",
 					},
@@ -143,7 +142,7 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 					Price: &typesv2.Price{
 						Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*duration*100),
 						Decimals: 2,
-						Currency: proto.Clone(req.SearchParametersGeneric.Currency).(*typesv2.Currency),
+						Currency: common.CloneProto(req.SearchParametersGeneric.Currency),
 					},
 				},
 				Units: units,
