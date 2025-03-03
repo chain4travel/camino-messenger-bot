@@ -36,7 +36,7 @@ func (*AccommodationProductInfoV3Server) AccommodationProductInfo(ctx context.Co
 	var suppliersFiltered []*accommodationv3.PropertyExtendedInfo
 
 	// check if there are supplier codes in the request
-	if req.SupplierCodes != nil {
+	if len(req.SupplierCodes) > 0 {
 		log.Printf("Supplier codes requested: %v", req.SupplierCodes)
 		suppliersFiltered = []*accommodationv3.PropertyExtendedInfo{}
 		// filter properties by supplier codes
