@@ -139,7 +139,7 @@ func (*AccommodationSearchV3Server) AccommodationSearch(ctx context.Context, req
 						Price: &typesv3.Price{
 							Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
 							Decimals: 2,
-							Currency: req.SearchParametersGeneric.Currency,
+							Currency: proto.Clone(req.SearchParametersGeneric.Currency).(*typesv3.Currency),
 						},
 						Description: "price per night",
 					},
@@ -162,7 +162,7 @@ func (*AccommodationSearchV3Server) AccommodationSearch(ctx context.Context, req
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*duration*100),
 						Decimals: 2,
-						Currency: req.SearchParametersGeneric.Currency,
+						Currency: proto.Clone(req.SearchParametersGeneric.Currency).(*typesv3.Currency),
 					},
 				},
 				Units: units,
