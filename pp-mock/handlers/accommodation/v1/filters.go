@@ -134,12 +134,10 @@ func filterPropertiesByLastModified(
 ) []*accommodationv1.Property {
 	filtered := []*accommodationv1.Property{}
 	for _, property := range properties {
-		if property.Property.LastModified.AsTime().Before(lastModified) {
-			continue
+		if !property.Property.LastModified.AsTime().Before(lastModified) {
+			filtered = append(filtered, common.CloneProto(property.Property))
 		}
-		filtered = append(filtered, common.CloneProto(property.Property))
 	}
-
 	return filtered
 }
 

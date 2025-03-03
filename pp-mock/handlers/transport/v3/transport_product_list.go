@@ -30,14 +30,20 @@ func (*TransportProductListV3Server) TransportProductList(ctx context.Context, r
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (TransportProductList)", md.RequestID)
 
-	trips := make([]*transportv3.TripBasic, len(mockdata.TripsBasicV3))
-	copy(trips, mockdata.TripsBasicV3)
+	filteredTrips := filterPropertiesByLastModified(mockdata.TripsBasicV3, req.GetModifiedAfter().AsTime())
 
 	response := &transportv3.TransportProductListResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Trips: trips,
+		Trips: filteredTrips,
+	}
+
+	if len(filteredTrips) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: "No trips found that match request",
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)

@@ -4,6 +4,8 @@
 package handlers
 
 import (
+	"time"
+
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
@@ -34,6 +36,20 @@ func filterTripsByMaxSegments(trips []*transportv3.TripExtended, maxSegments int
 	filtered := []*transportv3.TripExtended{}
 	for _, trip := range trips {
 		if len(trip.Segments) <= int(maxSegments) {
+			filtered = append(filtered, common.CloneProto(trip))
+		}
+	}
+	return filtered
+}
+
+// Returns properties that have been modified not before [lastModified].
+func filterPropertiesByLastModified(
+	trips []*transportv3.TripBasic,
+	lastModified time.Time,
+) []*transportv3.TripBasic {
+	filtered := []*transportv3.TripBasic{}
+	for _, trip := range trips {
+		if !trip.LastModified.AsTime().Before(lastModified) {
 			filtered = append(filtered, common.CloneProto(trip))
 		}
 	}
