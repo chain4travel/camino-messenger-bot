@@ -61,12 +61,10 @@ Used to retrieve detailed information about a specific accommodation product.
 {
     "supplier_codes": [
         {
-            "supplier_code": "HTL567890",
-            "supplier_number": 789
+            "supplier_code": "HTL567890"
         },
         {
-            "supplier_code": "HTL123456",
-            "supplier_number": 847
+            "supplier_code": "HTL123456"
         }
     ],
     "languages": [
@@ -113,8 +111,7 @@ Used to retrieve detailed information about a specific accommodation product.
                     "nanos": 0
                 },
                 "supplier_code": {
-                    "supplier_code": "HTL123456",
-                    "supplier_number": 847
+                    "supplier_code": "HTL123456"
                 },
                 "name": "Sunset Beach Resort & Spa",
                 "chain": "Marriott",
