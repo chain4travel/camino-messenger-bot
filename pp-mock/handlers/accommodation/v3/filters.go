@@ -115,7 +115,7 @@ func filterExtendedPropertiesByLanguage(
 		}
 
 		if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) &&
-			!containsPropertyWithSupplierCode(properties, property) {
+			!containsPropertyWithSupplierCode(filtered, property) {
 			clonedProperty := common.CloneProto(property)
 			clonedProperty.LocalizedDescriptions = filteredDescriptions
 			clonedProperty.LocalizedRoomDescriptions = filteredRoomDescriptions
