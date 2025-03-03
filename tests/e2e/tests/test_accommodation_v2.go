@@ -406,7 +406,7 @@ func TestAccommodationSearchServiceV2WithTravelPeriod(
 }
 
 // Let's test the validation step with the values extracted from the search request
-func TestValidateV2(
+func TestAccommodationValidateV2(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -459,7 +459,7 @@ func TestValidateV2(
 }
 
 // Lastly we do the mint request based on the validation id
-func TestMintV2(
+func TestAccommodationMintV2(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -497,7 +497,7 @@ func TestMintV2(
 	return resp.BookingTokenId, resp.Price
 }
 
-func VerifyBlockchainState(
+func VerifyAccommodationBlockchainState(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -556,9 +556,10 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 		TestAccommodationSearchServiceV2TravelPeriodReversed(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
+
 		searchID, resultID, pricePerNight := TestAccommodationSearchServiceV2WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
-		validationID := TestValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, pricePerNight)
-		tokenID, price := TestMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
-		VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
+		validationID := TestAccommodationValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, pricePerNight)
+		tokenID, price := TestAccommodationMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
+		VerifyAccommodationBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})
 }

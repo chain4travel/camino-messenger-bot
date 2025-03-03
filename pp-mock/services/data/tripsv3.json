@@ -1,8 +1,8 @@
 [
     {
         "supplier_code": {
-            "supplier_code": "SUP123",
-            "supplier_number": 124
+            "supplier_code": "AB",
+            "supplier_number": 4567
         },
         "price": {
             "value": "20000",
@@ -14,7 +14,8 @@
         "segments": [
             {
                 "product_code": {
-                    "code": "IATA4589",
+                    "code": "EW",
+					"number": 6847,
                     "type": 3
                 },
                 "info": {
@@ -25,7 +26,7 @@
                         },
                         "location_code": {
                             "code": "PMI",
-                            "type": 0
+                            "type": 2
                         }
                     },
                     "arrival": {
@@ -43,9 +44,7 @@
                         "type": 3
                     },
                     "segment_id": "SEG1234",
-                    "provider_code": "EW",
-                    "retailer_code": "IB",
-                    "sub_supplier_code": "NS"
+                    "provider_code": "EW"
                 }
             }
         ]
@@ -76,7 +75,7 @@
                         },
                         "location_code": {
                             "code": "BCN",
-                            "type": 0
+                            "type": 2
                         }
                     },
                     "arrival": {
@@ -112,7 +111,7 @@
                         },
                         "location_code": {
                             "code": "MAD",
-                            "type": 0
+                            "type": 2
                         }
                     },
                     "arrival": {
@@ -130,9 +129,7 @@
                         "type": 3
                     },
                     "segment_id": "SEG91011",
-                    "provider_code": "AF",
-                    "retailer_code": "KL",
-                    "sub_supplier_code": "NS"
+                    "provider_code": "AF"
                 }
             }
         ]
