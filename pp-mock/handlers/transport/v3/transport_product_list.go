@@ -14,8 +14,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var _ transportv3grpc.TransportProductListServiceServer = (*TransportProductListV3Server)(nil)
@@ -25,17 +23,11 @@ type TransportProductListV3Server struct{}
 func (*TransportProductListV3Server) TransportProductList(ctx context.Context, req *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
 	md := metadata.Metadata{}
 
-	// check if req is nil
-	if req == nil {
-		return nil, status.Errorf(codes.InvalidArgument, "request is nil")
-	}
-
 	if err := md.ExtractMetadata(ctx); err != nil {
 		log.Print("error extracting metadata")
 	}
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-
 	log.Printf("Responding to request: %s (TransportProductList)", md.RequestID)
 
 	trips := make([]*transportv3.TripBasic, len(mockdata.TripsBasicV3))

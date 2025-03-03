@@ -129,18 +129,14 @@ func (*TransportSearchV2Server) TransportSearch(ctx context.Context, req *transp
 	for _, query := range req.Queries {
 		filteredTrips := mockdata.TripsV2
 		for _, queryTrip := range query.GetTrips() {
-			if queryTrip == nil {
-				continue
-			}
-			searchParametersTransport := queryTrip.GetSearchParametersTransport()
-			if searchParametersTransport == nil {
+			if queryTrip.SearchParametersTransport == nil { // its optional
 				continue
 			}
 
 			// This is just an example, not real business logic:
-			filteredTrips = filterTripsByProductCodes(filteredTrips, searchParametersTransport.GetProductCodes())
-			if searchParametersTransport.GetMaxSegments() != 0 {
-				filteredTrips = filterTripsByMaxSegments(filteredTrips, searchParametersTransport.GetMaxSegments())
+			filteredTrips = filterTripsByProductCodes(filteredTrips, queryTrip.SearchParametersTransport.ProductCodes)
+			if queryTrip.SearchParametersTransport.MaxSegments != 0 {
+				filteredTrips = filterTripsByMaxSegments(filteredTrips, queryTrip.SearchParametersTransport.MaxSegments)
 			}
 		}
 
@@ -185,29 +181,24 @@ func (*TransportSearchV2Server) TransportSearch(ctx context.Context, req *transp
 		resultIDnum++
 	}
 
-	if len(searchResults) == 0 {
-		return &transportv2.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("No results found for search %v", req.Queries),
-					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-				}},
-			},
-		}, nil
-	}
-
-	searchID := uuid.New().String()
-
 	response := &transportv2.TransportSearchResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Metadata: &typesv2.SearchResponseMetadata{
-			SearchId: &typesv1.UUID{Value: searchID},
-		},
 		Results: searchResults,
 	}
+
+	if len(searchResults) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: fmt.Sprintf("No results found for search %v", req.Queries),
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
+	} else {
+		response.Metadata = &typesv2.SearchResponseMetadata{
+			SearchId: &typesv1.UUID{Value: uuid.New().String()},
+		}
+	}
+
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
 
 	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
@@ -215,33 +206,4 @@ func (*TransportSearchV2Server) TransportSearch(ctx context.Context, req *transp
 	}
 
 	return response, nil
-}
-
-func filterTripsByProductCodes(trips []*transportv2.Trip, productCodes []*typesv2.ProductCode) []*transportv2.Trip {
-	if len(productCodes) == 0 {
-		return trips
-	}
-	filtered := []*transportv2.Trip{}
-	for _, trip := range trips {
-	segmentsLoop:
-		for _, segment := range trip.Segments {
-			for _, code := range productCodes {
-				if segment.GetProductCode().Code == code.GetCode() {
-					filtered = append(filtered, trip)
-					break segmentsLoop
-				}
-			}
-		}
-	}
-	return filtered
-}
-
-func filterTripsByMaxSegments(trips []*transportv2.Trip, maxSegments int32) []*transportv2.Trip {
-	filtered := []*transportv2.Trip{}
-	for _, trip := range trips {
-		if len(trip.Segments) <= int(maxSegments) {
-			filtered = append(filtered, trip)
-		}
-	}
-	return filtered
 }
