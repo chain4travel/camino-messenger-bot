@@ -14,6 +14,7 @@ import (
 
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	events_storage "github.com/chain4travel/camino-messenger-bot/pkg/events/storage"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/grpc"
@@ -64,7 +65,7 @@ func (h *evmResponseHandler) mint(
 	return receipt.TxHash.Hex(), tokenID, nil
 }
 
-func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv1.UUID, buyableUntil time.Time) {
+func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typesv1.UUID, buyableUntil time.Time) {
 	notificationClient := h.serviceRegistry.NotificationClient()
 	expirationTimer := &time.Timer{}
 
@@ -88,6 +89,24 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 			); err != nil {
 				h.logger.Errorf("error calling partner plugin TokenBoughtNotification service: %v", err)
 			}
+
+			// Mark the token as bought
+			session, err := h.evmEventStorage.NewSession(context.Background())
+			if err != nil {
+				h.logger.Errorf("failed to create session: %v", err)
+				return
+			}
+
+			err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &events_storage.TokenRecord{
+				TokenID: tokenID.String(),
+				Bought:  true,
+				Expired: false,
+			})
+			if err != nil {
+				h.logger.Errorf("failed to update token record: %v", err)
+				session.Abort()
+				return
+			}
 		},
 	)
 	if err != nil {
@@ -96,10 +115,39 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 		return
 	}
 
-	expirationTimer = time.AfterFunc(time.Until(buyableUntil), func() {
+	timeToExpire := time.Until(buyableUntil.Add(-60*4*time.Second - 40*time.Second))
+
+	expirationTimer = time.AfterFunc(timeToExpire, func() {
 		unsubscribeTokenBought()
 		h.logger.Infof("Token %s expired", tokenID.String())
 
+		// check the status of the token -> if it is not bought, then we can just expire the token
+		tx, err := h.bookingToken.GetBookingStatus(nil, tokenID)
+		if err != nil {
+			h.logger.Errorf("failed to get booking status: %v", err)
+			return
+		}
+
+		// if the token is bought or canceled, then we don't need to expire the token
+		if tx == 3 || tx == 4 {
+			return
+		}
+
+		// Mark the token as bought
+		session, err := h.evmEventStorage.NewSession(context.Background())
+		if err != nil {
+			h.logger.Errorf("failed to create session: %v", err)
+			return
+		}
+
+		// update the token record to expired on chain
+		err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &events_storage.TokenRecord{
+			TokenID: tokenID.String(),
+			Bought:  false,
+			Expired: true,
+		})
+
+		// TODO: Update the token record to expired on chain
 		if _, err := notificationClient.TokenExpiredNotification(
 			context.Background(),
 			&notificationv1.TokenExpired{
@@ -111,6 +159,27 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 			h.logger.Errorf("error calling partner plugin TokenExpiredNotification service: %v", err)
 		}
 	})
+}
+
+func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv1.UUID, buyableUntil time.Time) {
+
+	registerTokenListeners(h, tokenID, mintID, buyableUntil)
+
+	session, err := h.evmEventStorage.NewSession(context.Background())
+	if err != nil {
+		h.logger.Errorf("failed to create session: %v", err)
+		return
+	}
+
+	h.evmEventStorage.SaveTokenRecord(context.Background(), session, &events_storage.TokenRecord{
+		TokenID:   tokenID.String(),
+		Bought:    false,
+		Expired:   false,
+		MintID:    mintID,
+		CreatedAt: big.NewInt(time.Now().Unix()).Bytes(),
+		ExpiresAt: big.NewInt(buyableUntil.Unix()).Bytes(),
+	})
+
 }
 
 // TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg

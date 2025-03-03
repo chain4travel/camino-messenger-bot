@@ -132,6 +132,10 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 				DBPath:         cfg.DB.DBPath + "/cheque_handler",
 				MigrationsPath: cfg.DB.MigrationsPath + "/cheque_handler",
 			},
+			Tokens: UnparsedSQLiteDBConfig{
+				DBPath:         cfg.DB.DBPath + "/tokens",
+				MigrationsPath: cfg.DB.MigrationsPath + "/tokens",
+			},
 		},
 		RPCServer:     cfg.RPCServer,
 		Tracing:       cfg.Tracing,

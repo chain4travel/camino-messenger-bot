@@ -46,6 +46,7 @@ type SQLiteDBConfig struct {
 	Common        UnparsedSQLiteDBConfig
 	Scheduler     UnparsedSQLiteDBConfig
 	ChequeHandler UnparsedSQLiteDBConfig
+	Tokens        UnparsedSQLiteDBConfig
 }
 
 // ******* Common *******

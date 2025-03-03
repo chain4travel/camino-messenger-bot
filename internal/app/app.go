@@ -26,6 +26,7 @@ import (
 	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/pkg/chequehandler/storage/sqlite"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
+	events_storage "github.com/chain4travel/camino-messenger-bot/pkg/events/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
 	scheduler_storage "github.com/chain4travel/camino-messenger-bot/pkg/scheduler/storage/sqlite"
 	"go.uber.org/zap"
@@ -99,6 +100,12 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	eventsStorage, err := events_storage.New(ctx, logger, sqlite.DBConfig(cfg.DB.Tokens))
+	if err != nil {
+		logger.Errorf("Failed to create events storage: %v", err)
+		return nil, err
+	}
+
 	responseHandler, err := messaging.NewResponseHandler(
 		cfg.BotKey,
 		evmClient,
@@ -108,6 +115,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		serviceRegistry,
 		cmAccounts,
 		erc20CacheSize,
+		eventsStorage,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create response handler: %v", err)
@@ -216,6 +224,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		messenger:        matrixMessenger,
 		tracer:           tracer,
 		botUserID:        botUserID,
+		responseHandler:  responseHandler,
 	}, nil
 }
 
@@ -230,6 +239,7 @@ type App struct {
 	messageProcessor messaging.MessageProcessor
 	messenger        messaging.Messenger
 	botUserID        id.UserID
+	responseHandler  messaging.ResponseHandler
 }
 
 func (a *App) Run(ctx context.Context) error {
@@ -254,6 +264,19 @@ func (a *App) Run(ctx context.Context) error {
 			return fmt.Errorf("failed to check start-up cash-in status: %w", err)
 		}
 		close(cashInStatusCheckDone)
+		return nil
+	})
+
+	// Add a new goroutine to reload tokens
+	tokenReloadDone := make(chan struct{})
+	g.Go(func() error {
+		a.logger.Info("Reloading active tokens from storage...")
+
+		if err := a.responseHandler.ReloadTokensFromStorage(gCtx); err != nil {
+			return fmt.Errorf("failed to reload tokens from storage: %w", err)
+		}
+		a.logger.Info("Successfully reloaded tokens from storage")
+		close(tokenReloadDone)
 		return nil
 	})
 
@@ -283,6 +306,7 @@ func (a *App) Run(ctx context.Context) error {
 				cashInStatusCheckDone,
 				schedulerStarted,
 				messageProcessorStarted,
+				tokenReloadDone,
 			},
 		) {
 			return nil

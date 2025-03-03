@@ -17,6 +17,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	handlers_accommodation_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v1"
 	handlers_accommodation_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v2"
@@ -24,6 +25,7 @@ import (
 	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/mint/v2"
 	handlers_validation_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/validation/v1"
 	handlers_validation_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/validation/v2"
+	handlers_notification_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/notification/v1"
 	handlers_ping_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/ping/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -62,9 +64,12 @@ func run() error {
 	// Ping
 	pingv1grpc.RegisterPingServiceServer(grpcServer, &handlers_ping_v1.PingServiceV1Server{})
 
+	// Notification
+	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &handlers_notification_v1.NotificationServiceV1Server{})
+
 	reflection.Register(grpcServer)
 
-	port := 55555
+	port := 50051
 	var err error
 	p, found := os.LookupEnv("CMB_PARTNER_PLUGIN_MOCK_PORT")
 	if found {

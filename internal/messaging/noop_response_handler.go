@@ -23,3 +23,7 @@ func (NoopResponseHandler) PrepareRequest(protoreflect.ProtoMessage) error {
 }
 
 func (NoopResponseHandler) AddErrorToResponseHeader(protoreflect.ProtoMessage, string) {}
+
+func (NoopResponseHandler) ReloadTokensFromStorage(context.Context) error {
+	return nil
+}
