@@ -14,7 +14,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/proto"
 )
 
 var _ accommodationv2grpc.AccommodationProductInfoServiceServer = (*AccommodationProductInfoV2Server)(nil)
@@ -31,82 +30,21 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request (Accommodation Product Info): %s", md.RequestID)
 
-	// Initialize suppliersFiltered with the correct type
-	suppliersFiltered := []*accommodationv2.PropertyExtendedInfo{}
-
-	// check if there are supplier codes in the request
-	if req.SupplierCodes != nil {
-		log.Printf("Supplier codes requested: %v", req.SupplierCodes)
-		// filter properties by supplier codes
-		for _, property := range mockdata.PropertiesV2 {
-			for _, supplierCode := range req.SupplierCodes {
-				if property.Property.SupplierCode.SupplierCode == supplierCode.SupplierCode {
-					suppliersFiltered = append(
-						suppliersFiltered,
-						proto.Clone(property).(*accommodationv2.PropertyExtendedInfo),
-					)
-				}
-			}
-		}
-	} else {
-		for i := range mockdata.PropertiesV2 {
-			suppliersFiltered[i] = proto.Clone(mockdata.PropertiesV1[i]).(*accommodationv2.PropertyExtendedInfo)
-		}
-	}
-
-	filteredProperties := []*accommodationv2.PropertyExtendedInfo{}
-
-	if len(req.Languages) > 0 {
-		log.Printf("Languages requested: %v", req.Languages)
-
-		for _, property := range suppliersFiltered {
-			filteredDescriptions := []*typesv1.LocalizedDescriptionSet{}
-			filteredRoomDescriptions := []*typesv1.LocalizedDescriptionSet{}
-
-			for _, descSet := range property.LocalizedDescriptions {
-				for _, reqLang := range req.Languages {
-					if descSet.Language == reqLang {
-						filteredDescriptions = append(filteredDescriptions, descSet)
-						break
-					}
-				}
-			}
-			for _, roomDescSet := range property.LocalizedRoomDescriptions {
-				for _, reqLang := range req.Languages {
-					if roomDescSet.Language == reqLang {
-						filteredRoomDescriptions = append(filteredRoomDescriptions, roomDescSet)
-						break
-					}
-				}
-			}
-
-			if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) && !containsProperty(filteredProperties, property) {
-				property.LocalizedDescriptions = filteredDescriptions
-				property.LocalizedRoomDescriptions = filteredRoomDescriptions
-				filteredProperties = append(filteredProperties, property)
-			}
-		}
-	} else {
-		filteredProperties = suppliersFiltered
-	}
-
-	if len(filteredProperties) == 0 {
-		return &accommodationv2.AccommodationProductInfoResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("No properties found for supplier codes: %v", req.SupplierCodes),
-					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-				}},
-			},
-		}, nil
-	}
+	filteredProperties := filterExtendedPropertiesBySupplierCodes(mockdata.PropertiesV2, req.SupplierCodes)
+	filteredProperties = filterExtendedPropertiesByLanguage(filteredProperties, req.Languages)
 
 	response := &accommodationv2.AccommodationProductInfoResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		Properties: filteredProperties,
+	}
+
+	if len(filteredProperties) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: "No properties found that match request",
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -116,14 +54,4 @@ func (*AccommodationProductInfoV2Server) AccommodationProductInfo(ctx context.Co
 	}
 
 	return response, nil
-}
-
-// containsProperty checks if a property already exists in the slice
-func containsProperty(properties []*accommodationv2.PropertyExtendedInfo, property *accommodationv2.PropertyExtendedInfo) bool {
-	for _, p := range properties {
-		if p.Property.SupplierCode.SupplierCode == property.Property.SupplierCode.SupplierCode {
-			return true
-		}
-	}
-	return false
 }

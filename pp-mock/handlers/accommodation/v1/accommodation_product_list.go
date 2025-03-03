@@ -14,8 +14,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var _ accommodationv1grpc.AccommodationProductListServiceServer = (*AccommodationProductListV1Server)(nil)
@@ -25,33 +23,28 @@ type AccommodationProductListV1Server struct{}
 func (*AccommodationProductListV1Server) AccommodationProductList(ctx context.Context, req *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
 	md := metadata.Metadata{}
 
-	// check if req is nil
-	if req == nil {
-		return nil, status.Errorf(codes.InvalidArgument, "request is nil")
-	}
-
 	if err := md.ExtractMetadata(ctx); err != nil {
 		log.Print("error extracting metadata")
 	}
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 
-	lastModifiedFilter := req.ModifiedAfter.AsTime()
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
-	properties := make([]*accommodationv1.Property, 0, len(mockdata.PropertiesV1))
-	for _, property := range mockdata.PropertiesV1 {
-		if property.Property.LastModified.AsTime().Before(lastModifiedFilter) {
-			continue
-		}
-		properties = append(properties, property.Property)
-	}
+	filteredProperties := filterPropertiesByLastModified(mockdata.PropertiesV1, req.GetModifiedAfter().AsTime())
 
 	response := &accommodationv1.AccommodationProductListResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Properties: properties,
+		Properties: filteredProperties,
+	}
+
+	if len(filteredProperties) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: "No properties found that match request",
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)

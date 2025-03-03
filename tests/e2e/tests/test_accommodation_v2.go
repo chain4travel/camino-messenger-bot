@@ -339,6 +339,9 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(
 
 	req := &accommodationv2.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv2.SearchParameters{
+			Currency: &typesv2.Currency{Currency: &typesv2.Currency_NativeToken{}},
+		},
 		Queries: []*accommodationv2.AccommodationSearchQuery{{
 			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
 				SupplierCodes: []*typesv2.SupplierProductCode{
