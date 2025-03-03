@@ -115,7 +115,8 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 		return
 	}
 
-	timeToExpire := time.Until(buyableUntil.Add(-60*4*time.Second - 40*time.Second))
+	// Adding 60 seconds to the buyableUntil time to avoid race condition between the token being bought and the token being expired
+	timeToExpire := time.Until(buyableUntil.Add(60 * time.Second))
 
 	expirationTimer = time.AfterFunc(timeToExpire, func() {
 		unsubscribeTokenBought()
@@ -147,7 +148,6 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 			Expired: true,
 		})
 
-		// TODO: Update the token record to expired on chain
 		if _, err := notificationClient.TokenExpiredNotification(
 			context.Background(),
 			&notificationv1.TokenExpired{

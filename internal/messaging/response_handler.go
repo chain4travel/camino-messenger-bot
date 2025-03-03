@@ -243,17 +243,12 @@ func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error 
 		// if it is not bought, we need to register the listeners
 		// send a notification to the supplier plugin that the token is expired
 
-		// Create a dummy mintID since we don't have the original
-		mintID := &typesv1.UUID{
-			Value: fmt.Sprintf("reloaded-%s", token.TokenID),
-		}
-
 		// Parse expiration time from bytes
 		expiresAt := big.NewInt(0).SetBytes(token.ExpiresAt)
 		expirationTime := time.Unix(expiresAt.Int64(), 0)
 
 		h.logger.Infof("Re-registering listeners for token %s, expires at %s", tokenID.String(), expirationTime)
-		registerTokenListeners(h, tokenID, mintID, expirationTime)
+		registerTokenListeners(h, tokenID, token.MintID, expirationTime)
 	}
 
 	return nil
