@@ -29,7 +29,7 @@ func (*AccommodationProductListV3Server) AccommodationProductList(ctx context.Co
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 
-	lastModifiedFilter := req.ModifiedAfter.AsTime()
+	lastModifiedFilter := req.GetModifiedAfter().AsTime()
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
 	filteredProperties := []*accommodationv3.Property{}

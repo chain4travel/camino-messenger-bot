@@ -33,11 +33,12 @@ func (*AccommodationProductInfoV3Server) AccommodationProductInfo(ctx context.Co
 	log.Printf("Responding to request (Accommodation Product Info): %s", md.RequestID)
 
 	// Initialize suppliersFiltered with the correct type
-	suppliersFiltered := []*accommodationv3.PropertyExtendedInfo{}
+	var suppliersFiltered []*accommodationv3.PropertyExtendedInfo
 
 	// check if there are supplier codes in the request
 	if req.SupplierCodes != nil {
 		log.Printf("Supplier codes requested: %v", req.SupplierCodes)
+		suppliersFiltered = []*accommodationv3.PropertyExtendedInfo{}
 		// filter properties by supplier codes
 		for _, property := range mockdata.PropertiesV3 {
 			for _, supplierCode := range req.SupplierCodes {
@@ -50,9 +51,8 @@ func (*AccommodationProductInfoV3Server) AccommodationProductInfo(ctx context.Co
 			}
 		}
 	} else {
-		for i := range mockdata.PropertiesV3 {
-			suppliersFiltered[i] = proto.Clone(mockdata.PropertiesV3[i]).(*accommodationv3.PropertyExtendedInfo)
-		}
+		suppliersFiltered = make([]*accommodationv3.PropertyExtendedInfo, len(mockdata.PropertiesV3))
+		copy(suppliersFiltered, mockdata.PropertiesV3)
 	}
 
 	filteredProperties := []*accommodationv3.PropertyExtendedInfo{}
