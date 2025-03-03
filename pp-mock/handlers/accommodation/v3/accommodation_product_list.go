@@ -28,23 +28,22 @@ func (*AccommodationProductListV3Server) AccommodationProductList(ctx context.Co
 	}
 
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
-
-	lastModifiedFilter := req.GetModifiedAfter().AsTime()
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
-	filteredProperties := []*accommodationv3.Property{}
-	for _, property := range mockdata.PropertiesV3 {
-		if property.Property.LastModified.AsTime().Before(lastModifiedFilter) {
-			continue
-		}
-		filteredProperties = append(filteredProperties, property.Property)
-	}
+	filteredProperties := filterPropertiesByLastModified(mockdata.PropertiesV3, req.GetModifiedAfter().AsTime())
 
 	response := &accommodationv3.AccommodationProductListResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		Properties: filteredProperties,
+	}
+
+	if len(filteredProperties) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: "No properties found that match request",
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
