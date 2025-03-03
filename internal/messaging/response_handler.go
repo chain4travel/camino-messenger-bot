@@ -226,10 +226,10 @@ func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error 
 
 			// send a notification to the supplier plugin that the token is bought
 			if _, err := notificationClient.TokenBoughtNotification(
-				context.Background(),
+				ctx,
 				&notificationv1.TokenBought{
 					TokenId: tokenID.Uint64(),
-					TxId:    "",
+					TxId:    "", // TODO: check if important and if we can get the tx id from the booking token contract
 					MintId:  token.MintID,
 				},
 				grpc.Header(&grpc_metadata.MD{}),
