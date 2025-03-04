@@ -14,7 +14,7 @@ import (
 
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	tokenStorage "github.com/chain4travel/camino-messenger-bot/pkg/tokens"
+	tokenstorage "github.com/chain4travel/camino-messenger-bot/pkg/tokens"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/grpc"
@@ -97,14 +97,13 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 				return
 			}
 
-			err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenStorage.TokenRecord{
+			err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 				TokenID: tokenID.String(),
 				Bought:  true,
 				Expired: false,
 			})
 			if err != nil {
 				h.logger.Errorf("failed to update token record: %v", err)
-				session.Abort()
 				return
 			}
 		},
@@ -137,7 +136,7 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 		// Mark the token as bought
 		session, err := h.evmEventStorage.NewSession(context.Background())
 		if err != nil {
-			h.logger.Errorf("failed to create session: %v", err)
+			h.logger.Errorf("Failed to create session: %v", err)
 			return
 		}
 
@@ -151,7 +150,7 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 		}
 
 		// update the token record to expired on chain
-		err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenStorage.TokenRecord{
+		err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 			TokenID: tokenID.String(),
 			Bought:  false,
 			Expired: true,
@@ -179,7 +178,7 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 		return
 	}
 
-	h.evmEventStorage.SaveTokenRecord(context.Background(), session, &tokenStorage.TokenRecord{
+	err = h.evmEventStorage.SaveTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 		TokenID:   tokenID.String(),
 		Bought:    false,
 		Expired:   false,
@@ -187,6 +186,10 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 		CreatedAt: big.NewInt(time.Now().Unix()).Bytes(),
 		ExpiresAt: big.NewInt(buyableUntil.Unix()).Bytes(),
 	})
+	if err != nil {
+		h.logger.Errorf("Failed to save token record: %v", err)
+		return
+	}
 }
 
 // TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg

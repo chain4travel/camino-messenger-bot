@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package tokenStorage
+package tokenstorage
 
 import (
 	"context"
@@ -17,9 +17,7 @@ import (
 
 const dbName = "tokens"
 
-var (
-	_ Storage = (*storage)(nil)
-)
+var _ Storage = (*storage)(nil)
 
 func New(ctx context.Context, logger *zap.SugaredLogger, cfg sqlite.DBConfig) (Storage, error) {
 	baseDB, err := sqlite.New(logger, cfg, dbName)

@@ -34,7 +34,7 @@ import (
 	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/mint/v2"
 	handlers_validation_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/validation/v1"
 	handlers_validation_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/validation/v2"
-	handlersNotificationV1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/notification/v1"
+	handlers_notification_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/notification/v1"
 	handlers_ping_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/ping/v1"
 	handlers_transport_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/transport/v1"
 	handlers_transport_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/transport/v2"
@@ -80,7 +80,7 @@ func run() error {
 	pingv1grpc.RegisterPingServiceServer(grpcServer, &handlers_ping_v1.PingServiceV1Server{})
 
 	// Notification
-	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &handlersNotificationV1.NotificationServiceV1Server{})
+	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &handlers_notification_v1.NotificationServiceV1Server{})
 
 	// Transport
 	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, &handlers_transport_v1.TransportSearchV1Server{})

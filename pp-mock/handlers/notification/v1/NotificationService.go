@@ -1,4 +1,4 @@
-package handlersNotificationV1
+package handlers
 
 import (
 	"context"

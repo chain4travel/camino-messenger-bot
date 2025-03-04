@@ -1,4 +1,4 @@
-package tokenStorage
+package tokenstorage
 
 import (
 	"context"

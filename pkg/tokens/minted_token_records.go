@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package tokenStorage
+package tokenstorage
 
 import (
 	"context"
@@ -15,9 +15,7 @@ import (
 
 const tokenRecordsTableName = "tokens"
 
-var (
-	_ TokenRecordsStorage = (*storage)(nil)
-)
+var _ TokenRecordsStorage = (*storage)(nil)
 
 type tokenRecordsStatements struct {
 	saveTokenRecord       *sqlx.Stmt
