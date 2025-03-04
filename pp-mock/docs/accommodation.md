@@ -37,7 +37,7 @@ Used to retrieve a list of all accommodation products of a supplier.
     "header": {
         "alerts" : [],
         "base_header" :  null,
-        "status: "STATUS_TYPE_SUCCESS"
+        "status" : "STATUS_TYPE_SUCCESS"
     }
 }
 ```
@@ -160,7 +160,7 @@ Used to retrieve detailed information about a specific accommodation product.
     "header": {
         "alerts" : [],
         "base_header" :  null,
-        "status: "STATUS_TYPE_SUCCESS"
+        "status" : "STATUS_TYPE_SUCCESS"
     }
 }
 ```
