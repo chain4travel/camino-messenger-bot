@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
@@ -55,7 +56,9 @@ func (s *storage) prepare(ctx context.Context) error {
 	}
 
 	if _, err := tx.ExecContext(ctx, query); err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Printf("failed to rollback transaction: %v", rollbackErr)
+		}
 		return err
 	}
 

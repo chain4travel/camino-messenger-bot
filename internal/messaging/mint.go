@@ -97,15 +97,11 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 				return
 			}
 
-			err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
+			_ = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 				TokenID: tokenID.String(),
 				Bought:  true,
 				Expired: false,
 			})
-			if err != nil {
-				h.logger.Errorf("failed to update token record: %v", err)
-				return
-			}
 		},
 	)
 	if err != nil {
@@ -150,7 +146,7 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 		}
 
 		// update the token record to expired on chain
-		err = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
+		_ = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 			TokenID: tokenID.String(),
 			Bought:  false,
 			Expired: true,
