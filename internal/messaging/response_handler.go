@@ -191,10 +191,12 @@ func addErrorToResponseHeaderV1(header *typesv1.ResponseHeader, errMessage strin
 // Implement the ReloadTokensFromStorage method from the ResponseHandler interface
 func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error {
 	session, err := h.evmEventStorage.NewSession(ctx)
-	notificationClient := h.serviceRegistry.NotificationClient()
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
+	defer h.evmEventStorage.Abort(session)
+
+	notificationClient := h.serviceRegistry.NotificationClient()
 
 	tokens, err := h.evmEventStorage.GetActiveTokenRecords(ctx, session)
 	if err != nil {
@@ -209,8 +211,6 @@ func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error 
 			h.logger.Errorf("failed to parse token ID: %s", token.TokenID)
 			continue
 		}
-
-		// ask for the on chain status of the token - is it bought or not
 
 		// check the status of the token -> if it is not bought, then we can just expire the token
 		tx, err := h.bookingToken.GetBookingStatus(nil, tokenID)
@@ -229,11 +229,20 @@ func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error 
 				continue
 			}
 
-			// If token is bought (status 3) but not marked as bought in our database, update it
-			err = h.evmEventStorage.UpdateTokenRecord(ctx, updateSession, token)
-			if err != nil {
-				h.logger.Errorf("failed to mark token as bought: %v", err)
-			}
+			// Use defer with anonymous function to ensure session is properly handled
+			func() {
+				defer h.evmEventStorage.Abort(updateSession)
+
+				// If token is bought (status 3) but not marked as bought in our database, update it
+				if err := h.evmEventStorage.UpdateTokenRecord(ctx, updateSession, token); err != nil {
+					h.logger.Errorf("failed to mark token as bought: %v", err)
+					return
+				}
+
+				if err := h.evmEventStorage.Commit(updateSession); err != nil {
+					h.logger.Errorf("failed to commit session: %v", err)
+				}
+			}()
 
 			// send a notification to the supplier plugin that the token is bought
 			if _, err := notificationClient.TokenBoughtNotification(
@@ -252,8 +261,6 @@ func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error 
 		}
 
 		// if it is not bought, we need to register the listeners
-		// send a notification to the supplier plugin that the token is expired
-
 		// Parse expiration time from bytes
 		expiresAt := big.NewInt(0).SetBytes(token.ExpiresAt)
 		expirationTime := time.Unix(expiresAt.Int64(), 0)

@@ -69,6 +69,8 @@ func (s *storage) prepareTokenRecordsStmts(ctx context.Context) error {
 	return nil
 }
 
+// SaveTokenRecord stores a token record in the database
+// Note: This function does NOT commit the transaction - the caller is responsible for committing or aborting
 func (s *storage) SaveTokenRecord(ctx context.Context, session Session, record *TokenRecord) error {
 	tx, err := getSQLXTx(session.(sqlite.Session))
 	if err != nil {
@@ -88,13 +90,10 @@ func (s *storage) SaveTokenRecord(ctx context.Context, session Session, record *
 		return err
 	}
 
-	if err := session.Commit(); err != nil {
-		s.base.Logger.Error(err)
-		return err
-	}
 	return nil
 }
 
+// GetTokenRecord retrieves a token record from the database
 func (s *storage) GetTokenRecord(ctx context.Context, session Session, tokenID string) (*TokenRecord, error) {
 	tx, err := getSQLXTx(session.(sqlite.Session))
 	if err != nil {
@@ -124,6 +123,8 @@ func (s *storage) GetTokenRecord(ctx context.Context, session Session, tokenID s
 	return &record, nil
 }
 
+// UpdateTokenRecord updates a token record in the database
+// Note: This function does NOT commit the transaction - the caller is responsible for committing or aborting
 func (s *storage) UpdateTokenRecord(ctx context.Context, session Session, record *TokenRecord) error {
 	tx, err := getSQLXTx(session.(sqlite.Session))
 	if err != nil {
@@ -136,13 +137,6 @@ func (s *storage) UpdateTokenRecord(ctx context.Context, session Session, record
 	rawResult, err := tx.ExecContext(ctx, rawQuery, record.Bought, record.Expired, record.TokenID)
 	if err != nil {
 		s.base.Logger.Errorf("Raw update error: %v", err)
-	} else {
-		rawAffected, _ := rawResult.RowsAffected()
-		s.base.Logger.Infof("Raw update affected %d rows", rawAffected)
-	}
-
-	if err != nil {
-		s.base.Logger.Error(err)
 		return err
 	}
 
@@ -160,15 +154,11 @@ func (s *storage) UpdateTokenRecord(ctx context.Context, session Session, record
 		return err
 	}
 
-	if err := session.Commit(); err != nil {
-		s.base.Logger.Error(err)
-		return err
-	}
-
 	s.base.Logger.Infof("Successfully updated token record with ID: '%s'", record.TokenID)
 	return nil
 }
 
+// GetActiveTokenRecords retrieves all active token records from the database
 func (s *storage) GetActiveTokenRecords(ctx context.Context, session Session) ([]*TokenRecord, error) {
 	tx, err := getSQLXTx(session.(sqlite.Session))
 	if err != nil {

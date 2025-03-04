@@ -97,11 +97,20 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 				return
 			}
 
-			_ = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
+			defer h.evmEventStorage.Abort(session)
+
+			if err := h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 				TokenID: tokenID.String(),
 				Bought:  true,
 				Expired: false,
-			})
+			}); err != nil {
+				h.logger.Errorf("failed to update token record: %v", err)
+				return
+			}
+
+			if err := h.evmEventStorage.Commit(session); err != nil {
+				h.logger.Errorf("failed to commit session: %v", err)
+			}
 		},
 	)
 	if err != nil {
@@ -129,12 +138,14 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 			return
 		}
 
-		// Mark the token as bought
+		// Mark the token as expired
 		session, err := h.evmEventStorage.NewSession(context.Background())
 		if err != nil {
 			h.logger.Errorf("Failed to create session: %v", err)
 			return
 		}
+
+		defer h.evmEventStorage.Abort(session)
 
 		// check if config has "record_expiration" set to true
 		// Update the token record to expired on chain
@@ -145,12 +156,20 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 			}
 		}
 
-		// update the token record to expired on chain
-		_ = h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
+		// update the token record to expired in the database
+		if err := h.evmEventStorage.UpdateTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 			TokenID: tokenID.String(),
 			Bought:  false,
 			Expired: true,
-		})
+		}); err != nil {
+			h.logger.Errorf("failed to update token record: %v", err)
+			return
+		}
+
+		if err := h.evmEventStorage.Commit(session); err != nil {
+			h.logger.Errorf("failed to commit session: %v", err)
+			return
+		}
 
 		if _, err := notificationClient.TokenExpiredNotification(
 			context.Background(),
@@ -174,17 +193,22 @@ func (h *evmResponseHandler) onBookingTokenMint(tokenID *big.Int, mintID *typesv
 		return
 	}
 
-	err = h.evmEventStorage.SaveTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
+	defer h.evmEventStorage.Abort(session)
+
+	if err := h.evmEventStorage.SaveTokenRecord(context.Background(), session, &tokenstorage.TokenRecord{
 		TokenID:   tokenID.String(),
 		Bought:    false,
 		Expired:   false,
 		MintID:    mintID,
 		CreatedAt: big.NewInt(time.Now().Unix()).Bytes(),
 		ExpiresAt: big.NewInt(buyableUntil.Unix()).Bytes(),
-	})
-	if err != nil {
+	}); err != nil {
 		h.logger.Errorf("Failed to save token record: %v", err)
 		return
+	}
+
+	if err := h.evmEventStorage.Commit(session); err != nil {
+		h.logger.Errorf("Failed to commit session: %v", err)
 	}
 }
 

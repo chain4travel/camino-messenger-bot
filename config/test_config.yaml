@@ -18,6 +18,7 @@ partner_plugin:
     enabled: true
     host: localhost:50051
     unencrypted: true
+record_expiration: true
 response_timeout: 10000
 rpc_server:
     cert_file: server-cert.pem
@@ -31,4 +32,3 @@ tracing:
     host: localhost:4317
     insecure: true
     key_file: server-key.pem
-record_expiration: false
