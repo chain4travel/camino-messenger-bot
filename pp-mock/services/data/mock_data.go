@@ -19,8 +19,11 @@ var propertiesJSON []byte
 //go:embed tripsv1.json
 var tripsV1JSON []byte
 
-//go:embed tripsv3.json
-var tripsV3JSON []byte
+//go:embed tripsv3_basic.json
+var tripsV3BasicJSON []byte
+
+//go:embed tripsv3_extended.json
+var tripsV3ExtendedJSON []byte
 
 var (
 	PropertiesV1 []*accommodationv1.PropertyExtendedInfo
@@ -50,10 +53,10 @@ func init() {
 	if err := json.Unmarshal(tripsV1JSON, &TripsV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling trips v2: %w", err))
 	}
-	if err := json.Unmarshal(tripsV3JSON, &TripsBasicV3); err != nil {
+	if err := json.Unmarshal(tripsV3BasicJSON, &TripsBasicV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling trips v3 basic: %w", err))
 	}
-	if err := json.Unmarshal(tripsV3JSON, &TripsExtendedV3); err != nil {
+	if err := json.Unmarshal(tripsV3ExtendedJSON, &TripsExtendedV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling trips v3 extended: %w", err))
 	}
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
