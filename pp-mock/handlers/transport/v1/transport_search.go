@@ -93,7 +93,7 @@ func (*TransportSearchV1Server) TransportSearch(ctx context.Context, req *transp
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 						Alerts: []*typesv1.Alert{{
-							Message: "Invalid travel dates: departure date must be in the future and departure must be before arrival",
+							Message: "Invalid travel dates: departure must be before arrival",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
 					},

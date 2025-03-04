@@ -95,7 +95,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 						Alerts: []*typesv1.Alert{{
-							Message: "Invalid travel dates: departure date must be in the future and departure must be before arrival",
+							Message: "Invalid travel dates: departure must be before arrival",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
 					},
@@ -130,15 +130,21 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 	for _, query := range req.Queries {
 		filteredTrips := mockdata.TripsExtendedV3
 		for _, queryTrip := range query.GetTrips() {
+			filteredTrips = filterTripsByDates(filteredTrips, queryTrip)
+
 			if queryTrip.SearchParametersTransport == nil { // its optional
 				continue
 			}
 
-			// This is just an example, not real business logic:
 			filteredTrips = filterTripsByProductCodes(filteredTrips, queryTrip.SearchParametersTransport.ProductCodes)
 			if queryTrip.SearchParametersTransport.MaxSegments != 0 {
 				filteredTrips = filterTripsByMaxSegments(filteredTrips, queryTrip.SearchParametersTransport.MaxSegments)
 			}
+		}
+
+		if len(filteredTrips) == 0 {
+			// Nothing left after filtering - just skip ahead to the next query
+			continue
 		}
 
 		totalPrice := big.NewInt(0)

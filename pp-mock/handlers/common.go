@@ -27,13 +27,7 @@ func IsTravelPeriodAllowed(travelPeriod *typesv1.TravelPeriod) bool {
 }
 
 func AreTravelDatesValid(departureDate, arrivalDate *typesv1.Date) bool {
-	// Convert to time.Time or perform checks directly based on your logic
 	if departureDate == nil || arrivalDate == nil {
-		return false
-	}
-
-	// Fail if departure is in the past
-	if time.Now().After(DateV1ToTime(departureDate)) {
 		return false
 	}
 
