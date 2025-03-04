@@ -29,11 +29,11 @@ const (
 )
 
 var (
-	// Special address that indicates BookinToken payment will be in native coin of
+	// Special address that indicates BookingToken payment will be in native coin of
 	// the network (CAM).
 	NativePaymentToken = common.HexToAddress("0x0000000000000000000000000000000000000000")
 
-	// Special address that indicates BookinToken payment will occur off-chain.
+	// Special address that indicates BookingToken payment will occur off-chain.
 	ISOPaymentToken = common.HexToAddress("0x0000000000000000000000000000000000000001")
 )
 
