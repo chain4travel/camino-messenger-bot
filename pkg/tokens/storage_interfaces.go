@@ -1,4 +1,4 @@
-package events_storage
+package tokenStorage
 
 import (
 	"context"

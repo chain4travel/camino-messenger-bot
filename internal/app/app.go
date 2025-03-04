@@ -27,9 +27,9 @@ import (
 	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/pkg/chequehandler/storage/sqlite"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
-	events_storage "github.com/chain4travel/camino-messenger-bot/pkg/events/storage"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
 	scheduler_storage "github.com/chain4travel/camino-messenger-bot/pkg/scheduler/storage/sqlite"
+	tokenStorage "github.com/chain4travel/camino-messenger-bot/pkg/tokens"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -101,7 +101,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	eventsStorage, err := events_storage.New(ctx, logger, sqlite.DBConfig(cfg.DB.Tokens))
+	eventsStorage, err := tokenStorage.New(ctx, logger, sqlite.DBConfig(cfg.DB.Tokens))
 	if err != nil {
 		logger.Errorf("Failed to create events storage: %v", err)
 		return nil, err

@@ -1,4 +1,4 @@
-package handlers_notification_v1
+package handlersNotificationV1
 
 import (
 	"context"
@@ -18,7 +18,7 @@ var _ notificationv1grpc.NotificationServiceServer = (*NotificationServiceV1Serv
 type NotificationServiceV1Server struct{}
 
 // TokenBoughtNotification handles TokenBoughtNotification and returns a mock TokenBoughtNotificationResponse.
-func (*NotificationServiceV1Server) TokenBoughtNotification(ctx context.Context, request *notificationv1.TokenBought) (*emptypb.Empty, error) {
+func (*NotificationServiceV1Server) TokenBoughtNotification(ctx context.Context, _ *notificationv1.TokenBought) (*emptypb.Empty, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -31,7 +31,7 @@ func (*NotificationServiceV1Server) TokenBoughtNotification(ctx context.Context,
 }
 
 // TokenExpiredNotification handles TokenExpiredNotification and returns a mock TokenExpiredNotificationResponse.
-func (*NotificationServiceV1Server) TokenExpiredNotification(ctx context.Context, request *notificationv1.TokenExpired) (*emptypb.Empty, error) {
+func (*NotificationServiceV1Server) TokenExpiredNotification(ctx context.Context, _ *notificationv1.TokenExpired) (*emptypb.Empty, error) {
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {

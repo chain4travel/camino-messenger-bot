@@ -25,7 +25,7 @@ import (
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
-	events_storage "github.com/chain4travel/camino-messenger-bot/pkg/events/storage"
+	tokenStorage "github.com/chain4travel/camino-messenger-bot/pkg/tokens"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -80,7 +80,7 @@ type evmResponseHandler struct {
 	bookingToken        bookingtoken.Bookingtoken
 	serviceRegistry     ServiceRegistry
 	evmEventListener    *events.EventListener
-	evmEventStorage     events_storage.Storage
+	evmEventStorage     tokenStorage.Storage
 	recordExpiration    bool
 	erc20               erc20.Service
 }
@@ -94,7 +94,7 @@ func NewResponseHandler(
 	serviceRegistry ServiceRegistry,
 	cmAccounts cmaccounts.Service,
 	tokenCacheSize int,
-	storage events_storage.Storage,
+	storage tokenStorage.Storage,
 	recordExpiration bool,
 ) (ResponseHandler, error) {
 	erc20, err := erc20.NewERC20Service(ethClient, tokenCacheSize)
@@ -224,15 +224,15 @@ func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error 
 		if tx == uint8(BookingStatusBought) || tx == uint8(BookingStatusExpired) {
 			token.Bought = true
 
-			update_session, err := h.evmEventStorage.NewSession(ctx)
+			updateSession, err := h.evmEventStorage.NewSession(ctx)
 			if err != nil {
 				h.logger.Errorf("failed to create session: %v", err)
 				continue
 			}
-			defer update_session.Abort()
+			defer updateSession.Abort()
 
 			// If token is bought (status 3) but not marked as bought in our database, update it
-			err = h.evmEventStorage.UpdateTokenRecord(ctx, update_session, token)
+			err = h.evmEventStorage.UpdateTokenRecord(ctx, updateSession, token)
 			if err != nil {
 				h.logger.Errorf("failed to mark token as bought: %v", err)
 			}

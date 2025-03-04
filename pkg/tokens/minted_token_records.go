@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package events_storage
+package tokenStorage
 
 import (
 	"context"
@@ -24,11 +24,6 @@ type tokenRecordsStatements struct {
 	getTokenRecord        *sqlx.Stmt
 	updateTokenRecord     *sqlx.Stmt
 	getActiveTokenRecords *sqlx.Stmt
-}
-
-// TokenRecordsTable handles all operations for tokens
-type TokenRecordsTable struct {
-	storage *storage
 }
 
 func (s *storage) prepareTokenRecordsStmts(ctx context.Context) error {
