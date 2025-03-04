@@ -175,9 +175,25 @@ func ConvertPriceToBigInt(value string, decimals int32, totalDecimals int32) (*b
 	return result, nil
 }
 
+// RecordExpiration records the expiration of a booking token on-chain.
+// Parameters:
+// - tokenID: ID of the token to record expiration for.
 func (bs *Service) RecordExpiration(
 	ctx context.Context,
 	tokenID *big.Int,
 ) (*types.Receipt, error) {
-	return bs.cmAccounts.RecordExpiration(ctx, bs.transactOpts, bs.cmAccountAddress, tokenID)
+	bs.logger.Infof("📝 Recording expiration for BookingToken with TokenID %s", tokenID.String())
+
+	// Validate tokenId
+	if tokenID.Sign() < 0 {
+		return nil, fmt.Errorf("tokenId must be a positive integer (>= 0)")
+	}
+
+	receipt, err := bs.cmAccounts.RecordExpiration(ctx, bs.transactOpts, bs.cmAccountAddress, tokenID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to record token expiration: %w", err)
+	}
+
+	bs.logger.Infof("RecordExpiration tx sent: %s", receipt.TxHash.Hex())
+	return receipt, nil
 }
