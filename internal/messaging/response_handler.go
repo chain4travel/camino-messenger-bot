@@ -39,6 +39,16 @@ const (
 	buyableUntilDurationMaximal = 600 * time.Second
 )
 
+// BookingStatus represents the status of a booking token
+type BookingStatus int
+
+const (
+	// BookingStatusBought indicates the token has been purchased
+	BookingStatusBought BookingStatus = 3
+	// BookingStatusExpired indicates the token has expired
+	BookingStatusExpired BookingStatus = 4
+)
+
 var _ ResponseHandler = (*evmResponseHandler)(nil)
 
 type ResponseHandler interface {
@@ -71,6 +81,7 @@ type evmResponseHandler struct {
 	serviceRegistry     ServiceRegistry
 	evmEventListener    *events.EventListener
 	evmEventStorage     events_storage.Storage
+	recordExpiration    bool
 	erc20               erc20.Service
 }
 
@@ -84,6 +95,7 @@ func NewResponseHandler(
 	cmAccounts cmaccounts.Service,
 	tokenCacheSize int,
 	storage events_storage.Storage,
+	recordExpiration bool,
 ) (ResponseHandler, error) {
 	erc20, err := erc20.NewERC20Service(ethClient, tokenCacheSize)
 	if err != nil {
@@ -113,6 +125,7 @@ func NewResponseHandler(
 		evmEventListener:    events.NewEventListener(ethClient, logger),
 		evmEventStorage:     storage,
 		erc20:               erc20,
+		recordExpiration:    recordExpiration,
 	}, nil
 }
 
@@ -208,7 +221,7 @@ func (h *evmResponseHandler) ReloadTokensFromStorage(ctx context.Context) error 
 		}
 
 		// if it is bought or expired, no need to unregister the listeners and mark the token as bought in the database
-		if tx == 3 || tx == 4 {
+		if tx == uint8(BookingStatusBought) || tx == uint8(BookingStatusExpired) {
 			token.Bought = true
 
 			update_session, err := h.evmEventStorage.NewSession(ctx)

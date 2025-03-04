@@ -31,3 +31,4 @@ tracing:
     host: localhost:4317
     insecure: true
     key_file: server-key.pem
+record_expiration: false

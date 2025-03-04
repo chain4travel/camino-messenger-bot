@@ -116,6 +116,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cmAccounts,
 		erc20CacheSize,
 		eventsStorage,
+		cfg.RecordExpiration,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create response handler: %v", err)

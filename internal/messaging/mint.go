@@ -130,7 +130,7 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 		}
 
 		// if the token is bought or canceled, then we don't need to expire the token
-		if tx == 3 || tx == 4 {
+		if tx == uint8(BookingStatusBought) || tx == uint8(BookingStatusExpired) {
 			return
 		}
 
@@ -139,6 +139,15 @@ func registerTokenListeners(h *evmResponseHandler, tokenID *big.Int, mintID *typ
 		if err != nil {
 			h.logger.Errorf("failed to create session: %v", err)
 			return
+		}
+
+		// check if config has "record_expiration" set to true
+		// Update the token record to expired on chain
+		if h.recordExpiration {
+			_, err = h.bookingService.RecordExpiration(context.Background(), tokenID)
+			if err != nil {
+				h.logger.Errorf("failed to record expiration: %v", err)
+			}
 		}
 
 		// update the token record to expired on chain

@@ -165,3 +165,18 @@ func (mr *MockServiceMockRecorder) VerifyCheque(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyCheque", reflect.TypeOf((*MockService)(nil).VerifyCheque), arg0, arg1)
 }
+
+// RecordExpiration mocks base method.
+func (m *MockService) RecordExpiration(ctx context.Context, arg1 *bind.TransactOpts, arg2 common.Address, arg3 *big.Int) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecordExpiration", ctx, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecordExpiration indicates an expected call of RecordExpiration.
+func (mr *MockServiceMockRecorder) RecordExpiration(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordExpiration", reflect.TypeOf((*MockService)(nil).RecordExpiration), arg0, arg1, arg2, arg3)
+}

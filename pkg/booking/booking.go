@@ -179,3 +179,10 @@ func ConvertPriceToBigInt(value string, decimals int32, totalDecimals int32) (*b
 
 	return result, nil
 }
+
+func (bs *Service) RecordExpiration(
+	ctx context.Context,
+	tokenID *big.Int,
+) (*types.Receipt, error) {
+	return bs.cmAccounts.RecordExpiration(ctx, bs.transactOpts, bs.cmAccountAddress, tokenID)
+}

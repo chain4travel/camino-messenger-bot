@@ -35,6 +35,8 @@ type Config struct {
 
 	ResponseTimeout time.Duration
 
+	RecordExpiration bool
+
 	RPCServer     RPCServerConfig
 	PartnerPlugin PartnerPluginConfig
 	Tracing       TracingConfig
@@ -103,6 +105,8 @@ type UnparsedConfig struct {
 
 	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
 
+	RecordExpiration bool `mapstructure:"record_expiration"`
+
 	PartnerPlugin PartnerPluginConfig `mapstructure:"partner_plugin"`
 	Tracing       TracingConfig       `mapstructure:"tracing"`
 	RPCServer     RPCServerConfig     `mapstructure:"rpc_server"`
@@ -140,5 +144,6 @@ func (cfg *Config) unparse() *UnparsedConfig {
 		MinChequeDurationUntilExpiration:    cfg.MinChequeDurationUntilExpiration.Uint64(),
 		CashInPeriod:                        int64(cfg.CashInPeriod / time.Second),
 		ResponseTimeout:                     int64(cfg.ResponseTimeout / time.Millisecond),
+		RecordExpiration:                    cfg.RecordExpiration,
 	}
 }
