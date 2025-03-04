@@ -123,6 +123,7 @@ func TestE2E(t *testing.T) {
 	// #### please use the filter flag.                     ####
 	// #########################################################
 	testsRunner.Register(t, "PingV1", tests.TestPingV1)
+	testsRunner.Register(t, "BotSanity", tests.TestBotSanity)
 	testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
 	testsRunner.Register(t, "AccommodationV3", tests.TestAccommodationV3)
 	testsRunner.Register(t, "TransportV3", tests.TestTransportV3)
