@@ -5,15 +5,20 @@ TEMPLATES_DIR="templates"
 CLIENT_TEMPLATE="${TEMPLATES_DIR}/client.go.tpl"
 CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
 SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
-SERVER_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_method.go.tpl"
-GEN_OUTPATH="internal/rpc/generated"
+SERVER_P2P_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_p2p_method.go.tpl"
+SERVER_LOCAL_TEMPLATE="${TEMPLATES_DIR}/server_local_method.go.tpl"
+
+P2P_OUTPATH="internal/rpc/generated"
+LOCAL_OUTPATH="internal/rpc/generated"
 E2E_GEN_OUTPATH="tests/e2e/bot/generated"
-REGISTER_SERVICES_SERVER_FILE="${GEN_OUTPATH}/register_server_services.go"
-REGISTER_SERVICES_CLIENT_FILE="${GEN_OUTPATH}/register_client_services.go"
-UNMARSHALING_FILE="${GEN_OUTPATH}/unmarshal.go"
+
+REGISTER_SERVICES_SERVER_FILE="${P2P_OUTPATH}/register_server_services.go"
+REGISTER_SERVICES_CLIENT_FILE="${P2P_OUTPATH}/register_client_services.go"
+UNMARSHALING_FILE="${P2P_OUTPATH}/unmarshal.go"
 E2E_BOT_CLIENT_FILE="${E2E_GEN_OUTPATH}/client.go"
 
-DEFAULT_BLACKLIST="notification partner network" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
+
+DEFAULT_BLACKLIST="partner network claim notification cancellation insurance" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
 
 SCRIPT=$(realpath --relative-to="${PWD}" "$0")
 FILTER=$1 #optional filter for files -- used for testing
@@ -45,68 +50,110 @@ function generate_with_templates() {
 	GENERAL_PARAM_REPLACE+=" -e s#{{VERSION}}#$_VERSION#g"
 	GENERAL_PARAM_REPLACE+=" -e s#{{GENERATOR}}#$GENERATOR#g"
 	GENERAL_PARAM_REPLACE+=" -e s#{{COMMON_TYPES_VERSION}}#$COMMON_TYPES_VERSION#g"
+	GENERAL_PARAM_REPLACE+=" -e s#{{EMPTY_IMPORT}}#$EMPTY_IMPORT#g"
 
 	## This is added to fix shellcheck issue SC2086
 	replace_params=()
 	eval "replace_params+=( $GENERAL_PARAM_REPLACE )"
-	
-	# Generate client
-	CLIENT_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_client.go"
-	echo "🔨 Generating client: $CLIENT_GEN_FILE"
-	cp $CLIENT_TEMPLATE "$CLIENT_GEN_FILE"
-	
-	sed -i "${replace_params[@]}" "$CLIENT_GEN_FILE"
-	sed -i -e "s#{{TEMPLATE}}#$CLIENT_TEMPLATE#g" "$CLIENT_GEN_FILE"
 
-	# Generate client methods
-	for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
-		METHOD=${_METHODS[$num]}
-		INPUT=${_INPUTS[$num]}
-		OUTPUT=${_OUTPUTS[$num]}
-		METHOD_PARAM_REPLACE=""
-		METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
-		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
-		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
-		METHOD_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_client_method.go"
-		## This is added to fix shellcheck issue SC2086
-		method_params=()
-		eval "method_params+=( $METHOD_PARAM_REPLACE )"
+    EMPTY_IMPORT=""
+	# Generate client and server code based on routing
+	if [[ "$ROUTING" == "p2p" ]]; then
+		# Generate client
+		CLIENT_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_client.go"
+		echo "🔨 Generating client: $CLIENT_GEN_FILE"
+		cp $CLIENT_TEMPLATE "$CLIENT_GEN_FILE"
 
-		echo "🔨 Generating client method: $METHOD_GEN_FILE"
-		cp $CLIENT_METHOD_TEMPLATE "$METHOD_GEN_FILE"
-		sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
-		sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
-		sed -i -e "s#{{TEMPLATE}}#$CLIENT_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
-	done
+		sed -i "${replace_params[@]}" "$CLIENT_GEN_FILE"
+		sed -i -e "s#{{TEMPLATE}}#$CLIENT_TEMPLATE#g" "$CLIENT_GEN_FILE"
 
-	# Generate server
-	SERVER_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
-	echo "🔨 Generating server: $SERVER_GEN_FILE"
-	cp $SERVER_TEMPLATE "$SERVER_GEN_FILE"
-	sed -i "${replace_params[@]}" "$SERVER_GEN_FILE"
-	sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" "$SERVER_GEN_FILE"
+		# Generate client methods
+		for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
+			METHOD=${_METHODS[$num]}
+			INPUT=${_INPUTS[$num]}
+			OUTPUT=${_OUTPUTS[$num]}
+			METHOD_PARAM_REPLACE=""
+			METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
+			METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
+			METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
+			if [[ $OUTPUT == "Empty" ]]; then
+				EMPTY_IMPORT='"google.golang.org/protobuf/types/known/emptypb"'
+				TYPE_PACKAGE="emptypb"
+			fi
+			METHOD_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_client_method.go"
+			## This is added to fix shellcheck issue SC2086
+			method_params=()
+			eval "method_params+=( $METHOD_PARAM_REPLACE )"
 
-	# Generate server methods
-	for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
-		METHOD=${_METHODS[$num]}
-		INPUT=${_INPUTS[$num]}
-		OUTPUT=${_OUTPUTS[$num]}
-		METHOD_PARAM_REPLACE=""
-		METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
-		METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
-		METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
-		METHOD_GEN_FILE="${GEN_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
+			echo "🔨 Generating client method: $METHOD_GEN_FILE"
+			cp $CLIENT_METHOD_TEMPLATE "$METHOD_GEN_FILE"
+			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
+			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
+			sed -i -e "s#{{TEMPLATE}}#$CLIENT_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
+		done
 
-		## This is added to fix shellcheck issue SC2086
-		method_params=()
-		eval "method_params+=( $METHOD_PARAM_REPLACE )"
+		# Generate server
+		SERVER_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
+		echo "🔨 Generating server: $SERVER_GEN_FILE"
+		cp $SERVER_TEMPLATE "$SERVER_GEN_FILE"
+		sed -i "${replace_params[@]}" "$SERVER_GEN_FILE"
+		sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" "$SERVER_GEN_FILE"
 
-		echo "🔨 Generating server method: $METHOD_GEN_FILE"
-		cp $SERVER_METHOD_TEMPLATE "$METHOD_GEN_FILE"
-		sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
-		sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
-		sed -i -e "s#{{TEMPLATE}}#$SERVER_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
-	done
+	    EMPTY_IMPORT=""
+		# Generate server methods
+		for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
+			METHOD=${_METHODS[$num]}
+			INPUT=${_INPUTS[$num]}
+			OUTPUT=${_OUTPUTS[$num]}
+			METHOD_PARAM_REPLACE=""
+			METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
+			METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
+			METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
+			if [[ $OUTPUT == "Empty" ]]; then
+				EMPTY_IMPORT='"google.golang.org/protobuf/types/known/emptypb"'
+				TYPE_PACKAGE="emptypb"
+			fi
+			METHOD_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
+
+			## This is added to fix shellcheck issue SC2086
+			method_params=()
+			eval "method_params+=( $METHOD_PARAM_REPLACE )"
+
+			echo "🔨 Generating server method: $METHOD_GEN_FILE"
+			cp $SERVER_P2P_METHOD_TEMPLATE "$METHOD_GEN_FILE"
+			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
+			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
+			sed -i -e "s#{{TEMPLATE}}#$SERVER_P2P_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
+		done
+	elif [[ "$ROUTING" == "local" ]]; then
+		SERVER_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
+		echo "🔨 Generating server: $SERVER_GEN_FILE"
+		cp "$SERVER_TEMPLATE" "$SERVER_GEN_FILE"
+		sed -i "$GENERAL_PARAM_REPLACE" "$SERVER_GEN_FILE"
+		sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" "$SERVER_GEN_FILE"
+
+	    EMPTY_IMPORT=""
+		# Generate server methods for local services
+		for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
+			METHOD=${_METHODS[$num]}
+			INPUT=${_INPUTS[$num]}
+			OUTPUT=${_OUTPUTS[$num]}
+			METHOD_PARAM_REPLACE=""
+			METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
+			METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
+			METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
+			if [[ $OUTPUT == "Empty" ]]; then
+				EMPTY_IMPORT='"google.golang.org/protobuf/types/known/emptypb"'
+				TYPE_PACKAGE="emptypb"
+			fi
+			METHOD_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
+			echo "🔨 Generating local server method: $METHOD_GEN_FILE"
+			cp "$SERVER_LOCAL_TEMPLATE" "$METHOD_GEN_FILE"
+			sed -i "$GENERAL_PARAM_REPLACE" "$METHOD_GEN_FILE"
+			sed -i "$METHOD_PARAM_REPLACE" "$METHOD_GEN_FILE"
+			sed -i -e "s#{{TEMPLATE}}#$SERVER_LOCAL_TEMPLATE#g" "$METHOD_GEN_FILE"
+		done
+	fi
 }
 
 function generate_register_services_server() {
@@ -114,7 +161,7 @@ function generate_register_services_server() {
 	local -n _SERVICES=$2
 
 	echo "📝 Registering server services in $OUTFILE"
-	
+
 	{
 		echo "// Code generated by '${SCRIPT}'. DO NOT EDIT."
 		echo
@@ -138,7 +185,7 @@ function generate_register_services_client() {
 	local -n _SERVICES=$2
 
 	echo "📝 Registering client services in $OUTFILE"
-	
+
 	{
 		echo "// Code generated by '${SCRIPT}'. DO NOT EDIT."
 		echo
@@ -170,7 +217,7 @@ function generate_unmarshalling() {
 	local -n _UNMARSHAL_METHODS=$3
 
 	echo "📝 Generating unmarshalling in $OUTFILE"
-	
+
 	{
 		echo "// Code generated by '${SCRIPT}'. DO NOT EDIT."
 		echo
@@ -188,7 +235,7 @@ function generate_unmarshalling() {
 
 		echo "func UnmarshalContent(src []byte, msgType types.MessageType, destination *protoreflect.ProtoMessage) error {"
 		echo "    switch msgType {"
-		
+
 		for method in "${_UNMARSHAL_METHODS[@]}" ; do
 			IFS=' ' read -r -a parts <<< "$method"
 			echo "    case ${parts[0]}:"
@@ -222,10 +269,10 @@ function generate_e2e_bot_client() {
 		_CLIENT_FIELDS[i]="${_CLIENT_FIELDS[$i]} ${_PACKAGES[$i]}.${_TYPES[$i]}"
 		_CLIENT_FIELDS_CONSTRUCTOR[i]="${_CLIENT_FIELDS_CONSTRUCTOR[$i]} ${_PACKAGES[$i]}.New${_TYPES[$i]}(connection)"
 	done
-	
+
 
 	echo "🔨📝 Generating E2E bot client $OUTFILE"
-	
+
 	{
 		echo "// Code generated by '${SCRIPT}'. DO NOT EDIT."
 		echo
@@ -255,8 +302,10 @@ function generate_e2e_bot_client() {
 
 # Prepare the output directories
 echo "🧹 Cleaning and generating output directories"
-rm -rf $GEN_OUTPATH
-mkdir -p $GEN_OUTPATH
+rm -rf $P2P_OUTPATH
+mkdir -p $P2P_OUTPATH
+rm -rf $LOCAL_OUTPATH
+mkdir -p $LOCAL_OUTPATH
 
 BUF_GRPC_VERSION=$(grep -oP "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go.*" go.mod | cut -d" " -f2)
 echo "🔗 Extracting SDK GRPC version from go.mod: $BUF_GRPC_VERSION"
@@ -330,12 +379,25 @@ while read -r file ; do
 	for blacklisted in $DEFAULT_BLACKLIST ; do
 		if [[ $file =~ $blacklisted ]] ; then
 			echo "⚠️ Skipping (blacklisted): $file"
-			echo 
+			echo
 			continue 2
 		fi
 	done
 
 	echo "🔍 Scanning file $file"
+
+	# Extract the annotation line
+	TAGS_LINE=$(grep -E '@custom:cmp-service' "$file")
+
+	# Use shell parameter expansion to extract values
+	SERVICE_TYPE=${TAGS_LINE#*type:}
+	SERVICE_TYPE=${SERVICE_TYPE%% *}
+
+	ROUTING=${TAGS_LINE#*routing:}
+	ROUTING=${ROUTING%% *}
+
+	ON_CHAIN=${TAGS_LINE#*on-chain:}
+	ON_CHAIN=${ON_CHAIN%%[[:space:]]*}
 
 	FQPN=$(grep -P 'FullMethodName' "$file" | grep -oP 'cmp\.services\.[^/]+' | head -n1) # only 1 - it may contain more
 	SERVICE=${FQPN##*.}
@@ -354,11 +416,11 @@ while read -r file ; do
 		exit 1
 	fi
 
-	COMMON_TYPES_VERSION=$(grep -oP '(?<=Header \*v)\d+(?=\.ResponseHeader)' "$pb_file")
-
+	COMMON_TYPES_VERSION=$(grep -oP '(?<=Header \*v)\d+(?=\.ResponseHeader)' "$pb_file" | tail -n 1)
 
 	echo "🔑 FQPN      : $FQPN"
 	echo "⚙️ Service   : $SERVICE"
+	echo "🏷️ Tags      : type=$SERVICE_TYPE, routing=$ROUTING, on-chain=$ON_CHAIN"
 	echo "📦 Go Package: $PACKAGE"
 	echo "🔧 Type      : $TYPE"
 
@@ -393,8 +455,10 @@ while read -r file ; do
 		# So something like:
 		# PingServiceV1Request pingv1 PingRequest
 		# PingServiceV1Response pingv1 PingResponse
-		UNMARSHAL_METHODS+=("${SERVICE}V${VERSION:1}Request $TYPE $INPUT")
-		UNMARSHAL_METHODS+=("${SERVICE}V${VERSION:1}Response $TYPE $OUTPUT")
+		if [[ "$ROUTING" == "p2p" ]]; then
+			UNMARSHAL_METHODS+=("${SERVICE}V${VERSION:1}Request $TYPE $INPUT")
+			UNMARSHAL_METHODS+=("${SERVICE}V${VERSION:1}Response $TYPE $OUTPUT")
+		fi
 
 		echo " ◉ $method (↓ in: '$INPUT' - ↑ out: '$OUTPUT')"
 	done < <(grep -P 'FullMethodName' "$file" | grep -oP 'cmp\.services\.[^"]+' | cut -d"/" -f2)
@@ -410,21 +474,26 @@ while read -r file ; do
 	# Now the grpc which is quite similar by just adding the package name at the end
 	GRPC_INCLUDE="${BUF_SDK_BASE}/grpc/go/${SUFFIX}/${PACKAGE}"
 	generate_with_templates "$FQPN" "$SERVICE" "$PACKAGE" "$TYPE" METHODS INPUTS OUTPUTS "$GRPC_INCLUDE" "$PROTO_INCLUDE" "${VERSION:1}" "$SCRIPT" "$COMMON_TYPES_VERSION"
-	SERVICES_TO_REGISTER+=("${SERVICE}V${VERSION:1}")
-	PROTO_INCLUDES_FOR_UNMARSHALLING+=("$PROTO_INCLUDE")
+
 	E2E_GRPC_INCLUDES+=("$GRPC_INCLUDE")
 	E2E_PACKAGES+=("$PACKAGE")
 	E2E_TYPES+=("${SERVICE}Client")
 	E2E_CLIENT_FIELDS+=("${SERVICE}V${VERSION:1}")
 
-	echo 
+	if [[ "$ROUTING" == "p2p" ]]; then
+		SERVICES_TO_REGISTER+=("${SERVICE}V${VERSION:1}")
+		PROTO_INCLUDES_FOR_UNMARSHALLING+=("$PROTO_INCLUDE")
+	fi
+
+	echo
 done < <(find "$SDK_GRPC_PATH/cmp/services/" -name "*_grpc.pb.go" | sort)
 
-generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER 
-generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER 
+generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER
+generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER
 generate_unmarshalling "$UNMARSHALING_FILE" PROTO_INCLUDES_FOR_UNMARSHALLING UNMARSHAL_METHODS
 generate_e2e_bot_client "${E2E_BOT_CLIENT_FILE}" E2E_GRPC_INCLUDES E2E_PACKAGES E2E_TYPES E2E_CLIENT_FIELDS
 
 echo "🧹 Running gofumpt on all generated files"
-$FUMPT -w $GEN_OUTPATH
+$FUMPT -w $P2P_OUTPATH
+$FUMPT -w $LOCAL_OUTPATH
 $FUMPT -w $E2E_GEN_OUTPATH

@@ -21,6 +21,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	erc20 "github.com/chain4travel/camino-messenger-bot/pkg/erc20"
+	"github.com/chain4travel/camino-messenger-bot/pkg/price"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
 
@@ -97,7 +98,7 @@ func main() {
 
 	paymentToken := booking.NativePaymentToken
 	var priceBigInt *big.Int
-	var price *typesv2.Price
+	var priceV2 *typesv2.Price
 	offchainPaymentCurrency := big.NewInt(0)
 
 	// Example prices for ISO Currency (100 EUR)
@@ -149,7 +150,7 @@ func main() {
 	}
 
 	sugar.Infof("%v %v %v %v", priceEUR, priceEURSH, priceTestToken, priceCAM)
-	sugar.Infof("%v", price)
+	sugar.Infof("%v", priceV2)
 
 	priceBigInt = big.NewInt(0)
 
@@ -157,11 +158,11 @@ func main() {
 	// price = priceEURSH     //  You can't use EURSH if you are not registered in their system
 	// price = priceTestToken // Requires having Test Token in your CM- account
 
-	price = priceCAM
+	priceV2 = priceCAM
 
-	switch currency := price.Currency.Currency.(type) {
+	switch currency := priceV2.Currency.Currency.(type) {
 	case *typesv2.Currency_NativeToken:
-		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
+		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.NativeTokenDecimals)
 		sugar.Infof("Converted the price big.Int: %v", priceBigInt)
 		paymentToken = booking.NativePaymentToken
 	case *typesv2.Currency_TokenCurrency:
@@ -174,10 +175,10 @@ func main() {
 			return
 		}
 
-		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
+		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, tokenDecimals)
 		paymentToken = contractAddress
 	case *typesv2.Currency_IsoCurrency:
-		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.ISODecimals)
+		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.ISODecimals)
 		paymentToken = booking.ISOPaymentToken
 		offchainPaymentCurrency = big.NewInt(int64(currency.IsoCurrency))
 	}

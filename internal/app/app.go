@@ -17,6 +17,7 @@ import (
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
+	"github.com/chain4travel/camino-messenger-bot/internal/local"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -106,6 +107,19 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	// TODO: @VjeraTurk Ensure multiple versions compatibility
+	cmAccountUpToDate, err := cmAccounts.IsCMAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)
+	if err != nil {
+		logger.Errorf("Failed to compare implementations: %v", err)
+		return nil, err
+	}
+
+	if !cmAccountUpToDate {
+		logger.Warn("⏫ CMAccount needs an upgrade!")
+	} else {
+		logger.Info("✅ CMAccount is using the latest implementation.")
+	}
+
 	responseHandler, err := messaging.NewResponseHandler(
 		cfg.BotKey,
 		evmClient,
@@ -187,6 +201,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cmAccounts,
 	)
 
+	localService := local.NewService(logger)
+
 	// rpc server for incoming requests
 	rpcServer, err := server.NewServer(
 		cfg.RPCServer,
@@ -194,6 +210,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		tracer,
 		messageProcessor,
 		serviceRegistry,
+		localService,
 		cfg.DeveloperMode,
 	)
 	if err != nil {

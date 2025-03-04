@@ -13,6 +13,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/price"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -119,8 +120,8 @@ func (h *evmResponseHandler) processMintResponseV1(ctx context.Context, response
 	response.BuyTransactionId = receipt.TxHash.Hex()
 }
 
-func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *typesv1.Price) (*big.Int, common.Address, *big.Int, error) {
-	if price == nil {
+func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, priceV1 *typesv1.Price) (*big.Int, common.Address, *big.Int, error) {
+	if priceV1 == nil {
 		return nil, common.Address{}, nil, errMissingPrice
 	}
 
@@ -129,9 +130,9 @@ func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *type
 	paymentToken := booking.NativePaymentToken
 	var err error
 
-	switch currency := price.Currency.GetCurrency().(type) {
+	switch currency := priceV1.Currency.GetCurrency().(type) {
 	case *typesv1.Currency_NativeToken:
-		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
+		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, price.NativeTokenDecimals)
 	case *typesv1.Currency_TokenCurrency:
 		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
 		// if contract address is invalid in any way, Decimals() will return an error
@@ -140,10 +141,10 @@ func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, price *type
 			return nil, common.Address{}, nil, fmt.Errorf("failed to fetch token decimals: %w", decErr)
 		}
 
-		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, tokenDecimals)
+		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, tokenDecimals)
 		paymentToken = contractAddress
 	case *typesv1.Currency_IsoCurrency:
-		priceBigInt, err = booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.ISODecimals)
+		priceBigInt, err = price.ToBigInt(priceV1.Value, priceV1.Decimals, price.ISODecimals)
 		paymentToken = booking.ISOPaymentToken
 		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
 	default:

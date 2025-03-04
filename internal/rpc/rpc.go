@@ -15,7 +15,8 @@ import (
 var ErrNilResponseHeader = errors.New("response header is nil")
 
 type RequestHandler interface {
-	HandleRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
+	HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
+	HandleLocalRequest(ctx context.Context, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
 }
 
 type Client interface {

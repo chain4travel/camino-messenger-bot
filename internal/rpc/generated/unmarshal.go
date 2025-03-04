@@ -5,18 +5,22 @@ package generated
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -48,6 +52,18 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &accommodationv2.AccommodationSearchRequest{}
 	case AccommodationSearchServiceV2Response:
 		*destination = &accommodationv2.AccommodationSearchResponse{}
+	case AccommodationProductInfoServiceV3Request:
+		*destination = &accommodationv3.AccommodationProductInfoRequest{}
+	case AccommodationProductInfoServiceV3Response:
+		*destination = &accommodationv3.AccommodationProductInfoResponse{}
+	case AccommodationProductListServiceV3Request:
+		*destination = &accommodationv3.AccommodationProductListRequest{}
+	case AccommodationProductListServiceV3Response:
+		*destination = &accommodationv3.AccommodationProductListResponse{}
+	case AccommodationSearchServiceV3Request:
+		*destination = &accommodationv3.AccommodationSearchRequest{}
+	case AccommodationSearchServiceV3Response:
+		*destination = &accommodationv3.AccommodationSearchResponse{}
 	case ActivityProductInfoServiceV1Request:
 		*destination = &activityv1.ActivityProductInfoRequest{}
 	case ActivityProductInfoServiceV1Response:
@@ -72,6 +88,18 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &activityv2.ActivitySearchRequest{}
 	case ActivitySearchServiceV2Response:
 		*destination = &activityv2.ActivitySearchResponse{}
+	case ActivityProductInfoServiceV3Request:
+		*destination = &activityv3.ActivityProductInfoRequest{}
+	case ActivityProductInfoServiceV3Response:
+		*destination = &activityv3.ActivityProductInfoResponse{}
+	case ActivityProductListServiceV3Request:
+		*destination = &activityv3.ActivityProductListRequest{}
+	case ActivityProductListServiceV3Response:
+		*destination = &activityv3.ActivityProductListResponse{}
+	case ActivitySearchServiceV3Request:
+		*destination = &activityv3.ActivitySearchRequest{}
+	case ActivitySearchServiceV3Response:
+		*destination = &activityv3.ActivitySearchResponse{}
 	case MintServiceV1Request:
 		*destination = &bookv1.MintRequest{}
 	case MintServiceV1Response:
@@ -88,6 +116,14 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &bookv2.ValidationRequest{}
 	case ValidationServiceV2Response:
 		*destination = &bookv2.ValidationResponse{}
+	case MintServiceV3Request:
+		*destination = &bookv3.MintRequest{}
+	case MintServiceV3Response:
+		*destination = &bookv3.MintResponse{}
+	case ValidationServiceV3Request:
+		*destination = &bookv3.ValidationRequest{}
+	case ValidationServiceV3Response:
+		*destination = &bookv3.ValidationResponse{}
 	case CountryEntryRequirementsServiceV1Request:
 		*destination = &infov1.CountryEntryRequirementsRequest{}
 	case CountryEntryRequirementsServiceV1Response:
@@ -96,18 +132,6 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &infov2.CountryEntryRequirementsRequest{}
 	case CountryEntryRequirementsServiceV2Response:
 		*destination = &infov2.CountryEntryRequirementsResponse{}
-	case InsuranceProductInfoServiceV1Request:
-		*destination = &insurancev1.InsuranceProductInfoRequest{}
-	case InsuranceProductInfoServiceV1Response:
-		*destination = &insurancev1.InsuranceProductInfoResponse{}
-	case InsuranceProductListServiceV1Request:
-		*destination = &insurancev1.InsuranceProductListRequest{}
-	case InsuranceProductListServiceV1Response:
-		*destination = &insurancev1.InsuranceProductListResponse{}
-	case InsuranceSearchServiceV1Request:
-		*destination = &insurancev1.InsuranceSearchRequest{}
-	case InsuranceSearchServiceV1Response:
-		*destination = &insurancev1.InsuranceSearchResponse{}
 	case PingServiceV1Request:
 		*destination = &pingv1.PingRequest{}
 	case PingServiceV1Response:
@@ -128,6 +152,14 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &seat_mapv2.SeatMapRequest{}
 	case SeatMapServiceV2Response:
 		*destination = &seat_mapv2.SeatMapResponse{}
+	case SeatMapAvailabilityServiceV3Request:
+		*destination = &seat_mapv3.SeatMapAvailabilityRequest{}
+	case SeatMapAvailabilityServiceV3Response:
+		*destination = &seat_mapv3.SeatMapAvailabilityResponse{}
+	case SeatMapServiceV3Request:
+		*destination = &seat_mapv3.SeatMapRequest{}
+	case SeatMapServiceV3Response:
+		*destination = &seat_mapv3.SeatMapResponse{}
 	case TransportSearchServiceV1Request:
 		*destination = &transportv1.TransportSearchRequest{}
 	case TransportSearchServiceV1Response:
@@ -136,6 +168,14 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &transportv2.TransportSearchRequest{}
 	case TransportSearchServiceV2Response:
 		*destination = &transportv2.TransportSearchResponse{}
+	case TransportProductListServiceV3Request:
+		*destination = &transportv3.TransportProductListRequest{}
+	case TransportProductListServiceV3Response:
+		*destination = &transportv3.TransportProductListResponse{}
+	case TransportSearchServiceV3Request:
+		*destination = &transportv3.TransportSearchRequest{}
+	case TransportSearchServiceV3Response:
+		*destination = &transportv3.TransportSearchResponse{}
 	default:
 		return types.ErrUnknownMessageType
 	}

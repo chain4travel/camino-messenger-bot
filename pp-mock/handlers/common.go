@@ -7,6 +7,9 @@ import (
 	"time"
 
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	"google.golang.org/protobuf/proto"
 )
 
 const DefaultPricePerNight = 105.33
@@ -21,4 +24,58 @@ func IsTravelPeriodAllowed(travelPeriod *typesv1.TravelPeriod) bool {
 	endDate := time.Now().Add(time.Hour * 24 * 60) // 60 days from now
 
 	return DateV1ToTime(travelPeriod.StartDate).After(startDate) && DateV1ToTime(travelPeriod.EndDate).Before(endDate) && DateV1ToTime(travelPeriod.StartDate).Before(DateV1ToTime(travelPeriod.EndDate))
+}
+
+func AreTravelDatesValid(departureDate, arrivalDate *typesv1.Date) bool {
+	// Convert to time.Time or perform checks directly based on your logic
+	if departureDate == nil || arrivalDate == nil {
+		return false
+	}
+
+	// Fail if departure is in the past
+	if time.Now().After(DateV1ToTime(departureDate)) {
+		return false
+	}
+
+	// Fail if departure is after arrival
+	return !DateV1ToTime(departureDate).After(DateV1ToTime(arrivalDate))
+}
+
+// GetTravellerIDsV1 extracts traveller IDs from []*typesv1.BasicTraveller
+func GetTravellerIDsV1(travellers []*typesv1.BasicTraveller) []int32 {
+	ids := make([]int32, len(travellers))
+	for i, traveller := range travellers {
+		ids[i] = traveller.TravellerId
+	}
+	return ids
+}
+
+// GetTravellerIDsV2 extracts traveller IDs from []*typesv2.BasicTraveller
+func GetTravellerIDsV2(travellers []*typesv2.BasicTraveller) []int32 {
+	ids := make([]int32, len(travellers))
+	for i, traveller := range travellers {
+		ids[i] = traveller.TravellerId
+	}
+	return ids
+}
+
+// GetTravellerIDsV3 extracts traveller IDs from []*typesv3.BasicTraveller
+func GetTravellerIDsV3(travellers []*typesv3.BasicTraveller) []int32 {
+	ids := make([]int32, len(travellers))
+	for i, traveller := range travellers {
+		ids[i] = traveller.TravellerId
+	}
+	return ids
+}
+
+func CloneProtoSlice[T proto.Message](source []T) []T {
+	clone := make([]T, len(source))
+	for i, elem := range source {
+		clone[i] = proto.Clone(elem).(T)
+	}
+	return clone
+}
+
+func CloneProto[T proto.Message](source T) T {
+	return proto.Clone(source).(T)
 }

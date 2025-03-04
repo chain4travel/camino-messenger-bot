@@ -5,18 +5,22 @@ package generated
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v1/seat_mapv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v3/seat_mapv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	"google.golang.org/grpc"
 )
 
@@ -28,28 +32,37 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		AccommodationProductInfoServiceV2: accommodationv2grpc.NewAccommodationProductInfoServiceClient(connection),
 		AccommodationProductListServiceV2: accommodationv2grpc.NewAccommodationProductListServiceClient(connection),
 		AccommodationSearchServiceV2:      accommodationv2grpc.NewAccommodationSearchServiceClient(connection),
+		AccommodationProductInfoServiceV3: accommodationv3grpc.NewAccommodationProductInfoServiceClient(connection),
+		AccommodationProductListServiceV3: accommodationv3grpc.NewAccommodationProductListServiceClient(connection),
+		AccommodationSearchServiceV3:      accommodationv3grpc.NewAccommodationSearchServiceClient(connection),
 		ActivityProductInfoServiceV1:      activityv1grpc.NewActivityProductInfoServiceClient(connection),
 		ActivityProductListServiceV1:      activityv1grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV1:           activityv1grpc.NewActivitySearchServiceClient(connection),
 		ActivityProductInfoServiceV2:      activityv2grpc.NewActivityProductInfoServiceClient(connection),
 		ActivityProductListServiceV2:      activityv2grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV2:           activityv2grpc.NewActivitySearchServiceClient(connection),
+		ActivityProductInfoServiceV3:      activityv3grpc.NewActivityProductInfoServiceClient(connection),
+		ActivityProductListServiceV3:      activityv3grpc.NewActivityProductListServiceClient(connection),
+		ActivitySearchServiceV3:           activityv3grpc.NewActivitySearchServiceClient(connection),
 		MintServiceV1:                     bookv1grpc.NewMintServiceClient(connection),
 		ValidationServiceV1:               bookv1grpc.NewValidationServiceClient(connection),
 		MintServiceV2:                     bookv2grpc.NewMintServiceClient(connection),
 		ValidationServiceV2:               bookv2grpc.NewValidationServiceClient(connection),
+		MintServiceV3:                     bookv3grpc.NewMintServiceClient(connection),
+		ValidationServiceV3:               bookv3grpc.NewValidationServiceClient(connection),
 		CountryEntryRequirementsServiceV1: infov1grpc.NewCountryEntryRequirementsServiceClient(connection),
 		CountryEntryRequirementsServiceV2: infov2grpc.NewCountryEntryRequirementsServiceClient(connection),
-		InsuranceProductInfoServiceV1:     insurancev1grpc.NewInsuranceProductInfoServiceClient(connection),
-		InsuranceProductListServiceV1:     insurancev1grpc.NewInsuranceProductListServiceClient(connection),
-		InsuranceSearchServiceV1:          insurancev1grpc.NewInsuranceSearchServiceClient(connection),
 		PingServiceV1:                     pingv1grpc.NewPingServiceClient(connection),
 		SeatMapAvailabilityServiceV1:      seat_mapv1grpc.NewSeatMapAvailabilityServiceClient(connection),
 		SeatMapServiceV1:                  seat_mapv1grpc.NewSeatMapServiceClient(connection),
 		SeatMapAvailabilityServiceV2:      seat_mapv2grpc.NewSeatMapAvailabilityServiceClient(connection),
 		SeatMapServiceV2:                  seat_mapv2grpc.NewSeatMapServiceClient(connection),
+		SeatMapAvailabilityServiceV3:      seat_mapv3grpc.NewSeatMapAvailabilityServiceClient(connection),
+		SeatMapServiceV3:                  seat_mapv3grpc.NewSeatMapServiceClient(connection),
 		TransportSearchServiceV1:          transportv1grpc.NewTransportSearchServiceClient(connection),
 		TransportSearchServiceV2:          transportv2grpc.NewTransportSearchServiceClient(connection),
+		TransportProductListServiceV3:     transportv3grpc.NewTransportProductListServiceClient(connection),
+		TransportSearchServiceV3:          transportv3grpc.NewTransportSearchServiceClient(connection),
 	}
 }
 
@@ -60,26 +73,35 @@ type Client struct {
 	AccommodationProductInfoServiceV2 accommodationv2grpc.AccommodationProductInfoServiceClient
 	AccommodationProductListServiceV2 accommodationv2grpc.AccommodationProductListServiceClient
 	AccommodationSearchServiceV2      accommodationv2grpc.AccommodationSearchServiceClient
+	AccommodationProductInfoServiceV3 accommodationv3grpc.AccommodationProductInfoServiceClient
+	AccommodationProductListServiceV3 accommodationv3grpc.AccommodationProductListServiceClient
+	AccommodationSearchServiceV3      accommodationv3grpc.AccommodationSearchServiceClient
 	ActivityProductInfoServiceV1      activityv1grpc.ActivityProductInfoServiceClient
 	ActivityProductListServiceV1      activityv1grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV1           activityv1grpc.ActivitySearchServiceClient
 	ActivityProductInfoServiceV2      activityv2grpc.ActivityProductInfoServiceClient
 	ActivityProductListServiceV2      activityv2grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV2           activityv2grpc.ActivitySearchServiceClient
+	ActivityProductInfoServiceV3      activityv3grpc.ActivityProductInfoServiceClient
+	ActivityProductListServiceV3      activityv3grpc.ActivityProductListServiceClient
+	ActivitySearchServiceV3           activityv3grpc.ActivitySearchServiceClient
 	MintServiceV1                     bookv1grpc.MintServiceClient
 	ValidationServiceV1               bookv1grpc.ValidationServiceClient
 	MintServiceV2                     bookv2grpc.MintServiceClient
 	ValidationServiceV2               bookv2grpc.ValidationServiceClient
+	MintServiceV3                     bookv3grpc.MintServiceClient
+	ValidationServiceV3               bookv3grpc.ValidationServiceClient
 	CountryEntryRequirementsServiceV1 infov1grpc.CountryEntryRequirementsServiceClient
 	CountryEntryRequirementsServiceV2 infov2grpc.CountryEntryRequirementsServiceClient
-	InsuranceProductInfoServiceV1     insurancev1grpc.InsuranceProductInfoServiceClient
-	InsuranceProductListServiceV1     insurancev1grpc.InsuranceProductListServiceClient
-	InsuranceSearchServiceV1          insurancev1grpc.InsuranceSearchServiceClient
 	PingServiceV1                     pingv1grpc.PingServiceClient
 	SeatMapAvailabilityServiceV1      seat_mapv1grpc.SeatMapAvailabilityServiceClient
 	SeatMapServiceV1                  seat_mapv1grpc.SeatMapServiceClient
 	SeatMapAvailabilityServiceV2      seat_mapv2grpc.SeatMapAvailabilityServiceClient
 	SeatMapServiceV2                  seat_mapv2grpc.SeatMapServiceClient
+	SeatMapAvailabilityServiceV3      seat_mapv3grpc.SeatMapAvailabilityServiceClient
+	SeatMapServiceV3                  seat_mapv3grpc.SeatMapServiceClient
 	TransportSearchServiceV1          transportv1grpc.TransportSearchServiceClient
 	TransportSearchServiceV2          transportv2grpc.TransportSearchServiceClient
+	TransportProductListServiceV3     transportv3grpc.TransportProductListServiceClient
+	TransportSearchServiceV3          transportv3grpc.TransportSearchServiceClient
 }

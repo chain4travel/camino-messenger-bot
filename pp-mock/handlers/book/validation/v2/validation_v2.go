@@ -41,12 +41,10 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 		response := bookv2.ValidationResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{
-					{
-						Message: "Invalid validation request: missing validation object or search identifier",
-						Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-					},
-				},
+				Alerts: []*typesv1.Alert{{
+					Message: "Invalid validation request: missing validation object or search identifier",
+					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+				}},
 			},
 		}
 		return &response, nil

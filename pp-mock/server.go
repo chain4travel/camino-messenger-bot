@@ -13,22 +13,32 @@ import (
 	"strconv"
 	"syscall"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
+
 	handlers_accommodation_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v1"
 	handlers_accommodation_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v2"
+	handlers_accommodation_v3 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v3"
 	handlers_mint_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/mint/v1"
 	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/mint/v2"
 	handlers_validation_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/validation/v1"
 	handlers_validation_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/book/validation/v2"
 	handlers_notification_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/notification/v1"
 	handlers_ping_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/ping/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	handlers_transport_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/transport/v1"
+	handlers_transport_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/transport/v2"
+	handlers_transport_v3 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/transport/v3"
 )
 
 func main() {
@@ -53,6 +63,11 @@ func run() error {
 	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationProductInfoV2Server{})
 	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, &handlers_accommodation_v2.AccommodationProductListV2Server{})
 
+	// Accommodation V3
+	accommodationv3grpc.RegisterAccommodationSearchServiceServer(grpcServer, &handlers_accommodation_v3.AccommodationSearchV3Server{})
+	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &handlers_accommodation_v3.AccommodationProductInfoV3Server{})
+	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, &handlers_accommodation_v3.AccommodationProductListV3Server{})
+
 	// Book - mint & validation
 	// Book - Mint
 	bookv2grpc.RegisterMintServiceServer(grpcServer, &handlers_mint_v2.MintServiceV2Server{})
@@ -66,6 +81,14 @@ func run() error {
 
 	// Notification
 	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, &handlers_notification_v1.NotificationServiceV1Server{})
+
+	// Transport
+	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, &handlers_transport_v1.TransportSearchV1Server{})
+
+	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &handlers_transport_v2.TransportSearchV2Server{})
+
+	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, &handlers_transport_v3.TransportProductListV3Server{})
+	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, &handlers_transport_v3.TransportSearchV3Server{})
 
 	reflection.Register(grpcServer)
 

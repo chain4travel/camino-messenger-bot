@@ -14,6 +14,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/version"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var rootCmd = &cobra.Command{
@@ -51,6 +52,7 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	var zapLoggerConfig zap.Config
 	if configReader.IsDevelopmentMode() {
 		zapLoggerConfig = zap.NewDevelopmentConfig()
+		zapLoggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	} else {
 		zapLoggerConfig = zap.NewProductionConfig()
 	}

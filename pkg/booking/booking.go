@@ -28,11 +28,6 @@ const (
 	BookingStatusCancelled
 )
 
-const (
-	NativeTokenDecimals = int32(18)
-	ISODecimals         = int32(6)
-)
-
 var (
 	// Special address that indicates BookinToken payment will be in native coin of
 	// the network (CAM).

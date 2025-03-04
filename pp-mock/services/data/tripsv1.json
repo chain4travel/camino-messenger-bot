@@ -1,0 +1,118 @@
+[
+    {
+        "segments": [
+            {
+                "segment_id": "SEG1234",
+                "departure": {
+                    "date_time": {
+                        "seconds": 1715775600,
+                        "nanos": 0
+                    },
+                    "location_code": {
+                        "code": "PMI",
+                        "type": 2
+                    }
+                },
+                "arrival": {
+                    "date_time": {
+                        "seconds": 1715779200,
+                        "nanos": 0
+                    },
+                    "location_code": {
+                        "code": "BCN",
+                        "type": 2
+                    }
+                },
+                "service_type_code": "Y",
+                "service_type_description": "Economy Class",
+                "product_code": {
+                    "code": "IATA4589",
+                    "type": 3
+                },
+                "price": {
+                    "value": "15000",
+                    "decimals": 2,
+                    "currency": {
+                        "iso_currency": "ISO_CURRENCY_EUR"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "segments": [
+            {
+                "segment_id": "SEG234",
+                "departure": {
+                    "date_time": {
+                        "seconds": 1715782800,
+                        "nanos": 0
+                    },
+                    "location_code": {
+                        "code": "BCN",
+                        "type": 2
+                    }
+                },
+                "arrival": {
+                    "date_time": {
+                        "seconds": 1715786400,
+                        "nanos": 0
+                    },
+                    "location_code": {
+                        "code": "MAD",
+                        "type": 2
+                    }
+                },
+                "service_type_code": "J",
+                "service_type_description": "Business Class",
+                "product_code": {
+                    "code": "IATA1234",
+                    "type": 3
+                },
+                "price": {
+                    "value": "30000",
+                    "decimals": 2,
+                    "currency": {
+                        "iso_currency": "ISO_CURRENCY_EUR"
+                    }
+                }
+            },
+            {
+                "segment_id": "SEG235",
+                "departure": {
+                    "date_time": {
+                        "seconds": 1715790000,
+                        "nanos": 0
+                    },
+                    "location_code": {
+                        "code": "MAD",
+                        "type": 2
+                    }
+                },
+                "arrival": {
+                    "date_time": {
+                        "seconds": 1715793600,
+                        "nanos": 0
+                    },
+                    "location_code": {
+                        "code": "LIS",
+                        "type": 2
+                    }
+                },
+                "service_type_code": "F",
+                "service_type_description": "First Class",
+                "product_code": {
+                    "code": "IATA5678",
+                    "type": 3
+                },
+                "price": {
+                    "value": "45000",
+                    "decimals": 2,
+                    "currency": {
+                        "iso_currency": "ISO_CURRENCY_EUR"
+                    }
+                }
+            }
+        ]
+    }
+]

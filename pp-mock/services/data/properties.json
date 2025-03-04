@@ -522,8 +522,7 @@
                 "nanos": 0
             },
             "supplier_code": {
-                "supplier_code": "HOTEL345678",
-                "supplier_number": 654
+                "supplier_code": "HOTEL345678"
             },
             "product_codes": [
                 {
@@ -767,8 +766,7 @@
                 "nanos": 0
             },
             "supplier_code": {
-                "supplier_code": "HOTEL901234",
-                "supplier_number": 123
+                "supplier_code": "HOTEL901234"
             },
             "product_codes": [
                 {

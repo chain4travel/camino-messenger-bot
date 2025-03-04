@@ -17,6 +17,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -211,15 +212,13 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*accommodationv2.AccommodationSearchQuery{
-				{
-					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-						SupplierCodes: []*typesv2.SupplierProductCode{
-							{SupplierCode: hotelCode},
-						},
+			Queries: []*accommodationv2.AccommodationSearchQuery{{
+				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+					SupplierCodes: []*typesv2.SupplierProductCode{
+						{SupplierCode: hotelCode},
 					},
 				},
-			},
+			}},
 		},
 	)
 	require.NoError(t, err)
@@ -248,27 +247,25 @@ func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*accommodationv2.AccommodationSearchQuery{
-				{
-					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-						SupplierCodes: []*typesv2.SupplierProductCode{
-							{SupplierCode: hotelCode},
-						},
-					},
-					TravelPeriod: &typesv1.TravelPeriod{
-						StartDate: &typesv1.Date{
-							Year:  int32(startDate.Year()),  //nolint:gosec
-							Month: int32(startDate.Month()), //nolint:gosec
-							Day:   int32(startDate.Day()),   //nolint:gosec
-						},
-						EndDate: &typesv1.Date{
-							Year:  int32(endDate.Year()),  //nolint:gosec
-							Month: int32(endDate.Month()), //nolint:gosec
-							Day:   int32(endDate.Day()),   //nolint:gosec
-						},
+			Queries: []*accommodationv2.AccommodationSearchQuery{{
+				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+					SupplierCodes: []*typesv2.SupplierProductCode{
+						{SupplierCode: hotelCode},
 					},
 				},
-			},
+				TravelPeriod: &typesv1.TravelPeriod{
+					StartDate: &typesv1.Date{
+						Year:  int32(startDate.Year()),  //nolint:gosec
+						Month: int32(startDate.Month()), //nolint:gosec
+						Day:   int32(startDate.Day()),   //nolint:gosec
+					},
+					EndDate: &typesv1.Date{
+						Year:  int32(endDate.Year()),  //nolint:gosec
+						Month: int32(endDate.Month()), //nolint:gosec
+						Day:   int32(endDate.Day()),   //nolint:gosec
+					},
+				},
+			}},
 		},
 	)
 	require.NoError(t, err)
@@ -297,27 +294,25 @@ func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*accommodationv2.AccommodationSearchQuery{
-				{
-					SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-						SupplierCodes: []*typesv2.SupplierProductCode{
-							{SupplierCode: hotelCode},
-						},
-					},
-					TravelPeriod: &typesv1.TravelPeriod{
-						StartDate: &typesv1.Date{
-							Year:  int32(startDate.Year()),  //nolint:gosec
-							Month: int32(startDate.Month()), //nolint:gosec
-							Day:   int32(startDate.Day()),   //nolint:gosec
-						},
-						EndDate: &typesv1.Date{
-							Year:  int32(endDate.Year()),  //nolint:gosec
-							Month: int32(endDate.Month()), //nolint:gosec
-							Day:   int32(endDate.Day()),   //nolint:gosec
-						},
+			Queries: []*accommodationv2.AccommodationSearchQuery{{
+				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+					SupplierCodes: []*typesv2.SupplierProductCode{
+						{SupplierCode: hotelCode},
 					},
 				},
-			},
+				TravelPeriod: &typesv1.TravelPeriod{
+					StartDate: &typesv1.Date{
+						Year:  int32(startDate.Year()),  //nolint:gosec
+						Month: int32(startDate.Month()), //nolint:gosec
+						Day:   int32(startDate.Day()),   //nolint:gosec
+					},
+					EndDate: &typesv1.Date{
+						Year:  int32(endDate.Year()),  //nolint:gosec
+						Month: int32(endDate.Month()), //nolint:gosec
+						Day:   int32(endDate.Day()),   //nolint:gosec
+					},
+				},
+			}},
 		},
 	)
 	require.NoError(t, err)
@@ -344,28 +339,29 @@ func TestAccommodationProductSearchServiceV2WithTravelPeriod(
 
 	req := &accommodationv2.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		Queries: []*accommodationv2.AccommodationSearchQuery{
-			{
-				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-					SupplierCodes: []*typesv2.SupplierProductCode{
-						{SupplierCode: "HOTEL345678"},
-						{SupplierCode: "HOTEL789012"},
-					},
-				},
-				TravelPeriod: &typesv1.TravelPeriod{
-					StartDate: &typesv1.Date{
-						Year:  int32(startDate.Year()),  //nolint:gosec
-						Month: int32(startDate.Month()), //nolint:gosec
-						Day:   int32(startDate.Day()),   //nolint:gosec
-					},
-					EndDate: &typesv1.Date{
-						Year:  int32(endDate.Year()),  //nolint:gosec
-						Month: int32(endDate.Month()), //nolint:gosec
-						Day:   int32(endDate.Day()),   //nolint:gosec
-					},
+		SearchParametersGeneric: &typesv2.SearchParameters{
+			Currency: &typesv2.Currency{Currency: &typesv2.Currency_NativeToken{}},
+		},
+		Queries: []*accommodationv2.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: "HOTEL345678"},
+					{SupplierCode: "HOTEL789012"},
 				},
 			},
-		},
+			TravelPeriod: &typesv1.TravelPeriod{
+				StartDate: &typesv1.Date{
+					Year:  int32(startDate.Year()),  //nolint:gosec
+					Month: int32(startDate.Month()), //nolint:gosec
+					Day:   int32(startDate.Day()),   //nolint:gosec
+				},
+				EndDate: &typesv1.Date{
+					Year:  int32(endDate.Year()),  //nolint:gosec
+					Month: int32(endDate.Month()), //nolint:gosec
+					Day:   int32(endDate.Day()),   //nolint:gosec
+				},
+			},
+		}},
 	}
 
 	tt.logger.Debug("AccommodationSearchServiceV2.AccommodationSearch request:\n", protoMessageToJSON(tt, req))
@@ -507,13 +503,13 @@ func VerifyBlockchainState(
 	tt *Test,
 	distributorBot *bot.Bot,
 	tokenID uint64,
-	price *typesv2.Price,
+	tokenPrice *typesv2.Price,
 ) {
 	bigTokenID := big.NewInt(0).SetUint64(tokenID)
 	callOpts := &bind.CallOpts{Context: ctx}
 
-	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, price))
-	expectedReservationPrice, err := booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
+	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, tokenPrice))
+	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, tokenPrice.Decimals, price.NativeTokenDecimals)
 	require.NoError(t, err)
 
 	reservationPrice, err := tt.caminoNetwork.Client.BookingToken.GetReservationPrice(callOpts, bigTokenID)

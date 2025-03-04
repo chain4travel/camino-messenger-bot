@@ -4,15 +4,22 @@
 package tests
 
 import (
+	"context"
 	"testing"
 
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	messageMetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
+	grpcMetadata "google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
+
+func requestContext(ctx context.Context, metadata *messageMetadata.Metadata) context.Context {
+	return grpcMetadata.NewOutgoingContext(ctx, metadata.ToGrpcMD())
+}
 
 // Service function to convert the responses into pretty-printed JSON.
 // Only used for debugging and test creation.
