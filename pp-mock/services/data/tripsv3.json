@@ -51,8 +51,8 @@
     },
     {
         "supplier_code": {
-            "supplier_code": "SUP456",
-            "supplier_number": 456
+            "supplier_code": "LH",
+            "supplier_number": 7453
         },
         "price": {
             "value": "75000",

@@ -17,6 +17,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 )
 
 // Setting up the basic applications and services used in all sub-test-cases
@@ -59,16 +60,17 @@ func TestTransportProductListServiceV3(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-	/*
-		hotelCodes := []string{
-			"HOTEL123456",
-			"HOTEL789012",
-			"HOTEL345678",
-			"HOTEL901234",
-			"HOTEL567890",
-		}
-	*/
-	//expectedTotalResults := len(hotelCodes)
+	productCodes := []*typesv2.SupplierProductCode{
+		{
+			SupplierCode:   "AB",
+			SupplierNumber: 4567,
+		},
+		{
+			SupplierCode:   "LH",
+			SupplierNumber: 7453,
+		},
+	}
+	expectedTotalResults := len(productCodes)
 
 	resp, err := distributorBot.TransportProductListServiceV3.TransportProductList(
 		requestContext(ctx, &metadata.Metadata{
@@ -81,19 +83,25 @@ func TestTransportProductListServiceV3(
 	require.NoError(t, err)
 
 	tt.logger.Debug("TransportProductListServiceV3.TransportProductList response:\n", protoMessageToJSON(tt, resp))
-	/*
-		require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-		require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-		// The response should contain all properties defined by the pp-mock (defined by hotelCodes/expectedTotalResults)
-		require.Len(t, resp.Properties, expectedTotalResults, "unexpected number of properties in response")
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-		for i := range hotelCodes {
-			require.NotEmpty(t, resp.Properties[i].SupplierCode, "unexpected empty response properties[%d].SupplierCode", i)
-			require.NotEmpty(t, resp.Properties[i].SupplierCode.SupplierCode, "unexpected empty response properties[%d].SupplierCode.SupplierCode", i)
-			require.Contains(t, hotelCodes, resp.Properties[i].SupplierCode.SupplierCode, "unexpected response properties[%d].SupplierCode.SupplierCode", i)
+	// The response should contain all products defined by the pp-mock (defined by productCodes/expectedTotalResults)
+	require.Len(t, resp.Trips, expectedTotalResults, "unexpected number of products in response")
+
+	// iterate over the trips in the result and check if the supplier product code matches the product code definition
+	// note that the order might be different, so we need to check all of them
+	for _, trip := range resp.Trips {
+		found := false
+		for i := range expectedTotalResults {
+			if proto.Equal(trip.SupplierCode, productCodes[i]) {
+				found = true
+				break
+			}
 		}
-	*/
+		require.True(t, found, "unexpected response products")
+	}
 }
 
 /*
