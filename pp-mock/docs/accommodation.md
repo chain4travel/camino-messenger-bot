@@ -1,6 +1,18 @@
-# Accommodation Product List V1 & V2
+# Accommodation Product List
 
 Used to retrieve a list of all accommodation products of a supplier.
+
+### Request message example
+
+```
+{
+    "modified_after":
+    {
+        "nanos": 0,
+        "seconds": "1710489050"
+    }
+}
+```
 
 ### Response message example
 
@@ -22,11 +34,15 @@ Used to retrieve a list of all accommodation products of a supplier.
         },
         ...
     ],
-    "header": null
+    "header": {
+        "alerts" : [],
+        "base_header" :  null,
+        "status: "STATUS_TYPE_SUCCESS"
+    }
 }
 ```
 
-# Accommodation Product Info V1 & V2
+# Accommodation Product Info
 
 Used to retrieve detailed information about a specific accommodation product.
 
@@ -40,11 +56,11 @@ Used to retrieve detailed information about a specific accommodation product.
 
 ### Mock data service available supplier codes for testing:
 
-- HTL123456
-- HTL789012
-- HTL345678
-- HTL901234
-- HTL567890
+- HOTEL123456
+- HOTEL789012
+- HOTEL345678
+- HOTEL901234
+- HOTEL567890
 
 ### Mock data service available languages for testing:
 
@@ -61,10 +77,10 @@ Used to retrieve detailed information about a specific accommodation product.
 {
     "supplier_codes": [
         {
-            "supplier_code": "HTL567890"
+            "supplier_code": "HOTEL567890"
         },
         {
-            "supplier_code": "HTL123456"
+            "supplier_code": "HOTEL123456"
         }
     ],
     "languages": [
@@ -111,7 +127,7 @@ Used to retrieve detailed information about a specific accommodation product.
                     "nanos": 0
                 },
                 "supplier_code": {
-                    "supplier_code": "HTL123456"
+                    "supplier_code": "HOTEL123456"
                 },
                 "name": "Sunset Beach Resort & Spa",
                 "chain": "Marriott",
@@ -141,11 +157,15 @@ Used to retrieve detailed information about a specific accommodation product.
         },
         ...
     ],
-    "header": null
+    "header": {
+        "alerts" : [],
+        "base_header" :  null,
+        "status: "STATUS_TYPE_SUCCESS"
+    }
 }
 ```
 
-# Accommodation Search V1 & V2
+# Accommodation Search
 
 Used to search availability for accommodation products based on the provided criteria.
 
@@ -155,17 +175,18 @@ Search criteria:
 - travel_period (start_date, end_date)
 - supplier_codes (array of supplier codes to filter by)
 
-There are restrictions on the travel period. Searching accommodations for travel period outside of mentioned dates is considered invalid - meaning there are no bookings available. Valid search query that will return results for this partner plugin:
+A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)
+There are restrictions on the travel period. Searching accommodations for travel period outside of mentioned dates is considered invalid.
 
-- start_date (year, month, day) 2025-06-01
-- end_date (year, month, day) 2025-06-30
+In SearchParametersGeneric, Currency is required to return the result prices in the provided currency.
 
 Available supplier codes for the accommodation search:
-- HTL123456
-- HTL789012
-- HTL345678
-- HTL901234
-- HTL567890
+
+- HOTEL123456
+- HOTEL789012
+- HOTEL345678
+- HOTEL901234
+- HOTEL567890
 
 Available geo tree locations for the accommodation search (country, region, city_or_resort):
 
@@ -174,6 +195,7 @@ Available geo tree locations for the accommodation search (country, region, city
 - city_or_resort (Mallorca, Arosa, Alanya, Berlin, Maui)
 
 ## Request message example
+
 ```
 {
     "queries": [
@@ -189,12 +211,12 @@ Available geo tree locations for the accommodation search (country, region, city
             "travel_period": {
                 "start_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 15
                 },
                 "end_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 18
                 }
             }
@@ -204,19 +226,19 @@ Available geo tree locations for the accommodation search (country, region, city
             "search_parameters_accommodation": {
                 "supplier_codes": [
                     {
-                        "supplier_code": "HTL123456"
+                        "supplier_code": "HOTEL123456"
                     }
                 ]
             },
             "travel_period": {
                 "start_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 15
                 },
                 "end_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 18
                 }
             }
@@ -235,6 +257,7 @@ Available geo tree locations for the accommodation search (country, region, city
 Used for validating the availability of the search query (accommodation search).
 
 ## Request message example
+
 ```
 {
     "validation_object": {
@@ -251,6 +274,7 @@ Used for validating the availability of the search query (accommodation search).
 # Mint
 
 ## Request message example
+
 ```
 {
     "buyer_address": "0x1d32f368d8dc947270576773cc5E4778D7cA30Ba",

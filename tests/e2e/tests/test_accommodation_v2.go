@@ -196,8 +196,8 @@ func TestAccommodationProductInfoServiceV2(
 	require.Equal(t, resp.Properties[0].Rooms[0].TotalOccupancy.FullPayers, int32(2), "unexpected full payers")
 }
 
-// Test product search without the mandatory travel period given. Expect an error to be returned back.
-func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(
+// Test search without the mandatory travel period given. Expect an error to be returned back.
+func TestAccommodationSearchServiceV2WithoutTravelPeriod(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -227,8 +227,8 @@ func TestAccommodationProductSearchServiceV2WithoutTravelPeriod(
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-// Test product search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned.
-func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(
+// Test search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned.
+func TestAccommodationSearchServiceV2TravelPeriodOutOfBounds(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -274,8 +274,8 @@ func TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-// Test product search with wrong travel periods given: start date after end date. Expect errors to be returned.
-func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
+// Test search with wrong travel periods given: start date after end date. Expect errors to be returned.
+func TestAccommodationSearchServiceV2TravelPeriodReversed(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -321,8 +321,8 @@ func TestAccommodationProductSearchServiceV2TravelPeriodReversed(
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-// Test product search with a valid travel period. Expect valid search results.
-func TestAccommodationProductSearchServiceV2WithTravelPeriod(
+// Test search with a valid travel period. Expect valid search results.
+func TestAccommodationSearchServiceV2WithTravelPeriod(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -545,18 +545,18 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 	})
 	t.Run("Product search w/o travel period", func(t *testing.T) {
 		// ERROR path: without travel period it should return an error
-		TestAccommodationProductSearchServiceV2WithoutTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
+		TestAccommodationSearchServiceV2WithoutTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search with travel period oob", func(t *testing.T) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
-		TestAccommodationProductSearchServiceV2TravelPeriodOutOfBounds(ctx, t, tt, distributorBot, supplierBot)
+		TestAccommodationSearchServiceV2TravelPeriodOutOfBounds(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search with travel period reversed", func(t *testing.T) {
 		// ERROR path: with travel period reversed it should return an error
-		TestAccommodationProductSearchServiceV2TravelPeriodReversed(ctx, t, tt, distributorBot, supplierBot)
+		TestAccommodationSearchServiceV2TravelPeriodReversed(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
-		searchID, resultID, pricePerNight := TestAccommodationProductSearchServiceV2WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
+		searchID, resultID, pricePerNight := TestAccommodationSearchServiceV2WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 		validationID := TestValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, pricePerNight)
 		tokenID, price := TestMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 		VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)

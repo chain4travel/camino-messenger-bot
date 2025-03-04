@@ -12,12 +12,12 @@
             "travel_period": {
                 "start_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 15
                 },
                 "end_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 18
                 }
             }
@@ -27,19 +27,19 @@
             "search_parameters_accommodation": {
                 "supplier_codes": [
                     {
-                        "supplier_code": "HTL123456"
+                        "supplier_code": "HOTEL123456"
                     }
                 ]
             },
             "travel_period": {
                 "start_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 15
                 },
                 "end_date": {
                     "year": 2025,
-                    "month": 6,
+                    "month": 4,
                     "day": 18
                 }
             }
@@ -48,6 +48,11 @@
     "search_parameters_generic": {
         "currency": {
             "native_token": {}
-        }
+        },
+        "supplier_codes": [
+            {
+                "supplier_code": "HOTEL345678"
+            }
+        ]
     }
 }
