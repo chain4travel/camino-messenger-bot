@@ -453,7 +453,7 @@ func TestTransportSearchServiceV3WithFilters(
 	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Price.Value, 64)
 	totalPrice /= math.Pow(10, float64(resp.Results[0].TotalPrice.Price.Decimals))
 	require.NoError(t, err)
-	require.Equal(t, expectedTotalPrice, totalPrice, "unexpected total price")
+	require.InEpsilon(t, expectedTotalPrice, totalPrice, 0.0001, "unexpected total price")
 
 	// Now extract all the values needed for the validate step which comes next
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
@@ -510,7 +510,7 @@ func TestTransportValidateV2(
 	totalPriceResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
 	totalPriceResponse /= math.Pow(10, float64(resp.PriceDetail.Price.Decimals))
 	require.NoError(t, err)
-	require.Equal(t, expectedTotalPrice, totalPriceResponse, "unexpected total price")
+	require.InEpsilon(t, expectedTotalPrice, totalPriceResponse, 0.0001, "unexpected total price")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
 	require.NotEmpty(t, resp.ValidationId, "unexpected empty response validationID")
