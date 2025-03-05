@@ -5,17 +5,24 @@ package tests
 
 import (
 	"context"
+	"math"
+	"math/big"
+	"strconv"
 	"testing"
 	"time"
 
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -34,8 +41,8 @@ func testTransportV3Setup(
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.TransportProductListServiceV3,
 		botGenerated.TransportSearchServiceV3,
-		botGenerated.ValidationServiceV3,
-		botGenerated.MintServiceV3,
+		botGenerated.ValidationServiceV2,
+		botGenerated.MintServiceV2,
 	))
 	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 
@@ -43,8 +50,8 @@ func testTransportV3Setup(
 	supplierBot = tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.TransportProductListServiceV3, Fee: 100},
 		{Name: botGenerated.TransportSearchServiceV3, Fee: 120},
-		{Name: botGenerated.ValidationServiceV3, Fee: 130},
-		{Name: botGenerated.MintServiceV3, Fee: 140},
+		{Name: botGenerated.ValidationServiceV2, Fee: 130},
+		{Name: botGenerated.MintServiceV2, Fee: 140},
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
@@ -272,7 +279,7 @@ func TestTransportSearchServiceV3TravelDatesWrong(
 	supplierBot *bot.Bot,
 ) {
 	departureDate := time.Unix(1741959420, 0) // 14. May 2025 -- Not in mock data
-	arrivalDate := time.Unix(1742045820, 0)   // 15. May 2025 -- In mock data, but not as arrival
+	arrivalDate := time.Unix(1742045820, 0)   // 15. May 2025 -- In mock data
 
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
 		requestContext(ctx, &metadata.Metadata{
@@ -348,7 +355,6 @@ func TestTransportSearchServiceV3TravelDatesWrong(
 	require.Equal(t, 0, len(resp.Results), "unexpected number of results in response")
 }
 
-/*
 // Test product search with a valid travel period. Expect valid search results.
 func TestTransportProductSearchServiceV3WithTravelPeriod(
 	ctx context.Context,
@@ -359,77 +365,114 @@ func TestTransportProductSearchServiceV3WithTravelPeriod(
 ) (
 	searchID string,
 	resultID int32,
-	pricePerNight float64,
+	totalPrice float64,
 ) {
-	const nights = 12                           // 12 nights
-	startDate := time.Now().Add(time.Hour * 24) // tomorrow
-	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
-
-	req := &transportv3.TransportSearchRequest{
-		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		Queries: []*transportv3.TransportSearchQuery{
-			{
-				SearchParametersTransport: &transportv3.TransportSearchParameters{
-					SupplierCodes: []*typesv2.SupplierProductCode{
-						{SupplierCode: "HOTEL345678"},
-						{SupplierCode: "HOTEL789012"},
-					},
-				},
-				TravelPeriod: &typesv1.TravelPeriod{
-					StartDate: &typesv1.Date{
-						Year:  int32(startDate.Year()),  //nolint:gosec
-						Month: int32(startDate.Month()), //nolint:gosec
-						Day:   int32(startDate.Day()),   //nolint:gosec
-					},
-					EndDate: &typesv1.Date{
-						Year:  int32(endDate.Year()),  //nolint:gosec
-						Month: int32(endDate.Month()), //nolint:gosec
-						Day:   int32(endDate.Day()),   //nolint:gosec
-					},
-				},
-			},
-		},
-	}
-
-	tt.logger.Debug("TransportSearchServiceV3.TransportSearch request:\n", protoMessageToJSON(tt, req))
+	departureDate := time.Unix(1715782800, 0) // Wed May 15 2024 14:20:00 GMT+0000
+	arrivalDate := time.Unix(1715793600, 0)   // Wed May 15 2024 17:20:00 GMT+0000
+	departureLocationCode := "BCN"
+	arrivalLocationCode := "LIS"
+	expectedTotalPrice := 750.0
 
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		req,
+		&transportv3.TransportSearchRequest{
+			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			SearchParameters: &typesv3.SearchParameters{
+				Currency: &typesv3.Currency{
+					Currency: &typesv3.Currency_NativeToken{},
+				},
+			},
+			Queries: []*transportv3.TransportSearchQuery{
+				{
+					Travellers: []*typesv3.BasicTraveller{
+						{
+							TravellerId: 0,
+							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+							Birthdate: &typesv1.Date{
+								Year:  1980, //nolint:gosec
+								Month: 1,    //nolint:gosec
+								Day:   1,    //nolint:gosec
+							},
+							Nationality: typesv2.Country_COUNTRY_DE,
+						},
+						{
+							TravellerId: 1,
+							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+							Birthdate: &typesv1.Date{
+								Year:  1980, //nolint:gosec
+								Month: 1,    //nolint:gosec
+								Day:   2,    //nolint:gosec
+							},
+							Nationality: typesv2.Country_COUNTRY_IT,
+						},
+					},
+					Trips: []*transportv3.QueryTrip{
+						{
+							Departure: &transportv3.QueryTransitEvent{
+								Date: &typesv1.Date{
+									Year:  int32(departureDate.Year()),  //nolint:gosec
+									Month: int32(departureDate.Month()), //nolint:gosec
+									Day:   int32(departureDate.Day()),   //nolint:gosec
+								},
+								LocationCode: &typesv2.LocationCode{
+									Code: departureLocationCode,
+									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+								},
+							},
+							Arrival: &transportv3.QueryTransitEvent{
+								Date: &typesv1.Date{
+									Year:  int32(arrivalDate.Year()),  //nolint:gosec
+									Month: int32(arrivalDate.Month()), //nolint:gosec
+									Day:   int32(arrivalDate.Day()),   //nolint:gosec
+								},
+								LocationCode: &typesv2.LocationCode{
+									Code: arrivalLocationCode,
+									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	)
 	require.NoError(t, err)
 
 	tt.logger.Debug("TransportSearchServiceV3.TransportSearch response:\n", protoMessageToJSON(tt, resp))
-
+	// Note: an empty result is still a success as the request was valid
+	// There is just no result for the given filters
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	// We expect 2 results - let's check for the 2nd one
-	require.Len(t, resp.Results, 2, "unexpected number of results in response")
+	// We expect 1 result
+	require.Len(t, resp.Results, 1, "unexpected number of results in response")
 
 	// Let's check if result is as expected
-	require.NotEmpty(t, resp.Results[1].Units, "unexpected empty response Results[1].Units")
-	require.Equal(t, resp.Results[1].Units[0].SupplierCode.SupplierCode, "HOTEL345678", "unexpected response Results[1].Units[0].SupplierCode.SupplierCode")
+	require.NotEmpty(t, resp.Results[0].TravellingTrips, "unexpected empty response Results[0].TravellingTrips")
 
-	// Extract the price per night from the response
-	pricePerNight, err = strconv.ParseFloat(resp.Results[1].Units[0].PriceDetail.Price.Value, 64)
-	require.NoError(t, err)
+	// We expect 2 segments in the trip
+	require.Len(t, resp.Results[0].TravellingTrips[0].Segments, 2, "unexpected number of segments in response")
 
-	// Check if this adds up with the total price of the unit
-	totalPrice, err := strconv.ParseFloat(resp.Results[1].TotalPriceDetail.Price.Value, 64)
+	// Check if the departure of the first segment and the arrival of the last segment is right
+	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure, "unexpected empty response Results[0].TravellingTrips[0].Segments[0].Info.Departure")
+	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival, "unexpected empty response Results[0].TravellingTrips[0].Segments[1].Info.Arrival")
+	require.Equal(t, departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.LocationCode.Code, "unexpected departure location code")
+	require.Equal(t, arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.LocationCode.Code, "unexpected arrival location code")
+
+	// Extract the price from the response
+	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Price.Value, 64)
+	totalPrice = totalPrice / math.Pow(10, float64(resp.Results[0].TotalPrice.Price.Decimals))
 	require.NoError(t, err)
-	require.Equal(t, pricePerNight*float64(nights), totalPrice, "unexpected total price")
+	require.Equal(t, expectedTotalPrice, totalPrice, "unexpected total price")
 
 	// Now extract all the values needed for the validate step which comes next
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
 	require.NotEmpty(t, resp.Metadata.SearchId, "unexpected empty response Metadata.SearchId")
 	require.NotEmpty(t, resp.Metadata.SearchId.Value, "unexpected empty response Metadata.SearchId.Value")
+	require.NotEmpty(t, resp.Results[0].ResultId, "unexpected empty response Results[1].ResultId")
 
-	require.NotEmpty(t, resp.Results[1].ResultId, "unexpected empty response Results[1].ResultId")
-
-	return resp.Metadata.SearchId.Value, resp.Results[1].ResultId, pricePerNight
+	return resp.Metadata.SearchId.Value, resp.Results[0].ResultId, totalPrice
 }
 
 // Let's test the validation step with the values extracted from the search request
@@ -441,14 +484,14 @@ func TestTransportValidateV3(
 	supplierBot *bot.Bot,
 	searchID string,
 	resultID int32,
-	pricePerNight float64,
+	expectedTotalPrice float64,
 ) (validateID string) {
-	resp, err := distributorBot.ValidationServiceV3.Validation(
+	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&bookv3.ValidationRequest{
-			ValidationObject: &bookv3.ValidationObject{
+		&bookv2.ValidationRequest{
+			ValidationObject: &bookv2.ValidationObject{
 				SearchIdentifier: &typesv2.SearchIdentifier{
 					SearchId: &typesv1.UUID{Value: searchID},
 					ResultId: resultID,
@@ -471,13 +514,14 @@ func TestTransportValidateV3(
 	require.Equal(t, searchID, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected searchID in response")
 	require.Equal(t, resultID, resp.ValidationObject.SearchIdentifier.ResultId, "unexpected resultID in response")
 
-	// Check if the price per night is as expected
+	// Check if the total price is as expected
 	require.NotEmpty(t, resp.PriceDetail, "unexpected empty response PriceDetail")
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
-	pricePerNightResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
+	totalPriceResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
+	totalPriceResponse = totalPriceResponse / math.Pow(10, float64(resp.PriceDetail.Price.Decimals))
 	require.NoError(t, err)
-	require.Equal(t, pricePerNight, pricePerNightResponse, "unexpected price per night")
+	require.Equal(t, expectedTotalPrice, totalPriceResponse, "unexpected total price")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
 	require.NotEmpty(t, resp.ValidationId, "unexpected empty response validationID")
@@ -497,11 +541,11 @@ func TestTransportMintV3(
 	tokenID uint64,
 	price *typesv2.Price,
 ) {
-	resp, err := distributorBot.MintServiceV3.Mint(
+	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&bookv3.MintRequest{
+		&bookv2.MintRequest{
 			Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 			ValidationId: &typesv1.UUID{Value: validationID},
 		},
@@ -511,7 +555,6 @@ func TestTransportMintV3(
 	tt.logger.Debug("MintServiceV3.Mint response:\n", protoMessageToJSON(tt, resp))
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
 	// Check if the MintId is set
 	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
@@ -530,13 +573,13 @@ func VerifyTransportBlockchainState(
 	tt *Test,
 	distributorBot *bot.Bot,
 	tokenID uint64,
-	price *typesv2.Price,
+	tokenPrice *typesv2.Price,
 ) {
 	bigTokenID := big.NewInt(0).SetUint64(tokenID)
 	callOpts := &bind.CallOpts{Context: ctx}
 
-	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, price))
-	expectedReservationPrice, err := booking.ConvertPriceToBigInt(price.Value, price.Decimals, booking.NativeTokenDecimals)
+	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, tokenPrice))
+	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, tokenPrice.Decimals, price.NativeTokenDecimals)
 	require.NoError(t, err)
 
 	reservationPrice, err := tt.caminoNetwork.Client.BookingToken.GetReservationPrice(callOpts, bigTokenID)
@@ -552,7 +595,6 @@ func VerifyTransportBlockchainState(
 	require.NoError(t, err)
 	require.Equal(t, booking.BookingStatusBought, tokenStatus)
 }
-*/
 
 func TestTransportV3(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
@@ -579,12 +621,11 @@ func TestTransportV3(t *testing.T, tt *Test) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
 		TestTransportSearchServiceV3TravelDatesWrong(ctx, t, tt, distributorBot, supplierBot)
 	})
-	/*
-		t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
-			searchID, resultID, pricePerNight := TestTransportProductSearchServiceV3WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
-			validationID := TestTransportValidateV3(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, pricePerNight)
-			tokenID, price := TestTransportMintV3(ctx, t, tt, distributorBot, supplierBot, validationID)
-			VerifyTransportBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
-		})
-	*/
+	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
+		searchID, resultID, totalPrice := TestTransportProductSearchServiceV3WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
+		validationID := TestTransportValidateV3(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
+		tokenID, price := TestTransportMintV3(ctx, t, tt, distributorBot, supplierBot, validationID)
+		VerifyTransportBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
+	})
+
 }

@@ -165,6 +165,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 		filteredTrips := mockdata.TripsExtendedV3
 		for _, queryTrip := range query.GetTrips() {
 			filteredTrips = filterTripsByDates(filteredTrips, queryTrip)
+			filteredTrips = filterTripsByLocations(filteredTrips, queryTrip)
 
 			if queryTrip.SearchParametersTransport == nil { // its optional
 				continue
