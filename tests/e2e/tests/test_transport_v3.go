@@ -103,7 +103,7 @@ func TestTransportProductListServiceV3(
 	// note that the order might be different, so we need to check all of them
 	for _, trip := range resp.Trips {
 		found := false
-		for i := range expectedTotalResults {
+		for i := range productCodes {
 			if proto.Equal(trip.SupplierCode, productCodes[i]) {
 				found = true
 				break
@@ -162,7 +162,7 @@ func TestTransportProductListServiceV3WithFilter(
 	// note that the order might be different, so we need to check all of them
 	for _, trip := range resp.Trips {
 		found := false
-		for i := range expectedTotalResults {
+		for i := range productCodes {
 			if proto.Equal(trip.SupplierCode, productCodes[i]) {
 				found = true
 				break
