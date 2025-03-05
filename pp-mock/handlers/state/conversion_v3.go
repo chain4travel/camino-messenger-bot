@@ -5,48 +5,46 @@ package state
 
 import typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 
-func ExtractCurrencyV3FromUnifiedPrice(uPrice *UnifiedPrice) (*typesv3.Currency, bool) {
-	currency := &typesv3.Currency{}
-
+func (p *UnifiedPrice) ExtractCurrencyV3() *typesv3.Currency {
 	switch {
-	case uPrice.IsNative:
-		currency.Currency = &typesv3.Currency_NativeToken{}
-	case uPrice.IsoCurrencyEnum != 0:
-		currency.Currency = &typesv3.Currency_IsoCurrency{
-			IsoCurrency: typesv3.IsoCurrency(uPrice.IsoCurrencyEnum),
+	case p.IsNative:
+		return &typesv3.Currency{
+			Currency: &typesv3.Currency_NativeToken{},
 		}
-	case uPrice.TokenContractAddress != "":
-		currency.Currency = &typesv3.Currency_TokenCurrency{
-			TokenCurrency: &typesv3.TokenCurrency{
-				ContractAddress: &typesv3.EVMAddress{
-					Address: uPrice.TokenContractAddress,
+	case p.IsoCurrencyEnum != 0:
+		return &typesv3.Currency{
+			Currency: &typesv3.Currency_IsoCurrency{
+				IsoCurrency: typesv3.IsoCurrency(p.IsoCurrencyEnum),
+			},
+		}
+	case p.TokenContractAddress != "":
+		return &typesv3.Currency{
+			Currency: &typesv3.Currency_TokenCurrency{
+				TokenCurrency: &typesv3.TokenCurrency{
+					ContractAddress: &typesv3.EVMAddress{
+						Address: p.TokenContractAddress,
+					},
 				},
 			},
 		}
-	default:
-		return nil, false
 	}
-	return currency, true
+	return nil
 }
 
-func UnifiedPriceToPriceV3(uPrice *UnifiedPrice) (*typesv3.Price, bool) {
-	currency, ok := ExtractCurrencyV3FromUnifiedPrice(uPrice)
-	if !ok {
-		return nil, false
-	}
-
+func (p *UnifiedPrice) ToPriceV3() *typesv3.Price {
+	currency := p.ExtractCurrencyV3()
 	return &typesv3.Price{
-		Value:    uPrice.Price,
-		Decimals: uPrice.Decimals,
+		Value:    p.Price,
+		Decimals: p.Decimals,
 		Currency: currency,
-	}, true
+	}
 }
 
-func ProtoPriceV3ToUnifiedPrice(price *typesv3.Price) (*UnifiedPrice, bool) {
-	out := &UnifiedPrice{}
-	out.Price = price.Value
-	out.Decimals = price.Decimals
-
+func PriceV3ToUnifiedPrice(price *typesv3.Price) *UnifiedPrice {
+	out := &UnifiedPrice{
+		Price:    price.Value,
+		Decimals: price.Decimals,
+	}
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv3.Currency_NativeToken:
 		out.IsNative = true
@@ -55,7 +53,7 @@ func ProtoPriceV3ToUnifiedPrice(price *typesv3.Price) (*UnifiedPrice, bool) {
 	case *typesv3.Currency_TokenCurrency:
 		out.TokenContractAddress = currency.TokenCurrency.ContractAddress.Address
 	default:
-		return nil, false
+		return nil
 	}
-	return out, true
+	return out
 }

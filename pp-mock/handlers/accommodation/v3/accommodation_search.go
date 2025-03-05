@@ -197,18 +197,7 @@ func (*AccommodationSearchV3Server) AccommodationSearch(ctx context.Context, req
 				Units: units,
 			})
 
-			validationPrice, ok := state.ProtoPriceV3ToUnifiedPrice(searchPrice)
-			if !ok {
-				return &accommodationv3.AccommodationSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Failed to convert searchPrice to unifiedPrice",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
-				}, nil
-			}
+			validationPrice := state.PriceV3ToUnifiedPrice(searchPrice)
 			validationPrices = append(validationPrices, validationPrice)
 
 			resultIDnum++

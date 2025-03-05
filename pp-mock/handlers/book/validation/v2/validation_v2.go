@@ -78,18 +78,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	}
 
 	unifiedValidationPrice := storedSearchData.Data.Prices[resultIndex]
-	validationPrice, ok := state.UnifiedPriceToPriceV2(unifiedValidationPrice)
-	if !ok {
-		return &bookv2.ValidationResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Invalid validation request: price not found in state",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
-	}
+	validationPrice := unifiedValidationPrice.ToPriceV2()
 
 	response := bookv2.ValidationResponse{
 		Header: &typesv1.ResponseHeader{
