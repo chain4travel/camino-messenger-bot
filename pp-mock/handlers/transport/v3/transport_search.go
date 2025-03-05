@@ -17,6 +17,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/price"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -208,6 +209,13 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
 		log.Printf("Failed to set header: %v", err)
 	}
+
+	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
+		NumResults:   len(searchResults),
+		NumTravelers: 0, // TODO: just 0 for now -- pending discussion about the structure
+		JSONRequest:  req.String(),
+		JSONResponse: response.String(),
+	})
 
 	return response, nil
 }
