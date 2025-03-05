@@ -560,9 +560,8 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 		TestAccommodationSearchServiceV2TravelPeriodReversed(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
-
-		searchID, resultID, pricePerNight := TestAccommodationSearchServiceV2WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
-		validationID := TestAccommodationValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, pricePerNight)
+		searchID, resultID, totalPrice := TestAccommodationSearchServiceV2WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
+		validationID := TestAccommodationValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		tokenID, price := TestAccommodationMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 		VerifyAccommodationBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})

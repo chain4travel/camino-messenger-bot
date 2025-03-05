@@ -462,7 +462,7 @@ func TestTransportProductSearchServiceV3WithTravelPeriod(
 
 	// Extract the price from the response
 	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Price.Value, 64)
-	totalPrice = totalPrice / math.Pow(10, float64(resp.Results[0].TotalPrice.Price.Decimals))
+	totalPrice /= math.Pow(10, float64(resp.Results[0].TotalPrice.Price.Decimals))
 	require.NoError(t, err)
 	require.Equal(t, expectedTotalPrice, totalPrice, "unexpected total price")
 
@@ -519,7 +519,7 @@ func TestTransportValidateV3(
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
 	totalPriceResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
-	totalPriceResponse = totalPriceResponse / math.Pow(10, float64(resp.PriceDetail.Price.Decimals))
+	totalPriceResponse /= math.Pow(10, float64(resp.PriceDetail.Price.Decimals))
 	require.NoError(t, err)
 	require.Equal(t, expectedTotalPrice, totalPriceResponse, "unexpected total price")
 
@@ -627,5 +627,4 @@ func TestTransportV3(t *testing.T, tt *Test) {
 		tokenID, price := TestTransportMintV3(ctx, t, tt, distributorBot, supplierBot, validationID)
 		VerifyTransportBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})
-
 }

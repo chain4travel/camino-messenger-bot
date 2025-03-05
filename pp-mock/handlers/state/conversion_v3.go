@@ -7,13 +7,15 @@ import typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocol
 
 func ExtractCurrencyV3FromUnifiedPrice(uPrice *UnifiedPrice) (*typesv3.Currency, bool) {
 	currency := &typesv3.Currency{}
-	if uPrice.IsNative {
+
+	switch {
+	case uPrice.IsNative:
 		currency.Currency = &typesv3.Currency_NativeToken{}
-	} else if uPrice.IsoCurrencyEnum != 0 {
+	case uPrice.IsoCurrencyEnum != 0:
 		currency.Currency = &typesv3.Currency_IsoCurrency{
 			IsoCurrency: typesv3.IsoCurrency(uPrice.IsoCurrencyEnum),
 		}
-	} else if uPrice.TokenContractAddress != "" {
+	case uPrice.TokenContractAddress != "":
 		currency.Currency = &typesv3.Currency_TokenCurrency{
 			TokenCurrency: &typesv3.TokenCurrency{
 				ContractAddress: &typesv3.EVMAddress{
@@ -21,7 +23,7 @@ func ExtractCurrencyV3FromUnifiedPrice(uPrice *UnifiedPrice) (*typesv3.Currency,
 				},
 			},
 		}
-	} else {
+	default:
 		return nil, false
 	}
 	return currency, true

@@ -226,7 +226,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 					Alerts: []*typesv1.Alert{{
-						Message: fmt.Sprintf("Failed to convert searchPrice to unifiedPrice"),
+						Message: "Failed to convert searchPrice to unifiedPrice",
 						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 					}},
 				},
