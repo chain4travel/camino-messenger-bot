@@ -21,6 +21,7 @@ import (
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ transportv3grpc.TransportSearchServiceServer = (*TransportSearchV3Server)(nil)
@@ -61,6 +62,37 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 				}},
 			},
 		}, nil
+	}
+
+	// edge-case prevention: check if the traveller definition is identical
+	// in all queries. If not return an "unsupported" error.
+	unsupportedResp := &transportv3.TransportSearchResponse{
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: "Unsupported: Traveller definitions must be identical in all queries",
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
+	for queryIndex, query := range req.Queries {
+		for queryIndex2, query2 := range req.Queries {
+			if queryIndex != queryIndex2 {
+				travellersA := query.GetTravellers()
+				travellersB := query2.GetTravellers()
+
+				if len(travellersA) != len(travellersB) {
+					return unsupportedResp, nil
+				}
+
+				for i, travellerA := range travellersA {
+					travellerB := travellersB[i]
+					if !proto.Equal(travellerA, travellerB) {
+						return unsupportedResp, nil
+					}
+				}
+			}
+		}
 	}
 
 	for queryIndex, query := range req.Queries {
@@ -127,6 +159,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 
 	resultIDnum := int32(1)
 	searchResults := []*transportv3.TransportSearchResult{}
+	validationPrices := []*state.UnifiedPrice{}
 
 	for _, query := range req.Queries {
 		filteredTrips := mockdata.TripsExtendedV3
@@ -170,20 +203,35 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 			totalPrice = new(big.Int).Add(totalPrice, price)
 		}
 
+		searchPrice := &typesv3.Price{
+			Value:    totalPrice.String(),
+			Decimals: price.NativeTokenDecimals,
+			Currency: req.SearchParameters.Currency,
+		}
 		searchResults = append(searchResults, &transportv3.TransportSearchResult{
 			ResultId:        resultIDnum,
 			QueryId:         query.QueryId,
 			TravellerIds:    common.GetTravellerIDsV3(query.Travellers),
 			TravellingTrips: filteredTrips,
 			TotalPrice: &typesv3.PriceDetail{
-				Price: &typesv3.Price{
-					Value:    totalPrice.String(),
-					Decimals: price.NativeTokenDecimals,
-					Currency: req.SearchParameters.Currency,
-				},
+				Price: searchPrice,
 			},
 		})
 		resultIDnum++
+
+		validationPrice, ok := state.ProtoPriceV3ToUnifiedPrice(searchPrice)
+		if !ok {
+			return &transportv3.TransportSearchResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{{
+						Message: fmt.Sprintf("Failed to convert searchPrice to unifiedPrice"),
+						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+					}},
+				},
+			}, nil
+		}
+		validationPrices = append(validationPrices, validationPrice)
 	}
 
 	response := &transportv3.TransportSearchResponse{
@@ -210,12 +258,15 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 		log.Printf("Failed to set header: %v", err)
 	}
 
-	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
-		NumResults:   len(searchResults),
-		NumTravelers: 0, // TODO: just 0 for now -- pending discussion about the structure
-		JSONRequest:  req.String(),
-		JSONResponse: response.String(),
-	})
+	if len(searchResults) > 0 {
+		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
+			NumResults:   len(searchResults),
+			NumTravelers: len(req.Queries[0].Travellers),
+			Prices:       validationPrices,
+			JSONRequest:  req.String(),
+			JSONResponse: response.String(),
+		})
+	}
 
 	return response, nil
 }

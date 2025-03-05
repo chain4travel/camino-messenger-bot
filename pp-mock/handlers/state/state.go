@@ -11,6 +11,14 @@ import (
 // Constants for entry timeout
 const entryTimeout = 10 * time.Minute
 
+type UnifiedPrice struct {
+	Price                string
+	Decimals             int32
+	IsNative             bool
+	IsoCurrencyEnum      int32
+	TokenContractAddress string
+}
+
 // SearchData represents the data for a search result and everything which is
 // needed for this mock to properly represent a full workflow.
 // This includes also data which is needed for the validate request and response.
@@ -19,14 +27,15 @@ type SearchData struct {
 	NumResults   int
 	NumTravelers int
 	// TODO: Add information needed for seat selection
-	// TODO: Add information about prices
-	JSONRequest  string // Mainly for debugging purposes
-	JSONResponse string // Mainly for debugging purposes
+	Prices       []*UnifiedPrice // Validation price for the search results
+	JSONRequest  string          // Mainly for debugging purposes
+	JSONResponse string          // Mainly for debugging purposes
 }
 
 // ValidationData represents the data for a validation result.
 type ValidationData struct {
 	InitialSearchData SearchData
+	VerifiedPrice     *UnifiedPrice
 	JSONRequest       string // Mainly for debugging purposes
 	JSONResponse      string // Mainly for debugging purposes
 }

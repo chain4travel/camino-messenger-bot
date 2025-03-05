@@ -15,9 +15,11 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ accommodationv2grpc.AccommodationSearchServiceServer = (*AccommodationSearchV2Server)(nil)
@@ -90,8 +92,40 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 		}
 	}
 
+	// edge-case prevention: check if the traveller definition is identical
+	// in all queries. If not return an "unsupported" error.
+	unsupportedResp := &accommodationv2.AccommodationSearchResponse{
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: "Unsupported: Traveller definitions must be identical in all queries",
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
+	for queryIndex, query := range req.Queries {
+		for queryIndex2, query2 := range req.Queries {
+			if queryIndex != queryIndex2 {
+				travellersA := query.GetTravellers()
+				travellersB := query2.GetTravellers()
+
+				if len(travellersA) != len(travellersB) {
+					return unsupportedResp, nil
+				}
+
+				for i, travellerA := range travellersA {
+					travellerB := travellersB[i]
+					if !proto.Equal(travellerA, travellerB) {
+						return unsupportedResp, nil
+					}
+				}
+			}
+		}
+	}
+
 	searchResults := []*accommodationv2.AccommodationSearchResult{}
 	resultIDnum := int32(1)
+	validationPrices := []*state.UnifiedPrice{}
 
 	// loop request queries
 	for _, query := range req.Queries {
@@ -149,18 +183,34 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 				})
 			}
 
+			searchPrice := &typesv2.Price{
+				Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*duration*100),
+				Decimals: 2,
+				Currency: common.CloneProto(req.SearchParametersGeneric.Currency),
+			}
+
 			searchResults = append(searchResults, &accommodationv2.AccommodationSearchResult{
 				ResultId: resultIDnum,
 				QueryId:  query.QueryId,
 				TotalPriceDetail: &typesv2.PriceDetail{
-					Price: &typesv2.Price{
-						Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*duration*100),
-						Decimals: 2,
-						Currency: common.CloneProto(req.SearchParametersGeneric.Currency),
-					},
+					Price: searchPrice,
 				},
 				Units: units,
 			})
+
+			validationPrice, ok := state.ProtoPriceV2ToUnifiedPrice(searchPrice)
+			if !ok {
+				return &accommodationv2.AccommodationSearchResponse{
+					Header: &typesv1.ResponseHeader{
+						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+						Alerts: []*typesv1.Alert{{
+							Message: fmt.Sprintf("Failed to convert searchPrice to unifiedPrice"),
+							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+						}},
+					},
+				}, nil
+			}
+			validationPrices = append(validationPrices, validationPrice)
 
 			resultIDnum++
 		}
@@ -189,6 +239,14 @@ func (*AccommodationSearchV2Server) AccommodationSearch(ctx context.Context, req
 	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
 		log.Printf("Failed to set header: %v", err)
 	}
+
+	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
+		NumResults:   len(searchResults),
+		NumTravelers: len(req.Queries[0].Travellers),
+		Prices:       validationPrices,
+		JSONRequest:  req.String(),
+		JSONResponse: response.String(),
+	})
 
 	return response, nil
 }

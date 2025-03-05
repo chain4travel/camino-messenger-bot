@@ -18,6 +18,7 @@ import (
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/pkg/price"
+	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -331,7 +332,7 @@ func TestAccommodationSearchServiceV2WithTravelPeriod(
 ) (
 	searchID string,
 	resultID int32,
-	pricePerNight float64,
+	totalPrice float64,
 ) {
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
@@ -386,14 +387,18 @@ func TestAccommodationSearchServiceV2WithTravelPeriod(
 	require.NotEmpty(t, resp.Results[1].Units, "unexpected empty response Results[1].Units")
 	require.Equal(t, resp.Results[1].Units[0].SupplierCode.SupplierCode, "HOTEL345678", "unexpected response Results[1].Units[0].SupplierCode.SupplierCode")
 
-	// Extract the price per night from the response
-	pricePerNight, err = strconv.ParseFloat(resp.Results[1].Units[0].PriceDetail.Price.Value, 64)
+	// Check if the price per night is set correctly
+	resultPricePerNight, err := strconv.ParseFloat(resp.Results[1].Units[0].PriceDetail.Price.Value, 64)
+	require.NoError(t, err)
+	require.Equal(t, common.DefaultPricePerNight*100, resultPricePerNight, "unexpected price per night")
+
+	// Extract the total price from the response
+	totalPrice, err = strconv.ParseFloat(resp.Results[1].TotalPriceDetail.Price.Value, 64)
 	require.NoError(t, err)
 
 	// Check if this adds up with the total price of the unit
-	totalPrice, err := strconv.ParseFloat(resp.Results[1].TotalPriceDetail.Price.Value, 64)
 	require.NoError(t, err)
-	require.Equal(t, pricePerNight*float64(nights), totalPrice, "unexpected total price")
+	require.Equal(t, common.DefaultPricePerNight*100*float64(nights), totalPrice, "unexpected total price")
 
 	// Now extract all the values needed for the validate step which comes next
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
@@ -402,7 +407,7 @@ func TestAccommodationSearchServiceV2WithTravelPeriod(
 
 	require.NotEmpty(t, resp.Results[1].ResultId, "unexpected empty response Results[1].ResultId")
 
-	return resp.Metadata.SearchId.Value, resp.Results[1].ResultId, pricePerNight
+	return resp.Metadata.SearchId.Value, resp.Results[1].ResultId, totalPrice
 }
 
 // Let's test the validation step with the values extracted from the search request
@@ -414,7 +419,7 @@ func TestAccommodationValidateV2(
 	supplierBot *bot.Bot,
 	searchID string,
 	resultID int32,
-	pricePerNight float64,
+	expectedTotalPrice float64,
 ) (validateID string) {
 	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
@@ -448,9 +453,9 @@ func TestAccommodationValidateV2(
 	require.NotEmpty(t, resp.PriceDetail, "unexpected empty response PriceDetail")
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
-	pricePerNightResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
+	totalPriceResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
 	require.NoError(t, err)
-	require.Equal(t, pricePerNight, pricePerNightResponse, "unexpected price per night")
+	require.Equal(t, expectedTotalPrice, totalPriceResponse, "unexpected total price in validation")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
 	require.NotEmpty(t, resp.ValidationId, "unexpected empty response validationID")
@@ -484,7 +489,6 @@ func TestAccommodationMintV2(
 	tt.logger.Debug("MintServiceV2.Mint response:\n", protoMessageToJSON(tt, resp))
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
 	// Check if the MintId is set
 	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")

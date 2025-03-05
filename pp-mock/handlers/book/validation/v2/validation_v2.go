@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
 	"github.com/google/uuid"
 )
 
@@ -38,16 +38,57 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 		validationRequest.ValidationObject.SearchIdentifier == nil ||
 		validationRequest.ValidationObject.SearchIdentifier.ResultId == 0 ||
 		validationRequest.ValidationObject.SearchIdentifier.SearchId == nil {
-		response := bookv2.ValidationResponse{
+		return &bookv2.ValidationResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 				Alerts: []*typesv1.Alert{{
 					Message: "Invalid validation request: missing validation object or search identifier",
-					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 				}},
 			},
-		}
-		return &response, nil
+		}, nil
+	}
+
+	// Look-up the store if we actually have a search storedSearchData for the given search identifier
+	// If we don't have a storedSearchData, return an error
+	storedSearchData, found := state.GetStore().GetSearchResult(validationRequest.ValidationObject.SearchIdentifier.SearchId.Value)
+	if !found {
+		return &bookv2.ValidationResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Invalid validation request: searchId not found in state",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
+	}
+
+	resultIndex := int(validationRequest.ValidationObject.SearchIdentifier.ResultId - 1)
+	if resultIndex < 0 || resultIndex >= len(storedSearchData.Data.Prices) {
+		return &bookv2.ValidationResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Invalid validation request: resultId out of range",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
+	}
+
+	unifiedValidationPrice := storedSearchData.Data.Prices[resultIndex]
+	validationPrice, ok := state.UnifiedPriceToPriceV2(unifiedValidationPrice)
+	if !ok {
+		return &bookv2.ValidationResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Invalid validation request: price not found in state",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	response := bookv2.ValidationResponse{
@@ -57,15 +98,8 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 		ValidationId:     &typesv1.UUID{Value: uuid.New().String()},
 		ValidationObject: validationRequest.ValidationObject,
 		PriceDetail: &typesv2.PriceDetail{
-			Price: &typesv2.Price{
-				Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
-				Decimals: 2,
-
-				Currency: &typesv2.Currency{
-					Currency: &typesv2.Currency_NativeToken{},
-				},
-			},
-			Description: "price per night",
+			Price:       validationPrice,
+			Description: "Validated total price",
 		},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
@@ -73,5 +107,13 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
 		log.Printf("Failed to set header: %v", err)
 	}
+
+	state.GetStore().AddValidationResult(response.ValidationId.Value, state.ValidationData{
+		InitialSearchData: storedSearchData.Data,
+		VerifiedPrice:     unifiedValidationPrice,
+		JSONRequest:       validationRequest.String(),
+		JSONResponse:      response.String(),
+	})
+
 	return &response, nil
 }
