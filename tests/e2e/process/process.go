@@ -73,6 +73,9 @@ func waitKillProcess(ctx context.Context, pid int) error {
 		case <-killTimeoutCtx.Done():
 			// Process did not stop in time (killTimeout), killing it
 			if err := process.Signal(syscall.SIGKILL); err != nil {
+				if errors.Is(err, os.ErrProcessDone) {
+					return nil // race condition fix: It's already done
+				}
 				return fmt.Errorf("failed to send SIGKILL to process with pid %d: %w", pid, err)
 			}
 			// The timeout is done - prevent it from triggering again
