@@ -381,7 +381,9 @@ func TestTransportSearchServiceV3WithFilters(
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 			SearchParameters: &typesv3.SearchParameters{
 				Currency: &typesv3.Currency{
-					Currency: &typesv3.Currency_NativeToken{},
+					Currency: &typesv3.Currency_IsoCurrency{
+						IsoCurrency: typesv3.IsoCurrency(*typesv2.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
+					},
 				},
 			},
 			Queries: []*transportv3.TransportSearchQuery{
@@ -463,7 +465,7 @@ func TestTransportSearchServiceV3WithFilters(
 }
 
 // Let's test the validation step with the values extracted from the search request
-func TestTransportValidateV3(
+func TestTransportValidateV2(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -488,7 +490,7 @@ func TestTransportValidateV3(
 	)
 	require.NoError(t, err)
 
-	tt.logger.Debug("ValidationServiceV3.Validation response:\n", protoMessageToJSON(tt, resp))
+	tt.logger.Debug("ValidationServiceV2.Validation response:\n", protoMessageToJSON(tt, resp))
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -517,7 +519,7 @@ func TestTransportValidateV3(
 }
 
 // Lastly we do the mint request based on the validation id
-func TestTransportMintV3(
+func TestTransportMintV2(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -539,7 +541,7 @@ func TestTransportMintV3(
 	)
 	require.NoError(t, err)
 
-	tt.logger.Debug("MintServiceV3.Mint response:\n", protoMessageToJSON(tt, resp))
+	tt.logger.Debug("MintServiceV2.Mint response:\n", protoMessageToJSON(tt, resp))
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 
@@ -611,8 +613,8 @@ func TestTransportV3(t *testing.T, tt *Test) {
 	t.Run("ProductList->Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		productListResponse := TestTransportProductListServiceV3(ctx, t, tt, distributorBot, supplierBot)
 		searchID, resultID, totalPrice := TestTransportSearchServiceV3WithFilters(ctx, t, tt, distributorBot, supplierBot, productListResponse)
-		validationID := TestTransportValidateV3(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
-		tokenID, price := TestTransportMintV3(ctx, t, tt, distributorBot, supplierBot, validationID)
+		validationID := TestTransportValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
+		tokenID, price := TestTransportMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 		VerifyTransportBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})
 }
