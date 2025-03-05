@@ -109,8 +109,8 @@ func TestE2E(t *testing.T) {
 		suite.Cleanup,
 	)
 
-	//testsRunner.Register(t, "PingV1 request", tests.TestPingV1)
-	//testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
+	testsRunner.Register(t, "PingV1 request", tests.TestPingV1)
+	testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
 	testsRunner.Register(t, "TransportV3", tests.TestTransportV3)
 
 	maxParallelRuns := 0
