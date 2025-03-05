@@ -68,6 +68,10 @@ func filterTripsByDates(
 	// TODO @Noctunus - All assumptions that the fields are present.
 	// This needs to be validated. Ideally with protovalidate on the unmashalled mockdata.
 	for _, trip := range trips {
+		if len(trip.Segments) == 0 {
+			continue
+		}
+
 		// We need the first segment to compare the departure date
 		firstSegment := trip.Segments[0]
 		firstSegmentDepartureDateTime := time.Unix(firstSegment.Info.Departure.DateTime.Seconds, 0)
@@ -95,6 +99,9 @@ func filterTripsByLocations(
 	// TODO @Noctunus - All assumptions that the fields are present.
 	// This needs to be validated. Ideally with protovalidate on the unmashalled mockdata.
 	for _, trip := range trips {
+		if len(trip.Segments) == 0 {
+			continue
+		}
 		// We need the first segment to compare the departure location
 		firstSegment := trip.Segments[0]
 		// We need the last segment to compare the arrival location
