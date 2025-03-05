@@ -20,6 +20,7 @@ import (
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/pkg/price"
+	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -67,7 +68,7 @@ func TestTransportProductListServiceV3(
 	tt *Test,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
-) {
+) *transportv3.TransportProductListResponse {
 	productCodes := []*typesv2.SupplierProductCode{
 		{
 			SupplierCode:   "AB",
@@ -110,6 +111,13 @@ func TestTransportProductListServiceV3(
 		}
 		require.True(t, found, "unexpected response products")
 	}
+
+	// Verify that the 2nd result has 2 segments and that the departure and arrival locations are set
+	require.Len(t, resp.Trips[1].Segments, 2, "unexpected number of segments in response")
+	require.NotEmpty(t, resp.Trips[1].Segments[0].Departure, "unexpected empty response Trips[1].Segments[0].Info.Departure")
+	require.NotEmpty(t, resp.Trips[1].Segments[1].Arrival, "unexpected empty response Trips[1].Segments[1].Info.Arrival")
+
+	return resp
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
@@ -237,22 +245,14 @@ func TestTransportSearchServiceV3TravelDatesReversed(
 					Trips: []*transportv3.QueryTrip{
 						{
 							Departure: &transportv3.QueryTransitEvent{
-								Date: &typesv1.Date{
-									Year:  int32(startDate.Year()),  //nolint:gosec
-									Month: int32(startDate.Month()), //nolint:gosec
-									Day:   int32(startDate.Day()),   //nolint:gosec
-								},
+								Date: common.TimeToDateV1(startDate),
 								LocationCode: &typesv2.LocationCode{
 									Code: "PMI",
 									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
 								},
 							},
 							Arrival: &transportv3.QueryTransitEvent{
-								Date: &typesv1.Date{
-									Year:  int32(endDate.Year()),  //nolint:gosec
-									Month: int32(endDate.Month()), //nolint:gosec
-									Day:   int32(endDate.Day()),   //nolint:gosec
-								},
+								Date: common.TimeToDateV1(endDate),
 								LocationCode: &typesv2.LocationCode{
 									Code: "BCN",
 									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
@@ -319,22 +319,14 @@ func TestTransportSearchServiceV3TravelDatesWrong(
 					Trips: []*transportv3.QueryTrip{
 						{
 							Departure: &transportv3.QueryTransitEvent{
-								Date: &typesv1.Date{
-									Year:  int32(departureDate.Year()),  //nolint:gosec
-									Month: int32(departureDate.Month()), //nolint:gosec
-									Day:   int32(departureDate.Day()),   //nolint:gosec
-								},
+								Date: common.TimeToDateV1(departureDate),
 								LocationCode: &typesv2.LocationCode{
 									Code: "PMI",
 									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
 								},
 							},
 							Arrival: &transportv3.QueryTransitEvent{
-								Date: &typesv1.Date{
-									Year:  int32(arrivalDate.Year()),  //nolint:gosec
-									Month: int32(arrivalDate.Month()), //nolint:gosec
-									Day:   int32(arrivalDate.Day()),   //nolint:gosec
-								},
+								Date: common.TimeToDateV1(arrivalDate),
 								LocationCode: &typesv2.LocationCode{
 									Code: "BCN",
 									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
@@ -355,22 +347,30 @@ func TestTransportSearchServiceV3TravelDatesWrong(
 	require.Equal(t, 0, len(resp.Results), "unexpected number of results in response")
 }
 
-// Test product search with a valid travel period. Expect valid search results.
-func TestTransportProductSearchServiceV3WithTravelPeriod(
+// Test product search with a valid query. Expect a valid response with results.
+func TestTransportSearchServiceV3WithFilters(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
+	productListResponse *transportv3.TransportProductListResponse,
 ) (
 	searchID string,
 	resultID int32,
 	totalPrice float64,
 ) {
-	departureDate := time.Unix(1715782800, 0) // Wed May 15 2024 14:20:00 GMT+0000
-	arrivalDate := time.Unix(1715793600, 0)   // Wed May 15 2024 17:20:00 GMT+0000
-	departureLocationCode := "BCN"
-	arrivalLocationCode := "LIS"
+	// Extract the filters from the product list response which double also
+	// as the expected results later
+	// The product list request has already made sure that there are 2 results
+	// And that the 2nd result has 2 segments. So just extract the values here
+	firstSegmentDeparture := productListResponse.Trips[1].Segments[0].Departure
+	lastSegmentArrival := productListResponse.Trips[1].Segments[1].Arrival
+
+	departureDate := time.Unix(firstSegmentDeparture.DateTime.Seconds, 0)
+	arrivalDate := time.Unix(lastSegmentArrival.DateTime.Seconds, 0)
+	departureLocationCode := firstSegmentDeparture.LocationCode
+	arrivalLocationCode := lastSegmentArrival.LocationCode
 	expectedTotalPrice := 750.0
 
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
@@ -411,26 +411,12 @@ func TestTransportProductSearchServiceV3WithTravelPeriod(
 					Trips: []*transportv3.QueryTrip{
 						{
 							Departure: &transportv3.QueryTransitEvent{
-								Date: &typesv1.Date{
-									Year:  int32(departureDate.Year()),  //nolint:gosec
-									Month: int32(departureDate.Month()), //nolint:gosec
-									Day:   int32(departureDate.Day()),   //nolint:gosec
-								},
-								LocationCode: &typesv2.LocationCode{
-									Code: departureLocationCode,
-									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
-								},
+								Date:         common.TimeToDateV1(departureDate),
+								LocationCode: departureLocationCode,
 							},
 							Arrival: &transportv3.QueryTransitEvent{
-								Date: &typesv1.Date{
-									Year:  int32(arrivalDate.Year()),  //nolint:gosec
-									Month: int32(arrivalDate.Month()), //nolint:gosec
-									Day:   int32(arrivalDate.Day()),   //nolint:gosec
-								},
-								LocationCode: &typesv2.LocationCode{
-									Code: arrivalLocationCode,
-									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
-								},
+								Date:         common.TimeToDateV1(arrivalDate),
+								LocationCode: arrivalLocationCode,
 							},
 						},
 					},
@@ -457,8 +443,9 @@ func TestTransportProductSearchServiceV3WithTravelPeriod(
 	// Check if the departure of the first segment and the arrival of the last segment is right
 	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure, "unexpected empty response Results[0].TravellingTrips[0].Segments[0].Info.Departure")
 	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival, "unexpected empty response Results[0].TravellingTrips[0].Segments[1].Info.Arrival")
-	require.Equal(t, departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.LocationCode.Code, "unexpected departure location code")
-	require.Equal(t, arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.LocationCode.Code, "unexpected arrival location code")
+
+	require.True(t, proto.Equal(departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.LocationCode), "unexpected departure location code")
+	require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.LocationCode), "unexpected arrival location code")
 
 	// Extract the price from the response
 	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Price.Value, 64)
@@ -603,7 +590,7 @@ func TestTransportV3(t *testing.T, tt *Test) {
 
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the products
-		TestTransportProductListServiceV3(ctx, t, tt, distributorBot, supplierBot)
+		_ = TestTransportProductListServiceV3(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product list with filter", func(t *testing.T) {
 		// Happy path: will return only one property
@@ -621,8 +608,9 @@ func TestTransportV3(t *testing.T, tt *Test) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
 		TestTransportSearchServiceV3TravelDatesWrong(ctx, t, tt, distributorBot, supplierBot)
 	})
-	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
-		searchID, resultID, totalPrice := TestTransportProductSearchServiceV3WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
+	t.Run("ProductList->Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
+		productListResponse := TestTransportProductListServiceV3(ctx, t, tt, distributorBot, supplierBot)
+		searchID, resultID, totalPrice := TestTransportSearchServiceV3WithFilters(ctx, t, tt, distributorBot, supplierBot, productListResponse)
 		validationID := TestTransportValidateV3(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		tokenID, price := TestTransportMintV3(ctx, t, tt, distributorBot, supplierBot, validationID)
 		VerifyTransportBlockchainState(ctx, t, tt, distributorBot, tokenID, price)

@@ -197,6 +197,36 @@ func TestAccommodationProductInfoServiceV2(
 	require.Equal(t, resp.Properties[0].Rooms[0].TotalOccupancy.FullPayers, int32(2), "unexpected full payers")
 }
 
+func TestAccommodationSearchServiceV2WithoutCurrency(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
+	const hotelCode = "HOTEL345678"
+
+	resp, err := distributorBot.AccommodationSearchServiceV2.AccommodationSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		&accommodationv2.AccommodationSearchRequest{
+			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			Queries: []*accommodationv2.AccommodationSearchQuery{{
+				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+					SupplierCodes: []*typesv2.SupplierProductCode{
+						{SupplierCode: hotelCode},
+					},
+				},
+			}},
+		},
+	)
+	require.NoError(t, err)
+
+	tt.logger.Debug("AccommodationSearchServiceV2.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
+}
+
 // Test search without the mandatory travel period given. Expect an error to be returned back.
 func TestAccommodationSearchServiceV2WithoutTravelPeriod(
 	ctx context.Context,
@@ -213,6 +243,9 @@ func TestAccommodationSearchServiceV2WithoutTravelPeriod(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			SearchParametersGeneric: &typesv2.SearchParameters{
+				Currency: &typesv2.Currency{Currency: &typesv2.Currency_NativeToken{}},
+			},
 			Queries: []*accommodationv2.AccommodationSearchQuery{{
 				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
 					SupplierCodes: []*typesv2.SupplierProductCode{
@@ -248,6 +281,9 @@ func TestAccommodationSearchServiceV2TravelPeriodOutOfBounds(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			SearchParametersGeneric: &typesv2.SearchParameters{
+				Currency: &typesv2.Currency{Currency: &typesv2.Currency_NativeToken{}},
+			},
 			Queries: []*accommodationv2.AccommodationSearchQuery{{
 				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
 					SupplierCodes: []*typesv2.SupplierProductCode{
@@ -255,16 +291,8 @@ func TestAccommodationSearchServiceV2TravelPeriodOutOfBounds(
 					},
 				},
 				TravelPeriod: &typesv1.TravelPeriod{
-					StartDate: &typesv1.Date{
-						Year:  int32(startDate.Year()),  //nolint:gosec
-						Month: int32(startDate.Month()), //nolint:gosec
-						Day:   int32(startDate.Day()),   //nolint:gosec
-					},
-					EndDate: &typesv1.Date{
-						Year:  int32(endDate.Year()),  //nolint:gosec
-						Month: int32(endDate.Month()), //nolint:gosec
-						Day:   int32(endDate.Day()),   //nolint:gosec
-					},
+					StartDate: common.TimeToDateV1(startDate),
+					EndDate:   common.TimeToDateV1(endDate),
 				},
 			}},
 		},
@@ -295,6 +323,9 @@ func TestAccommodationSearchServiceV2TravelPeriodReversed(
 		}),
 		&accommodationv2.AccommodationSearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+			SearchParametersGeneric: &typesv2.SearchParameters{
+				Currency: &typesv2.Currency{Currency: &typesv2.Currency_NativeToken{}},
+			},
 			Queries: []*accommodationv2.AccommodationSearchQuery{{
 				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
 					SupplierCodes: []*typesv2.SupplierProductCode{
@@ -302,16 +333,8 @@ func TestAccommodationSearchServiceV2TravelPeriodReversed(
 					},
 				},
 				TravelPeriod: &typesv1.TravelPeriod{
-					StartDate: &typesv1.Date{
-						Year:  int32(startDate.Year()),  //nolint:gosec
-						Month: int32(startDate.Month()), //nolint:gosec
-						Day:   int32(startDate.Day()),   //nolint:gosec
-					},
-					EndDate: &typesv1.Date{
-						Year:  int32(endDate.Year()),  //nolint:gosec
-						Month: int32(endDate.Month()), //nolint:gosec
-						Day:   int32(endDate.Day()),   //nolint:gosec
-					},
+					StartDate: common.TimeToDateV1(startDate),
+					EndDate:   common.TimeToDateV1(endDate),
 				},
 			}},
 		},
@@ -351,16 +374,8 @@ func TestAccommodationSearchServiceV2WithTravelPeriod(
 				},
 			},
 			TravelPeriod: &typesv1.TravelPeriod{
-				StartDate: &typesv1.Date{
-					Year:  int32(startDate.Year()),  //nolint:gosec
-					Month: int32(startDate.Month()), //nolint:gosec
-					Day:   int32(startDate.Day()),   //nolint:gosec
-				},
-				EndDate: &typesv1.Date{
-					Year:  int32(endDate.Year()),  //nolint:gosec
-					Month: int32(endDate.Month()), //nolint:gosec
-					Day:   int32(endDate.Day()),   //nolint:gosec
-				},
+				StartDate: common.TimeToDateV1(startDate),
+				EndDate:   common.TimeToDateV1(endDate),
 			},
 		}},
 	}
@@ -547,19 +562,23 @@ func TestAccommodationV2(t *testing.T, tt *Test) {
 		// Happy path: will return the detailed info of a property
 		TestAccommodationProductInfoServiceV2(ctx, t, tt, distributorBot, supplierBot)
 	})
-	t.Run("Product search w/o travel period", func(t *testing.T) {
+	t.Run("Search w/o currency", func(t *testing.T) {
+		// ERROR path: without currency it should return an error
+		TestAccommodationSearchServiceV2WithoutCurrency(ctx, t, tt, distributorBot, supplierBot)
+	})
+	t.Run("Search w/o travel period", func(t *testing.T) {
 		// ERROR path: without travel period it should return an error
 		TestAccommodationSearchServiceV2WithoutTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 	})
-	t.Run("Product search with travel period oob", func(t *testing.T) {
+	t.Run("Search with travel period oob", func(t *testing.T) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
 		TestAccommodationSearchServiceV2TravelPeriodOutOfBounds(ctx, t, tt, distributorBot, supplierBot)
 	})
-	t.Run("Product search with travel period reversed", func(t *testing.T) {
+	t.Run("Search with travel period reversed", func(t *testing.T) {
 		// ERROR path: with travel period reversed it should return an error
 		TestAccommodationSearchServiceV2TravelPeriodReversed(ctx, t, tt, distributorBot, supplierBot)
 	})
-	t.Run("Search->Validate->Mint->Verify", func(t *testing.T) {
+	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		searchID, resultID, totalPrice := TestAccommodationSearchServiceV2WithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 		validationID := TestAccommodationValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		tokenID, price := TestAccommodationMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
