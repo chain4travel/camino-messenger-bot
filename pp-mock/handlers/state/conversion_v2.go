@@ -50,8 +50,6 @@ func PriceV2ToUnifiedPrice(price *typesv2.Price) *UnifiedPrice {
 		out.IsoCurrencyEnum = int32(currency.IsoCurrency)
 	case *typesv2.Currency_TokenCurrency:
 		out.TokenContractAddress = currency.TokenCurrency.ContractAddress
-	default:
-		return nil
 	}
 	return out
 }
