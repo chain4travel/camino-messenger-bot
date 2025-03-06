@@ -27,7 +27,7 @@ func requestContext(ctx context.Context, metadata *messageMetadata.Metadata) con
 // Gets the current function name including the whole package path
 func getCurrentFuncName() string {
 	pc, _, _, _ := runtime.Caller(1)
-	return fmt.Sprintf("%s", runtime.FuncForPC(pc).Name())
+	return runtime.FuncForPC(pc).Name()
 }
 
 // Get printable type information including the package path
