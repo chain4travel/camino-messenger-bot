@@ -1,3 +1,20 @@
+## Running from terminal
+
+### Setting up environment
+
+```
+./scripts/build.sh
+./scripts/build_partner_plugin.sh
+```
+
+### Running tests
+
+In terminal
+
+```
+./scripts/e2e.sh --debug
+```
+
 For VS Code to work correctly with e2e, following settings must be added because of build constraints:
 
 ```json
@@ -31,6 +48,7 @@ Example launch json debug config:
         "-cmb=../../build/camino-messenger-bot", // path to cmb binary
         "-migration=../../migrations", // path to sql migrations directory
         "-tests-data-dir=/tmp/cmb-e2e", // path to e2e tests data directory
+          "-debug"
     ]
 }
 ```
