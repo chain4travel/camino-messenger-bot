@@ -81,17 +81,17 @@ func testAccommodationV3ProductListService(
 
 	expectedTotalResults := len(hotelCodes)
 
+	req := &accommodationv3.AccommodationProductListRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	}
 	resp, err := distributorBot.AccommodationProductListServiceV3.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&accommodationv3.AccommodationProductListRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationProductListServiceV3.AccommodationProductList response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -119,20 +119,20 @@ func testAccommodationV3ProductListServiceWithFilter(
 	const modifiedAfterSecs int64 = 1710489050
 	const hotelCode = "HOTEL567890"
 
+	req := &accommodationv3.AccommodationProductListRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		ModifiedAfter: &timestamppb.Timestamp{
+			Seconds: modifiedAfterSecs,
+		},
+	}
 	resp, err := distributorBot.AccommodationProductListServiceV3.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&accommodationv3.AccommodationProductListRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			ModifiedAfter: &timestamppb.Timestamp{
-				Seconds: modifiedAfterSecs,
-			},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationProductListServiceV3.AccommodationProductList response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -155,20 +155,20 @@ func testAccommodationV3ProductInfoService(
 ) {
 	const hotelCode = "HOTEL789012"
 
+	req := &accommodationv3.AccommodationProductInfoRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SupplierCodes: []*typesv2.SupplierProductCode{
+			{SupplierCode: hotelCode},
+		},
+	}
 	resp, err := distributorBot.AccommodationProductInfoServiceV3.AccommodationProductInfo(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&accommodationv3.AccommodationProductInfoRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			SupplierCodes: []*typesv2.SupplierProductCode{
-				{SupplierCode: hotelCode},
-			},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationProductInfoServiceV3.AccommodationProductInfo response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -208,24 +208,24 @@ func testAccommodationV3SearchServiceWithoutCurrency(
 ) {
 	const hotelCode = "HOTEL345678"
 
+	req := &accommodationv3.AccommodationSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		Queries: []*accommodationv3.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: hotelCode},
+				},
+			},
+		}},
+	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&accommodationv3.AccommodationSearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*accommodationv3.AccommodationSearchQuery{{
-				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-					SupplierCodes: []*typesv2.SupplierProductCode{
-						{SupplierCode: hotelCode},
-					},
-				},
-			}},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationSearchServiceV3.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -239,27 +239,27 @@ func testAccommodationV3SearchServiceWithoutTravelPeriod(
 ) {
 	const hotelCode = "HOTEL345678"
 
+	req := &accommodationv3.AccommodationSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+		},
+		Queries: []*accommodationv3.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: hotelCode},
+				},
+			},
+		}},
+	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&accommodationv3.AccommodationSearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			SearchParametersGeneric: &typesv3.SearchParameters{
-				Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
-			},
-			Queries: []*accommodationv3.AccommodationSearchQuery{{
-				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-					SupplierCodes: []*typesv2.SupplierProductCode{
-						{SupplierCode: hotelCode},
-					},
-				},
-			}},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationSearchServiceV3.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -277,31 +277,31 @@ func testAccommodationV3SearchServiceTravelPeriodOutOfBounds(
 	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
+	req := &accommodationv3.AccommodationSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+		},
+		Queries: []*accommodationv3.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: hotelCode},
+				},
+			},
+			TravelPeriod: &typesv1.TravelPeriod{
+				StartDate: common.TimeToDateV1(startDate),
+				EndDate:   common.TimeToDateV1(endDate),
+			},
+		}},
+	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&accommodationv3.AccommodationSearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			SearchParametersGeneric: &typesv3.SearchParameters{
-				Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
-			},
-			Queries: []*accommodationv3.AccommodationSearchQuery{{
-				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-					SupplierCodes: []*typesv2.SupplierProductCode{
-						{SupplierCode: hotelCode},
-					},
-				},
-				TravelPeriod: &typesv1.TravelPeriod{
-					StartDate: common.TimeToDateV1(startDate),
-					EndDate:   common.TimeToDateV1(endDate),
-				},
-			}},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationSearchServiceV3.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -319,31 +319,31 @@ func testAccommodationV3SearchServiceTravelPeriodReversed(
 	endDate := time.Now().Add(time.Hour * 24)                        // tomorrow
 	startDate := endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
 
+	req := &accommodationv3.AccommodationSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+		},
+		Queries: []*accommodationv3.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: hotelCode},
+				},
+			},
+			TravelPeriod: &typesv1.TravelPeriod{
+				StartDate: common.TimeToDateV1(startDate),
+				EndDate:   common.TimeToDateV1(endDate),
+			},
+		}},
+	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&accommodationv3.AccommodationSearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			SearchParametersGeneric: &typesv3.SearchParameters{
-				Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
-			},
-			Queries: []*accommodationv3.AccommodationSearchQuery{{
-				SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
-					SupplierCodes: []*typesv2.SupplierProductCode{
-						{SupplierCode: hotelCode},
-					},
-				},
-				TravelPeriod: &typesv1.TravelPeriod{
-					StartDate: common.TimeToDateV1(startDate),
-					EndDate:   common.TimeToDateV1(endDate),
-				},
-			}},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationSearchServiceV3.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -381,9 +381,6 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 			},
 		}},
 	}
-
-	tt.logger.Debug("AccommodationSearchServiceV3.AccommodationSearch request:\n", protoMessageToJSON(tt, req))
-
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
@@ -391,8 +388,7 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("AccommodationSearchServiceV3.AccommodationSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -438,22 +434,22 @@ func testAccommodationV3ValidateV2(
 	resultID int32,
 	expectedTotalPrice float64,
 ) (validateID string) {
+	req := &bookv2.ValidationRequest{
+		ValidationObject: &bookv2.ValidationObject{
+			SearchIdentifier: &typesv2.SearchIdentifier{
+				SearchId: &typesv1.UUID{Value: searchID},
+				ResultId: resultID,
+			},
+		},
+	}
 	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&bookv2.ValidationRequest{
-			ValidationObject: &bookv2.ValidationObject{
-				SearchIdentifier: &typesv2.SearchIdentifier{
-					SearchId: &typesv1.UUID{Value: searchID},
-					ResultId: resultID,
-				},
-			},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("ValidationServiceV2.Validation response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -492,18 +488,18 @@ func testAccommodationV3MintV2(
 	tokenID uint64,
 	price *typesv2.Price,
 ) {
+	req := &bookv2.MintRequest{
+		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		ValidationId: &typesv1.UUID{Value: validationID},
+	}
 	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&bookv2.MintRequest{
-			Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			ValidationId: &typesv1.UUID{Value: validationID},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("MintServiceV2.Mint response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 

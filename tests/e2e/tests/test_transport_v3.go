@@ -81,17 +81,17 @@ func testTransportV3ProductListService(
 	}
 	expectedTotalResults := len(productCodes)
 
+	req := &transportv3.TransportProductListRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	}
 	resp, err := distributorBot.TransportProductListServiceV3.TransportProductList(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&transportv3.TransportProductListRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("TransportProductListServiceV3.TransportProductList response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -137,20 +137,20 @@ func testTransportV3ProductListServiceWithFilter(
 	expectedTotalResults := len(productCodes)
 	modifiedAfter := 1740500000
 
+	req := &transportv3.TransportProductListRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		ModifiedAfter: &timestamppb.Timestamp{
+			Seconds: int64(modifiedAfter),
+		},
+	}
 	resp, err := distributorBot.TransportProductListServiceV3.TransportProductList(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&transportv3.TransportProductListRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			ModifiedAfter: &timestamppb.Timestamp{
-				Seconds: int64(modifiedAfter),
-			},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("TransportProductListServiceV3.TransportProductList response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -180,18 +180,18 @@ func testTransportV3SearchServiceWithoutQuery(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
+	req := &transportv3.TransportSearchRequest{
+		Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		Queries: []*transportv3.TransportSearchQuery{},
+	}
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&transportv3.TransportSearchRequest{
-			Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Queries: []*transportv3.TransportSearchQuery{},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("TransportSearchServiceV3.TransportSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -207,66 +207,66 @@ func testTransportV3SearchServiceTravelDatesReversed(
 	endDate := time.Now().Add(time.Hour * 24)                        // tomorrow
 	startDate := endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
 
-	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
-		}),
-		&transportv3.TransportSearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			SearchParameters: &typesv3.SearchParameters{
-				Currency: &typesv3.Currency{
-					Currency: &typesv3.Currency_NativeToken{},
-				},
+	req := &transportv3.TransportSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParameters: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_NativeToken{},
 			},
-			Queries: []*transportv3.TransportSearchQuery{
-				{
-					Travellers: []*typesv3.BasicTraveller{
-						{
-							TravellerId: 0,
-							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
-							Birthdate: &typesv1.Date{
-								Year:  1980, //nolint:gosec
-								Month: 1,    //nolint:gosec
-								Day:   1,    //nolint:gosec
-							},
-							Nationality: typesv2.Country_COUNTRY_DE,
+		},
+		Queries: []*transportv3.TransportSearchQuery{
+			{
+				Travellers: []*typesv3.BasicTraveller{
+					{
+						TravellerId: 0,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   1,    //nolint:gosec
 						},
-						{
-							TravellerId: 1,
-							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
-							Birthdate: &typesv1.Date{
-								Year:  1980, //nolint:gosec
-								Month: 1,    //nolint:gosec
-								Day:   2,    //nolint:gosec
-							},
-							Nationality: typesv2.Country_COUNTRY_IT,
-						},
+						Nationality: typesv2.Country_COUNTRY_DE,
 					},
-					Trips: []*transportv3.QueryTrip{
-						{
-							Departure: &transportv3.QueryTransitEvent{
-								Date: common.TimeToDateV1(startDate),
-								LocationCode: &typesv2.LocationCode{
-									Code: "PMI",
-									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
-								},
+					{
+						TravellerId: 1,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   2,    //nolint:gosec
+						},
+						Nationality: typesv2.Country_COUNTRY_IT,
+					},
+				},
+				Trips: []*transportv3.QueryTrip{
+					{
+						Departure: &transportv3.QueryTransitEvent{
+							Date: common.TimeToDateV1(startDate),
+							LocationCode: &typesv2.LocationCode{
+								Code: "PMI",
+								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
 							},
-							Arrival: &transportv3.QueryTransitEvent{
-								Date: common.TimeToDateV1(endDate),
-								LocationCode: &typesv2.LocationCode{
-									Code: "BCN",
-									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
-								},
+						},
+						Arrival: &transportv3.QueryTransitEvent{
+							Date: common.TimeToDateV1(endDate),
+							LocationCode: &typesv2.LocationCode{
+								Code: "BCN",
+								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
 							},
 						},
 					},
 				},
 			},
 		},
+	}
+	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("TransportSearchServiceV3.TransportSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -281,66 +281,66 @@ func testTransportV3SearchServiceTravelDatesWrong(
 	departureDate := time.Unix(1741959420, 0) // 14. May 2025 -- Not in mock data
 	arrivalDate := time.Unix(1742045820, 0)   // 15. May 2025 -- In mock data
 
-	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
-		}),
-		&transportv3.TransportSearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			SearchParameters: &typesv3.SearchParameters{
-				Currency: &typesv3.Currency{
-					Currency: &typesv3.Currency_NativeToken{},
-				},
+	req := &transportv3.TransportSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParameters: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_NativeToken{},
 			},
-			Queries: []*transportv3.TransportSearchQuery{
-				{
-					Travellers: []*typesv3.BasicTraveller{
-						{
-							TravellerId: 0,
-							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
-							Birthdate: &typesv1.Date{
-								Year:  1980, //nolint:gosec
-								Month: 1,    //nolint:gosec
-								Day:   1,    //nolint:gosec
-							},
-							Nationality: typesv2.Country_COUNTRY_DE,
+		},
+		Queries: []*transportv3.TransportSearchQuery{
+			{
+				Travellers: []*typesv3.BasicTraveller{
+					{
+						TravellerId: 0,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   1,    //nolint:gosec
 						},
-						{
-							TravellerId: 1,
-							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
-							Birthdate: &typesv1.Date{
-								Year:  1980, //nolint:gosec
-								Month: 1,    //nolint:gosec
-								Day:   2,    //nolint:gosec
-							},
-							Nationality: typesv2.Country_COUNTRY_IT,
-						},
+						Nationality: typesv2.Country_COUNTRY_DE,
 					},
-					Trips: []*transportv3.QueryTrip{
-						{
-							Departure: &transportv3.QueryTransitEvent{
-								Date: common.TimeToDateV1(departureDate),
-								LocationCode: &typesv2.LocationCode{
-									Code: "PMI",
-									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
-								},
+					{
+						TravellerId: 1,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   2,    //nolint:gosec
+						},
+						Nationality: typesv2.Country_COUNTRY_IT,
+					},
+				},
+				Trips: []*transportv3.QueryTrip{
+					{
+						Departure: &transportv3.QueryTransitEvent{
+							Date: common.TimeToDateV1(departureDate),
+							LocationCode: &typesv2.LocationCode{
+								Code: "PMI",
+								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
 							},
-							Arrival: &transportv3.QueryTransitEvent{
-								Date: common.TimeToDateV1(arrivalDate),
-								LocationCode: &typesv2.LocationCode{
-									Code: "BCN",
-									Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
-								},
+						},
+						Arrival: &transportv3.QueryTransitEvent{
+							Date: common.TimeToDateV1(arrivalDate),
+							LocationCode: &typesv2.LocationCode{
+								Code: "BCN",
+								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
 							},
 						},
 					},
 				},
 			},
 		},
+	}
+	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("TransportSearchServiceV3.TransportSearch response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	// Note: an empty result is still a success as the request was valid
 	// There is just no result for the given filters
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
@@ -373,66 +373,64 @@ func testTransportV3SearchServiceWithFilters(
 	arrivalLocationCode := lastSegmentArrival.LocationCode
 	expectedTotalPrice := 750.0
 
-	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
-		}),
-		&transportv3.TransportSearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			SearchParameters: &typesv3.SearchParameters{
-				Currency: &typesv3.Currency{
-					Currency: &typesv3.Currency_IsoCurrency{
-						IsoCurrency: typesv3.IsoCurrency(*typesv2.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
-					},
+	req := &transportv3.TransportSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParameters: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_IsoCurrency{
+					IsoCurrency: typesv3.IsoCurrency(*typesv2.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
 				},
 			},
-			Queries: []*transportv3.TransportSearchQuery{
-				{
-					Travellers: []*typesv3.BasicTraveller{
-						{
-							TravellerId: 0,
-							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
-							Birthdate: &typesv1.Date{
-								Year:  1980, //nolint:gosec
-								Month: 1,    //nolint:gosec
-								Day:   1,    //nolint:gosec
-							},
-							Nationality: typesv2.Country_COUNTRY_DE,
+		},
+		Queries: []*transportv3.TransportSearchQuery{
+			{
+				Travellers: []*typesv3.BasicTraveller{
+					{
+						TravellerId: 0,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   1,    //nolint:gosec
 						},
-						{
-							TravellerId: 1,
-							Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
-							Birthdate: &typesv1.Date{
-								Year:  1980, //nolint:gosec
-								Month: 1,    //nolint:gosec
-								Day:   2,    //nolint:gosec
-							},
-							Nationality: typesv2.Country_COUNTRY_IT,
-						},
+						Nationality: typesv2.Country_COUNTRY_DE,
 					},
-					Trips: []*transportv3.QueryTrip{
-						{
-							Departure: &transportv3.QueryTransitEvent{
-								Date:         common.TimeToDateV1(departureDate),
-								LocationCode: departureLocationCode,
-							},
-							Arrival: &transportv3.QueryTransitEvent{
-								Date:         common.TimeToDateV1(arrivalDate),
-								LocationCode: arrivalLocationCode,
-							},
+					{
+						TravellerId: 1,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   2,    //nolint:gosec
+						},
+						Nationality: typesv2.Country_COUNTRY_IT,
+					},
+				},
+				Trips: []*transportv3.QueryTrip{
+					{
+						Departure: &transportv3.QueryTransitEvent{
+							Date:         common.TimeToDateV1(departureDate),
+							LocationCode: departureLocationCode,
+						},
+						Arrival: &transportv3.QueryTransitEvent{
+							Date:         common.TimeToDateV1(arrivalDate),
+							LocationCode: arrivalLocationCode,
 						},
 					},
 				},
 			},
 		},
+	}
+	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
 	)
 	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
-	tt.logger.Debug("TransportSearchServiceV3.TransportSearch response:\n", protoMessageToJSON(tt, resp))
-	// Note: an empty result is still a success as the request was valid
-	// There is just no result for the given filters
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-
 	// We expect 1 result
 	require.Len(t, resp.Results, 1, "unexpected number of results in response")
 
@@ -475,22 +473,22 @@ func testTransportV3ValidateV2(
 	resultID int32,
 	expectedTotalPrice float64,
 ) (validateID string) {
+	req := &bookv2.ValidationRequest{
+		ValidationObject: &bookv2.ValidationObject{
+			SearchIdentifier: &typesv2.SearchIdentifier{
+				SearchId: &typesv1.UUID{Value: searchID},
+				ResultId: resultID,
+			},
+		},
+	}
 	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&bookv2.ValidationRequest{
-			ValidationObject: &bookv2.ValidationObject{
-				SearchIdentifier: &typesv2.SearchIdentifier{
-					SearchId: &typesv1.UUID{Value: searchID},
-					ResultId: resultID,
-				},
-			},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("ValidationServiceV2.Validation response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -530,18 +528,18 @@ func testTransportV3MintV2(
 	tokenID uint64,
 	price *typesv2.Price,
 ) {
+	req := &bookv2.MintRequest{
+		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		ValidationId: &typesv1.UUID{Value: validationID},
+	}
 	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&bookv2.MintRequest{
-			Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			ValidationId: &typesv1.UUID{Value: validationID},
-		},
+		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("MintServiceV2.Mint response:\n", protoMessageToJSON(tt, resp))
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 

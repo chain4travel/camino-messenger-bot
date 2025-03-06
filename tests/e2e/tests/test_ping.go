@@ -42,18 +42,20 @@ func TestPingV1(t *testing.T, tt *Test) {
 	pingMessage := "ping"
 	expectedResponceMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
 
+	req := &pingv1.PingRequest{
+		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		PingMessage: pingMessage,
+		Timestamp:   timestamppb.Now(),
+	}
 	resp, err := distributorBot.PingServiceV1.Ping(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
-		&pingv1.PingRequest{
-			Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			PingMessage: pingMessage,
-			Timestamp:   timestamppb.Now(),
-		},
+		req,
 	)
 
 	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 	require.Contains(t, resp.PingMessage, expectedResponceMessageSubString, "unexpected response message")

@@ -5,6 +5,9 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	"reflect"
+	"runtime"
 	"testing"
 
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
@@ -19,6 +22,29 @@ import (
 
 func requestContext(ctx context.Context, metadata *messageMetadata.Metadata) context.Context {
 	return grpcMetadata.NewOutgoingContext(ctx, metadata.ToGrpcMD())
+}
+
+// Gets the current function name including the whole package path
+func getCurrentFuncName() string {
+	pc, _, _, _ := runtime.Caller(1)
+	return fmt.Sprintf("%s", runtime.FuncForPC(pc).Name())
+}
+
+// Get printable type information including the package path
+func getTypeInfo(myvar interface{}) (res string) {
+	t := reflect.TypeOf(myvar)
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+		res += "*"
+	}
+	return fmt.Sprintf("%s%s [Package: %s]", res, t.String(), t.PkgPath())
+}
+
+// Debug print used in each test case to print the request and response as json
+func debugPrintRequestResponse(tt *Test, functionName string, request proto.Message, response proto.Message) {
+	tt.logger.Debugf("Function: %s", functionName)
+	tt.logger.Debugf("Request (%s):\n%s", getTypeInfo(request), protoMessageToJSON(tt, request))
+	tt.logger.Debugf("Response (%s):\n%s", getTypeInfo(response), protoMessageToJSON(tt, response))
 }
 
 // Service function to convert the responses into pretty-printed JSON.
