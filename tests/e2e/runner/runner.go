@@ -4,6 +4,7 @@
 package runner
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -19,22 +20,29 @@ type (
 func New[T any](
 	beforeRun beforeRunFunc[T],
 	afterRun afterRunFunc[T],
+	filter []string,
 ) *Runner[T] {
 	return &Runner[T]{
-		beforeRun: beforeRun,
-		afterRun:  afterRun,
-		funcs:     make(map[string]runFunc[T]),
+		beforeRun:  beforeRun,
+		afterRun:   afterRun,
+		funcs:      make(map[string]runFunc[T]),
+		testFilter: filter,
 	}
 }
 
 // Not safe for concurrent use.
 type Runner[T any] struct {
-	beforeRun beforeRunFunc[T]
-	afterRun  afterRunFunc[T]
-	funcs     map[string]runFunc[T]
+	beforeRun  beforeRunFunc[T]
+	afterRun   afterRunFunc[T]
+	funcs      map[string]runFunc[T]
+	testFilter []string
 }
 
 func (r *Runner[T]) Register(t *testing.T, name string, f runFunc[T]) {
+	if len(r.testFilter) > 0 && !slices.Contains(r.testFilter, name) {
+		return
+	}
+
 	_, ok := r.funcs[name]
 	require.False(t, ok)
 	r.funcs[name] = f

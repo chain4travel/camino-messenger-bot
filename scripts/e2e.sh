@@ -36,6 +36,10 @@ while [[ $# -gt 0 ]]; do
 			DEBUG=1
 			shift
 			;;
+		--filter)
+			FILTER="$2"
+			shift 2
+			;;
         *)
             echo "Unknown argument: $1"
             exit 1
@@ -183,6 +187,10 @@ echo "Running e2e tests..."
 ADD_PARAM=()
 if [ $DEBUG -eq 1 ] ; then
 	ADD_PARAM+=("-debug")
+fi
+
+if [ -n "$FILTER" ] ; then
+	ADD_PARAM+=("-filter=$FILTER")
 fi
 
 ./$E2E_BIN_OUT \

@@ -5,7 +5,9 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"path"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -39,6 +41,7 @@ func NewSuite(
 	existingNetworkNodeURI string,
 	existingNetworkAdminKey *secp256k1.PrivateKey,
 	debug bool,
+	filter string,
 ) (*Suite, error) {
 	zapConfig := zap.NewDevelopmentConfig()
 	zapConfig.Level.SetLevel(zap.InfoLevel)
@@ -49,6 +52,11 @@ func NewSuite(
 	if err != nil {
 		return nil, err
 	}
+	testFilterElements := strings.Split(filter, ",")
+	if len(testFilterElements) > 0 {
+		logger.Debug(fmt.Sprintf("Running only tests with the following names: %v", testFilterElements))
+	}
+
 	return &Suite{
 		logger:                  logger.Sugar(),
 		resourcesManager:        resources.NewManager(10000, 50000, 10),
@@ -60,6 +68,7 @@ func NewSuite(
 		testsDataDir:            testsDataDir,
 		existingNetworkNodeURI:  existingNetworkNodeURI,
 		existingNetworkAdminKey: existingNetworkAdminKey,
+		TestFilter:              testFilterElements,
 	}, nil
 }
 
@@ -75,6 +84,7 @@ type Suite struct {
 	existingNetworkNodeURI  string
 	existingNetworkAdminKey *secp256k1.PrivateKey
 	resourcesManager        *resources.Manager
+	TestFilter              []string
 }
 
 func (s *Suite) NewTest(t *testing.T) *Test {

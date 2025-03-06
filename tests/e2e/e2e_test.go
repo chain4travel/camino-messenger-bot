@@ -28,6 +28,7 @@ const (
 	flagKeyCMBBinPath           = "cmb"
 	flagKeyMigrationsDir        = "migration"
 	flagKeyDebug                = "debug"
+	flagKeyFilter               = "filter"
 )
 
 var (
@@ -39,6 +40,8 @@ var (
 	flagTestsDataDir            string
 	flagExistingNetworkNodeURI  string
 	flagExistingNetworkAdminKey string
+	flagFilter                  string
+	flagFilterElements          []string
 	flagDebug                   bool
 )
 
@@ -51,6 +54,7 @@ func init() {
 	flag.StringVar(&flagCMBBinPath, flagKeyCMBBinPath, "", "Path to CMB binary.")
 	flag.StringVar(&flagMigrationsDir, flagKeyMigrationsDir, "", "Path to migration files dir.")
 	flag.StringVar(&flagTestsDataDir, "tests-data-dir", "/tmp/cmb-e2e", "Path to dir with temp tests data.")
+	flag.StringVar(&flagFilter, flagKeyFilter, "", "Filter for (comma separated) top level test names e.g. PingV1,AccommodationV3.")
 	flag.BoolVar(&flagDebug, flagKeyDebug, false, "Debug mode")
 }
 
@@ -101,17 +105,19 @@ func TestE2E(t *testing.T) {
 		flagExistingNetworkNodeURI,
 		existingNetworkAdminKey,
 		flagDebug,
+		flagFilter,
 	)
 	require.NoError(t, err)
 
 	testsRunner := runner.New(
 		suite.NewTest,
 		suite.Cleanup,
+		suite.TestFilter,
 	)
 	// #########################################################
 	// #### Registration of the e2e test cases is done here ####
 	// #########################################################
-	testsRunner.Register(t, "PingV1 request", tests.TestPingV1)
+	testsRunner.Register(t, "PingV1", tests.TestPingV1)
 	testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
 	testsRunner.Register(t, "AccommodationV3", tests.TestAccommodationV3)
 	testsRunner.Register(t, "TransportV3", tests.TestTransportV3)
