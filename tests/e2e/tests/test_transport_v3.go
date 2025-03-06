@@ -588,8 +588,12 @@ func VerifyTransportBlockchainState(
 func TestTransportV3(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	_, supplierBot, distributorBot := testTransportV3Setup(ctx, t, tt)
+	var supplierBot *bot.Bot
+	var distributorBot *bot.Bot
 
+	t.Run("Setup", func(t *testing.T) {
+		_, supplierBot, distributorBot = testTransportV3Setup(ctx, t, tt)
+	})
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the products
 		_ = TestTransportProductListServiceV3(ctx, t, tt, distributorBot, supplierBot)
