@@ -31,7 +31,6 @@ Example launch json debug config:
         "-cmb=../../build/camino-messenger-bot", // path to cmb binary
         "-migration=../../migrations", // path to sql migrations directory
         "-tests-data-dir=/tmp/cmb-e2e", // path to e2e tests data directory
-        "-max-parallel-tests=10", // maximum number of parallel tests run
     ]
 }
 ```
