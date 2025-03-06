@@ -41,7 +41,6 @@ var (
 	flagExistingNetworkNodeURI  string
 	flagExistingNetworkAdminKey string
 	flagFilter                  string
-	flagFilterElements          []string
 	flagDebug                   bool
 )
 
