@@ -1,4 +1,12 @@
-## PP-mock
+## PP-mock ( Partner Plugin Mock)
+
+### Running partner plugin (pp-mock) example
+
+See [README.MD](../../README.MD)for running partner plugin example.
+
+### Request and Response messages examples
+
+Can be retrieved by running the e2e tests as described in [README.MD](../../tests/e2e/README.MD) with `--debug` flag and taking a look at the output.
 
 # ProductListRequest
 

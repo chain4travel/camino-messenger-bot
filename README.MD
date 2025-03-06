@@ -32,7 +32,8 @@ Currently [release-10](https://github.com/chain4travel/camino-messenger-protocol
 To run the camino-bot-messenger as intended you will need a **CM Account** with a **bot** added to it and **registered services**.
 
 ### Creating the CM Account
-If you don't already have a **CM Account** your company should [get listed as a Partner](https://docs.camino.network/partners/partner-showroom/index.html#being-listed-as-a-partner) and [configure its partner profile](https://docs.camino.network/partners/partner-config) via [suite](https://suite.camino.network). Following this process will result in a CM account and all requirements to run the bot on mainnet Camino. Creating the CM Account this way is necessary for the mainnet Camino.  
+
+If you don't already have a **CM Account** your company should [get listed as a Partner](https://docs.camino.network/partners/partner-showroom/index.html#being-listed-as-a-partner) and [configure its partner profile](https://docs.camino.network/partners/partner-config) via [suite](https://suite.camino.network). Following this process will result in a CM account and all requirements to run the bot on mainnet Camino. Creating the CM Account this way is necessary for the mainnet Camino.
 
 For development purposes, it is also possible to configure the partner profile on testnet Columbus.
 
@@ -41,66 +42,82 @@ For development purposes, a CM Account can also be created and configured withou
 To create a **CM Account** and add the bot to it - you will need **two** (test) **wallets** - one for the **CM Account**, and one for the **bot**. The CM Account wallet has to be **KYC verified**. Creating and KYC verifying the test wallets can be done via [suite](https://suite.camino.network/create) as explained [here](https://docs.camino.network/guides/how-to-create-a-wallet) and [here](https://docs.camino.network/guides/kyc#kyc-verification-process).
 
 > [!IMPORTANT]
-> Remember to ensure the suite is connected to testnet Columbus if you are doing this for development purposes. 
+> Remember to ensure the suite is connected to testnet Columbus if you are doing this for development purposes.
 
-### Funding your wallets 
+### Funding your wallets
 
 > [!IMPORTANT]
 > Funds must be available on both wallets before you can create the CM account. At least 100 CAM in the wallet used to create the CM Account and 100 CAM on bot wallet. To request testnet funds, go to our [discord](https://discord.gg/XhrZTBXv) and use the command `/faucet <columbus-x-chain-address> <amount>`. More details about the faucet can be found [here](https://docs.camino.network/developer/guides/how-to-deploy-a-smart-contract/#3-request-funds-from-the-discord-faucet)
 
 ### Creating the CM Account via hardhat
+
 After you have your two wallets ready, clone the contracts repo, position inside the repo, and run:
+
 ```
 yarn install
 ```
+
 And then
+
 ```
 yarn hardhat account --help
 yarn hardhat account create --help
 yarn hardhat account bot:add --help
-yarn hardhat account service:add --help  
+yarn hardhat account service:add --help
 ```
 
 To see how to use the tool.
 
 1. To **create the CM Account** run:
+
 ```
 yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
 ```
+
 The command will output your new **CM Account Address** in format 0x<\...\>. Store it and add it to your `.yml` configuration under `cm_account_addess`.
-To retrieve your wallet static private key, follow the instructions [here](https://docs.camino.network/guides/how-to-login-to-your-wallet#how-to-retrieve-your-private-key).  
+To retrieve your wallet static private key, follow the instructions [here](https://docs.camino.network/guides/how-to-login-to-your-wallet#how-to-retrieve-your-private-key).
 
 2. To **add the bot** to the CM Account run:
+
 ```
 yarn hardhat account bot:add --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
 ```
+
 Add this **bot's wallet static private key** to your `.yml` configuration under `bot_key`.
 
-3. Granting Withdrawer role  
+3. Granting Withdrawer role
 
 In case you want to withdraw funds from the CM Account contract, you have to grant the `WITHDRAWER_ROLE` to an address, even for the default admin (creator of the CM Account). To do this run:
+
 ```
 yarn hardhat account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-default-admin-of-the-cm-account> --network columbus
 
 ```
+
 4. To **register a service** supported by your CM Account run e.g.
+
 ```
 yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network columbus
 ```
+
 To see all the services you can support, run:
+
 ```
 yarn hardhat manager services:list --network columbus
 ```
+
 5. To see a list of services that are supported by a specific CM Account:
+
 ```
 yarn hardhat account service:list --cm-account <0xCMAccount-address> --network columbus
 ```
 
-6. Once your bot is active, offering its services to other CM Acocunts, and doing regular cache in, it is possible to do the withdrawal of the collected fees to an address with WITHDRAWAL_ROLE via `hardhat` (and also via suite).  
-To do it via hardhat run:
+6. Once your bot is active, offering its services to other CM Acocunts, and doing regular cache in, it is possible to do the withdrawal of the collected fees to an address with WITHDRAWAL_ROLE via `hardhat` (and also via suite).
+   To do it via hardhat run:
+
 ```
 yarn hardhat account withdraw --amount <STRING> --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --recipient <STRING>
-```  
+```
 
 ## Examples and Docker Support
 
@@ -108,7 +125,6 @@ The repository includes examples demonstrating the setup of gRPC servers and cli
 
 > [!Note]
 > If docker-compose.yml is used, please check volumes. The configuration filepath should be `cmb-config/config.yaml`. An example can be copied over from examples/config/ and modified.
-
 
 ## Getting Started
 
@@ -191,13 +207,13 @@ Start the bot using the related config file depending on your need.
 
 In this case, make sure to **use 2 different CM Accounts**. Feel free to explore and customize the application based on your specific requirements. If you encounter any issues or have questions, please refer to the documentation or open an issue in the repository.
 
-### Running partner plugin example
+### Running partner plugin (pp-mock) example
 
-Run the partner plugin, setting the `PORT` env as defined in your supplier bot
+Run the partner plugin, setting the `CMB_PARTNER_PLUGIN_MOCK_PORT` env as defined in your supplier bot
 configuration file's `partner_plugin_port` field, e.g.:
 
 ```bash
-PORT=50051 go run examples/rpc/partner-plugin/server.go
+CMB_PARTNER_PLUGIN_MOCK_PORT=50051 go run pp-mock/server.go
 ```
 
 ## Tracing
