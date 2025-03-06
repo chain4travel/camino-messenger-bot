@@ -62,7 +62,7 @@ func testTransportV3Setup(
 }
 
 // Simple product list request which shall return all properties. Checking if all are present
-func TestTransportProductListServiceV3(
+func testTransportV3ProductListService(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -121,7 +121,7 @@ func TestTransportProductListServiceV3(
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
-func TestTransportProductListServiceV3WithFilter(
+func testTransportV3ProductListServiceWithFilter(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -173,7 +173,7 @@ func TestTransportProductListServiceV3WithFilter(
 }
 
 // Test product search without the mandatory query. Expect an error to be returned back.
-func TestTransportSearchServiceV3WithoutQuery(
+func testTransportV3SearchServiceWithoutQuery(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -196,7 +196,7 @@ func TestTransportSearchServiceV3WithoutQuery(
 }
 
 // Test transport search with wrong travel periods given: start date after end date. Expect errors to be returned.
-func TestTransportSearchServiceV3TravelDatesReversed(
+func testTransportV3SearchServiceTravelDatesReversed(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -271,7 +271,7 @@ func TestTransportSearchServiceV3TravelDatesReversed(
 }
 
 // Test transport search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned.
-func TestTransportSearchServiceV3TravelDatesWrong(
+func testTransportV3SearchServiceTravelDatesWrong(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -348,7 +348,7 @@ func TestTransportSearchServiceV3TravelDatesWrong(
 }
 
 // Test product search with a valid query. Expect a valid response with results.
-func TestTransportSearchServiceV3WithFilters(
+func testTransportV3SearchServiceWithFilters(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -465,7 +465,7 @@ func TestTransportSearchServiceV3WithFilters(
 }
 
 // Let's test the validation step with the values extracted from the search request
-func TestTransportValidateV2(
+func testTransportV3ValidateV2(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -519,7 +519,7 @@ func TestTransportValidateV2(
 }
 
 // Lastly we do the mint request based on the validation id
-func TestTransportMintV2(
+func testTransportV3MintV2(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -556,7 +556,7 @@ func TestTransportMintV2(
 	return resp.BookingTokenId, resp.Price
 }
 
-func VerifyTransportBlockchainState(
+func testTransportV3VerifyBlockchainState(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -596,29 +596,29 @@ func TestTransportV3(t *testing.T, tt *Test) {
 	})
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the products
-		_ = TestTransportProductListServiceV3(ctx, t, tt, distributorBot, supplierBot)
+		_ = testTransportV3ProductListService(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product list with filter", func(t *testing.T) {
 		// Happy path: will return only one property
-		TestTransportProductListServiceV3WithFilter(ctx, t, tt, distributorBot, supplierBot)
+		testTransportV3ProductListServiceWithFilter(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search w/o query", func(t *testing.T) {
 		// ERROR path: without query it should return an error
-		TestTransportSearchServiceV3WithoutQuery(ctx, t, tt, distributorBot, supplierBot)
+		testTransportV3SearchServiceWithoutQuery(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search with departure / arrival dates reversed", func(t *testing.T) {
 		// ERROR path: with travel period reversed it should return an error
-		TestTransportSearchServiceV3TravelDatesReversed(ctx, t, tt, distributorBot, supplierBot)
+		testTransportV3SearchServiceTravelDatesReversed(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product search with wrong travel dates", func(t *testing.T) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
-		TestTransportSearchServiceV3TravelDatesWrong(ctx, t, tt, distributorBot, supplierBot)
+		testTransportV3SearchServiceTravelDatesWrong(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("ProductList->Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-		productListResponse := TestTransportProductListServiceV3(ctx, t, tt, distributorBot, supplierBot)
-		searchID, resultID, totalPrice := TestTransportSearchServiceV3WithFilters(ctx, t, tt, distributorBot, supplierBot, productListResponse)
-		validationID := TestTransportValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
-		tokenID, price := TestTransportMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
-		VerifyTransportBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
+		productListResponse := testTransportV3ProductListService(ctx, t, tt, distributorBot, supplierBot)
+		searchID, resultID, totalPrice := testTransportV3SearchServiceWithFilters(ctx, t, tt, distributorBot, supplierBot, productListResponse)
+		validationID := testTransportV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
+		tokenID, price := testTransportV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
+		testTransportV3VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})
 }

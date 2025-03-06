@@ -518,7 +518,7 @@ func testAccommodationV3MintV2(
 	return resp.BookingTokenId, resp.Price
 }
 
-func verifyAccommodationV3BlockchainState(
+func testAccommodationV3VerifyBlockchainState(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -588,6 +588,6 @@ func TestAccommodationV3(t *testing.T, tt *Test) {
 		searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 		validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		tokenID, price := testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
-		verifyAccommodationV3BlockchainState(ctx, t, tt, distributorBot, tokenID, price)
+		testAccommodationV3VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})
 }
