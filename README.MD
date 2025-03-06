@@ -216,6 +216,8 @@ configuration file's `partner_plugin_port` field, e.g.:
 CMB_PARTNER_PLUGIN_MOCK_PORT=50051 go run pp-mock/server.go
 ```
 
+See [README.MD](pp-mock/docs/README.md) for more information about partner plugin.
+
 ## Tracing
 
 The application supports tracing by providing an otel (OpenTelemetry) sdk
@@ -229,3 +231,7 @@ is disabled.
 For the moment the application uses a Jaeger exporter to send the traces to a Jaeger
 instance. A future improvement could include an otel collector as the middle stop
 for traces and feed to them different tracing systems.
+
+## E2E tests
+
+See [README.MD](tests/e2e/README.MD) for running e2e tests.

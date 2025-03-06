@@ -14,3 +14,6 @@ supplier-bot-db
 
 coverage.out
 bin
+*.crt
+*.key
+*.log
