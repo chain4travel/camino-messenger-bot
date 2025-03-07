@@ -62,6 +62,10 @@ func init() {
 		panic(fmt.Errorf("error unmarshaling trips v3 extended: %w", err))
 	}
 
+	// because protobuf location and price are one-of interface types,
+	// json unmarshaling won't work for them and will result in error
+	// so, as quick workaround, we are setting them manually
+
 	// TripBasicV3[0,0]
 	TripsBasicV3[0].Segments[0].Departure.Location = &transportv3.TransitEventLocation{
 		Location: &transportv3.TransitEventLocation_LocationCode{
