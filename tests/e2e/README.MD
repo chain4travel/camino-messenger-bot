@@ -23,10 +23,10 @@ Usage:
 Flags (All optional):
 
 * `--clean` Always re-download dependencies instead of re-using already existing ones
-* `--debug` Adds a lot of log output by the end2end test including JSON requests and responses for ech test-case
+* `--debug` Adds extensive log output for the end-to-end tests, including JSON requests and responses for each test-case
 * `--filter` Comma-separated list of top-level test names to execute instead of all e.g. "PingV1,AccommodationV3".
-* `--caminogo` Overwrites the version to download instead of latest
-* `--camino-conduit` Overwrites the version to download instead of latest
+* `--caminogo` Overrides the version to download; if unspecified, the latest version will be used.
+* `--camino-conduit` Overrides the version to download; if unspecified, the latest version will be used.
 
 ### Running from VS Code
 
@@ -41,4 +41,4 @@ For VS Code to work correctly with e2e, following settings must be added because
     "go.useLanguageServer": true,
 ```
 
-Example launch json debug config can be found in `examples/debug-launch-configs/vs_code_launch.json`
+Example launch json debug config can be found [here](../../examples/debug-launch-configs/vs_code_launch.json).
