@@ -112,9 +112,8 @@ yarn hardhat manager services:list --network columbus
 yarn hardhat account service:list --cm-account <0xCMAccount-address> --network columbus
 ```
 
-6. Once your bot is active, offering its services to other CM Acocunts, and doing regular cache in, it is possible to do the withdrawal of the collected fees to an address with WITHDRAWAL_ROLE via `hardhat` (and also via suite).
+6. Once your bot is active, offering its services to other CM Accounts, and performing regular cash-ins, it is possible to withdraw the collected fees to an address with WITHDRAWAL_ROLE via `hardhat` (and also via suite).
    To do it via hardhat run:
-
 ```
 yarn hardhat account withdraw --amount <STRING> --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --recipient <STRING>
 ```
