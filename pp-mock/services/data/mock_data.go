@@ -11,6 +11,8 @@ import (
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 )
 
 //go:embed properties.json
@@ -59,5 +61,128 @@ func init() {
 	if err := json.Unmarshal(tripsV3ExtendedJSON, &TripsExtendedV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling trips v3 extended: %w", err))
 	}
+
+	// TripBasicV3[0,0]
+	TripsBasicV3[0].Segments[0].Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "PMI",
+				Type: 2,
+			},
+		},
+	}
+	TripsBasicV3[0].Segments[0].Arrival.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "BCN",
+				Type: 2,
+			},
+		},
+	}
+
+	// TripBasicV3[1,0]
+	TripsBasicV3[1].Segments[0].Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "BCN",
+				Type: 2,
+			},
+		},
+	}
+	TripsBasicV3[1].Segments[0].Arrival.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "MAD",
+				Type: 2,
+			},
+		},
+	}
+
+	// TripBasicV3[1,1]
+	TripsBasicV3[1].Segments[1].Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "MAD",
+				Type: 2,
+			},
+		},
+	}
+	TripsBasicV3[1].Segments[1].Arrival.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "LIS",
+				Type: 2,
+			},
+		},
+	}
+
+	// TripsExtendedV3[0]
+	TripsExtendedV3[0].Price.Currency = &typesv3.Currency{
+		Currency: &typesv3.Currency_IsoCurrency{
+			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+
+	// TripsExtendedV3[0,0]
+	TripsExtendedV3[0].Segments[0].Info.Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "PMI",
+				Type: 2,
+			},
+		},
+	}
+	TripsExtendedV3[0].Segments[0].Info.Arrival.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "BCN",
+				Type: 2,
+			},
+		},
+	}
+
+	// TripsExtendedV3[1]
+	TripsExtendedV3[1].Price.Currency = &typesv3.Currency{
+		Currency: &typesv3.Currency_IsoCurrency{
+			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+
+	// TripsExtendedV3[1,0]
+	TripsExtendedV3[1].Segments[0].Info.Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "BCN",
+				Type: 2,
+			},
+		},
+	}
+	TripsExtendedV3[1].Segments[0].Info.Arrival.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "MAD",
+				Type: 2,
+			},
+		},
+	}
+
+	// TripsExtendedV3[1,1]
+	TripsExtendedV3[1].Segments[1].Info.Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "MAD",
+				Type: 2,
+			},
+		},
+	}
+	TripsExtendedV3[1].Segments[1].Info.Arrival.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "LIS",
+				Type: 2,
+			},
+		},
+	}
+
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }

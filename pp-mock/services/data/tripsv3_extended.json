@@ -6,10 +6,7 @@
 		},
 		"price": {
 			"value": "20000",
-			"decimals": 2,
-			"currency": {
-				"iso_currency": "ISO_CURRENCY_EUR"
-			}
+			"decimals": 2
 		},
 		"segments": [
 			{
@@ -24,20 +21,12 @@
 						"date_time": {
 							"seconds": 1715775600,
 							"nanos": 0
-						},
-						"location_code": {
-							"code": "PMI",
-							"type": 2
 						}
 					},
 					"arrival": {
 						"date_time": {
 							"seconds": 1715779200,
 							"nanos": 0
-						},
-						"location_code": {
-							"code": "BCN",
-							"type": 2
 						}
 					}
 				}
@@ -51,10 +40,7 @@
 		},
 		"price": {
 			"value": "75000",
-			"decimals": 2,
-			"currency": {
-				"iso_currency": "ISO_CURRENCY_EUR"
-			}
+			"decimals": 2
 		},
 		"segments": [
 			{
@@ -71,20 +57,12 @@
 						"date_time": {
 							"seconds": 1715782800,
 							"nanos": 0
-						},
-						"location_code": {
-							"code": "BCN",
-							"type": 2
 						}
 					},
 					"arrival": {
 						"date_time": {
 							"seconds": 1715786400,
 							"nanos": 0
-						},
-						"location_code": {
-							"code": "MAD",
-							"type": 2
 						}
 					}
 				}
@@ -101,20 +79,12 @@
 						"date_time": {
 							"seconds": 1715790000,
 							"nanos": 0
-						},
-						"location_code": {
-							"code": "MAD",
-							"type": 2
 						}
 					},
 					"arrival": {
 						"date_time": {
 							"seconds": 1715793600,
 							"nanos": 0
-						},
-						"location_code": {
-							"code": "LIS",
-							"type": 2
 						}
 					}
 				}
