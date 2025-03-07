@@ -5,7 +5,6 @@ package tests
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"strings"
 	"sync"
@@ -52,13 +51,17 @@ func NewSuite(
 	if err != nil {
 		return nil, err
 	}
-	testFilterElements := strings.Split(filter, ",")
-	if len(testFilterElements) > 0 {
-		logger.Debug(fmt.Sprintf("Running only tests with the following names: %v", testFilterElements))
+	sugaredLogger := logger.Sugar()
+	var testFilterElements []string
+	if len(filter) > 0 {
+		testFilterElements = strings.Split(filter, ",")
+		if len(testFilterElements) > 0 {
+			sugaredLogger.Debugf("Running only tests with the following names: %v", testFilterElements)
+		}
 	}
 
 	return &Suite{
-		logger:                  logger.Sugar(),
+		logger:                  sugaredLogger,
 		resourcesManager:        resources.NewManager(10000, 50000, 10),
 		nodeBinPath:             nodeBinPath,
 		matrixBinPath:           matrixBinPath,
