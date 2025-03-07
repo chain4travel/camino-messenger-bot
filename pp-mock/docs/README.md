@@ -58,7 +58,7 @@ In SearchParametersGeneric, Currency is required to return the result prices in 
 
 # Validation
 
-Used for validating the availability of the search query (accommodation search).
+Used for validating the availability of the search query.
 
 # Mint
 
