@@ -107,9 +107,33 @@ func filterTripsByLocations(
 		// We need the last segment to compare the arrival location
 		lastSegment := trip.Segments[len(trip.Segments)-1]
 
-		// Now we can compare if the trip locations are exactly what the query is looking for
-		if proto.Equal(firstSegment.Info.Departure.LocationCode, query.Departure.LocationCode) && proto.Equal(lastSegment.Info.Arrival.LocationCode, query.Arrival.LocationCode) {
-			filtered = append(filtered, common.CloneProto(trip))
+		queryDepartureLocationCodes := query.Departure.Location.GetLocationCodes()
+		queryArrivalLocationCodes := query.Arrival.Location.GetLocationCodes()
+
+		firstSegmentDepartureLocationCode := firstSegment.Info.Departure.Location.GetLocationCode()
+		lastSegmentArrivalLocationCode := lastSegment.Info.Arrival.Location.GetLocationCode()
+
+		if firstSegmentDepartureLocationCode == nil || lastSegmentArrivalLocationCode == nil {
+			continue
+		}
+
+		foundDepartureMatch := false
+		for _, queryDepartureLocationCode := range queryDepartureLocationCodes.Codes {
+			if proto.Equal(queryDepartureLocationCode, firstSegmentDepartureLocationCode) {
+				foundDepartureMatch = true
+				break
+			}
+		}
+
+		if !foundDepartureMatch {
+			continue
+		}
+
+		for _, queryArrivalLocationCode := range queryArrivalLocationCodes.Codes {
+			if proto.Equal(queryArrivalLocationCode, lastSegmentArrivalLocationCode) {
+				filtered = append(filtered, common.CloneProto(trip))
+				break
+			}
 		}
 	}
 	return filtered

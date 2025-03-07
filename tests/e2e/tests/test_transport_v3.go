@@ -242,16 +242,28 @@ func testTransportV3SearchServiceTravelDatesReversed(
 					{
 						Departure: &transportv3.QueryTransitEvent{
 							Date: common.TimeToDateV1(startDate),
-							LocationCode: &typesv2.LocationCode{
-								Code: "PMI",
-								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{{
+											Code: "PMI",
+											Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+										}},
+									},
+								},
 							},
 						},
 						Arrival: &transportv3.QueryTransitEvent{
 							Date: common.TimeToDateV1(endDate),
-							LocationCode: &typesv2.LocationCode{
-								Code: "BCN",
-								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{{
+											Code: "BCN",
+											Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+										}},
+									},
+								},
 							},
 						},
 					},
@@ -316,16 +328,28 @@ func testTransportV3SearchServiceTravelDatesWrong(
 					{
 						Departure: &transportv3.QueryTransitEvent{
 							Date: common.TimeToDateV1(departureDate),
-							LocationCode: &typesv2.LocationCode{
-								Code: "PMI",
-								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{{
+											Code: "PMI",
+											Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+										}},
+									},
+								},
 							},
 						},
 						Arrival: &transportv3.QueryTransitEvent{
 							Date: common.TimeToDateV1(arrivalDate),
-							LocationCode: &typesv2.LocationCode{
-								Code: "BCN",
-								Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{{
+											Code: "BCN",
+											Type: typesv2.LocationCodeType_LOCATION_CODE_TYPE_IATA_CODE,
+										}},
+									},
+								},
 							},
 						},
 					},
@@ -369,8 +393,8 @@ func testTransportV3SearchServiceWithFilters(
 
 	departureDate := time.Unix(firstSegmentDeparture.DateTime.Seconds, 0)
 	arrivalDate := time.Unix(lastSegmentArrival.DateTime.Seconds, 0)
-	departureLocationCode := firstSegmentDeparture.LocationCode
-	arrivalLocationCode := lastSegmentArrival.LocationCode
+	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
+	arrivalLocationCode := lastSegmentArrival.Location.GetLocationCode()
 	expectedTotalPrice := 750.0
 
 	req := &transportv3.TransportSearchRequest{
@@ -409,12 +433,24 @@ func testTransportV3SearchServiceWithFilters(
 				Trips: []*transportv3.QueryTrip{
 					{
 						Departure: &transportv3.QueryTransitEvent{
-							Date:         common.TimeToDateV1(departureDate),
-							LocationCode: departureLocationCode,
+							Date: common.TimeToDateV1(departureDate),
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{departureLocationCode},
+									},
+								},
+							},
 						},
 						Arrival: &transportv3.QueryTransitEvent{
-							Date:         common.TimeToDateV1(arrivalDate),
-							LocationCode: arrivalLocationCode,
+							Date: common.TimeToDateV1(arrivalDate),
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{arrivalLocationCode},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -444,8 +480,8 @@ func testTransportV3SearchServiceWithFilters(
 	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure, "unexpected empty response Results[0].TravellingTrips[0].Segments[0].Info.Departure")
 	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival, "unexpected empty response Results[0].TravellingTrips[0].Segments[1].Info.Arrival")
 
-	require.True(t, proto.Equal(departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.LocationCode), "unexpected departure location code")
-	require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.LocationCode), "unexpected arrival location code")
+	require.True(t, proto.Equal(departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.Location.GetLocationCode()), "unexpected departure location code")
+	require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.Location.GetLocationCode()), "unexpected arrival location code")
 
 	// Extract the price from the response
 	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Price.Value, 64)

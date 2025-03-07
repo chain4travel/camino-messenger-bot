@@ -111,12 +111,24 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 
 			if queryTrip.Departure == nil || queryTrip.Arrival == nil ||
 				queryTrip.Departure.Date == nil || queryTrip.Arrival.Date == nil ||
-				queryTrip.Departure.LocationCode == nil || queryTrip.Arrival.LocationCode == nil {
+				queryTrip.Departure.Location == nil || queryTrip.Arrival.Location == nil {
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 						Alerts: []*typesv1.Alert{{
-							Message: "Invalid trip: departure and arrival must be provided",
+							Message: "Invalid trip filter: departure and arrival must be provided",
+							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+						}},
+					},
+				}, nil
+			}
+
+			if !queryTrip.Departure.Location.HasLocationCodes() || !queryTrip.Arrival.Location.HasLocationCodes() {
+				return &transportv3.TransportSearchResponse{
+					Header: &typesv1.ResponseHeader{
+						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+						Alerts: []*typesv1.Alert{{
+							Message: "Unsupported trip filter: departure and arrival must provide location codes",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
 					},
