@@ -32,24 +32,24 @@ done
 go_version_minimum="1.23"
 
 go_version() {
-    go version | sed -nE -e 's/[^0-9.]+([0-9.]+).+/\1/p'
+	go version | sed -nE -e 's/[^0-9.]+([0-9.]+).+/\1/p'
 }
 
 version_lt() {
-    # Return true if $1 is a lower version than than $2,
-    local ver1=$1
-    local ver2=$2
-    # Reverse sort the versions, if the 1st item != ver1 then ver1 < ver2
-    if  [[ $(echo -e -n "$ver1\n$ver2\n" | sort -rV | head -n1) != "$ver1" ]]; then
-        return 0
-    else
-        return 1
-    fi
+	# Return true if $1 is a lower version than than $2,
+	local ver1=$1
+	local ver2=$2
+	# Reverse sort the versions, if the 1st item != ver1 then ver1 < ver2
+	if [[ $(echo -e -n "$ver1\n$ver2\n" | sort -rV | head -n1) != "$ver1" ]]; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 if version_lt "$(go_version)" "$go_version_minimum"; then
-    echo "camino-messenger-bot requires Go >= $go_version_minimum, Go $(go_version) found." >&2
-    exit 1
+	echo "camino-messenger-bot requires Go >= $go_version_minimum, Go $(go_version) found." >&2
+	exit 1
 fi
 
 echo "Starting build process..."
@@ -89,9 +89,7 @@ fi
 
 echo "$BUILD_CMD"
 
-
-if eval "$BUILD_CMD"
-then
+if eval "$BUILD_CMD"; then
 	echo "Output binary: ${CAMINOBOT_PATH}/${OUTPUT_BINARY}"
 	echo "Build successful!"
 else
