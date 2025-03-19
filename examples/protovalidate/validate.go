@@ -7,6 +7,7 @@ package main
 import (
 	"log"
 
+	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/bufbuild/protovalidate-go"
 	"go.uber.org/zap"
@@ -74,6 +75,30 @@ func main() {
 
 	// Validate
 	if err := protovalidate.Validate(&extensiveTraveller); err != nil {
+		sugar.Errorf("validation failed:", err)
+	} else {
+		sugar.Info("validation succeeded")
+	}
+
+	// ------------------------------------------------------------------------
+	// ACCOMMODATION REQUEST
+	// ------------------------------------------------------------------------
+	accommodation := accommodationv3.AccommodationSearchRequest{
+		Queries: []*accommodationv3.AccommodationSearchQuery{
+			{
+				Travellers: []*typesv3.BasicTraveller{
+					{
+						TravellerId: -1,
+					},
+				},
+			},
+		},
+	}
+
+	sugar.Info("Accommodation: ", &accommodation)
+
+	// Validate
+	if err := protovalidate.Validate(&accommodation); err != nil {
 		sugar.Errorf("validation failed:", err)
 	} else {
 		sugar.Info("validation succeeded")
