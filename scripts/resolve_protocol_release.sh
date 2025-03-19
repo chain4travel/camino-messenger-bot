@@ -45,7 +45,7 @@ label=$(curl -s -f --max-time 10 -X POST "https://buf.build/buf.registry.module.
 	.labels[] | select(.commitId | startswith($hash)) | .name' | (
 	release_label=$(grep -e "^release-\|^main\|^draft\|^dev" || true)
 	if [ -n "$release_label" ]; then
-		if [ $(echo "$release_label" | grep -c $'\n') -gt 0 ]; then
+		if [ "$(echo "$release_label" | grep -c $'\n')" -gt 0 ]; then
 			#release_label has multiple lines
 			echo "$release_label" | head -n 1
 		else
