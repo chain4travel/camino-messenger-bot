@@ -65,6 +65,29 @@ func main() {
 	}
 
 	// ------------------------------------------------------------------------
+	// BASIC TRAVELLER Type: CHILD
+	// ------------------------------------------------------------------------
+	basicTravellerChild := typesv3.BasicTraveller{
+		TravellerId: -1,
+		Type:        typesv3.TravellerType_TRAVELLER_TYPE_CHILD, // Birthday is required when traveller type is CHILD
+		// Birthdate: &typesv1.Date{
+		// 	Year:  1980,
+		// 	Month: 1,
+		// 	Day:   1,
+		// },
+		//Nationality: typesv2.Country_COUNTRY_DE,
+	}
+
+	sugar.Info("BasicTravellerChild: ", &basicTravellerChild)
+
+	// Validate
+	if err := protovalidate.Validate(&basicTravellerChild); err != nil {
+		sugar.Errorf("validation failed:", err)
+	} else {
+		sugar.Info("validation succeeded")
+	}
+
+	// ------------------------------------------------------------------------
 	// EXTENSIVE TRAVELLER
 	// ------------------------------------------------------------------------
 	extensiveTraveller := typesv3.ExtensiveTraveller{
@@ -89,6 +112,7 @@ func main() {
 				Travellers: []*typesv3.BasicTraveller{
 					{
 						TravellerId: -1,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_CHILD,
 					},
 				},
 			},
