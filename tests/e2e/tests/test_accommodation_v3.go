@@ -27,6 +27,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/bufbuild/protovalidate-go"
 )
 
 // Setting up the basic applications and services used in all sub-test-cases
@@ -84,12 +86,28 @@ func testAccommodationV3ProductListService(
 	req := &accommodationv3.AccommodationProductListRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 	}
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(req); err != nil {
+		tt.logger.Errorf("request validation failed:", err)
+	} else {
+		tt.logger.Info("request validation succeeded")
+	}
+
 	resp, err := distributorBot.AccommodationProductListServiceV3.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(resp); err != nil {
+		tt.logger.Errorf("response validation failed:", err)
+	} else {
+		tt.logger.Info("response validation succeeded")
+	}
+
 	require.NoError(t, err)
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 
@@ -218,12 +236,28 @@ func testAccommodationV3SearchServiceWithoutCurrency(
 			},
 		}},
 	}
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(req); err != nil {
+		tt.logger.Errorf("request validation failed:", err)
+	} else {
+		tt.logger.Info("request validation succeeded")
+	}
+
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(resp); err != nil {
+		tt.logger.Errorf("response validation failed:", err)
+	} else {
+		tt.logger.Info("response validation succeeded")
+	}
+
 	require.NoError(t, err)
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
@@ -252,12 +286,28 @@ func testAccommodationV3SearchServiceWithoutTravelPeriod(
 			},
 		}},
 	}
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(req); err != nil {
+		tt.logger.Errorf("request validation failed:", err)
+	} else {
+		tt.logger.Info("request validation succeeded")
+	}
+
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(resp); err != nil {
+		tt.logger.Errorf("response validation failed:", err)
+	} else {
+		tt.logger.Info("response validation succeeded")
+	}
+
 	require.NoError(t, err)
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
@@ -294,12 +344,28 @@ func testAccommodationV3SearchServiceTravelPeriodOutOfBounds(
 			},
 		}},
 	}
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(req); err != nil {
+		tt.logger.Errorf("request validation failed:", err)
+	} else {
+		tt.logger.Info("request validation succeeded")
+	}
+
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(resp); err != nil {
+		tt.logger.Errorf("response validation failed:", err)
+	} else {
+		tt.logger.Info("response validation succeeded")
+	}
+
 	require.NoError(t, err)
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
@@ -336,12 +402,28 @@ func testAccommodationV3SearchServiceTravelPeriodReversed(
 			},
 		}},
 	}
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(req); err != nil {
+		tt.logger.Errorf("request validation failed:", err)
+	} else {
+		tt.logger.Info("request validation succeeded")
+	}
+
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(resp); err != nil {
+		tt.logger.Errorf("response validation failed:", err)
+	} else {
+		tt.logger.Info("response validation succeeded")
+	}
+
 	require.NoError(t, err)
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
@@ -381,12 +463,34 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 			},
 		}},
 	}
+
+	// FIXME: Temporary code to test protovalidate
+	tt.logger.Infof("Sending request: %+v", req)
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(req); err != nil {
+		tt.logger.Errorf("request validation failed:", err)
+	} else {
+		tt.logger.Info("request validation succeeded")
+	}
+
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
 			Recipient: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
+
+	// FIXME: Temporary code to test protovalidate
+	tt.logger.Infof("Got response: %+v", resp)
+
+	// FIXME: Temporary code to test protovalidate
+	if err := protovalidate.Validate(resp); err != nil {
+		tt.logger.Errorf("response validation failed:", err)
+	} else {
+		tt.logger.Info("response validation succeeded")
+	}
+
 	require.NoError(t, err)
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 

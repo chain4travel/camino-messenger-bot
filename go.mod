@@ -5,6 +5,7 @@ go 1.23.5
 require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-ad99228c381f.2
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.5-00000000000000-ad99228c381f.1
+	github.com/bufbuild/protovalidate-go v0.9.2
 	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20250129104547-90f8b12cd935
 	github.com/chain4travel/caminogoeth-compat v1.1.0-rc1
 	github.com/ethereum/go-ethereum v1.14.12
@@ -33,8 +34,10 @@ require (
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.5-20250307204501-0409229c3780.1 // indirect
+	cel.dev/expr v0.19.1 // indirect
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -50,6 +53,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
+	github.com/google/cel-go v0.23.2 // indirect
 	github.com/gorilla/rpc v1.2.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
@@ -69,6 +73,7 @@ require (
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
+	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/supranational/blst v0.3.13 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect
 	github.com/tidwall/gjson v1.17.0 // indirect
