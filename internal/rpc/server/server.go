@@ -110,6 +110,7 @@ func (s *server) Stop() {
 }
 
 func (s *server) HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+	// TODO @Noctunus add checkpoint()
 	ctx, span := s.tracer.Start(ctx, "server.HandleMessageRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))

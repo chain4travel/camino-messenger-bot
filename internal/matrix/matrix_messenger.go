@@ -102,6 +102,8 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 		if !completed {
 			return // partial messages are not passed down to the msgChannel
 		}
+
+		// Checkpoints for matrix messenger
 		completeMsg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", completeMsg.MsgType), evt.Timestamp)
 		completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.Checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
 		m.msgChannel <- types.Message{

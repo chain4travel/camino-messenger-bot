@@ -217,6 +217,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	select {
 	case responseMsg := <-responseChan:
 		if responseMsg.Metadata.RequestID == requestMsg.Metadata.RequestID {
+			// TODO @Noctunus add checkpoint()
 			p.responseHandler.ProcessResponseMessage(ctx, responseMsg)
 			return responseMsg, nil
 		} else {
