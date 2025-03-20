@@ -26,6 +26,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/stretchr/testify/require"
 
+	"google.golang.org/grpc"
+	grpcMetadata "google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -363,6 +365,12 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
+	// Create metadata with a timestamp
+	md := metadata.Metadata{
+		Recipient: supplierBot.CMAccountAddress().Hex(),
+	}
+	md.Stamp("client-search-request")
+
 	req := &accommodationv3.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParametersGeneric: &typesv3.SearchParameters{
@@ -381,11 +389,14 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 			},
 		}},
 	}
+
+	// Create a variable to store the response headers
+	var header grpcMetadata.MD
+
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
-		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, &md),
 		req,
+		grpc.Header(&header),
 	)
 	require.NoError(t, err)
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
@@ -393,6 +404,11 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
+	// Validate timestamps using the helper method with pattern validation
+	// tt.ValidateTimestampsWithPatterns(t, header, "0-client-search-request")
+	// Validate timestamps using the basic validation
+	timestamps := tt.ValidateBasicTimestamps(t, header)
+	tt.LogTimestamps("Found timestamps in the AccommodationV3 response", timestamps)
 	// We expect 2 results - let's check for the 2nd one
 	require.Len(t, resp.Results, 2, "unexpected number of results in response")
 
@@ -421,6 +437,120 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 	require.NotEmpty(t, resp.Results[1].ResultId, "unexpected empty response Results[1].ResultId")
 
 	return resp.Metadata.SearchId.Value, resp.Results[1].ResultId, totalPrice
+}
+
+// Test search with a focus on validating timestamps in the response headers
+func testAccommodationV3SearchServiceTimestamps(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
+	const nights = 7                            // 7 nights
+	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+
+	// Create metadata with a custom timestamp
+	md := metadata.Metadata{
+		Recipient: supplierBot.CMAccountAddress().Hex(),
+	}
+	md.Stamp("client-timestamp-test")
+
+	req := &accommodationv3.AccommodationSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+		},
+		Queries: []*accommodationv3.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: "HOTEL345678"},
+				},
+			},
+			TravelPeriod: &typesv1.TravelPeriod{
+				StartDate: common.TimeToDateV1(startDate),
+				EndDate:   common.TimeToDateV1(endDate),
+			},
+		}},
+	}
+
+	// Create a variable to store the response headers
+	var header grpcMetadata.MD
+
+	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
+		requestContext(ctx, &md),
+		req,
+		grpc.Header(&header),
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	// Validate timestamps using the helper method with pattern validation
+	// tt.ValidateTimestampsWithPatterns(t, header, "0-client-timestamp-test")
+	// Validate timestamps using the basic validation
+	timestamps := tt.ValidateBasicTimestamps(t, header)
+	tt.LogTimestamps("Found timestamps in the AccommodationV3 response", timestamps)
+}
+
+// Test search with a focus on validating specific timestamp keys
+func testAccommodationV3SearchServiceSpecificTimestamps(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
+	const nights = 5                            // 5 nights
+	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+
+	// Create metadata with a custom timestamp
+	md := metadata.Metadata{
+		Recipient: supplierBot.CMAccountAddress().Hex(),
+	}
+	md.Stamp("client-specific-timestamp-test")
+
+	req := &accommodationv3.AccommodationSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+		},
+		Queries: []*accommodationv3.AccommodationSearchQuery{{
+			SearchParametersAccommodation: &accommodationv2.AccommodationSearchParameters{
+				SupplierCodes: []*typesv2.SupplierProductCode{
+					{SupplierCode: "HOTEL789012"},
+				},
+			},
+			TravelPeriod: &typesv1.TravelPeriod{
+				StartDate: common.TimeToDateV1(startDate),
+				EndDate:   common.TimeToDateV1(endDate),
+			},
+		}},
+	}
+
+	// Create a variable to store the response headers
+	var header grpcMetadata.MD
+
+	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
+		requestContext(ctx, &md),
+		req,
+		grpc.Header(&header),
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	// Validate timestamps using the helper method with pattern validation
+	// tt.ValidateTimestampsWithPatterns(t, header, "0-client-specific-timestamp-test")
+	// Validate timestamps using the basic validation
+	timestamps := tt.ValidateBasicTimestamps(t, header)
+	tt.LogTimestamps("Found timestamps in the AccommodationV3 response", timestamps)
 }
 
 // Let's test the validation step with the values extracted from the search request
@@ -585,5 +715,11 @@ func TestAccommodationV3(t *testing.T, tt *Test) {
 		validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		tokenID, price := testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 		testAccommodationV3VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
+	})
+	t.Run("Search with timestamps", func(t *testing.T) {
+		testAccommodationV3SearchServiceTimestamps(ctx, t, tt, distributorBot, supplierBot)
+	})
+	t.Run("Search with specific timestamps", func(t *testing.T) {
+		testAccommodationV3SearchServiceSpecificTimestamps(ctx, t, tt, distributorBot, supplierBot)
 	})
 }

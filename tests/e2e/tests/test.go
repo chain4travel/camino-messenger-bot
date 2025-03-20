@@ -11,9 +11,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/blockchain"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
+	"github.com/chain4travel/camino-messenger-bot/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/matrix"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/resources"
@@ -72,4 +74,48 @@ func expectNoErrorAsync(t *testing.T, errChan chan error) {
 	go func() {
 		require.NoError(t, <-errChan)
 	}()
+}
+
+// ValidateTimestamps validates that the response contains the expected timestamps
+// It returns the parsed timestamps map for further validation if needed
+func (tt *Test) ValidateTimestamps(t *testing.T, headers metadata.MD, clientTimestampKey string) map[string]int64 {
+	validator := common.NewTimestampValidator(t, tt.logger, headers)
+	timestamps := validator.ValidateTimestamps()
+
+	if clientTimestampKey != "" {
+		validator.ValidateClientTimestamp(clientTimestampKey, timestamps)
+	}
+
+	return timestamps
+}
+
+// ValidateTimestampsWithPatterns validates timestamps including specific patterns
+// This is a more strict validation that should be used for services that are expected
+// to have specific timestamp patterns (like accommodation search)
+func (tt *Test) ValidateTimestampsWithPatterns(t *testing.T, headers metadata.MD, clientTimestampKey string) map[string]int64 {
+	validator := common.NewTimestampValidator(t, tt.logger, headers)
+	timestamps := validator.ValidateTimestampsWithPatterns()
+
+	if clientTimestampKey != "" {
+		validator.ValidateClientTimestamp(clientTimestampKey, timestamps)
+	}
+
+	return timestamps
+}
+
+// ValidateBasicTimestamps validates that the response contains timestamps
+// This is a more lenient validation that should be used for simpler services like ping
+func (tt *Test) ValidateBasicTimestamps(t *testing.T, headers metadata.MD) map[string]int64 {
+	validator := common.NewTimestampValidator(t, tt.logger, headers)
+	return validator.ValidateBasicTimestamps()
+}
+
+// LogTimestamps logs a map of timestamps with each key on a new line
+func (tt *Test) LogTimestamps(title string, timestamps map[string]int64) {
+	tt.logger.Infof("%s (%d entries)", title, len(timestamps))
+	for key, value := range timestamps {
+		// Convert Unix millisecond timestamp to human-readable format
+		timeStr := time.UnixMilli(value).Format("2006-01-02 15:04:05.000")
+		tt.logger.Infof("  %s: %d (%s)", key, value, timeStr)
+	}
 }

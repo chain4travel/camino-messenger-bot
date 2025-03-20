@@ -15,6 +15,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	grpcMetadata "google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -34,20 +36,30 @@ func testPingV1Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugi
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
 
-func testPingV1Service(ctx context.Context, t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot) {
+// Basic ping test that validates the response and timestamps
+func testPingV1Basic(ctx context.Context, t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot) {
 	pingMessage := "ping"
 	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
+
+	// Create metadata without a timestamp
+	md := metadata.Metadata{
+		Recipient: supplierBot.CMAccountAddress().Hex(),
+	}
 
 	req := &pingv1.PingRequest{
 		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		PingMessage: pingMessage,
 		Timestamp:   timestamppb.Now(),
 	}
+
+	// Create a variable to store the response headers
+	var header grpcMetadata.MD
+
+	// Make the request with header capture
 	resp, err := distributorBot.PingServiceV1.Ping(
-		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, &md),
 		req,
+		grpc.Header(&header),
 	)
 
 	require.NoError(t, err)
@@ -55,6 +67,44 @@ func testPingV1Service(ctx context.Context, t *testing.T, tt *Test, distributorB
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 	require.Contains(t, resp.PingMessage, expectedResponseMessageSubString, "unexpected response message")
+
+	// Validate timestamps using the basic validation
+	tt.ValidateBasicTimestamps(t, header)
+}
+
+// Test specifically focused on validating timestamps in the ping service
+func testPingV1Timestamps(ctx context.Context, t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot) {
+	// Create metadata without a timestamp
+	md := metadata.Metadata{
+		Recipient: supplierBot.CMAccountAddress().Hex(),
+	}
+
+	req := &pingv1.PingRequest{
+		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		PingMessage: "timestamp test",
+		Timestamp:   timestamppb.Now(),
+	}
+
+	// Create a variable to store the response headers
+	var header grpcMetadata.MD
+
+	// Make the request with header capture
+	resp, err := distributorBot.PingServiceV1.Ping(
+		requestContext(ctx, &md),
+		req,
+		grpc.Header(&header),
+	)
+
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	// Validate timestamps using the basic validation
+	timestamps := tt.ValidateBasicTimestamps(t, header)
+
+	// Log the timestamps using the helper method
+	tt.LogTimestamps("Found timestamps in the ping response", timestamps)
 }
 
 func TestPingV1(t *testing.T, tt *Test) {
@@ -66,7 +116,12 @@ func TestPingV1(t *testing.T, tt *Test) {
 	t.Run("Setup", func(t *testing.T) {
 		_, supplierBot, distributorBot = testPingV1Setup(ctx, t, tt)
 	})
-	t.Run("Ping", func(t *testing.T) {
-		testPingV1Service(ctx, t, tt, distributorBot, supplierBot)
+
+	t.Run("Basic", func(t *testing.T) {
+		testPingV1Basic(ctx, t, tt, distributorBot, supplierBot)
+	})
+
+	t.Run("Timestamps", func(t *testing.T) {
+		testPingV1Timestamps(ctx, t, tt, distributorBot, supplierBot)
 	})
 }

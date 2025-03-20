@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/blockchain"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
@@ -43,6 +44,7 @@ func NewSuite(
 	filter string,
 ) (*Suite, error) {
 	zapConfig := zap.NewDevelopmentConfig()
+	zapConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	zapConfig.Level.SetLevel(zap.InfoLevel)
 	if debug {
 		zapConfig.Level.SetLevel(zap.DebugLevel)
