@@ -98,8 +98,9 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 
 		// This bot does actually have the CM-Account and prefunding of the owner
 		// and is also registered in the CM-Account **BUT** the service registration
-		// is missing - therefore the bot should already fail at startup trying
-		// to check the registered services in the CM-Account
+		// is missing - this is checked by the bot but results only in a warning
+		// inside of the logs. We can later use this bot to check if the distributor
+		// bot acts correctly by rejecting this supplier bot as the required service is missing
 		require.NoError(t, err)
 		expectNoErrorAsync(t, errChan)
 	})
