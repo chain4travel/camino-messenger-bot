@@ -83,10 +83,10 @@ type IntentionalSkip struct {
 	// Requires CMAccountCreation to be false.
 	PrefundBot bool
 	// Skips the registration of the bot in the cm-account.
-	// Requires CMAccountCreation to be false.
+	// Requires CMAccountCreation and PrefundOwner to be false.
 	BotRegistration bool
 	// Skips the registration of services in the cm-account.
-	// Requires CMAccountCreation to be false.
+	// Requires CMAccountCreation and PrefundOwner to be false.
 	ServiceRegistration bool
 }
 
