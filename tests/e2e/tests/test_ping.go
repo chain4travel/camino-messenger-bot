@@ -34,13 +34,9 @@ func testPingV1Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugi
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
 
-func TestPingV1(t *testing.T, tt *Test) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
-	defer cancel()
-	_, supplierBot, distributorBot := testPingV1Setup(ctx, t, tt)
-
+func testPingV1Service(ctx context.Context, t *testing.T, tt *Test, distributorBot *bot.Bot, supplierBot *bot.Bot) {
 	pingMessage := "ping"
-	expectedResponceMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
+	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
 
 	req := &pingv1.PingRequest{
 		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -58,5 +54,19 @@ func TestPingV1(t *testing.T, tt *Test) {
 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-	require.Contains(t, resp.PingMessage, expectedResponceMessageSubString, "unexpected response message")
+	require.Contains(t, resp.PingMessage, expectedResponseMessageSubString, "unexpected response message")
+}
+
+func TestPingV1(t *testing.T, tt *Test) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
+	defer cancel()
+	var supplierBot *bot.Bot
+	var distributorBot *bot.Bot
+
+	t.Run("Setup", func(t *testing.T) {
+		_, supplierBot, distributorBot = testPingV1Setup(ctx, t, tt)
+	})
+	t.Run("Ping", func(t *testing.T) {
+		testPingV1Service(ctx, t, tt, distributorBot, supplierBot)
+	})
 }

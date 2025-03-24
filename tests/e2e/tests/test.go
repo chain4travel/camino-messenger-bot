@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -37,7 +38,7 @@ func (tt *Test) CreateBot(
 	services []bot.CMService,
 ) *bot.Bot {
 	t.Helper()
-	bot, errChan, err := tt.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, services)
+	bot, errChan, err := tt.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, services, &bot.IntentionalSkip{})
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
 	return bot
@@ -52,6 +53,18 @@ func (tt *Test) CreatePartnerPlugin(
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
 	return partnerPlugin
+}
+
+func expectChannelErrorWithTimeout(t *testing.T, errChan chan error, errContent string, timeout time.Duration) {
+	t.Helper()
+
+	select {
+	case err := <-errChan:
+		require.Error(t, err)
+		require.Contains(t, err.Error(), errContent)
+	case <-time.After(timeout):
+		require.Fail(t, "timeout waiting for channel error with content: "+errContent)
+	}
 }
 
 func expectNoErrorAsync(t *testing.T, errChan chan error) {

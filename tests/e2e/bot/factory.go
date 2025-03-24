@@ -15,6 +15,7 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/go-viper/mapstructure/v2"
 	"go.uber.org/zap"
@@ -70,37 +71,77 @@ type Factory struct {
 	bots                   []*Bot
 }
 
+// Intentionally skip some steps in bot creation.
+// Only used for very specific testing purposes.
+type IntentionalSkip struct {
+	// Skips the creation of the cm-account when setting up the bot.
+	CMAccountCreation bool
+	// Skips the transfer of funds to the cm-account owner.
+	// Requires CMAccountCreation to be false.
+	PrefundOwner bool
+	// Skips the transfer of funds to the bot.
+	// Requires CMAccountCreation to be false.
+	PrefundBot bool
+	// Skips the registration of the bot in the cm-account.
+	// Requires CMAccountCreation to be false.
+	BotRegistration bool
+	// Skips the registration of services in the cm-account.
+	// Requires CMAccountCreation to be false.
+	ServiceRegistration bool
+}
+
 func (f *Factory) CreateBot(
 	ctx context.Context,
 	enableRPCServer bool,
 	partnerPlugin *partnerplugin.PartnerPlugin,
 	services []CMService,
+	skips *IntentionalSkip,
 ) (*Bot, chan error, error) {
-	key, err := ecdsa.GenerateKey(crypto.S256(), rand.Reader)
+	var err error
+	var cmAccountAddress common.Address
+
+	cmAccountOwnerKey, err := ecdsa.GenerateKey(crypto.S256(), rand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate key: %w", err)
 	}
 
-	// Prepare CM account
-
-	ownerAddr := crypto.PubkeyToAddress(key.PublicKey)
-
-	cmAccountAddress, _, err := f.networkClient.CreateCMAccount(ctx, key)
+	botKey, err := ecdsa.GenerateKey(crypto.S256(), rand.Reader)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create CM account: %w", err)
+		return nil, nil, fmt.Errorf("failed to generate key: %w", err)
 	}
 
-	if err := f.networkClient.Transfer(ctx, f.networkClient.PrefundedKeys()[0], ownerAddr, e2eCommon.DefaultCMAccountOwnerFunds); err != nil {
-		return nil, nil, fmt.Errorf("failed to transfer funds to cm account owner: %w", err)
-	}
+	if !skips.CMAccountCreation {
+		botAddr := crypto.PubkeyToAddress(botKey.PublicKey)
+		cmAccountOwnerAddress := crypto.PubkeyToAddress(cmAccountOwnerKey.PublicKey)
+		cmAccountAddress, _, err = f.networkClient.CreateCMAccount(ctx, cmAccountOwnerKey)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create CM account: %w", err)
+		}
 
-	if err := f.networkClient.AddBotToCMAccount(ctx, cmAccountAddress, key, ownerAddr); err != nil {
-		return nil, nil, fmt.Errorf("failed to add bot to CM account: %w", err)
-	}
+		if !skips.PrefundOwner {
+			if err := f.networkClient.Transfer(ctx, f.networkClient.PrefundedKeys()[0], cmAccountOwnerAddress, e2eCommon.DefaultCMAccountOwnerFunds); err != nil {
+				return nil, nil, fmt.Errorf("failed to transfer funds to cm account owner: %w", err)
+			}
 
-	for _, service := range services {
-		if err := f.networkClient.AddCMService(ctx, cmAccountAddress, key, service.Name, service.Fee); err != nil {
-			return nil, nil, fmt.Errorf("failed to add %s service to CM account: %w", service.Name, err)
+			if !skips.BotRegistration {
+				if err := f.networkClient.AddBotToCMAccount(ctx, cmAccountAddress, cmAccountOwnerKey, botAddr); err != nil {
+					return nil, nil, fmt.Errorf("failed to add bot to CM account: %w", err)
+				}
+			}
+
+			if !skips.ServiceRegistration {
+				for _, service := range services {
+					if err := f.networkClient.AddCMService(ctx, cmAccountAddress, cmAccountOwnerKey, service.Name, service.Fee); err != nil {
+						return nil, nil, fmt.Errorf("failed to add %s service to CM account: %w", service.Name, err)
+					}
+				}
+			}
+		}
+
+		if !skips.PrefundBot {
+			if err := f.networkClient.Transfer(ctx, f.networkClient.PrefundedKeys()[0], botAddr, e2eCommon.DefaultCMAccountOwnerFunds); err != nil {
+				return nil, nil, fmt.Errorf("failed to transfer funds to bot: %w", err)
+			}
 		}
 	}
 
@@ -118,7 +159,7 @@ func (f *Factory) CreateBot(
 
 	config := config.UnparsedConfig{
 		DeveloperMode:                       true,
-		BotKey:                              hex.EncodeToString(crypto.FromECDSA(key)),
+		BotKey:                              hex.EncodeToString(crypto.FromECDSA(botKey)),
 		CMAccountAddress:                    cmAccountAddress.Hex(),
 		ChainRPCURL:                         f.networkClient.ChainRPCURL(),
 		BookingTokenAddress:                 f.networkClient.BookingTokenContractAddress().Hex(),

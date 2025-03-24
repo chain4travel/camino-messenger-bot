@@ -135,8 +135,8 @@ func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress c
 	}
 
 	if countBig.Cmp(bigZero) <= 0 { // count <= 0
-		s.logger.Error("No cheque operators found")
-		return common.Address{}, nil
+		s.logger.Error("no cheque operators found (no bots found in cmAccount)")
+		return common.Address{}, fmt.Errorf("no cheque operators found (no bots found in cmAccount)")
 	}
 
 	botsAddress, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: ctx}, chequeOperatorRole, big.NewInt(0))
