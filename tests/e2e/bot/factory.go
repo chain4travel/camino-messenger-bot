@@ -97,6 +97,9 @@ func (f *Factory) CreateBot(
 	services []CMService,
 	skips *IntentionalSkip,
 ) (*Bot, chan error, error) {
+	if skips == nil {
+		skips = &IntentionalSkip{}
+	}
 	var err error
 	var cmAccountAddress common.Address
 
