@@ -73,7 +73,7 @@ type Factory struct {
 
 // Intentionally skip some steps in bot creation.
 // Only used for very specific testing purposes.
-type IntentionalSkip struct {
+type Skip struct {
 	// Skips the creation of the cm-account when setting up the bot.
 	CMAccountCreation bool
 	// Skips the transfer of funds to the cm-account owner.
@@ -95,12 +95,11 @@ func (f *Factory) CreateBot(
 	enableRPCServer bool,
 	partnerPlugin *partnerplugin.PartnerPlugin,
 	services []CMService,
-	skips *IntentionalSkip,
+	skips *Skip,
 ) (*Bot, chan error, error) {
 	if skips == nil {
-		skips = &IntentionalSkip{}
+		skips = &Skip{}
 	}
-	var err error
 	var cmAccountAddress common.Address
 
 	cmAccountOwnerKey, err := ecdsa.GenerateKey(crypto.S256(), rand.Reader)

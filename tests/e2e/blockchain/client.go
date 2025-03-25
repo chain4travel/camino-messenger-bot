@@ -6,6 +6,7 @@ package blockchain
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -27,7 +28,11 @@ import (
 
 const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolint:gosec // this is not credentials.
 
-var kycAdminRole = big.NewInt(0b100)
+var (
+	kycAdminRole = big.NewInt(0b100)
+
+	ErrorAddServiceTxFailed = errors.New("failed to issue AddService tx")
+)
 
 func newClient(
 	ctx context.Context,
@@ -182,7 +187,7 @@ func (c *Client) AddCMService(
 		[]string{},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to issue AddService tx: %w", err)
+		return fmt.Errorf("%w: %w", ErrorAddServiceTxFailed, err)
 	}
 
 	if _, err := c.waitTxSucceed(ctx, tx); err != nil {

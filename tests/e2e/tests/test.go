@@ -38,7 +38,7 @@ func (tt *Test) CreateBot(
 	services []bot.CMService,
 ) *bot.Bot {
 	t.Helper()
-	bot, errChan, err := tt.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, services, &bot.IntentionalSkip{})
+	bot, errChan, err := tt.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, services, &bot.Skip{})
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
 	return bot

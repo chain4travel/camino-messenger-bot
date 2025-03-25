@@ -12,6 +12,8 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/tests/e2e/blockchain"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
@@ -36,7 +38,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 	t.Run("Missing CM-Account", func(t *testing.T) {
 		_, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
 			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.IntentionalSkip{CMAccountCreation: true},
+			&bot.Skip{CMAccountCreation: true},
 		)
 
 		// This should fail already when the bot starts up as there is no
@@ -48,7 +50,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 	t.Run("Missing CM-Account owner funds", func(t *testing.T) {
 		services.supplierBotUnregisteredNoServices, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
 			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.IntentionalSkip{PrefundOwner: true},
+			&bot.Skip{PrefundOwner: true},
 		)
 
 		// This bot skips the bot registration and the service registration
@@ -61,14 +63,14 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 	t.Run("Missing global CM-Account-Manager services", func(t *testing.T) {
 		_, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
 			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.IntentionalSkip{},
+			&bot.Skip{},
 		)
 
 		// This should fail already before the bot is even started up
 		// as the CM-Account-Manager services are not registered yet and the
 		// factory tries to register a service which is not available
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to issue AddService tx")
+		require.Contains(t, err.Error(), blockchain.ErrorAddServiceTxFailed.Error())
 	})
 
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx,
@@ -79,7 +81,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 	t.Run("Missing Bot-Registration", func(t *testing.T) {
 		services.supplierBotUnregistered, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
 			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.IntentionalSkip{BotRegistration: true},
+			&bot.Skip{BotRegistration: true},
 		)
 
 		// This bot does actually have the CM-Account and prefunding of the owner
@@ -93,7 +95,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 	t.Run("Missing Bot service registration", func(t *testing.T) {
 		services.supplierBotNoServices, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
 			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.IntentionalSkip{ServiceRegistration: true},
+			&bot.Skip{ServiceRegistration: true},
 		)
 
 		// This bot does actually have the CM-Account and prefunding of the owner
@@ -108,7 +110,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 	t.Run("Different services", func(t *testing.T) {
 		services.supplierBotDifferentServices, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
 			[]bot.CMService{{Name: botGenerated.MintServiceV3, Fee: 100}},
-			&bot.IntentionalSkip{},
+			&bot.Skip{},
 		)
 
 		// All good here - just a different service used which should then
@@ -142,25 +144,25 @@ func testBotSanityVerify(ctx context.Context, t *testing.T, services *botSanityS
 	t.Run("Supplier bot: unregistered / no services", func(t *testing.T) {
 		err := testBotSanitySendCommonRequest(ctx, "unregistered / no services", services.distributorBot, services.supplierBotUnregisteredNoServices)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "no cheque operators found (no bots found in cmAccount)")
+		require.Contains(t, err.Error(), cmaccounts.ErrorNoChequeOperators.Error())
 	})
 
 	t.Run("Supplier bot: unregistered / with services", func(t *testing.T) {
 		err := testBotSanitySendCommonRequest(ctx, "unregistered / with services", services.distributorBot, services.supplierBotUnregistered)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "no cheque operators found (no bots found in cmAccount)")
+		require.Contains(t, err.Error(), cmaccounts.ErrorNoChequeOperators.Error())
 	})
 
 	t.Run("Supplier bot: registered / no services", func(t *testing.T) {
 		err := testBotSanitySendCommonRequest(ctx, "registered / no services", services.distributorBot, services.supplierBotNoServices)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to get service fee: execution reverted")
+		require.Contains(t, err.Error(), cmaccounts.ErrorUnableToObtainServiceFee.Error())
 	})
 
 	t.Run("Supplier bot: registered / different services", func(t *testing.T) {
 		err := testBotSanitySendCommonRequest(ctx, "registered / different services", services.distributorBot, services.supplierBotDifferentServices)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to get service fee: execution reverted")
+		require.Contains(t, err.Error(), cmaccounts.ErrorUnableToObtainServiceFee.Error())
 	})
 }
 

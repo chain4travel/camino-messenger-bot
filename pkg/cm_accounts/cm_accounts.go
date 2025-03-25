@@ -6,6 +6,7 @@ package cmaccounts
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -34,6 +35,9 @@ var (
 	bigZero                            = big.NewInt(0)
 	chequeOperatorRole                 = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
 	managerCMAccountImplementationSlot = common.HexToHash(managerCMAccountImplementationSlotString)
+
+	ErrorNoChequeOperators        = errors.New("no cheque operators found (no bots found in cmAccount)")
+	ErrorUnableToObtainServiceFee = errors.New("unable to obtain service fee")
 )
 
 type Service interface {
@@ -135,8 +139,8 @@ func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress c
 	}
 
 	if countBig.Cmp(bigZero) <= 0 { // count <= 0
-		s.logger.Error("no cheque operators found (no bots found in cmAccount)")
-		return common.Address{}, fmt.Errorf("no cheque operators found (no bots found in cmAccount)")
+		s.logger.Error(ErrorNoChequeOperators)
+		return common.Address{}, ErrorNoChequeOperators
 	}
 
 	botsAddress, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: ctx}, chequeOperatorRole, big.NewInt(0))
@@ -223,7 +227,7 @@ func (s *service) GetServiceFee(
 		serviceFullName,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get service fee: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrorUnableToObtainServiceFee, err)
 	}
 	return serviceFee, nil
 }
