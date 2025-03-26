@@ -13,6 +13,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
@@ -129,6 +130,10 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &cancellationv1.CheckCancellationRequest{}
 	case CheckCancellationServiceV1Response:
 		*destination = &cancellationv1.CheckCancellationResponse{}
+	case CarbonCompensateServiceV1Request:
+		*destination = &carbonv1.CarbonCompensateSearchRequest{}
+	case CarbonCompensateServiceV1Response:
+		*destination = &carbonv1.CarbonCompensateSearchResponse{}
 	case CountryEntryRequirementsServiceV1Request:
 		*destination = &infov1.CountryEntryRequirementsRequest{}
 	case CountryEntryRequirementsServiceV1Response:
