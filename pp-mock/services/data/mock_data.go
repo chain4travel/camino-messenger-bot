@@ -119,6 +119,14 @@ func init() {
 			},
 		},
 	}
+	TripsBasicV3[2].Segments[0].Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "DUS",
+				Type: 2,
+			},
+		},
+	}
 
 	// TripsExtendedV3[0]
 	TripsExtendedV3[0].Price.Currency = &typesv3.Currency{
@@ -187,6 +195,13 @@ func init() {
 			},
 		},
 	}
-
+	TripsExtendedV3[2].Segments[0].Info.Departure.Location = &transportv3.TransitEventLocation{
+		Location: &transportv3.TransitEventLocation_LocationCode{
+			LocationCode: &typesv2.LocationCode{
+				Code: "DUS",
+				Type: 2,
+			},
+		},
+	}
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }

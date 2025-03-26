@@ -63,7 +63,6 @@ func filterTripsByDates(
 ) []*transportv3.TripExtended {
 	filtered := []*transportv3.TripExtended{}
 	queryDepartureDate := common.DateV1ToTime(query.Departure.Date)
-	queryArrivalDate := common.DateV1ToTime(query.Arrival.Date)
 
 	// TODO @Noctunus - All assumptions that the fields are present.
 	// This needs to be validated. Ideally with protovalidate on the unmashalled mockdata.
@@ -79,11 +78,15 @@ func filterTripsByDates(
 
 		// We need the last segment to compare the arrival date
 		lastSegment := trip.Segments[len(trip.Segments)-1]
-		lastSegmentArrivalDateTime := time.Unix(lastSegment.Info.Arrival.DateTime.Seconds, 0)
-		lastSegmentArrivalDate := lastSegmentArrivalDateTime.Truncate(24 * time.Hour)
-
-		// Now we can compare if the trip dates are exactly what the query is looking for
-		if firstSegmentDepartureDate.Equal(queryDepartureDate) && lastSegmentArrivalDate.Equal(queryArrivalDate) {
+		if query.Arrival != nil && query.Arrival.Date != nil {
+			queryArrivalDate := common.DateV1ToTime(query.Arrival.Date)
+			lastSegmentArrivalDateTime := time.Unix(lastSegment.Info.Arrival.DateTime.Seconds, 0)
+			lastSegmentArrivalDate := lastSegmentArrivalDateTime.Truncate(24 * time.Hour)
+			// Now we can compare if the trip dates are exactly what the query is looking for
+			if firstSegmentDepartureDate.Equal(queryDepartureDate) && lastSegmentArrivalDate.Equal(queryArrivalDate) {
+				filtered = append(filtered, common.CloneProto(trip))
+			}
+		} else if firstSegmentDepartureDate.Equal(queryDepartureDate) {
 			filtered = append(filtered, common.CloneProto(trip))
 		}
 	}
@@ -104,19 +107,13 @@ func filterTripsByLocations(
 		}
 		// We need the first segment to compare the departure location
 		firstSegment := trip.Segments[0]
-		// We need the last segment to compare the arrival location
-		lastSegment := trip.Segments[len(trip.Segments)-1]
-
-		queryDepartureLocationCodes := query.Departure.Location.GetLocationCodes()
-		queryArrivalLocationCodes := query.Arrival.Location.GetLocationCodes()
-
 		firstSegmentDepartureLocationCode := firstSegment.Info.Departure.Location.GetLocationCode()
-		lastSegmentArrivalLocationCode := lastSegment.Info.Arrival.Location.GetLocationCode()
 
-		if firstSegmentDepartureLocationCode == nil || lastSegmentArrivalLocationCode == nil {
+		if firstSegmentDepartureLocationCode == nil {
 			continue
 		}
 
+		queryDepartureLocationCodes := query.Departure.Location.GetLocationCodes()
 		foundDepartureMatch := false
 		for _, queryDepartureLocationCode := range queryDepartureLocationCodes.Codes {
 			if proto.Equal(queryDepartureLocationCode, firstSegmentDepartureLocationCode) {
@@ -129,11 +126,25 @@ func filterTripsByLocations(
 			continue
 		}
 
-		for _, queryArrivalLocationCode := range queryArrivalLocationCodes.Codes {
-			if proto.Equal(queryArrivalLocationCode, lastSegmentArrivalLocationCode) {
-				filtered = append(filtered, common.CloneProto(trip))
-				break
+		// If arrival location is specified in the query, check for a match
+		if query.Arrival != nil && query.Arrival.Location != nil && query.Arrival.Location.HasLocationCodes() {
+			lastSegment := trip.Segments[len(trip.Segments)-1]
+			lastSegmentArrivalLocationCode := lastSegment.Info.Arrival.Location.GetLocationCode()
+
+			if lastSegmentArrivalLocationCode == nil {
+				continue
 			}
+
+			queryArrivalLocationCodes := query.Arrival.Location.GetLocationCodes()
+			for _, queryArrivalLocationCode := range queryArrivalLocationCodes.Codes {
+				if proto.Equal(queryArrivalLocationCode, lastSegmentArrivalLocationCode) {
+					filtered = append(filtered, common.CloneProto(trip))
+					break
+				}
+			}
+		} else {
+			// If no arrival location is specified, add the trip if departure matches
+			filtered = append(filtered, common.CloneProto(trip))
 		}
 	}
 	return filtered

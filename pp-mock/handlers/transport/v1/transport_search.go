@@ -74,21 +74,21 @@ func (*TransportSearchV1Server) TransportSearch(ctx context.Context, req *transp
 				}, nil
 			}
 
-			if queryTrip.Departure == nil || queryTrip.Arrival == nil ||
-				queryTrip.Departure.Date == nil || queryTrip.Arrival.Date == nil ||
-				queryTrip.Departure.LocationCode == nil || queryTrip.Arrival.LocationCode == nil {
+			if queryTrip.Departure == nil ||
+				queryTrip.Departure.Date == nil ||
+				queryTrip.Departure.LocationCode == nil {
 				return &transportv1.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 						Alerts: []*typesv1.Alert{{
-							Message: "Invalid trip: departure and arrival must be provided",
+							Message: "Invalid trip: departure must be provided",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
 					},
 				}, nil
 			}
 
-			if !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
+			if queryTrip.Arrival != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
 				return &transportv1.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,

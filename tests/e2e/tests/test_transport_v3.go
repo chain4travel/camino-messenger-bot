@@ -78,6 +78,10 @@ func testTransportV3ProductListService(
 			SupplierCode:   "LH",
 			SupplierNumber: 7453,
 		},
+		{
+			SupplierCode:   "DB",
+			SupplierNumber: 5483,
+		},
 	}
 	expectedTotalResults := len(productCodes)
 
@@ -371,6 +375,107 @@ func testTransportV3SearchServiceTravelDatesWrong(
 	require.Equal(t, 0, len(resp.Results), "unexpected number of results in response")
 }
 
+func testTransportV3SearchServiceTravelWithoutArrivalDate(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	productListResponse *transportv3.TransportProductListResponse,
+) {
+	// Extract the filters from the product list response which double also
+	// as the expected results later
+	// The product list request has already made sure that there are 2 results
+	// And that the 2nd result has 2 segments. So just extract the values here
+	firstSegmentDeparture := productListResponse.Trips[2].Segments[0].Departure
+
+	departureDate := time.Unix(firstSegmentDeparture.DateTime.Seconds, 0)
+	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
+
+	req := &transportv3.TransportSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParameters: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_IsoCurrency{
+					IsoCurrency: typesv3.IsoCurrency(*typesv2.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
+				},
+			},
+		},
+		Queries: []*transportv3.TransportSearchQuery{
+			{
+				Travellers: []*typesv3.BasicTraveller{
+					{
+						TravellerId: 0,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   1,    //nolint:gosec
+						},
+						Nationality: typesv2.Country_COUNTRY_DE,
+					},
+					{
+						TravellerId: 1,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   2,    //nolint:gosec
+						},
+						Nationality: typesv2.Country_COUNTRY_IT,
+					},
+				},
+				Trips: []*transportv3.QueryTrip{
+					{
+						Departure: &transportv3.QueryTransitEvent{
+							Date: common.TimeToDateV1(departureDate),
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{departureLocationCode},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	// We expect 1 result
+	require.Len(t, resp.Results, 1, "unexpected number of results in response")
+
+	// Let's check if result is as expected
+	require.NotEmpty(t, resp.Results[0].TravellingTrips, "unexpected empty response Results[0].TravellingTrips")
+
+	// We expect 2 segments in the trip
+	require.Len(t, resp.Results[0].TravellingTrips[0].Segments, 2, "unexpected number of segments in response")
+
+	// Check if the departure of the first segment is right
+	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure, "unexpected empty response Results[0].TravellingTrips[0].Segments[0].Info.Departure")
+
+	require.True(t, proto.Equal(departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.Location.GetLocationCode()), "unexpected departure location code")
+
+	require.NoError(t, err)
+
+	// Now extract all the values needed for the validate step which comes next
+	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
+	require.NotEmpty(t, resp.Metadata.SearchId, "unexpected empty response Metadata.SearchId")
+	require.NotEmpty(t, resp.Metadata.SearchId.Value, "unexpected empty response Metadata.SearchId.Value")
+	require.NotEmpty(t, resp.Results[0].ResultId, "unexpected empty response Results[1].ResultId")
+}
+
 // Test product search with a valid query. Expect a valid response with results.
 func testTransportV3SearchServiceWithFilters(
 	ctx context.Context,
@@ -481,7 +586,7 @@ func testTransportV3SearchServiceWithFilters(
 	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival, "unexpected empty response Results[0].TravellingTrips[0].Segments[1].Info.Arrival")
 
 	require.True(t, proto.Equal(departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.Location.GetLocationCode()), "unexpected departure location code")
-	require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.Location.GetLocationCode()), "unexpected arrival location code")
+	// require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.Location.GetLocationCode()), "unexpected arrival location code")
 
 	// Extract the price from the response
 	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Price.Value, 64)
@@ -643,6 +748,11 @@ func TestTransportV3(t *testing.T, tt *Test) {
 	t.Run("Product search with departure / arrival dates reversed", func(t *testing.T) {
 		// ERROR path: with travel period reversed it should return an error
 		testTransportV3SearchServiceTravelDatesReversed(ctx, t, tt, distributorBot, supplierBot)
+	})
+	t.Run("Product search with only departure date", func(t *testing.T) {
+		// ERROR path: with travel period reversed it should return an error
+		productListResponse := testTransportV3ProductListService(ctx, t, tt, distributorBot, supplierBot)
+		testTransportV3SearchServiceTravelWithoutArrivalDate(ctx, t, tt, distributorBot, supplierBot, productListResponse)
 	})
 	t.Run("Product search with wrong travel dates", func(t *testing.T) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error

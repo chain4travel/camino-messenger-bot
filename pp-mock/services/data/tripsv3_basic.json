@@ -84,5 +84,69 @@
 			"seconds": 1740000000,
 			"nanos": 0
 		}
+	},
+	{
+		"supplier_code": {
+			"supplier_code": "DB",
+			"supplier_number": 5483
+		},
+		"segments": [
+			{
+				"segment_id": "SEG8321",
+				"provider_code": "DB",
+				"product_code": {
+					"code": "RE3-89875",
+					"type": 5
+				},
+				"departure": {
+					"date_time": {
+						"seconds": 1742371437,
+						"nanos": 0
+					},
+					"location" : {
+						"location_code" : {
+							"code" : "DUS",
+							"code_type" : "LOCATION_CODE_TYPE_IATA_CODE"
+						}
+					}
+				},
+				"arrival": {
+					"date_time": {
+						"seconds": 1742375037,
+						"nanos": 0
+					}
+				}
+			},
+			{
+				"segment_id": "SEG8323",
+				"provider_code": "ICE",
+				"product_code": {
+					"code": "ICE-757",
+					"type": 5
+				},
+				"departure": {
+					"date_time": {
+						"seconds": 1742378637,
+						"nanos": 0
+					},
+					"location" : {
+						"location_code" : {
+							"code" : "HAM",
+							"code_type" : "LOCATION_CODE_TYPE_IATA_CODE"
+						}
+					}
+				},
+				"arrival": {
+					"date_time": {
+						"seconds": 1742382237,
+						"nanos": 0
+					}
+				}
+			}
+		],
+		"last_modified": {
+			"seconds": 1740000000,
+			"nanos": 0
+		}
 	}
 ]
