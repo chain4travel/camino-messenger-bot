@@ -116,11 +116,11 @@ func TestE2E(t *testing.T) {
 	// #########################################################
 	// #### Registration of the e2e test cases is done here ####
 	// #########################################################
-	// testsRunner.Register(t, "PingV1", tests.TestPingV1)
-	// testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
-	// testsRunner.Register(t, "AccommodationV3", tests.TestAccommodationV3)
+	testsRunner.Register(t, "PingV1", tests.TestPingV1)
+	testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
+	testsRunner.Register(t, "AccommodationV3", tests.TestAccommodationV3)
 	testsRunner.Register(t, "TransportV3", tests.TestTransportV3)
-	// testsRunner.Register(t, "BotSanity", tests.TestBotSanity)
+	testsRunner.Register(t, "BotSanity", tests.TestBotSanity)
 
 	maxParallelRuns := 0
 	flagTestParallel := flag.Lookup("test.parallel")
