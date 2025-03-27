@@ -91,14 +91,6 @@ type Suite struct {
 }
 
 func (s *Suite) NewTest(t *testing.T) *Test {
-	if s == nil {
-		t.Error("Suite is nil, cannot create new test")
-		return nil
-	}
-	if s.logger == nil {
-		t.Error("logger is nil, cannot create new test")
-		return nil
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), startupTimeout)
 	defer cancel()
 
@@ -168,14 +160,6 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 }
 
 func (s *Suite) Cleanup(t *testing.T, tt *Test) {
-	if s == nil {
-		t.Error("Suite is nil, cannot perform cleanup")
-		return
-	}
-	if s.logger == nil {
-		t.Error("logger is nil, cannot perform cleanup")
-		return
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*10)
 	defer cancel()
 
