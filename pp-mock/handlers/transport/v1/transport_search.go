@@ -82,7 +82,7 @@ func (*TransportSearchV1Server) TransportSearch(ctx context.Context, req *transp
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
 						Alerts: []*typesv1.Alert{{
-							Message: "Invalid trip: departure must be provided",
+							Message: "Invalid trip filter: departure and arrival must be provided",
 							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
 						}},
 					},
