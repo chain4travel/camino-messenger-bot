@@ -477,14 +477,94 @@ func testTransportV3SearchServiceTravelWithoutArrivalDate(
 	require.NotEmpty(t, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure, "unexpected empty response Results[0].TravellingTrips[0].Segments[0].Info.Departure")
 
 	require.True(t, proto.Equal(departureLocationCode, resp.Results[0].TravellingTrips[0].Segments[0].Info.Departure.Location.GetLocationCode()), "unexpected departure location code")
-
-	require.NoError(t, err)
-
 	// Now extract all the values needed for the validate step which comes next
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
 	require.NotEmpty(t, resp.Metadata.SearchId, "unexpected empty response Metadata.SearchId")
 	require.NotEmpty(t, resp.Metadata.SearchId.Value, "unexpected empty response Metadata.SearchId.Value")
 	require.NotEmpty(t, resp.Results[0].ResultId, "unexpected empty response Results[1].ResultId")
+}
+
+func testTransportV3SearchServiceWithoutArrivalLocation(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	productListResponse *transportv3.TransportProductListResponse,
+) {
+	// Extract the filters from the product list response which double also
+	// as the expected results later
+	// The product list request has already made sure that there are 2 results
+	// And that the 2nd result has 2 segments. So just extract the values here
+	firstSegmentDeparture := productListResponse.Trips[2].Segments[0].Departure
+	lastSegmentArrival := productListResponse.Trips[2].Segments[1].Arrival
+
+	departureDate := time.Unix(firstSegmentDeparture.DateTime.Seconds, 0)
+	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
+	arrivalDate := time.Unix(lastSegmentArrival.DateTime.Seconds, 0)
+
+	req := &transportv3.TransportSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParameters: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_IsoCurrency{
+					IsoCurrency: typesv3.IsoCurrency(*typesv2.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
+				},
+			},
+		},
+		Queries: []*transportv3.TransportSearchQuery{
+			{
+				Travellers: []*typesv3.BasicTraveller{
+					{
+						TravellerId: 0,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   1,    //nolint:gosec
+						},
+						Nationality: typesv2.Country_COUNTRY_DE,
+					},
+					{
+						TravellerId: 1,
+						Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
+						Birthdate: &typesv1.Date{
+							Year:  1980, //nolint:gosec
+							Month: 1,    //nolint:gosec
+							Day:   2,    //nolint:gosec
+						},
+						Nationality: typesv2.Country_COUNTRY_IT,
+					},
+				},
+				Trips: []*transportv3.QueryTrip{
+					{
+						Departure: &transportv3.QueryTransitEvent{
+							Date: common.TimeToDateV1(departureDate),
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{departureLocationCode},
+									},
+								},
+							},
+						},
+						Arrival: &transportv3.QueryTransitEvent{
+							Date: common.TimeToDateV1(arrivalDate),
+						},
+					},
+				},
+			},
+		},
+	}
+	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
 // Test product search with a valid query. Expect a valid response with results.
@@ -762,9 +842,13 @@ func TestTransportV3(t *testing.T, tt *Test) {
 		// ERROR path: with travel period reversed it should return an error
 		testTransportV3SearchServiceTravelDatesReversed(ctx, t, tt, distributorBot, supplierBot)
 	})
-	t.Run("Product search with only departure date", func(t *testing.T) {
-		// ERROR path: with travel period reversed it should return an error
+	t.Run("Product search without arrival date", func(t *testing.T) {
+		// Happy path: will return one result
 		testTransportV3SearchServiceTravelWithoutArrivalDate(ctx, t, tt, distributorBot, supplierBot, productListResponse)
+	})
+	t.Run("Product search without arrival location", func(t *testing.T) {
+		// ERROR path: without arrival location it should return an error
+		testTransportV3SearchServiceWithoutArrivalLocation(ctx, t, tt, distributorBot, supplierBot, productListResponse)
 	})
 	t.Run("Product search with wrong travel dates", func(t *testing.T) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
