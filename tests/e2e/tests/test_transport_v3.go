@@ -508,7 +508,7 @@ func testTransportV3SearchServiceWithoutArrivalLocation(
 		SearchParameters: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
 				Currency: &typesv3.Currency_IsoCurrency{
-					IsoCurrency: typesv3.IsoCurrency(*typesv3.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
+					IsoCurrency: *typesv3.IsoCurrency_ISO_CURRENCY_EUR.Enum(),
 				},
 			},
 		},

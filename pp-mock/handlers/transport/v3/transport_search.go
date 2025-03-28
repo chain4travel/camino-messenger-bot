@@ -97,7 +97,8 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 
 	for queryIndex, query := range req.Queries {
 		for queryTripIndex, queryTrip := range query.GetTrips() {
-			if queryTrip == nil {
+			switch {
+			case queryTrip == nil:
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -107,7 +108,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 						}},
 					},
 				}, nil
-			} else if queryTrip.Departure == nil || queryTrip.Arrival == nil {
+			case queryTrip.Departure == nil || queryTrip.Arrival == nil:
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -117,7 +118,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 						}},
 					},
 				}, nil
-			} else if queryTrip.Departure.Date == nil {
+			case queryTrip.Departure.Date == nil:
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -127,7 +128,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 						}},
 					},
 				}, nil
-			} else if !queryTrip.Departure.Location.HasLocationCodes() || !queryTrip.Arrival.Location.HasLocationCodes() {
+			case !queryTrip.Departure.Location.HasLocationCodes() || !queryTrip.Arrival.Location.HasLocationCodes():
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -137,7 +138,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 						}},
 					},
 				}, nil
-			} else if queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
+			case queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date):
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
