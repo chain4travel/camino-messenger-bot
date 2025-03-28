@@ -105,7 +105,7 @@
 					},
 					"location" : {
 						"location_code" : {
-							"code" : "DUS",
+							"code" : "LAN",
 							"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
 						}
 					}
