@@ -90,7 +90,7 @@ func (*TransportSearchV2Server) TransportSearch(ctx context.Context, req *transp
 				}, nil
 			}
 
-			if queryTrip.Arrival != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
+			if queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
 				return &transportv2.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
