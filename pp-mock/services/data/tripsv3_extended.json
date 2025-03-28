@@ -115,9 +115,9 @@
 							"nanos": 0
 						},
 						"location" : {
-							"locationCode" : {
+							"location_code" : {
 								"code" : "DUS",
-								"code_type" : "LOCATION_CODE_TYPE_IATA_CODE"
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
 							}
 						}
 					},
@@ -125,6 +125,12 @@
 						"date_time": {
 							"seconds": 1742375037,
 							"nanos": 0
+						},
+						"location" : {
+							"location_code" : {
+								"code" : "HAM",
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+							}
 						}
 					}
 				}
@@ -145,7 +151,7 @@
 						"location" : {
 							"location_code" : {
 								"code" : "HAM",
-								"code_type" : "LOCATION_CODE_TYPE_IATA_CODE"
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
 							}
 						}
 					},
@@ -153,6 +159,12 @@
 						"date_time": {
 							"seconds": 1742382237,
 							"nanos": 0
+						},
+						"location" : {
+							"location_code" : {
+								"code" : "BER",
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+							}
 						}
 					}
 				}
