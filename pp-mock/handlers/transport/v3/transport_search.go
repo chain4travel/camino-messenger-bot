@@ -127,7 +127,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 						}},
 					},
 				}, nil
-			} else if !queryTrip.Departure.Location.HasLocationCodes() && !queryTrip.Arrival.Location.HasLocationCodes() {
+			} else if !queryTrip.Departure.Location.HasLocationCodes() || !queryTrip.Arrival.Location.HasLocationCodes() {
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
