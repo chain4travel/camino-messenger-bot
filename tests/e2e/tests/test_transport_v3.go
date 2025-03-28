@@ -388,9 +388,11 @@ func testTransportV3SearchServiceTravelWithoutArrivalDate(
 	// The product list request has already made sure that there are 2 results
 	// And that the 2nd result has 2 segments. So just extract the values here
 	firstSegmentDeparture := productListResponse.Trips[2].Segments[0].Departure
+	lastSegmentArrival := productListResponse.Trips[2].Segments[1].Arrival
 
 	departureDate := time.Unix(firstSegmentDeparture.DateTime.Seconds, 0)
 	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
+	arrivalLocationCode := lastSegmentArrival.Location.GetLocationCode()
 
 	req := &transportv3.TransportSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -433,6 +435,15 @@ func testTransportV3SearchServiceTravelWithoutArrivalDate(
 								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
 									LocationCodes: &typesv2.LocationCodes{
 										Codes: []*typesv2.LocationCode{departureLocationCode},
+									},
+								},
+							},
+						},
+						Arrival: &transportv3.QueryTransitEvent{
+							Location: &transportv3.QueryTransitEventLocation{
+								Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+									LocationCodes: &typesv2.LocationCodes{
+										Codes: []*typesv2.LocationCode{arrivalLocationCode},
 									},
 								},
 							},
@@ -730,12 +741,14 @@ func TestTransportV3(t *testing.T, tt *Test) {
 	var supplierBot *bot.Bot
 	var distributorBot *bot.Bot
 
+	var productListResponse *transportv3.TransportProductListResponse
+
 	t.Run("Setup", func(t *testing.T) {
 		_, supplierBot, distributorBot = testTransportV3Setup(ctx, t, tt)
 	})
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the products
-		_ = testTransportV3ProductListService(ctx, t, tt, distributorBot, supplierBot)
+		productListResponse = testTransportV3ProductListService(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product list with filter", func(t *testing.T) {
 		// Happy path: will return only one property
@@ -751,7 +764,6 @@ func TestTransportV3(t *testing.T, tt *Test) {
 	})
 	t.Run("Product search with only departure date", func(t *testing.T) {
 		// ERROR path: with travel period reversed it should return an error
-		productListResponse := testTransportV3ProductListService(ctx, t, tt, distributorBot, supplierBot)
 		testTransportV3SearchServiceTravelWithoutArrivalDate(ctx, t, tt, distributorBot, supplierBot, productListResponse)
 	})
 	t.Run("Product search with wrong travel dates", func(t *testing.T) {

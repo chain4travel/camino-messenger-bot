@@ -109,9 +109,9 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 				}, nil
 			}
 
-			if queryTrip.Departure == nil ||
+			if queryTrip.Departure == nil || queryTrip.Arrival == nil ||
 				queryTrip.Departure.Date == nil ||
-				queryTrip.Departure.Location == nil {
+				queryTrip.Departure.Location == nil || queryTrip.Arrival.Location == nil {
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -123,7 +123,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 				}, nil
 			}
 
-			if !queryTrip.Departure.Location.HasLocationCodes() {
+			if !queryTrip.Departure.Location.HasLocationCodes() && !queryTrip.Arrival.Location.HasLocationCoordinates() {
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -135,19 +135,7 @@ func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transp
 				}, nil
 			}
 
-			if queryTrip.Arrival != nil && !queryTrip.Arrival.Location.HasLocationCodes() {
-				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Unsupported trip filter: departure and arrival must provide location codes",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
-				}, nil
-			}
-
-			if queryTrip.Arrival != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
+			if queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
 				return &transportv3.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,

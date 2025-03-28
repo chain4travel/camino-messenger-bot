@@ -75,9 +75,10 @@ func (*TransportSearchV2Server) TransportSearch(ctx context.Context, req *transp
 				}, nil
 			}
 
-			if queryTrip.Departure == nil ||
+			if queryTrip.Departure == nil || queryTrip.Arrival == nil ||
 				queryTrip.Departure.Date == nil ||
-				queryTrip.Departure.LocationCode == nil {
+				queryTrip.Departure.LocationCode == nil ||
+				queryTrip.Arrival.LocationCode == nil {
 				return &transportv2.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
