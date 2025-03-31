@@ -88,8 +88,8 @@ yarn hardhat account bot:add --bot <0xc-chain-address-of-the-bot-wallet> --cm-ac
 Add this **bot's wallet static private key** to your `.yml` configuration under `bot_key`.
 
 > [!CAUTION]
-> Do not set up two bot instances with the same configuration (same bot_key). E.g. if you have a deployed bot running on the Columbus network, don't start one locally. This can cause issues with cheques that will
-> manifest as timeouts to your requests.   
+> Do not set up two bot instances with the same configuration (same `bot_key`). E.g. if you have a deployed bot running on the Columbus network, don't start one locally. Doing so can cause issues with cheques that will
+> manifest as timeouts to your requests.
 
 3. Granting Withdrawer role
 
