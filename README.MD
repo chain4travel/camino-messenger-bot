@@ -106,6 +106,10 @@ yarn hardhat account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount
 yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network columbus
 ```
 
+> [!IMPORTANT]  
+> **After adding or removing the service(s)** it is necessary to **restart the bot**.
+
+
 To see all the services you can support, run:
 
 ```
