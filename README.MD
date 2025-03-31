@@ -89,7 +89,7 @@ Add this **bot's wallet static private key** to your `.yml` configuration under 
 
 > [!CAUTION]
 > Do not set up two bot instances with the same configuration (same `bot_key`). E.g. if you have a deployed bot running on the Columbus network, don't start one locally. Doing so can cause issues with cheques that will
-> manifest as timeouts to your requests.
+> manifest as timeouts. Do not start the bot locally with the configuration intended for the mainnet (Camino).
 
 3. Granting Withdrawer role
 
