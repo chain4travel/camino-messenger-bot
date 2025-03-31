@@ -163,9 +163,9 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
    brew update
    ```
 
-   > [!TIP]
-   > If you don't have Homebrew installed, you can install it by following
-   > the instructions on [https://brew.sh/](https://brew.sh/).
+> [!TIP]
+> If you don't have Homebrew installed, you can install it by following
+> the instructions on [https://brew.sh/](https://brew.sh/).
 
 2. **Install libolm:**
    ```bash
