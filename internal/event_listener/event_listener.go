@@ -22,6 +22,7 @@ var (
 )
 
 type EventListener interface {
+	Stop()
 	SubscribeForTokenBoughtEvent(tokenID *big.Int, mintID string, timeout time.Time) error
 }
 

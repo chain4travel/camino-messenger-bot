@@ -92,12 +92,15 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// partner plugin to handle partner-plugin related logic and communication
-	partnerPlugin := partnerplugin.New(
-		logger,
-		tracer,
-		rpcClient,
-		cfg.ResponseTimeout,
-	)
+	var partnerPlugin partnerplugin.PartnerPlugin
+	if cfg.PartnerPlugin.Enabled {
+		partnerPlugin = partnerplugin.New(
+			logger,
+			tracer,
+			rpcClient,
+			cfg.ResponseTimeout,
+		)
+	}
 
 	// event listener with additional logic for subscribing and reacting on blockchain events
 	eventListener := eventlistener.New(
@@ -387,6 +390,13 @@ func (a *App) Run(ctx context.Context) error {
 		<-gCtx.Done()
 		a.logger.Info("Stopping scheduler...")
 		return a.scheduler.Stop()
+	})
+
+	g.Go(func() error {
+		<-gCtx.Done()
+		a.logger.Info("Stopping event listener...")
+		a.eventListener.Stop()
+		return nil
 	})
 
 	// wait
