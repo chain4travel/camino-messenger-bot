@@ -8,14 +8,14 @@ import (
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
 
-type subscription struct {
+type tokenBoughtSubscription struct {
 	TokenID *big.Int
 	MintID  string
 	Timeout time.Time
 }
 
 func (el *eventListener) SubscribeForTokenBoughtEvent(ctx context.Context, tokenID *big.Int, mintID string, timeout time.Time) error {
-	subscription := &subscription{
+	subscription := &tokenBoughtSubscription{
 		TokenID: tokenID,
 		MintID:  mintID,
 		Timeout: timeout,
@@ -30,7 +30,7 @@ func (el *eventListener) SubscribeForTokenBoughtEvent(ctx context.Context, token
 	return nil
 }
 
-func (el *eventListener) registerEVMTokenBoughtSubscription(unsubscriber *unsubscriber, subscription *subscription) error {
+func (el *eventListener) registerEVMTokenBoughtSubscription(unsubscriber *unsubscriber, subscription *tokenBoughtSubscription) error {
 	unsubscribeFunc, err := el.eventListener.RegisterTokenBoughtHandler(
 		el.bookingTokenAddress,
 		[]*big.Int{subscription.TokenID},
@@ -52,7 +52,7 @@ func (el *eventListener) registerEVMTokenBoughtSubscription(unsubscriber *unsubs
 	return nil
 }
 
-func (el *eventListener) startTokenBoughtTimeoutTimer(subscriptionCanceller *unsubscriber, subscription *subscription) {
+func (el *eventListener) startTokenBoughtTimeoutTimer(subscriptionCanceller *unsubscriber, subscription *tokenBoughtSubscription) {
 	subscriptionCanceller.timeoutTimer = time.AfterFunc(time.Until(subscription.Timeout), func() {
 		subscriptionCanceller.unsubscribe()
 		el.logger.Infof("Token %s expired", subscription.TokenID.String())
