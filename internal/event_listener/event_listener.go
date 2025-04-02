@@ -1,7 +1,6 @@
 package eventlistener
 
 import (
-	"context"
 	"errors"
 	"math/big"
 	"time"
@@ -20,7 +19,7 @@ var (
 )
 
 type EventListener interface {
-	SubscribeForTokenBoughtEvent(ctx context.Context, tokenID *big.Int, mintID string, timeout time.Time) error
+	SubscribeForTokenBoughtEvent(tokenID *big.Int, mintID string, timeout time.Time) error
 }
 
 type eventListener struct {
@@ -51,7 +50,7 @@ func New(
 	}
 }
 
-func (el *eventListener) Stop(ctx context.Context) {
+func (el *eventListener) Stop() {
 	for _, subscription := range el.unsubscribers {
 		subscription.unsubscribe()
 		subscription.timeoutTimer.Stop()

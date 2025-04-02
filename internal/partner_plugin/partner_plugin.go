@@ -63,11 +63,11 @@ func (p *partnerPlugin) DoServiceRequest(ctx context.Context, requestMsg *types.
 	responseMsg.Content, responseMsg.Type, err = service.Call(ctx, requestMsg.Content, grpc.Header(header))
 	partnerPluginSpan.End()
 	if err != nil {
-		return ctx, responseMsg, fmt.Errorf("error calling partner plugin service: %v", err)
+		return ctx, responseMsg, fmt.Errorf("error calling partner plugin service: %w", err)
 	}
 
 	if err := responseMsg.Metadata.FromGrpcMD(*header); err != nil {
-		return ctx, responseMsg, fmt.Errorf("error extracting metadata from response: %v", err)
+		return ctx, responseMsg, fmt.Errorf("error extracting metadata from response: %w", err)
 	}
 
 	return ctx, responseMsg, nil

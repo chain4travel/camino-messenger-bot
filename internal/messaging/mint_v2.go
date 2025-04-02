@@ -88,7 +88,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 
 	tokenBoughtTimeout := time.Unix(response.BuyableUntil.Seconds, 0)
-	if err := h.eventListener.SubscribeForTokenBoughtEvent(ctx, tokenID, response.MintId.Value, tokenBoughtTimeout); err != nil {
+	if err := h.eventListener.SubscribeForTokenBoughtEvent(tokenID, response.MintId.Value, tokenBoughtTimeout); err != nil {
 		h.logger.Errorf("error subscribing for token bought event (tokenID: %d, mintID: %s, timeout: %d): %v",
 			tokenID.Int64(), response.MintId.Value, tokenBoughtTimeout, err)
 	}

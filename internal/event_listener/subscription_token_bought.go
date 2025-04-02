@@ -14,7 +14,7 @@ type tokenBoughtSubscription struct {
 	Timeout time.Time
 }
 
-func (el *eventListener) SubscribeForTokenBoughtEvent(ctx context.Context, tokenID *big.Int, mintID string, timeout time.Time) error {
+func (el *eventListener) SubscribeForTokenBoughtEvent(tokenID *big.Int, mintID string, timeout time.Time) error {
 	subscription := &tokenBoughtSubscription{
 		TokenID: tokenID,
 		MintID:  mintID,
