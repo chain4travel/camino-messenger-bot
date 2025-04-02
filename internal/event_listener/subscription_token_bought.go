@@ -60,7 +60,7 @@ func (el *eventListener) startTokenBoughtTimeoutTimer(subscriptionCanceller *uns
 		subscriptionCanceller.unsubscribe()
 		el.logger.Infof("Token %s expired", subscription.TokenID.String())
 		if err := el.partnerPlugin.SendTokenExpiredNotification(context.Background(), subscription.TokenID, subscription.MintID); err != nil {
-			el.logger.Errorf("error calling partner plugin TokenBoughtNotification service: %v", err)
+			el.logger.Errorf("error calling partner plugin TokenExpiredNotification service: %v", err)
 		}
 	})
 }
