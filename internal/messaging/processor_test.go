@@ -10,8 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"maunium.net/go/mautrix/id"
 
 	"go.uber.org/mock/gomock"
@@ -412,23 +410,14 @@ func TestSendRequestMessage(t *testing.T) {
 	}
 }
 
-var _ rpc.Service = (*dummyService)(nil)
-
-type dummyService struct{}
-
-func (d dummyService) Call(context.Context, protoreflect.ProtoMessage, ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
-	return nil, "", nil
-}
-
-func (d dummyService) Name() string {
-	return "dummy"
-}
-
 func TestStart(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 
+	mockService := rpc.NewMockService(mockCtrl)
+	mockService.EXPECT().Name().Return("dummy").Times(2)
+
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
-	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(dummyService{}, true)
+	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(mockService, true)
 
 	mockCMAccounts := cmaccounts.NewMockService(mockCtrl)
 	mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(big.NewInt(1), nil)
