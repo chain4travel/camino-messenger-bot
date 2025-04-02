@@ -57,6 +57,8 @@ func New(
 }
 
 func (el *eventListener) Stop() {
+	el.unsubscribersMutex.Lock()
+	defer el.unsubscribersMutex.Unlock()
 	for _, subscription := range el.unsubscribers {
 		subscription.unsubscribe()
 		subscription.timeoutTimer.Stop()
