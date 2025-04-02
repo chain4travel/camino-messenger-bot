@@ -21,7 +21,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/local"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
-	partnerplugin "github.com/chain4travel/camino-messenger-bot/internal/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
@@ -207,6 +207,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.NetworkFeeRecipientCMAccountAddress,
 		serviceRegistry,
 		responseHandler,
+		partnerPlugin,
 		chequeHandler,
 		messaging.NewCompressor(compression.MaxChunkSize),
 		cmAccounts,

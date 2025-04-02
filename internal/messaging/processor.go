@@ -15,7 +15,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	partnerplugin "github.com/chain4travel/camino-messenger-bot/internal/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
@@ -63,6 +63,7 @@ func NewMessageProcessor(
 	networkFeeRecipientCMAccountAddress common.Address,
 	registry ServiceRegistry,
 	responseHandler ResponseHandler,
+	partnerPlugin partnerplugin.PartnerPlugin,
 	chequeHandler chequehandler.ChequeHandler,
 	compressor compression.Compressor[*types.Message, [][]byte],
 	cmAccounts cmaccounts.Service,
@@ -75,6 +76,7 @@ func NewMessageProcessor(
 		responseChannels:                    make(map[string]chan *types.Message),
 		serviceRegistry:                     registry,
 		responseHandler:                     responseHandler,
+		partnerPlugin:                       partnerPlugin,
 		chequeHandler:                       chequeHandler,
 		compressor:                          compressor,
 		cmAccounts:                          cmAccounts,

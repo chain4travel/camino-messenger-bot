@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"time"
 
-	partnerplugin "github.com/chain4travel/camino-messenger-bot/internal/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"

@@ -9,16 +9,16 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	types "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	rpc "github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 var _ PartnerPlugin = (*partnerPlugin)(nil)

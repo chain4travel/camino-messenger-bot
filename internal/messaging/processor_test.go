@@ -19,6 +19,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
@@ -67,11 +68,13 @@ func TestProcessIncomingMessage(t *testing.T) {
 	mockMessenger := NewMockMessenger(mockCtrl)
 	mockCMAccounts := cmaccounts.NewMockService(mockCtrl)
 	mockChequeHandler := chequehandler.NewMockChequeHandler(mockCtrl)
+	mockPartnerPlugin := partnerplugin.NewMockPartnerPlugin(mockCtrl)
 
 	type fields struct {
 		messenger       Messenger
 		serviceRegistry ServiceRegistry
 		responseHandler ResponseHandler
+		partnerPlugin   partnerplugin.PartnerPlugin
 		chequeHandler   chequehandler.ChequeHandler
 		compressor      compression.Compressor[*types.Message, [][]byte]
 		cmAccounts      cmaccounts.Service
@@ -115,6 +118,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			fields: fields{
 				serviceRegistry: mockServiceRegistry,
 				responseHandler: NoopResponseHandler{},
+				partnerPlugin:   mockPartnerPlugin,
 				chequeHandler:   mockChequeHandler,
 				messenger:       mockMessenger,
 				compressor:      &noopCompressor{},
@@ -122,11 +126,11 @@ func TestProcessIncomingMessage(t *testing.T) {
 			},
 			prepare: func(*messageProcessor) {
 				mockService.EXPECT().Name().Return("dummy")
-				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(errSomeError)
 				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
+				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(errSomeError)
 			},
 			args: args{
 				msg: &types.Message{
@@ -143,6 +147,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			fields: fields{
 				serviceRegistry: mockServiceRegistry,
 				responseHandler: NoopResponseHandler{},
+				partnerPlugin:   mockPartnerPlugin,
 				chequeHandler:   mockChequeHandler,
 				messenger:       mockMessenger,
 				compressor:      &noopCompressor{},
@@ -150,11 +155,11 @@ func TestProcessIncomingMessage(t *testing.T) {
 			},
 			prepare: func(*messageProcessor) {
 				mockService.EXPECT().Name().Return("dummy")
-				mockService.EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, generated.PingServiceV1Response, nil)
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
+				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
+				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			args: args{
 				msg: &types.Message{
@@ -170,6 +175,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			fields: fields{
 				serviceRegistry: mockServiceRegistry,
 				responseHandler: NoopResponseHandler{},
+				partnerPlugin:   mockPartnerPlugin,
 				chequeHandler:   mockChequeHandler,
 				messenger:       mockMessenger,
 				compressor:      &noopCompressor{},
@@ -201,6 +207,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				common.Address{},
 				tt.fields.serviceRegistry,
 				tt.fields.responseHandler,
+				tt.fields.partnerPlugin,
 				tt.fields.chequeHandler,
 				tt.fields.compressor,
 				tt.fields.cmAccounts,
@@ -235,6 +242,7 @@ func TestSendRequestMessage(t *testing.T) {
 		messenger       Messenger
 		serviceRegistry ServiceRegistry
 		responseHandler ResponseHandler
+		partnerPlugin   partnerplugin.PartnerPlugin
 		chequeHandler   chequehandler.ChequeHandler
 		compressor      compression.Compressor[*types.Message, [][]byte]
 		cmAccounts      cmaccounts.Service
@@ -385,6 +393,7 @@ func TestSendRequestMessage(t *testing.T) {
 				common.Address{},
 				tt.fields.serviceRegistry,
 				tt.fields.responseHandler,
+				tt.fields.partnerPlugin,
 				tt.fields.chequeHandler,
 				tt.fields.compressor,
 				tt.fields.cmAccounts,
@@ -418,9 +427,6 @@ func (d dummyService) Name() string {
 func TestStart(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 
-	mockMessenger := NewMockMessenger(mockCtrl)
-	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
-
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
 	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(dummyService{}, true)
 
@@ -430,48 +436,53 @@ func TestStart(t *testing.T) {
 	mockChequeHandler := chequehandler.NewMockChequeHandler(mockCtrl)
 	mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
-	t.Run("start processor and accept messages", func(*testing.T) {
-		ch := make(chan types.Message, 5)
-		// incoming messages
-		{
-			// msg without sender
-			ch <- types.Message{Metadata: metadata.Metadata{}}
-			// msg with sender == userID
-			ch <- types.Message{Metadata: metadata.Metadata{}, SenderBotUserID: userID}
-			// msg with sender == userID but without valid msgType
-			ch <- types.Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
-			// msg with sender == userID and valid msgType
-			ch <- types.Message{
-				Type:     generated.PingServiceV1Request,
-				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
-			}
-			// 2nd msg with sender == userID and valid msgType
-			ch <- types.Message{
-				Type:     generated.AccommodationProductInfoServiceV2Request,
-				Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
-			}
-		}
-		// mocks
-		mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
+	mockPartnerPlugin := partnerplugin.NewMockPartnerPlugin(mockCtrl)
+	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
+	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
+	mockMessenger := NewMockMessenger(mockCtrl)
+	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
-		ctx, cancel := context.WithCancel(context.Background())
-		p := NewMessageProcessor(
-			mockMessenger,
-			zap.NewNop().Sugar(),
-			time.Duration(0),
-			userID,
-			common.Address{},
-			common.Address{},
-			common.Address{},
-			mockServiceRegistry,
-			NoopResponseHandler{},
-			mockChequeHandler,
-			&noopCompressor{},
-			mockCMAccounts,
-		)
-		go p.Start(ctx)
+	ch := make(chan types.Message, 5) // incoming messages
 
-		time.Sleep(1 * time.Second)
-		cancel()
-	})
+	// msg without sender
+	ch <- types.Message{Metadata: metadata.Metadata{}}
+	// msg with sender == userID
+	ch <- types.Message{Metadata: metadata.Metadata{}, SenderBotUserID: userID}
+	// msg with sender == userID but without valid msgType
+	ch <- types.Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
+	// msg with sender == userID and valid msgType
+	ch <- types.Message{
+		Type:     generated.PingServiceV1Request,
+		Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
+	}
+	// 2nd msg with sender == userID and valid msgType
+	ch <- types.Message{
+		Type:     generated.AccommodationProductInfoServiceV2Request,
+		Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
+	}
+
+	// mocks
+	mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	p := NewMessageProcessor(
+		mockMessenger,
+		zap.NewNop().Sugar(),
+		time.Duration(0),
+		userID,
+		common.Address{},
+		common.Address{},
+		common.Address{},
+		mockServiceRegistry,
+		NoopResponseHandler{},
+		mockPartnerPlugin,
+		mockChequeHandler,
+		&noopCompressor{},
+		mockCMAccounts,
+	)
+
+	go p.Start(ctx)
+
+	time.Sleep(1 * time.Second)
+	cancel()
 }
