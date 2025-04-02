@@ -6,6 +6,7 @@ package eventlistener
 import (
 	"errors"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/partnerplugin"
@@ -32,7 +33,8 @@ type eventListener struct {
 	eventListener       *events.EventListener
 	partnerPlugin       partnerplugin.PartnerPlugin
 
-	unsubscribers []unsubscriber
+	unsubscribers      []unsubscriber
+	unsubscribersMutex sync.Mutex
 }
 
 type unsubscriber struct {
@@ -59,4 +61,10 @@ func (el *eventListener) Stop() {
 		subscription.unsubscribe()
 		subscription.timeoutTimer.Stop()
 	}
+}
+
+func (el *eventListener) addUnsubscriber(unsubscriber unsubscriber) {
+	el.unsubscribersMutex.Lock()
+	defer el.unsubscribersMutex.Unlock()
+	el.unsubscribers = append(el.unsubscribers, unsubscriber)
 }

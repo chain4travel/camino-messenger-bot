@@ -29,7 +29,7 @@ func (el *eventListener) SubscribeForTokenBoughtEvent(tokenID *big.Int, mintID s
 	}
 
 	el.startTokenBoughtTimeoutTimer(unsubscriber, subscription)
-	el.unsubscribers = append(el.unsubscribers, *unsubscriber)
+	el.addUnsubscriber(*unsubscriber)
 	return nil
 }
 
