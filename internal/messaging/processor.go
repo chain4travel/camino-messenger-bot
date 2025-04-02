@@ -15,6 +15,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	partnerplugin "github.com/chain4travel/camino-messenger-bot/internal/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
@@ -24,8 +25,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	grpc_metadata "google.golang.org/grpc/metadata"
 	"maunium.net/go/mautrix/id"
 )
 
@@ -89,9 +88,6 @@ func NewMessageProcessor(
 }
 
 type messageProcessor struct {
-	messenger                           Messenger
-	logger                              *zap.SugaredLogger
-	tracer                              trace.Tracer
 	responseTimeout                     time.Duration // timeout after which a request is considered failed
 	matrixHost                          string
 	botUserID                           id.UserID
@@ -100,10 +96,14 @@ type messageProcessor struct {
 	networkFeeRecipientBotAddress       common.Address
 	networkFeeRecipientCMAccountAddress common.Address
 
+	messenger            Messenger
+	logger               *zap.SugaredLogger
+	tracer               trace.Tracer
 	responseChannelsLock sync.RWMutex
 	responseChannels     map[string]chan *types.Message
 	serviceRegistry      ServiceRegistry
 	responseHandler      ResponseHandler
+	partnerPlugin        partnerplugin.PartnerPlugin
 	chequeHandler        chequehandler.ChequeHandler
 	compressor           compression.Compressor[*types.Message, [][]byte]
 	cmAccounts           cmaccounts.Service
@@ -147,7 +147,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 		return nil, ErrOnlyRequestMessagesAllowed
 	}
 
-	requestMsg.Sender = p.botUserID
+	requestMsg.SenderBotUserID = p.botUserID
 
 	p.logger.Debug("Sending outbound request message")
 	responseChan := make(chan *types.Message)
@@ -201,7 +201,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
 	defer span.End()
 
-	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", requestMsg.Sender, recipientBotAddr, requestMsg.Metadata.Recipient)
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", requestMsg.SenderBotUserID, recipientBotAddr, requestMsg.Metadata.Recipient)
 
 	if err := p.messenger.SendAsync(
 		ctx,
@@ -229,36 +229,39 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	}
 }
 
-func (p *messageProcessor) respond(msg *types.Message) error {
-	traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
+func (p *messageProcessor) respond(requestMsg *types.Message) error {
+	traceID, err := trace.TraceIDFromHex(requestMsg.Metadata.RequestID)
 	if err != nil {
-		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
+		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", requestMsg.Metadata.RequestID, err)
 	}
 
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
-	ctx, responseSpan := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	ctx, responseSpan := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
 	defer responseSpan.End()
 
-	service, supported := p.serviceRegistry.GetService(msg.Type)
+	service, supported := p.serviceRegistry.GetService(requestMsg.Type)
 	if !supported {
-		return fmt.Errorf("%w: %s", ErrUnsupportedService, msg.Type)
+		return fmt.Errorf("%w: %s", ErrUnsupportedService, requestMsg.Type)
 	}
 
-	cheque, err := p.getChequeForThisBot(msg.Metadata.Cheques)
+	cheque, err := p.getChequeForThisBot(requestMsg.Metadata.Cheques)
 	if err != nil {
 		return err
 	}
 
-	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, common.HexToAddress(msg.Metadata.Recipient), service.Name())
+	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, common.HexToAddress(requestMsg.Metadata.Recipient), service.Name())
 	if err != nil {
 		return err
 	}
 
-	if err := p.chequeHandler.VerifyCheque(ctx, cheque, addressFromUserID(msg.Sender), serviceFee); err != nil {
+	if err := p.chequeHandler.VerifyCheque(ctx, cheque, addressFromUserID(requestMsg.SenderBotUserID), serviceFee); err != nil {
 		return err
 	}
+	requestMsg.Metadata.Sender = cheque.FromCMAccount.Hex()
 
-	ctx, responseMsg := p.callPartnerPluginAndGetResponse(ctx, msg, cheque, service)
+	p.logger.Infof("CMAccount %s is calling partner-plugin of the CMAccount %s", requestMsg.Metadata.Sender, requestMsg.Metadata.Recipient)
+
+	ctx, responseMsg := p.callPartnerPluginAndGetResponse(ctx, requestMsg, service)
 
 	ctx, err = p.compressMessage(ctx, responseMsg)
 	if err != nil {
@@ -267,44 +270,27 @@ func (p *messageProcessor) respond(msg *types.Message) error {
 		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 	}
 
-	return p.messenger.SendAsync(ctx, responseMsg, msg.Sender)
+	return p.messenger.SendAsync(ctx, responseMsg, requestMsg.SenderBotUserID)
 }
 
 func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	ctx context.Context,
 	requestMsg *types.Message,
-	cheque *cheques.SignedCheque,
 	service rpc.Client,
 ) (context.Context, *types.Message) {
 	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
-	requestMsg.Metadata.Sender = cheque.FromCMAccount.Hex()
 
-	responseMsg := &types.Message{
-		Metadata: requestMsg.Metadata,
-	}
-
-	ctx = grpc_metadata.NewOutgoingContext(ctx, requestMsg.Metadata.ToGrpcMD())
-	var err error
-	header := &grpc_metadata.MD{}
-	ctx, partnerPluginSpan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	responseMsg.Content, responseMsg.Type, err = service.Call(ctx, requestMsg.Content, grpc.Header(header))
-	partnerPluginSpan.End()
+	ctx, responseMsg, err := p.partnerPlugin.DoServiceRequest(ctx, requestMsg, service)
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
-		// non-nil response header is ensured by the grpc client generated code
 		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 		return ctx, responseMsg
 	}
 
-	if err := responseMsg.Metadata.FromGrpcMD(*header); err != nil {
-		p.logger.Infof("error extracting metadata for request: %s", responseMsg.Metadata.RequestID)
-	}
-
-	p.logger.Infof("Supplier: CMAccount %s is calling plugin of the CMAccount %s", responseMsg.Metadata.Sender, responseMsg.Metadata.Recipient)
 	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
 
-	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botUserID, requestMsg.Sender)
+	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botUserID, requestMsg.SenderBotUserID)
 
 	return ctx, responseMsg
 }

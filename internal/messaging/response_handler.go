@@ -15,11 +15,11 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	eventlistener "github.com/chain4travel/camino-messenger-bot/internal/event_listener"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
-	"github.com/chain4travel/camino-messenger-bot/pkg/events"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -59,6 +59,7 @@ func NewResponseHandler(
 	serviceRegistry ServiceRegistry,
 	cmAccounts cmaccounts.Service,
 	tokenCacheSize int,
+	eventListener eventlistener.EventListener,
 ) (ResponseHandler, error) {
 	erc20, err := erc20.NewERC20Service(ethClient, tokenCacheSize)
 	if err != nil {
@@ -85,7 +86,7 @@ func NewResponseHandler(
 		bookingService:      *bookingService,
 		bookingToken:        *bookingToken,
 		serviceRegistry:     serviceRegistry,
-		evmEventListener:    events.NewEventListener(ethClient, logger),
+		eventListener:       eventListener,
 		erc20:               erc20,
 	}, nil
 }
@@ -98,7 +99,7 @@ type evmResponseHandler struct {
 	bookingService      booking.Service
 	bookingToken        bookingtoken.Bookingtoken
 	serviceRegistry     ServiceRegistry
-	evmEventListener    *events.EventListener
+	eventListener       eventlistener.EventListener
 	erc20               erc20.Service
 }
 

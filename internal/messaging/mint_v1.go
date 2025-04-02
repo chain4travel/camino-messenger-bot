@@ -25,7 +25,8 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 	if response.Header.Status != typesv1.StatusType_STATUS_TYPE_SUCCESS {
 		return
 	}
-	// TODO if address is invalid and will just get zero addr
+
+	// TODO: @VjeraTurk check if CMAccount exists
 	if !common.IsHexAddress(request.BuyerAddress) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
 		h.logger.Error(errMsg)
@@ -83,7 +84,13 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 
-	h.onBookingTokenMint(tokenID, response.MintId, response.BuyableUntil.AsTime())
+	tokenBoughtTimeout := time.Unix(response.BuyableUntil.Seconds, 0)
+	if err := h.eventListener.SubscribeForTokenBoughtEvent(ctx, tokenID, response.MintId.Value, tokenBoughtTimeout); err != nil {
+		h.logger.Errorf("error subscribing for token bought event (tokenID: %d, mintID: %s, timeout: %d): %v",
+			tokenID.Int64(), response.MintId.Value, tokenBoughtTimeout, err)
+	}
+
+	// TODO @evlekht pp will not know if we failed to mint or setup notification
 
 	response.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	response.BookingToken = &typesv1.BookingToken{TokenId: int32(tokenID.Int64())} //nolint:gosec

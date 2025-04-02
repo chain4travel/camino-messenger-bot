@@ -17,9 +17,11 @@ import (
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
+	eventlistener "github.com/chain4travel/camino-messenger-bot/internal/event_listener"
 	"github.com/chain4travel/camino-messenger-bot/internal/local"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
+	partnerplugin "github.com/chain4travel/camino-messenger-bot/internal/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
@@ -89,7 +91,24 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	// partner plugin to handle partner-plugin related logic and communication
+	partnerPlugin := partnerplugin.New(
+		logger,
+		tracer,
+		rpcClient,
+		cfg.ResponseTimeout,
+	)
+
+	// event listener with additional logic for subscribing and reacting on blockchain events
+	eventListener := eventlistener.New(
+		logger,
+		evmClient,
+		cfg.BookingTokenAddress,
+		partnerPlugin,
+	)
+
 	// messaging components
+
 	cmAccounts, err := cmaccounts.NewService(
 		logger,
 		cmAccountsCacheSize,
@@ -122,6 +141,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		serviceRegistry,
 		cmAccounts,
 		erc20CacheSize,
+		eventListener,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create response handler: %v", err)
@@ -227,6 +247,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		logger:           logger,
 		scheduler:        scheduler,
 		chequeHandler:    chequeHandler,
+		eventListener:    eventListener,
 		rpcClient:        rpcClient,
 		rpcServer:        rpcServer,
 		messageProcessor: messageProcessor,
@@ -242,6 +263,7 @@ type App struct {
 	tracer           tracing.Tracer
 	scheduler        scheduler.Scheduler
 	chequeHandler    chequehandler.ChequeHandler
+	eventListener    eventlistener.EventListener
 	rpcClient        *client.RPCClient
 	rpcServer        server.Server
 	messageProcessor messaging.MessageProcessor

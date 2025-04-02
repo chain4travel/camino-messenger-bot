@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -23,9 +22,6 @@ var errUnsupportedService = errors.New("cm account support service, which bot do
 
 type ServiceRegistry interface {
 	GetService(messageType types.MessageType) (rpc.Service, bool)
-
-	// should only be called for supplier bot with rpc client
-	NotificationClient() notificationv1grpc.NotificationServiceClient
 }
 
 func NewServiceRegistry(
@@ -100,8 +96,4 @@ func (s *serviceRegistry) GetService(requestType types.MessageType) (rpc.Service
 		return nil, false
 	}
 	return service, true
-}
-
-func (s *serviceRegistry) NotificationClient() notificationv1grpc.NotificationServiceClient {
-	return notificationv1grpc.NewNotificationServiceClient(s.rpcClient.ClientConn)
 }

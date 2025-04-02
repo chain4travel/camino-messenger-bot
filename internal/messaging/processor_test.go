@@ -437,7 +437,7 @@ func TestStart(t *testing.T) {
 			// msg without sender
 			ch <- types.Message{Metadata: metadata.Metadata{}}
 			// msg with sender == userID
-			ch <- types.Message{Metadata: metadata.Metadata{}, Sender: userID}
+			ch <- types.Message{Metadata: metadata.Metadata{}, SenderBotUserID: userID}
 			// msg with sender == userID but without valid msgType
 			ch <- types.Message{Metadata: metadata.Metadata{Sender: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
 			// msg with sender == userID and valid msgType

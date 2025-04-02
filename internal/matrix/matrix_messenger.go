@@ -105,10 +105,10 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 		completeMsg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", completeMsg.MsgType), evt.Timestamp)
 		completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.Checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
 		m.msgChannel <- types.Message{
-			Metadata: completeMsg.Metadata,
-			Content:  completeMsg.Content,
-			Type:     types.MessageType(msg.MsgType),
-			Sender:   evt.Sender,
+			Metadata:        completeMsg.Metadata,
+			Content:         completeMsg.Content,
+			Type:            types.MessageType(msg.MsgType),
+			SenderBotUserID: evt.Sender,
 		}
 	})
 	syncer.OnEventType(event.StateMember, func(ctx context.Context, evt *event.Event) {

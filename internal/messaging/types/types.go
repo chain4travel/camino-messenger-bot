@@ -54,7 +54,7 @@ type Message struct {
 	Type              MessageType               `json:"msgtype"` // TODO @evlekht it might be possible to get rid of this field
 	Content           protoreflect.ProtoMessage `json:"content"`
 	Metadata          metadata.Metadata         `json:"metadata"`
-	Sender            id.UserID
+	SenderBotUserID   id.UserID
 	CompressedContent [][]byte
 }
 
