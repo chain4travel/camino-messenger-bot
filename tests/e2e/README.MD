@@ -2,7 +2,7 @@
 
 ```sh
 ./scripts/build.sh
-./scripts/build_partner_plugin.sh
+./scripts/build_partner_plugin_mock.sh
 ```
 
 ## Running tests
