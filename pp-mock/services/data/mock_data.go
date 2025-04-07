@@ -292,5 +292,4 @@ func init() {
 		panic(fmt.Errorf("error unmarshaling activities search v2: %w", err))
 	}
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
-
 }
