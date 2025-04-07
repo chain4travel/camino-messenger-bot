@@ -1,25 +1,28 @@
 #!/bin/bash
 
-# Set the target directory with tilde for home
-target_dir="$HOME/tmp/cmb-e2e"
+if [ -d "$HOME/tmp/cmb-e2e" ] ; then
+	target_dir="$HOME/tmp/cmb-e2e"
+elif [ -d "/tmp/cmb-e2e" ] ; then
+	target_dir="/tmp/cmb-e2e"
+else
+	echo "Error: No tmp dir found where the logs could be"
+	exit 1
+fi
 
-# Get the newest directory based on timestamp
-newest_dir=$(ls -d -t "$target_dir"/*/ | head -n 1)
-
-# Remove the trailing slash from the directory name
+newest_dir=$(find "$target_dir" -maxdepth 1 -type d -exec stat --format="%Y %n" {} + | sort -n | awk '{print $2}' | tail -n1)
 newest_dir="${newest_dir%/}"
-
-# Print the newest directory for validation
 echo "Newest directory: $newest_dir"
 
-# Construct the full path to the log file
-log_file="$newest_dir/TestE2E/ActivityV2/pp-mock/partner-plugin-10011.log"
+# The file always is in the same place but may have different names as the
+# used port may be different
+# it's always: partner-plugin-<PORT>.log
 
-# Check if the log file exists
-if [ -f "$log_file" ]; then
-  # Cat the log file
-  cat "$log_file"
-else
-  echo "Error: Log file not found at $log_file"
-  exit 1
-fi
+log_files=$(find "$newest_dir" -type f -name "partner-plugin-*.log")
+
+for file in $log_files; do
+	echo "----------------------------------------"
+	echo "Log file found: $file"
+	echo "----------------------------------------"
+	cat "$file"
+	echo
+done
