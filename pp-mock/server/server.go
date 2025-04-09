@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package main
+package server
 
 import (
 	"context"
@@ -44,24 +44,18 @@ import (
 )
 
 const (
-	eventsEnabledEnvKey = "CMB_PARTNER_PLUGIN_MOCK_EVENTS"
-	portEnvKey          = "CMB_PARTNER_PLUGIN_MOCK_PORT"
+	EventsEnabledEnvKey = "CMB_PARTNER_PLUGIN_MOCK_EVENTS"
+	PortEnvKey          = "CMB_PARTNER_PLUGIN_MOCK_PORT"
 )
 
-func main() {
-	if err := run(); err != nil {
-		os.Exit(1)
-	}
-}
-
-func run() error {
+func Run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	grpcServer := grpc.NewServer()
 
 	eventSender := events.NewDummySender()
-	if os.Getenv(eventsEnabledEnvKey) == "true" {
+	if os.Getenv(EventsEnabledEnvKey) == "true" {
 		var eventServer events.Server
 		eventServer, eventSender = events.NewServer()
 		eventServer.Start(ctx)
@@ -108,7 +102,7 @@ func run() error {
 
 	port := 50051
 	var err error
-	p, found := os.LookupEnv(portEnvKey)
+	p, found := os.LookupEnv(PortEnvKey)
 	if found {
 		port, err = strconv.Atoi(p)
 		if err != nil {

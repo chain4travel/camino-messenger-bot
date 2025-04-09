@@ -18,6 +18,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
+	ppmock "github.com/chain4travel/camino-messenger-bot/pp-mock/server"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/resources"
 )
@@ -68,7 +69,10 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 	}
 
 	cmd := exec.Command(f.binPath) //nolint:gosec // this is a partner plugin mock binary, not some injection.
-	cmd.Env = append(cmd.Env, fmt.Sprintf("CMB_PARTNER_PLUGIN_MOCK_PORT=%d", port))
+	cmd.Env = append(cmd.Env,
+		fmt.Sprintf("%s=%d", ppmock.PortEnvKey, port),
+		fmt.Sprintf("%s=true", ppmock.EventsEnabledEnvKey),
+	)
 
 	if err := os.MkdirAll(f.dir, 0o755); err != nil {
 		return nil, nil, fmt.Errorf("failed to create pp-mock directory: %w", err)

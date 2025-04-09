@@ -57,6 +57,13 @@ func debugPrintRequestResponse(tt *Test, functionName string, request proto.Mess
 	}
 }
 
+func debugPrintProtoMessage(tt *Test, message proto.Message) {
+	// Skip the potentially expensive conversion to JSON if debug logging is disabled
+	if tt.logger.Level().Enabled(zapcore.DebugLevel) {
+		tt.logger.Debugf("%s:\n%s", getTypeInfo(message), protoMessageToJSON(tt, message))
+	}
+}
+
 // Service function to convert the responses into pretty-printed JSON.
 // Only used for debugging and test creation.
 func protoMessageToJSON(tt *Test, message proto.Message) string {

@@ -73,11 +73,13 @@ func TestMintV2Setup(t *testing.T, tt *Test) {
 		go func() {
 			eventMsg, err := ppEventStream.Recv()
 			require.NoError(t, err)
+			debugPrintProtoMessage(tt, eventMsg)
 			tokenBoughtNotification := &notificationv1.TokenBought{}
 			require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
 			require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
 			require.Equal(t, tokenBoughtNotification.MintId, mintID)
 			require.NotEmpty(t, tokenBoughtNotification.TxId)
+			wg.Done()
 		}()
 
 		tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
