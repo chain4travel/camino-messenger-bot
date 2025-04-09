@@ -14,17 +14,28 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
 
-var _ transportv1grpc.TransportSearchServiceServer = (*TransportSearchV1Server)(nil)
+var _ transportv1grpc.TransportSearchServiceServer = (*transportSearchV1Server)(nil)
 
-type TransportSearchV1Server struct{}
+type transportSearchV1Server struct {
+	eventSender events.Sender
+}
 
-func (*TransportSearchV1Server) TransportSearch(ctx context.Context, req *transportv1.TransportSearchRequest) (*transportv1.TransportSearchResponse, error) {
+func NewTransportSearchV1Server(eventSender events.Sender) *transportSearchV1Server {
+	return &transportSearchV1Server{eventSender: eventSender}
+}
+
+func (s *transportSearchV1Server) TransportSearch(ctx context.Context, req *transportv1.TransportSearchRequest) (*transportv1.TransportSearchResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 
 	err := md.ExtractMetadata(ctx)

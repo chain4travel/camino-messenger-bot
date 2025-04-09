@@ -13,16 +13,27 @@ import (
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var _ bookv1grpc.MintServiceServer = (*MintServiceV1Server)(nil)
+var _ bookv1grpc.MintServiceServer = (*mintServiceV1Server)(nil)
 
-type MintServiceV1Server struct{}
+type mintServiceV1Server struct {
+	eventSender events.Sender
+}
 
-func (*MintServiceV1Server) Mint(ctx context.Context, mintRequest *bookv1.MintRequest) (*bookv1.MintResponse, error) {
+func NewMintServiceV1Server(eventSender events.Sender) *mintServiceV1Server {
+	return &mintServiceV1Server{eventSender: eventSender}
+}
+
+func (s *mintServiceV1Server) Mint(ctx context.Context, req *bookv1.MintRequest) (*bookv1.MintResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 
 	if err := md.ExtractMetadata(ctx); err != nil {
@@ -39,7 +50,7 @@ func (*MintServiceV1Server) Mint(ctx context.Context, mintRequest *bookv1.MintRe
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		ValidationId: mintRequest.ValidationId,
+		ValidationId: req.ValidationId,
 		Price: &typesv1.Price{
 			Value: "1",
 			Currency: &typesv1.Currency{

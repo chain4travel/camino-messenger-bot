@@ -16,6 +16,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
@@ -24,11 +25,21 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var _ transportv3grpc.TransportSearchServiceServer = (*TransportSearchV3Server)(nil)
+var _ transportv3grpc.TransportSearchServiceServer = (*transportSearchV3Server)(nil)
 
-type TransportSearchV3Server struct{}
+type transportSearchV3Server struct {
+	eventSender events.Sender
+}
 
-func (*TransportSearchV3Server) TransportSearch(ctx context.Context, req *transportv3.TransportSearchRequest) (*transportv3.TransportSearchResponse, error) {
+func NewTransportSearchV3Server(eventSender events.Sender) *transportSearchV3Server {
+	return &transportSearchV3Server{eventSender: eventSender}
+}
+
+func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *transportv3.TransportSearchRequest) (*transportv3.TransportSearchResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 
 	err := md.ExtractMetadata(ctx)

@@ -13,6 +13,7 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
@@ -21,11 +22,21 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var _ accommodationv1grpc.AccommodationSearchServiceServer = (*AccommodationSearchV1Server)(nil)
+var _ accommodationv1grpc.AccommodationSearchServiceServer = (*accommodationSearchV1Server)(nil)
 
-type AccommodationSearchV1Server struct{}
+type accommodationSearchV1Server struct {
+	eventSender events.Sender
+}
 
-func (*AccommodationSearchV1Server) AccommodationSearch(ctx context.Context, req *accommodationv1.AccommodationSearchRequest) (*accommodationv1.AccommodationSearchResponse, error) {
+func NewAccommodationSearchV1Server(eventSender events.Sender) *accommodationSearchV1Server {
+	return &accommodationSearchV1Server{eventSender: eventSender}
+}
+
+func (s *accommodationSearchV1Server) AccommodationSearch(ctx context.Context, req *accommodationv1.AccommodationSearchRequest) (*accommodationv1.AccommodationSearchResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 
 	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)

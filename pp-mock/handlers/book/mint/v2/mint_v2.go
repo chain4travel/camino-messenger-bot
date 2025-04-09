@@ -14,17 +14,28 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var _ bookv2grpc.MintServiceServer = (*MintServiceV2Server)(nil)
+var _ bookv2grpc.MintServiceServer = (*mintServiceV2Server)(nil)
 
-type MintServiceV2Server struct{}
+type mintServiceV2Server struct {
+	eventSender events.Sender
+}
 
-func (*MintServiceV2Server) Mint(ctx context.Context, mintRequest *bookv2.MintRequest) (*bookv2.MintResponse, error) {
+func NewMintServiceV2Server(eventSender events.Sender) *mintServiceV2Server {
+	return &mintServiceV2Server{eventSender: eventSender}
+}
+
+func (s *mintServiceV2Server) Mint(ctx context.Context, req *bookv2.MintRequest) (*bookv2.MintResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 
 	if err := md.ExtractMetadata(ctx); err != nil {
@@ -33,7 +44,7 @@ func (*MintServiceV2Server) Mint(ctx context.Context, mintRequest *bookv2.MintRe
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request (MintV2): %s", md.RequestID)
 
-	storedValidateData, ok := state.GetStore().GetValidationResult(mintRequest.ValidationId.Value)
+	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
 	if !ok {
 		return &bookv2.MintResponse{
 			Header: &typesv1.ResponseHeader{
@@ -60,7 +71,7 @@ func (*MintServiceV2Server) Mint(ctx context.Context, mintRequest *bookv2.MintRe
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(5 * time.Minute).Unix(),
 		},
-		ValidationId: mintRequest.ValidationId,
+		ValidationId: req.ValidationId,
 		Price: &typesv2.Price{
 			Value: "1",
 			Currency: &typesv2.Currency{

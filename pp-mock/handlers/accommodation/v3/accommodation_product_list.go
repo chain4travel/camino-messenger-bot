@@ -12,15 +12,26 @@ import (
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
 )
 
-var _ accommodationv3grpc.AccommodationProductListServiceServer = (*AccommodationProductListV3Server)(nil)
+var _ accommodationv3grpc.AccommodationProductListServiceServer = (*accommodationProductListV3Server)(nil)
 
-type AccommodationProductListV3Server struct{}
+type accommodationProductListV3Server struct {
+	eventSender events.Sender
+}
 
-func (*AccommodationProductListV3Server) AccommodationProductList(ctx context.Context, req *accommodationv3.AccommodationProductListRequest) (*accommodationv3.AccommodationProductListResponse, error) {
+func NewAccommodationProductListV3Server(eventSender events.Sender) *accommodationProductListV3Server {
+	return &accommodationProductListV3Server{eventSender: eventSender}
+}
+
+func (s *accommodationProductListV3Server) AccommodationProductList(ctx context.Context, req *accommodationv3.AccommodationProductListRequest) (*accommodationv3.AccommodationProductListResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 
 	if err := md.ExtractMetadata(ctx); err != nil {

@@ -12,13 +12,24 @@ import (
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 )
 
-var _ pingv1grpc.PingServiceServer = (*PingServiceV1Server)(nil)
+var _ pingv1grpc.PingServiceServer = (*pingServiceV1Server)(nil)
 
-type PingServiceV1Server struct{}
+type pingServiceV1Server struct {
+	eventSender events.Sender
+}
 
-func (*PingServiceV1Server) Ping(ctx context.Context, request *pingv1.PingRequest) (*pingv1.PingResponse, error) {
+func NewPingServiceV1Server(eventSender events.Sender) *pingServiceV1Server {
+	return &pingServiceV1Server{eventSender: eventSender}
+}
+
+func (s *pingServiceV1Server) Ping(ctx context.Context, req *pingv1.PingRequest) (*pingv1.PingResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -31,6 +42,6 @@ func (*PingServiceV1Server) Ping(ctx context.Context, request *pingv1.PingReques
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", request.PingMessage, md.RequestID),
+		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", req.PingMessage, md.RequestID),
 	}, nil
 }

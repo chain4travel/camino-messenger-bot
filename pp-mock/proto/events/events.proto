@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package events;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events";
+
+service MyEventsService {
+  rpc Subscribe(google.protobuf.Empty) returns (stream SubscribeResponse);
+}
+
+message SubscribeResponse {
+  bytes data = 1;
+}

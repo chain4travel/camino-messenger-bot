@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/chain4travel/camino-messenger-bot
+name: buf.build/chain4travel/pp-mock
 breaking:
   use:
     - FILE

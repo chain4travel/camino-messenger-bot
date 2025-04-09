@@ -15,18 +15,30 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
 	"github.com/google/uuid"
 )
 
 // Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
-var _ bookv2grpc.ValidationServiceServer = (*ValidationServiceV2Server)(nil)
+var _ bookv2grpc.ValidationServiceServer = (*validationServiceV2Server)(nil)
 
 // ValidationServiceV2Server is the server that provides Validation services.
-type ValidationServiceV2Server struct{}
+type validationServiceV2Server struct {
+	eventSender events.Sender
+}
+
+// NewValidationServiceV2Server creates a new ValidationServiceV2Server.
+func NewValidationServiceV2Server(eventSender events.Sender) *validationServiceV2Server {
+	return &validationServiceV2Server{eventSender: eventSender}
+}
 
 // Validate handles ValidationRequest and returns a mock ValidationResponse.
-func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequest *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
+func (s *validationServiceV2Server) Validation(ctx context.Context, req *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -34,10 +46,10 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (Validation)", md.RequestID)
-	if validationRequest.ValidationObject == nil ||
-		validationRequest.ValidationObject.SearchIdentifier == nil ||
-		validationRequest.ValidationObject.SearchIdentifier.ResultId == 0 ||
-		validationRequest.ValidationObject.SearchIdentifier.SearchId == nil {
+	if req.ValidationObject == nil ||
+		req.ValidationObject.SearchIdentifier == nil ||
+		req.ValidationObject.SearchIdentifier.ResultId == 0 ||
+		req.ValidationObject.SearchIdentifier.SearchId == nil {
 		return &bookv2.ValidationResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -51,7 +63,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 
 	// Look-up the store if we actually have a search storedSearchData for the given search identifier
 	// If we don't have a storedSearchData, return an error
-	storedSearchData, found := state.GetStore().GetSearchResult(validationRequest.ValidationObject.SearchIdentifier.SearchId.Value)
+	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchIdentifier.SearchId.Value)
 	if !found {
 		return &bookv2.ValidationResponse{
 			Header: &typesv1.ResponseHeader{
@@ -64,7 +76,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 		}, nil
 	}
 
-	resultIndex := int(validationRequest.ValidationObject.SearchIdentifier.ResultId - 1)
+	resultIndex := int(req.ValidationObject.SearchIdentifier.ResultId - 1)
 	if resultIndex < 0 || resultIndex >= len(storedSearchData.Data.Prices) {
 		return &bookv2.ValidationResponse{
 			Header: &typesv1.ResponseHeader{
@@ -85,7 +97,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		ValidationId:     &typesv1.UUID{Value: uuid.New().String()},
-		ValidationObject: validationRequest.ValidationObject,
+		ValidationObject: req.ValidationObject,
 		PriceDetail: &typesv2.PriceDetail{
 			Price:       validationPrice,
 			Description: "Validated total price",
@@ -100,7 +112,7 @@ func (*ValidationServiceV2Server) Validation(ctx context.Context, validationRequ
 	state.GetStore().AddValidationResult(response.ValidationId.Value, state.ValidationData{
 		InitialSearchData: storedSearchData.Data,
 		VerifiedPrice:     unifiedValidationPrice,
-		JSONRequest:       validationRequest.String(),
+		JSONRequest:       req.String(),
 		JSONResponse:      response.String(),
 	})
 

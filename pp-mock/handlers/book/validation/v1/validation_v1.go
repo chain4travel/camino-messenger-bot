@@ -14,18 +14,30 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	"github.com/google/uuid"
 )
 
 // Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
-var _ bookv1grpc.ValidationServiceServer = (*ValidationServiceV1Server)(nil)
+var _ bookv1grpc.ValidationServiceServer = (*validationServiceV1Server)(nil)
 
 // ValidationServiceV1Server is the server that provides Validation services.
-type ValidationServiceV1Server struct{}
+type validationServiceV1Server struct {
+	eventSender events.Sender
+}
+
+// NewValidationServiceV1Server creates a new ValidationServiceV1Server.
+func NewValidationServiceV1Server(eventSender events.Sender) *validationServiceV1Server {
+	return &validationServiceV1Server{eventSender: eventSender}
+}
 
 // Validate handles ValidationRequest and returns a mock ValidationResponse.
-func (*ValidationServiceV1Server) Validation(ctx context.Context, validationRequest *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
+func (s *validationServiceV1Server) Validation(ctx context.Context, req *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 	err := md.ExtractMetadata(ctx)
 	if err != nil {
@@ -33,10 +45,10 @@ func (*ValidationServiceV1Server) Validation(ctx context.Context, validationRequ
 	}
 	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (Validation)", md.RequestID)
-	if validationRequest.ValidationObject == nil ||
-		validationRequest.ValidationObject.SearchIdentifier == nil ||
-		validationRequest.ValidationObject.SearchIdentifier.ResultId == 0 ||
-		validationRequest.ValidationObject.SearchIdentifier.SearchId == nil {
+	if req.ValidationObject == nil ||
+		req.ValidationObject.SearchIdentifier == nil ||
+		req.ValidationObject.SearchIdentifier.ResultId == 0 ||
+		req.ValidationObject.SearchIdentifier.SearchId == nil {
 		response := bookv1.ValidationResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -54,7 +66,7 @@ func (*ValidationServiceV1Server) Validation(ctx context.Context, validationRequ
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		ValidationId:     &typesv1.UUID{Value: uuid.New().String()},
-		ValidationObject: validationRequest.ValidationObject,
+		ValidationObject: req.ValidationObject,
 		PriceDetail: &typesv1.PriceDetail{
 			Price: &typesv1.Price{
 				Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),

@@ -12,15 +12,26 @@ import (
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/pp-mock/services/data"
 	"google.golang.org/grpc"
 )
 
-var _ transportv3grpc.TransportProductListServiceServer = (*TransportProductListV3Server)(nil)
+var _ transportv3grpc.TransportProductListServiceServer = (*transportProductListV3Server)(nil)
 
-type TransportProductListV3Server struct{}
+type transportProductListV3Server struct {
+	eventSender events.Sender
+}
 
-func (*TransportProductListV3Server) TransportProductList(ctx context.Context, req *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
+func NewTransportProductListV3Server(eventSender events.Sender) *transportProductListV3Server {
+	return &transportProductListV3Server{eventSender: eventSender}
+}
+
+func (s *transportProductListV3Server) TransportProductList(ctx context.Context, req *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
+	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+		log.Printf("error sending event: %v", err)
+	}
+
 	md := metadata.Metadata{}
 
 	if err := md.ExtractMetadata(ctx); err != nil {
