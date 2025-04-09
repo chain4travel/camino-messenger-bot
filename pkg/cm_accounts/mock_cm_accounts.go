@@ -16,6 +16,7 @@ import (
 	reflect "reflect"
 
 	cheques "github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	cmaccount "github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	bind "github.com/ethereum/go-ethereum/accounts/abi/bind"
 	common "github.com/ethereum/go-ethereum/common"
 	types "github.com/ethereum/go-ethereum/core/types"
@@ -58,6 +59,21 @@ func (m *MockService) BuyBookingToken(arg0 context.Context, arg1 *bind.TransactO
 func (mr *MockServiceMockRecorder) BuyBookingToken(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuyBookingToken", reflect.TypeOf((*MockService)(nil).BuyBookingToken), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
+// CMAccount mocks base method.
+func (m *MockService) CMAccount(arg0 common.Address) (*cmaccount.Cmaccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CMAccount", arg0)
+	ret0, _ := ret[0].(*cmaccount.Cmaccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CMAccount indicates an expected call of CMAccount.
+func (mr *MockServiceMockRecorder) CMAccount(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CMAccount", reflect.TypeOf((*MockService)(nil).CMAccount), arg0)
 }
 
 // CashInCheque mocks base method.

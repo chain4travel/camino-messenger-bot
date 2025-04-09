@@ -92,6 +92,8 @@ type Service interface {
 	) (*types.Receipt, error)
 
 	IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error)
+
+	CMAccount(common.Address) (*cmaccount.Cmaccount, error)
 }
 
 type service struct {
@@ -126,7 +128,7 @@ func NewService(
 }
 
 func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		s.logger.Errorf("Failed to get cm account: %v", err)
 		return common.Address{}, err
@@ -156,7 +158,7 @@ func (s *service) CashInCheque(
 	cheque *cheques.SignedCheque,
 	botKey *ecdsa.PrivateKey,
 ) (common.Hash, error) {
-	cmAccount, err := s.cmAccount(cheque.FromCMAccount)
+	cmAccount, err := s.CMAccount(cheque.FromCMAccount)
 	if err != nil {
 		s.logger.Errorf("failed to get cmAccount contract instance: %v", err)
 		return common.Hash{}, err
@@ -189,7 +191,7 @@ func (s *service) CashInCheque(
 }
 
 func (s *service) VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error) {
-	cmAccount, err := s.cmAccount(cheque.FromCMAccount)
+	cmAccount, err := s.CMAccount(cheque.FromCMAccount)
 	if err != nil {
 		s.logger.Errorf("failed to get cmAccount contract instance: %v", err)
 		return false, err
@@ -217,7 +219,7 @@ func (s *service) GetServiceFee(
 	cmAccountAddress common.Address,
 	serviceFullName string,
 ) (*big.Int, error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
 	}
@@ -237,7 +239,7 @@ func (s *service) IsBotAllowed(
 	cmAccountAddress common.Address,
 	botAddress common.Address,
 ) (bool, error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		return false, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}
@@ -258,7 +260,7 @@ func (s *service) GetLastCashIn(
 	fromBot common.Address,
 	toBot common.Address,
 ) (counter *big.Int, amount *big.Int, err error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}
@@ -285,7 +287,7 @@ func (s *service) MintBookingToken(
 	paymentToken common.Address,
 	offchainPaymentCurrency *big.Int,
 ) (*types.Receipt, error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}
@@ -325,7 +327,7 @@ func (s *service) BuyBookingToken(
 	price *big.Int,
 	paymentToken common.Address,
 ) (*types.Receipt, error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}
@@ -356,7 +358,7 @@ func (s *service) BuyBookingToken(
 	return receipt, nil
 }
 
-func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount, error) {
+func (s *service) CMAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount, error) {
 	cmAccount, ok := s.cache.Get(cmAccountAddr)
 	if ok {
 		return cmAccount, nil
@@ -372,7 +374,7 @@ func (s *service) cmAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 }
 
 func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
-	cmAccount, err := s.cmAccount(cmAccountAddress)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to fetch CM account: %w", err)
 	}

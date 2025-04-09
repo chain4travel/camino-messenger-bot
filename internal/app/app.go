@@ -103,15 +103,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	// event listener with additional logic for subscribing and reacting on blockchain events
-	eventListener := eventlistener.New(
-		logger,
-		evmClient,
-		cfg.BookingTokenAddress,
-		partnerPlugin,
-	)
-
-	// messaging components
-
 	cmAccounts, err := cmaccounts.NewService(
 		logger,
 		cmAccountsCacheSize,
@@ -121,6 +112,21 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		logger.Errorf("Failed to create cm accounts service: %v", err)
 		return nil, err
 	}
+
+	eventListener, err := eventlistener.New(
+		ctx,
+		logger,
+		evmClient,
+		cfg.BookingTokenAddress,
+		cmAccounts,
+		partnerPlugin,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create event listener: %v", err)
+		return nil, err
+	}
+
+	// messaging components
 
 	// TODO: @VjeraTurk Ensure multiple versions compatibility
 	cmAccountUpToDate, err := cmAccounts.IsCMAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)

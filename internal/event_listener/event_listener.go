@@ -4,13 +4,15 @@
 package eventlistener
 
 import (
+	"context"
 	"errors"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/internal/event_listener/subscriber"
 	"github.com/chain4travel/camino-messenger-bot/internal/partnerplugin"
-	"github.com/chain4travel/camino-messenger-bot/pkg/events"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
@@ -30,7 +32,7 @@ type EventListener interface {
 type eventListener struct {
 	bookingTokenAddress common.Address
 	logger              *zap.SugaredLogger
-	eventListener       *events.EventListener
+	subscriber          subscriber.Subscriber
 	partnerPlugin       partnerplugin.PartnerPlugin
 
 	unsubscribers      []unsubscriber
@@ -43,17 +45,31 @@ type unsubscriber struct {
 }
 
 func New(
+	ctx context.Context,
 	logger *zap.SugaredLogger,
 	ethClient *ethclient.Client,
 	bookingTokenAddress common.Address,
+	cmAccounts cmaccounts.Service,
 	partnerPlugin partnerplugin.PartnerPlugin,
-) EventListener {
+) (EventListener, error) {
+	blockNumber, err := ethClient.BlockNumber(ctx)
+	if err != nil {
+		logger.Errorf("failed to get latest block number: %v", err)
+		return nil, err
+	}
+
+	subscriber, err := subscriber.New(ethClient, logger, bookingTokenAddress, cmAccounts, blockNumber)
+	if err != nil {
+		logger.Errorf("failed to create subscriber: %v", err)
+		return nil, err
+	}
+
 	return &eventListener{
 		bookingTokenAddress: bookingTokenAddress,
 		logger:              logger,
-		eventListener:       events.NewEventListener(ethClient, logger),
+		subscriber:          subscriber,
 		partnerPlugin:       partnerPlugin,
-	}
+	}, nil
 }
 
 func (el *eventListener) Stop() {

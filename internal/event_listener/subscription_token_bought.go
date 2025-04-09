@@ -34,23 +34,18 @@ func (el *eventListener) SubscribeForTokenBoughtEvent(tokenID *big.Int, mintID s
 }
 
 func (el *eventListener) registerEVMTokenBoughtSubscription(unsubscriber *unsubscriber, subscription *tokenBoughtSubscription) error {
-	unsubscribeFunc, err := el.eventListener.RegisterTokenBoughtHandler(
-		el.bookingTokenAddress,
-		[]*big.Int{subscription.TokenID},
-		nil,
-		func(event any) {
+	unsubscribeFunc := el.subscriber.SubscribeTokenBought(
+		subscription.TokenID,
+		func(event *bookingtoken.BookingtokenTokenBought) uint64 {
 			unsubscriber.timeoutTimer.Stop()
 			el.logger.Infof("Token bought event received for token %s", subscription.TokenID.String())
-			tokenBoughtEvent := event.(*bookingtoken.BookingtokenTokenBought)
-			if err := el.partnerPlugin.SendTokenBoughtNotification(context.Background(), subscription.TokenID, subscription.MintID, tokenBoughtEvent.Raw.TxHash); err != nil {
+			if err := el.partnerPlugin.SendTokenBoughtNotification(context.Background(), subscription.TokenID, subscription.MintID, event.Raw.TxHash); err != nil {
 				el.logger.Errorf("error calling partner plugin TokenBoughtNotification service: %v", err)
+				return 0
 			}
+			return event.Raw.BlockNumber
 		},
 	)
-	if err != nil {
-		el.logger.Errorf("error registering token bought handler: %v", err)
-		return err
-	}
 	unsubscriber.unsubscribe = unsubscribeFunc
 	return nil
 }

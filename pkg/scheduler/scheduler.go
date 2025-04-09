@@ -104,8 +104,6 @@ func (s *scheduler) Start(ctx context.Context) error {
 			durationUntilFirstExecution = 0
 		}
 
-		onceDone := make(chan struct{})
-
 		handler := func(tickTime time.Time) {
 			// TODO @evlekht panic handling?
 			if err := s.updateJobExecutionTime(ctx, jobName, tickTime); err != nil {
@@ -116,6 +114,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 		}
 
 		// first execution
+		onceDone := make(chan struct{})
 		timer := s.clock.NewTimer(durationUntilFirstExecution)
 		s.setJobTimer(job.Name, &timerStopper{timer})
 		go func() {
