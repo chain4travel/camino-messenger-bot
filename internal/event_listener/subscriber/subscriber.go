@@ -137,6 +137,10 @@ func startResubscriber[T any](
 
 	// ResubscribeErr starts the resubscription process in its own goroutine without blocking caller
 	resubscriber := event.ResubscribeErr(backoffMax, func(ctx context.Context, lastError error) (event.Subscription, error) {
+		if lastError != nil {
+			s.logger.Errorf("Resubscribe attempt after error: %v", lastError)
+		}
+
 		sub, err := subscribe(ctx, eventChan)
 		if err != nil {
 			s.logger.Errorf("Failed to subscribe to %T events: %v", eventType, err)
