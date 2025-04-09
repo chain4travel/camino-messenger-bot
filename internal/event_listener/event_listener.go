@@ -52,13 +52,7 @@ func New(
 	cmAccounts cmaccounts.Service,
 	partnerPlugin partnerplugin.PartnerPlugin,
 ) (EventListener, error) {
-	blockNumber, err := ethClient.BlockNumber(ctx)
-	if err != nil {
-		logger.Errorf("failed to get latest block number: %v", err)
-		return nil, err
-	}
-
-	subscriber, err := subscriber.New(ethClient, logger, bookingTokenAddress, cmAccounts, blockNumber)
+	subscriber, err := subscriber.New(ethClient, logger, bookingTokenAddress, cmAccounts)
 	if err != nil {
 		logger.Errorf("failed to create subscriber: %v", err)
 		return nil, err
