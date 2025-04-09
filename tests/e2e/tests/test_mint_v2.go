@@ -56,7 +56,7 @@ func TestMintV2Setup(t *testing.T, tt *Test) {
 		supplierPartnerPlugin, supplierBot, distributorBot = testMintV2Setup(ctx, t, tt)
 	})
 
-	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
+	t.Run("Search->Validate->Mint->VerifyNotification", func(t *testing.T) {
 		searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot) // see test_accommodation_v3.go
 		validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)      // see test_accommodation_v3.go
 

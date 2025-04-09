@@ -27,7 +27,7 @@ type mintServiceV2Server struct {
 	eventSender events.Sender
 }
 
-func NewMintServiceV2Server(eventSender events.Sender) *mintServiceV2Server {
+func NewMintServiceV2Server(eventSender events.Sender) bookv2grpc.MintServiceServer {
 	return &mintServiceV2Server{eventSender: eventSender}
 }
 

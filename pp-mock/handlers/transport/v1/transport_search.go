@@ -27,7 +27,7 @@ type transportSearchV1Server struct {
 	eventSender events.Sender
 }
 
-func NewTransportSearchV1Server(eventSender events.Sender) *transportSearchV1Server {
+func NewTransportSearchV1Server(eventSender events.Sender) transportv1grpc.TransportSearchServiceServer {
 	return &transportSearchV1Server{eventSender: eventSender}
 }
 

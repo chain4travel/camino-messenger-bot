@@ -29,7 +29,7 @@ type validationServiceV2Server struct {
 }
 
 // NewValidationServiceV2Server creates a new ValidationServiceV2Server.
-func NewValidationServiceV2Server(eventSender events.Sender) *validationServiceV2Server {
+func NewValidationServiceV2Server(eventSender events.Sender) bookv2grpc.ValidationServiceServer {
 	return &validationServiceV2Server{eventSender: eventSender}
 }
 

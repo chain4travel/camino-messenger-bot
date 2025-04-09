@@ -24,7 +24,7 @@ type notificationServiceV1Server struct {
 }
 
 // NewNotificationServiceV1Server creates a new NotificationServiceV1Server.
-func NewNotificationServiceV1Server(eventSender events.Sender) *notificationServiceV1Server {
+func NewNotificationServiceV1Server(eventSender events.Sender) notificationv1grpc.NotificationServiceServer {
 	return &notificationServiceV1Server{eventSender: eventSender}
 }
 

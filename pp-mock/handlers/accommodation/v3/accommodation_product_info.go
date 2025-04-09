@@ -23,7 +23,7 @@ type accommodationProductInfoV3Server struct {
 	eventSender events.Sender
 }
 
-func NewAccommodationProductInfoV3Server(eventSender events.Sender) *accommodationProductInfoV3Server {
+func NewAccommodationProductInfoV3Server(eventSender events.Sender) accommodationv3grpc.AccommodationProductInfoServiceServer {
 	return &accommodationProductInfoV3Server{eventSender: eventSender}
 }
 

@@ -21,7 +21,7 @@ type pingServiceV1Server struct {
 	eventSender events.Sender
 }
 
-func NewPingServiceV1Server(eventSender events.Sender) *pingServiceV1Server {
+func NewPingServiceV1Server(eventSender events.Sender) pingv1grpc.PingServiceServer {
 	return &pingServiceV1Server{eventSender: eventSender}
 }
 

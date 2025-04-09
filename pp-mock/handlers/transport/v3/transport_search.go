@@ -31,7 +31,7 @@ type transportSearchV3Server struct {
 	eventSender events.Sender
 }
 
-func NewTransportSearchV3Server(eventSender events.Sender) *transportSearchV3Server {
+func NewTransportSearchV3Server(eventSender events.Sender) transportv3grpc.TransportSearchServiceServer {
 	return &transportSearchV3Server{eventSender: eventSender}
 }
 

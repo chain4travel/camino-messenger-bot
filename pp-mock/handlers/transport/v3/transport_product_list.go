@@ -23,7 +23,7 @@ type transportProductListV3Server struct {
 	eventSender events.Sender
 }
 
-func NewTransportProductListV3Server(eventSender events.Sender) *transportProductListV3Server {
+func NewTransportProductListV3Server(eventSender events.Sender) transportv3grpc.TransportProductListServiceServer {
 	return &transportProductListV3Server{eventSender: eventSender}
 }
 

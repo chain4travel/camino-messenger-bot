@@ -28,7 +28,7 @@ type transportSearchV2Server struct {
 	eventSender events.Sender
 }
 
-func NewTransportSearchV2Server(eventSender events.Sender) *transportSearchV2Server {
+func NewTransportSearchV2Server(eventSender events.Sender) transportv2grpc.TransportSearchServiceServer {
 	return &transportSearchV2Server{eventSender: eventSender}
 }
 

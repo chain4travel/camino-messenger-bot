@@ -28,7 +28,7 @@ type accommodationSearchV1Server struct {
 	eventSender events.Sender
 }
 
-func NewAccommodationSearchV1Server(eventSender events.Sender) *accommodationSearchV1Server {
+func NewAccommodationSearchV1Server(eventSender events.Sender) accommodationv1grpc.AccommodationSearchServiceServer {
 	return &accommodationSearchV1Server{eventSender: eventSender}
 }
 
