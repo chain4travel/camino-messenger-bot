@@ -5,6 +5,7 @@ package tests
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
@@ -66,6 +67,9 @@ func TestMintV2Setup(t *testing.T, tt *Test) {
 		var tokenID uint64
 		var mintID string
 
+		wg := sync.WaitGroup{}
+
+		wg.Add(1)
 		go func() {
 			eventMsg, err := ppEventStream.Recv()
 			require.NoError(t, err)
@@ -77,5 +81,7 @@ func TestMintV2Setup(t *testing.T, tt *Test) {
 		}()
 
 		tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
+
+		wg.Wait()
 	})
 }
