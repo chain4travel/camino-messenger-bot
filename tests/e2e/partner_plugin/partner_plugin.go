@@ -15,19 +15,22 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
 )
 
 const requestTickerInterval = 500 * time.Millisecond
 
 type PartnerPlugin struct {
-	logger     *zap.SugaredLogger
-	pid        int
-	host       *url.URL
-	pingClient pingv1grpc.PingServiceClient
-	logfile    *os.File
+	logger       *zap.SugaredLogger
+	pid          int
+	host         *url.URL
+	pingClient   pingv1grpc.PingServiceClient
+	eventsClient events.MyEventsServiceClient
+	logFile      *os.File
 }
 
 func (pp *PartnerPlugin) Host() string {
@@ -45,10 +48,14 @@ func (pp *PartnerPlugin) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop partner plugin process with pid %d: %w", pp.pid, err)
 	}
 	pp.logger.Debugf("Partner plugin (pid %d) stopped", pp.pid)
-	if err := pp.logfile.Close(); err != nil {
+	if err := pp.logFile.Close(); err != nil {
 		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
 	}
 	return nil
+}
+
+func (pp *PartnerPlugin) SubscribeForEvents(ctx context.Context) (events.MyEventsService_SubscribeClient, error) {
+	return pp.eventsClient.Subscribe(ctx, &emptypb.Empty{})
 }
 
 func (pp *PartnerPlugin) awaitReady(ctx context.Context) error {

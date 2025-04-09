@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/resources"
 )
@@ -72,25 +73,26 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 	if err := os.MkdirAll(f.dir, 0o755); err != nil {
 		return nil, nil, fmt.Errorf("failed to create pp-mock directory: %w", err)
 	}
-	logfileName := path.Join(f.dir, fmt.Sprintf("partner-plugin-%d.log", port))
-	logfile, err := os.OpenFile(logfileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	logFileName := path.Join(f.dir, fmt.Sprintf("partner-plugin-%d.log", port))
+	logFile, err := os.OpenFile(logFileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open pp-mock log file: %w", err)
 	}
 
-	cmd.Stdout = logfile
-	cmd.Stderr = logfile
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
 
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start partner-plugin (%d): %w", cmd.Process.Pid, err)
 	}
 
 	pp := &PartnerPlugin{
-		logger:     f.logger,
-		pid:        cmd.Process.Pid,
-		host:       hostURL,
-		pingClient: pingv1grpc.NewPingServiceClient(clientConnection),
-		logfile:    logfile,
+		logger:       f.logger,
+		pid:          cmd.Process.Pid,
+		host:         hostURL,
+		pingClient:   pingv1grpc.NewPingServiceClient(clientConnection),
+		eventsClient: events.NewMyEventsServiceClient(clientConnection),
+		logFile:      logFile,
 	}
 
 	if err := pp.awaitReady(ctx); err != nil {

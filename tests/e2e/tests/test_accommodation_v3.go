@@ -487,6 +487,7 @@ func testAccommodationV3MintV2(
 ) (
 	tokenID uint64,
 	price *typesv2.Price,
+	mintID string,
 ) {
 	req := &bookv2.MintRequest{
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -511,7 +512,7 @@ func testAccommodationV3MintV2(
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.Price
+	return resp.BookingTokenId, resp.Price, resp.MintId.Value
 }
 
 func testAccommodationV3VerifyBlockchainState(
@@ -583,7 +584,7 @@ func TestAccommodationV3(t *testing.T, tt *Test) {
 	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 		validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
-		tokenID, price := testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
+		tokenID, price, _ := testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 		testAccommodationV3VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})
 }
