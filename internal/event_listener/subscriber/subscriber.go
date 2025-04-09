@@ -63,12 +63,9 @@ func New(
 
 // Subscribes to the ServiceAdded event.
 //
-// [fromBlockNumber] is the block number from which to start watching for events. If 0, it will start from the latest block.
-//
 // [cmAccountAddr] is the address of the CMAccount contract.
 //
 // [handler] is the function to call when the event is triggered.
-// It receives the event as arguments and should return successfully processed block number or 0.
 //
 // Returns a function to unsubscribe from the event.
 func (s *subscriber) SubscribeServiceAdded(
@@ -91,10 +88,7 @@ func (s *subscriber) SubscribeServiceAdded(
 
 // Subscribes to the TokenBought event.
 //
-// [fromBlockNumber] is the block number from which to start watching for events. If 0, it will start from the latest block.
-//
 // [handler] is the function to call when the event is triggered.
-// It receives the event as arguments and should return successfully processed block number or 0.
 //
 // Returns a function to unsubscribe from the event.
 func (s *subscriber) SubscribeTokenBought(
