@@ -134,6 +134,6 @@ func NewDummySender() Sender {
 	return &dummySender{}
 }
 
-func (d *dummySender) SendProtoEventAsync(event proto.Message) error {
+func (d *dummySender) SendProtoEventAsync(proto.Message) error {
 	return nil
 }
