@@ -4,7 +4,6 @@
 package eventlistener
 
 import (
-	"context"
 	"errors"
 	"math/big"
 	"sync"
@@ -45,7 +44,6 @@ type unsubscriber struct {
 }
 
 func New(
-	ctx context.Context,
 	logger *zap.SugaredLogger,
 	ethClient *ethclient.Client,
 	bookingTokenAddress common.Address,

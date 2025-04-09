@@ -114,7 +114,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	eventListener, err := eventlistener.New(
-		ctx,
 		logger,
 		evmClient,
 		cfg.BookingTokenAddress,
