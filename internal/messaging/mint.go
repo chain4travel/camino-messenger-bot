@@ -59,6 +59,14 @@ func (h *evmResponseHandler) mint(
 	return receipt.TxHash.Hex(), tokenID, nil
 }
 
+func (h *evmResponseHandler) subscribeForTokenBoughtEvent(tokenID *big.Int, mintID string, buyableUntil *timestamppb.Timestamp) {
+	tokenBoughtTimeout := time.Unix(buyableUntil.Seconds, 0)
+	if err := h.eventListener.SubscribeForTokenBoughtEvent(tokenID, mintID, tokenBoughtTimeout); err != nil {
+		h.logger.Errorf("error subscribing for token bought event (tokenID: %d, mintID: %s, timeout: %d): %v",
+			tokenID.Int64(), mintID, tokenBoughtTimeout, err)
+	}
+}
+
 // TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg
 type hotelAtrribute struct {
 	TraitType string `json:"trait_type"`
