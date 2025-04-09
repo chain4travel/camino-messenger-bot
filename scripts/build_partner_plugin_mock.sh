@@ -4,7 +4,7 @@
 OUTPUT_BINARY="build/pp-mock"
 
 # Set the main source file
-MAIN_SOURCE="pp-mock/server.go"
+MAIN_SOURCE="pp-mock/main.go"
 
 # Flag to enable debug mode
 DEBUG=false
