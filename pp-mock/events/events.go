@@ -34,6 +34,7 @@ type server struct {
 	eventChan              chan []byte
 	subscriptionChans      map[string]chan []byte
 	subscriptionChansMutex sync.Mutex
+	stopChan               chan struct{}
 }
 
 func NewServer() (Server, Sender) {
@@ -59,14 +60,7 @@ func (s *server) Start(ctx context.Context) {
 
 func (s *server) stop() {
 	close(s.eventChan)
-
-	s.subscriptionChansMutex.Lock()
-	defer s.subscriptionChansMutex.Unlock()
-
-	for subscriptionID, ch := range s.subscriptionChans {
-		close(ch)
-		delete(s.subscriptionChans, subscriptionID)
-	}
+	close(s.stopChan)
 }
 
 func (s *server) subscribe() (string, chan []byte) {
@@ -99,18 +93,23 @@ func (s *server) propagate(event []byte) {
 }
 
 // Subscribe implements the server-side streaming RPC.
-func (s *server) Subscribe(_ *emptypb.Empty, stream1 events.MyEventsService_SubscribeServer) error {
+func (s *server) Subscribe(_ *emptypb.Empty, stream events.MyEventsService_SubscribeServer) error {
 	subscriptionID, subscriptionChan := s.subscribe()
 	defer s.unsubscribe(subscriptionID)
 
-	for event := range subscriptionChan {
-		log.Printf("Sending event to stream: %s", string(event))
-		if err := stream1.Send(&events.SubscribeResponse{Data: event}); err != nil {
-			return err
+	for {
+		select {
+		case event := <-subscriptionChan:
+			log.Printf("Sending event to stream: %s", string(event))
+			if err := stream.Send(&events.SubscribeResponse{Data: event}); err != nil {
+				return err
+			}
+		case <-s.stopChan:
+			return nil
+		case <-stream.Context().Done():
+			return nil
 		}
 	}
-
-	return nil
 }
 
 type Sender interface {
