@@ -5,7 +5,6 @@ package tests
 
 import (
 	"context"
-	"sync"
 	"testing"
 
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
@@ -46,7 +45,7 @@ func testMintV2Setup(
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
 
-func TestMintV2Setup(t *testing.T, tt *Test) {
+func TestMintV2(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
 	var supplierBot *bot.Bot
@@ -67,23 +66,21 @@ func TestMintV2Setup(t *testing.T, tt *Test) {
 		var tokenID uint64
 		var mintID string
 
-		wg := sync.WaitGroup{}
-
-		wg.Add(1)
-		go func() {
-			eventMsg, err := ppEventStream.Recv()
-			require.NoError(t, err)
-			debugPrintProtoMessage(tt, eventMsg)
-			tokenBoughtNotification := &notificationv1.TokenBought{}
-			require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
-			require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
-			require.Equal(t, tokenBoughtNotification.MintId, mintID)
-			require.NotEmpty(t, tokenBoughtNotification.TxId)
-			wg.Done()
-		}()
-
 		tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 
-		wg.Wait()
+		eventMsg, err := ppEventStream.Recv()
+		require.NoError(t, err)
+		debugPrintProtoMessage(tt, eventMsg)
+		tokenBoughtNotification := &notificationv1.TokenBought{}
+		// TODO @evlekht: It seems eventMsg.Data contains not a valid protobuf message
+		// I checked it via the debugPrintProtoMessage and saw that the base64 decoded string
+		// actually contained the sub-fields but Unmarshal seems to just throw that all into
+		// the TokenId field. My guess is that it's actually the full grpc message and that proto
+		// Unmarshal is not able to decode it correctly.
+		require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
+		require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
+		require.NotNil(t, tokenBoughtNotification.MintId)
+		require.Equal(t, tokenBoughtNotification.MintId.Value, mintID)
+		require.NotEmpty(t, tokenBoughtNotification.TxId)
 	})
 }
