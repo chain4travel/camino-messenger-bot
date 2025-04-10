@@ -232,7 +232,7 @@ func (bs *service) GetBookingStatus(
 	blockNumber *big.Int,
 	tokenID *big.Int,
 ) (Status, error) {
-	status, err := bs.bookingToken.GetBookingStatus(&bind.CallOpts{BlockNumber: blockNumber}, tokenID)
+	status, err := bs.bookingToken.GetBookingStatus(&bind.CallOpts{BlockNumber: blockNumber, Context: ctx}, tokenID)
 	if err != nil {
 		return StatusUnspecified, fmt.Errorf("failed to get booking status: %w", err)
 	}
