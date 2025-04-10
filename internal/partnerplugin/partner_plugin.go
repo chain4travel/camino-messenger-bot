@@ -29,7 +29,7 @@ var _ PartnerPlugin = (*partnerPlugin)(nil)
 // Handles all communication with the partner plugin
 type PartnerPlugin interface {
 	DoServiceRequest(ctx context.Context, requestMsg *types.Message, service rpc.Client) (context.Context, *types.Message, error)
-	SendTokenBoughtNotificationWithoutByTx(ctx context.Context, tokenID *big.Int, mintID string) error
+	SendTokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	SendTokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
 	SendTokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error
 }
@@ -77,7 +77,7 @@ func (p *partnerPlugin) DoServiceRequest(ctx context.Context, requestMsg *types.
 	return ctx, responseMsg, nil
 }
 
-func (p *partnerPlugin) SendTokenBoughtNotificationWithoutByTx(ctx context.Context, tokenID *big.Int, mintID string) error {
+func (p *partnerPlugin) SendTokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {
 	return p.sendTokenBoughtNotification(ctx, &notificationv1.TokenBought{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv1.UUID{Value: mintID},

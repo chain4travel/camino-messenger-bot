@@ -73,18 +73,18 @@ func (mr *MockPartnerPluginMockRecorder) SendTokenBoughtNotificationWithBuyTx(ar
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTokenBoughtNotificationWithBuyTx", reflect.TypeOf((*MockPartnerPlugin)(nil).SendTokenBoughtNotificationWithBuyTx), arg0, arg1, arg2, arg3)
 }
 
-// SendTokenBoughtNotificationWithoutByTx mocks base method.
-func (m *MockPartnerPlugin) SendTokenBoughtNotificationWithoutByTx(arg0 context.Context, arg1 *big.Int, arg2 string) error {
+// SendTokenBoughtNotificationWithoutBuyTx mocks base method.
+func (m *MockPartnerPlugin) SendTokenBoughtNotificationWithoutBuyTx(arg0 context.Context, arg1 *big.Int, arg2 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendTokenBoughtNotificationWithoutByTx", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SendTokenBoughtNotificationWithoutBuyTx", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendTokenBoughtNotificationWithoutByTx indicates an expected call of SendTokenBoughtNotificationWithoutByTx.
-func (mr *MockPartnerPluginMockRecorder) SendTokenBoughtNotificationWithoutByTx(arg0, arg1, arg2 any) *gomock.Call {
+// SendTokenBoughtNotificationWithoutBuyTx indicates an expected call of SendTokenBoughtNotificationWithoutBuyTx.
+func (mr *MockPartnerPluginMockRecorder) SendTokenBoughtNotificationWithoutBuyTx(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTokenBoughtNotificationWithoutByTx", reflect.TypeOf((*MockPartnerPlugin)(nil).SendTokenBoughtNotificationWithoutByTx), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTokenBoughtNotificationWithoutBuyTx", reflect.TypeOf((*MockPartnerPlugin)(nil).SendTokenBoughtNotificationWithoutBuyTx), arg0, arg1, arg2)
 }
 
 // SendTokenExpiredNotification mocks base method.

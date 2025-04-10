@@ -14,6 +14,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
+	cmbcommon "github.com/chain4travel/camino-messenger-bot/pkg/cmbcommon"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
@@ -22,7 +23,7 @@ import (
 var (
 	_ EventListener = (*eventListener)(nil)
 
-	maxTime = time.Unix(1<<63-62135596801, 0) // time package offsets seconds by 62135596801, which is the number of seconds between 0001-01-01 00:00:00 UTC and 1970-01-01 00:00:00 UTC
+	maxTime = time.Unix(int64(1<<63-cmbcommon.TimePkgOffset), 0)
 
 	ErrNotFound = errors.New("not found")
 )

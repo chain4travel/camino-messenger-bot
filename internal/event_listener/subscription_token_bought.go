@@ -94,7 +94,7 @@ func (el *eventListener) tokenBoughtSubscriptionsStartupCheck(ctx context.Contex
 		if status != booking.StatusReserved {
 			// if token is expired or cancelled already, we don't send any notification here
 			if status == booking.StatusBought {
-				if err := el.partnerPlugin.SendTokenBoughtNotificationWithoutByTx(ctx, subscription.TokenID, subscription.MintID); err != nil {
+				if err := el.partnerPlugin.SendTokenBoughtNotificationWithoutBuyTx(ctx, subscription.TokenID, subscription.MintID); err != nil {
 					el.logger.Errorf("error sending token bought notification: %v", err)
 					return nil, err
 				}

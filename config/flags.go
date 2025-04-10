@@ -59,7 +59,7 @@ func Flags() *pflag.FlagSet {
 	flags.String("matrix.host", "", "Sets the matrix host.")
 
 	// Record expiration config flags
-	flags.Bool("record_expiration", false, "Whether to record token expiration on chain.")
+	flags.Bool("record_expiration", true, "Whether to record token expiration on chain.")
 
 	return flags
 }
