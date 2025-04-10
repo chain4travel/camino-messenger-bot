@@ -6,10 +6,12 @@ package events
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -102,6 +104,7 @@ func (s *server) Subscribe(_ *emptypb.Empty, stream1 events.MyEventsService_Subs
 	defer s.unsubscribe(subscriptionID)
 
 	for event := range subscriptionChan {
+		log.Printf("Sending event to stream: %s", string(event))
 		if err := stream1.Send(&events.SubscribeResponse{Data: event}); err != nil {
 			return err
 		}
@@ -119,6 +122,7 @@ type eventSender struct {
 }
 
 func (e *eventSender) SendProtoEventAsync(event proto.Message) error {
+	log.Printf("Sending event: %T: %s", event, protoMessageToJSON(event))
 	eventBytes, err := proto.Marshal(event)
 	if err != nil { // should never happen
 		return err
@@ -139,4 +143,16 @@ func NewDummySender() Sender {
 
 func (d *dummySender) SendProtoEventAsync(proto.Message) error {
 	return nil
+}
+
+func protoMessageToJSON(message proto.Message) string {
+	marshaler := protojson.MarshalOptions{
+		Multiline: true,
+		Indent:    "  ",
+	}
+	jsonData, err := marshaler.Marshal(message)
+	if err != nil {
+		panic(fmt.Sprintf("Error marshalling: %v", err))
+	}
+	return string(jsonData)
 }
