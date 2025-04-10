@@ -5,8 +5,6 @@ package messaging
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"log"
 	"time"
 
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
@@ -18,12 +16,9 @@ import (
 	eventlistener "github.com/chain4travel/camino-messenger-bot/internal/event_listener"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
-	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
-	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"go.uber.org/zap"
 )
 
@@ -51,54 +46,25 @@ type ResponseHandler interface {
 }
 
 func NewResponseHandler(
-	botKey *ecdsa.PrivateKey,
-	ethClient *ethclient.Client,
 	logger *zap.SugaredLogger,
 	cmAccountAddress common.Address,
-	bookingTokenAddress common.Address,
-	serviceRegistry ServiceRegistry,
-	cmAccounts cmaccounts.Service,
-	tokenCacheSize int,
 	eventListener eventlistener.EventListener,
+	bookingService booking.Service,
+	erc20 erc20.Service,
 ) (ResponseHandler, error) {
-	erc20, err := erc20.NewERC20Service(ethClient, tokenCacheSize)
-	if err != nil {
-		return nil, err
-	}
-
-	bookingService, err := booking.NewService(cmAccountAddress, botKey, ethClient, logger, erc20, cmAccounts)
-	if err != nil {
-		log.Printf("%v", err)
-		return nil, err
-	}
-
-	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenAddress, ethClient)
-	if err != nil {
-		log.Printf("%v", err)
-		return nil, err
-	}
-
 	return &evmResponseHandler{
-		ethClient:           ethClient,
 		logger:              logger,
-		cmAccountAddress:    cmAccountAddress,
-		bookingTokenAddress: bookingTokenAddress,
-		bookingService:      *bookingService,
-		bookingToken:        *bookingToken,
-		serviceRegistry:     serviceRegistry,
+		cmAccountAddressStr: cmAccountAddress.Hex(),
+		bookingService:      bookingService,
 		eventListener:       eventListener,
 		erc20:               erc20,
 	}, nil
 }
 
 type evmResponseHandler struct {
-	ethClient           *ethclient.Client
 	logger              *zap.SugaredLogger
-	cmAccountAddress    common.Address
-	bookingTokenAddress common.Address
+	cmAccountAddressStr string
 	bookingService      booking.Service
-	bookingToken        bookingtoken.Bookingtoken
-	serviceRegistry     ServiceRegistry
 	eventListener       eventlistener.EventListener
 	erc20               erc20.Service
 }
@@ -135,9 +101,9 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) error {
 	switch request := request.(type) {
 	case *bookv1.MintRequest:
-		request.BuyerAddress = h.cmAccountAddress.Hex()
+		request.BuyerAddress = h.cmAccountAddressStr
 	case *bookv2.MintRequest:
-		request.BuyerAddress = h.cmAccountAddress.Hex()
+		request.BuyerAddress = h.cmAccountAddressStr
 	}
 	return nil
 }

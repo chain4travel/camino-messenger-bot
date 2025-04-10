@@ -6,16 +6,19 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/jonboulle/clockwork"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"maunium.net/go/mautrix/id"
 
+	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/internal/event_listener"
 	"github.com/chain4travel/camino-messenger-bot/internal/local"
@@ -25,14 +28,14 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
+	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
 	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/pkg/chequehandler/storage/sqlite"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
 	scheduler_storage "github.com/chain4travel/camino-messenger-bot/pkg/scheduler/storage/sqlite"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -102,7 +105,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		)
 	}
 
-	// event listener with additional logic for subscribing and reacting on blockchain events
+	// blockchain services
+
 	cmAccounts, err := cmaccounts.NewService(
 		logger,
 		cmAccountsCacheSize,
@@ -112,6 +116,40 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		logger.Errorf("Failed to create cm accounts service: %v", err)
 		return nil, err
 	}
+
+	// TODO: @VjeraTurk Ensure multiple versions compatibility
+	cmAccountUpToDate, err := cmAccounts.IsCMAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)
+	if err != nil {
+		logger.Errorf("Failed to compare implementations: %v", err)
+		return nil, err
+	}
+
+	if !cmAccountUpToDate {
+		logger.Warn("⏫ CMAccount needs an upgrade!")
+	} else {
+		logger.Info("✅ CMAccount is using the latest implementation.")
+	}
+
+	erc20, err := erc20.NewERC20Service(evmClient, erc20CacheSize)
+	if err != nil {
+		return nil, err
+	}
+
+	bookingService, err := booking.NewService(
+		evmClient,
+		cfg.BookingTokenAddress,
+		cfg.CMAccountAddress,
+		cfg.BotKey,
+		chainID,
+		logger,
+		cmAccounts,
+	)
+	if err != nil {
+		log.Printf("%v", err)
+		return nil, err
+	}
+
+	// event listener with additional logic for subscribing and reacting on blockchain events
 
 	eventListener, err := eventlistener.New(
 		logger,
@@ -127,29 +165,12 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// messaging components
 
-	// TODO: @VjeraTurk Ensure multiple versions compatibility
-	cmAccountUpToDate, err := cmAccounts.IsCMAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)
-	if err != nil {
-		logger.Errorf("Failed to compare implementations: %v", err)
-		return nil, err
-	}
-
-	if !cmAccountUpToDate {
-		logger.Warn("⏫ CMAccount needs an upgrade!")
-	} else {
-		logger.Info("✅ CMAccount is using the latest implementation.")
-	}
-
 	responseHandler, err := messaging.NewResponseHandler(
-		cfg.BotKey,
-		evmClient,
 		logger,
 		cfg.CMAccountAddress,
-		cfg.BookingTokenAddress,
-		serviceRegistry,
-		cmAccounts,
-		erc20CacheSize,
 		eventListener,
+		bookingService,
+		erc20,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create response handler: %v", err)
@@ -301,6 +322,7 @@ func (a *App) Run(ctx context.Context) error {
 		if err := a.chequeHandler.CheckCashInStatus(gCtx); err != nil {
 			return fmt.Errorf("failed to check start-up cash-in status: %w", err)
 		}
+		a.logger.Info("Start-up cash-in status check done.")
 		close(cashInStatusCheckDone)
 		return nil
 	})
@@ -313,6 +335,7 @@ func (a *App) Run(ctx context.Context) error {
 		if err := a.scheduler.Start(gCtx); err != nil {
 			return fmt.Errorf("failed to start scheduler: %w", err)
 		}
+		a.logger.Info("Scheduler started.")
 		close(schedulerStarted)
 		return nil
 	})
@@ -325,13 +348,10 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	g.Go(func() error {
-		if !awaitChans(
-			gCtx,
-			[]<-chan struct{}{
-				cashInStatusCheckDone,
-				schedulerStarted,
-				messageProcessorStarted,
-			},
+		if !awaitChans(gCtx,
+			cashInStatusCheckDone,
+			schedulerStarted,
+			messageProcessorStarted,
 		) {
 			return nil
 		}
@@ -349,15 +369,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		g.Go(func() error {
-			if !awaitChans(
-				gCtx,
-				[]<-chan struct{}{
-					messengerReceiverStarted,
-					cashInStatusCheckDone,
-					schedulerStarted,
-					messageProcessorStarted,
-				},
-			) {
+			if !awaitChans(gCtx, messengerReceiverStarted) {
 				return nil
 			}
 
@@ -423,7 +435,7 @@ func awaitChan(ctx context.Context, ch <-chan struct{}) bool {
 	}
 }
 
-func awaitChans(ctx context.Context, chans []<-chan struct{}) bool {
+func awaitChans(ctx context.Context, chans ...<-chan struct{}) bool {
 	for _, ch := range chans {
 		if !awaitChan(ctx, ch) {
 			return false

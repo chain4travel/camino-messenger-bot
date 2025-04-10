@@ -65,8 +65,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 		return
 	}
 
-	// MINT TOKEN
-	txID, tokenID, err := h.mint(
+	receipt, tokenID, err := h.bookingService.MintBookingToken(
 		ctx,
 		buyerAddress,
 		tokenURI,
@@ -81,6 +80,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 		h.AddErrorToResponseHeader(response, errMessage)
 		return
 	}
+	txID := receipt.TxHash.Hex()
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 

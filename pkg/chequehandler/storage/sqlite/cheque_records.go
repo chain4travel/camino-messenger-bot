@@ -57,12 +57,7 @@ func (s *storage) GetNotCashedChequeRecords(ctx context.Context, session chequeh
 			s.base.Logger.Errorf("failed to get not cashed chequeRecord from db: %v", err)
 			continue
 		}
-		model, err := modelFromChequeRecord(chequeRecord)
-		if err != nil {
-			s.base.Logger.Errorf("failed to parse not cashed chequeRecord: %v", err)
-			continue
-		}
-		chequeRecords = append(chequeRecords, model)
+		chequeRecords = append(chequeRecords, modelFromChequeRecord(chequeRecord))
 	}
 	return chequeRecords, nil
 }
@@ -86,12 +81,7 @@ func (s *storage) GetChequeRecordsWithPendingTxs(ctx context.Context, session ch
 			s.base.Logger.Errorf("failed to get chequeRecord with pending tx from db: %v", err)
 			continue
 		}
-		model, err := modelFromChequeRecord(chequeRecord)
-		if err != nil {
-			s.base.Logger.Errorf("failed to parse chequeRecord with pending tx: %v", err)
-			continue
-		}
-		chequeRecords = append(chequeRecords, model)
+		chequeRecords = append(chequeRecords, modelFromChequeRecord(chequeRecord))
 	}
 	return chequeRecords, nil
 }
@@ -110,7 +100,7 @@ func (s *storage) GetChequeRecord(ctx context.Context, session chequehandler.Ses
 		}
 		return nil, upgradeError(err)
 	}
-	return modelFromChequeRecord(chequeRecord)
+	return modelFromChequeRecord(chequeRecord), nil
 }
 
 func (s *storage) GetChequeRecordByTxID(ctx context.Context, session chequehandler.Session, txID common.Hash) (*chequehandler.ChequeRecord, error) {
@@ -127,7 +117,7 @@ func (s *storage) GetChequeRecordByTxID(ctx context.Context, session chequehandl
 		}
 		return nil, upgradeError(err)
 	}
-	return modelFromChequeRecord(chequeRecord)
+	return modelFromChequeRecord(chequeRecord), nil
 }
 
 func (s *storage) UpsertChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecord *chequehandler.ChequeRecord) error {
@@ -244,7 +234,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 	return nil
 }
 
-func modelFromChequeRecord(chequeRecord *chequeRecord) (*chequehandler.ChequeRecord, error) {
+func modelFromChequeRecord(chequeRecord *chequeRecord) *chequehandler.ChequeRecord {
 	txID := common.Hash{}
 	if chequeRecord.TxID != nil {
 		txID = *chequeRecord.TxID
@@ -271,7 +261,7 @@ func modelFromChequeRecord(chequeRecord *chequeRecord) (*chequehandler.ChequeRec
 		ChequeRecordID: chequeRecord.ChequeRecordID,
 		TxID:           txID,
 		Status:         status,
-	}, nil
+	}
 }
 
 func chequeRecordFromModel(model *chequehandler.ChequeRecord) *chequeRecord {

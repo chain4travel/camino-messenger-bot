@@ -4,7 +4,6 @@
 package messaging
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -12,7 +11,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -22,43 +20,6 @@ var (
 	errMissingMintTxID = errors.New("missing mint transaction id")
 )
 
-// Mints a BookingToken with the supplier private key and reserves it for the buyer address
-// For testing you can use this uri: "data:application/json;base64,eyJuYW1lIjoiQ2FtaW5vIE1lc3NlbmdlciBCb29raW5nVG9rZW4gVGVzdCJ9Cg=="
-func (h *evmResponseHandler) mint(
-	ctx context.Context,
-	reservedFor common.Address,
-	uri string,
-	expiration *big.Int,
-	price *big.Int,
-	paymentToken common.Address,
-	offchainPaymentCurrency *big.Int,
-) (string, *big.Int, error) {
-	receipt, err := h.bookingService.MintBookingToken(
-		ctx,
-		reservedFor,
-		uri,
-		expiration,
-		price,
-		paymentToken,
-		offchainPaymentCurrency,
-	)
-	if err != nil {
-		return "", nil, err
-	}
-
-	tokenID := big.NewInt(0)
-
-	for _, mLog := range receipt.Logs {
-		event, err := h.bookingToken.ParseTokenReserved(*mLog)
-		if err == nil {
-			tokenID = event.TokenId
-			h.logger.Infof("[TokenReserved] TokenID: %s ReservedFor: %s Price: %s, PaymentToken: %s", event.TokenId, event.ReservedFor, event.Price, event.PaymentToken)
-		}
-	}
-
-	return receipt.TxHash.Hex(), tokenID, nil
-}
-
 func (h *evmResponseHandler) subscribeForTokenBoughtEvent(tokenID *big.Int, mintID string, buyableUntil *timestamppb.Timestamp) {
 	tokenBoughtTimeout := time.Unix(buyableUntil.Seconds, 0)
 	if err := h.eventListener.SubscribeForTokenBoughtEvent(tokenID, mintID, tokenBoughtTimeout); err != nil {
@@ -67,8 +28,7 @@ func (h *evmResponseHandler) subscribeForTokenBoughtEvent(tokenID *big.Int, mint
 	}
 }
 
-// TODO @evlekht check if those structs are needed as exported here, otherwise make them private or move to another pkg
-type hotelAtrribute struct {
+type hotelAttribute struct {
 	TraitType string `json:"trait_type"`
 	Value     string `json:"value"`
 }
@@ -79,7 +39,7 @@ type hotelJSON struct {
 	Date        string           `json:"date,omitempty"`
 	ExternalURL string           `json:"external_url,omitempty"`
 	Image       string           `json:"image,omitempty"`
-	Attributes  []hotelAtrribute `json:"attributes,omitempty"`
+	Attributes  []hotelAttribute `json:"attributes,omitempty"`
 }
 
 // Generates a token data URI from a MintResponse object. Returns jsonPlain and a
@@ -103,7 +63,7 @@ func createTokenURIforMintResponse(mintID, bookingReference string) (string, str
 	// Placeholder Image
 	image := "https://camino.network/static/images/N9IkxmG-Sg-1800.webp"
 
-	attributes := []hotelAtrribute{
+	attributes := []hotelAttribute{
 		{
 			TraitType: "Mint ID",
 			Value:     mintID,
@@ -132,7 +92,7 @@ func createTokenURIforMintResponse(mintID, bookingReference string) (string, str
 	return jsonPlain, tokenURI, nil
 }
 
-func generateAndEncodeJSON(name, description, date, externalURL, image string, attributes []hotelAtrribute) (string, string, error) {
+func generateAndEncodeJSON(name, description, date, externalURL, image string, attributes []hotelAttribute) (string, string, error) {
 	hotel := hotelJSON{
 		Name:        name,
 		Description: description,
