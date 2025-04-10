@@ -28,28 +28,26 @@ type Server interface {
 	Start(ctx context.Context)
 }
 
+type Sender interface {
+	SendProtoEvent(event proto.Message) error
+}
+
 type server struct {
 	events.UnimplementedMyEventsServiceServer
 
-	eventChan              chan []byte
 	subscriptionChans      map[string]chan []byte
 	subscriptionChansMutex sync.RWMutex
 	stopChan               chan struct{}
+	sender                 *eventSender
 }
 
 func NewServer() (Server, Sender) {
-	eventChan := make(chan []byte)
-	stopChan := make(chan struct{})
 	server := &server{
-		eventChan:         eventChan,
 		subscriptionChans: make(map[string]chan []byte),
-		stopChan:          stopChan,
+		stopChan:          make(chan struct{}),
+		sender:            &eventSender{eventChan: make(chan []byte)},
 	}
-	sender := &eventSender{
-		eventChan: eventChan,
-		stopCh:    stopChan,
-	}
-	return server, sender
+	return server, server.sender
 
 }
 
@@ -57,7 +55,7 @@ func (s *server) Start(ctx context.Context) {
 	go func() {
 		for {
 			select {
-			case event := <-s.eventChan:
+			case event := <-s.sender.eventChan:
 				s.propagate(event)
 			case <-ctx.Done():
 				s.stop()
@@ -68,7 +66,7 @@ func (s *server) Start(ctx context.Context) {
 }
 
 func (s *server) stop() {
-	close(s.eventChan)
+	s.sender.stop()
 	close(s.stopChan)
 }
 
@@ -121,28 +119,36 @@ func (s *server) Subscribe(_ *emptypb.Empty, stream events.MyEventsService_Subsc
 	}
 }
 
-type Sender interface {
-	SendProtoEventAsync(event proto.Message) error
-}
-
 type eventSender struct {
-	stopCh    chan struct{}
+	sendMutex sync.Mutex
+	isStopped bool
 	eventChan chan []byte
 }
 
-func (e *eventSender) SendProtoEventAsync(event proto.Message) error {
+func (e *eventSender) stop() {
+	e.sendMutex.Lock()
+	defer e.sendMutex.Unlock()
+
+	e.isStopped = true
+	for range e.eventChan { // drain channel
+	}
+	close(e.eventChan)
+}
+
+func (e *eventSender) SendProtoEvent(event proto.Message) error {
+	e.sendMutex.Lock()
+	defer e.sendMutex.Unlock()
+
+	if e.isStopped {
+		return nil
+	}
+
 	log.Printf("Sending event: %T: %s", event, protoMessageToJSON(event))
 	eventBytes, err := proto.Marshal(event)
 	if err != nil { // should never happen
 		return err
 	}
 
-	select {
-	case <-e.stopCh:
-		log.Printf("Sender is stopped, event sending aborted")
-		return nil
-	default:
-	}
 	e.eventChan <- eventBytes
 
 	return nil
@@ -154,7 +160,7 @@ func NewDummySender() Sender {
 	return &dummySender{}
 }
 
-func (d *dummySender) SendProtoEventAsync(proto.Message) error {
+func (d *dummySender) SendProtoEvent(proto.Message) error {
 	return nil
 }
 
