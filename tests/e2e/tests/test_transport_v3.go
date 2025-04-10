@@ -812,7 +812,7 @@ func testTransportV3VerifyBlockchainState(
 
 	tokenStatus, err := tt.caminoNetwork.Client.BookingToken.GetBookingStatus(callOpts, bigTokenID)
 	require.NoError(t, err)
-	require.Equal(t, booking.BookingStatusBought, booking.BookingStatus(tokenStatus))
+	require.Equal(t, booking.StatusBought, booking.Status(tokenStatus))
 }
 
 func TestTransportV3(t *testing.T, tt *Test) {
