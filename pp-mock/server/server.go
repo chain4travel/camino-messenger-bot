@@ -44,8 +44,9 @@ import (
 )
 
 const (
-	EventsEnabledEnvKey = "CMB_PARTNER_PLUGIN_MOCK_EVENTS"
-	PortEnvKey          = "CMB_PARTNER_PLUGIN_MOCK_PORT"
+	EnvKeyEventsEnabled = "CMB_PARTNER_PLUGIN_MOCK_EVENTS"
+	EnvKeyPort          = "CMB_PARTNER_PLUGIN_MOCK_PORT"
+	DefaultPort         = 50051
 )
 
 func Run() error {
@@ -55,7 +56,7 @@ func Run() error {
 	grpcServer := grpc.NewServer()
 
 	eventSender := events.NewDummySender()
-	if os.Getenv(EventsEnabledEnvKey) == "true" {
+	if os.Getenv(EnvKeyEventsEnabled) == "true" {
 		var eventServer events.Server
 		eventServer, eventSender = events.NewServer()
 		eventServer.Start(ctx)
@@ -100,9 +101,9 @@ func Run() error {
 
 	reflection.Register(grpcServer)
 
-	port := 50051
+	port := DefaultPort
 	var err error
-	p, found := os.LookupEnv(PortEnvKey)
+	p, found := os.LookupEnv(EnvKeyPort)
 	if found {
 		port, err = strconv.Atoi(p)
 		if err != nil {

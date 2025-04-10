@@ -70,8 +70,8 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 
 	cmd := exec.Command(f.binPath) //nolint:gosec // this is a partner plugin mock binary, not some injection.
 	cmd.Env = append(cmd.Env,
-		fmt.Sprintf("%s=%d", ppmock.PortEnvKey, port),
-		fmt.Sprintf("%s=true", ppmock.EventsEnabledEnvKey),
+		fmt.Sprintf("%s=%d", ppmock.EnvKeyPort, port),
+		fmt.Sprintf("%s=true", ppmock.EnvKeyEventsEnabled),
 	)
 
 	if err := os.MkdirAll(f.dir, 0o755); err != nil {

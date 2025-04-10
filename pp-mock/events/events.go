@@ -152,7 +152,7 @@ func protoMessageToJSON(message proto.Message) string {
 	}
 	jsonData, err := marshaler.Marshal(message)
 	if err != nil {
-		panic(fmt.Sprintf("Error marshalling: %v", err))
+		return fmt.Sprintf("Error marshalling %T: %v", message, err)
 	}
 	return string(jsonData)
 }
