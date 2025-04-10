@@ -21,6 +21,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/compression"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/internal/event_listener"
+	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/internal/event_listener/storage/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/internal/local"
 	"github.com/chain4travel/camino-messenger-bot/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
@@ -151,12 +152,22 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// event listener with additional logic for subscribing and reacting on blockchain events
 
+	eventListenerStorage, err := eventlistener_storage.New(ctx, logger, sqlite.DBConfig(cfg.DB.EventListener))
+	if err != nil {
+		logger.Errorf("Failed to create event listener storage: %v", err)
+		return nil, err
+	}
+
 	eventListener, err := eventlistener.New(
+		ctx,
 		logger,
+		eventListenerStorage,
 		evmClient,
 		cfg.BookingTokenAddress,
-		cmAccounts,
 		partnerPlugin,
+		bookingService,
+		cmAccounts,
+		cfg.RecordExpiration,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create event listener: %v", err)
@@ -327,6 +338,17 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
+	eventListenerStarted := make(chan struct{})
+	g.Go(func() error {
+		a.logger.Info("Starting event listener...")
+		if err := a.eventListener.Start(gCtx); err != nil {
+			return fmt.Errorf("failed to start event listener: %w", err)
+		}
+		a.logger.Info("Event listener started.")
+		close(eventListenerStarted)
+		return nil
+	})
+
 	g.Go(func() error {
 		a.logger.Info("Starting scheduler...")
 		if err := a.scheduler.Schedule(gCtx, a.cfg.CashInPeriod, cashInJobName); err != nil {
@@ -352,6 +374,7 @@ func (a *App) Run(ctx context.Context) error {
 			cashInStatusCheckDone,
 			schedulerStarted,
 			messageProcessorStarted,
+			eventListenerStarted,
 		) {
 			return nil
 		}

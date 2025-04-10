@@ -5,7 +5,7 @@ package subscriber
 
 import (
 	"context"
-	"math/big"
+	"sync/atomic"
 	"time"
 
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
@@ -25,12 +25,11 @@ var _ Subscriber = (*subscriber)(nil)
 type Subscriber interface {
 	SubscribeServiceAdded(
 		cmAccountAddr common.Address,
-		handler func(*cmaccount.CmaccountServiceAdded),
+		handler func(*cmaccount.CmaccountServiceAdded) uint64,
 	) (unsubscribe func(), err error)
 
 	SubscribeTokenBought(
-		tokenID *big.Int,
-		handler func(*bookingtoken.BookingtokenTokenBought),
+		handler func(*bookingtoken.BookingtokenTokenBought) uint64,
 	) (unsubscribe func())
 }
 
@@ -39,6 +38,7 @@ type subscriber struct {
 	logger       *zap.SugaredLogger
 	bookingToken *bookingtoken.Bookingtoken
 	cmAccounts   cmaccounts.Service
+	blockNumber  *atomic.Uint64
 }
 
 func New(
@@ -46,6 +46,7 @@ func New(
 	logger *zap.SugaredLogger,
 	bookingTokenAddress common.Address,
 	cmAccounts cmaccounts.Service,
+	blockNumber uint64,
 ) (Subscriber, error) {
 	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenAddress, client)
 	if err != nil {
@@ -53,24 +54,31 @@ func New(
 		return nil, err
 	}
 
+	blockNumberAtomic := &atomic.Uint64{}
+	blockNumberAtomic.Store(blockNumber)
+
 	return &subscriber{
 		client:       client,
 		logger:       logger,
 		bookingToken: bookingToken,
 		cmAccounts:   cmAccounts,
+		blockNumber:  blockNumberAtomic,
 	}, nil
 }
 
 // Subscribes to the ServiceAdded event.
 //
+// [fromBlockNumber] is the block number from which to start watching for events. If 0, it will start from the latest block.
+//
 // [cmAccountAddr] is the address of the CMAccount contract.
 //
 // [handler] is the function to call when the event is triggered.
+// It receives the event as arguments and should return successfully processed block number or 0.
 //
 // Returns a function to unsubscribe from the event.
 func (s *subscriber) SubscribeServiceAdded(
 	cmAccountAddr common.Address,
-	handler func(*cmaccount.CmaccountServiceAdded),
+	handler func(*cmaccount.CmaccountServiceAdded) uint64,
 ) (unsubscribe func(), err error) {
 	cmAccount, err := s.cmAccounts.CMAccount(cmAccountAddr)
 	if err != nil {
@@ -81,32 +89,36 @@ func (s *subscriber) SubscribeServiceAdded(
 		s,
 		handler,
 		func(ctx context.Context, eventChan chan *cmaccount.CmaccountServiceAdded) (event.Subscription, error) {
-			return cmAccount.WatchServiceAdded(&bind.WatchOpts{Context: ctx}, eventChan, nil)
+			blockNumber := s.blockNumber.Load()
+			return cmAccount.WatchServiceAdded(&bind.WatchOpts{Context: ctx, Start: &blockNumber}, eventChan, nil)
 		},
 	), nil
 }
 
 // Subscribes to the TokenBought event.
 //
+// [fromBlockNumber] is the block number from which to start watching for events. If 0, it will start from the latest block.
+//
 // [handler] is the function to call when the event is triggered.
+// It receives the event as arguments and should return successfully processed block number or 0.
 //
 // Returns a function to unsubscribe from the event.
 func (s *subscriber) SubscribeTokenBought(
-	tokenID *big.Int,
-	handler func(*bookingtoken.BookingtokenTokenBought),
+	handler func(*bookingtoken.BookingtokenTokenBought) uint64,
 ) (unsubscribe func()) {
 	return startResubscriber(
 		s,
 		handler,
 		func(ctx context.Context, eventChan chan *bookingtoken.BookingtokenTokenBought) (event.Subscription, error) {
-			return s.bookingToken.WatchTokenBought(&bind.WatchOpts{Context: ctx}, eventChan, []*big.Int{tokenID}, nil)
+			blockNumber := s.blockNumber.Load()
+			return s.bookingToken.WatchTokenBought(&bind.WatchOpts{Context: ctx, Start: &blockNumber}, eventChan, nil, nil)
 		},
 	)
 }
 
 func startResubscriber[T any](
 	s *subscriber,
-	handler func(T),
+	handler func(T) uint64,
 	subscribe func(context.Context, chan T) (event.Subscription, error),
 ) func() {
 	eventType := new(T) // for logging purposes
@@ -114,7 +126,9 @@ func startResubscriber[T any](
 	eventChan := make(chan T)
 	go func() {
 		for event := range eventChan {
-			handler(event)
+			if successfullyProcessedBlockNumber := handler(event); successfullyProcessedBlockNumber != 0 {
+				s.blockNumber.Store(successfullyProcessedBlockNumber)
+			}
 		}
 	}()
 

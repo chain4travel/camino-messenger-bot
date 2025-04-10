@@ -16,6 +16,7 @@ const (
 
 var encoder, _ = zstd.NewWriter(nil)
 
+// TODO@ refactor compressing ?
 // Compressor interface defines basic compression functionality
 type Compressor[T any, R any] interface {
 	Compress(data T) (R, error)

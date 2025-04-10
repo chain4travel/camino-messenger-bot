@@ -74,6 +74,26 @@ type Service interface {
 		price *big.Int,
 		paymentToken common.Address,
 	) (*types.Receipt, error)
+
+	// RecordExpiration records the expiration of a booking token on-chain.
+	// Parameters:
+	// - tokenID: ID of the token to record expiration for.
+	// Returns the transaction receipt.
+	RecordExpiration(
+		ctx context.Context,
+		tokenID *big.Int,
+	) (*types.Receipt, error)
+
+	// GetBookingStatus retrieves the booking status of a token.
+	// Parameters:
+	// - blockNumber: Block number to query the status at. If nil, the latest block is used.
+	// - tokenID: ID of the token to get the status for.
+	// Returns the booking status.
+	GetBookingStatus(
+		ctx context.Context,
+		blockNumber *big.Int,
+		tokenID *big.Int,
+	) (Status, error)
 }
 
 type service struct {
@@ -185,4 +205,36 @@ func (bs *service) BuyBookingToken(
 
 	bs.logger.Infof("BuyBookingToken tx sent: %s", receipt.TxHash.Hex())
 	return receipt, nil
+}
+
+func (bs *service) RecordExpiration(
+	ctx context.Context,
+	tokenID *big.Int,
+) (*types.Receipt, error) {
+	bs.logger.Infof("📝 Recording expiration for BookingToken with TokenID %s", tokenID.String())
+
+	// Validate tokenId
+	if tokenID.Sign() < 0 {
+		return nil, fmt.Errorf("tokenId must be a positive integer (>= 0)")
+	}
+
+	receipt, err := bs.cmAccounts.RecordExpiration(ctx, bs.transactOpts, bs.minterCMAccountAddress, tokenID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to record token expiration: %w", err)
+	}
+
+	bs.logger.Infof("RecordExpiration tx sent: %s", receipt.TxHash.Hex())
+	return receipt, nil
+}
+
+func (bs *service) GetBookingStatus(
+	ctx context.Context,
+	blockNumber *big.Int,
+	tokenID *big.Int,
+) (Status, error) {
+	status, err := bs.bookingToken.GetBookingStatus(&bind.CallOpts{BlockNumber: blockNumber}, tokenID)
+	if err != nil {
+		return StatusUnspecified, fmt.Errorf("failed to get booking status: %w", err)
+	}
+	return Status(status), nil
 }

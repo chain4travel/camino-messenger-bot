@@ -4,6 +4,7 @@
 package messaging
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -20,9 +21,9 @@ var (
 	errMissingMintTxID = errors.New("missing mint transaction id")
 )
 
-func (h *evmResponseHandler) subscribeForTokenBoughtEvent(tokenID *big.Int, mintID string, buyableUntil *timestamppb.Timestamp) {
+func (h *evmResponseHandler) subscribeForTokenBoughtEvent(ctx context.Context, tokenID *big.Int, mintID string, buyableUntil *timestamppb.Timestamp) {
 	tokenBoughtTimeout := time.Unix(buyableUntil.Seconds, 0)
-	if err := h.eventListener.SubscribeForTokenBoughtEvent(tokenID, mintID, tokenBoughtTimeout); err != nil {
+	if err := h.eventListener.SubscribeTokenBoughtEvent(ctx, tokenID, mintID, tokenBoughtTimeout); err != nil {
 		h.logger.Errorf("error subscribing for token bought event (tokenID: %d, mintID: %s, timeout: %d): %v",
 			tokenID.Int64(), mintID, tokenBoughtTimeout, err)
 	}

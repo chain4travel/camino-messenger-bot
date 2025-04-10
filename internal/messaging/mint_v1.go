@@ -84,7 +84,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 
 	h.logger.Infof("NFT minted with txID: %s\n", txID)
 
-	h.subscribeForTokenBoughtEvent(tokenID, response.MintId.Value, buyableUntil)
+	h.subscribeForTokenBoughtEvent(ctx, tokenID, response.MintId.Value, buyableUntil)
 
 	// TODO @evlekht pp will not know if we failed to mint or setup notification
 

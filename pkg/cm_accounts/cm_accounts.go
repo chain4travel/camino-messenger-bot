@@ -91,6 +91,13 @@ type Service interface {
 		paymentToken common.Address,
 	) (*types.Receipt, error)
 
+	RecordExpiration(
+		ctx context.Context,
+		transactOpts *bind.TransactOpts,
+		cmAccountAddress common.Address,
+		tokenID *big.Int,
+	) (*types.Receipt, error)
+
 	IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error)
 
 	CMAccount(common.Address) (*cmaccount.Cmaccount, error)
@@ -371,6 +378,34 @@ func (s *service) CMAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 	s.cache.Add(cmAccountAddr, cmaccount)
 
 	return cmaccount, nil
+}
+
+func (s *service) RecordExpiration(
+	ctx context.Context,
+	transactOpts *bind.TransactOpts,
+	cmAccountAddress common.Address,
+	tokenID *big.Int,
+) (*types.Receipt, error) {
+	cmAccount, err := s.CMAccount(cmAccountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+	}
+
+	tx, err := cmAccount.RecordExpiration(transactOpts, tokenID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to record expiration: %w", err)
+	}
+
+	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return nil, fmt.Errorf("transaction failed: %v", receipt)
+	}
+
+	return receipt, nil
 }
 
 func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {

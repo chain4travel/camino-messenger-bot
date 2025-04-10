@@ -29,7 +29,8 @@ var _ PartnerPlugin = (*partnerPlugin)(nil)
 // Handles all communication with the partner plugin
 type PartnerPlugin interface {
 	DoServiceRequest(ctx context.Context, requestMsg *types.Message, service rpc.Client) (context.Context, *types.Message, error)
-	SendTokenBoughtNotification(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
+	SendTokenBoughtNotificationWithoutByTx(ctx context.Context, tokenID *big.Int, mintID string) error
+	SendTokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
 	SendTokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error
 }
 
@@ -76,15 +77,26 @@ func (p *partnerPlugin) DoServiceRequest(ctx context.Context, requestMsg *types.
 	return ctx, responseMsg, nil
 }
 
-func (p *partnerPlugin) SendTokenBoughtNotification(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error {
-	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
-	defer cancel()
+func (p *partnerPlugin) SendTokenBoughtNotificationWithoutByTx(ctx context.Context, tokenID *big.Int, mintID string) error {
+	return p.sendTokenBoughtNotification(ctx, &notificationv1.TokenBought{
+		TokenId: tokenID.Uint64(),
+		MintId:  &typesv1.UUID{Value: mintID},
+	})
+}
 
-	_, err := p.notificationClient.TokenBoughtNotification(ctx, &notificationv1.TokenBought{
+func (p *partnerPlugin) SendTokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error {
+	return p.sendTokenBoughtNotification(ctx, &notificationv1.TokenBought{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv1.UUID{Value: mintID},
 		TxId:    buyTxID.Hex(),
 	})
+}
+
+func (p *partnerPlugin) sendTokenBoughtNotification(ctx context.Context, notification *notificationv1.TokenBought) error {
+	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
+	defer cancel()
+
+	_, err := p.notificationClient.TokenBoughtNotification(ctx, notification)
 	if err != nil {
 		p.logger.Errorf("failed to send token bought notification: %v", err)
 	}
