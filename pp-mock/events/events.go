@@ -39,11 +39,18 @@ type server struct {
 
 func NewServer() (Server, Sender) {
 	eventChan := make(chan []byte)
-	return &server{
+	stopChan := make(chan struct{})
+	server := &server{
 		eventChan:         eventChan,
 		subscriptionChans: make(map[string]chan []byte),
-		stopChan:          make(chan struct{}),
-	}, &eventSender{eventChan: eventChan}
+		stopChan:          stopChan,
+	}
+	sender := &eventSender{
+		eventChan: eventChan,
+		stopCh:    stopChan,
+	}
+	return server, sender
+
 }
 
 func (s *server) Start(ctx context.Context) {
@@ -54,6 +61,7 @@ func (s *server) Start(ctx context.Context) {
 				s.propagate(event)
 			case <-ctx.Done():
 				s.stop()
+				return
 			}
 		}
 	}()
@@ -118,6 +126,7 @@ type Sender interface {
 }
 
 type eventSender struct {
+	stopCh    chan struct{}
 	eventChan chan []byte
 }
 
@@ -128,9 +137,13 @@ func (e *eventSender) SendProtoEventAsync(event proto.Message) error {
 		return err
 	}
 
-	go func() {
-		e.eventChan <- eventBytes
-	}()
+	select {
+	case <-e.stopCh:
+		log.Printf("Sender is stopped, event sending aborted")
+		return nil
+	default:
+	}
+	e.eventChan <- eventBytes
 
 	return nil
 }
