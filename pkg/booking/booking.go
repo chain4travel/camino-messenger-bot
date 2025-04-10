@@ -31,6 +31,16 @@ var (
 	ISOPaymentToken = common.HexToAddress("0x0000000000000000000000000000000000000001")
 )
 
+type BookingStatus uint8
+
+const (
+	BookingStatusUnspecified BookingStatus = iota
+	BookingStatusReserved
+	BookingStatusReservationExpired
+	BookingStatusBought
+	BookingStatusCancelled
+)
+
 // Service provides minting and buying methods to interact with the CM Account contract.
 type Service interface {
 	// MintBookingToken mints a new booking token.
