@@ -33,7 +33,7 @@ type server struct {
 
 	eventChan              chan []byte
 	subscriptionChans      map[string]chan []byte
-	subscriptionChansMutex sync.Mutex
+	subscriptionChansMutex sync.RWMutex
 	stopChan               chan struct{}
 }
 
@@ -42,6 +42,7 @@ func NewServer() (Server, Sender) {
 	return &server{
 		eventChan:         eventChan,
 		subscriptionChans: make(map[string]chan []byte),
+		stopChan:          make(chan struct{}),
 	}, &eventSender{eventChan: eventChan}
 }
 
@@ -85,10 +86,10 @@ func (s *server) unsubscribe(subscriptionID string) {
 }
 
 func (s *server) propagate(event []byte) {
-	s.subscriptionChansMutex.Lock()
-	defer s.subscriptionChansMutex.Unlock()
+	s.subscriptionChansMutex.RLock()
+	defer s.subscriptionChansMutex.RUnlock()
 	for _, ch := range s.subscriptionChans {
-		go func() { ch <- event }()
+		ch <- event
 	}
 }
 
