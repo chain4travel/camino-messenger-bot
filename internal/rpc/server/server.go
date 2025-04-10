@@ -16,8 +16,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
+	"github.com/chain4travel/camino-messenger-bot/internal/utils/tls"
 	"github.com/chain4travel/camino-messenger-bot/proto/pb/readiness"
-	"github.com/chain4travel/camino-messenger-bot/utils/tls"
 
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"

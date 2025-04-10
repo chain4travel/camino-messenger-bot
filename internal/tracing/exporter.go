@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/internal/utils/tls"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"

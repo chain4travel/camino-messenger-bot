@@ -10,7 +10,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
-	"github.com/chain4travel/camino-messenger-bot/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/internal/utils/tls"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
