@@ -35,7 +35,7 @@ func NewAccommodationSearchV3Server(eventSender events.Sender) accommodationv3gr
 }
 
 func (s *accommodationSearchV3Server) AccommodationSearch(ctx context.Context, req *accommodationv3.AccommodationSearchRequest) (*accommodationv3.AccommodationSearchResponse, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 

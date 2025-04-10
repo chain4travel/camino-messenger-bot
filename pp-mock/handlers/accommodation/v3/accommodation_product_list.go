@@ -28,7 +28,7 @@ func NewAccommodationProductListV3Server(eventSender events.Sender) accommodatio
 }
 
 func (s *accommodationProductListV3Server) AccommodationProductList(ctx context.Context, req *accommodationv3.AccommodationProductListRequest) (*accommodationv3.AccommodationProductListResponse, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 

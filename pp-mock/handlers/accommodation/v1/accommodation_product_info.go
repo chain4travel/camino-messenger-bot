@@ -28,7 +28,7 @@ func NewAccommodationProductInfoV1Server(eventSender events.Sender) accommodatio
 }
 
 func (s *accommodationProductInfoV1Server) AccommodationProductInfo(ctx context.Context, req *accommodationv1.AccommodationProductInfoRequest) (*accommodationv1.AccommodationProductInfoResponse, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 

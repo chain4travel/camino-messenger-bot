@@ -35,7 +35,7 @@ func NewValidationServiceV2Server(eventSender events.Sender) bookv2grpc.Validati
 
 // Validate handles ValidationRequest and returns a mock ValidationResponse.
 func (s *validationServiceV2Server) Validation(ctx context.Context, req *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 

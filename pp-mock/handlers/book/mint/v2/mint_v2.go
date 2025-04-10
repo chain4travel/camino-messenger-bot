@@ -32,7 +32,7 @@ func NewMintServiceV2Server(eventSender events.Sender) bookv2grpc.MintServiceSer
 }
 
 func (s *mintServiceV2Server) Mint(ctx context.Context, req *bookv2.MintRequest) (*bookv2.MintResponse, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 

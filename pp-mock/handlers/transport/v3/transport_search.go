@@ -36,7 +36,7 @@ func NewTransportSearchV3Server(eventSender events.Sender) transportv3grpc.Trans
 }
 
 func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *transportv3.TransportSearchRequest) (*transportv3.TransportSearchResponse, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 

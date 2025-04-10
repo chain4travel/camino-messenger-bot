@@ -26,7 +26,7 @@ func NewPingServiceV1Server(eventSender events.Sender) pingv1grpc.PingServiceSer
 }
 
 func (s *pingServiceV1Server) Ping(ctx context.Context, req *pingv1.PingRequest) (*pingv1.PingResponse, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 

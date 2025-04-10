@@ -30,7 +30,7 @@ func NewNotificationServiceV1Server(eventSender events.Sender) notificationv1grp
 
 // TokenBoughtNotification handles TokenBoughtNotification and returns a mock TokenBoughtNotificationResponse.
 func (s *notificationServiceV1Server) TokenBoughtNotification(ctx context.Context, req *notificationv1.TokenBought) (*emptypb.Empty, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 
@@ -47,7 +47,7 @@ func (s *notificationServiceV1Server) TokenBoughtNotification(ctx context.Contex
 
 // TokenExpiredNotification handles TokenExpiredNotification and returns a mock TokenExpiredNotificationResponse.
 func (s *notificationServiceV1Server) TokenExpiredNotification(ctx context.Context, req *notificationv1.TokenExpired) (*emptypb.Empty, error) {
-	if err := s.eventSender.SendProtoEventAsync(req); err != nil {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
 		log.Printf("error sending event: %v", err)
 	}
 
