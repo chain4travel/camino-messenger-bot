@@ -48,7 +48,6 @@ func NewServer() (Server, Sender) {
 		sender:            &eventSender{eventChan: make(chan []byte)},
 	}
 	return server, server.sender
-
 }
 
 func (s *server) Start(ctx context.Context) {
@@ -130,8 +129,8 @@ func (e *eventSender) stop() {
 	defer e.sendMutex.Unlock()
 
 	e.isStopped = true
-	for range e.eventChan { // drain channel
-	}
+	for range e.eventChan { //nolint:revive
+	} // drain channel
 	close(e.eventChan)
 }
 
