@@ -267,7 +267,7 @@ func (el *eventListener) resetTokenBoughtTimerIfMatch(ctx context.Context, token
 	el.tokenBoughtTimerMutex.Lock()
 	defer el.tokenBoughtTimerMutex.Unlock()
 
-	if el.tokenBoughtTimerSubscription != nil && el.tokenBoughtTimerSubscription.TokenID != tokenID {
+	if el.tokenBoughtTimerSubscription != nil && el.tokenBoughtTimerSubscription.TokenID.Cmp(tokenID) != 0 {
 		return
 	}
 
