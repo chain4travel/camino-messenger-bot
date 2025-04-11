@@ -66,23 +66,23 @@ func testMintV2FullWorkflow(ctx context.Context, t *testing.T, tt *Test, ppEvent
 	// further checks as we're only really interested in the last one.
 
 	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot) // see test_accommodation_v3.go
-	eventMsg, err := ppEventStream.Recv()                                                                                       // skip AccommodationSearchRequest
+	_, err := ppEventStream.Recv()                                                                                              // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
 	validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
-	eventMsg, err = ppEventStream.Recv()                                                                                   // skip ValidateRequest
+	_, err = ppEventStream.Recv()                                                                                          // skip ValidateRequest
 	require.NoError(t, err)
 
 	var tokenID uint64
 	var mintID string
 
 	tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID) // see test_accommodation_v3.go
-	eventMsg, err = ppEventStream.Recv()                                                                  // skip MintRequest
+	_, err = ppEventStream.Recv()                                                                         // skip MintRequest
 	require.NoError(t, err)
 
 	// We're actually interested in this message which is
 	// the TokenBoughtNotification
-	eventMsg, err = ppEventStream.Recv()
+	eventMsg, err := ppEventStream.Recv()
 	require.NoError(t, err)
 	debugPrintProtoMessage(tt, eventMsg)
 	tokenBoughtNotification := &notificationv1.TokenBought{}
@@ -137,23 +137,23 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	// further checks as we're only really interested in the last one.
 
 	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot) // see test_accommodation_v3.go
-	eventMsg, err := ppEventStream.Recv()                                                                                       // skip AccommodationSearchRequest
+	_, err := ppEventStream.Recv()                                                                                              // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
 	validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
-	eventMsg, err = ppEventStream.Recv()                                                                                   // skip ValidateRequest
+	_, err = ppEventStream.Recv()                                                                                          // skip ValidateRequest
 	require.NoError(t, err)
 
 	var tokenID uint64
 	var mintID string
 
 	tokenID, _, mintID = testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID)
-	eventMsg, err = ppEventStream.Recv() // skip MintRequest
+	_, err = ppEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
 	// We're actually interested in this message which is
 	// the TokenExpiredNotification
-	eventMsg, err = ppEventStream.Recv()
+	eventMsg, err := ppEventStream.Recv()
 	require.NoError(t, err)
 	debugPrintProtoMessage(tt, eventMsg)
 	tokenExpiredNotification := &notificationv1.TokenExpired{}
