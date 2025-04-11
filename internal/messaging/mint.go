@@ -116,19 +116,19 @@ func (h *evmResponseHandler) verifyAndFixBuyableUntil(buyableUntil *timestamppb.
 	switch {
 	case buyableUntil == nil || buyableUntil.Seconds == 0:
 		// BuyableUntil not set
-		return timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Default)), nil
+		return timestamppb.New(currentTime.Add(h.tokenBuyableUntil.Default)), nil
 
 	case buyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
 		return nil, fmt.Errorf("refused to mint token - BuyableUntil in the past:  %v", buyableUntil)
 
-	case buyableUntil.Seconds < timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Minimal)).Seconds:
+	case buyableUntil.Seconds < timestamppb.New(currentTime.Add(h.tokenBuyableUntil.Minimal)).Seconds:
 		// BuyableUntil too early
-		return timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Minimal)), nil
+		return timestamppb.New(currentTime.Add(h.tokenBuyableUntil.Minimal)), nil
 
-	case buyableUntil.Seconds > timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Maximal)).Seconds:
+	case buyableUntil.Seconds > timestamppb.New(currentTime.Add(h.tokenBuyableUntil.Maximal)).Seconds:
 		// BuyableUntil too late
-		return timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Maximal)), nil
+		return timestamppb.New(currentTime.Add(h.tokenBuyableUntil.Maximal)), nil
 	}
 
 	return buyableUntil, nil

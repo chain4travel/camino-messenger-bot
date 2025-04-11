@@ -70,7 +70,7 @@ func NewResponseHandler(
 		bookingService:      bookingService,
 		eventListener:       eventListener,
 		erc20:               erc20,
-		tokenBuaybleUntil:   tokenBuyableUntil,
+		tokenBuyableUntil:   tokenBuyableUntil,
 	}, nil
 }
 
@@ -80,7 +80,7 @@ type evmResponseHandler struct {
 	bookingService      booking.Service
 	eventListener       eventlistener.EventListener
 	erc20               erc20.Service
-	tokenBuaybleUntil   tokenBuyableUntil
+	tokenBuyableUntil   tokenBuyableUntil
 }
 
 // Processes incoming response
