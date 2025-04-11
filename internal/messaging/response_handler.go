@@ -24,7 +24,7 @@ import (
 
 const (
 	buyableUntilDurationDefault = 300 * time.Second
-	buyableUntilDurationMinimal = 70 * time.Second
+	buyableUntilDurationMinimal = 5 * time.Second
 	buyableUntilDurationMaximal = 600 * time.Second
 )
 

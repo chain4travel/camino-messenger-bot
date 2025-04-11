@@ -69,7 +69,7 @@ func (s *mintServiceV2Server) Mint(ctx context.Context, req *bookv2.MintRequest)
 		},
 		MintId: &typesv1.UUID{Value: uuid.New().String()},
 		BuyableUntil: &timestamppb.Timestamp{
-			Seconds: time.Now().Add(5 * time.Minute).Unix(),
+			Seconds: time.Now().Add(5 * time.Second).Unix(),
 		},
 		ValidationId: req.ValidationId,
 		Price: &typesv2.Price{

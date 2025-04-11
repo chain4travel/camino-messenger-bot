@@ -7,8 +7,13 @@ import (
 	"context"
 	"testing"
 
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
@@ -24,6 +29,7 @@ func testMintV2Setup(
 	supplierPartnerPlugin *partnerplugin.PartnerPlugin,
 	supplierBot *bot.Bot,
 	distributorBot *bot.Bot,
+	distributorBotWithoutFunds *bot.Bot,
 ) {
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.AccommodationSearchServiceV3,
@@ -42,48 +48,154 @@ func testMintV2Setup(
 	// bot without partnerPlugin and with rpc server (distributor)
 	distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
 
-	return supplierPartnerPlugin, supplierBot, distributorBot
+	// bot without partnerPlugin and with rpc server (distributor) but with the
+	// catch, that the bot account does not have funds to pay for the fees when
+	// trying to buy the booking token.
+	distributorBotWithoutFunds, errChan, err := tt.botFactory.CreateBot(ctx, true, nil, nil,
+		&bot.Skip{PrefundBot: true},
+	)
+	require.NoError(t, err)
+	expectNoErrorAsync(t, errChan)
+
+	return supplierPartnerPlugin, supplierBot, distributorBot, distributorBotWithoutFunds
+}
+
+func testMintV2FullWorkflow(ctx context.Context, t *testing.T, tt *Test, ppEventStream events.MyEventsService_SubscribeClient, distributorBot *bot.Bot, supplierBot *bot.Bot) {
+	// Don't mind the eventStream receives without further processing.
+	// We just receive all the messages from the pp-mock event stream without any
+	// further checks as we're only really interested in the last one.
+
+	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot) // see test_accommodation_v3.go
+	eventMsg, err := ppEventStream.Recv()                                                                                       // skip AccommodationSearchRequest
+	require.NoError(t, err)
+
+	validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
+	eventMsg, err = ppEventStream.Recv()                                                                                   // skip ValidateRequest
+	require.NoError(t, err)
+
+	var tokenID uint64
+	var mintID string
+
+	tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID) // see test_accommodation_v3.go
+	eventMsg, err = ppEventStream.Recv()                                                                  // skip MintRequest
+	require.NoError(t, err)
+
+	// We're actually interested in this message which is
+	// the TokenBoughtNotification
+	eventMsg, err = ppEventStream.Recv()
+	require.NoError(t, err)
+	debugPrintProtoMessage(tt, eventMsg)
+	tokenBoughtNotification := &notificationv1.TokenBought{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
+	require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
+	require.NotNil(t, tokenBoughtNotification.MintId)
+	require.Equal(t, tokenBoughtNotification.MintId.Value, mintID)
+	require.NotEmpty(t, tokenBoughtNotification.TxId)
+}
+
+// Lastly we do the mint request based on the validation id
+func testMintV2MintV2ExpectedError(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	validationID string,
+) (
+	tokenID uint64,
+	price *typesv2.Price,
+	mintID string,
+) {
+	req := &bookv2.MintRequest{
+		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		ValidationId: &typesv1.UUID{Value: validationID},
+	}
+	resp, err := distributorBot.MintServiceV2.Mint(
+		requestContext(ctx, &metadata.Metadata{
+			Recipient: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
+
+	// Check if the MintId is set
+	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
+	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
+
+	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
+	require.Empty(t, resp.BuyTransactionId, "unexpected response BuyTransactionId")
+
+	return resp.BookingTokenId, resp.Price, resp.MintId.Value
+}
+
+func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppEventStream events.MyEventsService_SubscribeClient, distributorBot *bot.Bot, supplierBot *bot.Bot) {
+	// Don't mind the eventStream receives without further processing.
+	// We just receive all the messages from the pp-mock event stream without any
+	// further checks as we're only really interested in the last one.
+
+	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot) // see test_accommodation_v3.go
+	eventMsg, err := ppEventStream.Recv()                                                                                       // skip AccommodationSearchRequest
+	require.NoError(t, err)
+
+	validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
+	eventMsg, err = ppEventStream.Recv()                                                                                   // skip ValidateRequest
+	require.NoError(t, err)
+
+	var tokenID uint64
+	var mintID string
+
+	tokenID, _, mintID = testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID)
+	eventMsg, err = ppEventStream.Recv() // skip MintRequest
+	require.NoError(t, err)
+
+	// We're actually interested in this message which is
+	// the TokenExpiredNotification
+	eventMsg, err = ppEventStream.Recv()
+	require.NoError(t, err)
+	debugPrintProtoMessage(tt, eventMsg)
+	tokenExpiredNotification := &notificationv1.TokenExpired{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
+	require.Equal(t, tokenExpiredNotification.TokenId, tokenID)
+	require.NotNil(t, tokenExpiredNotification.MintId)
+	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID)
 }
 
 func TestMintV2(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	var supplierBot *bot.Bot
-	var distributorBot *bot.Bot
-	var supplierPartnerPlugin *partnerplugin.PartnerPlugin
+	var (
+		supplierBot                *bot.Bot
+		distributorBot             *bot.Bot
+		distributorBotWithoutFunds *bot.Bot
+		supplierPartnerPlugin      *partnerplugin.PartnerPlugin
+		ppEventStream              events.MyEventsService_SubscribeClient
+		err                        error
+	)
 
 	t.Run("Setup", func(t *testing.T) {
-		supplierPartnerPlugin, supplierBot, distributorBot = testMintV2Setup(ctx, t, tt)
+		supplierPartnerPlugin, supplierBot, distributorBot, distributorBotWithoutFunds = testMintV2Setup(ctx, t, tt)
+		ppEventStream, err = supplierPartnerPlugin.SubscribeForEvents(ctx)
+		require.NoError(t, err)
 	})
 
 	t.Run("Search->Validate->Mint->TokenBoughtNotification", func(t *testing.T) {
-		searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot) // see test_accommodation_v3.go
-		validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)      // see test_accommodation_v3.go
+		// We're doing this 3 times to make sure that even with multiple
+		// mint requests everything is working as expected.
+		for range 3 {
+			testMintV2FullWorkflow(ctx, t, tt, ppEventStream, distributorBot, supplierBot)
+		}
+	})
 
-		ppEventStream, err := supplierPartnerPlugin.SubscribeForEvents(ctx)
-		require.NoError(t, err)
-
-		var tokenID uint64
-		var mintID string
-
-		tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
-
-		// Just receive the first message printing it out without any further checks
-		// as this is just the mint request sent to the pp-mock.
-		// We're actually interested in the 2nd message which is
-		// the TokenBoughtNotification below this block
-		eventMsg, err := ppEventStream.Recv()
-		require.NoError(t, err)
-		debugPrintProtoMessage(tt, eventMsg)
-
-		eventMsg, err = ppEventStream.Recv()
-		require.NoError(t, err)
-		debugPrintProtoMessage(tt, eventMsg)
-		tokenBoughtNotification := &notificationv1.TokenBought{}
-		require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
-		require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
-		require.NotNil(t, tokenBoughtNotification.MintId)
-		require.Equal(t, tokenBoughtNotification.MintId.Value, mintID)
-		require.NotEmpty(t, tokenBoughtNotification.TxId)
+	// TODO @evlekht BEWARE: For the expiration test to work the minimum buyable until value
+	// has been set to 5s which will conflict with the default value in the
+	// booking token contract (of 60s). In the e2e test this is solved by
+	// overwriting the min time in the contract.
+	// This needs to be resolved that only in the context of the e2e-test the
+	// bot is allowed to undercut the previously set value of 70s.
+	t.Run("Search->Validate->Mint->TokenTimeoutNotification", func(t *testing.T) {
+		testMintV2TokenExpiredCase(ctx, t, tt, ppEventStream, distributorBotWithoutFunds, supplierBot)
 	})
 }
