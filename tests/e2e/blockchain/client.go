@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	e2ecommon "github.com/chain4travel/camino-messenger-bot/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenoperator"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
@@ -519,7 +520,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to wait for cmAccountManager.GrantRole tx to succeed: %w", err)
 	}
 
-	updateExpirationTx, err := c.BookingToken.SetMinExpirationTimestampDiff(transactor, big.NewInt(1))
+	updateExpirationTx, err := c.BookingToken.SetMinExpirationTimestampDiff(transactor, big.NewInt(e2ecommon.MinBuyableUntilInContract))
 	if err != nil {
 		return fmt.Errorf("failed to issue bookingToken.SetMinExpirationTimestampDiff tx: %w", err)
 	}

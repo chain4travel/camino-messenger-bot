@@ -10,6 +10,7 @@ import (
 )
 
 const x2cRate = 1_000_000_000
+const MinBuyableUntilInContract = 1 // seconds -- overrides the bookingtoken default of 1 minute when deployed for the e2e test
 
 var (
 	X2CRateBig                 = big.NewInt(x2cRate)
