@@ -13,6 +13,7 @@ import (
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -48,7 +49,7 @@ func (s *mintServiceV1Server) Mint(ctx context.Context, req *bookv1.MintRequest)
 		},
 		MintId: &typesv1.UUID{Value: uuid.New().String()},
 		BuyableUntil: &timestamppb.Timestamp{
-			Seconds: time.Now().Add(5 * time.Minute).Unix(),
+			Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),
 		},
 		ValidationId: req.ValidationId,
 		Price: &typesv1.Price{

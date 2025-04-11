@@ -53,7 +53,6 @@ func NewResponseHandler(
 	erc20 erc20.Service,
 	e2eTestMode bool,
 ) (ResponseHandler, error) {
-
 	tokenBuyableUntil := tokenBuyableUntil{
 		Default: 300 * time.Second,
 		Minimal: 70 * time.Second,

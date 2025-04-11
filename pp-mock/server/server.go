@@ -27,6 +27,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 
+	"github.com/chain4travel/camino-messenger-bot/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	handlers_accommodation_v1 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v1"
 	handlers_accommodation_v2 "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/accommodation/v2"
@@ -46,12 +47,15 @@ import (
 const (
 	EnvKeyEventsEnabled = "CMB_PARTNER_PLUGIN_MOCK_EVENTS"
 	EnvKeyPort          = "CMB_PARTNER_PLUGIN_MOCK_PORT"
+	EnvE2ETestMode      = "CMB_PARTNER_PLUGIN_MOCK_TEST_MODE"
 	DefaultPort         = 50051
 )
 
 func Run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	config.SetDefaults()
 
 	grpcServer := grpc.NewServer()
 
@@ -110,6 +114,10 @@ func Run() error {
 			log.Printf("failed to parse port: %v", err)
 			return err
 		}
+	}
+
+	if os.Getenv(EnvE2ETestMode) == "true" {
+		config.SetE2EDefaults()
 	}
 
 	log.SetOutput(os.Stdout)

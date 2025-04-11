@@ -182,19 +182,13 @@ func TestMintV2(t *testing.T, tt *Test) {
 	})
 
 	t.Run("Search->Validate->Mint->TokenBoughtNotification", func(t *testing.T) {
-		// We're doing this 3 times to make sure that even with multiple
+		// We're doing this > 1 times to make sure that even with multiple
 		// mint requests everything is working as expected.
 		for range 3 {
 			testMintV2FullWorkflow(ctx, t, tt, ppEventStream, distributorBot, supplierBot)
 		}
 	})
 
-	// TODO @evlekht BEWARE: For the expiration test to work the minimum buyable until value
-	// has been set to 5s which will conflict with the default value in the
-	// booking token contract (of 60s). In the e2e test this is solved by
-	// overwriting the min time in the contract.
-	// This needs to be resolved that only in the context of the e2e-test the
-	// bot is allowed to undercut the previously set value of 70s.
 	t.Run("Search->Validate->Mint->TokenTimeoutNotification", func(t *testing.T) {
 		testMintV2TokenExpiredCase(ctx, t, tt, ppEventStream, distributorBotWithoutFunds, supplierBot)
 	})

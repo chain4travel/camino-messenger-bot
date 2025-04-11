@@ -72,6 +72,7 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 	cmd.Env = append(cmd.Env,
 		fmt.Sprintf("%s=%d", ppmock.EnvKeyPort, port),
 		fmt.Sprintf("%s=true", ppmock.EnvKeyEventsEnabled),
+		fmt.Sprintf("%s=true", ppmock.EnvE2ETestMode),
 	)
 
 	if err := os.MkdirAll(f.dir, 0o755); err != nil {
