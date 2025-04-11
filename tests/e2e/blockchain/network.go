@@ -295,7 +295,7 @@ func (n *Network) startNewNode(
 	node := &Node{
 		logger:  n.logger,
 		pid:     cmd.Process.Pid,
-		nodeURI: fmt.Sprintf("http://localhost:%d", httpPort),
+		nodeURI: fmt.Sprintf("localhost:%d", httpPort),
 		logfile: logfile,
 	}
 

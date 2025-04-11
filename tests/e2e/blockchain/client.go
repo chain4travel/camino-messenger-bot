@@ -40,7 +40,7 @@ func newClient(
 	prefundedKeys []*ecdsa.PrivateKey,
 	adminKey *ecdsa.PrivateKey,
 ) (*Client, error) {
-	chainRPCURL := nodeURI + "/ext/bc/C/rpc"
+	chainRPCURL := "ws://" + nodeURI + "/ext/bc/C/ws"
 	ethClient, err := ethclient.Dial(chainRPCURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to the Ethereum client: %w", err)

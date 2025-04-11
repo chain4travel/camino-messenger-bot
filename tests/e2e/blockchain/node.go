@@ -37,7 +37,7 @@ func (n *Node) Stop(ctx context.Context) error {
 }
 
 func (n *Node) awaitBootstrapped(ctx context.Context) error {
-	client := info.NewClient(n.nodeURI)
+	client := info.NewClient("http://" + n.nodeURI)
 	ticker := time.NewTicker(nodeRequestTickerInterval)
 	defer ticker.Stop()
 

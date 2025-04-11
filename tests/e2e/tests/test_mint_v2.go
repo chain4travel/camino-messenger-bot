@@ -68,15 +68,18 @@ func TestMintV2(t *testing.T, tt *Test) {
 
 		tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 
+		// Just receive the first message printing it out without any further checks
+		// as this is just the mint request sent to the pp-mock.
+		// We're actually interested in the 2nd message which is
+		// the TokenBoughtNotification below this block
 		eventMsg, err := ppEventStream.Recv()
 		require.NoError(t, err)
 		debugPrintProtoMessage(tt, eventMsg)
+
+		eventMsg, err = ppEventStream.Recv()
+		require.NoError(t, err)
+		debugPrintProtoMessage(tt, eventMsg)
 		tokenBoughtNotification := &notificationv1.TokenBought{}
-		// TODO @evlekht: It seems eventMsg.Data contains not a valid protobuf message
-		// I checked it via the debugPrintProtoMessage and saw that the base64 decoded string
-		// actually contained the sub-fields but Unmarshal seems to just throw that all into
-		// the TokenId field. My guess is that it's actually the full grpc message and that proto
-		// Unmarshal is not able to decode it correctly.
 		require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
 		require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
 		require.NotNil(t, tokenBoughtNotification.MintId)
