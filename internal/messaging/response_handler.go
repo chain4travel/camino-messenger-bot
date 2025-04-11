@@ -22,11 +22,11 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	buyableUntilDurationDefault = 300 * time.Second
-	buyableUntilDurationMinimal = 5 * time.Second
-	buyableUntilDurationMaximal = 600 * time.Second
-)
+type tokenBuyableUntil struct {
+	Default time.Duration
+	Minimal time.Duration
+	Maximal time.Duration
+}
 
 var _ ResponseHandler = (*evmResponseHandler)(nil)
 
@@ -51,13 +51,27 @@ func NewResponseHandler(
 	eventListener eventlistener.EventListener,
 	bookingService booking.Service,
 	erc20 erc20.Service,
+	e2eTestMode bool,
 ) (ResponseHandler, error) {
+
+	tokenBuyableUntil := tokenBuyableUntil{
+		Default: 300 * time.Second,
+		Minimal: 70 * time.Second,
+		Maximal: 600 * time.Second,
+	}
+	if e2eTestMode {
+		tokenBuyableUntil.Default = 10 * time.Second
+		tokenBuyableUntil.Minimal = 5 * time.Second
+		tokenBuyableUntil.Maximal = 20 * time.Second
+	}
+
 	return &evmResponseHandler{
 		logger:              logger,
 		cmAccountAddressStr: cmAccountAddress.Hex(),
 		bookingService:      bookingService,
 		eventListener:       eventListener,
 		erc20:               erc20,
+		tokenBuaybleUntil:   tokenBuyableUntil,
 	}, nil
 }
 
@@ -67,6 +81,7 @@ type evmResponseHandler struct {
 	bookingService      booking.Service
 	eventListener       eventlistener.EventListener
 	erc20               erc20.Service
+	tokenBuaybleUntil   tokenBuyableUntil
 }
 
 // Processes incoming response

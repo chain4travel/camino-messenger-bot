@@ -161,6 +161,7 @@ func (f *Factory) CreateBot(
 
 	config := config.UnparsedConfig{
 		DeveloperMode:                       true,
+		E2ETestMode:                         true,
 		BotKey:                              hex.EncodeToString(crypto.FromECDSA(botKey)),
 		CMAccountAddress:                    cmAccountAddress.Hex(),
 		ChainRPCURL:                         f.networkClient.ChainRPCURL(),

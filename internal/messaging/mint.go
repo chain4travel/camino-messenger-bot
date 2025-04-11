@@ -112,23 +112,23 @@ func generateAndEncodeJSON(name, description, date, externalURL, image string, a
 	return string(jsonData), encoded, nil
 }
 
-func verifyAndFixBuyableUntil(buyableUntil *timestamppb.Timestamp, currentTime time.Time) (*timestamppb.Timestamp, error) {
+func (h *evmResponseHandler) verifyAndFixBuyableUntil(buyableUntil *timestamppb.Timestamp, currentTime time.Time) (*timestamppb.Timestamp, error) {
 	switch {
 	case buyableUntil == nil || buyableUntil.Seconds == 0:
 		// BuyableUntil not set
-		return timestamppb.New(currentTime.Add(buyableUntilDurationDefault)), nil
+		return timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Default)), nil
 
 	case buyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
 		return nil, fmt.Errorf("refused to mint token - BuyableUntil in the past:  %v", buyableUntil)
 
-	case buyableUntil.Seconds < timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)).Seconds:
+	case buyableUntil.Seconds < timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Minimal)).Seconds:
 		// BuyableUntil too early
-		return timestamppb.New(currentTime.Add(buyableUntilDurationMinimal)), nil
+		return timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Minimal)), nil
 
-	case buyableUntil.Seconds > timestamppb.New(currentTime.Add(buyableUntilDurationMaximal)).Seconds:
+	case buyableUntil.Seconds > timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Maximal)).Seconds:
 		// BuyableUntil too late
-		return timestamppb.New(currentTime.Add(buyableUntilDurationMaximal)), nil
+		return timestamppb.New(currentTime.Add(h.tokenBuaybleUntil.Maximal)), nil
 	}
 
 	return buyableUntil, nil

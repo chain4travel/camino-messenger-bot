@@ -49,7 +49,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 
 	h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
 
-	buyableUntil, err := verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
+	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
 		h.AddErrorToResponseHeader(response, err.Error())

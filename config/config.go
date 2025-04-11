@@ -19,6 +19,7 @@ import (
 
 type Config struct {
 	DeveloperMode bool
+	E2ETestMode   bool
 
 	BotKey           *ecdsa.PrivateKey
 	CMAccountAddress common.Address
@@ -89,6 +90,7 @@ type RPCServerConfig struct {
 
 type UnparsedConfig struct {
 	DeveloperMode bool `mapstructure:"developer_mode"`
+	E2ETestMode   bool `mapstructure:"e2e_test_mode"`
 
 	BotKey           string `mapstructure:"bot_key"`
 	CMAccountAddress string `mapstructure:"cm_account_address"`
@@ -134,6 +136,7 @@ func (cfg *Config) unparse() *UnparsedConfig {
 			Host: cfg.Matrix.Host,
 		},
 		DeveloperMode:                       cfg.DeveloperMode,
+		E2ETestMode:                         cfg.E2ETestMode,
 		BotKey:                              hex.EncodeToString(crypto.FromECDSA(cfg.BotKey)),
 		CMAccountAddress:                    cfg.CMAccountAddress.Hex(),
 		ChainRPCURL:                         cfg.ChainRPCURL,

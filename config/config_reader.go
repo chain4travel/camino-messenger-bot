@@ -145,6 +145,7 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 			Store: cfg.DB.DBPath + "/matrix",
 		},
 		DeveloperMode:                       cfg.DeveloperMode,
+		E2ETestMode:                         cfg.E2ETestMode,
 		BotKey:                              botKey,
 		CMAccountAddress:                    common.HexToAddress(cfg.CMAccountAddress),
 		ChainRPCURL:                         cfg.ChainRPCURL,

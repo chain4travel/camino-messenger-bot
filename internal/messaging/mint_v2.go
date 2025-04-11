@@ -52,7 +52,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	}
 	h.logger.Debugf("Token URI: %s\n", response.BookingTokenUri)
 
-	buyableUntil, err := verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
+	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
 		h.AddErrorToResponseHeader(response, err.Error())
