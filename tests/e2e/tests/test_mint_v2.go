@@ -140,14 +140,26 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	_, err := ppEventStream.Recv()                                                                                              // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
-	_, err = ppEventStream.Recv()                                                                                          // skip ValidateRequest
+	validationID1 := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
+	_, err = ppEventStream.Recv()                                                                                           // skip ValidateRequest
 	require.NoError(t, err)
 
-	var tokenID uint64
-	var mintID string
+	searchID, resultID, totalPrice = testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot) // see test_accommodation_v3.go
+	_, err = ppEventStream.Recv()                                                                                              // skip AccommodationSearchRequest
+	require.NoError(t, err)
 
-	tokenID, _, mintID = testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID)
+	validationID2 := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
+	_, err = ppEventStream.Recv()                                                                                           // skip ValidateRequest
+	require.NoError(t, err)
+
+	var tokenID1 uint64
+	var mintID1 string
+
+	tokenID1, _, mintID1 = testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID1)
+	_, err = ppEventStream.Recv() // skip MintRequest
+	require.NoError(t, err)
+
+	tokenID2, _, mintID2 := testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID2)
 	_, err = ppEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -158,9 +170,18 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	debugPrintProtoMessage(tt, eventMsg)
 	tokenExpiredNotification := &notificationv1.TokenExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
-	require.Equal(t, tokenExpiredNotification.TokenId, tokenID)
+	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
-	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID)
+	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID1)
+
+	eventMsg, err = ppEventStream.Recv()
+	require.NoError(t, err)
+	debugPrintProtoMessage(tt, eventMsg)
+	tokenExpiredNotification = &notificationv1.TokenExpired{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
+	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
+	require.NotNil(t, tokenExpiredNotification.MintId)
+	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID2)
 }
 
 func TestMintV2(t *testing.T, tt *Test) {
