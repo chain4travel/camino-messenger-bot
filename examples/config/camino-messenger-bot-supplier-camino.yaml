@@ -16,6 +16,9 @@ booking_token_address: 0xe2b8c92B6519d1A2020dA0A5fBbA99a43A2c0922
 # C-Chain RPC URL
 chain_rpc_url: wss://api.camino.network/ext/bc/C/ws
 
+### Record Expiration - whether to record booking token expiration on chain
+record_expiration: true
+
 
 
 ### Bot identity

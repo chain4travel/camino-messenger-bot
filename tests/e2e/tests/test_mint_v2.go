@@ -161,8 +161,10 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	_, err = ppEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
-	// We're actually interested in this message which is
-	// the TokenExpiredNotification
+	// Following code relies on specific order of token expired notifications.
+	// We can safely assume that 2nd token expired notification will come after the first one,
+	// because timeout is set by mint request, and 2nd mint is happening after 1st.
+
 	eventMsg, err := ppEventStream.Recv()
 	require.NoError(t, err)
 	debugPrintProtoMessage(tt, eventMsg)
@@ -171,7 +173,6 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID1)
-
 	eventMsg, err = ppEventStream.Recv()
 	require.NoError(t, err)
 	debugPrintProtoMessage(tt, eventMsg)

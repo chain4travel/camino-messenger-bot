@@ -16,6 +16,9 @@ booking_token_address: 0xe55E387F5474a012D1b048155E25ea78C7DBfBBC
 # C-Chain RPC URL
 chain_rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 
+### Record Expiration - whether to record booking token expiration on chain
+record_expiration: true
+
 
 
 ### Bot identity
@@ -102,8 +105,3 @@ partner_plugin:
 #     host: localhost:4317
 #     insecure: true
 #     key_file: server-key.pem
-
-
-
-### Record Expiration - whether to record token expiration on chain
-# record_expiration: true
