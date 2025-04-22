@@ -10,7 +10,6 @@ import (
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
@@ -103,7 +102,6 @@ func testMintV2MintV2ExpectedError(
 	validationID string,
 ) (
 	tokenID uint64,
-	_ *typesv2.Price,
 	mintID string,
 ) {
 	req := &bookv2.MintRequest{
@@ -128,7 +126,7 @@ func testMintV2MintV2ExpectedError(
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.Empty(t, resp.BuyTransactionId, "unexpected response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.Price, resp.MintId.Value
+	return resp.BookingTokenId, resp.MintId.Value
 }
 
 func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppEventStream events.MyEventsService_SubscribeClient, distributorBot *bot.Bot, supplierBot *bot.Bot) {
@@ -155,11 +153,11 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	var tokenID1 uint64
 	var mintID1 string
 
-	tokenID1, _, mintID1 = testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID1)
+	tokenID1, mintID1 = testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID1)
 	_, err = ppEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
-	tokenID2, _, mintID2 := testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID2)
+	tokenID2, mintID2 := testMintV2MintV2ExpectedError(ctx, t, tt, distributorBot, supplierBot, validationID2)
 	_, err = ppEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
