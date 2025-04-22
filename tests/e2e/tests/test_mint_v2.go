@@ -103,7 +103,7 @@ func testMintV2MintV2ExpectedError(
 	validationID string,
 ) (
 	tokenID uint64,
-	price *typesv2.Price,
+	_ *typesv2.Price,
 	mintID string,
 ) {
 	req := &bookv2.MintRequest{
