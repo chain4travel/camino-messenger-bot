@@ -196,7 +196,11 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 		return nil, err
 	}
 
-	if err := p.issueCheques(ctx, requestMsg, serviceFee, recipientCMAccAddr, recipientBotAddr); err != nil {
+	if err := p.issueNetworkCheque(ctx, requestMsg); err != nil {
+		return nil, err
+	}
+
+	if err := p.issueServiceCheque(ctx, requestMsg, serviceFee, recipientCMAccAddr, recipientBotAddr); err != nil {
 		return nil, err
 	}
 
@@ -272,6 +276,10 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 	}
 
+	if err := p.issueNetworkCheque(ctx, responseMsg); err != nil {
+		return err // TODO@ what should we do if we failed to issue response network fee cheque? we can't send response message, even with just error header
+	}
+
 	return p.messenger.SendAsync(ctx, responseMsg, requestMsg.SenderBotUserID)
 }
 
@@ -328,13 +336,7 @@ func (p *messageProcessor) compressMessage(ctx context.Context, msg *types.Messa
 	return ctx, nil
 }
 
-func (p *messageProcessor) issueCheques(
-	ctx context.Context,
-	msg *types.Message,
-	serviceFee *big.Int,
-	recipientCMAccAddr common.Address,
-	recipientBotAddr common.Address,
-) error {
+func (p *messageProcessor) issueNetworkCheque(ctx context.Context, msg *types.Message) error {
 	numberOfChunks := big.NewInt(int64(len(msg.CompressedContent)))
 	totalNetworkFee := new(big.Int).Mul(networkFee, numberOfChunks)
 
@@ -351,6 +353,17 @@ func (p *messageProcessor) issueCheques(
 		return err
 	}
 
+	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *networkFeeCheque)
+	return nil
+}
+
+func (p *messageProcessor) issueServiceCheque(
+	ctx context.Context,
+	msg *types.Message,
+	serviceFee *big.Int,
+	recipientCMAccAddr common.Address,
+	recipientBotAddr common.Address,
+) error {
 	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
 		p.cmAccountAddress,
@@ -364,7 +377,7 @@ func (p *messageProcessor) issueCheques(
 		return err
 	}
 
-	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *networkFeeCheque, *serviceFeeCheque)
+	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *serviceFeeCheque)
 	return nil
 }
 
