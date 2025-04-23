@@ -128,6 +128,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
+				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(errSomeError)
 			},
 			args: args{
@@ -157,6 +158,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
+				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
 				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			args: args{
@@ -417,19 +419,20 @@ func TestStart(t *testing.T) {
 	mockService.EXPECT().Name().Return("dummy").Times(2)
 
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
-	mockServiceRegistry.EXPECT().GetService(gomock.Any()).AnyTimes().Return(mockService, true)
+	mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true).AnyTimes()
 
 	mockCMAccounts := cmaccounts.NewMockService(mockCtrl)
-	mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(big.NewInt(1), nil)
+	mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil).Times(2)
 
 	mockChequeHandler := chequehandler.NewMockChequeHandler(mockCtrl)
-	mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
+	mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
+	mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil).Times(2)
 
 	mockPartnerPlugin := partnerplugin.NewMockPartnerPlugin(mockCtrl)
 	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
 	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
 	mockMessenger := NewMockMessenger(mockCtrl)
-	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(nil)
+	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
 
 	ch := make(chan types.Message, 5) // incoming messages
 
