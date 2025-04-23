@@ -277,7 +277,7 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 	}
 
 	if err := p.issueNetworkCheque(ctx, responseMsg); err != nil {
-		return err // TODO@ what should we do if we failed to issue response network fee cheque? we can't send response message, even with just error header
+		return err
 	}
 
 	return p.messenger.SendAsync(ctx, responseMsg, requestMsg.SenderBotUserID)
