@@ -351,7 +351,12 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	g.Go(func() error {
+		if !awaitChan(gCtx, cashInStatusCheckDone) {
+			return nil
+		}
+
 		a.logger.Info("Starting scheduler...")
+
 		if err := a.scheduler.Schedule(gCtx, a.cfg.CashInPeriod, cashInJobName); err != nil {
 			return fmt.Errorf("failed to schedule cash in job: %w", err)
 		}
@@ -393,7 +398,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		g.Go(func() error {
-			if !awaitChans(gCtx, messengerReceiverStarted) {
+			if !awaitChan(gCtx, messengerReceiverStarted) {
 				return nil
 			}
 

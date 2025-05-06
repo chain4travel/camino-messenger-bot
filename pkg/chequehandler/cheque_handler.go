@@ -179,7 +179,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		ch.logger.Errorf("failed to verify cheque with smart contract: %v", err)
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 	} else if !isChequeValid {
-		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot)
+		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot) // TODO@ maybe should be from? or to? to remove field, since its not used by asb
 		if err != nil {
 			ch.logger.Errorf("failed to get last cash in: %v", err)
 			return nil, fmt.Errorf("failed to get last cash in: %w", err)
@@ -219,7 +219,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 	ctx context.Context,
 	cheque *cheques.SignedCheque,
 	sender common.Address,
-	serviceFee *big.Int,
+	expectedAmountIncrement *big.Int,
 ) error {
 	session, err := ch.storage.NewSession(ctx)
 	if err != nil {
@@ -261,8 +261,8 @@ func (ch *evmChequeHandler) VerifyCheque(
 	}
 
 	amountDiff := big.NewInt(0).Sub(cheque.Amount, oldAmount)
-	if amountDiff.Cmp(serviceFee) < 0 { // amountDiff < serviceFee
-		return fmt.Errorf("cheque amount must at least cover serviceFee")
+	if amountDiff.Cmp(expectedAmountIncrement) < 0 { // amountDiff < expectedAmountIncrement
+		return fmt.Errorf("cheque amount must at least cover expectedAmountIncrement")
 	}
 
 	if valid, err := ch.cmAccounts.VerifyCheque(ctx, cheque); err != nil {
