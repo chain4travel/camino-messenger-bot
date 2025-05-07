@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"strings"
 	"sync"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -81,7 +81,7 @@ func NewMessageProcessor(
 		compressor:                          compressor,
 		cmAccounts:                          cmAccounts,
 		matrixHost:                          botUserID.Homeserver(),
-		myBotAddress:                        addressFromUserID(botUserID),
+		myBotAddress:                        matrix.AddressFromUserID(botUserID),
 		botUserID:                           botUserID,
 		cmAccountAddress:                    cmAccountAddress,
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
@@ -212,7 +212,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	if err := p.messenger.SendAsync(
 		ctx,
 		requestMsg,
-		UserIDFromAddress(recipientBotAddr, p.matrixHost),
+		matrix.UserIDFromAddress(recipientBotAddr, p.matrixHost),
 	); err != nil {
 		return nil, err
 	}
@@ -260,7 +260,7 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 		return err
 	}
 
-	if err := p.chequeHandler.VerifyCheque(ctx, cheque, addressFromUserID(requestMsg.SenderBotUserID), serviceFee); err != nil {
+	if err := p.chequeHandler.VerifyCheque(ctx, cheque, matrix.AddressFromUserID(requestMsg.SenderBotUserID), serviceFee); err != nil {
 		return err
 	}
 	requestMsg.Metadata.SenderCMAccount = cheque.FromCMAccount.Hex()
@@ -396,12 +396,4 @@ func (p *messageProcessor) deleteResponseChannel(requestID string) {
 	p.responseChannelsLock.Lock()
 	defer p.responseChannelsLock.Unlock()
 	delete(p.responseChannels, requestID)
-}
-
-func UserIDFromAddress(address common.Address, host string) id.UserID {
-	return id.NewUserID(strings.ToLower(address.Hex()), host)
-}
-
-func addressFromUserID(userID id.UserID) common.Address {
-	return common.HexToAddress(userID.Localpart())
 }

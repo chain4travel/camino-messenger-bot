@@ -35,6 +35,7 @@ import (
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
+	matrixPkg "github.com/chain4travel/camino-messenger-bot/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
 	scheduler_storage "github.com/chain4travel/camino-messenger-bot/pkg/scheduler/storage/sqlite"
 )
@@ -236,7 +237,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	matrixHostname = u.Hostname()
 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
-	botUserID := messaging.UserIDFromAddress(botAddress, matrixHostname)
+	botUserID := matrixPkg.UserIDFromAddress(botAddress, matrixHostname)
 
 	messageProcessor := messaging.NewMessageProcessor(
 		matrixMessenger,

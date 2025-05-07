@@ -114,13 +114,14 @@ func NewChequeHandler(
 	}, nil
 }
 
+// TODO@ can any bot from cm acc receive cheque? or only toBot from cheque?
 type evmChequeHandler struct {
 	logger *zap.SugaredLogger
 
 	chainID                          *big.Int
 	txReceiptGetter                  TxReceiptGetter
-	cmAccountAddress                 common.Address
-	botKey                           *ecdsa.PrivateKey
+	cmAccountAddress                 common.Address    // cheque issuer, cheque recipient
+	botKey                           *ecdsa.PrivateKey // cheque signer, cheque recipient
 	botAddress                       common.Address
 	signer                           cheques.Signer
 	storage                          Storage
@@ -216,7 +217,7 @@ func (ch *evmChequeHandler) IssueCheque(
 func (ch *evmChequeHandler) VerifyCheque(
 	ctx context.Context,
 	cheque *cheques.SignedCheque,
-	sender common.Address,
+	fromBot common.Address,
 	expectedAmountIncrement *big.Int,
 ) error {
 	session, err := ch.storage.NewSession(ctx)
@@ -232,7 +233,7 @@ func (ch *evmChequeHandler) VerifyCheque(
 		return err
 	}
 
-	if sender != crypto.PubkeyToAddress(*chequeIssuerPubKey) {
+	if fromBot != crypto.PubkeyToAddress(*chequeIssuerPubKey) {
 		return fmt.Errorf("cheque issuer does not match sender")
 	}
 
