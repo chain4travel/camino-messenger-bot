@@ -40,3 +40,5 @@ echo "Max: $max"
 echo "Median: $median"
 echo "Average: $average"
 echo "Total: $total"
+
+# TODO@ is it used? where?
