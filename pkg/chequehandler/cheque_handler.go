@@ -77,7 +77,7 @@ type ChequeHandler interface {
 		ctx context.Context,
 		cheque *cheques.SignedCheque,
 		sender common.Address,
-		serviceFee *big.Int,
+		expectedAmountIncrement *big.Int,
 	) error
 }
 
