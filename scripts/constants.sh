@@ -8,7 +8,7 @@ current_branch_temp=$(git symbolic-ref -q --short HEAD || git describe --tags --
 # replace / with - to be a docker tag compatible
 current_branch=${current_branch_temp////-}
 
-# camino-messenger-bot and caminoethvm git tag and sha
+# camino-messenger-bot git tag and sha
 git_commit=${CAMINO_BOT_COMMIT:-$(git rev-parse --short HEAD)}
 git_tag=${CAMINO_BOT_TAG:-$(git describe --tags --always --dirty || echo unknown)}
 
