@@ -110,7 +110,7 @@ func testMintV2MintV2ExpectedError(
 	}
 	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)

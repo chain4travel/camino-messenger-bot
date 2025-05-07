@@ -64,7 +64,6 @@ type TxReceiptGetter interface {
 type ChequeHandler interface {
 	IssueCheque(
 		ctx context.Context,
-		fromCmAccount common.Address,
 		toCmAccount common.Address,
 		toBot common.Address,
 		amount *big.Int,
@@ -133,7 +132,6 @@ type evmChequeHandler struct {
 
 func (ch *evmChequeHandler) IssueCheque(
 	ctx context.Context,
-	fromCMAccount common.Address,
 	toCMAccount common.Address,
 	toBot common.Address,
 	amount *big.Int,
@@ -147,7 +145,7 @@ func (ch *evmChequeHandler) IssueCheque(
 
 	now := big.NewInt(time.Now().Unix())
 	newCheque := &cheques.Cheque{
-		FromCMAccount: fromCMAccount,
+		FromCMAccount: ch.cmAccountAddress,
 		ToCMAccount:   toCMAccount,
 		ToBot:         toBot,
 		Counter:       big.NewInt(0),
@@ -179,7 +177,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		ch.logger.Errorf("failed to verify cheque with smart contract: %v", err)
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 	} else if !isChequeValid {
-		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot) // TODO@ maybe should be from? or to? to remove field, since its not used by asb
+		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot)
 		if err != nil {
 			ch.logger.Errorf("failed to get last cash in: %v", err)
 			return nil, fmt.Errorf("failed to get last cash in: %w", err)

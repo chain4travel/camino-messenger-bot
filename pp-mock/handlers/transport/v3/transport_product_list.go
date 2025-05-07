@@ -57,7 +57,7 @@ func (s *transportProductListV3Server) TransportProductList(ctx context.Context,
 		}}
 	}
 
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
 		log.Printf("Failed to set header: %v", err)

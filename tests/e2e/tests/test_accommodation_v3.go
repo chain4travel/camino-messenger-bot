@@ -86,7 +86,7 @@ func testAccommodationV3ProductListService(
 	}
 	resp, err := distributorBot.AccommodationProductListServiceV3.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -127,7 +127,7 @@ func testAccommodationV3ProductListServiceWithFilter(
 	}
 	resp, err := distributorBot.AccommodationProductListServiceV3.AccommodationProductList(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -163,7 +163,7 @@ func testAccommodationV3ProductInfoService(
 	}
 	resp, err := distributorBot.AccommodationProductInfoServiceV3.AccommodationProductInfo(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -220,7 +220,7 @@ func testAccommodationV3SearchServiceWithoutCurrency(
 	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -254,7 +254,7 @@ func testAccommodationV3SearchServiceWithoutTravelPeriod(
 	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -296,7 +296,7 @@ func testAccommodationV3SearchServiceTravelPeriodOutOfBounds(
 	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -338,7 +338,7 @@ func testAccommodationV3SearchServiceTravelPeriodReversed(
 	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -383,7 +383,7 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 	}
 	resp, err := distributorBot.AccommodationSearchServiceV3.AccommodationSearch(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -444,7 +444,7 @@ func testAccommodationV3ValidateV2(
 	}
 	resp, err := distributorBot.ValidationServiceV2.Validation(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
@@ -495,7 +495,7 @@ func testAccommodationV3MintV2(
 	}
 	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)

@@ -60,7 +60,7 @@ func (s *mintServiceV1Server) Mint(ctx context.Context, req *bookv1.MintRequest)
 		},
 	}
 
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
 		log.Printf("Failed to set header: %v", err)

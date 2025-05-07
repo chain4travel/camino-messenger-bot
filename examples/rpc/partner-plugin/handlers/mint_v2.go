@@ -83,7 +83,7 @@ func (*MintServiceV2Server) Mint(ctx context.Context, _ *bookv2.MintRequest) (*b
 		BookingTokenUri: "https://example.com/booking-token",
 	}
 
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }

@@ -71,18 +71,18 @@ func (mr *MockChequeHandlerMockRecorder) CheckCashInStatus(arg0 any) *gomock.Cal
 }
 
 // IssueCheque mocks base method.
-func (m *MockChequeHandler) IssueCheque(arg0 context.Context, arg1, arg2, arg3 common.Address, arg4 *big.Int) (*cheques.SignedCheque, error) {
+func (m *MockChequeHandler) IssueCheque(arg0 context.Context, arg1, arg2 common.Address, arg3 *big.Int) (*cheques.SignedCheque, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueCheque", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "IssueCheque", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*cheques.SignedCheque)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IssueCheque indicates an expected call of IssueCheque.
-func (mr *MockChequeHandlerMockRecorder) IssueCheque(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockChequeHandlerMockRecorder) IssueCheque(arg0, arg1, arg2, arg3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueCheque", reflect.TypeOf((*MockChequeHandler)(nil).IssueCheque), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueCheque", reflect.TypeOf((*MockChequeHandler)(nil).IssueCheque), arg0, arg1, arg2, arg3)
 }
 
 // VerifyCheque mocks base method.

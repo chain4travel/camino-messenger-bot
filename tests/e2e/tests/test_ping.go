@@ -45,7 +45,7 @@ func testPingV1Service(ctx context.Context, t *testing.T, tt *Test, distributorB
 	}
 	resp, err := distributorBot.PingServiceV1.Ping(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)

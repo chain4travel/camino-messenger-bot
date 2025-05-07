@@ -79,7 +79,7 @@ func (*MintServiceV1Server) Mint(ctx context.Context, _ *bookv1.MintRequest) (*b
 		Price: priceConfigMintV1.Token, // change to Token or Offchain to test different scenarios
 	}
 
-	log.Printf("CMAccount %s received request from CMAccount %s", md.Recipient, md.Sender)
+	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return &response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }

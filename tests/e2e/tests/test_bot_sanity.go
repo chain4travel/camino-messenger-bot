@@ -133,7 +133,7 @@ func testBotSanitySendCommonRequest(ctx context.Context, pingMessage string, dis
 	}
 	_, err := distributorBot.PingServiceV1.Ping(
 		requestContext(ctx, &metadata.Metadata{
-			Recipient: supplierBot.CMAccountAddress().Hex(),
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
 		}),
 		req,
 	)
