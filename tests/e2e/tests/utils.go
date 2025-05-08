@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	messageMetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	messageMetadata "github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"

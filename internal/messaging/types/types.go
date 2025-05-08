@@ -7,7 +7,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"maunium.net/go/mautrix/id"

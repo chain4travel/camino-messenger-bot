@@ -18,10 +18,10 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	internalmetadata "github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
+	grpcMetadata "google.golang.org/grpc/metadata"
 
 	"github.com/chain4travel/camino-messenger-bot/config"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
@@ -97,14 +97,14 @@ func createClientAndRunRequest(
 		},
 	}
 
-	md := metadata.New(map[string]string{
+	md := grpcMetadata.New(map[string]string{
 		"recipient": recipient,
 	})
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	ctx := grpcMetadata.NewOutgoingContext(context.Background(), md)
 
 	ass := accommodationv1grpc.NewAccommodationSearchServiceClient(c.ClientConn)
 	begin := time.Now()
-	var header metadata.MD
+	var header grpcMetadata.MD
 	resp, err := ass.AccommodationSearch(ctx, request, grpc.Header(&header))
 	if err != nil {
 		sLogger.Errorf("error when performing search: %v", err)
@@ -112,7 +112,7 @@ func createClientAndRunRequest(
 	}
 	totalTime := time.Since(begin)
 	fmt.Printf("Total time|%s|%s\n", resp.Metadata.SearchId, totalTime)
-	metadata := &internalmetadata.Metadata{}
+	metadata := &metadata.Metadata{}
 	err = metadata.FromGrpcMD(header)
 	if err != nil {
 		sLogger.Errorf("error extracting metadata: %v", err)
@@ -127,7 +127,7 @@ func addToDataset(
 	counter int64,
 	totalTime int64,
 	resp *accommodationv1.AccommodationSearchResponse,
-	metadata *internalmetadata.Metadata,
+	metadata *metadata.Metadata,
 	loadTestData [][]string,
 	mu *sync.Mutex,
 ) {

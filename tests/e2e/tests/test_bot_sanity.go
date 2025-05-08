@@ -10,9 +10,9 @@ import (
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/blockchain"
 	"github.com/chain4travel/camino-messenger-bot/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"

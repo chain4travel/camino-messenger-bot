@@ -12,11 +12,11 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/internal/local"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/internal/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/proto/pb/readiness"
 
 	"go.opentelemetry.io/otel/trace"

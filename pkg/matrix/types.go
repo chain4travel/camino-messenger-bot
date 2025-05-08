@@ -7,9 +7,9 @@ import (
 	"reflect"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
 	"github.com/chain4travel/camino-messenger-bot/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"maunium.net/go/mautrix/event"

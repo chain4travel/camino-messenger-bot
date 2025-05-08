@@ -114,7 +114,6 @@ func NewChequeHandler(
 	}, nil
 }
 
-// TODO@ can any bot from cm acc receive cheque? or only toBot from cheque?
 type evmChequeHandler struct {
 	logger *zap.SugaredLogger
 

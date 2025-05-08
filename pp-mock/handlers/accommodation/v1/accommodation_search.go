@@ -12,7 +12,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/internal/metadata"
+	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
 	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
 	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
