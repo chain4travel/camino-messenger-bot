@@ -34,7 +34,6 @@ var (
 )
 
 type Server interface {
-	metadata.Checkpoint
 	Start() error
 	Stop()
 }

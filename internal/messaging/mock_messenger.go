@@ -41,20 +41,6 @@ func (m *MockMessenger) EXPECT() *MockMessengerMockRecorder {
 	return m.recorder
 }
 
-// Checkpoint mocks base method.
-func (m *MockMessenger) Checkpoint() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Checkpoint")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// Checkpoint indicates an expected call of Checkpoint.
-func (mr *MockMessengerMockRecorder) Checkpoint() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Checkpoint", reflect.TypeOf((*MockMessenger)(nil).Checkpoint))
-}
-
 // Inbound mocks base method.
 func (m *MockMessenger) Inbound() chan types.Message {
 	m.ctrl.T.Helper()

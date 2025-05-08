@@ -14,10 +14,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type Checkpoint interface {
-	Checkpoint() string
-}
-
 type Metadata struct {
 	RequestID          string                 `json:"request_id"`
 	SenderCMAccount    string                 `json:"sender"`

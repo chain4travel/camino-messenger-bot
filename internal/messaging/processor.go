@@ -19,7 +19,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
-	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -46,8 +45,6 @@ var (
 )
 
 type MessageProcessor interface {
-	metadata.Checkpoint
-
 	Start(ctx context.Context)
 	ProcessIncomingMessage(message *types.Message) error
 	SendRequestMessage(ctx context.Context, message *types.Message) (*types.Message, error)

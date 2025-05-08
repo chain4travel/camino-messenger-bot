@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
 	"maunium.net/go/mautrix/id"
 )
 
@@ -16,8 +15,6 @@ type APIMessageResponse struct {
 	Err     error
 }
 type Messenger interface {
-	metadata.Checkpoint
-
 	// start receiving messages. Returns the user id
 	StartReceiver() (id.UserID, error)
 
