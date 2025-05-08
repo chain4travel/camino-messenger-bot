@@ -12,8 +12,8 @@ import (
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/ethereum/go-ethereum/common"
 )
 

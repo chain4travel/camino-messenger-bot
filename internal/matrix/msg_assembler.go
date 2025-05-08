@@ -9,8 +9,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/pkg/matrix"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 )
 
 var (

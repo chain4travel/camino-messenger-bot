@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/v11/config"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/utils/tls"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"

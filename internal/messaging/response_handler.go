@@ -13,10 +13,10 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	eventlistener "github.com/chain4travel/camino-messenger-bot/internal/event_listener"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/pkg/erc20"
+	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/erc20"
 
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"

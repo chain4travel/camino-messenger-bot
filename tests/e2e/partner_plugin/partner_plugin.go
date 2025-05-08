@@ -18,8 +18,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
 )
 
 const requestTickerInterval = 500 * time.Millisecond

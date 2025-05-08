@@ -22,7 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	e2eCommon "github.com/chain4travel/camino-messenger-bot/tests/e2e/common"
+	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 )
 
 var evmAdminFunds = big.NewInt(0).Mul(big.NewInt(1_000_000), e2eCommon.CAM)

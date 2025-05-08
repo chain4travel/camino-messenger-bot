@@ -3,7 +3,7 @@
 package generated
 
 import (
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"google.golang.org/grpc"
 )
 

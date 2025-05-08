@@ -5,7 +5,7 @@ package generated
 
 import (
 	"{{GRPC_INC}}"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 
 	"google.golang.org/grpc"
 )

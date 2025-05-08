@@ -11,8 +11,8 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 )
 
 var _ pingv1grpc.PingServiceServer = (*pingServiceV1Server)(nil)

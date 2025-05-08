@@ -9,8 +9,8 @@ import (
 
 	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"

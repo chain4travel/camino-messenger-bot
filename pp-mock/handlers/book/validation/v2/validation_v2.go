@@ -14,9 +14,9 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"google.golang.org/grpc"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/pp-mock/events"
-	"github.com/chain4travel/camino-messenger-bot/pp-mock/handlers/state"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	"github.com/google/uuid"
 )
 

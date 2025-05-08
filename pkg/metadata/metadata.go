@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"google.golang.org/grpc/metadata"
 )
 

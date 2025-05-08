@@ -6,7 +6,7 @@ package chequehandler
 import (
 	"math/big"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 )
 

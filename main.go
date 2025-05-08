@@ -6,7 +6,7 @@ package main
 import (
 	"log"
 
-	"github.com/chain4travel/camino-messenger-bot/cmd"
+	"github.com/chain4travel/camino-messenger-bot/v11/cmd"
 )
 
 func main() {

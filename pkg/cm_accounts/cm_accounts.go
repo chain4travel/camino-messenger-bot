@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 

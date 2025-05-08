@@ -27,9 +27,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
-	e2eCommon "github.com/chain4travel/camino-messenger-bot/tests/e2e/common"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/resources"
+	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
 
 const (

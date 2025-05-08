@@ -6,7 +6,7 @@ package handlers
 import (
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	common "github.com/chain4travel/camino-messenger-bot/pp-mock/handlers"
+	common "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers"
 	"google.golang.org/protobuf/proto"
 )
 

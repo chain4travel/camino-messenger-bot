@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 )
 
 var (

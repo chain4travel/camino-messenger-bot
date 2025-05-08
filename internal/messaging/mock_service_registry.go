@@ -12,8 +12,8 @@ package messaging
 import (
 	reflect "reflect"
 
-	types "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	rpc "github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	gomock "go.uber.org/mock/gomock"
 )
 

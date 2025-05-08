@@ -12,7 +12,7 @@ import (
 	"github.com/chain4travel/caminogoeth-compat/caminogo/info"
 	"go.uber.org/zap"
 
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
 )
 
 const nodeRequestTickerInterval = 500 * time.Millisecond

@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	e2ecommon "github.com/chain4travel/camino-messenger-bot/tests/e2e/common"
+	e2ecommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenoperator"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"

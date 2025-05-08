@@ -8,8 +8,8 @@ import (
 	"database/sql"
 	"errors"
 
-	eventlistener "github.com/chain4travel/camino-messenger-bot/internal/event_listener"
-	"github.com/chain4travel/camino-messenger-bot/pkg/database/sqlite"
+	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // sql driver, required

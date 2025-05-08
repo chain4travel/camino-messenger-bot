@@ -9,7 +9,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
 

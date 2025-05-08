@@ -6,7 +6,7 @@ package messaging
 import (
 	"context"
 
-	"github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"maunium.net/go/mautrix/id"
 )
 

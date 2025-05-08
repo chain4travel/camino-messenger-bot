@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/scheduler"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/scheduler"
 	"github.com/jmoiron/sqlx"
 )
 

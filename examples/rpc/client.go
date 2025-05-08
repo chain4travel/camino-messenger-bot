@@ -18,13 +18,13 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
-	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpcMetadata "google.golang.org/grpc/metadata"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/v11/config"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
 )
 
 func main() {

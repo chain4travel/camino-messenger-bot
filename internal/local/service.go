@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )

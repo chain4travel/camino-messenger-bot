@@ -17,8 +17,8 @@ import (
 	"github.com/chain4travel/caminogoeth-compat/caminogo/secp256k1"
 	"github.com/stretchr/testify/require"
 
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/runner"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/tests"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/runner"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/tests"
 )
 
 const (

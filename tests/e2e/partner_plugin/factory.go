@@ -17,10 +17,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
-	"github.com/chain4travel/camino-messenger-bot/pp-mock/proto/pb/events"
-	ppmock "github.com/chain4travel/camino-messenger-bot/pp-mock/server"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/resources"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
+	ppmock "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/server"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
 
 func NewFactory(

@@ -19,9 +19,9 @@ import (
 	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
 
-	types "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	rpc "github.com/chain4travel/camino-messenger-bot/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/internal/rpc/client"
+	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
 )
 
 var _ PartnerPlugin = (*partnerPlugin)(nil)

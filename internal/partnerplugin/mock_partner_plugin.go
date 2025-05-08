@@ -14,8 +14,8 @@ import (
 	big "math/big"
 	reflect "reflect"
 
-	types "github.com/chain4travel/camino-messenger-bot/internal/messaging/types"
-	rpc "github.com/chain4travel/camino-messenger-bot/internal/rpc"
+	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "go.uber.org/mock/gomock"
 )

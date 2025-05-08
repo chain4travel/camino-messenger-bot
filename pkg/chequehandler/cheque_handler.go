@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/pkg/cheques"
-	cmaccounts "github.com/chain4travel/camino-messenger-bot/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"

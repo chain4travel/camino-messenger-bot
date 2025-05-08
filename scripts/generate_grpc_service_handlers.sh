@@ -168,7 +168,7 @@ function generate_register_services_server() {
 		echo "package generated"
 		echo
 		echo "import ("
-		echo "    \"github.com/chain4travel/camino-messenger-bot/internal/rpc\""
+		echo "    \"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc\""
 		echo "    \"google.golang.org/grpc\""
 		echo ")"
 		echo
@@ -192,8 +192,8 @@ function generate_register_services_client() {
 		echo "package generated"
 		echo
 		echo "import ("
-		echo "    \"github.com/chain4travel/camino-messenger-bot/internal/messaging/types\""
-		echo "    \"github.com/chain4travel/camino-messenger-bot/internal/rpc\""
+		echo "    \"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types\""
+		echo "    \"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc\""
 		echo "    \"google.golang.org/grpc\""
 		echo ")"
 		echo
@@ -227,7 +227,7 @@ function generate_unmarshalling() {
 		for include in "${_PROTO_INCLUDES[@]}" ; do
 			echo "    \"${include}\""
 		done
-		echo "    \"github.com/chain4travel/camino-messenger-bot/internal/messaging/types\""
+		echo "    \"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types\""
 		echo "    \"google.golang.org/protobuf/proto\""
 		echo "    \"google.golang.org/protobuf/reflect/protoreflect\""
 		echo ")"

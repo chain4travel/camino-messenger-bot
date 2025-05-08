@@ -23,15 +23,15 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"gopkg.in/yaml.v3"
 
-	"github.com/chain4travel/camino-messenger-bot/config"
-	"github.com/chain4travel/camino-messenger-bot/proto/pb/readiness"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/blockchain"
-	e2eGenerated "github.com/chain4travel/camino-messenger-bot/tests/e2e/bot/generated"
-	e2eCommon "github.com/chain4travel/camino-messenger-bot/tests/e2e/common"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/matrix"
-	partnerplugin "github.com/chain4travel/camino-messenger-bot/tests/e2e/partner_plugin"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/process"
-	"github.com/chain4travel/camino-messenger-bot/tests/e2e/resources"
+	"github.com/chain4travel/camino-messenger-bot/v11/config"
+	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
+	e2eGenerated "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot/generated"
+	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
+	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
 
 type CMService struct {

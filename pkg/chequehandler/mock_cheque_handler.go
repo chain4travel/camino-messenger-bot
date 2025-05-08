@@ -14,7 +14,7 @@ import (
 	big "math/big"
 	reflect "reflect"
 
-	cheques "github.com/chain4travel/camino-messenger-bot/pkg/cheques"
+	cheques "github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "go.uber.org/mock/gomock"
 )
