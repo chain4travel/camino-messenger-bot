@@ -31,8 +31,8 @@ import (
 )
 
 var (
-	userID        = id.UserID("userID")
-	anotherUserID = "anotherUserID"
+	userID        = id.UserID("0x4626cb544230e4d13fb72950501ff91740116a0a:localhost")
+	cmAccountAddr = "0x25a113a7bba8f898c546f1ebf2331b086645f40f"
 	requestID     = "requestID"
 	errSomeError  = errors.New("some error")
 
@@ -55,7 +55,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 		Type: generated.PingServiceV1Response,
 		Metadata: metadata.Metadata{
 			RequestID:       requestID,
-			SenderCMAccount: anotherUserID,
+			SenderCMAccount: cmAccountAddr,
 			Cheques:         []cheques.SignedCheque{},
 		},
 	}
@@ -90,7 +90,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 		"err: invalid message type": {
 			fields: fields{},
 			args: args{
-				msg: &types.Message{Type: "invalid", Metadata: metadata.Metadata{SenderCMAccount: anotherUserID, Cheques: []cheques.SignedCheque{}}},
+				msg: &types.Message{Type: "invalid", Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{}}},
 			},
 			err: ErrUnknownMessageCategory,
 		},
@@ -105,7 +105,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				msg: &types.Message{
 					Type: generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{
-						SenderCMAccount: anotherUserID,
+						SenderCMAccount: cmAccountAddr,
 						Cheques:         []cheques.SignedCheque{},
 					},
 				},
@@ -135,7 +135,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				msg: &types.Message{
 					Type: generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{
-						SenderCMAccount: anotherUserID,
+						SenderCMAccount: cmAccountAddr,
 						Cheques:         []cheques.SignedCheque{dummyCheque},
 					},
 				},
@@ -165,7 +165,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				msg: &types.Message{
 					Type: generated.PingServiceV1Request,
 					Metadata: metadata.Metadata{
-						SenderCMAccount: anotherUserID,
+						SenderCMAccount: cmAccountAddr,
 						Cheques:         []cheques.SignedCheque{dummyCheque},
 					},
 				},
@@ -299,7 +299,7 @@ func TestSendRequestMessage(t *testing.T) {
 			args: args{
 				msg: &types.Message{
 					Type:     generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{RecipientCMAccount: anotherUserID},
+					Metadata: metadata.Metadata{RecipientCMAccount: cmAccountAddr},
 				},
 			},
 			prepare: func() {
@@ -324,7 +324,7 @@ func TestSendRequestMessage(t *testing.T) {
 			args: args{
 				msg: &types.Message{
 					Type:     generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{RecipientCMAccount: anotherUserID},
+					Metadata: metadata.Metadata{RecipientCMAccount: cmAccountAddr},
 				},
 			},
 			prepare: func() {
@@ -351,7 +351,7 @@ func TestSendRequestMessage(t *testing.T) {
 			args: args{
 				msg: &types.Message{
 					Type:     generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{RecipientCMAccount: anotherUserID, RequestID: requestID},
+					Metadata: metadata.Metadata{RecipientCMAccount: cmAccountAddr, RequestID: requestID},
 				},
 			},
 			prepare: func() {
@@ -441,16 +441,16 @@ func TestStart(t *testing.T) {
 	// msg with sender == userID
 	ch <- types.Message{Metadata: metadata.Metadata{}, SenderBotUserID: userID}
 	// msg with sender == userID but without valid msgType
-	ch <- types.Message{Metadata: metadata.Metadata{SenderCMAccount: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}}}
+	ch <- types.Message{Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{dummyCheque}}}
 	// msg with sender == userID and valid msgType
 	ch <- types.Message{
 		Type:     generated.PingServiceV1Request,
-		Metadata: metadata.Metadata{SenderCMAccount: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
+		Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{dummyCheque}},
 	}
 	// 2nd msg with sender == userID and valid msgType
 	ch <- types.Message{
 		Type:     generated.AccommodationProductInfoServiceV2Request,
-		Metadata: metadata.Metadata{SenderCMAccount: anotherUserID, Cheques: []cheques.SignedCheque{dummyCheque}},
+		Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{dummyCheque}},
 	}
 
 	// mocks
