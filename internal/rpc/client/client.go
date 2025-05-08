@@ -46,7 +46,7 @@ func NewClient(cfg config.PartnerPluginConfig, logger *zap.SugaredLogger) (*RPCC
 	}, nil
 }
 
-func (rc *RPCClient) Checkpoint() string {
+func (rc *RPCClient) checkpoint() string {
 	return "ext-system-client"
 }
 

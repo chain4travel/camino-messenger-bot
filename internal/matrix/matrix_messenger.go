@@ -73,7 +73,7 @@ type client struct {
 	cryptoHelper *cryptohelper.CryptoHelper
 }
 
-func (m *messenger) Checkpoint() string {
+func (m *messenger) checkpoint() string {
 	return "messenger-gateway"
 }
 
@@ -103,7 +103,7 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 			return // partial messages are not passed down to the msgChannel
 		}
 		completeMsg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", completeMsg.MsgType), evt.Timestamp)
-		completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.Checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
+		completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
 		m.msgChannel <- types.Message{
 			Metadata:        completeMsg.Metadata,
 			Content:         completeMsg.Content,

@@ -40,10 +40,10 @@ func (s *service) HandleLocalRequest(
 	metadata *metadata.Metadata,
 	_ protoreflect.ProtoMessage,
 ) (protoreflect.ProtoMessage, error) {
-	metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "request"))
+	metadata.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "request"))
 	return nil, errors.New("not implemented")
 }
 
-func (*service) Checkpoint() string {
+func (*service) checkpoint() string {
 	return "service"
 }

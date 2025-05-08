@@ -92,7 +92,7 @@ type server struct {
 	readiness.UnimplementedReadinessServiceServer
 }
 
-func (*server) Checkpoint() string {
+func (*server) checkpoint() string {
 	return "request-gateway"
 }
 
@@ -124,7 +124,7 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 	if err != nil {
 		return nil, fmt.Errorf("error processing outbound request: %w", err)
 	}
-	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
+	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))
 
 	// TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 	return response.Content, grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
@@ -143,7 +143,7 @@ func (s *server) HandleLocalRequest(ctx context.Context, request protoreflect.Pr
 		return nil, fmt.Errorf("error processing request: %w", err)
 	}
 
-	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "processed"))
+	md.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))
 
 	// TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 	return response, grpc.SendHeader(ctx, md.ToGrpcMD())
@@ -153,7 +153,7 @@ func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadat
 	md := metadata.Metadata{
 		RequestID: id.String(),
 	}
-	md.Stamp(fmt.Sprintf("%s-%s", s.Checkpoint(), "received"))
+	md.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "received"))
 	err := md.ExtractMetadata(ctx)
 	return md, err
 }

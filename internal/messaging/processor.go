@@ -108,7 +108,7 @@ type messageProcessor struct {
 	cmAccounts           cmaccounts.Service
 }
 
-func (*messageProcessor) Checkpoint() string {
+func (*messageProcessor) checkpoint() string {
 	return "processor"
 }
 
@@ -285,7 +285,7 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	requestMsg *types.Message,
 	service rpc.Client,
 ) (context.Context, *types.Message) {
-	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.Checkpoint(), "request"))
+	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.checkpoint(), "request"))
 
 	ctx, responseMsg, err := p.partnerPlugin.DoServiceRequest(ctx, requestMsg, service)
 	if err != nil {
