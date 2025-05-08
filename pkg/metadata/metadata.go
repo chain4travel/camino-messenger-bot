@@ -104,22 +104,3 @@ func (m *Metadata) StampOn(checkpoint string, t int64) {
 	idx := len(m.Timestamps) // for analysis' sake, we want to know the order of the checkpoints
 	m.Timestamps[fmt.Sprintf("%d-%s", idx, checkpoint)] = t
 }
-
-func (m *Metadata) Verify() error {
-	if m.RequestID == "" {
-		return fmt.Errorf("request_id is empty")
-	}
-	if m.SenderCMAccount == "" {
-		return fmt.Errorf("sender is empty")
-	}
-	if m.RecipientCMAccount == "" {
-		return fmt.Errorf("recipient is empty")
-	}
-	if len(m.Cheques) == 0 {
-		return fmt.Errorf("cheques are empty")
-	}
-	if m.ChunkIndex >= m.NumberOfChunks {
-		return fmt.Errorf("provider_operator is empty")
-	}
-	return nil
-}
