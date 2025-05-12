@@ -25,7 +25,7 @@ type Bot struct {
 	logger           *zap.SugaredLogger
 	pid              int
 	cmAccountAddress common.Address
-	logfile          *os.File
+	logFile          *os.File
 
 	*rpcClient
 }
@@ -38,8 +38,8 @@ func (b *Bot) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop cmb process with pid %d: %w", b.pid, err)
 	}
 	b.logger.Debugf("Bot (pid %d) stopped", b.pid)
-	if err := b.logfile.Close(); err != nil {
-		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
+	if err := b.logFile.Close(); err != nil {
+		return fmt.Errorf("failed to close partner plugin logFile: %w", err)
 	}
 	return nil
 }

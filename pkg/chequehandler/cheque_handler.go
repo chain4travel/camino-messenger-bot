@@ -195,7 +195,8 @@ func (ch *evmChequeHandler) IssueCheque(
 			ch.logger.Errorf("failed to verify cheque with smart contract after getting last cash-in: %v", err)
 			return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 		} else if !isChequeValid {
-			ch.logger.Errorf("failed to issue valid cheque")
+			b, _ := signedCheque.MarshalJSON()
+			ch.logger.Errorf("failed to issue valid cheque: %s", string(b))
 			return nil, fmt.Errorf("failed to issue valid cheque")
 		}
 	}
@@ -348,10 +349,13 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 			continue
 		}
 
+		wg.Add(1)
 		go func(txID common.Hash) {
 			_ = ch.checkCashInStatus(context.Background(), txID)
 		}(chequeRecord.TxID)
 	}
+
+	wg.Wait()
 
 	return nil
 }
@@ -370,11 +374,16 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 		return err
 	}
 
+	wg := sync.WaitGroup{}
+
 	for _, chequeRecord := range chequeRecords {
+		wg.Add(1)
 		go func(txID common.Hash) {
 			_ = ch.checkCashInStatus(ctx, txID)
 		}(chequeRecord.TxID)
 	}
+
+	wg.Wait()
 
 	return nil
 }

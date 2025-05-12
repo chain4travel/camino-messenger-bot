@@ -280,13 +280,13 @@ func (n *Network) startNewNode(
 	if err := os.MkdirAll(nodeDir, 0o755); err != nil {
 		return nil, nil, fmt.Errorf("failed to create node directory: %w", err)
 	}
-	logfile, err := os.OpenFile(path.Join(nodeDir, fmt.Sprintf("node-%d.log", nodeIndex)), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	logFile, err := os.OpenFile(path.Join(nodeDir, fmt.Sprintf("node-%d.log", nodeIndex)), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create node log file: %w", err)
 	}
 
-	cmd.Stdout = logfile
-	cmd.Stderr = logfile
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
 
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start node (%d): %w", cmd.Process.Pid, err)
@@ -296,7 +296,7 @@ func (n *Network) startNewNode(
 		logger:  n.logger,
 		pid:     cmd.Process.Pid,
 		nodeURI: fmt.Sprintf("localhost:%d", httpPort),
-		logfile: logfile,
+		logFile: logFile,
 	}
 
 	// health check will fail if its 1 node network, so we're doing bootstrap check

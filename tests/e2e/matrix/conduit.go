@@ -83,13 +83,13 @@ func StartNewMatrixServer(
 		"CONDUIT_PORT="+strconv.Itoa(int(port)),
 	)
 
-	logfile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	logFile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create conduit server log file: %w", err)
 	}
 
-	cmd.Stdout = logfile
-	cmd.Stderr = logfile
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start matrix server (%d): %w", cmd.Process.Pid, err)
 	}
@@ -100,7 +100,7 @@ func StartNewMatrixServer(
 		matrixDir:            matrixDir,
 		client:               client,
 		networkFeeBotAddress: crypto.PubkeyToAddress(networkFeeKey.PublicKey),
-		logfile:              logfile,
+		logFile:              logFile,
 	}
 
 	if err := m.awaitReady(ctx); err != nil {
@@ -144,7 +144,7 @@ type Server struct {
 	client                     *mautrix.Client
 	networkFeeBotAddress       common.Address
 	networkFeeCMAccountAddress common.Address
-	logfile                    *os.File
+	logFile                    *os.File
 }
 
 func (m *Server) Host() *url.URL {
@@ -159,8 +159,8 @@ func (m *Server) Stop(ctx context.Context) error {
 	if err := process.StopProcess(ctx, m.pid); err != nil {
 		return fmt.Errorf("failed to stop matrix server process with pid %d: %w", m.pid, err)
 	}
-	if err := m.logfile.Close(); err != nil {
-		return fmt.Errorf("failed to close matrix server logfile: %w", err)
+	if err := m.logFile.Close(); err != nil {
+		return fmt.Errorf("failed to close matrix server logFile: %w", err)
 	}
 	m.logger.Debugf("Matrix server (pid %d) stopped", m.pid)
 	return nil

@@ -22,7 +22,7 @@ type Node struct {
 	pid     int
 	client  *Client
 	nodeURI string
-	logfile *os.File
+	logFile *os.File
 }
 
 func (n *Node) Stop(ctx context.Context) error {
@@ -30,8 +30,8 @@ func (n *Node) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to stop node process with pid %d: %w", n.pid, err)
 	}
 	n.logger.Debugf("Blockchain node (pid %d) stopped", n.pid)
-	if err := n.logfile.Close(); err != nil {
-		return fmt.Errorf("failed to close node logfile: %w", err)
+	if err := n.logFile.Close(); err != nil {
+		return fmt.Errorf("failed to close node logFile: %w", err)
 	}
 	return nil
 }

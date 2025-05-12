@@ -17,11 +17,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/go-viper/mapstructure/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"gopkg.in/yaml.v3"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
@@ -194,19 +192,9 @@ func (f *Factory) CreateBot(
 		return nil, nil, fmt.Errorf("failed to create bot data dir: %w", err)
 	}
 
-	unparsedMap := &map[string]any{}
-	if err := mapstructure.Decode(config, unparsedMap); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse config into map: %w", err)
-	}
-	configBytes, err := yaml.Marshal(unparsedMap)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal config map into yaml: %w", err)
-	}
-
 	configPath := path.Join(botDir, "config.yaml")
-
-	if err := os.WriteFile(configPath, configBytes, 0o600); err != nil {
-		return nil, nil, fmt.Errorf("failed to write config file: %w", err)
+	if err := e2eCommon.WriteYAMLConfig(config, configPath); err != nil {
+		return nil, nil, fmt.Errorf("failed to write bot config file: %w", err)
 	}
 
 	// Prepare grpc client for bot
@@ -223,12 +211,12 @@ func (f *Factory) CreateBot(
 
 	cmd := exec.Command(f.binPath, "--config", configPath) //nolint:gosec // this is a cmb binary, not some injection.
 
-	logfile, err := os.OpenFile(path.Join(botDir, "bot.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	logFile, err := os.OpenFile(path.Join(botDir, "bot.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open bot log file: %w", err)
 	}
-	cmd.Stdout = logfile
-	cmd.Stderr = logfile
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
 
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("failed to start bot (%d): %w", cmd.Process.Pid, err)
@@ -242,7 +230,7 @@ func (f *Factory) CreateBot(
 			Client:                 e2eGenerated.NewClient(clientConnection),
 		},
 		cmAccountAddress: cmAccountAddress,
-		logfile:          logfile,
+		logFile:          logFile,
 	}
 
 	// Await bot readiness

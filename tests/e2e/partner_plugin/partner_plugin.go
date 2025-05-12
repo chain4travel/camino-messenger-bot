@@ -49,7 +49,7 @@ func (pp *PartnerPlugin) Stop(ctx context.Context) error {
 	}
 	pp.logger.Debugf("Partner plugin (pid %d) stopped", pp.pid)
 	if err := pp.logFile.Close(); err != nil {
-		return fmt.Errorf("failed to close partner plugin logfile: %w", err)
+		return fmt.Errorf("failed to close partner plugin logFile: %w", err)
 	}
 	return nil
 }
