@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const dbName = "scheduler"
+const dbName = "event_listener"
 
 //go:embed migrations/*.sql
 var embedMigrations embed.FS
