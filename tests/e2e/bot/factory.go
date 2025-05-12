@@ -43,7 +43,8 @@ func NewFactory(
 	e2eTmpDir string,
 	binPath string,
 	networkClient *blockchain.Client,
-	matrix *matrix.Server,
+	matrix *matrix.ConduitServer,
+	asb *matrix.AppService,
 ) *Factory {
 	return &Factory{
 		logger:                 logger,
@@ -52,6 +53,7 @@ func NewFactory(
 		binPath:                binPath,
 		networkClient:          networkClient,
 		matrix:                 matrix,
+		asb:                    asb,
 	}
 }
 
@@ -62,7 +64,8 @@ type Factory struct {
 	dir                    string
 	binPath                string
 	networkClient          *blockchain.Client
-	matrix                 *matrix.Server
+	matrix                 *matrix.ConduitServer
+	asb                    *matrix.AppService
 	bots                   []*Bot
 }
 
@@ -161,8 +164,8 @@ func (f *Factory) CreateBot(
 		CMAccountAddress:                    cmAccountAddress.Hex(),
 		ChainRPCURL:                         f.networkClient.ChainRPCURL(),
 		BookingTokenAddress:                 f.networkClient.BookingTokenContractAddress().Hex(),
-		NetworkFeeRecipientBotAddress:       f.matrix.NetworkFeeRecipientBotAddress().Hex(),
-		NetworkFeeRecipientCMAccountAddress: f.matrix.NetworkFeeRecipientCMAccountAddress().Hex(),
+		NetworkFeeRecipientBotAddress:       f.asb.NetworkFeeRecipientBotAddress().Hex(),
+		NetworkFeeRecipientCMAccountAddress: f.asb.NetworkFeeRecipientCMAccountAddress().Hex(),
 		ChequeExpirationTime:                3600 * 24 * 30 * 7, // 7 months
 		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6, // 6 months
 		CashInPeriod:                        3600,               // 1h

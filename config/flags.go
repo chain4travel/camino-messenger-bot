@@ -16,7 +16,7 @@ const (
 func Flags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("config", pflag.ExitOnError)
 
-	flags.String(flagKeyConfig, "camino-messenger-bot.yaml", "path to config file dir")
+	flags.String(flagKeyConfig, "camino-messenger-bot.yaml", "path to config file")
 
 	// Main config flags
 	flags.Bool(flagKeyDeveloperMode, false, "Sets developer mode.")

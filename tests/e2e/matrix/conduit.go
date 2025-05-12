@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix"
@@ -23,7 +22,6 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
-	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
@@ -42,8 +40,8 @@ func init() {
 	// os.Setenv("CONDUIT_MAX_CONCURRENT_REQUESTS", "100")
 	// os.Setenv("CONDUIT_LOG", "debug,rocket=off,_=off,sled=off")
 	os.Setenv("CONDUIT_ADDRESS", "0.0.0.0")
-	os.Setenv("CONDUIT_NETWORK_ID", "1002")
 	os.Setenv("CONDUIT_LOG", "trace,rocket=off,_=off,sled=off")
+	os.Setenv("CONDUIT_CAMINO_NETWORK_ID", fmt.Sprintf("%d", blockchain.NetworkID))
 }
 
 func StartNewMatrixServer(
@@ -52,9 +50,8 @@ func StartNewMatrixServer(
 	resourceManagerSession *resources.Session,
 	dataDir string,
 	matrixBinPath string,
-	networkFeeKey *ecdsa.PrivateKey,
-	networkClient *blockchain.Client,
-) (*Server, chan error, error) {
+	appService *AppService,
+) (*ConduitServer, chan error, error) {
 	logger.Debug("Starting matrix server...")
 
 	matrixDir := path.Join(dataDir, "matrix")
@@ -81,6 +78,9 @@ func StartNewMatrixServer(
 	cmd.Env = append(os.Environ(),
 		"CONDUIT_DATABASE_PATH="+dbDir,
 		"CONDUIT_PORT="+strconv.Itoa(int(port)),
+		"CONDUIT_CAMINO_APP_SERVICE_URL="+appService.Host(),
+		"CONDUIT_CAMINO_APP_SERVICE_HS_TOKEN="+appService.HSAccessToken(),
+		"CONDUIT_CAMINO_APP_SERVICE_AS_TOKEN="+appService.ASAccessToken(),
 	)
 
 	logFile, err := os.OpenFile(matrixDir+"/conduit-server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
@@ -94,31 +94,16 @@ func StartNewMatrixServer(
 		return nil, nil, fmt.Errorf("failed to start matrix server (%d): %w", cmd.Process.Pid, err)
 	}
 
-	m := &Server{
-		logger:               logger,
-		pid:                  cmd.Process.Pid,
-		matrixDir:            matrixDir,
-		client:               client,
-		networkFeeBotAddress: crypto.PubkeyToAddress(networkFeeKey.PublicKey),
-		logFile:              logFile,
+	m := &ConduitServer{
+		logger:    logger,
+		pid:       cmd.Process.Pid,
+		matrixDir: matrixDir,
+		client:    client,
+		logFile:   logFile,
 	}
 
 	if err := m.awaitReady(ctx); err != nil {
 		return nil, nil, fmt.Errorf("failed to wait for matrix (%d) to be ready: %w", cmd.Process.Pid, err)
-	}
-
-	// TODO @evlekht move this to e2e ? wrap StartNewMatrixServer func with that logic? resolve when ASB is introduced in e2e
-	m.networkFeeCMAccountAddress, _, err = networkClient.CreateCMAccount(ctx, networkFeeKey)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create cm account: %w", err)
-	}
-
-	if err := networkClient.Transfer(ctx, networkClient.PrefundedKeys()[0], m.networkFeeBotAddress, e2eCommon.DefaultCMAccountOwnerFunds); err != nil {
-		return nil, nil, fmt.Errorf("failed to transfer funds to cm account owner: %w", err)
-	}
-
-	if err := networkClient.AddBotToCMAccount(ctx, m.networkFeeCMAccountAddress, networkFeeKey, m.networkFeeBotAddress); err != nil {
-		return nil, nil, fmt.Errorf("failed to add bot to CM account: %w", err)
 	}
 
 	logger.Debugf("Matrix server (pid %d) started", cmd.Process.Pid)
@@ -137,21 +122,19 @@ func StartNewMatrixServer(
 
 // Conduit server.
 // Not safe for concurrent use.
-type Server struct {
-	logger                     *zap.SugaredLogger
-	pid                        int
-	matrixDir                  string
-	client                     *mautrix.Client
-	networkFeeBotAddress       common.Address
-	networkFeeCMAccountAddress common.Address
-	logFile                    *os.File
+type ConduitServer struct {
+	logger    *zap.SugaredLogger
+	pid       int
+	matrixDir string
+	client    *mautrix.Client
+	logFile   *os.File
 }
 
-func (m *Server) Host() *url.URL {
+func (m *ConduitServer) Host() *url.URL {
 	return m.client.HomeserverURL
 }
 
-func (m *Server) Stop(ctx context.Context) error {
+func (m *ConduitServer) Stop(ctx context.Context) error {
 	if m == nil {
 		return nil
 	}
@@ -166,16 +149,8 @@ func (m *Server) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (m *Server) NetworkFeeRecipientBotAddress() common.Address {
-	return m.networkFeeBotAddress
-}
-
-func (m *Server) NetworkFeeRecipientCMAccountAddress() common.Address {
-	return m.networkFeeCMAccountAddress
-}
-
 // Will try to do periodic login
-func (m *Server) awaitReady(ctx context.Context) error {
+func (m *ConduitServer) awaitReady(ctx context.Context) error {
 	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client, []byte("meow"), path.Join(m.matrixDir, "client-db"))
 	if err != nil {
 		return fmt.Errorf("failed to create matrix crypto helper: %w", err)

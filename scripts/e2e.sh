@@ -4,11 +4,13 @@ set -e
 
 CAMINOGO_REPO="https://github.com/chain4travel/caminogo"
 CONDUIT_REPO="https://github.com/chain4travel/camino-conduit"
+ASB_REPO="https://github.com/chain4travel/camino-matrix-app-service"
 
 default_version="latest"
 
 CAMINOGO_VERSION="$default_version"
 CONDUIT_VERSION="$default_version"
+ASB_VERSION="$default_version"
 
 FALLBACK_BRANCH="dev"
 BUILD_SCRIPT="./scripts/build.sh"
@@ -26,6 +28,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --camino-conduit)
             CONDUIT_VERSION="$2"
+            shift 2
+            ;;
+        --asb)
+            ASB_VERSION="$2"
             shift 2
             ;;
 		--clean)
@@ -149,6 +155,9 @@ CAMINOGO_BIN_PATH="$OUT_BINARY"
 download_and_extract "camino-conduit" "$CONDUIT_VERSION" "$CONDUIT_REPO"
 MATRIX_BIN_PATH="$OUT_BINARY"
 
+download_and_extract "camino-matrix-app-service" "$ASB_VERSION" "$ASB_REPO"
+ASB_BIN_PATH="$OUT_BINARY"
+
 echo "Checking dependency binaries..."
 #CAMINOGO_BIN_PATH=$dependency_dir/caminogo/caminogo
 #MATRIX_BIN_PATH=$dependency_dir/camino-conduit/camino-conduit
@@ -160,6 +169,11 @@ fi
 
 if [ ! -f "$MATRIX_BIN_PATH" ] ; then
 	echo "CRIT: Unable to find camino-conduit executable in '$MATRIX_BIN_PATH'"
+	exit 1
+fi
+
+if [ ! -f "$ASB_BIN_PATH" ] ; then
+	echo "CRIT: Unable to find ASB executable in '$ASB_BIN_PATH'"
 	exit 1
 fi
 
@@ -177,6 +191,7 @@ CMB_BIN_PATH=build/camino-messenger-bot
 
 CAMINOGO_BIN_PATH="$(realpath "${CAMINOGO_BIN_PATH}")"
 MATRIX_BIN_PATH="$(realpath "${MATRIX_BIN_PATH}")"
+ASB_BIN_PATH="$(realpath "${ASB_BIN_PATH}")"
 PARTNER_PLUGIN_BIN_PATH="$(realpath "${PARTNER_PLUGIN_BIN_PATH}")"
 CMB_BIN_PATH="$(realpath "${CMB_BIN_PATH}")"
 
@@ -195,6 +210,7 @@ fi
 	-test.v \
 	-node="${CAMINOGO_BIN_PATH}" \
 	-matrix="${MATRIX_BIN_PATH}" \
+	-asb="${ASB_BIN_PATH}" \
 	-partner-plugin="${PARTNER_PLUGIN_BIN_PATH}" \
 	-cmb="${CMB_BIN_PATH}" \
 	"${ADD_PARAM[@]}"

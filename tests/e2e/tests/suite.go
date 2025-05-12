@@ -33,6 +33,7 @@ const (
 func NewSuite(
 	nodeBinPath string,
 	matrixBinPath string,
+	asbBinPath string,
 	partnerPluginBinPath string,
 	cmbBinPath string,
 	testsDataDir string,
@@ -64,6 +65,7 @@ func NewSuite(
 		resourcesManager:        resources.NewManager(10000, 50000, 10),
 		nodeBinPath:             nodeBinPath,
 		matrixBinPath:           matrixBinPath,
+		asbBinPath:              asbBinPath,
 		partnerPluginBinPath:    partnerPluginBinPath,
 		cmbBinPath:              cmbBinPath,
 		testsDataDir:            testsDataDir,
@@ -78,6 +80,7 @@ type Suite struct {
 	logger                  *zap.SugaredLogger
 	nodeBinPath             string
 	matrixBinPath           string
+	asbBinPath              string
 	partnerPluginBinPath    string
 	cmbBinPath              string
 	testsDataDir            string
@@ -124,14 +127,25 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 		expectNoErrorAsync(t, errChan)
 	}
 
+	tt.asb, errChan, err = matrix.StartNewAppService(
+		ctx,
+		s.logger,
+		tt.resourceManagerSession,
+		dataDir,
+		s.asbBinPath,
+		tt.networkFeeKey,
+		tt.caminoNetwork.Client,
+	)
+	require.NoError(t, err)
+	expectNoErrorAsync(t, errChan)
+
 	tt.matrix, errChan, err = matrix.StartNewMatrixServer(
 		ctx,
 		s.logger,
 		tt.resourceManagerSession,
 		dataDir,
 		s.matrixBinPath,
-		tt.networkFeeKey,
-		tt.caminoNetwork.Client,
+		tt.asb,
 	)
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
@@ -150,6 +164,7 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 		s.cmbBinPath,
 		tt.caminoNetwork.Client,
 		tt.matrix,
+		tt.asb,
 	)
 
 	return tt
@@ -172,6 +187,12 @@ func (s *Suite) Cleanup(t *testing.T, tt *Test) {
 	go func() {
 		defer wg.Done()
 		require.NoError(t, tt.partnerPluginFactory.StopPartnerPlugins(ctx))
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		require.NoError(t, tt.asb.Stop(ctx))
 	}()
 
 	wg.Add(1)

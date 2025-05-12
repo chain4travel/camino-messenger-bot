@@ -33,7 +33,8 @@ import (
 )
 
 const (
-	networkID     = 1005
+	NetworkID = 1005
+
 	defaultPFunds = 1_000_000 * units.Avax
 	defaultXFunds = 1_000_000 * units.Avax
 	defaultCFunds = 1_000_000 * units.Avax
@@ -42,7 +43,7 @@ const (
 var (
 	evmChainID  = big.NewInt(502)
 	evmChainIDs = map[uint32]*big.Int{
-		networkID: evmChainID,
+		NetworkID: evmChainID,
 	}
 	evmAdminContract        = common.HexToAddress("0x010000000000000000000000000000000000000a")
 	evmAddrStateKYCVerified = big.NewInt(ethadmin.KYC_VERIFIED)
@@ -130,7 +131,7 @@ func StartNewNetwork(
 		prefundedECDSAKeys[i] = prefundedKeys[i].ToECDSA()
 	}
 
-	genesis, err := generateGenesis(time.Now(), adminKey, validators, funds, networkID)
+	genesis, err := generateGenesis(time.Now(), adminKey, validators, funds, NetworkID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create genesis: %w", err)
 	}
@@ -141,7 +142,7 @@ func StartNewNetwork(
 		bootstrapIDsArg: strings.Join(bootstrapIDs, ","),
 		bootstrapIPsArg: strings.Join(bootstrapIPs, ","),
 		prefundedKeys:   prefundedECDSAKeys,
-		networkName:     strconv.Itoa(networkID),
+		networkName:     strconv.Itoa(NetworkID),
 		nodeBinPath:     nodeBinPath,
 		evmAdminKey:     adminKey.ToECDSA(),
 		nodes:           make([]*Node, validatorsCount),
