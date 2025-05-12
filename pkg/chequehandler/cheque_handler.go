@@ -351,6 +351,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 
 		wg.Add(1)
 		go func(txID common.Hash) {
+			defer wg.Done()
 			_ = ch.checkCashInStatus(context.Background(), txID)
 		}(chequeRecord.TxID)
 	}
@@ -379,6 +380,7 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 	for _, chequeRecord := range chequeRecords {
 		wg.Add(1)
 		go func(txID common.Hash) {
+			defer wg.Done()
 			_ = ch.checkCashInStatus(ctx, txID)
 		}(chequeRecord.TxID)
 	}
