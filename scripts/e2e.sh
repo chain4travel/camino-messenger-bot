@@ -174,13 +174,11 @@ cd "$ORIG_DIR"
 
 PARTNER_PLUGIN_BIN_PATH=build/pp-mock
 CMB_BIN_PATH=build/camino-messenger-bot
-CMB_DB_MIGRATIONS_PATH=migrations
 
 CAMINOGO_BIN_PATH="$(realpath "${CAMINOGO_BIN_PATH}")"
 MATRIX_BIN_PATH="$(realpath "${MATRIX_BIN_PATH}")"
 PARTNER_PLUGIN_BIN_PATH="$(realpath "${PARTNER_PLUGIN_BIN_PATH}")"
 CMB_BIN_PATH="$(realpath "${CMB_BIN_PATH}")"
-CMB_DB_MIGRATIONS_PATH="$(realpath "${CMB_DB_MIGRATIONS_PATH}")"
 
 echo "Running e2e tests..."
 
@@ -199,5 +197,4 @@ fi
 	-matrix="${MATRIX_BIN_PATH}" \
 	-partner-plugin="${PARTNER_PLUGIN_BIN_PATH}" \
 	-cmb="${CMB_BIN_PATH}" \
-	-migration="${CMB_DB_MIGRATIONS_PATH}" \
 	"${ADD_PARAM[@]}"

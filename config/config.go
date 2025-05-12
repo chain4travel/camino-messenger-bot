@@ -118,8 +118,7 @@ type UnparsedConfig struct {
 }
 
 type UnparsedSQLiteDBConfig struct {
-	DBPath         string `mapstructure:"path"`
-	MigrationsPath string `mapstructure:"migrations_path"`
+	DBPath string `mapstructure:"path"`
 }
 
 type UnparsedMatrixConfig struct {

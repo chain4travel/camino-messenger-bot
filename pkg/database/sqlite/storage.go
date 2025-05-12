@@ -5,29 +5,30 @@ package sqlite
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // sql driver, required
 	"go.uber.org/zap"
 )
 
 type DBConfig struct {
-	DBPath         string
-	MigrationsPath string
+	DBPath string
 }
 
-func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*DB, error) {
-	if err := os.MkdirAll(filepath.Dir(cfg.DBPath), os.ModePerm); err != nil {
+func New(logger *zap.SugaredLogger, migrationsFS fs.FS, dbPath string, dbName string) (*DB, error) {
+	if err := os.MkdirAll(filepath.Dir(dbPath), os.ModePerm); err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
-	db, err := sqlx.Open("sqlite3", cfg.DBPath+".sqlite")
+	db, err := sqlx.Open("sqlite3", dbPath+".sqlite")
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -38,7 +39,7 @@ func New(logger *zap.SugaredLogger, cfg DBConfig, dbName string) (*DB, error) {
 		DB:     db,
 	}
 
-	if err := s.migrate(dbName, cfg.MigrationsPath, false); err != nil {
+	if err := s.migrate(migrationsFS, dbName, false); err != nil {
 		return nil, err
 	}
 
@@ -72,7 +73,7 @@ func (l *migrationLogger) Verbose() bool {
 	return false
 }
 
-func (s *DB) migrate(dbName, migrationsPath string, logMigrations bool) error {
+func (s *DB) migrate(migrationsFS fs.FS, dbName string, logMigrations bool) error {
 	s.Logger.Infof("Performing db migrations...")
 
 	driver, err := sqlite3.WithInstance(s.DB.DB, &sqlite3.Config{})
@@ -81,7 +82,13 @@ func (s *DB) migrate(dbName, migrationsPath string, logMigrations bool) error {
 		return err
 	}
 
-	migration, err := migrate.NewWithDatabaseInstance(migrationsPath, dbName, driver)
+	src, err := iofs.New(migrationsFS, "migrations")
+	if err != nil {
+		s.Logger.Error(err)
+		return err
+	}
+
+	migration, err := migrate.NewWithInstance("iofs", src, dbName, driver)
 	if err != nil {
 		s.Logger.Error(err)
 		return err
@@ -120,6 +127,6 @@ func (s *DB) migrate(dbName, migrationsPath string, logMigrations bool) error {
 		s.Logger.Infof("New migration version: %d", newVersion)
 	}
 
-	s.Logger.Infof("Finished preforming db migrations")
+	s.Logger.Infof("Finished performing db migrations")
 	return nil
 }

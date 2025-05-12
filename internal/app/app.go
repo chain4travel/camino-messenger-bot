@@ -33,7 +33,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
 	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler/storage/sqlite"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/erc20"
 	matrixPkg "github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/scheduler"
@@ -153,7 +152,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// event listener with additional logic for subscribing and reacting on blockchain events
 
-	eventListenerStorage, err := eventlistener_storage.New(ctx, logger, sqlite.DBConfig(cfg.DB.EventListener))
+	eventListenerStorage, err := eventlistener_storage.New(ctx, logger, cfg.DB.EventListener.DBPath)
 	if err != nil {
 		logger.Errorf("Failed to create event listener storage: %v", err)
 		return nil, err
@@ -193,7 +192,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	chequeHandlerStorage, err := chequeHandlerStorage.New(
 		ctx,
 		logger,
-		sqlite.DBConfig(cfg.DB.ChequeHandler),
+		cfg.DB.ChequeHandler.DBPath,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create cheque handler storage: %v", err)
@@ -274,7 +273,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// scheduler for periodic tasks (e.g. cheques cash-in)
 
-	storage, err := scheduler_storage.New(ctx, logger, sqlite.DBConfig(cfg.DB.Scheduler))
+	storage, err := scheduler_storage.New(ctx, logger, cfg.DB.Scheduler.DBPath)
 	if err != nil {
 		logger.Errorf("Failed to create storage: %v", err)
 		return nil, err

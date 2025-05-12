@@ -44,7 +44,6 @@ func NewFactory(
 	resourceManagerSession *resources.Session,
 	e2eTmpDir string,
 	binPath string,
-	migrationsDir string,
 	networkClient *blockchain.Client,
 	matrix *matrix.Server,
 ) *Factory {
@@ -53,7 +52,6 @@ func NewFactory(
 		resourceManagerSession: resourceManagerSession,
 		dir:                    path.Join(e2eTmpDir, "cmb"),
 		binPath:                binPath,
-		migrationsPath:         "file://" + migrationsDir,
 		networkClient:          networkClient,
 		matrix:                 matrix,
 	}
@@ -65,7 +63,6 @@ type Factory struct {
 	resourceManagerSession *resources.Session
 	dir                    string
 	binPath                string
-	migrationsPath         string
 	networkClient          *blockchain.Client
 	matrix                 *matrix.Server
 	bots                   []*Bot
@@ -184,8 +181,7 @@ func (f *Factory) CreateBot(
 		},
 		Matrix: config.UnparsedMatrixConfig{Host: f.matrix.Host().String()},
 		DB: config.UnparsedSQLiteDBConfig{
-			DBPath:         path.Join(botDir, "db"),
-			MigrationsPath: f.migrationsPath,
+			DBPath: path.Join(botDir, "db"),
 		},
 		Tracing: config.TracingConfig{Enabled: false},
 	}

@@ -34,7 +34,6 @@ func Flags() *pflag.FlagSet {
 
 	// DB config flags
 	flags.String("db.path", "cmb-db", "Path to database dir.")
-	flags.String("db.migrations_path", "file://./migrations", "Path to migration scripts.")
 
 	// Tracing config flags
 	flags.Bool("tracing.enabled", false, "Whether tracing is enabled.")

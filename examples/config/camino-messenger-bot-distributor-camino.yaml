@@ -48,9 +48,6 @@ network_fee_recipient_cm_account: 0x16DFfB3911BB0b1B53eF4d774804381f0B38B5d7
 
 ### Database
 db:
-    # Path to migrations dir with sql up/down scripts. Schema is mandatory.
-    migrations_path: file://./migrations
-
     # Path to database dir.
     path: distributor-bot-db
 

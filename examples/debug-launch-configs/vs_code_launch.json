@@ -21,7 +21,6 @@
 				"-matrix=${workspaceFolder}/build/dependencies/camino-conduit/camino-conduit-v1.0.0/camino-conduit", // path to conduit binary
 				"-partner-plugin=${workspaceFolder}/build/pp-mock", // path to partner-plugin binary
 				"-cmb=${workspaceFolder}/build/camino-messenger-bot", // path to cmb binary
-				"-migration=${workspaceFolder}/migrations", // path to sql migrations directory
 				"-tests-data-dir=/tmp/cmb-e2e", // path to e2e tests data directory
 				"-filter=PingV1,TransportV3", // run specific tests. Will run all tests if not specified or empty
 				"-debug" // enables verbouse debug logging (including rpc requests and responses)

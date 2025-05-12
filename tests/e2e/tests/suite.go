@@ -35,7 +35,6 @@ func NewSuite(
 	matrixBinPath string,
 	partnerPluginBinPath string,
 	cmbBinPath string,
-	migrationsDir string,
 	testsDataDir string,
 	existingNetworkNodeURI string,
 	existingNetworkAdminKey *secp256k1.PrivateKey,
@@ -67,7 +66,6 @@ func NewSuite(
 		matrixBinPath:           matrixBinPath,
 		partnerPluginBinPath:    partnerPluginBinPath,
 		cmbBinPath:              cmbBinPath,
-		migrationsDir:           migrationsDir,
 		testsDataDir:            testsDataDir,
 		existingNetworkNodeURI:  existingNetworkNodeURI,
 		existingNetworkAdminKey: existingNetworkAdminKey,
@@ -82,7 +80,6 @@ type Suite struct {
 	matrixBinPath           string
 	partnerPluginBinPath    string
 	cmbBinPath              string
-	migrationsDir           string
 	testsDataDir            string
 	existingNetworkNodeURI  string
 	existingNetworkAdminKey *secp256k1.PrivateKey
@@ -151,7 +148,6 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 		tt.resourceManagerSession,
 		dataDir,
 		s.cmbBinPath,
-		s.migrationsDir,
 		tt.caminoNetwork.Client,
 		tt.matrix,
 	)

@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "~1.23.5"
+          go-version: "~1.23.9"
 
       - name: Install libolm
         run: sudo apt update && sudo apt-get install -y libolm-dev
@@ -32,7 +32,7 @@ jobs:
       - name: upload release assets
         run: |
           cp ./build/camino-messenger-bot ./camino-messenger-bot
-          tar -zcvf camino-messenger-bot-linux-amd64-${{ github.event.release.tag_name }}.tar.gz ./camino-messenger-bot ./migrations/
+          tar -zcvf camino-messenger-bot-linux-amd64-${{ github.event.release.tag_name }}.tar.gz ./camino-messenger-bot
           gh release upload ${{ github.event.release.tag_name }} camino-messenger-bot-linux-amd64-${{ github.event.release.tag_name }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}

@@ -26,7 +26,6 @@ const (
 	flagKeyMatrixBinPath        = "matrix"
 	flagKeyPartnerPluginBinPath = "partner-plugin"
 	flagKeyCMBBinPath           = "cmb"
-	flagKeyMigrationsDir        = "migration"
 	flagKeyDebug                = "debug"
 	flagKeyFilter               = "filter"
 )
@@ -36,7 +35,6 @@ var (
 	flagMatrixBinPath           string
 	flagPartnerPluginBinPath    string
 	flagCMBBinPath              string
-	flagMigrationsDir           string
 	flagTestsDataDir            string
 	flagExistingNetworkNodeURI  string
 	flagExistingNetworkAdminKey string
@@ -51,7 +49,6 @@ func init() {
 	flag.StringVar(&flagMatrixBinPath, flagKeyMatrixBinPath, "", "Path to matrix binary.")
 	flag.StringVar(&flagPartnerPluginBinPath, flagKeyPartnerPluginBinPath, "", "Path to partner plugin binary.")
 	flag.StringVar(&flagCMBBinPath, flagKeyCMBBinPath, "", "Path to CMB binary.")
-	flag.StringVar(&flagMigrationsDir, flagKeyMigrationsDir, "", "Path to migration files dir.")
 	flag.StringVar(&flagTestsDataDir, "tests-data-dir", "/tmp/cmb-e2e", "Path to dir with temp tests data.")
 	flag.StringVar(&flagFilter, flagKeyFilter, "", "Filter for (comma separated) top level test names e.g. PingV1,AccommodationV3.")
 	flag.BoolVar(&flagDebug, flagKeyDebug, false, "Debug mode")
@@ -65,7 +62,6 @@ func TestE2E(t *testing.T) {
 	require.NotEmpty(t, flagMatrixBinPath, "flag -%s (matrix binary path) is required", flagKeyMatrixBinPath)
 	require.NotEmpty(t, flagCMBBinPath, "flag -%s (CMB binary path) is required", flagKeyCMBBinPath)
 	require.NotEmpty(t, flagPartnerPluginBinPath, "flag -%s (partner plugin binary path) is required", flagKeyPartnerPluginBinPath)
-	require.NotEmpty(t, flagMigrationsDir, "flag -%s (migrations dir) is required", flagKeyMigrationsDir)
 
 	flagNodeBinPath, err = filepath.Abs(flagNodeBinPath)
 	require.NoError(t, err)
@@ -74,8 +70,6 @@ func TestE2E(t *testing.T) {
 	flagCMBBinPath, err = filepath.Abs(flagCMBBinPath)
 	require.NoError(t, err)
 	flagPartnerPluginBinPath, err = filepath.Abs(flagPartnerPluginBinPath)
-	require.NoError(t, err)
-	flagMigrationsDir, err = filepath.Abs(flagMigrationsDir)
 	require.NoError(t, err)
 
 	checkFileExist(t, flagNodeBinPath)
@@ -99,7 +93,6 @@ func TestE2E(t *testing.T) {
 		flagMatrixBinPath,
 		flagPartnerPluginBinPath,
 		flagCMBBinPath,
-		flagMigrationsDir,
 		flagTestsDataDir,
 		flagExistingNetworkNodeURI,
 		existingNetworkAdminKey,
