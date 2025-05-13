@@ -73,7 +73,6 @@ func TestE2E(t *testing.T) {
 	require.NoError(t, err)
 	flagASBBinPath, err = filepath.Abs(flagASBBinPath)
 	require.NoError(t, err)
-	require.NoError(t, err)
 	flagCMBBinPath, err = filepath.Abs(flagCMBBinPath)
 	require.NoError(t, err)
 	flagPartnerPluginBinPath, err = filepath.Abs(flagPartnerPluginBinPath)
