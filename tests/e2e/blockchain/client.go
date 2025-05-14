@@ -81,6 +81,10 @@ type Client struct {
 	adminContract               *contracts.CaminoAdmin
 }
 
+func (c *Client) ETHClient() *ethclient.Client {
+	return c.ethClient
+}
+
 func (c *Client) PrefundedKeys() []*ecdsa.PrivateKey {
 	return c.prefundedKeys
 }

@@ -90,8 +90,8 @@ func StartNewAppService(
 		},
 		NetworkFeeRecipientCMAccountAddress: networkFeeCMAccountAddress.Hex(),
 		NetworkFeeRecipientBotKey:           hex.EncodeToString(crypto.FromECDSA(networkFeeKey)),
-		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6, // 6 months
-		CashInPeriod:                        3600,
+		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6,            // 6 months
+		CashInPeriod:                        e2eCommon.CashInPeriodSeconds, // 10s
 	}
 
 	configPath := path.Join(asbDir, "config.yaml")

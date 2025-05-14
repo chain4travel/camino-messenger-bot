@@ -6,6 +6,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"reflect"
 	"runtime"
 	"testing"
@@ -101,4 +102,15 @@ func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Addre
 	}
 	require.Fail(t, "unexpected currency type")
 	return common.Address{}
+}
+
+var (
+	c4tFeeCutNominator   = big.NewInt(10) // 10% fee cut for C4T
+	c4tFeeCutDenominator = big.NewInt(100)
+)
+
+func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tCut *big.Int) {
+	c4tFeeCut := big.NewInt(0).Mul(value, c4tFeeCutNominator)
+	c4tFeeCut.Div(c4tFeeCut, c4tFeeCutDenominator)
+	return big.NewInt(0).Sub(value, c4tFeeCut), c4tFeeCut
 }

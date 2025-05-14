@@ -5,17 +5,19 @@ package common
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/chain4travel/caminogoeth-compat/caminogo/units"
 )
 
 const (
-	x2cRate                   = 1_000_000_000
-	MinBuyableUntilInContract = 1 // seconds -- overrides the bookingtoken default of 1 minute when deployed for the e2e test
+	MinBuyableUntilInContract = 1  // seconds -- overrides the bookingtoken default of 1 minute when deployed for the e2e test
+	CashInPeriodSeconds       = 10 // seconds
+	CashInPeriod              = CashInPeriodSeconds * time.Second
 )
 
 var (
-	X2CRateBig                 = big.NewInt(x2cRate)
+	X2CRateBig                 = big.NewInt(1_000_000_000)
 	CAM                        = big.NewInt(0).Mul(big.NewInt(0).SetUint64(units.Avax), X2CRateBig)
 	DefaultCMAccountOwnerFunds = big.NewInt(0).Mul(CAM, big.NewInt(100))
 )
