@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"net"
 
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
@@ -17,6 +19,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/utils/tls"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -40,9 +44,11 @@ type Server interface {
 func NewServer(
 	cfg config.RPCServerConfig,
 	logger *zap.SugaredLogger,
+	responseHeaderHandler common.ResponseHeaderHandler,
 	tracer tracing.Tracer,
 	processor messaging.MessageProcessor,
 	serviceRegistry messaging.ServiceRegistry,
+	cancellationV1Service cancellationv1grpc.CancellationServiceServer,
 	developerMode bool,
 ) (Server, error) {
 	if !cfg.Enabled {
@@ -61,14 +67,26 @@ func NewServer(
 	}
 
 	server := &server{
-		cfg:             cfg,
-		logger:          logger,
-		tracer:          tracer,
-		processor:       processor,
-		serviceRegistry: serviceRegistry,
-		grpcServer:      grpc.NewServer(opts...),
+		cfg:                   cfg,
+		logger:                logger,
+		responseHeaderHandler: responseHeaderHandler,
+		tracer:                tracer,
+		processor:             processor,
+		serviceRegistry:       serviceRegistry,
 	}
+
+	opts = append(opts, grpc.UnaryInterceptor(
+		selector.UnaryServerInterceptor( // for all cancellationv1grpc methods
+			server.ErrorHandlingInterceptor,
+			selector.MatchFunc(func(_ context.Context, callMeta interceptors.CallMeta) bool {
+				return cancellationv1grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
+			}),
+		),
+	))
+
+	server.grpcServer = grpc.NewServer(opts...)
 	generated.RegisterServerServices(server.grpcServer, server)
+	cancellationv1grpc.RegisterCancellationServiceServer(server.grpcServer, cancellationV1Service)
 	readiness.RegisterReadinessServiceServer(server.grpcServer, server)
 
 	// Register reflection service on gRPC server in developerMode.
@@ -79,12 +97,13 @@ func NewServer(
 }
 
 type server struct {
-	grpcServer      *grpc.Server
-	cfg             config.RPCServerConfig
-	logger          *zap.SugaredLogger
-	tracer          tracing.Tracer
-	processor       messaging.MessageProcessor
-	serviceRegistry messaging.ServiceRegistry
+	grpcServer            *grpc.Server
+	cfg                   config.RPCServerConfig
+	logger                *zap.SugaredLogger
+	responseHeaderHandler common.ResponseHeaderHandler
+	tracer                tracing.Tracer
+	processor             messaging.MessageProcessor
+	serviceRegistry       messaging.ServiceRegistry
 
 	readiness.UnimplementedReadinessServiceServer
 }
@@ -140,4 +159,21 @@ const StatusReady = "ready"
 
 func (s *server) Readiness(context.Context, *emptypb.Empty) (*readiness.ReadinessResponse, error) {
 	return &readiness.ReadinessResponse{Status: StatusReady}, nil
+}
+
+func (s *server) ErrorHandlingInterceptor(
+	ctx context.Context,
+	request any,
+	_ *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (response any, err error) {
+	response, err = handler(ctx, request)
+	if err != nil && response != nil {
+		protoMessage, ok := response.(protoreflect.ProtoMessage)
+		if !ok {
+			return response, err
+		}
+		s.responseHeaderHandler.AddError(protoMessage, err.Error())
+	}
+	return response, err
 }

@@ -60,21 +60,23 @@ matrix:
 
 
 
-### Partner Plugin (NOT USED FOR DISTRIBUTOR BOT)
-# partner_plugin:
-#     # Enable or disable the partner plugin rpc client. It must be enabled if bot's cm account supports at least one service.
-#     enabled: false
+### Partner Plugin
+partner_plugin:
+    # Enable or disable the partner plugin rpc client.
+    # It must be enabled if bot's cm account supports at least one service or
+    # if partner plugin supports booking token cancellation. 
+    enabled: true
 
-#     # Partner Plugin hostname and port, should be reachable from this machine.
-#     # Bot tries to connect to this host and port to relay messages that it receives from
-#     # the distributors through Matrix Server
-#     host: localhost:50051
+    # Partner Plugin hostname and port, should be reachable from this machine.
+    # Bot tries to connect to this host and port to relay messages that it receives from
+    # the distributors through Matrix Server
+    host: localhost:50051
 
-#     # TLS configuration
-#     unencrypted: true
+    # TLS configuration
+    unencrypted: true
 
-#     # Required if partner_plugin_unencrypted is false
-#     ca_file: ca-cert.pem
+    # Required if partner_plugin_unencrypted is false
+    ca_file: ca-cert.pem
 
 
 

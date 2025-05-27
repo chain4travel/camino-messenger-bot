@@ -14,6 +14,7 @@ import (
 	big "math/big"
 	reflect "reflect"
 
+	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
 	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	common "github.com/ethereum/go-ethereum/common"
@@ -41,6 +42,62 @@ func NewMockPartnerPlugin(ctrl *gomock.Controller) *MockPartnerPlugin {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockPartnerPlugin) EXPECT() *MockPartnerPluginMockRecorder {
 	return m.recorder
+}
+
+// CancellationFinalizedNotification mocks base method.
+func (m *MockPartnerPlugin) CancellationFinalizedNotification(arg0 context.Context, arg1 *notificationv2.CancellationFinalized) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancellationFinalizedNotification", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancellationFinalizedNotification indicates an expected call of CancellationFinalizedNotification.
+func (mr *MockPartnerPluginMockRecorder) CancellationFinalizedNotification(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancellationFinalizedNotification", reflect.TypeOf((*MockPartnerPlugin)(nil).CancellationFinalizedNotification), arg0, arg1)
+}
+
+// CancellationPendingNotification mocks base method.
+func (m *MockPartnerPlugin) CancellationPendingNotification(arg0 context.Context, arg1 *notificationv2.CancellationPending) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancellationPendingNotification", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancellationPendingNotification indicates an expected call of CancellationPendingNotification.
+func (mr *MockPartnerPluginMockRecorder) CancellationPendingNotification(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancellationPendingNotification", reflect.TypeOf((*MockPartnerPlugin)(nil).CancellationPendingNotification), arg0, arg1)
+}
+
+// CancellationRejectedNotification mocks base method.
+func (m *MockPartnerPlugin) CancellationRejectedNotification(arg0 context.Context, arg1 *notificationv2.CancellationRejected) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancellationRejectedNotification", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancellationRejectedNotification indicates an expected call of CancellationRejectedNotification.
+func (mr *MockPartnerPluginMockRecorder) CancellationRejectedNotification(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancellationRejectedNotification", reflect.TypeOf((*MockPartnerPlugin)(nil).CancellationRejectedNotification), arg0, arg1)
+}
+
+// CancellationWithdrawnNotification mocks base method.
+func (m *MockPartnerPlugin) CancellationWithdrawnNotification(arg0 context.Context, arg1 *notificationv2.CancellationWithdrawn) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancellationWithdrawnNotification", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancellationWithdrawnNotification indicates an expected call of CancellationWithdrawnNotification.
+func (mr *MockPartnerPluginMockRecorder) CancellationWithdrawnNotification(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancellationWithdrawnNotification", reflect.TypeOf((*MockPartnerPlugin)(nil).CancellationWithdrawnNotification), arg0, arg1)
 }
 
 // DoServiceRequest mocks base method.

@@ -53,6 +53,7 @@ type storage struct {
 	base *sqlite.DB
 
 	tokenBoughtSubscriptionsStatements
+	cancellationSubscriptionsStatements
 }
 
 func (s *storage) Close() error {
@@ -60,7 +61,15 @@ func (s *storage) Close() error {
 }
 
 func (s *storage) prepare(ctx context.Context) error {
-	return s.prepareTokenBoughtSubscriptionsStmts(ctx)
+	if err := s.prepareTokenBoughtSubscriptionsStmts(ctx); err != nil {
+		s.base.Logger.Error(err)
+		return err
+	}
+	if err := s.prepareCancellationSubscriptionsStmts(ctx); err != nil {
+		s.base.Logger.Error(err)
+		return err
+	}
+	return nil
 }
 
 func (s *storage) NewSession(ctx context.Context) (eventlistener.Session, error) {

@@ -9,28 +9,28 @@ import (
 	"math/big"
 	"time"
 
-	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
+	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (h *evmResponseHandler) prepareMintResponseV2(
+func (h *evmResponseHandler) prepareMintResponseV3(
 	ctx context.Context,
-	response *bookv2.MintResponse,
-	request *bookv2.MintRequest,
+	response *bookv3.MintResponse,
+	request *bookv3.MintRequest,
 ) {
 	if response.Header.Status != typesv1.StatusType_STATUS_TYPE_SUCCESS {
 		return
 	}
 
-	if !common.IsHexAddress(request.BuyerAddress) {
-		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
+	if !common.IsHexAddress(request.BuyerAddress.Address) {
+		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress.Address)
 		h.logger.Error(errMsg)
 		h.responseHeaderHandler.AddError(response, errMsg)
 		return
 	}
-	buyerAddress := common.HexToAddress(request.BuyerAddress)
+	buyerAddress := common.HexToAddress(request.BuyerAddress.Address)
 
 	if response.BookingTokenUri == "" {
 		jsonPlain, tokenURI, err := createTokenURIforMintResponse(
@@ -56,7 +56,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	}
 	response.BuyableUntil = buyableUntil
 
-	price, paymentToken, isoCurrency, err := h.priceHandler.GetPriceAndTokenV2(ctx, response.Price)
+	price, paymentToken, isoCurrency, err := h.priceHandler.GetPriceAndTokenV3(ctx, response.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
@@ -72,7 +72,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 		price,
 		paymentToken,
 		isoCurrency,
-		false,
+		response.Cancellable,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
@@ -90,19 +90,20 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 
 	response.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	response.BookingTokenId = tokenID.Uint64()
-	response.MintTransactionId = txID
+	response.MintTransactionId = &typesv3.EVMTransactionID{
+		Hash: txID,
+	}
 }
 
-func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response *bookv2.MintResponse) {
-	if response.MintTransactionId == "" {
+func (h *evmResponseHandler) processMintResponseV3(ctx context.Context, response *bookv3.MintResponse) {
+	if response.MintTransactionId == nil || response.MintTransactionId.Hash == "" {
 		h.logger.Error(errMissingMintTxID)
 		h.responseHeaderHandler.AddError(response, errMissingMintTxID.Error())
 		return
 	}
 
 	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
-
-	price, paymentToken, _, err := h.priceHandler.GetPriceAndTokenV2(ctx, response.Price)
+	price, paymentToken, _, err := h.priceHandler.GetPriceAndTokenV3(ctx, response.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
@@ -118,6 +119,21 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 		return
 	}
 
-	response.BuyTransactionId = receipt.TxHash.Hex()
-	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId, response.MintTransactionId)
+	response.BuyTransactionId = &typesv3.EVMTransactionID{
+		Hash: receipt.TxHash.Hex(),
+	}
+
+	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId.Hash, response.MintTransactionId.Hash)
+
+	if response.Cancellable {
+		if err := h.eventListener.SubscribeCancellationEvents(ctx, tokenID); err != nil {
+			err := fmt.Errorf("error subscribing for cancellation events as distributor (tokenID: %d, mintID: %s): %w", tokenID.Int64(), response.MintId.Value, err)
+			h.logger.Error(err)
+			response.Header.Alerts = append(response.Header.Alerts, &typesv1.Alert{
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				Message: err.Error(),
+			})
+		}
+		h.logger.Infof("Subscribed for cancellation events as distributor (tokenID: %s)", tokenID.String())
+	}
 }

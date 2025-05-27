@@ -9,9 +9,10 @@ import (
 	"math/big"
 	"time"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
-	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
+	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -33,6 +34,11 @@ type PartnerPlugin interface {
 	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
 	TokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error
+
+	CancellationPendingNotification(ctx context.Context, notification *notificationv2.CancellationPending) error
+	CancellationRejectedNotification(ctx context.Context, notification *notificationv2.CancellationRejected) error
+	CancellationWithdrawnNotification(ctx context.Context, notification *notificationv2.CancellationWithdrawn) error
+	CancellationFinalizedNotification(ctx context.Context, notification *notificationv2.CancellationFinalized) error
 }
 
 func New(
@@ -44,7 +50,7 @@ func New(
 	return &partnerPlugin{
 		logger:             logger,
 		tracer:             tracer,
-		notificationClient: notificationv1grpc.NewNotificationServiceClient(rpcClient.ClientConn),
+		notificationClient: notificationv2grpc.NewNotificationServiceClient(rpcClient.ClientConn),
 		responseTimeout:    responseTimeout,
 	}
 }
@@ -52,7 +58,7 @@ func New(
 type partnerPlugin struct {
 	logger             *zap.SugaredLogger
 	tracer             trace.Tracer
-	notificationClient notificationv1grpc.NotificationServiceClient
+	notificationClient notificationv2grpc.NotificationServiceClient
 	responseTimeout    time.Duration
 }
 
@@ -79,21 +85,21 @@ func (p *partnerPlugin) DoServiceRequest(ctx context.Context, requestMsg *types.
 }
 
 func (p *partnerPlugin) TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {
-	return p.tokenBoughtNotification(ctx, &notificationv1.TokenBought{
+	return p.tokenBoughtNotification(ctx, &notificationv2.TokenBought{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv1.UUID{Value: mintID},
 	})
 }
 
 func (p *partnerPlugin) TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error {
-	return p.tokenBoughtNotification(ctx, &notificationv1.TokenBought{
+	return p.tokenBoughtNotification(ctx, &notificationv2.TokenBought{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv1.UUID{Value: mintID},
-		TxId:    buyTxID.Hex(),
+		TxId:    &typesv3.EVMTransactionID{Hash: buyTxID.Hex()},
 	})
 }
 
-func (p *partnerPlugin) tokenBoughtNotification(ctx context.Context, notification *notificationv1.TokenBought) error {
+func (p *partnerPlugin) tokenBoughtNotification(ctx context.Context, notification *notificationv2.TokenBought) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
@@ -108,12 +114,56 @@ func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, tokenID *b
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
-	_, err := p.notificationClient.TokenExpiredNotification(ctx, &notificationv1.TokenExpired{
+	_, err := p.notificationClient.TokenExpiredNotification(ctx, &notificationv2.TokenExpired{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv1.UUID{Value: mintID},
 	})
 	if err != nil {
 		p.logger.Errorf("failed to send token expired notification: %v", err)
+	}
+	return err
+}
+
+func (p *partnerPlugin) CancellationPendingNotification(ctx context.Context, notification *notificationv2.CancellationPending) error {
+	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
+	defer cancel()
+
+	_, err := p.notificationClient.CancellationPendingNotification(ctx, notification)
+	if err != nil {
+		p.logger.Errorf("failed to send cancellation pending notification: %v", err)
+	}
+	return err
+}
+
+func (p *partnerPlugin) CancellationRejectedNotification(ctx context.Context, notification *notificationv2.CancellationRejected) error {
+	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
+	defer cancel()
+
+	_, err := p.notificationClient.CancellationRejectedNotification(ctx, notification)
+	if err != nil {
+		p.logger.Errorf("failed to send cancellation rejected notification: %v", err)
+	}
+	return err
+}
+
+func (p *partnerPlugin) CancellationWithdrawnNotification(ctx context.Context, notification *notificationv2.CancellationWithdrawn) error {
+	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
+	defer cancel()
+
+	_, err := p.notificationClient.CancellationWithdrawnNotification(ctx, notification)
+	if err != nil {
+		p.logger.Errorf("failed to send cancellation withdrawn notification: %v", err)
+	}
+	return err
+}
+
+func (p *partnerPlugin) CancellationFinalizedNotification(ctx context.Context, notification *notificationv2.CancellationFinalized) error {
+	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
+	defer cancel()
+
+	_, err := p.notificationClient.CancellationFinalizedNotification(ctx, notification)
+	if err != nil {
+		p.logger.Errorf("failed to send cancellation finalized notification: %v", err)
 	}
 	return err
 }

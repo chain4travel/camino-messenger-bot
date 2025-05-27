@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
-	notificationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v1"
+	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
@@ -81,7 +81,7 @@ func testMintV2FullWorkflow(ctx context.Context, t *testing.T, tt *Test, ppEvent
 	eventMsg, err := ppEventStream.Recv()
 	require.NoError(t, err)
 	debugPrintProtoMessage(tt, eventMsg)
-	tokenBoughtNotification := &notificationv1.TokenBought{}
+	tokenBoughtNotification := &notificationv2.TokenBought{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
 	require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
 	require.NotNil(t, tokenBoughtNotification.MintId)
@@ -165,7 +165,7 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	eventMsg, err := ppEventStream.Recv()
 	require.NoError(t, err)
 	debugPrintProtoMessage(tt, eventMsg)
-	tokenExpiredNotification := &notificationv1.TokenExpired{}
+	tokenExpiredNotification := &notificationv2.TokenExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
@@ -173,7 +173,7 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 	eventMsg, err = ppEventStream.Recv()
 	require.NoError(t, err)
 	debugPrintProtoMessage(tt, eventMsg)
-	tokenExpiredNotification = &notificationv1.TokenExpired{}
+	tokenExpiredNotification = &notificationv2.TokenExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
 	require.NotNil(t, tokenExpiredNotification.MintId)

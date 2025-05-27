@@ -33,6 +33,7 @@ var (
 type Storage interface {
 	SessionHandler
 	TokenBoughtSubscriptionStorage
+	CancellationSubscriptionStorage
 }
 
 type SessionHandler interface {
@@ -50,10 +51,12 @@ type EventListener interface {
 	Start(context.Context) error
 	Stop()
 	TokenBoughtSubscriber
+	CancellationSubscriber
 }
 
 type eventListener struct {
 	startingBlockNumber *big.Int
+	cmAccountAddress    common.Address
 
 	storage        Storage
 	logger         *zap.SugaredLogger
@@ -66,6 +69,8 @@ type eventListener struct {
 	tokenBoughtTimerMutex        sync.Mutex
 	tokenBoughtTimer             *time.Timer
 	tokenBoughtTimerSubscription *TokenBoughtSubscription
+
+	unsubscribeCancellation func()
 }
 
 func New(
@@ -74,6 +79,7 @@ func New(
 	storage Storage,
 	ethClient *ethclient.Client,
 	bookingTokenAddress common.Address,
+	cmAccountAddress common.Address,
 	partnerPlugin partnerplugin.PartnerPlugin,
 	bookingService booking.Service,
 	cmAccounts cmaccounts.Service,
@@ -94,6 +100,7 @@ func New(
 	return &eventListener{
 		logger:                logger,
 		storage:               storage,
+		cmAccountAddress:      cmAccountAddress,
 		subscriber:            subscriber,
 		partnerPlugin:         partnerPlugin,
 		bookingService:        bookingService,
@@ -107,10 +114,17 @@ func (l *eventListener) Start(ctx context.Context) error {
 		l.logger.Errorf("failed to start token bought subscriptions: %v", err)
 		return err
 	}
+
+	if err := l.startCancellationSubscriptions(ctx); err != nil {
+		l.logger.Errorf("failed to start cancellation subscriptions: %v", err)
+		return err
+	}
+
 	return nil
 }
 
 func (l *eventListener) Stop() {
 	l.unsubscribeTokenBought()
 	l.stopTokenBoughtTimer()
+	l.unsubscribeCancellation()
 }

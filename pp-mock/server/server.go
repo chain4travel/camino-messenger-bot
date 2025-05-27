@@ -21,7 +21,9 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
@@ -34,9 +36,12 @@ import (
 	handlers_accommodation_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v3"
 	handlers_mint_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/mint/v1"
 	handlers_mint_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/mint/v2"
+	handlers_mint_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/mint/v3"
 	handlers_validation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/validation/v1"
 	handlers_validation_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/validation/v2"
+	handlers_validation_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/validation/v3"
 	handlers_notification_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v1"
+	handlers_notification_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v2"
 	handlers_ping_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/ping/v1"
 	handlers_transport_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v1"
 	handlers_transport_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v2"
@@ -86,12 +91,17 @@ func Run() error {
 	// Book V2
 	bookv2grpc.RegisterMintServiceServer(grpcServer, handlers_mint_v2.NewMintServiceV2Server(eventSender))
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, handlers_validation_v2.NewValidationServiceV2Server(eventSender))
+	// Book V3
+	bookv3grpc.RegisterMintServiceServer(grpcServer, handlers_mint_v3.NewMintServiceV3Server(eventSender))
+	bookv3grpc.RegisterValidationServiceServer(grpcServer, handlers_validation_v3.NewValidationServiceV3Server(eventSender))
 
 	// Ping V1
 	pingv1grpc.RegisterPingServiceServer(grpcServer, handlers_ping_v1.NewPingServiceV1Server(eventSender))
 
 	// Notification V1
 	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, handlers_notification_v1.NewNotificationServiceV1Server(eventSender))
+	// Notification V2
+	notificationv2grpc.RegisterNotificationServiceServer(grpcServer, handlers_notification_v2.NewNotificationServiceV2Server(eventSender))
 
 	// Transport V1
 	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, handlers_transport_v1.NewTransportSearchV1Server(eventSender))

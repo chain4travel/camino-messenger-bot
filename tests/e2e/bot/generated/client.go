@@ -12,6 +12,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
@@ -50,6 +51,8 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		ValidationServiceV2:               bookv2grpc.NewValidationServiceClient(connection),
 		MintServiceV3:                     bookv3grpc.NewMintServiceClient(connection),
 		ValidationServiceV3:               bookv3grpc.NewValidationServiceClient(connection),
+		CheckCancellationServiceV1:        cancellationv1grpc.NewCheckCancellationServiceClient(connection),
+		CancellationServiceV1:             cancellationv1grpc.NewCancellationServiceClient(connection),
 		CountryEntryRequirementsServiceV1: infov1grpc.NewCountryEntryRequirementsServiceClient(connection),
 		CountryEntryRequirementsServiceV2: infov2grpc.NewCountryEntryRequirementsServiceClient(connection),
 		PingServiceV1:                     pingv1grpc.NewPingServiceClient(connection),
@@ -91,6 +94,8 @@ type Client struct {
 	ValidationServiceV2               bookv2grpc.ValidationServiceClient
 	MintServiceV3                     bookv3grpc.MintServiceClient
 	ValidationServiceV3               bookv3grpc.ValidationServiceClient
+	CheckCancellationServiceV1        cancellationv1grpc.CheckCancellationServiceClient
+	CancellationServiceV1             cancellationv1grpc.CancellationServiceClient
 	CountryEntryRequirementsServiceV1 infov1grpc.CountryEntryRequirementsServiceClient
 	CountryEntryRequirementsServiceV2 infov2grpc.CountryEntryRequirementsServiceClient
 	PingServiceV1                     pingv1grpc.PingServiceClient

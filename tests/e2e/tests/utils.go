@@ -21,6 +21,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type SupplierOrDistributor uint8
+
+const (
+	Supplier SupplierOrDistributor = iota
+	Distributor
+)
+
 func requestContext(ctx context.Context, metadata *messageMetadata.Metadata) context.Context {
 	return grpcMetadata.NewOutgoingContext(ctx, metadata.ToGrpcMD())
 }

@@ -174,6 +174,17 @@ func (l *eventListener) tokenBoughtEventHandler(event *bookingtoken.Bookingtoken
 		return 0
 	}
 
+	if isCancellable, err := l.bookingService.IsBookingCancellable(ctx, nil, subscription.TokenID); err != nil {
+		l.logger.Errorf("failed to get booking status: %v", err)
+		return 0
+	} else if isCancellable {
+		if err := l.storage.AddCancellationSubscription(ctx, session, subscription.TokenID); err != nil {
+			l.logger.Errorf("Error subscribing for cancellation events as supplier (tokenID: %d, mintID: %s): %v", subscription.TokenID.Int64(), subscription.MintID, err)
+			return 0
+		}
+		l.logger.Infof("Subscribed for cancellation events as supplier for token %s", subscription.TokenID.String())
+	}
+
 	if err := l.storage.RemoveTokenBoughtSubscription(ctx, session, subscription.TokenID); err != nil {
 		l.logger.Errorf("error removing token bought subscription from db: %v", err)
 		return 0

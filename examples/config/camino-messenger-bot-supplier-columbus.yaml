@@ -79,19 +79,21 @@ partner_plugin:
 
 
 
-### RPC server (NOT USED FOR SUPPLIER BOT IN THIS VERSION)
-# rpc_server:
-#     # Enable or disable RPC server. It must be enabled if bot is expecting to receive RPC requests (e.g. its distributor bot).
-#     enabled: false
+## RPC server
+rpc_server:
+    # Enable or disable RPC server.
+    # It must be enabled if bot is expecting to receive RPC requests.
+    # E.g. if its distributor bot or supplier supporting booking token cancellation.
+    enabled: false
 
-#     # Listen on this port for incoming RPC requests
-#     port: 9090
+    # Listen on this port for incoming RPC requests
+    port: 9090
 
-#     # TLS configuration
-#     unencrypted: true
+    # TLS configuration
+    unencrypted: true
 
-#     cert_file: server-cert.pem
-#     key_file: server-key.pem
+    cert_file: server-cert.pem
+    key_file: server-key.pem
 
 
 

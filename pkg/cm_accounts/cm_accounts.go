@@ -80,6 +80,7 @@ type Service interface {
 		price *big.Int,
 		paymentToken common.Address,
 		isoCurrency *big.Int,
+		isCancellable bool,
 	) (*types.Receipt, error)
 
 	BuyBookingToken(
@@ -101,6 +102,8 @@ type Service interface {
 	IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error)
 
 	CMAccount(common.Address) (*cmaccount.Cmaccount, error)
+
+	Cancellation
 }
 
 type service struct {
@@ -293,6 +296,7 @@ func (s *service) MintBookingToken(
 	price *big.Int,
 	paymentToken common.Address,
 	offChainPaymentCurrency *big.Int,
+	isCancellable bool,
 ) (*types.Receipt, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
@@ -307,7 +311,7 @@ func (s *service) MintBookingToken(
 		price,
 		paymentToken,
 		offChainPaymentCurrency,
-		false, // In mintv1 and mintv2 isCancellable is always false - as tokens are not cancellable.
+		isCancellable,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to mint booking token: %w", err)

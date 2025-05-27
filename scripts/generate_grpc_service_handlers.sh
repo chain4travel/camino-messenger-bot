@@ -18,7 +18,7 @@ UNMARSHALLING_FILE="${P2P_OUTPATH}/unmarshal.go"
 E2E_BOT_CLIENT_FILE="${E2E_GEN_OUTPATH}/client.go"
 
 
-DEFAULT_BLACKLIST="partner network claim notification cancellation insurance" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
+DEFAULT_BLACKLIST="partner network claim notification insurance" # we don't want to generate handlers for notifications - if we ever need more filters here the impl. need to change!
 
 SCRIPT=$(realpath --relative-to="${PWD}" "$0")
 FILTER=$1 #optional filter for files -- used for testing

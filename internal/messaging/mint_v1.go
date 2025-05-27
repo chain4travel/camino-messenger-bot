@@ -70,6 +70,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 		price,
 		paymentToken,
 		isoCurrency,
+		false,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)

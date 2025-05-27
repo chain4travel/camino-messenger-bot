@@ -66,6 +66,12 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 	logger := zapLogger.Sugar()
 	defer func() { _ = logger.Sync() }()
 
+	if err := version.InitProtoVersion(logger, configReader.IsDevelopmentMode()); err != nil {
+		err := fmt.Errorf("failed to initialize bot version: %w", err)
+		logger.Error(err)
+		return err
+	}
+
 	logger.Infof("App version: %s (git: %s)", version.AppVersion, version.AppGitCommit)
 	logger.Infof("buf.build protocolbuffers version: %s (CMP %s)", version.BufBuildPBCommit, version.BufBuildPBCMPRelease)
 	logger.Infof("buf.build grpc version: %s (CMP %s)", version.BufBuildGRPCCommit, version.BufBuildGRPCCMPRelease)

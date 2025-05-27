@@ -51,6 +51,7 @@ type Service interface {
 	// - price: Price of the token.
 	// - paymentToken: Address of the payment token (ERC20), if address(0) then native.
 	// - offChainPaymentCurrency: The currency to be used for off-chain payments.
+	// - isCancellable: Indicates if the booking can be cancelled.
 	// Returns the transaction receipt.
 	MintBookingToken(
 		ctx context.Context,
@@ -60,6 +61,7 @@ type Service interface {
 		price *big.Int,
 		paymentToken common.Address,
 		offChainPaymentCurrency *big.Int,
+		isCancellable bool,
 	) (*types.Receipt, *big.Int, error)
 
 	// BuyBookingToken buys an existing reserved booking token.
@@ -94,6 +96,45 @@ type Service interface {
 		blockNumber *big.Int,
 		tokenID *big.Int,
 	) (Status, error)
+
+	// IsBookingCancellable checks if a booking is cancellable.
+	// Parameters:
+	// - blockNumber: Block number to query the status at. If nil, the latest block is used.
+	// - tokenID: ID of the token to get the status for.
+	// Returns the booking status.
+	IsBookingCancellable(
+		ctx context.Context,
+		blockNumber *big.Int,
+		tokenID *big.Int,
+	) (bool, error)
+
+	// GetCancellationReasonsByTx retrieves cancellation reasons event from given tx.
+	// Parameters:
+	// - txHash: Hash of the BookingtokenCancellationReasons event transaction.
+	GetCancellationReasonsEvent(
+		ctx context.Context,
+		txHash common.Hash,
+	) (*bookingtoken.BookingtokenCancellationReasons, error)
+
+	// GetCancellationReasons retrieves cancellation reasons from token cancellation proposal.
+	// Parameters:
+	// - blockNumber: Block number to query the reasons at. If nil, the latest block is used.
+	// - tokenID: ID of the token to get the cancellation reasons from.
+	GetCancellationReasons(
+		ctx context.Context,
+		blockNumber *big.Int,
+		tokenID *big.Int,
+	) (*CancellationReasons, error)
+
+	// GetCancellationProposal retrieves cancellation proposal from token.
+	// Parameters:
+	// - blockNumber: Block number to query the proposal at. If nil, the latest block is used.
+	// - tokenID: ID of the token to get the cancellation proposal from.
+	GetCancellationProposal(
+		ctx context.Context,
+		blockNumber *big.Int,
+		tokenID *big.Int,
+	) (*CancellationProposal, error)
 }
 
 type service struct {
@@ -103,6 +144,7 @@ type service struct {
 	minterCMAccountAddress common.Address
 	cmAccounts             cmaccounts.Service
 	bookingToken           *bookingtoken.Bookingtoken
+	ethClient              *ethclient.Client
 }
 
 // NewService initializes a new Service. It sets up the transactor with the provided
@@ -138,6 +180,7 @@ func NewService(
 		minterCMAccountAddress: minterCMAccountAddress,
 		cmAccounts:             cmAccounts,
 		bookingToken:           bookingToken,
+		ethClient:              ethClient,
 	}, nil
 }
 
@@ -149,6 +192,7 @@ func (bs *service) MintBookingToken(
 	price *big.Int,
 	paymentToken common.Address,
 	offChainPaymentCurrency *big.Int,
+	isCancellable bool,
 ) (*types.Receipt, *big.Int, error) {
 	bs.logger.Infof("📅 Minting BookingToken for %s with price %s and expiration %s", reservedFor.Hex(), price, expirationTimestamp)
 
@@ -169,6 +213,7 @@ func (bs *service) MintBookingToken(
 		price,
 		paymentToken,
 		offChainPaymentCurrency,
+		isCancellable,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to mint booking token: %w", err)
@@ -237,4 +282,102 @@ func (bs *service) GetBookingStatus(
 		return StatusUnspecified, fmt.Errorf("failed to get booking status: %w", err)
 	}
 	return Status(status), nil
+}
+
+func (bs *service) IsBookingCancellable(
+	ctx context.Context,
+	blockNumber *big.Int,
+	tokenID *big.Int,
+) (bool, error) {
+	isCancellable, err := bs.bookingToken.IsCancellable(&bind.CallOpts{BlockNumber: blockNumber, Context: ctx}, tokenID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get booking cancellable status: %w", err)
+	}
+	return isCancellable, nil
+}
+
+func (bs *service) GetCancellationReasonsEvent(
+	ctx context.Context,
+	txHash common.Hash,
+) (*bookingtoken.BookingtokenCancellationReasons, error) {
+	txReceipt, err := bs.ethClient.TransactionReceipt(ctx, txHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get transaction receipt: %w", err)
+	}
+
+	for _, log := range txReceipt.Logs {
+		if event, err := bs.bookingToken.ParseCancellationReasons(*log); err == nil {
+			return event, nil
+		}
+	}
+
+	return nil, fmt.Errorf("failed to parse CancellationReasons event from tx receipt logs (txID: %s)", txHash.Hex())
+}
+
+type CancellationReasons struct {
+	CancellationReason  uint16
+	CancellationVersion uint16
+	RejectionReason     uint16
+	RejectionVersion    uint16
+	CounterReason       uint16
+	CounterVersion      uint16
+	WithdrawalReason    uint16
+	WithdrawalVersion   uint16
+}
+
+func (bs *service) GetCancellationReasons(
+	ctx context.Context,
+	blockNumber *big.Int,
+	tokenID *big.Int,
+) (*CancellationReasons, error) {
+	reasons, err := bs.bookingToken.GetCancellationReasons(&bind.CallOpts{BlockNumber: blockNumber, Context: ctx}, tokenID)
+	if err != nil {
+		return nil, err
+	}
+	return (*CancellationReasons)(&reasons), nil
+}
+
+type CancellationProposalStatus uint8
+
+const (
+	CancellationProposalStatusNoProposal CancellationProposalStatus = iota
+	CancellationProposalStatusPending
+	CancellationProposalStatusRejected
+	CancellationProposalStatusWithdrawn
+	CancellationProposalStatusFinalized
+)
+
+type CancellationProposal struct {
+	Status           CancellationProposalStatus
+	RefundAmount     *big.Int
+	InitialProposer  common.Address
+	CurrentProposer  common.Address
+	OwnerAccepted    bool
+	SupplierAccepted bool
+	TimesCountered   uint32
+	TimesRejected    uint32
+}
+
+func (bs *service) GetCancellationProposal(
+	ctx context.Context,
+	blockNumber *big.Int,
+	tokenID *big.Int,
+) (*CancellationProposal, error) {
+	status, refundAmount, initialProposer, currentProposer, ownerAccepted, supplierAccepted, timesCountered, timesRejected, err := bs.bookingToken.GetCancellationProposal(
+		&bind.CallOpts{BlockNumber: blockNumber, Context: ctx},
+		tokenID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &CancellationProposal{
+		Status:           CancellationProposalStatus(status),
+		RefundAmount:     refundAmount,
+		InitialProposer:  initialProposer,
+		CurrentProposer:  currentProposer,
+		OwnerAccepted:    ownerAccepted,
+		SupplierAccepted: supplierAccepted,
+		TimesCountered:   timesCountered,
+		TimesRejected:    timesRejected,
+	}, nil
 }

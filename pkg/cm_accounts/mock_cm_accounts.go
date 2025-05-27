@@ -46,6 +46,21 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
+// AcceptCancellationProposal mocks base method.
+func (m *MockService) AcceptCancellationProposal(arg0 context.Context, arg1 *ecdsa.PrivateKey, arg2 common.Address, arg3, arg4 *big.Int) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AcceptCancellationProposal", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AcceptCancellationProposal indicates an expected call of AcceptCancellationProposal.
+func (mr *MockServiceMockRecorder) AcceptCancellationProposal(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AcceptCancellationProposal", reflect.TypeOf((*MockService)(nil).AcceptCancellationProposal), arg0, arg1, arg2, arg3, arg4)
+}
+
 // BuyBookingToken mocks base method.
 func (m *MockService) BuyBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2 common.Address, arg3, arg4 *big.Int, arg5 common.Address) (*types.Receipt, error) {
 	m.ctrl.T.Helper()
@@ -89,6 +104,36 @@ func (m *MockService) CashInCheque(arg0 context.Context, arg1 *cheques.SignedChe
 func (mr *MockServiceMockRecorder) CashInCheque(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CashInCheque", reflect.TypeOf((*MockService)(nil).CashInCheque), arg0, arg1, arg2)
+}
+
+// CounterCancellation mocks base method.
+func (m *MockService) CounterCancellation(arg0 context.Context, arg1 *ecdsa.PrivateKey, arg2 common.Address, arg3, arg4 *big.Int, arg5, arg6 uint16) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CounterCancellation", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CounterCancellation indicates an expected call of CounterCancellation.
+func (mr *MockServiceMockRecorder) CounterCancellation(arg0, arg1, arg2, arg3, arg4, arg5, arg6 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CounterCancellation", reflect.TypeOf((*MockService)(nil).CounterCancellation), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+}
+
+// FinalizeCancellation mocks base method.
+func (m *MockService) FinalizeCancellation(arg0 context.Context, arg1 *ecdsa.PrivateKey, arg2 common.Address, arg3, arg4 *big.Int) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FinalizeCancellation", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FinalizeCancellation indicates an expected call of FinalizeCancellation.
+func (mr *MockServiceMockRecorder) FinalizeCancellation(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinalizeCancellation", reflect.TypeOf((*MockService)(nil).FinalizeCancellation), arg0, arg1, arg2, arg3, arg4)
 }
 
 // GetFirstChequeOperator mocks base method.
@@ -137,6 +182,21 @@ func (mr *MockServiceMockRecorder) GetServiceFee(arg0, arg1, arg2 any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceFee", reflect.TypeOf((*MockService)(nil).GetServiceFee), arg0, arg1, arg2)
 }
 
+// InitiateCancellationProposal mocks base method.
+func (m *MockService) InitiateCancellationProposal(arg0 context.Context, arg1 *ecdsa.PrivateKey, arg2 common.Address, arg3, arg4 *big.Int, arg5, arg6 uint16) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InitiateCancellationProposal", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InitiateCancellationProposal indicates an expected call of InitiateCancellationProposal.
+func (mr *MockServiceMockRecorder) InitiateCancellationProposal(arg0, arg1, arg2, arg3, arg4, arg5, arg6 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateCancellationProposal", reflect.TypeOf((*MockService)(nil).InitiateCancellationProposal), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+}
+
 // IsBotAllowed mocks base method.
 func (m *MockService) IsBotAllowed(arg0 context.Context, arg1, arg2 common.Address) (bool, error) {
 	m.ctrl.T.Helper()
@@ -168,18 +228,18 @@ func (mr *MockServiceMockRecorder) IsCMAccountImplementationUpToDate(arg0, arg1 
 }
 
 // MintBookingToken mocks base method.
-func (m *MockService) MintBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2, arg3 common.Address, arg4 string, arg5, arg6 *big.Int, arg7 common.Address, arg8 *big.Int) (*types.Receipt, error) {
+func (m *MockService) MintBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2, arg3 common.Address, arg4 string, arg5, arg6 *big.Int, arg7 common.Address, arg8 *big.Int, arg9 bool) (*types.Receipt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MintBookingToken", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	ret := m.ctrl.Call(m, "MintBookingToken", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 	ret0, _ := ret[0].(*types.Receipt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // MintBookingToken indicates an expected call of MintBookingToken.
-func (mr *MockServiceMockRecorder) MintBookingToken(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 any) *gomock.Call {
+func (mr *MockServiceMockRecorder) MintBookingToken(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MintBookingToken", reflect.TypeOf((*MockService)(nil).MintBookingToken), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MintBookingToken", reflect.TypeOf((*MockService)(nil).MintBookingToken), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 }
 
 // RecordExpiration mocks base method.
@@ -197,6 +257,21 @@ func (mr *MockServiceMockRecorder) RecordExpiration(arg0, arg1, arg2, arg3 any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordExpiration", reflect.TypeOf((*MockService)(nil).RecordExpiration), arg0, arg1, arg2, arg3)
 }
 
+// RejectCancellationProposal mocks base method.
+func (m *MockService) RejectCancellationProposal(arg0 context.Context, arg1 *ecdsa.PrivateKey, arg2 common.Address, arg3 *big.Int, arg4, arg5 uint16) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RejectCancellationProposal", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RejectCancellationProposal indicates an expected call of RejectCancellationProposal.
+func (mr *MockServiceMockRecorder) RejectCancellationProposal(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RejectCancellationProposal", reflect.TypeOf((*MockService)(nil).RejectCancellationProposal), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
 // VerifyCheque mocks base method.
 func (m *MockService) VerifyCheque(arg0 context.Context, arg1 *cheques.SignedCheque) (bool, error) {
 	m.ctrl.T.Helper()
@@ -210,4 +285,19 @@ func (m *MockService) VerifyCheque(arg0 context.Context, arg1 *cheques.SignedChe
 func (mr *MockServiceMockRecorder) VerifyCheque(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyCheque", reflect.TypeOf((*MockService)(nil).VerifyCheque), arg0, arg1)
+}
+
+// WithdrawCancellation mocks base method.
+func (m *MockService) WithdrawCancellation(arg0 context.Context, arg1 *ecdsa.PrivateKey, arg2 common.Address, arg3 *big.Int, arg4, arg5 uint16) (*types.Receipt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithdrawCancellation", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].(*types.Receipt)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// WithdrawCancellation indicates an expected call of WithdrawCancellation.
+func (mr *MockServiceMockRecorder) WithdrawCancellation(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawCancellation", reflect.TypeOf((*MockService)(nil).WithdrawCancellation), arg0, arg1, arg2, arg3, arg4, arg5)
 }
