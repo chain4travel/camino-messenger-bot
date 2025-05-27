@@ -15,11 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var (
-	errMissingPrice    = errors.New("missing price")
-	errUnknownCurrency = errors.New("unknown currency type")
-	errMissingMintTxID = errors.New("missing mint transaction id")
-)
+var errMissingMintTxID = errors.New("missing mint transaction id")
 
 func (h *evmResponseHandler) subscribeForTokenBoughtEvent(ctx context.Context, tokenID *big.Int, mintID string, buyableUntil *timestamppb.Timestamp) {
 	tokenBoughtTimeout := time.Unix(buyableUntil.Seconds, 0)

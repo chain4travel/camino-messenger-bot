@@ -21,5 +21,3 @@ func (NoopResponseHandler) PrepareResponseMessage(context.Context, *types.Messag
 func (NoopResponseHandler) PrepareRequest(protoreflect.ProtoMessage) error {
 	return nil
 }
-
-func (NoopResponseHandler) AddErrorToResponseHeader(protoreflect.ProtoMessage, string) {}

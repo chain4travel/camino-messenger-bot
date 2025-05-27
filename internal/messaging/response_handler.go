@@ -13,12 +13,12 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/erc20"
 
-	"github.com/ethereum/go-ethereum/common"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 )
 
@@ -40,17 +40,15 @@ type ResponseHandler interface {
 
 	// Prepares request by performing any necessary modifications to it
 	PrepareRequest(request protoreflect.ProtoMessage) error
-
-	// Adds an error message to the response header
-	AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string)
 }
 
 func NewResponseHandler(
 	logger *zap.SugaredLogger,
-	cmAccountAddress common.Address,
+	cmAccountAddress ethCommon.Address,
 	eventListener eventlistener.EventListener,
 	bookingService booking.Service,
-	erc20 erc20.Service,
+	responseHeaderHandler common.ResponseHeaderHandler,
+	priceHandler common.PriceHandler,
 	e2eTestMode bool,
 ) (ResponseHandler, error) {
 	tokenBuyableUntil := tokenBuyableUntil{
@@ -66,20 +64,22 @@ func NewResponseHandler(
 
 	return &evmResponseHandler{
 		logger:              logger,
+		h:                   responseHeaderHandler,
+		priceHandler:        priceHandler,
 		cmAccountAddressStr: cmAccountAddress.Hex(),
 		bookingService:      bookingService,
 		eventListener:       eventListener,
-		erc20:               erc20,
 		tokenBuyableUntil:   tokenBuyableUntil,
 	}, nil
 }
 
 type evmResponseHandler struct {
 	logger              *zap.SugaredLogger
+	h                   common.ResponseHeaderHandler
+	priceHandler        common.PriceHandler
 	cmAccountAddressStr string
 	bookingService      booking.Service
 	eventListener       eventlistener.EventListener
-	erc20               erc20.Service
 	tokenBuyableUntil   tokenBuyableUntil
 }
 
@@ -120,24 +120,4 @@ func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) e
 		request.BuyerAddress = h.cmAccountAddressStr
 	}
 	return nil
-}
-
-func (h *evmResponseHandler) AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string) {
-	headerFieldDescriptor := response.ProtoReflect().Descriptor().Fields().ByName("header")
-	headerReflectValue := response.ProtoReflect().Get(headerFieldDescriptor)
-
-	switch header := headerReflectValue.Message().Interface().(type) {
-	case *typesv1.ResponseHeader:
-		addErrorToResponseHeaderV1(header, errMessage)
-	default:
-		h.logger.Errorf("failed add error to response header: %v", errMessage)
-	}
-}
-
-func addErrorToResponseHeaderV1(header *typesv1.ResponseHeader, errMessage string) {
-	header.Status = typesv1.StatusType_STATUS_TYPE_FAILURE
-	header.Alerts = append(header.Alerts, &typesv1.Alert{
-		Message: errMessage,
-		Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-	})
 }

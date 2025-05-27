@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
@@ -19,7 +20,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
-	"github.com/ethereum/go-ethereum/common"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -55,15 +56,16 @@ func NewMessageProcessor(
 	logger *zap.SugaredLogger,
 	responseTimeout time.Duration,
 	botUserID id.UserID,
-	cmAccountAddress common.Address,
-	networkFeeRecipientBotAddress common.Address,
-	networkFeeRecipientCMAccountAddress common.Address,
+	cmAccountAddress ethCommon.Address,
+	networkFeeRecipientBotAddress ethCommon.Address,
+	networkFeeRecipientCMAccountAddress ethCommon.Address,
 	registry ServiceRegistry,
 	responseHandler ResponseHandler,
 	partnerPlugin partnerplugin.PartnerPlugin,
 	chequeHandler chequehandler.ChequeHandler,
 	compressor compression.Compressor[*types.Message, [][]byte],
 	cmAccounts cmaccounts.Service,
+	responseHeaderHandler common.ResponseHeaderHandler,
 ) MessageProcessor {
 	return &messageProcessor{
 		messenger:                           messenger,
@@ -83,6 +85,7 @@ func NewMessageProcessor(
 		cmAccountAddress:                    cmAccountAddress,
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
 		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
+		h:                                   responseHeaderHandler,
 	}
 }
 
@@ -90,10 +93,10 @@ type messageProcessor struct {
 	responseTimeout                     time.Duration // timeout after which a request is considered failed
 	matrixHost                          string
 	botUserID                           id.UserID
-	myBotAddress                        common.Address
-	cmAccountAddress                    common.Address
-	networkFeeRecipientBotAddress       common.Address
-	networkFeeRecipientCMAccountAddress common.Address
+	myBotAddress                        ethCommon.Address
+	cmAccountAddress                    ethCommon.Address
+	networkFeeRecipientBotAddress       ethCommon.Address
+	networkFeeRecipientCMAccountAddress ethCommon.Address
 
 	messenger            Messenger
 	logger               *zap.SugaredLogger
@@ -106,6 +109,7 @@ type messageProcessor struct {
 	chequeHandler        chequehandler.ChequeHandler
 	compressor           compression.Compressor[*types.Message, [][]byte]
 	cmAccounts           cmaccounts.Service
+	h                    common.ResponseHeaderHandler
 }
 
 func (*messageProcessor) checkpoint() string {
@@ -156,13 +160,13 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
-	if !common.IsHexAddress(requestMsg.Metadata.RecipientCMAccount) {
+	if !ethCommon.IsHexAddress(requestMsg.Metadata.RecipientCMAccount) {
 		return nil, ErrInvalidRecipient
 	}
 
 	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", requestMsg.Metadata.RecipientCMAccount)
 	// lookup for CM Account -> bot
-	recipientCMAccAddr := common.HexToAddress(requestMsg.Metadata.RecipientCMAccount)
+	recipientCMAccAddr := ethCommon.HexToAddress(requestMsg.Metadata.RecipientCMAccount)
 	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccAddr)
 	if err != nil {
 		return nil, err
@@ -252,7 +256,7 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 		return err
 	}
 
-	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, common.HexToAddress(requestMsg.Metadata.RecipientCMAccount), service.Name())
+	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, ethCommon.HexToAddress(requestMsg.Metadata.RecipientCMAccount), service.Name())
 	if err != nil {
 		return err
 	}
@@ -270,7 +274,7 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 	if err != nil {
 		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
 		p.logger.Error(errMessage)
-		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
+		p.h.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 	}
 
 	if err := p.issueNetworkCheque(ctx, responseMsg); err != nil {
@@ -291,7 +295,7 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
-		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
+		p.h.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 		return ctx, responseMsg
 	}
 
@@ -357,8 +361,8 @@ func (p *messageProcessor) issueServiceCheque(
 	ctx context.Context,
 	msg *types.Message,
 	serviceFee *big.Int,
-	recipientCMAccAddr common.Address,
-	recipientBotAddr common.Address,
+	recipientCMAccAddr ethCommon.Address,
+	recipientBotAddr ethCommon.Address,
 ) error {
 	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,

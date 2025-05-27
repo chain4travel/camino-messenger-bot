@@ -11,10 +11,7 @@ import (
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -30,7 +27,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if !common.IsHexAddress(request.BuyerAddress) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
 		h.logger.Error(errMsg)
-		h.AddErrorToResponseHeader(response, errMsg)
+		h.h.AddErrorToResponseHeader(response, errMsg)
 		return
 	}
 	buyerAddress := common.HexToAddress(request.BuyerAddress)
@@ -43,7 +40,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 		if err != nil {
 			errMsg := fmt.Sprintf("Failed to mint token: failed to generate tokenURI:  %s", err)
 			h.logger.Error(errMsg)
-			h.AddErrorToResponseHeader(response, errMsg)
+			h.h.AddErrorToResponseHeader(response, errMsg)
 			return
 		}
 		h.logger.Debugf("Token URI JSON: %s", jsonPlain)
@@ -54,16 +51,16 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
-		h.AddErrorToResponseHeader(response, err.Error())
+		h.h.AddErrorToResponseHeader(response, err.Error())
 		return
 	}
 	response.BuyableUntil = buyableUntil
 
-	price, paymentToken, isoCurrency, err := h.getPriceAndTokenV2(ctx, response.Price)
+	price, paymentToken, isoCurrency, err := h.priceHandler.GetPriceAndTokenV2(ctx, response.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(response, errMessage)
+		h.h.AddErrorToResponseHeader(response, errMessage)
 		return
 	}
 
@@ -79,7 +76,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(response, errMessage)
+		h.h.AddErrorToResponseHeader(response, errMessage)
 		return
 	}
 	txID := receipt.TxHash.Hex()
@@ -98,17 +95,17 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response *bookv2.MintResponse) {
 	if response.MintTransactionId == "" {
 		h.logger.Error(errMissingMintTxID)
-		h.AddErrorToResponseHeader(response, errMissingMintTxID.Error())
+		h.h.AddErrorToResponseHeader(response, errMissingMintTxID.Error())
 		return
 	}
 
 	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
 
-	price, paymentToken, _, err := h.getPriceAndTokenV2(ctx, response.Price)
+	price, paymentToken, _, err := h.priceHandler.GetPriceAndTokenV2(ctx, response.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(response, errMessage)
+		h.h.AddErrorToResponseHeader(response, errMessage)
 		return
 	}
 
@@ -116,48 +113,10 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.AddErrorToResponseHeader(response, errMessage)
+		h.h.AddErrorToResponseHeader(response, errMessage)
 		return
 	}
 
 	response.BuyTransactionId = receipt.TxHash.Hex()
 	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId, response.MintTransactionId)
-}
-
-func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, priceV2 *typesv2.Price) (*big.Int, common.Address, *big.Int, error) {
-	if priceV2 == nil {
-		return nil, common.Address{}, nil, errMissingPrice
-	}
-
-	var priceBigInt *big.Int
-	isoCurrency := big.NewInt(0)
-	paymentToken := booking.NativePaymentToken
-	var err error
-
-	switch currency := priceV2.Currency.GetCurrency().(type) {
-	case *typesv2.Currency_NativeToken:
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.NativeTokenDecimals)
-	case *typesv2.Currency_TokenCurrency:
-		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-		// if contract address is invalid in any way, Decimals() will return an error
-		tokenDecimals, decErr := h.erc20.Decimals(ctx, contractAddress)
-		if decErr != nil {
-			return nil, common.Address{}, nil, fmt.Errorf("failed to fetch token decimals: %w", decErr)
-		}
-
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, tokenDecimals)
-		paymentToken = contractAddress
-	case *typesv2.Currency_IsoCurrency:
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.ISODecimals)
-		paymentToken = booking.ISOPaymentToken
-		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
-	default:
-		return nil, common.Address{}, nil, fmt.Errorf("%w (%T)", errUnknownCurrency, currency)
-	}
-
-	if err != nil {
-		return nil, common.Address{}, nil, fmt.Errorf("failed to convert price to big.Int: %w", err)
-	}
-
-	return priceBigInt, paymentToken, isoCurrency, nil
 }

@@ -19,6 +19,8 @@ import (
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/cancellation"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
 	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener/storage/sqlite"
@@ -149,6 +151,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	priceHandler := common.NewPriceHandler(erc20)
+
 	// event listener with additional logic for subscribing and reacting on blockchain events
 
 	eventListenerStorage, err := eventlistener_storage.New(ctx, logger, cfg.DB.EventListener.DBPath)
@@ -175,12 +179,15 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// messaging components
 
+	responseHeaderHandler := common.NewResponseHeaderHandler(logger)
+
 	responseHandler, err := messaging.NewResponseHandler(
 		logger,
 		cfg.CMAccountAddress,
 		eventListener,
 		bookingService,
-		erc20,
+		responseHeaderHandler,
+		priceHandler,
 		cfg.E2ETestMode,
 	)
 	if err != nil {
@@ -251,6 +258,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		chequeHandler,
 		messaging.NewCompressor(compression.MaxChunkSize),
 		cmAccounts,
+		responseHeaderHandler,
 	)
 
 	// rpc server for incoming requests
