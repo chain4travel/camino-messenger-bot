@@ -32,6 +32,7 @@ func RegisterServerServices(grpcServer *grpc.Server, reqHandler rpc.RequestHandl
 	registerValidationServiceV2Server(grpcServer, reqHandler)
 	registerMintServiceV3Server(grpcServer, reqHandler)
 	registerValidationServiceV3Server(grpcServer, reqHandler)
+	registerCheckCancellationServiceV1Server(grpcServer, reqHandler)
 	registerCountryEntryRequirementsServiceV1Server(grpcServer, reqHandler)
 	registerCountryEntryRequirementsServiceV2Server(grpcServer, reqHandler)
 	registerPingServiceV1Server(grpcServer, reqHandler)

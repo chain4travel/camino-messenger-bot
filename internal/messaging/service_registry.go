@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
@@ -22,6 +23,10 @@ var errUnsupportedService = errors.New("cm account support service, which bot do
 
 type ServiceRegistry interface {
 	GetService(messageType types.MessageType) (rpc.Service, bool)
+
+	// should only be called for supplier bot with rpc client
+	CancellationClient() cancellationv1grpc.CancellationServiceClient
+	CheckCancellationClient() cancellationv1grpc.CheckCancellationServiceClient
 }
 
 func NewServiceRegistry(
@@ -96,4 +101,12 @@ func (s *serviceRegistry) GetService(requestType types.MessageType) (rpc.Service
 		return nil, false
 	}
 	return service, true
+}
+
+func (s *serviceRegistry) CancellationClient() cancellationv1grpc.CancellationServiceClient {
+	return cancellationv1grpc.NewCancellationServiceClient(s.rpcClient.ClientConn)
+}
+
+func (s *serviceRegistry) CheckCancellationClient() cancellationv1grpc.CheckCancellationServiceClient {
+	return cancellationv1grpc.NewCheckCancellationServiceClient(s.rpcClient.ClientConn)
 }

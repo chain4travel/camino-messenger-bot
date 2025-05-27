@@ -107,6 +107,10 @@ func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]st
 		services[ValidationServiceV3Request] = rpc.NewService(NewValidationServiceV3(rpcConn), ValidationServiceV3)
 		delete(serviceNames, ValidationServiceV3)
 	}
+	if _, ok := serviceNames[CheckCancellationServiceV1]; ok {
+		services[CheckCancellationServiceV1Request] = rpc.NewService(NewCheckCancellationServiceV1(rpcConn), CheckCancellationServiceV1)
+		delete(serviceNames, CheckCancellationServiceV1)
+	}
 	if _, ok := serviceNames[CountryEntryRequirementsServiceV1]; ok {
 		services[CountryEntryRequirementsServiceV1Request] = rpc.NewService(NewCountryEntryRequirementsServiceV1(rpcConn), CountryEntryRequirementsServiceV1)
 		delete(serviceNames, CountryEntryRequirementsServiceV1)
