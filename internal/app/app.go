@@ -19,7 +19,6 @@ import (
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/cancellation"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
