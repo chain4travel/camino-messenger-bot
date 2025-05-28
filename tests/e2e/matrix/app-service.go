@@ -219,7 +219,6 @@ func (a *AppService) awaitReady(ctx context.Context) error {
 			resp.Body.Close()
 
 			if resp.StatusCode == http.StatusOK {
-				a.logger.Debugf("ASB (pid %d) awaitReady: ready", a.pid)
 				return nil
 			}
 

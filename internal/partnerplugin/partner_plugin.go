@@ -29,9 +29,10 @@ var _ PartnerPlugin = (*partnerPlugin)(nil)
 // Handles all communication with the partner plugin
 type PartnerPlugin interface {
 	DoServiceRequest(ctx context.Context, requestMsg *types.Message, service rpc.Client) (context.Context, *types.Message, error)
-	SendTokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
-	SendTokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
-	SendTokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error
+
+	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
+	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
+	TokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error
 }
 
 func New(
@@ -77,22 +78,22 @@ func (p *partnerPlugin) DoServiceRequest(ctx context.Context, requestMsg *types.
 	return ctx, responseMsg, nil
 }
 
-func (p *partnerPlugin) SendTokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {
-	return p.sendTokenBoughtNotification(ctx, &notificationv1.TokenBought{
+func (p *partnerPlugin) TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {
+	return p.tokenBoughtNotification(ctx, &notificationv1.TokenBought{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv1.UUID{Value: mintID},
 	})
 }
 
-func (p *partnerPlugin) SendTokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error {
-	return p.sendTokenBoughtNotification(ctx, &notificationv1.TokenBought{
+func (p *partnerPlugin) TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error {
+	return p.tokenBoughtNotification(ctx, &notificationv1.TokenBought{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv1.UUID{Value: mintID},
 		TxId:    buyTxID.Hex(),
 	})
 }
 
-func (p *partnerPlugin) sendTokenBoughtNotification(ctx context.Context, notification *notificationv1.TokenBought) error {
+func (p *partnerPlugin) tokenBoughtNotification(ctx context.Context, notification *notificationv1.TokenBought) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
@@ -103,7 +104,7 @@ func (p *partnerPlugin) sendTokenBoughtNotification(ctx context.Context, notific
 	return err
 }
 
-func (p *partnerPlugin) SendTokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error {
+func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 

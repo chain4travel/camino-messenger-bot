@@ -64,7 +64,7 @@ func Run() error {
 		var eventServer events.Server
 		eventServer, eventSender = events.NewServer()
 		eventServer.Start(ctx)
-		events_pb.RegisterMyEventsServiceServer(grpcServer, eventServer)
+		events_pb.RegisterEventsServiceServer(grpcServer, eventServer)
 	}
 
 	// Accommodation V1
@@ -75,31 +75,29 @@ func Run() error {
 	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, handlers_accommodation_v2.NewAccommodationSearchV2Server(eventSender))
 	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, handlers_accommodation_v2.NewAccommodationProductInfoV2Server(eventSender))
 	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, handlers_accommodation_v2.NewAccommodationProductListV2Server(eventSender))
-
 	// Accommodation V3
 	accommodationv3grpc.RegisterAccommodationSearchServiceServer(grpcServer, handlers_accommodation_v3.NewAccommodationSearchV3Server(eventSender))
 	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, handlers_accommodation_v3.NewAccommodationProductInfoV3Server(eventSender))
 	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, handlers_accommodation_v3.NewAccommodationProductListV3Server(eventSender))
 
-	// Book - mint & validation
-	// Book - Mint
-	bookv2grpc.RegisterMintServiceServer(grpcServer, handlers_mint_v2.NewMintServiceV2Server(eventSender))
+	// Book V1
 	bookv1grpc.RegisterMintServiceServer(grpcServer, handlers_mint_v1.NewMintServiceV1Server(eventSender))
-	// Book - Validation
 	bookv1grpc.RegisterValidationServiceServer(grpcServer, handlers_validation_v1.NewValidationServiceV1Server(eventSender))
+	// Book V2
+	bookv2grpc.RegisterMintServiceServer(grpcServer, handlers_mint_v2.NewMintServiceV2Server(eventSender))
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, handlers_validation_v2.NewValidationServiceV2Server(eventSender))
 
-	// Ping
+	// Ping V1
 	pingv1grpc.RegisterPingServiceServer(grpcServer, handlers_ping_v1.NewPingServiceV1Server(eventSender))
 
-	// Notification
+	// Notification V1
 	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, handlers_notification_v1.NewNotificationServiceV1Server(eventSender))
 
-	// Transport
+	// Transport V1
 	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, handlers_transport_v1.NewTransportSearchV1Server(eventSender))
-
+	// Transport V2
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, handlers_transport_v2.NewTransportSearchV2Server(eventSender))
-
+	// Transport V3
 	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, handlers_transport_v3.NewTransportProductListV3Server(eventSender))
 	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, handlers_transport_v3.NewTransportSearchV3Server(eventSender))
 

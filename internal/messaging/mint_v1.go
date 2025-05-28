@@ -26,7 +26,6 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 		return
 	}
 
-	// TODO: @VjeraTurk check if CMAccount exists
 	if !common.IsHexAddress(request.BuyerAddress) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
 		h.logger.Error(errMsg)
@@ -82,7 +81,7 @@ func (h *evmResponseHandler) prepareMintResponseV1(
 	}
 	txID := receipt.TxHash.Hex()
 
-	h.logger.Infof("NFT minted with txID: %s\n", txID)
+	h.logger.Infof("NFT minted with txID: %s", txID)
 
 	h.subscribeForTokenBoughtEvent(ctx, tokenID, response.MintId.Value, buyableUntil)
 
@@ -119,8 +118,8 @@ func (h *evmResponseHandler) processMintResponseV1(ctx context.Context, response
 		return
 	}
 
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", receipt, response.MintTransactionId)
 	response.BuyTransactionId = receipt.TxHash.Hex()
+	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId, response.MintTransactionId)
 }
 
 func (h *evmResponseHandler) getPriceAndTokenV1(ctx context.Context, priceV1 *typesv1.Price) (*big.Int, common.Address, *big.Int, error) {

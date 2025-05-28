@@ -22,8 +22,4 @@ func (NoopResponseHandler) PrepareRequest(protoreflect.ProtoMessage) error {
 	return nil
 }
 
-func (NoopResponseHandler) ProcessRequestMessage(context.Context, *types.Message, protoreflect.ProtoMessage) error {
-	return nil
-}
-
 func (NoopResponseHandler) AddErrorToResponseHeader(protoreflect.ProtoMessage, string) {}

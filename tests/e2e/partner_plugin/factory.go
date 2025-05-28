@@ -96,7 +96,7 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 		pid:          cmd.Process.Pid,
 		host:         hostURL,
 		pingClient:   pingv1grpc.NewPingServiceClient(clientConnection),
-		eventsClient: events.NewMyEventsServiceClient(clientConnection),
+		eventsClient: events.NewEventsServiceClient(clientConnection),
 		logFile:      logFile,
 	}
 

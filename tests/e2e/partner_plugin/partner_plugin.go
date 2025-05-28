@@ -29,7 +29,7 @@ type PartnerPlugin struct {
 	pid          int
 	host         *url.URL
 	pingClient   pingv1grpc.PingServiceClient
-	eventsClient events.MyEventsServiceClient
+	eventsClient events.EventsServiceClient
 	logFile      *os.File
 }
 
@@ -54,7 +54,7 @@ func (pp *PartnerPlugin) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (pp *PartnerPlugin) SubscribeForEvents(ctx context.Context) (events.MyEventsService_SubscribeClient, error) {
+func (pp *PartnerPlugin) SubscribeForEvents(ctx context.Context) (events.EventsService_SubscribeClient, error) {
 	return pp.eventsClient.Subscribe(ctx, &emptypb.Empty{})
 }
 

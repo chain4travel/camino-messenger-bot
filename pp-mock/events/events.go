@@ -23,7 +23,7 @@ var (
 )
 
 type Server interface {
-	events.MyEventsServiceServer
+	events.EventsServiceServer
 
 	Start(ctx context.Context)
 }
@@ -33,7 +33,7 @@ type Sender interface {
 }
 
 type server struct {
-	events.UnimplementedMyEventsServiceServer
+	events.UnimplementedEventsServiceServer
 
 	subscriptionChans      map[string]chan []byte
 	subscriptionChansMutex sync.RWMutex
@@ -99,7 +99,7 @@ func (s *server) propagate(event []byte) {
 }
 
 // Subscribe implements the server-side streaming RPC.
-func (s *server) Subscribe(_ *emptypb.Empty, stream events.MyEventsService_SubscribeServer) error {
+func (s *server) Subscribe(_ *emptypb.Empty, stream events.EventsService_SubscribeServer) error {
 	subscriptionID, subscriptionChan := s.subscribe()
 	defer s.unsubscribe(subscriptionID)
 

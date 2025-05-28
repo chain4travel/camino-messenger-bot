@@ -6,7 +6,7 @@ CLIENT_TEMPLATE="${TEMPLATES_DIR}/client.go.tpl"
 CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
 SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
 SERVER_P2P_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_p2p_method.go.tpl"
-SERVER_LOCAL_TEMPLATE="${TEMPLATES_DIR}/server_local_method.go.tpl"
+SERVER_LOCAL_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_local_method.go.tpl"
 
 P2P_OUTPATH="internal/rpc/generated"
 LOCAL_OUTPATH="internal/rpc/generated"
@@ -14,7 +14,7 @@ E2E_GEN_OUTPATH="tests/e2e/bot/generated"
 
 REGISTER_SERVICES_SERVER_FILE="${P2P_OUTPATH}/register_server_services.go"
 REGISTER_SERVICES_CLIENT_FILE="${P2P_OUTPATH}/register_client_services.go"
-UNMARSHALING_FILE="${P2P_OUTPATH}/unmarshal.go"
+UNMARSHALLING_FILE="${P2P_OUTPATH}/unmarshal.go"
 E2E_BOT_CLIENT_FILE="${E2E_GEN_OUTPATH}/client.go"
 
 
@@ -126,14 +126,15 @@ function generate_with_templates() {
 			sed -i -e "s#{{TEMPLATE}}#$SERVER_P2P_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
 		done
 	elif [[ "$ROUTING" == "local" ]]; then
+		# Generate server
 		SERVER_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
 		echo "🔨 Generating server: $SERVER_GEN_FILE"
-		cp "$SERVER_TEMPLATE" "$SERVER_GEN_FILE"
-		sed -i "$GENERAL_PARAM_REPLACE" "$SERVER_GEN_FILE"
+		cp $SERVER_TEMPLATE "$SERVER_GEN_FILE"
+		sed -i "${replace_params[@]}" "$SERVER_GEN_FILE"
 		sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" "$SERVER_GEN_FILE"
 
 	    EMPTY_IMPORT=""
-		# Generate server methods for local services
+		# Generate server local methods
 		for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
 			METHOD=${_METHODS[$num]}
 			INPUT=${_INPUTS[$num]}
@@ -147,11 +148,16 @@ function generate_with_templates() {
 				TYPE_PACKAGE="emptypb"
 			fi
 			METHOD_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
-			echo "🔨 Generating local server method: $METHOD_GEN_FILE"
-			cp "$SERVER_LOCAL_TEMPLATE" "$METHOD_GEN_FILE"
-			sed -i "$GENERAL_PARAM_REPLACE" "$METHOD_GEN_FILE"
-			sed -i "$METHOD_PARAM_REPLACE" "$METHOD_GEN_FILE"
-			sed -i -e "s#{{TEMPLATE}}#$SERVER_LOCAL_TEMPLATE#g" "$METHOD_GEN_FILE"
+
+			## This is added to fix shellcheck issue SC2086
+			method_params=()
+			eval "method_params+=( $METHOD_PARAM_REPLACE )"
+
+			echo "🔨 Generating server local method: $METHOD_GEN_FILE"
+			cp $SERVER_LOCAL_METHOD_TEMPLATE "$METHOD_GEN_FILE"
+			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
+			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
+			sed -i -e "s#{{TEMPLATE}}#$SERVER_LOCAL_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
 		done
 	fi
 }
@@ -490,7 +496,7 @@ done < <(find "$SDK_GRPC_PATH/cmp/services/" -name "*_grpc.pb.go" | sort)
 
 generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER
 generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER
-generate_unmarshalling "$UNMARSHALING_FILE" PROTO_INCLUDES_FOR_UNMARSHALLING UNMARSHAL_METHODS
+generate_unmarshalling "$UNMARSHALLING_FILE" PROTO_INCLUDES_FOR_UNMARSHALLING UNMARSHAL_METHODS
 generate_e2e_bot_client "${E2E_BOT_CLIENT_FILE}" E2E_GRPC_INCLUDES E2E_PACKAGES E2E_TYPES E2E_CLIENT_FIELDS
 
 echo "🧹 Running gofumpt on all generated files"

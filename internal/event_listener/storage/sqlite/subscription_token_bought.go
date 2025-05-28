@@ -15,7 +15,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const subscriptionsTableName = "subscriptions"
+const tokenBoughtSubscriptionsTable = "token_bought_subscriptions"
 
 var _ eventlistener.Storage = (*storage)(nil)
 
@@ -42,7 +42,7 @@ func (s *storage) AddTokenBoughtSubscription(ctx context.Context, session eventl
 		s.base.Logger.Error(err)
 		return upgradeError(err)
 	} else if rowsAffected != 1 {
-		return fmt.Errorf("failed to add cheque: expected to affect 1 row, but affected %d", rowsAffected)
+		return fmt.Errorf("failed to add token bought subscription: expected to affect 1 row, but affected %d", rowsAffected)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session ev
 	for rows.Next() {
 		subscription := &tokenBoughtSubscription{}
 		if err := rows.StructScan(subscription); err != nil {
-			s.base.Logger.Errorf("failed to get subscription from db: %v", err)
+			s.base.Logger.Errorf("failed to get token bought subscription from db: %v", err)
 			continue
 		}
 		subscriptions = append(subscriptions, *modelFromTokenBoughtSubscription(subscription))
@@ -125,7 +125,7 @@ func (s *storage) GetTokenBoughtSubscriptionByMinTimeout(ctx context.Context, se
 	return modelFromTokenBoughtSubscription(subscription), nil
 }
 
-type subscriptionsStatements struct {
+type tokenBoughtSubscriptionsStatements struct {
 	insertTokenBoughtSubscription          *sqlx.NamedStmt
 	removeTokenBoughtSubscription          *sqlx.Stmt
 	getAllTokenBoughtSubscription          *sqlx.Stmt
@@ -133,7 +133,7 @@ type subscriptionsStatements struct {
 	getTokenBoughtSubscriptionByMinTimeout *sqlx.Stmt
 }
 
-func (s *storage) prepareSubscriptionsStmts(ctx context.Context) error {
+func (s *storage) prepareTokenBoughtSubscriptionsStmts(ctx context.Context) error {
 	insertTokenBoughtSubscription, err := s.base.DB.PrepareNamedContext(ctx, fmt.Sprintf(`
 		INSERT INTO %s (
 			token_id,
@@ -144,7 +144,7 @@ func (s *storage) prepareSubscriptionsStmts(ctx context.Context) error {
 			:mint_id,
 			:timeout
 		)
-	`, subscriptionsTableName))
+	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -154,7 +154,7 @@ func (s *storage) prepareSubscriptionsStmts(ctx context.Context) error {
 	removeTokenBoughtSubscription, err := s.base.DB.PreparexContext(ctx, fmt.Sprintf(`
 		DELETE FROM %s
 		WHERE token_id = ?
-	`, subscriptionsTableName))
+	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -163,7 +163,7 @@ func (s *storage) prepareSubscriptionsStmts(ctx context.Context) error {
 
 	getAllTokenBoughtSubscription, err := s.base.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
-	`, subscriptionsTableName))
+	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -173,7 +173,7 @@ func (s *storage) prepareSubscriptionsStmts(ctx context.Context) error {
 	getTokenBoughtSubscription, err := s.base.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT * FROM %s
 		WHERE token_id = ?
-	`, subscriptionsTableName))
+	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -185,7 +185,7 @@ func (s *storage) prepareSubscriptionsStmts(ctx context.Context) error {
 		WHERE timeout = (
 			SELECT MIN(timeout) FROM %s
 		)
-	`, subscriptionsTableName, subscriptionsTableName))
+	`, tokenBoughtSubscriptionsTable, tokenBoughtSubscriptionsTable))
 	if err != nil {
 		s.base.Logger.Error(err)
 	}

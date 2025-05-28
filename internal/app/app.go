@@ -22,7 +22,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
 	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener/storage/sqlite"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/local"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
@@ -254,8 +253,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cmAccounts,
 	)
 
-	localService := local.NewService(logger)
-
 	// rpc server for incoming requests
 	rpcServer, err := server.NewServer(
 		cfg.RPCServer,
@@ -263,7 +260,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		tracer,
 		messageProcessor,
 		serviceRegistry,
-		localService,
 		cfg.DeveloperMode,
 	)
 	if err != nil {

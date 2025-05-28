@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 
 option go_package = "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events";
 
-service MyEventsService {
+service EventsService {
   rpc Subscribe(google.protobuf.Empty) returns (stream SubscribeResponse);
 }
 

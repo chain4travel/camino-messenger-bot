@@ -40,13 +40,35 @@ if [[ $(protoc-gen-go-grpc --version | cut -f2 -d' ') != "${PROTOC_GEN_GO_GRPC_V
 	exit 255
 fi
 
-TARGET=$PWD/proto
-if [ -n "${1:-}" ]; then
-	TARGET="$1"
+CAMINOBOT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)
+cd "$CAMINOBOT_PATH" || exit
+
+CMB_PROTO_PATH="$CAMINOBOT_PATH/proto"
+PP_MOCK_PROTO_PATH="$CAMINOBOT_PATH/pp-mock/proto"
+
+echo "Re-generating protobuf for cmb api..."
+
+cd "$CMB_PROTO_PATH" || exit
+
+echo "Running protobuf fmt..."
+buf format -w
+
+echo "Running protobuf lint check..."
+if ! buf lint;  then
+	echo "ERROR: protobuf linter failed"
+	exit 1
 fi
 
-# move to api directory
-cd "$TARGET"
+echo "Re-generating protobuf..."
+if ! buf generate;  then
+	echo "ERROR: protobuf generation failed"
+	exit 1
+fi
+
+
+echo "Re-generating protobuf for pp-mock api..."
+
+cd "$PP_MOCK_PROTO_PATH" || exit
 
 echo "Running protobuf fmt..."
 buf format -w

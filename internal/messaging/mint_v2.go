@@ -26,14 +26,13 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if response.Header.Status != typesv1.StatusType_STATUS_TYPE_SUCCESS {
 		return
 	}
-	// TODO: @VjeraTurk check if CMAccount exists
+
 	if !common.IsHexAddress(request.BuyerAddress) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
 		h.logger.Error(errMsg)
 		h.AddErrorToResponseHeader(response, errMsg)
 		return
 	}
-
 	buyerAddress := common.HexToAddress(request.BuyerAddress)
 
 	if response.BookingTokenUri == "" {
@@ -47,10 +46,10 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 			h.AddErrorToResponseHeader(response, errMsg)
 			return
 		}
-		h.logger.Debugf("Token URI JSON: %s\n", jsonPlain)
+		h.logger.Debugf("Token URI JSON: %s", jsonPlain)
 		response.BookingTokenUri = tokenURI
 	}
-	h.logger.Debugf("Token URI: %s\n", response.BookingTokenUri)
+	h.logger.Debugf("Token URI: %s", response.BookingTokenUri)
 
 	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
@@ -85,7 +84,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	}
 	txID := receipt.TxHash.Hex()
 
-	h.logger.Infof("NFT minted with txID: %s\n", txID)
+	h.logger.Infof("NFT minted with txID: %s", txID)
 
 	h.subscribeForTokenBoughtEvent(ctx, tokenID, response.MintId.Value, buyableUntil)
 
@@ -121,7 +120,6 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 		return
 	}
 
-	h.logger.Infof("Bought NFT (txID=%s) with ID: %s\n", receipt, response.MintTransactionId)
 	response.BuyTransactionId = receipt.TxHash.Hex()
 }
 

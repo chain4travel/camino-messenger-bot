@@ -9,7 +9,6 @@ import (
 	"net"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/local"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
@@ -44,7 +43,6 @@ func NewServer(
 	tracer tracing.Tracer,
 	processor messaging.MessageProcessor,
 	serviceRegistry messaging.ServiceRegistry,
-	localService local.Service,
 	developerMode bool,
 ) (Server, error) {
 	if !cfg.Enabled {
@@ -61,13 +59,13 @@ func NewServer(
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
+
 	server := &server{
 		cfg:             cfg,
 		logger:          logger,
 		tracer:          tracer,
 		processor:       processor,
 		serviceRegistry: serviceRegistry,
-		localService:    localService,
 		grpcServer:      grpc.NewServer(opts...),
 	}
 	generated.RegisterServerServices(server.grpcServer, server)
@@ -87,7 +85,6 @@ type server struct {
 	tracer          tracing.Tracer
 	processor       messaging.MessageProcessor
 	serviceRegistry messaging.ServiceRegistry
-	localService    local.Service
 
 	readiness.UnimplementedReadinessServiceServer
 }
@@ -128,25 +125,6 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 
 	// TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 	return response.Content, grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
-}
-
-func (s *server) HandleLocalRequest(ctx context.Context, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
-	ctx, span := s.tracer.Start(ctx, "server.HandleMessageRequest", trace.WithSpanKind(trace.SpanKindServer))
-	defer span.End()
-	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
-	if err != nil {
-		return nil, fmt.Errorf("error processing metadata: %w", err)
-	}
-
-	response, err := s.localService.HandleLocalRequest(ctx, &md, request)
-	if err != nil {
-		return nil, fmt.Errorf("error processing request: %w", err)
-	}
-
-	md.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))
-
-	// TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
-	return response, grpc.SendHeader(ctx, md.ToGrpcMD())
 }
 
 func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadata.Metadata, error) {

@@ -292,14 +292,13 @@ func (s *service) MintBookingToken(
 	expirationTimestamp *big.Int,
 	price *big.Int,
 	paymentToken common.Address,
-	offchainPaymentCurrency *big.Int,
+	offChainPaymentCurrency *big.Int,
 ) (*types.Receipt, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
 	}
 
-	// TODO: @VjeraTurk enable setting isCancellable flag from mintv3 on.
 	tx, err := cmAccount.MintBookingToken(
 		transactOpts,
 		reservedFor,
@@ -307,7 +306,7 @@ func (s *service) MintBookingToken(
 		expirationTimestamp,
 		price,
 		paymentToken,
-		offchainPaymentCurrency,
+		offChainPaymentCurrency,
 		false, // In mintv1 and mintv2 isCancellable is always false - as tokens are not cancellable.
 	)
 	if err != nil {
@@ -349,7 +348,7 @@ func (s *service) BuyBookingToken(
 		return nil, fmt.Errorf("failed to buy booking token: %w", err)
 	}
 
-	s.logger.Infof("Waiting for BuyBookingToken transaction to be mined...\n")
+	s.logger.Infof("Waiting for BuyBookingToken transaction to be mined...")
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
 	if err != nil {
@@ -360,7 +359,7 @@ func (s *service) BuyBookingToken(
 		return nil, fmt.Errorf("transaction failed: %v", receipt)
 	}
 
-	s.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d\n", receipt.BlockNumber, receipt.GasUsed)
+	s.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
 }

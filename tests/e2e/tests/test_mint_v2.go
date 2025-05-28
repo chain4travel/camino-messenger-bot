@@ -59,7 +59,7 @@ func testMintV2Setup(
 	return supplierPartnerPlugin, supplierBot, distributorBot, distributorBotWithoutFunds
 }
 
-func testMintV2FullWorkflow(ctx context.Context, t *testing.T, tt *Test, ppEventStream events.MyEventsService_SubscribeClient, distributorBot *bot.Bot, supplierBot *bot.Bot) {
+func testMintV2FullWorkflow(ctx context.Context, t *testing.T, tt *Test, ppEventStream events.EventsService_SubscribeClient, distributorBot *bot.Bot, supplierBot *bot.Bot) {
 	// Don't mind the eventStream receives without further processing.
 	// We just receive all the messages from the pp-mock event stream without any
 	// further checks as we're only really interested in the last one.
@@ -72,11 +72,8 @@ func testMintV2FullWorkflow(ctx context.Context, t *testing.T, tt *Test, ppEvent
 	_, err = ppEventStream.Recv()                                                                                          // skip ValidateRequest
 	require.NoError(t, err)
 
-	var tokenID uint64
-	var mintID string
-
-	tokenID, _, mintID = testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID) // see test_accommodation_v3.go
-	_, err = ppEventStream.Recv()                                                                         // skip MintRequest
+	tokenID, _, mintID := testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID) // see test_accommodation_v3.go
+	_, err = ppEventStream.Recv()                                                                          // skip MintRequest
 	require.NoError(t, err)
 
 	// We're actually interested in this message which is
@@ -129,7 +126,7 @@ func testMintV2MintV2ExpectedError(
 	return resp.BookingTokenId, resp.MintId.Value
 }
 
-func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppEventStream events.MyEventsService_SubscribeClient, distributorBot *bot.Bot, supplierBot *bot.Bot) {
+func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppEventStream events.EventsService_SubscribeClient, distributorBot *bot.Bot, supplierBot *bot.Bot) {
 	// Don't mind the eventStream receives without further processing.
 	// We just receive all the messages from the pp-mock event stream without any
 	// further checks as we're only really interested in the last one.
@@ -191,7 +188,7 @@ func TestMintV2(t *testing.T, tt *Test) {
 		distributorBot             *bot.Bot
 		distributorBotWithoutFunds *bot.Bot
 		supplierPartnerPlugin      *partnerplugin.PartnerPlugin
-		ppEventStream              events.MyEventsService_SubscribeClient
+		ppEventStream              events.EventsService_SubscribeClient
 		err                        error
 	)
 

@@ -269,7 +269,7 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 	ctx, err = p.compressMessage(ctx, responseMsg)
 	if err != nil {
 		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
-		p.logger.Errorf(errMessage)
+		p.logger.Error(errMessage)
 		p.responseHandler.AddErrorToResponseHeader(responseMsg.Content, errMessage)
 	}
 

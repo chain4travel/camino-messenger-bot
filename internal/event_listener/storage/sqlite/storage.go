@@ -52,7 +52,7 @@ func New(ctx context.Context, logger *zap.SugaredLogger, dbPath string) (Storage
 type storage struct {
 	base *sqlite.DB
 
-	subscriptionsStatements
+	tokenBoughtSubscriptionsStatements
 }
 
 func (s *storage) Close() error {
@@ -60,7 +60,7 @@ func (s *storage) Close() error {
 }
 
 func (s *storage) prepare(ctx context.Context) error {
-	return s.prepareSubscriptionsStmts(ctx)
+	return s.prepareTokenBoughtSubscriptionsStmts(ctx)
 }
 
 func (s *storage) NewSession(ctx context.Context) (eventlistener.Session, error) {

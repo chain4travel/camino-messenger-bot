@@ -1,0 +1,1 @@
+ALTER TABLE token_bought_subscriptions RENAME TO subscriptions;

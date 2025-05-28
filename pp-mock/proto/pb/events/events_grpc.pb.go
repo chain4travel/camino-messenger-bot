@@ -20,30 +20,30 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MyEventsService_Subscribe_FullMethodName = "/events.MyEventsService/Subscribe"
+	EventsService_Subscribe_FullMethodName = "/events.EventsService/Subscribe"
 )
 
-// MyEventsServiceClient is the client API for MyEventsService service.
+// EventsServiceClient is the client API for EventsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type MyEventsServiceClient interface {
-	Subscribe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (MyEventsService_SubscribeClient, error)
+type EventsServiceClient interface {
+	Subscribe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (EventsService_SubscribeClient, error)
 }
 
-type myEventsServiceClient struct {
+type eventsServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewMyEventsServiceClient(cc grpc.ClientConnInterface) MyEventsServiceClient {
-	return &myEventsServiceClient{cc}
+func NewEventsServiceClient(cc grpc.ClientConnInterface) EventsServiceClient {
+	return &eventsServiceClient{cc}
 }
 
-func (c *myEventsServiceClient) Subscribe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (MyEventsService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &MyEventsService_ServiceDesc.Streams[0], MyEventsService_Subscribe_FullMethodName, opts...)
+func (c *eventsServiceClient) Subscribe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (EventsService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventsService_ServiceDesc.Streams[0], EventsService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &myEventsServiceSubscribeClient{stream}
+	x := &eventsServiceSubscribeClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -53,16 +53,16 @@ func (c *myEventsServiceClient) Subscribe(ctx context.Context, in *emptypb.Empty
 	return x, nil
 }
 
-type MyEventsService_SubscribeClient interface {
+type EventsService_SubscribeClient interface {
 	Recv() (*SubscribeResponse, error)
 	grpc.ClientStream
 }
 
-type myEventsServiceSubscribeClient struct {
+type eventsServiceSubscribeClient struct {
 	grpc.ClientStream
 }
 
-func (x *myEventsServiceSubscribeClient) Recv() (*SubscribeResponse, error) {
+func (x *eventsServiceSubscribeClient) Recv() (*SubscribeResponse, error) {
 	m := new(SubscribeResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -70,66 +70,66 @@ func (x *myEventsServiceSubscribeClient) Recv() (*SubscribeResponse, error) {
 	return m, nil
 }
 
-// MyEventsServiceServer is the server API for MyEventsService service.
-// All implementations must embed UnimplementedMyEventsServiceServer
+// EventsServiceServer is the server API for EventsService service.
+// All implementations must embed UnimplementedEventsServiceServer
 // for forward compatibility
-type MyEventsServiceServer interface {
-	Subscribe(*emptypb.Empty, MyEventsService_SubscribeServer) error
-	mustEmbedUnimplementedMyEventsServiceServer()
+type EventsServiceServer interface {
+	Subscribe(*emptypb.Empty, EventsService_SubscribeServer) error
+	mustEmbedUnimplementedEventsServiceServer()
 }
 
-// UnimplementedMyEventsServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedMyEventsServiceServer struct {
+// UnimplementedEventsServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedEventsServiceServer struct {
 }
 
-func (UnimplementedMyEventsServiceServer) Subscribe(*emptypb.Empty, MyEventsService_SubscribeServer) error {
+func (UnimplementedEventsServiceServer) Subscribe(*emptypb.Empty, EventsService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
-func (UnimplementedMyEventsServiceServer) mustEmbedUnimplementedMyEventsServiceServer() {}
+func (UnimplementedEventsServiceServer) mustEmbedUnimplementedEventsServiceServer() {}
 
-// UnsafeMyEventsServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to MyEventsServiceServer will
+// UnsafeEventsServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to EventsServiceServer will
 // result in compilation errors.
-type UnsafeMyEventsServiceServer interface {
-	mustEmbedUnimplementedMyEventsServiceServer()
+type UnsafeEventsServiceServer interface {
+	mustEmbedUnimplementedEventsServiceServer()
 }
 
-func RegisterMyEventsServiceServer(s grpc.ServiceRegistrar, srv MyEventsServiceServer) {
-	s.RegisterService(&MyEventsService_ServiceDesc, srv)
+func RegisterEventsServiceServer(s grpc.ServiceRegistrar, srv EventsServiceServer) {
+	s.RegisterService(&EventsService_ServiceDesc, srv)
 }
 
-func _MyEventsService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _EventsService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(emptypb.Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(MyEventsServiceServer).Subscribe(m, &myEventsServiceSubscribeServer{stream})
+	return srv.(EventsServiceServer).Subscribe(m, &eventsServiceSubscribeServer{stream})
 }
 
-type MyEventsService_SubscribeServer interface {
+type EventsService_SubscribeServer interface {
 	Send(*SubscribeResponse) error
 	grpc.ServerStream
 }
 
-type myEventsServiceSubscribeServer struct {
+type eventsServiceSubscribeServer struct {
 	grpc.ServerStream
 }
 
-func (x *myEventsServiceSubscribeServer) Send(m *SubscribeResponse) error {
+func (x *eventsServiceSubscribeServer) Send(m *SubscribeResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-// MyEventsService_ServiceDesc is the grpc.ServiceDesc for MyEventsService service.
+// EventsService_ServiceDesc is the grpc.ServiceDesc for EventsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var MyEventsService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "events.MyEventsService",
-	HandlerType: (*MyEventsServiceServer)(nil),
+var EventsService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "events.EventsService",
+	HandlerType: (*EventsServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Subscribe",
-			Handler:       _MyEventsService_Subscribe_Handler,
+			Handler:       _EventsService_Subscribe_Handler,
 			ServerStreams: true,
 		},
 	},

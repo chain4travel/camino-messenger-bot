@@ -20,6 +20,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const timeCheckBlockchainDelay = 2 * time.Second
+
 var (
 	_ EventListener = (*eventListener)(nil)
 
@@ -51,13 +53,13 @@ type EventListener interface {
 }
 
 type eventListener struct {
-	bookingTokenAddress common.Address
-	storage             Storage
-	logger              *zap.SugaredLogger
-	subscriber          subscriber.Subscriber
-	partnerPlugin       partnerplugin.PartnerPlugin
-	bookingService      booking.Service
 	startingBlockNumber *big.Int
+
+	storage        Storage
+	logger         *zap.SugaredLogger
+	subscriber     subscriber.Subscriber
+	partnerPlugin  partnerplugin.PartnerPlugin
+	bookingService booking.Service
 
 	recordTokenExpiration        bool
 	unsubscribeTokenBought       func()
@@ -92,7 +94,6 @@ func New(
 	return &eventListener{
 		logger:                logger,
 		storage:               storage,
-		bookingTokenAddress:   bookingTokenAddress,
 		subscriber:            subscriber,
 		partnerPlugin:         partnerPlugin,
 		bookingService:        bookingService,
@@ -101,11 +102,15 @@ func New(
 	}, nil
 }
 
-func (el *eventListener) Start(ctx context.Context) error {
-	return el.startTokenBoughtSubscriptions(ctx)
+func (l *eventListener) Start(ctx context.Context) error {
+	if err := l.startTokenBoughtSubscriptions(ctx); err != nil {
+		l.logger.Errorf("failed to start token bought subscriptions: %v", err)
+		return err
+	}
+	return nil
 }
 
-func (el *eventListener) Stop() {
-	el.unsubscribeTokenBought()
-	el.stopTokenBoughtTimer()
+func (l *eventListener) Stop() {
+	l.unsubscribeTokenBought()
+	l.stopTokenBoughtTimer()
 }
