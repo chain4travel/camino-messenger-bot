@@ -12,7 +12,7 @@ import (
 var _ ResponseHeaderHandler = (*responseHeaderHandler)(nil)
 
 type ResponseHeaderHandler interface {
-	AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string)
+	AddError(response protoreflect.ProtoMessage, errMessage string)
 }
 
 type responseHeaderHandler struct {
@@ -25,7 +25,7 @@ func NewResponseHeaderHandler(logger *zap.SugaredLogger) ResponseHeaderHandler {
 	}
 }
 
-func (h *responseHeaderHandler) AddErrorToResponseHeader(response protoreflect.ProtoMessage, errMessage string) {
+func (h *responseHeaderHandler) AddError(response protoreflect.ProtoMessage, errMessage string) {
 	headerFieldDescriptor := response.ProtoReflect().Descriptor().Fields().ByName("header")
 	headerReflectValue := response.ProtoReflect().Get(headerFieldDescriptor)
 

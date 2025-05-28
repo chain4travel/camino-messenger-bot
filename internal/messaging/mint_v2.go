@@ -27,7 +27,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if !common.IsHexAddress(request.BuyerAddress) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
 		h.logger.Error(errMsg)
-		h.h.AddErrorToResponseHeader(response, errMsg)
+		h.responseHeaderHandler.AddError(response, errMsg)
 		return
 	}
 	buyerAddress := common.HexToAddress(request.BuyerAddress)
@@ -40,7 +40,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 		if err != nil {
 			errMsg := fmt.Sprintf("Failed to mint token: failed to generate tokenURI:  %s", err)
 			h.logger.Error(errMsg)
-			h.h.AddErrorToResponseHeader(response, errMsg)
+			h.responseHeaderHandler.AddError(response, errMsg)
 			return
 		}
 		h.logger.Debugf("Token URI JSON: %s", jsonPlain)
@@ -51,7 +51,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
-		h.h.AddErrorToResponseHeader(response, err.Error())
+		h.responseHeaderHandler.AddError(response, err.Error())
 		return
 	}
 	response.BuyableUntil = buyableUntil
@@ -60,7 +60,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
-		h.h.AddErrorToResponseHeader(response, errMessage)
+		h.responseHeaderHandler.AddError(response, errMessage)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.h.AddErrorToResponseHeader(response, errMessage)
+		h.responseHeaderHandler.AddError(response, errMessage)
 		return
 	}
 	txID := receipt.TxHash.Hex()
@@ -95,7 +95,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response *bookv2.MintResponse) {
 	if response.MintTransactionId == "" {
 		h.logger.Error(errMissingMintTxID)
-		h.h.AddErrorToResponseHeader(response, errMissingMintTxID.Error())
+		h.responseHeaderHandler.AddError(response, errMissingMintTxID.Error())
 		return
 	}
 
@@ -105,7 +105,7 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
-		h.h.AddErrorToResponseHeader(response, errMessage)
+		h.responseHeaderHandler.AddError(response, errMessage)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.h.AddErrorToResponseHeader(response, errMessage)
+		h.responseHeaderHandler.AddError(response, errMessage)
 		return
 	}
 

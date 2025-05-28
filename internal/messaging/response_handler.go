@@ -62,24 +62,24 @@ func NewResponseHandler(
 	}
 
 	return &evmResponseHandler{
-		logger:              logger,
-		h:                   responseHeaderHandler,
-		priceHandler:        priceHandler,
-		cmAccountAddressStr: cmAccountAddress.Hex(),
-		bookingService:      bookingService,
-		eventListener:       eventListener,
-		tokenBuyableUntil:   tokenBuyableUntil,
+		logger:                logger,
+		responseHeaderHandler: responseHeaderHandler,
+		priceHandler:          priceHandler,
+		cmAccountAddressStr:   cmAccountAddress.Hex(),
+		bookingService:        bookingService,
+		eventListener:         eventListener,
+		tokenBuyableUntil:     tokenBuyableUntil,
 	}, nil
 }
 
 type evmResponseHandler struct {
-	logger              *zap.SugaredLogger
-	h                   common.ResponseHeaderHandler
-	priceHandler        common.PriceHandler
-	cmAccountAddressStr string
-	bookingService      booking.Service
-	eventListener       eventlistener.EventListener
-	tokenBuyableUntil   tokenBuyableUntil
+	logger                *zap.SugaredLogger
+	responseHeaderHandler common.ResponseHeaderHandler
+	priceHandler          common.PriceHandler
+	cmAccountAddressStr   string
+	bookingService        booking.Service
+	eventListener         eventlistener.EventListener
+	tokenBuyableUntil     tokenBuyableUntil
 }
 
 // Processes incoming response

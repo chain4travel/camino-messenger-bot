@@ -85,7 +85,7 @@ func NewMessageProcessor(
 		cmAccountAddress:                    cmAccountAddress,
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
 		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
-		h:                                   responseHeaderHandler,
+		responseHeaderHandler:               responseHeaderHandler,
 	}
 }
 
@@ -98,18 +98,18 @@ type messageProcessor struct {
 	networkFeeRecipientBotAddress       ethCommon.Address
 	networkFeeRecipientCMAccountAddress ethCommon.Address
 
-	messenger            Messenger
-	logger               *zap.SugaredLogger
-	tracer               trace.Tracer
-	responseChannelsLock sync.RWMutex
-	responseChannels     map[string]chan *types.Message
-	serviceRegistry      ServiceRegistry
-	responseHandler      ResponseHandler
-	partnerPlugin        partnerplugin.PartnerPlugin
-	chequeHandler        chequehandler.ChequeHandler
-	compressor           compression.Compressor[*types.Message, [][]byte]
-	cmAccounts           cmaccounts.Service
-	h                    common.ResponseHeaderHandler
+	messenger             Messenger
+	logger                *zap.SugaredLogger
+	tracer                trace.Tracer
+	responseChannelsLock  sync.RWMutex
+	responseChannels      map[string]chan *types.Message
+	serviceRegistry       ServiceRegistry
+	responseHandler       ResponseHandler
+	partnerPlugin         partnerplugin.PartnerPlugin
+	chequeHandler         chequehandler.ChequeHandler
+	compressor            compression.Compressor[*types.Message, [][]byte]
+	cmAccounts            cmaccounts.Service
+	responseHeaderHandler common.ResponseHeaderHandler
 }
 
 func (*messageProcessor) checkpoint() string {
@@ -274,7 +274,7 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 	if err != nil {
 		errMessage := fmt.Sprintf("error compressing/chunking response: %v", err)
 		p.logger.Error(errMessage)
-		p.h.AddErrorToResponseHeader(responseMsg.Content, errMessage)
+		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
 	}
 
 	if err := p.issueNetworkCheque(ctx, responseMsg); err != nil {
@@ -295,7 +295,7 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
-		p.h.AddErrorToResponseHeader(responseMsg.Content, errMessage)
+		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
 		return ctx, responseMsg
 	}
 
