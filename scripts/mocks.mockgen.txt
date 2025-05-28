@@ -7,3 +7,4 @@ github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts=Service=pkg/cm_
 github.com/chain4travel/camino-messenger-bot/v11/pkg/scheduler=Storage=pkg/scheduler/mock_storage.go
 github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler=ChequeHandler=pkg/chequehandler/mock_cheque_handler.go=chequehandler
 github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler=Storage=pkg/chequehandler/mock_storage.go=chequehandler
+github.com/chain4travel/camino-messenger-bot/v11/internal/common=ResponseHeaderHandler=internal/common/mock_response_header.go

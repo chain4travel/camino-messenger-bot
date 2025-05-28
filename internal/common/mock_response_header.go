@@ -39,14 +39,14 @@ func (m *MockResponseHeaderHandler) EXPECT() *MockResponseHeaderHandlerMockRecor
 	return m.recorder
 }
 
-// AddErrorToResponseHeader mocks base method.
-func (m *MockResponseHeaderHandler) AddErrorToResponseHeader(arg0 protoreflect.ProtoMessage, arg1 string) {
+// AddError mocks base method.
+func (m *MockResponseHeaderHandler) AddError(arg0 protoreflect.ProtoMessage, arg1 string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddErrorToResponseHeader", arg0, arg1)
+	m.ctrl.Call(m, "AddError", arg0, arg1)
 }
 
-// AddErrorToResponseHeader indicates an expected call of AddErrorToResponseHeader.
-func (mr *MockResponseHeaderHandlerMockRecorder) AddErrorToResponseHeader(arg0, arg1 any) *gomock.Call {
+// AddError indicates an expected call of AddError.
+func (mr *MockResponseHeaderHandlerMockRecorder) AddError(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddErrorToResponseHeader", reflect.TypeOf((*MockResponseHeaderHandler)(nil).AddErrorToResponseHeader), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddError", reflect.TypeOf((*MockResponseHeaderHandler)(nil).AddError), arg0, arg1)
 }
