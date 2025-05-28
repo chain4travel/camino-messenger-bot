@@ -121,6 +121,7 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 	}
 
 	response.BuyTransactionId = receipt.TxHash.Hex()
+	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId, response.MintTransactionId)
 }
 
 func (h *evmResponseHandler) getPriceAndTokenV2(ctx context.Context, priceV2 *typesv2.Price) (*big.Int, common.Address, *big.Int, error) {
