@@ -6,7 +6,6 @@ CLIENT_TEMPLATE="${TEMPLATES_DIR}/client.go.tpl"
 CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
 SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
 SERVER_P2P_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_p2p_method.go.tpl"
-SERVER_LOCAL_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_local_method.go.tpl"
 
 P2P_OUTPATH="internal/rpc/generated"
 LOCAL_OUTPATH="internal/rpc/generated"
@@ -124,40 +123,6 @@ function generate_with_templates() {
 			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
 			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
 			sed -i -e "s#{{TEMPLATE}}#$SERVER_P2P_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
-		done
-	elif [[ "$ROUTING" == "local" ]]; then
-		# Generate server
-		SERVER_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
-		echo "🔨 Generating server: $SERVER_GEN_FILE"
-		cp $SERVER_TEMPLATE "$SERVER_GEN_FILE"
-		sed -i "${replace_params[@]}" "$SERVER_GEN_FILE"
-		sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" "$SERVER_GEN_FILE"
-
-	    EMPTY_IMPORT=""
-		# Generate server local methods
-		for num in $(seq 0 $(( ${#_METHODS[@]} - 1 ))) ; do
-			METHOD=${_METHODS[$num]}
-			INPUT=${_INPUTS[$num]}
-			OUTPUT=${_OUTPUTS[$num]}
-			METHOD_PARAM_REPLACE=""
-			METHOD_PARAM_REPLACE+=" -e s#{{METHOD}}#$METHOD#g"
-			METHOD_PARAM_REPLACE+=" -e s#{{REQUEST}}#$INPUT#g"
-			METHOD_PARAM_REPLACE+=" -e s#{{RESPONSE}}#$OUTPUT#g"
-			if [[ $OUTPUT == "Empty" ]]; then
-				EMPTY_IMPORT='"google.golang.org/protobuf/types/known/emptypb"'
-				TYPE_PACKAGE="emptypb"
-			fi
-			METHOD_GEN_FILE="${LOCAL_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
-
-			## This is added to fix shellcheck issue SC2086
-			method_params=()
-			eval "method_params+=( $METHOD_PARAM_REPLACE )"
-
-			echo "🔨 Generating server local method: $METHOD_GEN_FILE"
-			cp $SERVER_LOCAL_METHOD_TEMPLATE "$METHOD_GEN_FILE"
-			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
-			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
-			sed -i -e "s#{{TEMPLATE}}#$SERVER_LOCAL_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
 		done
 	fi
 }
