@@ -78,7 +78,7 @@ func (s *storage) GetAllCancellationSubscriptions(ctx context.Context, session e
 		tokenID := int64(0)
 		if err := rows.Scan(&tokenID); err != nil {
 			s.base.Logger.Errorf("failed to get cancellation subscription from db: %v", err)
-			continue
+			return nil, upgradeError(err)
 		}
 		subscriptions = append(subscriptions, big.NewInt(tokenID))
 	}

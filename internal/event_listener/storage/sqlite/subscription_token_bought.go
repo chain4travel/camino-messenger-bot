@@ -85,7 +85,7 @@ func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session ev
 		subscription := &tokenBoughtSubscription{}
 		if err := rows.StructScan(subscription); err != nil {
 			s.base.Logger.Errorf("failed to get token bought subscription from db: %v", err)
-			continue
+			return nil, upgradeError(err)
 		}
 		subscriptions = append(subscriptions, *modelFromTokenBoughtSubscription(subscription))
 	}
