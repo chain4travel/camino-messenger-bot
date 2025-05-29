@@ -146,8 +146,8 @@ func (s *cancellationV1Service) AcceptCancellation(
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
-		errMsg := fmt.Sprintf("error getting price and payment token: %v", err)
-		s.logger.Errorf(errMsg)
+		err := fmt.Errorf("error getting price and payment token: %v", err)
+		s.logger.Error(err)
 		return response, err
 	}
 

@@ -217,7 +217,7 @@ func (s *service) RejectCancellationProposal(
 		reasonVersion,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate cancellation: %w", err)
+		return nil, fmt.Errorf("failed to reject cancellation: %w", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
@@ -257,7 +257,7 @@ func (s *service) WithdrawCancellation(
 		reasonVersion,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate cancellation: %w", err)
+		return nil, fmt.Errorf("failed to withdraw cancellation: %w", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)

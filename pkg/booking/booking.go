@@ -301,8 +301,11 @@ func (bs *service) GetCancellationReasonsEvent(
 	txHash common.Hash,
 ) (*bookingtoken.BookingtokenCancellationReasons, error) {
 	txReceipt, err := bs.ethClient.TransactionReceipt(ctx, txHash)
-	if err != nil {
+	switch {
+	case err != nil:
 		return nil, fmt.Errorf("failed to get transaction receipt: %w", err)
+	case txReceipt == nil || txReceipt.Status != types.ReceiptStatusSuccessful:
+		return nil, fmt.Errorf("transaction receipt not found or failed for txHash: %s", txHash.Hex())
 	}
 
 	for _, log := range txReceipt.Logs {

@@ -369,7 +369,7 @@ func (h *cancellationV1Helper) getBot(
 	case Distributor: // from distributor to supplier
 		return h.distributorBot
 	default:
-		h.require.Fail("invalid supplierOrDistributor value")
+		h.require.FailNow("invalid supplierOrDistributor value: %v", supplierOrDistributor)
 		return nil
 	}
 }
