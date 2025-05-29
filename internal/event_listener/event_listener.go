@@ -56,7 +56,6 @@ type EventListener interface {
 
 type eventListener struct {
 	startingBlockNumber *big.Int
-	cmAccountAddress    common.Address
 
 	storage        Storage
 	logger         *zap.SugaredLogger
@@ -79,7 +78,6 @@ func New(
 	storage Storage,
 	ethClient *ethclient.Client,
 	bookingTokenAddress common.Address,
-	cmAccountAddress common.Address,
 	partnerPlugin partnerplugin.PartnerPlugin,
 	bookingService booking.Service,
 	cmAccounts cmaccounts.Service,
@@ -100,7 +98,6 @@ func New(
 	return &eventListener{
 		logger:                logger,
 		storage:               storage,
-		cmAccountAddress:      cmAccountAddress,
 		subscriber:            subscriber,
 		partnerPlugin:         partnerPlugin,
 		bookingService:        bookingService,

@@ -167,7 +167,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		eventListenerStorage,
 		evmClient,
 		cfg.BookingTokenAddress,
-		cfg.CMAccountAddress,
 		partnerPlugin,
 		bookingService,
 		cmAccounts,
