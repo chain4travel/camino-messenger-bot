@@ -295,7 +295,7 @@ func (s *service) FinalizeCancellation(
 		refundAmount,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed finalize cancellation: %w", err)
+		return nil, fmt.Errorf("failed to finalize cancellation: %w", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
