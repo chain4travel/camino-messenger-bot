@@ -192,7 +192,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	}
 
 	if serviceFee.Cmp(p.maxAllowedServiceFee) > 0 {
-		err = fmt.Errorf("%s service fee %s exceeds maximum allowed service fee %d", requestMsg.Type.ToServiceName(), serviceFee.String(), p.maxAllowedServiceFee)
+		err = fmt.Errorf("%s service fee %s exceeds maximum allowed service fee %s", requestMsg.Type.ToServiceName(), serviceFee.String(), p.maxAllowedServiceFee.String())
 		p.logger.Error(err)
 		return nil, err
 	}
