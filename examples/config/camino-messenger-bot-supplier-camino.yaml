@@ -47,6 +47,8 @@ network_fee_recipient_bot_address: 0xbeb027D2f439805E17EAA16Da26c1FCa68a30232
 # matrix application service cm account address
 network_fee_recipient_cm_account: 0x16DFfB3911BB0b1B53eF4d774804381f0B38B5d7
 
+max_allowed_service_fee: 1000000000000000000 # 1 CAM
+
 
 
 ### Database

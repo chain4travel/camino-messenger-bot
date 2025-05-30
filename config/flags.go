@@ -30,6 +30,7 @@ func Flags() *pflag.FlagSet {
 	flags.Uint64("cheque_expiration_time", 3600*24*30*7, "Cheque expiration time (in seconds).")
 	flags.Uint64("min_cheque_duration_until_expiration", 3600*24*30*6, "Minimum valid duration until cheque expiration (in seconds).")
 	flags.Int64("cash_in_period", 3600*24, "Cash-in period (in seconds).")
+	flags.Uint64("max_allowed_service_fee", 1000000000000000000, "Maximum allowed service fee (in aCAM).")
 	flags.Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
 
 	// DB config flags

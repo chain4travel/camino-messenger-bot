@@ -218,6 +218,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				tt.fields.compressor,
 				tt.fields.cmAccounts,
 				tt.fields.responseHeaderHandler,
+				0,
 			)
 			if tt.prepare != nil {
 				tt.prepare(p.(*messageProcessor))
@@ -255,6 +256,7 @@ func TestSendRequestMessage(t *testing.T) {
 		compressor            compression.Compressor[*types.Message, [][]byte]
 		cmAccounts            cmaccounts.Service
 		responseHeaderHandler common.ResponseHeaderHandler
+		maxAllowedServiceFee  *big.Int
 	}
 	type args struct {
 		msg *types.Message
@@ -307,6 +309,7 @@ func TestSendRequestMessage(t *testing.T) {
 				compressor:            &noopCompressor{},
 				cmAccounts:            mockCMAccounts,
 				responseHeaderHandler: mockResponseHeaderHandler,
+				maxAllowedServiceFee:  big.NewInt(1),
 			},
 			args: args{
 				msg: &types.Message{
@@ -333,6 +336,7 @@ func TestSendRequestMessage(t *testing.T) {
 				compressor:            &noopCompressor{},
 				cmAccounts:            mockCMAccounts,
 				responseHeaderHandler: mockResponseHeaderHandler,
+				maxAllowedServiceFee:  big.NewInt(1),
 			},
 			args: args{
 				msg: &types.Message{
@@ -361,6 +365,7 @@ func TestSendRequestMessage(t *testing.T) {
 				compressor:            &noopCompressor{},
 				cmAccounts:            mockCMAccounts,
 				responseHeaderHandler: mockResponseHeaderHandler,
+				maxAllowedServiceFee:  big.NewInt(1),
 			},
 			args: args{
 				msg: &types.Message{
@@ -412,6 +417,7 @@ func TestSendRequestMessage(t *testing.T) {
 				tt.fields.compressor,
 				tt.fields.cmAccounts,
 				tt.fields.responseHeaderHandler,
+				1,
 			)
 			if tt.prepare != nil {
 				tt.prepare()
@@ -489,6 +495,7 @@ func TestStart(t *testing.T) {
 		&noopCompressor{},
 		mockCMAccounts,
 		mockResponseHeaderHandler,
+		1,
 	)
 
 	go p.Start(ctx)

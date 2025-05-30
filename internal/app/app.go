@@ -259,6 +259,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		messaging.NewCompressor(compression.MaxChunkSize),
 		cmAccounts,
 		responseHeaderHandler,
+		cfg.MaxAllowedServiceFee,
 	)
 
 	cancellationService := cancellation.NewService(

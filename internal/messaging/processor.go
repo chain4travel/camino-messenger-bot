@@ -66,6 +66,7 @@ func NewMessageProcessor(
 	compressor compression.Compressor[*types.Message, [][]byte],
 	cmAccounts cmaccounts.Service,
 	responseHeaderHandler common.ResponseHeaderHandler,
+	maxAllowedServiceFee uint64,
 ) MessageProcessor {
 	return &messageProcessor{
 		messenger:                           messenger,
@@ -86,6 +87,7 @@ func NewMessageProcessor(
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
 		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
 		responseHeaderHandler:               responseHeaderHandler,
+		maxAllowedServiceFee:                big.NewInt(0).SetUint64(maxAllowedServiceFee),
 	}
 }
 
@@ -97,6 +99,7 @@ type messageProcessor struct {
 	cmAccountAddress                    ethCommon.Address
 	networkFeeRecipientBotAddress       ethCommon.Address
 	networkFeeRecipientCMAccountAddress ethCommon.Address
+	maxAllowedServiceFee                *big.Int
 
 	messenger             Messenger
 	logger                *zap.SugaredLogger
@@ -185,6 +188,12 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccAddr, requestMsg.Type.ToServiceName())
 	if err != nil {
 		// TODO @evlekht explicitly say if service is not supported and its not just some network error
+		return nil, err
+	}
+
+	if serviceFee.Cmp(p.maxAllowedServiceFee) > 0 {
+		err = fmt.Errorf("%s service fee %s exceeds maximum allowed service fee %d", requestMsg.Type.ToServiceName(), serviceFee.String(), p.maxAllowedServiceFee)
+		p.logger.Error(err)
 		return nil, err
 	}
 

@@ -152,6 +152,7 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		ChequeExpirationTime:                big.NewInt(0).SetUint64(cfg.ChequeExpirationTime),
 		MinChequeDurationUntilExpiration:    big.NewInt(0).SetUint64(cfg.MinChequeDurationUntilExpiration),
 		CashInPeriod:                        time.Duration(cfg.CashInPeriod) * time.Second,
+		MaxAllowedServiceFee:                cfg.MaxAllowedServiceFee,
 		ResponseTimeout:                     time.Duration(cfg.ResponseTimeout) * time.Millisecond,
 		RecordExpiration:                    cfg.RecordExpiration,
 	}, nil
