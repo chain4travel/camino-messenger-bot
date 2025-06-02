@@ -127,7 +127,46 @@ func testAccommodationV3MintV3(
 	return resp.BookingTokenId, resp.Price, resp.MintId.Value
 }
 
-func testCancellationV1(
+func testCancellationV1DistributorInitiatesBasic(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorPPEventStream events.EventsService_SubscribeClient,
+	supplierPPEventStream events.EventsService_SubscribeClient,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
+	// reasons are selected randomly, just to be unique among requests
+
+	tokenID, bookingPrice := mintBuyTokenV3(ctx, t, tt, supplierPPEventStream, distributorBot, supplierBot)
+	refundAmount := common.CloneProto(bookingPrice)
+	time.Sleep(2 * time.Second)
+
+	cancellationHelper := newCancellationV1Helper(
+		ctx,
+		t,
+		tt,
+		distributorBot,
+		supplierBot,
+		distributorPPEventStream,
+		supplierPPEventStream,
+		tokenID,
+	)
+
+	// distributor initiates cancellation
+	cancellationHelper.initiateCancellation(
+		Distributor,
+		refundAmount,
+		cancellationv1.CancellationReason_CANCELLATION_REASON_AMENITY_REQUIREMENT_CHANGE,
+	)
+
+	// supplier finalizes (implicit accept)
+	cancellationHelper.finalizeCancellation(
+		refundAmount,
+	)
+}
+
+func testCancellationV1DistributorInitiates(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -235,13 +274,25 @@ func testCancellationV1(
 	cancellationHelper.finalizeCancellation(
 		refundAmount,
 	)
+}
+
+func testCancellationV1SupplierInitiates(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorPPEventStream events.EventsService_SubscribeClient,
+	supplierPPEventStream events.EventsService_SubscribeClient,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
+	// reasons are selected randomly, just to be unique among requests
 
 	// making new booking so we can test different flow
-	tokenID, bookingPrice = mintBuyTokenV3(ctx, t, tt, supplierPPEventStream, distributorBot, supplierBot)
-	refundAmount = common.CloneProto(bookingPrice)
+	tokenID, bookingPrice := mintBuyTokenV3(ctx, t, tt, supplierPPEventStream, distributorBot, supplierBot)
+	refundAmount := common.CloneProto(bookingPrice)
 	time.Sleep(2 * time.Second)
 
-	cancellationHelper = newCancellationV1Helper(
+	cancellationHelper := newCancellationV1Helper(
 		ctx,
 		t,
 		tt,
@@ -305,12 +356,14 @@ func TestCancellationV1(t *testing.T, tt *Test) {
 		distributorPPEventStream, err = distributorPartnerPlugin.SubscribeForEvents(ctx)
 		require.NoError(t, err)
 	})
+	t.Run("Distributor initiates, basic flow", func(t *testing.T) {
+		testCancellationV1DistributorInitiatesBasic(ctx, t, tt, distributorPPEventStream, supplierPPEventStream, distributorBot, supplierBot)
+	})
 	t.Run("Distributor initiates", func(t *testing.T) {
-		// We're doing this > 1 times to make sure that even with multiple
-		// tokens everything is working as expected.
-		for range 3 {
-			testCancellationV1(ctx, t, tt, distributorPPEventStream, supplierPPEventStream, distributorBot, supplierBot)
-		}
+		testCancellationV1DistributorInitiates(ctx, t, tt, distributorPPEventStream, supplierPPEventStream, distributorBot, supplierBot)
+	})
+	t.Run("Supplier initiates", func(t *testing.T) {
+		testCancellationV1SupplierInitiates(ctx, t, tt, distributorPPEventStream, supplierPPEventStream, distributorBot, supplierBot)
 	})
 }
 
