@@ -22,6 +22,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
@@ -40,6 +41,7 @@ import (
 	handlers_validation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/validation/v1"
 	handlers_validation_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/validation/v2"
 	handlers_validation_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/validation/v3"
+	handlers_cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/cancellation/v1"
 	handlers_notification_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v1"
 	handlers_notification_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v2"
 	handlers_ping_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/ping/v1"
@@ -110,6 +112,9 @@ func Run() error {
 	// Transport V3
 	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, handlers_transport_v3.NewTransportProductListV3Server(eventSender))
 	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, handlers_transport_v3.NewTransportSearchV3Server(eventSender))
+
+	// Cancellation V1
+	cancellationv1grpc.RegisterCheckCancellationServiceServer(grpcServer, handlers_cancellation_v1.NewCheckCancellationV1Server(eventSender))
 
 	reflection.Register(grpcServer)
 

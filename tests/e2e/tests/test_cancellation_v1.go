@@ -18,6 +18,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	common "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers"
+	cancellation_handlers "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/cancellation/v1"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
@@ -42,6 +43,7 @@ func testCancellationV1Setup(
 		botGenerated.AccommodationSearchServiceV3,
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV3,
+		botGenerated.CheckCancellationServiceV1,
 	))
 	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 
@@ -51,6 +53,7 @@ func testCancellationV1Setup(
 		{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
 		{Name: botGenerated.ValidationServiceV2, Fee: 130},
 		{Name: botGenerated.MintServiceV3, Fee: 140},
+		{Name: botGenerated.CheckCancellationServiceV1, Fee: 150},
 	})
 
 	distributorPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
@@ -336,6 +339,43 @@ func testCancellationV1SupplierInitiates(
 	)
 }
 
+func testCheckCancellationV1(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	supplierPPEventStream events.EventsService_SubscribeClient,
+) {
+	reqTime := time.Now()
+	req := &cancellationv1.CheckCancellationRequest{
+		Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		TokenId: 1,
+		Reason:  cancellationv1.CancellationReason_CANCELLATION_REASON_AMENITY_REQUIREMENT_CHANGE,
+	}
+	resp, err := distributorBot.CheckCancellationServiceV1.CheckCancellation(
+		requestContext(ctx, &metadata.Metadata{
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	_, err = supplierPPEventStream.Recv()
+	require.NoError(t, err)
+
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	require.Equal(t, req.TokenId, resp.TokenId, "unexpected response TokenID")
+	require.Equal(t, cancellation_handlers.RefundAmount, resp.RefundAmount.Value, "unexpected response RefundAmount.Value")
+	require.Equal(t, price.NativeTokenDecimals, resp.RefundAmount.Decimals, "unexpected response RefundAmount.Decimals")
+	require.IsType(t, &typesv3.Currency_NativeToken{}, resp.RefundAmount.Currency.Currency, "unexpected response RefundAmount.Currency type")
+	require.Equal(t, cancellation_handlers.PolicyID, resp.PolicyIdApplied, "unexpected response PolicyIdApplied")
+	require.Equal(t, cancellationv1.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM, resp.Status, "unexpected response status")
+	require.Equal(t, cancellationv1.RejectionReason_REJECTION_REASON_UNSPECIFIED, resp.RejectionReason, "unexpected response RejectionReason")
+	require.WithinRange(t, resp.Timestamp.AsTime(), reqTime, time.Now(), "unexpected response Timestamp, expected it to be within the request time and now")
+}
+
 func TestCancellationV1(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
@@ -355,6 +395,9 @@ func TestCancellationV1(t *testing.T, tt *Test) {
 		require.NoError(t, err)
 		distributorPPEventStream, err = distributorPartnerPlugin.SubscribeForEvents(ctx)
 		require.NoError(t, err)
+	})
+	t.Run("CheckCancellationV1", func(t *testing.T) {
+		testCheckCancellationV1(ctx, t, tt, distributorBot, supplierBot, supplierPPEventStream)
 	})
 	t.Run("Distributor initiates, basic flow", func(t *testing.T) {
 		testCancellationV1DistributorInitiatesBasic(ctx, t, tt, distributorPPEventStream, supplierPPEventStream, distributorBot, supplierBot)
