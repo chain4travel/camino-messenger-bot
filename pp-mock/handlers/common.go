@@ -12,7 +12,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const DefaultPricePerNight = 105.33
+const (
+	DefaultPricePerNight   = 105.33
+	BookingTokenPriceValue = "1"
+)
 
 func DateV1ToTime(date *typesv1.Date) time.Time {
 	return time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 0, 0, 0, 0, time.UTC)

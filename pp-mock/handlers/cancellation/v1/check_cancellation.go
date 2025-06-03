@@ -15,24 +15,14 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
+	common "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const (
-	PolicyID     = "pp-mock-full-refund"
-	RefundAmount = "1"
-)
+const PolicyID = "pp-mock-full-refund"
 
 var _ cancellationv1grpc.CheckCancellationServiceServer = (*checkCancellationV1Server)(nil)
-
-var RefundPrice = &typesv3.Price{
-	Value:    RefundAmount,
-	Decimals: price.NativeTokenDecimals,
-	Currency: &typesv3.Currency{
-		Currency: &typesv3.Currency_NativeToken{},
-	},
-}
 
 type checkCancellationV1Server struct {
 	eventSender events.Sender
@@ -63,7 +53,7 @@ func (s *checkCancellationV1Server) CheckCancellation(ctx context.Context, req *
 		},
 		TokenId: req.TokenId,
 		RefundAmount: &typesv3.Price{
-			Value:    "1",
+			Value:    common.BookingTokenPriceValue,
 			Decimals: price.NativeTokenDecimals,
 			Currency: &typesv3.Currency{
 				Currency: &typesv3.Currency_NativeToken{},

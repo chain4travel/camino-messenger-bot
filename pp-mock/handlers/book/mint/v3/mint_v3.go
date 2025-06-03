@@ -16,6 +16,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
+	common "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -74,7 +75,7 @@ func (s *mintServiceV3Server) Mint(ctx context.Context, req *bookv3.MintRequest)
 		},
 		ValidationId: req.ValidationId,
 		Price: &typesv3.Price{
-			Value: "1",
+			Value: common.BookingTokenPriceValue,
 			Currency: &typesv3.Currency{
 				Currency: &typesv3.Currency_NativeToken{},
 			},
