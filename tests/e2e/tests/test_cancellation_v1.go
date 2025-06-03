@@ -17,7 +17,7 @@ import (
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
-	common "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	cancellation_handlers "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/cancellation/v1"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"

@@ -20,7 +20,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
-	common "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"

@@ -16,8 +16,8 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
-	common "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
