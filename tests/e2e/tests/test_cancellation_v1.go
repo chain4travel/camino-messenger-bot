@@ -569,6 +569,17 @@ func (h *cancellationV1Helper) withdrawCancellation(
 }
 
 func (h *cancellationV1Helper) finalizeCancellation(refundAmount *typesv3.Price) {
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, refundAmount.Decimals, price.NativeTokenDecimals)
+	h.require.NoError(err)
+
+	supplierBalance, err := h.tt.caminoNetwork.Client.BalanceOf(h.ctx, h.supplierBot.CMAccountAddress())
+	h.require.NoError(err)
+	distributorBalance, err := h.tt.caminoNetwork.Client.BalanceOf(h.ctx, h.distributorBot.CMAccountAddress())
+	h.require.NoError(err)
+
+	expectedSupplierBalance := big.NewInt(0).Sub(supplierBalance, refundAmountBig)
+	expectedDistributorBalance := big.NewInt(0).Add(distributorBalance, refundAmountBig)
+
 	finalizeCancellationResp, err := h.supplierBot.CancellationServiceV1.FinalizeCancellation(h.ctx, &cancellationv1.FinalizeCancellationRequest{
 		Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		TokenId: h.tokenID,
@@ -582,6 +593,14 @@ func (h *cancellationV1Helper) finalizeCancellation(refundAmount *typesv3.Price)
 
 	h.expectCancellationFinalizedNotification(h.supplierPPEventStream, finalizeCancellationResp.TransactionId.Hash)
 	h.expectCancellationFinalizedNotification(h.distributorPPEventStream, finalizeCancellationResp.TransactionId.Hash)
+
+	supplierBalanceAfter, err := h.tt.caminoNetwork.Client.BalanceOf(h.ctx, h.supplierBot.CMAccountAddress())
+	h.require.NoError(err)
+	distributorBalanceAfter, err := h.tt.caminoNetwork.Client.BalanceOf(h.ctx, h.distributorBot.CMAccountAddress())
+	h.require.NoError(err)
+
+	h.require.Equal(expectedSupplierBalance.Uint64(), supplierBalanceAfter.Uint64(), "unexpected supplier balance after cancellation")
+	h.require.Equal(expectedDistributorBalance.Uint64(), distributorBalanceAfter.Uint64(), "unexpected distributor balance after cancellation")
 }
 
 func (h *cancellationV1Helper) expectCancellationPendingNotification(

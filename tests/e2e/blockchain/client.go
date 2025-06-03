@@ -266,6 +266,14 @@ func (c *Client) Transfer(
 	return nil
 }
 
+func (c *Client) BalanceOf(ctx context.Context, addr common.Address) (*big.Int, error) {
+	balance, err := c.ethClient.BalanceAt(ctx, addr, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get balance: %w", err)
+	}
+	return balance, nil
+}
+
 func (c *Client) CMAccount(addr common.Address) (*cmaccount.Cmaccount, error) {
 	return cmaccount.NewCmaccount(addr, c.ethClient)
 }
