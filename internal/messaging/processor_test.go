@@ -218,7 +218,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				tt.fields.compressor,
 				tt.fields.cmAccounts,
 				tt.fields.responseHeaderHandler,
-				0,
+				big.NewInt(0),
 			)
 			if tt.prepare != nil {
 				tt.prepare(p.(*messageProcessor))
@@ -417,7 +417,7 @@ func TestSendRequestMessage(t *testing.T) {
 				tt.fields.compressor,
 				tt.fields.cmAccounts,
 				tt.fields.responseHeaderHandler,
-				1,
+				big.NewInt(1),
 			)
 			if tt.prepare != nil {
 				tt.prepare()
@@ -495,7 +495,7 @@ func TestStart(t *testing.T) {
 		&noopCompressor{},
 		mockCMAccounts,
 		mockResponseHeaderHandler,
-		1,
+		big.NewInt(1),
 	)
 
 	go p.Start(ctx)

@@ -66,7 +66,7 @@ func NewMessageProcessor(
 	compressor compression.Compressor[*types.Message, [][]byte],
 	cmAccounts cmaccounts.Service,
 	responseHeaderHandler common.ResponseHeaderHandler,
-	maxAllowedServiceFee uint64,
+	maxAllowedServiceFee *big.Int,
 ) MessageProcessor {
 	return &messageProcessor{
 		messenger:                           messenger,
@@ -87,7 +87,7 @@ func NewMessageProcessor(
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
 		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
 		responseHeaderHandler:               responseHeaderHandler,
-		maxAllowedServiceFee:                big.NewInt(0).SetUint64(maxAllowedServiceFee),
+		maxAllowedServiceFee:                maxAllowedServiceFee,
 	}
 }
 

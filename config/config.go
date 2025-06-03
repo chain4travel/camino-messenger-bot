@@ -33,7 +33,7 @@ type Config struct {
 	ChequeExpirationTime             *big.Int // seconds
 	MinChequeDurationUntilExpiration *big.Int // seconds
 	CashInPeriod                     time.Duration
-	MaxAllowedServiceFee             uint64 // aCAM
+	MaxAllowedServiceFee             *big.Int // aCAM
 
 	ResponseTimeout time.Duration
 
@@ -105,7 +105,7 @@ type UnparsedConfig struct {
 	ChequeExpirationTime             uint64 `mapstructure:"cheque_expiration_time"`               // seconds
 	MinChequeDurationUntilExpiration uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
 	CashInPeriod                     int64  `mapstructure:"cash_in_period"`                       // seconds
-	MaxAllowedServiceFee             uint64 `mapstructure:"max_allowed_service_fee"`              // aCAM
+	MaxAllowedServiceFee             string `mapstructure:"max_allowed_service_fee"`              // aCAM
 
 	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
 
@@ -147,7 +147,7 @@ func (cfg *Config) unparse() *UnparsedConfig {
 		ChequeExpirationTime:                cfg.ChequeExpirationTime.Uint64(),
 		MinChequeDurationUntilExpiration:    cfg.MinChequeDurationUntilExpiration.Uint64(),
 		CashInPeriod:                        int64(cfg.CashInPeriod / time.Second),
-		MaxAllowedServiceFee:                cfg.MaxAllowedServiceFee,
+		MaxAllowedServiceFee:                cfg.MaxAllowedServiceFee.String(),
 		ResponseTimeout:                     int64(cfg.ResponseTimeout / time.Millisecond),
 		RecordExpiration:                    cfg.RecordExpiration,
 	}

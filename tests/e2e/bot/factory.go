@@ -166,11 +166,11 @@ func (f *Factory) CreateBot(
 		BookingTokenAddress:                 f.networkClient.BookingTokenContractAddress().Hex(),
 		NetworkFeeRecipientBotAddress:       f.asb.NetworkFeeRecipientBotAddress().Hex(),
 		NetworkFeeRecipientCMAccountAddress: f.asb.NetworkFeeRecipientCMAccountAddress().Hex(),
-		ChequeExpirationTime:                3600 * 24 * 30 * 7,  // 7 months
-		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6,  // 6 months
-		CashInPeriod:                        3600,                // 1h
-		MaxAllowedServiceFee:                1000000000000000000, // 1 CAM
-		ResponseTimeout:                     30000,               // 30s
+		ChequeExpirationTime:                3600 * 24 * 30 * 7,    // 7 months
+		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6,    // 6 months
+		CashInPeriod:                        3600,                  // 1h
+		MaxAllowedServiceFee:                "1000000000000000000", // 1 CAM
+		ResponseTimeout:                     30000,                 // 30s
 		PartnerPlugin: config.PartnerPluginConfig{
 			Enabled:     partnerPlugin != nil,
 			Host:        partnerPlugin.Host(),

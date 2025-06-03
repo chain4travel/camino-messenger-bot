@@ -121,6 +121,18 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		return nil, err
 	}
 
+	maxAllowedServiceFee, ok := new(big.Int).SetString(cfg.MaxAllowedServiceFee, 10)
+	if !ok {
+		err := fmt.Errorf("invalid max allowed service fee: %s", cfg.MaxAllowedServiceFee)
+		cr.logger.Error(err)
+		return nil, err
+	}
+	if maxAllowedServiceFee.Sign() < 0 {
+		err := errors.New("max allowed service fee must be non-negative")
+		cr.logger.Error(err)
+		return nil, err
+	}
+
 	return &Config{
 		DB: SQLiteDBConfig{
 			Common: cfg.DB,
@@ -152,7 +164,7 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		ChequeExpirationTime:                big.NewInt(0).SetUint64(cfg.ChequeExpirationTime),
 		MinChequeDurationUntilExpiration:    big.NewInt(0).SetUint64(cfg.MinChequeDurationUntilExpiration),
 		CashInPeriod:                        time.Duration(cfg.CashInPeriod) * time.Second,
-		MaxAllowedServiceFee:                cfg.MaxAllowedServiceFee,
+		MaxAllowedServiceFee:                maxAllowedServiceFee,
 		ResponseTimeout:                     time.Duration(cfg.ResponseTimeout) * time.Millisecond,
 		RecordExpiration:                    cfg.RecordExpiration,
 	}, nil
