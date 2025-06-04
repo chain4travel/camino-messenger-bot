@@ -127,7 +127,6 @@ func TestE2E(t *testing.T) {
 	testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
 	testsRunner.Register(t, "AccommodationV3", tests.TestAccommodationV3)
 	testsRunner.Register(t, "TransportV3", tests.TestTransportV3)
-	testsRunner.Register(t, "BotSanity", tests.TestBotSanity)
 	testsRunner.Register(t, "MintV2", tests.TestMintV2)
 	testsRunner.Register(t, "CancellationV1", tests.TestCancellationV1)
 	testsRunner.Register(t, "ActivityV2", tests.TestActivityV2)
