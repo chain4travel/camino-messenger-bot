@@ -18,6 +18,7 @@ import (
 	accommodation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v1"
 	accommodation_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v2"
 	accommodation_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v3"
+	activity_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v2"
 	book_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v1"
 	book_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v2"
 	book_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v3"
@@ -34,6 +35,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
@@ -95,6 +97,12 @@ func Run() error {
 	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v3.NewAccommodationProductInfoV3Server())
 	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListV3Server())
 
+	// todo Activity V1
+	// Activity V2
+	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, &activity_v2.ActivityProductListV2Server{})
+	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, &activity_v2.ActivityProductInfoV2Server{})
+	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, &activity_v2.ActivitySearchV2Server{})
+	// todo Activity V3
 	// Book V1
 	bookv1grpc.RegisterMintServiceServer(grpcServer, book_v1.NewMintServiceV1Server())
 	bookv1grpc.RegisterValidationServiceServer(grpcServer, book_v1.NewValidationServiceV1Server())
