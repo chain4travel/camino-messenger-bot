@@ -49,7 +49,7 @@ var (
 	TripsExtendedV3 []*transportv3.TripExtended
 
 	ActivityV2             []*activityv2.Activity
-	ActivityExtendedV2 []*activityv2.ActivityExtendedInfo
+	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo
 	ActivitySearchResultV2 []*activityv2.ActivitySearchResult
 )
 
@@ -280,16 +280,6 @@ func init() {
 				Type: 4,
 			},
 		},
-	}
-
-	if err := json.Unmarshal(activityV2JSON, &ActivityV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities v2: %w", err))
-	}
-	if err := json.Unmarshal(activityExtendedV2JSON, &ActivityExtendedV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities extended v2: %w", err))
-	}
-	if err := json.Unmarshal(activitySearchResultV2JSON, &ActivitySearchResultV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities search v2: %w", err))
 	}
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }
