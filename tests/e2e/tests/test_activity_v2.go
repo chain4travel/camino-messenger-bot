@@ -703,7 +703,7 @@ func testActivityV2VerifyBlockchainState(
 
 	tokenStatus, err := tt.caminoNetwork.Client.BookingToken.GetBookingStatus(callOpts, bigTokenID)
 	require.NoError(t, err)
-	require.Equal(t, booking.StatusBought, tokenStatus)
+	require.Equal(t, booking.StatusBought, booking.Status(tokenStatus))
 }
 
 func TestActivityV2(t *testing.T, tt *Test) {
