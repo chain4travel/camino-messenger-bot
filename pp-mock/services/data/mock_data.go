@@ -49,7 +49,7 @@ var (
 	TripsExtendedV3 []*transportv3.TripExtended // used by search
 
 	ActivityV2             []*activityv2.Activity
-	ActivityExtendedV2 []*activityv2.ActivityExtendedInfo
+	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo
 	ActivitySearchResultV2 []*activityv2.ActivitySearchResult
 )
 
