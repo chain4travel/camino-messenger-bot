@@ -626,8 +626,8 @@
 		"type_code": "SCENIC",
 		"type_name": "Scenic Tour",
 		"supplier_code": {
-			"supplier_code": "HOTEL345678",
-			"supplier": "ISLAND-AIR"
+			"supplier_code": "ISLAND-AIR",
+			"supplier_number": 345678
 		},
 		"supplier_code_name": "Island Air Tours",
 		"duration_range": {
@@ -754,8 +754,8 @@
 		"type_code": "BOAT",
 		"type_name": "Boat Tour",
 		"supplier_code": {
-			"supplier_code": "87456",
-			"supplier": "SEA-EXPLORERS"
+			"supplier_code": "SEA-EXPLORERS",
+			"supplier_number": 87456
 		},
 		"supplier_code_name": "Sea Explorers",
 		"duration_range": {
