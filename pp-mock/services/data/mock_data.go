@@ -9,6 +9,7 @@ import (
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
+	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
@@ -37,6 +38,15 @@ var activityExtendedV2JSON []byte
 //go:embed activityv2_search.json
 var activitySearchResultV2JSON []byte
 
+//go:embed activityv3.json
+var activityV3JSON []byte
+
+//go:embed activityv3_extended.json
+var activityV3ExtendedJSON []byte
+
+//go:embed activityv3_search.json
+var activityV3SearchJSON []byte
+
 var (
 	PropertiesV1 []*accommodationv1.PropertyExtendedInfo
 	PropertiesV2 []*accommodationv2.PropertyExtendedInfo
@@ -51,6 +61,10 @@ var (
 	ActivityV2             []*activityv2.Activity
 	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo
 	ActivitySearchResultV2 []*activityv2.ActivitySearchResult
+
+	ActivityV3             []*activityv3.Activity
+	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo
+	ActivitySearchResultV3 []*activityv3.ActivitySearchResult
 )
 
 func init() {
@@ -83,6 +97,15 @@ func init() {
 	}
 	if err := json.Unmarshal(activitySearchResultV2JSON, &ActivitySearchResultV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities search v2: %w", err))
+	}
+	if err := json.Unmarshal(activityV3JSON, &ActivityV3); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities v3: %w", err))
+	}
+	if err := json.Unmarshal(activityV3ExtendedJSON, &ActivityExtendedV3); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities extended v3: %w", err))
+	}
+	if err := json.Unmarshal(activityV3SearchJSON, &ActivitySearchResultV3); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities search v3: %w", err))
 	}
 
 	// because protobuf location and price are one-of interface types,
