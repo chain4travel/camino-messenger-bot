@@ -652,6 +652,7 @@ func testactivityv3MintV2(
 ) (
 	tokenID uint64,
 	price *typesv2.Price,
+	mintID string,
 ) {
 	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, &metadata.Metadata{
@@ -676,7 +677,7 @@ func testactivityv3MintV2(
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.Price
+	return resp.BookingTokenId, resp.Price, resp.MintId.Value
 }
 
 func testactivityv3VerifyBlockchainState(
@@ -741,7 +742,7 @@ func Testactivityv3(t *testing.T, tt *Test) {
 	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		searchID, resultID, totalPrice := testactivityv3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
 		validationID := testactivityv3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
-		tokenID, price := testactivityv3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
+		tokenID, price, _ := testactivityv3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 		testactivityv3VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 	})
 }
