@@ -31,7 +31,7 @@ import (
 )
 
 // Setting up the basic applications and services used in all sub-test-cases
-func testactivityv3Setup(
+func testActivityV3Setup(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -712,7 +712,7 @@ func testactivityv3VerifyBlockchainState(
 func Testactivityv3(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	_, supplierBot, distributorBot := testactivityv3Setup(ctx, t, tt)
+	_, supplierBot, distributorBot := testActivityV3Setup(ctx, t, tt)
 
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the activities
