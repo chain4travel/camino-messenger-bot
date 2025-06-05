@@ -130,6 +130,7 @@ func TestE2E(t *testing.T) {
 	testsRunner.Register(t, "MintV2", tests.TestMintV2)
 	testsRunner.Register(t, "CancellationV1", tests.TestCancellationV1)
 	testsRunner.Register(t, "ActivityV2", tests.TestActivityV2)
+	testsRunner.Register(t, "ActivityV3", tests.TestActivityV3)
 
 	maxParallelRuns := 0
 	flagTestParallel := flag.Lookup("test.parallel")
