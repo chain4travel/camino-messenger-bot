@@ -59,7 +59,10 @@
 		"service_code": "XO",
 		"bookability": {
 			"type": 1,
-			"confirmation_time": null
+			"confirmation_time": {
+				"hours": 24,
+				"minutes": 0
+			}
 		}
 	}
 ]

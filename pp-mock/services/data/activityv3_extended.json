@@ -545,7 +545,7 @@
 						"seconds": 1712818800,
 						"nanos": 0
 					},
-					"end": {
+					"end_datetime": {
 						"seconds": 1712829600,
 						"nanos": 0
 					}
@@ -631,8 +631,12 @@
 		},
 		"supplier_code_name": "Island Air Tours",
 		"duration_range": {
-			"min_minutes": 45,
-			"max_minutes": 60
+			"min_minutes": {
+				"minutes": 45
+			},
+			"max_minutes": {
+				"minutes": 60
+			}
 		},
 		"max_confirmation_duration": {
 			"seconds": 172800,
@@ -661,7 +665,10 @@
 			"service_code": "XO",
 			"bookability": {
 				"type": 1,
-				"confirmation_time": null
+				"confirmation_time": {
+					"hours": 24,
+					"minutes": 0
+				}
 			}
 		},
 		"units": [
@@ -671,7 +678,7 @@
 						"seconds": 1712905200,
 						"nanos": 0
 					},
-					"end": {
+					"end_datetime": {
 						"seconds": 1712923200,
 						"nanos": 0
 					}
@@ -755,8 +762,12 @@
 		},
 		"supplier_code_name": "Sea Explorers",
 		"duration_range": {
-			"min_minutes": 300,
-			"max_minutes": 360
+			"min_minutes": {
+				"minutes": 300
+			},
+			"max_minutes": {
+				"minutes": 360
+			}
 		},
 		"max_confirmation_duration": {
 			"seconds": 43200,
