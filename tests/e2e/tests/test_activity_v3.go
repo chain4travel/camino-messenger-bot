@@ -709,7 +709,7 @@ func testactivityv3VerifyBlockchainState(
 	require.Equal(t, booking.StatusBought, booking.Status(tokenStatus))
 }
 
-func Testactivityv3(t *testing.T, tt *Test) {
+func TestActivityV3(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
 	_, supplierBot, distributorBot := testActivityV3Setup(ctx, t, tt)
