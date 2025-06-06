@@ -169,13 +169,7 @@ func testBotSanityVerify(ctx context.Context, t *testing.T, services *botSanityS
 func TestBotSanity(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	var services *botSanityServices
 
-	t.Run("Startup and sanity checks", func(t *testing.T) {
-		services = testBotSanitySetupWithSanityChecks(ctx, t, tt)
-	})
-
-	t.Run("Verification", func(t *testing.T) {
-		testBotSanityVerify(ctx, t, services)
-	})
+	services := testBotSanitySetupWithSanityChecks(ctx, t, tt)
+	testBotSanityVerify(ctx, t, services)
 }

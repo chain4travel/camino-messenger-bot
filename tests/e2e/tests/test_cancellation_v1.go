@@ -379,23 +379,13 @@ func testCheckCancellationV1(
 func TestCancellationV1(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	var (
-		supplierBot              *bot.Bot
-		distributorBot           *bot.Bot
-		supplierPartnerPlugin    *partnerplugin.PartnerPlugin
-		distributorPartnerPlugin *partnerplugin.PartnerPlugin
-		supplierPPEventStream    events.EventsService_SubscribeClient
-		distributorPPEventStream events.EventsService_SubscribeClient
-		err                      error
-	)
 
-	t.Run("Setup", func(t *testing.T) {
-		supplierPartnerPlugin, supplierBot, distributorPartnerPlugin, distributorBot = testCancellationV1Setup(ctx, t, tt)
-		supplierPPEventStream, err = supplierPartnerPlugin.SubscribeForEvents(ctx)
-		require.NoError(t, err)
-		distributorPPEventStream, err = distributorPartnerPlugin.SubscribeForEvents(ctx)
-		require.NoError(t, err)
-	})
+	supplierPartnerPlugin, supplierBot, distributorPartnerPlugin, distributorBot := testCancellationV1Setup(ctx, t, tt)
+	supplierPPEventStream, err := supplierPartnerPlugin.SubscribeForEvents(ctx)
+	require.NoError(t, err)
+	distributorPPEventStream, err := distributorPartnerPlugin.SubscribeForEvents(ctx)
+	require.NoError(t, err)
+
 	t.Run("CheckCancellationV1", func(t *testing.T) {
 		testCheckCancellationV1(ctx, t, tt, distributorBot, supplierBot, supplierPPEventStream)
 	})

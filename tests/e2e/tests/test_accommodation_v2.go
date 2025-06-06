@@ -544,12 +544,9 @@ func testAccommodationV2VerifyBlockchainState(
 func TestAccommodationV2(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	var supplierBot *bot.Bot
-	var distributorBot *bot.Bot
 
-	t.Run("Setup", func(t *testing.T) {
-		_, supplierBot, distributorBot = testAccommodationV2Setup(ctx, t, tt)
-	})
+	_, supplierBot, distributorBot := testAccommodationV2Setup(ctx, t, tt)
+
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the properties
 		testAccommodationV2ProductListService(ctx, t, tt, distributorBot, supplierBot)

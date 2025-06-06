@@ -60,12 +60,9 @@ func testPingV1Service(ctx context.Context, t *testing.T, tt *Test, distributorB
 func TestPingV1(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	var supplierBot *bot.Bot
-	var distributorBot *bot.Bot
 
-	t.Run("Setup", func(t *testing.T) {
-		_, supplierBot, distributorBot = testPingV1Setup(ctx, t, tt)
-	})
+	_, supplierBot, distributorBot := testPingV1Setup(ctx, t, tt)
+
 	t.Run("Ping", func(t *testing.T) {
 		testPingV1Service(ctx, t, tt, distributorBot, supplierBot)
 	})

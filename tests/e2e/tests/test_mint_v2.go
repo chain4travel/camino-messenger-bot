@@ -183,20 +183,10 @@ func testMintV2TokenExpiredCase(ctx context.Context, t *testing.T, tt *Test, ppE
 func TestMintV2(t *testing.T, tt *Test) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
-	var (
-		supplierBot                *bot.Bot
-		distributorBot             *bot.Bot
-		distributorBotWithoutFunds *bot.Bot
-		supplierPartnerPlugin      *partnerplugin.PartnerPlugin
-		ppEventStream              events.EventsService_SubscribeClient
-		err                        error
-	)
 
-	t.Run("Setup", func(t *testing.T) {
-		supplierPartnerPlugin, supplierBot, distributorBot, distributorBotWithoutFunds = testMintV2Setup(ctx, t, tt)
-		ppEventStream, err = supplierPartnerPlugin.SubscribeForEvents(ctx)
-		require.NoError(t, err)
-	})
+	supplierPartnerPlugin, supplierBot, distributorBot, distributorBotWithoutFunds := testMintV2Setup(ctx, t, tt)
+	ppEventStream, err := supplierPartnerPlugin.SubscribeForEvents(ctx)
+	require.NoError(t, err)
 
 	t.Run("Search->Validate->Mint->TokenBoughtNotification", func(t *testing.T) {
 		// We're doing this > 1 times to make sure that even with multiple
