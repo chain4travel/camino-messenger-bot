@@ -348,7 +348,7 @@ func (a *App) Run(ctx context.Context) error {
 	schedulerStarted := make(chan struct{})
 	messageProcessorStarted := make(chan struct{})
 
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		a.logger.Info("Starting start-up cash-in status check...")
 		if err := a.chequeHandler.CheckCashInStatus(ctx); err != nil {
 			return fmt.Errorf("failed to do start-up cash-in status check: %w", err)
@@ -359,17 +359,23 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	eventListenerStarted := make(chan struct{})
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		a.logger.Info("Starting event listener...")
-		if err := a.eventListener.Start(ctx); err != nil {
+		errChan, err := a.eventListener.Start(ctx)
+		if err != nil {
 			return fmt.Errorf("failed to start event listener: %w", err)
 		}
 		a.logger.Info("Event listener started.")
 		close(eventListenerStarted)
+
+		if err := <-errChan; err != nil && !errors.Is(err, context.Canceled) {
+			a.logger.Errorf("Event listener failed with error: %v", err)
+			return err
+		}
 		return nil
 	})
 
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		if !awaitChan(ctx, cashInStatusCheckDone) {
 			return nil
 		}
@@ -391,10 +397,11 @@ func (a *App) Run(ctx context.Context) error {
 
 		a.logger.Info("Scheduler started.")
 		close(schedulerStarted)
+
 		return nil
 	})
 
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		a.logger.Info("Starting message processor...")
 		a.messageProcessor.Start(ctx)
 		a.logger.Info("Message processor started.")
@@ -402,7 +409,7 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		if !awaitChans(ctx,
 			cashInStatusCheckDone,
 			schedulerStarted,
@@ -430,7 +437,7 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
-		g.Go(func() error {
+		a.safeGo(g, func() error {
 			if !awaitChan(ctx, messengerReceiverStarted) {
 				return nil
 			}
@@ -456,7 +463,7 @@ func (a *App) Run(ctx context.Context) error {
 	// stop
 
 	if a.rpcClient != nil { // rpcClient will be nil, if its disabled in partner plugin config section
-		g.Go(func() error {
+		a.safeGo(g, func() error {
 			<-ctx.Done()
 			a.logger.Info("Stopping gRPC client...")
 			if err := a.rpcClient.Shutdown(); err != nil && !errors.Is(err, context.Canceled) {
@@ -469,7 +476,7 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
-		g.Go(func() error {
+		a.safeGo(g, func() error {
 			<-ctx.Done()
 			a.logger.Info("Stopping gRPC server...")
 			a.rpcServer.Stop()
@@ -478,7 +485,7 @@ func (a *App) Run(ctx context.Context) error {
 		})
 	}
 
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		<-ctx.Done()
 		a.logger.Info("Stopping message receiver...")
 		if err := a.messenger.StopReceiver(); err != nil && !errors.Is(err, context.Canceled) {
@@ -489,7 +496,7 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		<-ctx.Done()
 		a.logger.Info("Stopping scheduler...")
 		a.scheduler.Stop()
@@ -497,7 +504,7 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	g.Go(func() error {
+	a.safeGo(g, func() error {
 		<-ctx.Done()
 		a.logger.Info("Stopping event listener...")
 		a.eventListener.Stop()
@@ -515,6 +522,18 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	return err
+}
+
+func (a *App) safeGo(g *errgroup.Group, fn func() error) {
+	g.Go(func() (err error) {
+		defer func() {
+			if panicErr := recover(); panicErr != nil {
+				err = fmt.Errorf("panic: %v", panicErr) // err will be returned
+				a.logger.Errorf("recovered from panic: %v", err)
+			}
+		}()
+		return fn()
+	})
 }
 
 func awaitChan(ctx context.Context, ch <-chan struct{}) bool {

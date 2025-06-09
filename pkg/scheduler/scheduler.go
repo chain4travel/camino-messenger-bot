@@ -89,6 +89,20 @@ func (s *scheduler) Start(ctx context.Context) error {
 	timersCtx, cancel := context.WithCancel(ctx)
 	s.stopTimers = cancel
 
+	safeGo := func(handler func()) {
+		s.wg.Add(1)
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					err := fmt.Errorf("scheduler panicked: %v", r)
+					s.logger.Errorf("recovered from panic: %v", err)
+				}
+				s.wg.Done()
+			}()
+			handler()
+		}()
+	}
+
 	for _, job := range jobs {
 		jobHandler, err := s.getJobHandler(job.Name)
 		if err != nil {
@@ -103,7 +117,6 @@ func (s *scheduler) Start(ctx context.Context) error {
 		durationUntilFirstExecution := max(job.LastExecutedAt.Add(job.Period).Sub(now), 0)
 
 		handler := func(tickTime time.Time) {
-			// TODO @evlekht panic handling?
 			if err := s.updateJobExecutionTime(ctx, jobName, tickTime); err != nil {
 				s.logger.Errorf("failed to update job execution time: %v", err)
 				return
@@ -115,24 +128,17 @@ func (s *scheduler) Start(ctx context.Context) error {
 		onceDone := make(chan struct{})
 		timer := s.clock.NewTimer(durationUntilFirstExecution)
 		s.setJobTimer(job.Name, &timerStopper{timer})
-		s.wg.Add(1)
-		go func() {
-			defer func() {
-				close(onceDone)
-				s.wg.Done()
-			}()
-
+		safeGo(func() {
+			defer close(onceDone)
 			select {
 			case tickTime := <-timer.Chan():
 				handler(tickTime)
 			case <-timersCtx.Done():
 			}
-		}()
+		})
 
 		// periodic execution
-		s.wg.Add(1)
-		go func() {
-			defer s.wg.Done()
+		safeGo(func() {
 			<-onceDone
 			ticker := s.clock.NewTicker(period)
 			defer ticker.Stop()
@@ -145,7 +151,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 					return
 				}
 			}
-		}()
+		})
 	}
 
 	return nil

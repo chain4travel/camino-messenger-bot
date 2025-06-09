@@ -48,7 +48,7 @@ type Session interface {
 }
 
 type EventListener interface {
-	Start(context.Context) error
+	Start(context.Context) (<-chan error, error)
 	Stop()
 	TokenBoughtSubscriber
 	CancellationSubscriber
@@ -106,18 +106,25 @@ func New(
 	}, nil
 }
 
-func (l *eventListener) Start(ctx context.Context) error {
+func (l *eventListener) Start(ctx context.Context) (<-chan error, error) {
 	if err := l.startTokenBoughtSubscriptions(ctx); err != nil {
 		l.logger.Errorf("failed to start token bought subscriptions: %v", err)
-		return err
+		return nil, err
 	}
 
 	if err := l.startCancellationSubscriptions(ctx); err != nil {
 		l.logger.Errorf("failed to start cancellation subscriptions: %v", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	errChan := make(chan error)
+	go func() {
+		errChan <- <-l.subscriber.ErrChan()
+		close(errChan)
+		l.subscriber.Stop()
+	}()
+
+	return errChan, nil
 }
 
 func (l *eventListener) Stop() {

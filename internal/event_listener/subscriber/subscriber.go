@@ -5,6 +5,8 @@ package subscriber
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -23,6 +25,9 @@ const backoffMax = 2 * time.Minute // Maximum backoff time between subscribe ret
 var _ Subscriber = (*subscriber)(nil)
 
 type Subscriber interface {
+	ErrChan() <-chan error
+	Stop()
+
 	SubscribeServiceAdded(
 		cmAccountAddr common.Address,
 		handler func(*cmaccount.CmaccountServiceAdded) uint64,
@@ -55,6 +60,10 @@ type subscriber struct {
 	bookingToken *bookingtoken.Bookingtoken
 	cmAccounts   cmaccounts.Service
 	blockNumber  *atomic.Uint64
+	errChan      chan error
+	stopChan     chan struct{}
+	once         sync.Once
+	wg           sync.WaitGroup
 }
 
 func New(
@@ -79,7 +88,17 @@ func New(
 		bookingToken: bookingToken,
 		cmAccounts:   cmAccounts,
 		blockNumber:  blockNumberAtomic,
+		errChan:      make(chan error),
+		stopChan:     make(chan struct{}),
 	}, nil
+}
+
+func (s *subscriber) ErrChan() <-chan error {
+	return s.errChan
+}
+
+func (s *subscriber) Stop() {
+	close(s.stopChan)
 }
 
 // Subscribes to the ServiceAdded event.
@@ -182,7 +201,20 @@ func startResubscriber[T any](
 	eventType := new(T) // for logging purposes
 
 	eventChan := make(chan T)
+	s.wg.Add(1)
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				err := fmt.Errorf("%T event handler panic: %v", eventType, r)
+				s.logger.Errorf("recovered from panic: %v", err)
+				select {
+				case s.errChan <- err:
+				case <-s.stopChan:
+				}
+			}
+			s.wg.Done()
+		}()
+
 		for event := range eventChan {
 			if successfullyProcessedBlockNumber := handler(event); successfullyProcessedBlockNumber != 0 {
 				s.blockNumber.Store(successfullyProcessedBlockNumber)
@@ -204,10 +236,15 @@ func startResubscriber[T any](
 		return sub, nil
 	})
 
+	s.once.Do(func() {
+		go func() {
+			s.wg.Wait()
+			close(s.errChan)
+		}()
+	})
+
 	return func() {
 		resubscriber.Unsubscribe()
-		if eventChan != nil {
-			close(eventChan)
-		}
+		close(eventChan)
 	}
 }

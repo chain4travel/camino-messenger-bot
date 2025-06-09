@@ -124,7 +124,13 @@ func (p *messageProcessor) Start(ctx context.Context) {
 			select {
 			case msg := <-p.messenger.Inbound():
 				go func() {
+					defer func() {
+						if r := recover(); r != nil {
+							p.logger.Errorf("Recovered from panic while processing message: %v", r)
+						}
+					}()
 					p.logger.Debugf("Processing incoming message (%s): %s", msg.Type, msg.Metadata.RequestID)
+
 					if err := p.ProcessIncomingMessage(&msg); err != nil {
 						p.logger.Warnf("could not process message: %v", err)
 					}

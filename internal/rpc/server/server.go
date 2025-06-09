@@ -75,7 +75,8 @@ func NewServer(
 		serviceRegistry:       serviceRegistry,
 	}
 
-	opts = append(opts, grpc.UnaryInterceptor(
+	opts = append(opts, grpc.ChainUnaryInterceptor(
+		s.unaryRecoverInterceptor,
 		selector.UnaryServerInterceptor( // for all cancellationv1grpc methods
 			s.errorHandlingInterceptor,
 			selector.MatchFunc(func(_ context.Context, callMeta interceptors.CallMeta) bool {
@@ -121,7 +122,14 @@ func (s *server) Start() (chan error, error) {
 	errChan := make(chan error)
 
 	go func() {
-		defer close(errChan)
+		defer func() {
+			if r := recover(); r != nil {
+				err := fmt.Errorf("gRPC server panicked: %v", r)
+				s.logger.Errorf("recovered from panic: %v", err)
+				errChan <- err
+			}
+			close(errChan)
+		}()
 
 		s.logger.Infof("gRPC server listening on %s", lis.Addr().String())
 
@@ -184,4 +192,19 @@ func (s *server) errorHandlingInterceptor(
 		s.responseHeaderHandler.AddError(responseProtoMessage, err.Error())
 	}
 	return response, nil
+}
+
+func (s *server) unaryRecoverInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			md := &metadata.Metadata{}
+			if err := md.ExtractMetadata(ctx); err != nil {
+				s.logger.Error("error extracting metadata from context", zap.Error(err))
+			}
+			err = fmt.Errorf("gRPC %s (request %s) handler panicked: %v", info.FullMethod, md.RequestID, r) // we return this error to the client
+			s.logger.Errorf("recovered from panic: %v", err)
+		}
+	}()
+
+	return handler(ctx, req)
 }

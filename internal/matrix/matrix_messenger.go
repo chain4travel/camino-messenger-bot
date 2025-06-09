@@ -90,6 +90,11 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
 
 	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
+		defer func() {
+			if r := recover(); r != nil {
+				m.logger.Errorf("failed to process %s event, recovered from panic: %v", matrix.EventTypeC4TMessage.Type, r)
+			}
+		}()
 		m.logger.Debugf("Received %s event %s from %s in room %s", matrix.EventTypeC4TMessage.Type, evt.ID, evt.Sender, evt.RoomID)
 
 		if evt.Sender == m.client.UserID { // ignore own messages
@@ -123,6 +128,11 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 		}
 	})
 	syncer.OnEventType(event.StateMember, func(ctx context.Context, evt *event.Event) {
+		defer func() {
+			if r := recover(); r != nil {
+				m.logger.Errorf("failed to process %s event, recovered from panic: %v", event.StateMember.Type, r)
+			}
+		}()
 		m.logger.Debugf("Received %s event %s from %s in room %s", event.StateMember.Type, evt.ID, evt.Sender, evt.RoomID)
 
 		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
@@ -173,6 +183,11 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 
 	go func() {
 		defer func() {
+			if r := recover(); r != nil {
+				err := fmt.Errorf("matrix event syncer panicked: %v", r)
+				m.logger.Errorf("recovered from panic: %v", err)
+				errChan <- err
+			}
 			close(errChan)
 			close(m.client.syncerStopChan)
 		}()
