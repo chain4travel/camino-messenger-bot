@@ -68,8 +68,18 @@ func (l *eventListener) startTokenBoughtSubscriptions(ctx context.Context) error
 		l.logger.Errorf("error checking token bought subscriptions: %v", err)
 		return err
 	}
-	l.unsubscribeTokenBought = l.subscriber.SubscribeTokenBought(l.tokenBoughtEventHandler)
+
+	unsubscribe := l.subscriber.SubscribeTokenBought(l.tokenBoughtEventHandler)
 	l.startTokenBoughtTimer(nextToExpireSubscription)
+
+	l.unsubscribeTokenBought = func() {
+		unsubscribe()
+
+		l.tokenBoughtTimerMutex.Lock()
+		defer l.tokenBoughtTimerMutex.Unlock()
+		l.tokenBoughtTimer.Stop()
+	}
+
 	return nil
 }
 
@@ -311,12 +321,6 @@ func (l *eventListener) resetTokenBoughtTimerFromDB(ctx context.Context) {
 		l.tokenBoughtTimerSubscription = nextToExpireSubscription
 		l.tokenBoughtTimer = time.AfterFunc(timeUntil(nextToExpireSubscription.Timeout), l.tokenBoughtTimeoutHandler)
 	}
-}
-
-func (l *eventListener) stopTokenBoughtTimer() {
-	l.tokenBoughtTimerMutex.Lock()
-	defer l.tokenBoughtTimerMutex.Unlock()
-	l.tokenBoughtTimer.Stop()
 }
 
 func timeUntil(t time.Time) time.Duration {

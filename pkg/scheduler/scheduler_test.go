@@ -212,7 +212,7 @@ func TestScheduler_Start(t *testing.T) {
 		require.Equal(step.time, clock.Now())
 	}
 
-	require.NoError(sch.Stop())
+	sch.Stop()
 
 	// checking, that all timers were stopped
 

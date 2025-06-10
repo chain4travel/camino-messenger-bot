@@ -21,7 +21,7 @@ const (
 	exporterInstantiationTimeout = 5 * time.Second
 )
 
-func newExporter(cfg *config.TracingConfig) (trace.SpanExporter, error) {
+func newExporter(ctx context.Context, cfg *config.TracingConfig) (trace.SpanExporter, error) {
 	var client otlptrace.Client
 	opts := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(cfg.Host),
@@ -37,7 +37,7 @@ func newExporter(cfg *config.TracingConfig) (trace.SpanExporter, error) {
 		opts = append(opts, otlptracegrpc.WithTLSCredentials(creds))
 	}
 	client = otlptracegrpc.NewClient(opts...)
-	ctx, cancel := context.WithTimeout(context.Background(), exporterInstantiationTimeout)
+	ctx, cancel := context.WithTimeout(ctx, exporterInstantiationTimeout)
 	defer cancel()
 	return otlptrace.New(ctx, client)
 }

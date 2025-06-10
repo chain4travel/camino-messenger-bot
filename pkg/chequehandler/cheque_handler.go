@@ -18,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -352,7 +353,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 		wg.Add(1)
 		go func(txID common.Hash) {
 			defer wg.Done()
-			_ = ch.checkCashInStatus(context.Background(), txID)
+			_ = ch.checkCashInStatus(ctx, txID)
 		}(chequeRecord.TxID)
 	}
 
@@ -375,19 +376,20 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 		return err
 	}
 
-	wg := sync.WaitGroup{}
+	g := errgroup.Group{}
 
 	for _, chequeRecord := range chequeRecords {
-		wg.Add(1)
-		go func(txID common.Hash) {
-			defer wg.Done()
-			_ = ch.checkCashInStatus(ctx, txID)
-		}(chequeRecord.TxID)
+		txID := chequeRecord.TxID
+		g.Go(func() (err error) {
+			return ch.checkCashInStatus(ctx, txID)
+		})
 	}
 
-	wg.Wait()
+	if err = g.Wait(); err != nil {
+		ch.logger.Errorf("CheckCashInStatus failed with error: %v", err)
+	}
 
-	return nil
+	return err
 }
 
 func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.Hash) error {

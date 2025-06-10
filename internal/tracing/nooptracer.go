@@ -27,7 +27,7 @@ func (n *noopTracer) Start(ctx context.Context, spanName string, opts ...trace.S
 	return n.TracerProvider.Tracer("").Start(ctx, spanName, opts...)
 }
 
-func (n *noopTracer) Shutdown() error {
+func (n *noopTracer) Shutdown(context.Context) error {
 	return nil // nothing to do here
 }
 

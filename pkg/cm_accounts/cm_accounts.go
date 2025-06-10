@@ -117,13 +117,8 @@ func NewService(
 	logger *zap.SugaredLogger,
 	cacheSize int,
 	ethClient *ethclient.Client,
+	chainID *big.Int,
 ) (Service, error) {
-	chainID, err := ethClient.ChainID(context.Background())
-	if err != nil {
-		logger.Errorf("Failed to get chain ID: %v", err)
-		return nil, err
-	}
-
 	cache, err := lru.New[common.Address, *cmaccount.Cmaccount](cacheSize)
 	if err != nil {
 		return nil, err

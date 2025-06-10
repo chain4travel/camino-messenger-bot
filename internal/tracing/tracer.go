@@ -23,7 +23,7 @@ var _ Tracer = (*tracer)(nil)
 type Tracer interface {
 	trace.Tracer
 	TraceIDForSpan(trace.Span) trace.TraceID // TraceIDForSpan returns the trace ID of the given span.
-	Shutdown() error
+	Shutdown(ctx context.Context) error
 }
 
 type tracer struct {
@@ -35,8 +35,8 @@ func (t *tracer) Start(ctx context.Context, spanName string, opts ...trace.SpanS
 	return t.TracerProvider.Tracer("").Start(ctx, spanName, opts...)
 }
 
-func (t *tracer) Shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), tracerProviderShutdownTimeout)
+func (t *tracer) Shutdown(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, tracerProviderShutdownTimeout)
 	defer cancel()
 	return t.TracerProvider.Shutdown(ctx)
 }
@@ -45,8 +45,8 @@ func (t *tracer) TraceIDForSpan(span trace.Span) trace.TraceID {
 	return span.SpanContext().TraceID()
 }
 
-func NewTracer(cfg config.TracingConfig, name string) (Tracer, error) {
-	exporter, err := newExporter(&cfg)
+func NewTracer(ctx context.Context, cfg config.TracingConfig, name string) (Tracer, error) {
+	exporter, err := newExporter(ctx, &cfg)
 	if err != nil {
 		return nil, err
 	}

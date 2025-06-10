@@ -40,7 +40,7 @@ type Session interface {
 
 type Scheduler interface {
 	Start(ctx context.Context) error
-	Stop() error
+	Stop()
 	Schedule(ctx context.Context, period time.Duration, jobName string) error
 	RegisterJobHandler(jobName string, jobHandler func())
 }
@@ -68,6 +68,7 @@ type scheduler struct {
 	registryLock sync.RWMutex
 	timersLock   sync.RWMutex
 	clock        clockwork.Clock
+	wg           sync.WaitGroup
 }
 
 // Start starts the scheduler. Jobs that are already due are executed immediately.
@@ -117,17 +118,24 @@ func (s *scheduler) Start(ctx context.Context) error {
 		onceDone := make(chan struct{})
 		timer := s.clock.NewTimer(durationUntilFirstExecution)
 		s.setJobTimer(job.Name, &timerStopper{timer})
+		s.wg.Add(1)
 		go func() {
+			defer func() {
+				close(onceDone)
+				s.wg.Done()
+			}()
+
 			select {
 			case tickTime := <-timer.Chan():
 				handler(tickTime)
 			case <-timersCtx.Done():
 			}
-			close(onceDone)
 		}()
 
 		// periodic execution
+		s.wg.Add(1)
 		go func() {
+			defer s.wg.Done()
 			<-onceDone
 			ticker := s.clock.NewTicker(period)
 			defer ticker.Stop()
@@ -146,15 +154,16 @@ func (s *scheduler) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *scheduler) Stop() error {
-	s.stopTimers()
+func (s *scheduler) Stop() {
+	if s.stopTimers != nil { // if scheduler started correctly
+		s.stopTimers()
+	}
+	s.wg.Wait()
 	s.timersLock.Lock()
 	for jobName := range s.timers {
 		delete(s.timers, jobName)
 	}
 	s.timersLock.Unlock()
-	// TODO @evlekht await all ongoing job handlers to finish ?
-	return nil
 }
 
 // Schedules a job to be executed every period.

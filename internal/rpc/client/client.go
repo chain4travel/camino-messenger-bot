@@ -47,6 +47,5 @@ func NewClient(cfg config.PartnerPluginConfig, logger *zap.SugaredLogger) (*RPCC
 }
 
 func (rc *RPCClient) Shutdown() error {
-	rc.logger.Info("Shutting down gRPC client...")
 	return rc.ClientConn.Close()
 }

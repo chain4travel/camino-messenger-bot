@@ -34,31 +34,38 @@ import (
 
 var _ messaging.Messenger = (*messenger)(nil)
 
-func NewMessenger(cfg config.MatrixConfig, botKey *ecdsa.PrivateKey, logger *zap.SugaredLogger) (messaging.Messenger, error) {
+func NewMessenger(
+	logger *zap.SugaredLogger,
+	cfg config.MatrixConfig,
+	botKey *ecdsa.PrivateKey,
+	expectedBotUserID id.UserID,
+) (messaging.Messenger, error) {
 	c, err := mautrix.NewClient(cfg.Host, "", "")
 	if err != nil {
 		logger.Errorf("failed to create matrix client: %v", err)
 		return nil, err
 	}
 	return &messenger{
-		msgChannel:   make(chan types.Message),
-		logger:       logger,
-		tracer:       otel.GetTracerProvider().Tracer(""),
-		client:       client{Client: c},
-		roomHandler:  NewRoomHandler(NewClient(c), logger),
-		msgAssembler: NewMessageAssembler(),
-		botKey:       botKey,
-		dbPath:       cfg.Store,
+		msgChannel:        make(chan types.Message),
+		logger:            logger,
+		tracer:            otel.GetTracerProvider().Tracer(""),
+		client:            client{Client: c},
+		roomHandler:       NewRoomHandler(NewClient(c), logger),
+		msgAssembler:      NewMessageAssembler(),
+		botKey:            botKey,
+		expectedBotUserID: expectedBotUserID,
+		dbPath:            cfg.Store,
 	}, nil
 }
 
 type messenger struct {
 	msgChannel chan types.Message
 
-	dbPath string
-	botKey *ecdsa.PrivateKey
-	logger *zap.SugaredLogger
-	tracer trace.Tracer
+	dbPath            string
+	botKey            *ecdsa.PrivateKey
+	expectedBotUserID id.UserID
+	logger            *zap.SugaredLogger
+	tracer            trace.Tracer
 
 	client       client
 	roomHandler  RoomHandler
@@ -67,17 +74,17 @@ type messenger struct {
 
 type client struct {
 	*mautrix.Client
-	ctx          context.Context
-	cancelSync   context.CancelFunc
-	syncStopWait sync.WaitGroup
-	cryptoHelper *cryptohelper.CryptoHelper
+	ctx             context.Context
+	cancelSync      context.CancelFunc
+	syncerWaitGroup sync.WaitGroup
+	cryptoHelper    *cryptohelper.CryptoHelper
 }
 
 func (m *messenger) checkpoint() string {
 	return "messenger-gateway"
 }
 
-func (m *messenger) StartReceiver() (id.UserID, error) {
+func (m *messenger) StartReceiver(ctx context.Context) error {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
 
 	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
@@ -128,12 +135,12 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 
 	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.dbPath) // TODO refactor
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	signature, message, err := SignPublicKey(m.botKey)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	cryptoHelper.LoginAs = &mautrix.ReqLogin{
@@ -142,29 +149,33 @@ func (m *messenger) StartReceiver() (id.UserID, error) {
 		Signature: signature[2:], // removing 0x prefix
 	}
 
-	err = cryptoHelper.Init(context.TODO())
-	if err != nil {
-		return "", err
+	if err = cryptoHelper.Init(ctx); err != nil {
+		return err
 	}
+
+	if m.client.Client.UserID != m.expectedBotUserID {
+		return fmt.Errorf("expected user ID %s, got %s", m.expectedBotUserID, m.client.Client.UserID)
+	}
+
 	// Set the wrappedClient crypto helper in order to automatically encrypt outgoing messages
 	m.client.Crypto = cryptoHelper
 	m.client.cryptoHelper = cryptoHelper // nikos: we need the struct cause stop method is not available on the interface level
 
 	m.logger.Infof("Successfully logged in as: %s", m.client.UserID)
-	syncCtx, cancelSync := context.WithCancel(context.Background())
+	syncCtx, cancelSync := context.WithCancel(ctx)
 	m.client.ctx = syncCtx
 	m.client.cancelSync = cancelSync
-	m.client.syncStopWait.Add(1)
+	m.client.syncerWaitGroup.Add(1)
 
 	go func() {
-		err = m.client.SyncWithContext(syncCtx)
-		defer m.client.syncStopWait.Done()
-		if err != nil && !errors.Is(err, context.Canceled) {
-			panic(err)
+		defer m.client.syncerWaitGroup.Done()
+
+		if err := m.client.SyncWithContext(syncCtx); err != nil && !errors.Is(err, context.Canceled) {
+			m.logger.Errorf("matrix event syncer exited with error: %w", err)
 		}
 	}()
 
-	return m.client.UserID, nil
+	return nil
 }
 
 func (m *messenger) StopReceiver() error {
@@ -172,8 +183,12 @@ func (m *messenger) StopReceiver() error {
 	if m.client.cancelSync != nil {
 		m.client.cancelSync()
 	}
-	m.client.syncStopWait.Wait()
-	return m.client.cryptoHelper.Close()
+	m.client.syncerWaitGroup.Wait()
+	if err := m.client.cryptoHelper.Close(); err != nil {
+		m.logger.Errorf("Failed to close crypto helper: %v", err)
+	}
+	m.logger.Info("Matrix syncer stopped")
+	return nil
 }
 
 func (m *messenger) SendAsync(ctx context.Context, msg *types.Message, sendTo id.UserID) error {

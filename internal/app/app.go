@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -16,6 +17,7 @@ import (
 	"github.com/jonboulle/clockwork"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
@@ -66,6 +68,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	var tracer tracing.Tracer
 	if cfg.Tracing.Enabled {
 		tracer, err = tracing.NewTracer(
+			ctx,
 			cfg.Tracing,
 			fmt.Sprintf("%s:%d", appName, cfg.RPCServer.Port),
 		)
@@ -113,6 +116,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		logger,
 		cmAccountsCacheSize,
 		evmClient,
+		chainID,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create cm accounts service: %v", err)
@@ -222,12 +226,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	matrixMessenger, err := matrix.NewMessenger(cfg.Matrix, cfg.BotKey, logger)
-	if err != nil {
-		logger.Errorf("Failed to create matrix messenger: %v", err)
-		return nil, err
-	}
-
 	// get matrix hostname without schema
 	matrixHostname := cfg.Matrix.Host
 	if !strings.Contains(matrixHostname, "://") {
@@ -243,6 +241,12 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
 	botUserID := matrixPkg.UserIDFromAddress(botAddress, matrixHostname)
+
+	matrixMessenger, err := matrix.NewMessenger(logger, cfg.Matrix, cfg.BotKey, botUserID)
+	if err != nil {
+		logger.Errorf("Failed to create matrix messenger: %v", err)
+		return nil, err
+	}
 
 	messageProcessor := messaging.NewMessageProcessor(
 		matrixMessenger,
@@ -295,9 +299,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	scheduler := scheduler.New(logger, storage, clockwork.NewRealClock())
-	scheduler.RegisterJobHandler(cashInJobName, func() {
-		_ = chequeHandler.CashIn(context.Background())
-	})
 
 	return &App{
 		cfg:              cfg,
@@ -330,12 +331,13 @@ type App struct {
 
 func (a *App) Run(ctx context.Context) error {
 	defer func() {
-		if err := a.tracer.Shutdown(); err != nil {
+		// we use background context, because we want to try to shutdown tracer gracefully regardless
+		if err := a.tracer.Shutdown(context.Background()); err != nil {
 			a.logger.Errorf("failed to shutdown tracer: %v", err)
 		}
 	}()
 
-	g, gCtx := errgroup.WithContext(ctx) // error here will call gCtx.cancel() and finish other Go-s
+	g, ctx := errgroup.WithContext(ctx) // error here will call ctx.cancel() and finish other Go-s
 
 	// run
 
@@ -346,8 +348,8 @@ func (a *App) Run(ctx context.Context) error {
 
 	g.Go(func() error {
 		a.logger.Info("Starting start-up cash-in status check...")
-		if err := a.chequeHandler.CheckCashInStatus(gCtx); err != nil {
-			return fmt.Errorf("failed to check start-up cash-in status: %w", err)
+		if err := a.chequeHandler.CheckCashInStatus(ctx); err != nil {
+			return fmt.Errorf("failed to do start-up cash-in status check: %w", err)
 		}
 		a.logger.Info("Start-up cash-in status check done.")
 		close(cashInStatusCheckDone)
@@ -357,7 +359,7 @@ func (a *App) Run(ctx context.Context) error {
 	eventListenerStarted := make(chan struct{})
 	g.Go(func() error {
 		a.logger.Info("Starting event listener...")
-		if err := a.eventListener.Start(gCtx); err != nil {
+		if err := a.eventListener.Start(ctx); err != nil {
 			return fmt.Errorf("failed to start event listener: %w", err)
 		}
 		a.logger.Info("Event listener started.")
@@ -366,18 +368,25 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	g.Go(func() error {
-		if !awaitChan(gCtx, cashInStatusCheckDone) {
+		if !awaitChan(ctx, cashInStatusCheckDone) {
 			return nil
 		}
-
 		a.logger.Info("Starting scheduler...")
 
-		if err := a.scheduler.Schedule(gCtx, a.cfg.CashInPeriod, cashInJobName); err != nil {
+		a.scheduler.RegisterJobHandler(cashInJobName, func() {
+			if err := a.chequeHandler.CashIn(ctx); err != nil && !errors.Is(err, context.Canceled) {
+				a.logger.Errorf("Failed to do scheduled cash in: %v", err)
+				return
+			}
+		})
+
+		if err := a.scheduler.Schedule(ctx, a.cfg.CashInPeriod, cashInJobName); err != nil {
 			return fmt.Errorf("failed to schedule cash in job: %w", err)
 		}
-		if err := a.scheduler.Start(gCtx); err != nil {
+		if err := a.scheduler.Start(ctx); err != nil {
 			return fmt.Errorf("failed to start scheduler: %w", err)
 		}
+
 		a.logger.Info("Scheduler started.")
 		close(schedulerStarted)
 		return nil
@@ -385,13 +394,14 @@ func (a *App) Run(ctx context.Context) error {
 
 	g.Go(func() error {
 		a.logger.Info("Starting message processor...")
+		a.logger.Info("Message processor started.") // for consistency, start just runs for{} without any errors
 		close(messageProcessorStarted)
-		a.messageProcessor.Start(gCtx)
+		a.messageProcessor.Start(ctx)
 		return nil
 	})
 
 	g.Go(func() error {
-		if !awaitChans(gCtx,
+		if !awaitChans(ctx,
 			cashInStatusCheckDone,
 			schedulerStarted,
 			messageProcessorStarted,
@@ -399,26 +409,37 @@ func (a *App) Run(ctx context.Context) error {
 		) {
 			return nil
 		}
+
 		a.logger.Info("Starting message receiver...")
-		matrixUserID, err := a.messenger.StartReceiver()
-		if err != nil {
+
+		if err := a.messenger.StartReceiver(ctx); err != nil {
 			return fmt.Errorf("failed to start message receiver: %w", err)
 		}
-		if a.botUserID != matrixUserID {
-			return fmt.Errorf("bot user ID mismatch: expected %s, got %s", a.botUserID, matrixUserID)
-		}
+
+		a.logger.Info("Message receiver started.")
 		close(messengerReceiverStarted)
 		return nil
 	})
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		g.Go(func() error {
-			if !awaitChan(gCtx, messengerReceiverStarted) {
+			if !awaitChan(ctx, messengerReceiverStarted) {
 				return nil
 			}
 
 			a.logger.Info("Starting gRPC server...")
-			return a.rpcServer.Start()
+			errChan, err := a.rpcServer.Start()
+			if err != nil {
+				return fmt.Errorf("failed to start gRPC server: %w", err)
+			}
+
+			a.logger.Info("gRPC server started.")
+
+			if err := <-errChan; err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, grpc.ErrServerStopped) {
+				a.logger.Errorf("gRPC server stopped with error: %v", err)
+				return err
+			}
+			return nil
 		})
 	}
 
@@ -426,37 +447,51 @@ func (a *App) Run(ctx context.Context) error {
 
 	if a.rpcClient != nil { // rpcClient will be nil, if its disabled in partner plugin config section
 		g.Go(func() error {
-			<-gCtx.Done()
+			<-ctx.Done()
 			a.logger.Info("Stopping gRPC client...")
-			return a.rpcClient.Shutdown()
+			if err := a.rpcClient.Shutdown(); err != nil && !errors.Is(err, context.Canceled) {
+				a.logger.Errorf("Failed to stop gRPC client: %v", err)
+				return err
+			}
+			a.logger.Info("gRPC client stopped.")
+			return nil
 		})
 	}
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		g.Go(func() error {
-			<-gCtx.Done()
+			<-ctx.Done()
 			a.logger.Info("Stopping gRPC server...")
 			a.rpcServer.Stop()
+			a.logger.Info("gRPC server stopped.")
 			return nil
 		})
 	}
 
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		a.logger.Info("Stopping message receiver...")
-		return a.messenger.StopReceiver()
+		if err := a.messenger.StopReceiver(); err != nil && !errors.Is(err, context.Canceled) {
+			a.logger.Errorf("Failed to stop message receiver: %v", err)
+			return err
+		}
+		a.logger.Info("Message receiver stopped.")
+		return nil
 	})
 
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		a.logger.Info("Stopping scheduler...")
-		return a.scheduler.Stop()
+		a.scheduler.Stop()
+		a.logger.Info("Scheduler stopped.")
+		return nil
 	})
 
 	g.Go(func() error {
-		<-gCtx.Done()
+		<-ctx.Done()
 		a.logger.Info("Stopping event listener...")
 		a.eventListener.Stop()
+		a.logger.Info("Event listener stopped.")
 		return nil
 	})
 
@@ -464,7 +499,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	err := g.Wait()
 	if err != nil {
-		a.logger.Error(err) // will log first run/stop error
+		a.logger.Errorf("App stopped with error: %v", err) // will log first run/stop error
 	}
 
 	return err

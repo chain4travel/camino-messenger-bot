@@ -5,6 +5,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
@@ -37,7 +38,7 @@ var (
 )
 
 type Server interface {
-	Start() error
+	Start() (chan error, error)
 	Stop()
 }
 
@@ -112,12 +113,26 @@ func (*server) checkpoint() string {
 	return "request-gateway"
 }
 
-func (s *server) Start() error {
+func (s *server) Start() (chan error, error) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.cfg.Port))
 	if err != nil {
-		return fmt.Errorf("failed to listen: %w", err)
+		return nil, fmt.Errorf("failed to listen: %w", err)
 	}
-	return s.grpcServer.Serve(lis)
+
+	errChan := make(chan error)
+
+	go func() {
+		defer close(errChan)
+
+		s.logger.Infof("gRPC server listening on %s", lis.Addr().String())
+
+		if err := s.grpcServer.Serve(lis); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, grpc.ErrServerStopped) {
+			s.logger.Errorf("gRPC server stopped serving with error: %w", err)
+			errChan <- err
+		}
+	}()
+
+	return errChan, nil
 }
 
 func (s *server) Stop() {

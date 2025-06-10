@@ -121,7 +121,10 @@ func (l *eventListener) Start(ctx context.Context) error {
 }
 
 func (l *eventListener) Stop() {
-	l.unsubscribeTokenBought()
-	l.stopTokenBoughtTimer()
-	l.unsubscribeCancellation()
+	if l.unsubscribeTokenBought != nil { // if eventListener started token bought subscriptions correctly
+		l.unsubscribeTokenBought()
+	}
+	if l.unsubscribeCancellation != nil { // if eventListener started cancellation subscriptions correctly
+		l.unsubscribeCancellation()
+	}
 }
