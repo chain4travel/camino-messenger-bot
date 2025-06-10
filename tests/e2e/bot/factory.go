@@ -196,6 +196,11 @@ func (f *Factory) CreateBot(
 		return nil, nil, fmt.Errorf("failed to write bot config file: %w", err)
 	}
 
+	rpcClientConnectionString := ""
+	if config.RPCServer.Enabled {
+		rpcClientConnectionString = fmt.Sprintf("localhost:%d", config.RPCServer.Port) // rpc client connection string
+	}
+
 	// Start bot
 
 	bot := newBot(
@@ -204,7 +209,7 @@ func (f *Factory) CreateBot(
 		f.binPath,
 		configPath,
 		path.Join(botDir, "bot.log"), // log file path
-		fmt.Sprintf("localhost:%d", config.RPCServer.Port), // rpc client connection string
+		rpcClientConnectionString,
 	)
 	f.bots = append(f.bots, bot)
 
