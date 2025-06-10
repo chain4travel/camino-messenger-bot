@@ -120,21 +120,24 @@ func (*messageProcessor) checkpoint() string {
 }
 
 func (p *messageProcessor) Start(ctx context.Context) {
-	for {
-		select {
-		case msgEvent := <-p.messenger.Inbound():
-			p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
-			go func() {
-				if err := p.ProcessIncomingMessage(&msgEvent); err != nil {
-					p.logger.Warnf("could not process message: %v", err)
-				}
-			}()
-		case <-ctx.Done():
-			p.logger.Info("Stopping processor...")
-			p.logger.Info("Processor stopped") // for consistency
-			return
+	go func() {
+		for {
+			select {
+			case msgEvent := <-p.messenger.Inbound():
+				p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
+				go func() {
+					if err := p.ProcessIncomingMessage(&msgEvent); err != nil {
+						p.logger.Warnf("could not process message: %v", err)
+					}
+				}()
+			case <-ctx.Done():
+				// for consistency with how other components log their shutdown
+				p.logger.Info("Stopping processor...")
+				p.logger.Info("Processor stopped")
+				return
+			}
 		}
-	}
+	}()
 }
 
 func (p *messageProcessor) ProcessIncomingMessage(msg *types.Message) error {

@@ -394,9 +394,9 @@ func (a *App) Run(ctx context.Context) error {
 
 	g.Go(func() error {
 		a.logger.Info("Starting message processor...")
-		a.logger.Info("Message processor started.") // for consistency, start just runs for{} without any errors
-		close(messageProcessorStarted)
 		a.messageProcessor.Start(ctx)
+		a.logger.Info("Message processor started.")
+		close(messageProcessorStarted)
 		return nil
 	})
 
