@@ -5,7 +5,7 @@ go 1.23.9
 require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20250307104026-ffe2c3741a33.2
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.6-20250307104026-ffe2c3741a33.1
-	github.com/chain4travel/camino-matrix-app-service v0.0.0-20250509135317-e3e4c1c770d2
+	github.com/chain4travel/camino-matrix-app-service v1.0.0-rc0
 	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20250312145536-83b47978c692
 	github.com/chain4travel/caminogoeth-compat v1.1.0-rc1
 	github.com/ethereum/go-ethereum v1.14.12
