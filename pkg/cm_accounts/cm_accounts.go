@@ -119,15 +119,15 @@ func NewService(
 	cacheSize int,
 	ethClient *ethclient.Client,
 ) (Service, error) {
-	cache, err := lru.New[common.Address, *cmaccount.Cmaccount](cacheSize)
-	if err != nil {
-		return nil, err
-	}
-
 	chainID, err := ethClient.ChainID(ctx)
 	if err != nil {
 		logger.Errorf("Failed to get chain ID: %v", err)
 		return nil, fmt.Errorf("failed to get chain ID: %w", err)
+	}
+
+	cache, err := lru.New[common.Address, *cmaccount.Cmaccount](cacheSize)
+	if err != nil {
+		return nil, err
 	}
 
 	return &service{
