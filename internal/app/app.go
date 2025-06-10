@@ -412,12 +412,18 @@ func (a *App) Run(ctx context.Context) error {
 
 		a.logger.Info("Starting message receiver...")
 
-		if err := a.messenger.StartReceiver(ctx); err != nil {
+		errChan, err := a.messenger.StartReceiver(ctx)
+		if err != nil {
 			return fmt.Errorf("failed to start message receiver: %w", err)
 		}
 
 		a.logger.Info("Message receiver started.")
 		close(messengerReceiverStarted)
+
+		if err := <-errChan; err != nil && !errors.Is(err, context.Canceled) {
+			a.logger.Errorf("Message receiver exited with error: %v", err)
+			return err
+		}
 		return nil
 	})
 

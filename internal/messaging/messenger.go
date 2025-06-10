@@ -16,7 +16,7 @@ type APIMessageResponse struct {
 }
 type Messenger interface {
 	// start receiving messages.
-	StartReceiver(context.Context) error
+	StartReceiver(ctx context.Context) (chan error, error)
 
 	// stop receiving messages
 	StopReceiver() error
