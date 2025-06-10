@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"strconv"
 	"sync"
@@ -19,17 +18,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
-	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
-	e2eGenerated "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot/generated"
 	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
 
@@ -158,7 +152,7 @@ func (f *Factory) CreateBot(
 
 	botDir := path.Join(f.dir, strconv.Itoa(len(f.bots)))
 
-	config := config.UnparsedConfig{
+	config := &config.UnparsedConfig{
 		DeveloperMode:                       true,
 		E2ETestMode:                         true,
 		BotKey:                              hex.EncodeToString(crypto.FromECDSA(botKey)),
@@ -202,66 +196,22 @@ func (f *Factory) CreateBot(
 		return nil, nil, fmt.Errorf("failed to write bot config file: %w", err)
 	}
 
-	// Prepare grpc client for bot
-
-	clientConnection, err := grpc.NewClient(
-		fmt.Sprintf("localhost:%d", config.RPCServer.Port),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create grpc client: %w", err)
-	}
-
 	// Start bot
 
-	cmd := exec.Command(f.binPath, "--config", configPath) //nolint:gosec // this is a cmb binary, not some injection.
-
-	logFile, err := os.OpenFile(path.Join(botDir, "bot.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to open bot log file: %w", err)
-	}
-	cmd.Stdout = logFile
-	cmd.Stderr = logFile
-
-	if err := cmd.Start(); err != nil {
-		return nil, nil, fmt.Errorf("failed to start bot (%d): %w", cmd.Process.Pid, err)
-	}
-
-	bot := &Bot{
-		logger: f.logger,
-		pid:    cmd.Process.Pid,
-		rpcClient: &rpcClient{
-			ReadinessServiceClient: readiness.NewReadinessServiceClient(clientConnection),
-			Client:                 e2eGenerated.NewClient(clientConnection),
-		},
-		cmAccountAddress: cmAccountAddress,
-		logFile:          logFile,
-	}
-
-	// Await bot readiness
-
-	if config.RPCServer.Enabled {
-		if err := bot.awaitReady(ctx); err != nil {
-			return bot, nil, fmt.Errorf("failed to await bot readiness: %w", err)
-		}
-	} else {
-		f.logger.Debugf("bot (pid %d) started without RPC server: no readiness check", cmd.Process.Pid)
-	}
-
-	f.logger.Debugf("bot (pid %d) started", cmd.Process.Pid)
-
+	bot := newBot(
+		f.logger,
+		cmAccountAddress,
+		f.binPath,
+		configPath,
+		path.Join(botDir, "bot.log"), // log file path
+		fmt.Sprintf("localhost:%d", config.RPCServer.Port), // rpc client connection string
+	)
 	f.bots = append(f.bots, bot)
 
-	// Await bot process error async
-
-	errChan := make(chan error)
-	go func() {
-		err := <-process.ListenForProcessError(cmd)
-		if err != nil {
-			errChan <- fmt.Errorf("bot (pid %d) failed: %w", bot.pid, err)
-		}
-		close(errChan)
-	}()
+	errChan, err := bot.Start(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to start bot: %w", err)
+	}
 
 	return bot, errChan, nil
 }

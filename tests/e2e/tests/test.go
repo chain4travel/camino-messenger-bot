@@ -45,6 +45,18 @@ func (tt *Test) createBot(
 	return bot
 }
 
+func (tt *Test) restartBot( //nolint:unused
+	ctx context.Context,
+	t *testing.T,
+	bot *bot.Bot,
+) *bot.Bot {
+	t.Helper()
+	errChan, err := bot.Restart(ctx)
+	require.NoError(t, err)
+	expectNoErrorAsync(t, errChan)
+	return bot
+}
+
 func (tt *Test) createPartnerPlugin(
 	ctx context.Context,
 	t *testing.T,

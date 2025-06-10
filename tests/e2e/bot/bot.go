@@ -7,9 +7,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/server"
@@ -21,27 +24,144 @@ import (
 
 const requestTickerInterval = 500 * time.Millisecond
 
+func newBot(
+	logger *zap.SugaredLogger,
+	cmAccountAddress common.Address,
+	binPath string,
+	configPath string,
+	logPath string,
+	rpcConnectionString string,
+) *Bot {
+	return &Bot{
+		logger:              logger,
+		cmAccountAddress:    cmAccountAddress,
+		binPath:             binPath,
+		configPath:          configPath,
+		logPath:             logPath,
+		rpcConnectionString: rpcConnectionString,
+	}
+}
+
 type Bot struct {
-	logger           *zap.SugaredLogger
-	pid              int
-	cmAccountAddress common.Address
-	logFile          *os.File
+	logger              *zap.SugaredLogger
+	pid                 int
+	cmAccountAddress    common.Address
+	logFile             *os.File
+	binPath             string
+	configPath          string
+	logPath             string
+	rpcConnectionString string
 
 	*rpcClient
+}
+
+func (b *Bot) Start(ctx context.Context) (chan error, error) {
+	// Prepare log file for bot
+
+	logFile, err := os.OpenFile(b.logPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open bot log file: %w", err)
+	}
+	b.logFile = logFile
+
+	// Prepare cmd and start bot process
+
+	cmd := exec.Command(b.binPath, "--config", b.configPath) //nolint:gosec // this is a cmb binary, not some injection.
+	cmd.Stdout = b.logFile
+	cmd.Stderr = b.logFile
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start bot (%d): %w", cmd.Process.Pid, err)
+	}
+
+	b.pid = cmd.Process.Pid
+
+	// Prepare RPC client
+
+	if b.rpcConnectionString != "" {
+		rpcClientConnection, err := grpc.NewClient(b.rpcConnectionString, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create grpc client: %w", err)
+		}
+		b.rpcClient = &rpcClient{
+			connection:             rpcClientConnection,
+			ReadinessServiceClient: readiness.NewReadinessServiceClient(rpcClientConnection),
+			Client:                 generated.NewClient(rpcClientConnection),
+		}
+	}
+
+	// Await bot readiness if RPC client is set
+
+	if b.rpcClient != nil {
+		if err := b.awaitReady(ctx); err != nil {
+			return nil, fmt.Errorf("failed to await bot readiness (pid %d): %w", b.pid, err)
+		}
+	} else {
+		b.logger.Debugf("bot (pid %d) started without RPC server: no readiness check", cmd.Process.Pid)
+	}
+
+	// Await bot process error async
+
+	errChan := make(chan error)
+	go func() {
+		defer close(errChan)
+		err := <-process.ListenForProcessError(cmd)
+		if err != nil {
+			errChan <- fmt.Errorf("bot (pid %d) failed: %w", b.pid, err)
+		}
+	}()
+
+	// Successfully started bot
+
+	b.logger.Debugf("bot (pid %d) started", cmd.Process.Pid)
+	return errChan, nil
 }
 
 func (b *Bot) Stop(ctx context.Context) error {
 	if b == nil {
 		return nil
 	}
+
+	oldPID := b.pid
 	if err := process.StopProcess(ctx, b.pid); err != nil {
 		return fmt.Errorf("failed to stop cmb process with pid %d: %w", b.pid, err)
 	}
-	b.logger.Debugf("Bot (pid %d) stopped", b.pid)
-	if err := b.logFile.Close(); err != nil {
-		return fmt.Errorf("failed to close cmb logFile: %w", err)
+	b.pid = 0
+	b.logger.Debugf("Bot (pid %d) stopped", oldPID)
+
+	if b.logFile != nil {
+		if err := b.logFile.Close(); err != nil {
+			return fmt.Errorf("failed to close cmb logFile: %w", err)
+		}
+		b.logFile = nil
 	}
+
+	if b.rpcClient != nil {
+		if err := b.rpcClient.close(); err != nil {
+			return fmt.Errorf("failed to close rpc client: %w", err)
+		}
+		b.rpcClient = nil
+	}
+
 	return nil
+}
+
+func (b *Bot) Restart(ctx context.Context) (chan error, error) {
+	b.logger.Debugf("Restarting bot (pid %d)", b.pid)
+
+	oldPID := b.pid
+
+	if err := b.Stop(ctx); err != nil {
+		return nil, fmt.Errorf("failed to stop bot (pid %d): %w", b.pid, err)
+	}
+
+	errChan, err := b.Start(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start bot (old pid %d, new pid %d): %w", oldPID, b.pid, err)
+	}
+
+	b.logger.Debugf("Bot (old pid %d, new pid %d) restarted", oldPID, b.pid)
+	return errChan, nil
 }
 
 func (b *Bot) CMAccountAddress() common.Address {
@@ -67,6 +187,12 @@ func (b *Bot) awaitReady(ctx context.Context) error {
 }
 
 type rpcClient struct {
+	connection *grpc.ClientConn
+
 	readiness.ReadinessServiceClient
 	*generated.Client
+}
+
+func (c *rpcClient) close() error {
+	return c.connection.Close()
 }
