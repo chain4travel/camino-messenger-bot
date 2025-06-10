@@ -131,6 +131,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 			}()
 		case <-ctx.Done():
 			p.logger.Info("Stopping processor...")
+			p.logger.Info("Processor stopped") // for consistency
 			return
 		}
 	}
