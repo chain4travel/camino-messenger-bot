@@ -501,6 +501,8 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
+	// Message processor is stopped by canceling context, so we don't need to explicitly stop it.
+
 	// wait
 
 	err := g.Wait()
