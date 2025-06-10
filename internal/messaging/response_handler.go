@@ -32,6 +32,12 @@ type tokenBuyableUntil struct {
 
 var _ ResponseHandler = (*evmResponseHandler)(nil)
 
+// TODO@ move this to processor?
+// TODO@ two reason its there:
+// TODO@ 1) to make processor not depend on protobuf types (but package depends regardless)
+// TODO@ 2) to abstract all message-specific logic into response handler. But I'm not sure if it worth it.
+// TODO@ ! it actually looks like middleware that adds logic for specific message types? only its called not before or after, but in the middle of processing
+// TODO@ will it only handle booking?
 type ResponseHandler interface {
 	// Processes incoming response
 	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)

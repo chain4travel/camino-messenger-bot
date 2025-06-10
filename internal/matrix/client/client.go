@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	// TODO@ according to comment, this must be re-investigated! also, we no longer use matrix encryption
 	// MaxChunkSize a moderate/safe max chunk size is 48KB. This is because the maximum size of a matrix event is 64KB.
 	// Megolm encryption adds an extra 33% overhead to the encrypted content due to base64 encryption. This means that
 	// the maximum size of pre-encrypted chunk should be 48KB / 1.33 ~= 36KB. We round down to 35KB to be safe.

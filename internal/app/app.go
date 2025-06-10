@@ -44,6 +44,8 @@ import (
 	scheduler_storage "github.com/chain4travel/camino-messenger-bot/v12/pkg/scheduler/storage/sqlite"
 )
 
+// TODO@ notify cancellation after on-chain cancellation
+
 const (
 	cashInJobName        = "cash_in"
 	appName              = "camino-messenger-bot"
