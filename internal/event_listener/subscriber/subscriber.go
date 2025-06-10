@@ -122,9 +122,7 @@ func (s *subscriber) SubscribeServiceAdded(
 func (s *subscriber) SubscribeTokenBought(
 	handler func(*bookingtoken.BookingtokenTokenBought) uint64,
 ) (unsubscribe func()) {
-	return startResubscriber(
-		s,
-		handler,
+	return startResubscriber(s, handler,
 		func(ctx context.Context, eventChan chan *bookingtoken.BookingtokenTokenBought) (event.Subscription, error) {
 			blockNumber := s.blockNumber.Load()
 			return s.bookingToken.WatchTokenBought(&bind.WatchOpts{Context: ctx, Start: &blockNumber}, eventChan, nil, nil)
@@ -135,9 +133,7 @@ func (s *subscriber) SubscribeTokenBought(
 func (s *subscriber) SubscribeCancellationPending(
 	handler func(*bookingtoken.BookingtokenCancellationPending) uint64,
 ) (unsubscribe func()) {
-	return startResubscriber(
-		s,
-		handler,
+	return startResubscriber(s, handler,
 		func(ctx context.Context, eventChan chan *bookingtoken.BookingtokenCancellationPending) (event.Subscription, error) {
 			blockNumber := s.blockNumber.Load()
 			return s.bookingToken.WatchCancellationPending(&bind.WatchOpts{Context: ctx, Start: &blockNumber}, eventChan, nil, nil, nil)
@@ -148,9 +144,7 @@ func (s *subscriber) SubscribeCancellationPending(
 func (s *subscriber) SubscribeCancellationFinalized(
 	handler func(*bookingtoken.BookingtokenCancellationFinalized) uint64,
 ) (unsubscribe func()) {
-	return startResubscriber(
-		s,
-		handler,
+	return startResubscriber(s, handler,
 		func(ctx context.Context, eventChan chan *bookingtoken.BookingtokenCancellationFinalized) (event.Subscription, error) {
 			blockNumber := s.blockNumber.Load()
 			return s.bookingToken.WatchCancellationFinalized(&bind.WatchOpts{Context: ctx, Start: &blockNumber}, eventChan, nil)
@@ -161,9 +155,7 @@ func (s *subscriber) SubscribeCancellationFinalized(
 func (s *subscriber) SubscribeCancellationWithdrawn(
 	handler func(*bookingtoken.BookingtokenCancellationWithdrawn) uint64,
 ) (unsubscribe func()) {
-	return startResubscriber(
-		s,
-		handler,
+	return startResubscriber(s, handler,
 		func(ctx context.Context, eventChan chan *bookingtoken.BookingtokenCancellationWithdrawn) (event.Subscription, error) {
 			blockNumber := s.blockNumber.Load()
 			return s.bookingToken.WatchCancellationWithdrawn(&bind.WatchOpts{Context: ctx, Start: &blockNumber}, eventChan, nil)
@@ -174,9 +166,7 @@ func (s *subscriber) SubscribeCancellationWithdrawn(
 func (s *subscriber) SubscribeCancellationRejected(
 	handler func(*bookingtoken.BookingtokenCancellationRejected) uint64,
 ) (unsubscribe func()) {
-	return startResubscriber(
-		s,
-		handler,
+	return startResubscriber(s, handler,
 		func(ctx context.Context, eventChan chan *bookingtoken.BookingtokenCancellationRejected) (event.Subscription, error) {
 			blockNumber := s.blockNumber.Load()
 			return s.bookingToken.WatchCancellationRejected(&bind.WatchOpts{Context: ctx, Start: &blockNumber}, eventChan, nil)

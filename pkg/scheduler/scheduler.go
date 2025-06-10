@@ -100,16 +100,13 @@ func (s *scheduler) Start(ctx context.Context) error {
 		period := job.Period
 
 		now := s.clock.Now()
-		durationUntilFirstExecution := job.LastExecutedAt.Add(job.Period).Sub(now)
-		if durationUntilFirstExecution < 0 {
-			durationUntilFirstExecution = 0
-		}
+		durationUntilFirstExecution := max(job.LastExecutedAt.Add(job.Period).Sub(now), 0)
 
 		handler := func(tickTime time.Time) {
 			// TODO @evlekht panic handling?
 			if err := s.updateJobExecutionTime(ctx, jobName, tickTime); err != nil {
 				s.logger.Errorf("failed to update job execution time: %v", err)
-				return // TODO @evlekht handle error, maybe retry ?
+				return
 			}
 			jobHandler()
 		}

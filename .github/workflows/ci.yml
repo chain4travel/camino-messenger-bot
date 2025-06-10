@@ -76,7 +76,7 @@ jobs:
         with:
           go-version: ${{ env.go_version }}
       - name: Install libolm
-        run: sudo apt update && sudo apt install -y libolm-dev
+        run: sudo apt update && sudo apt-get install -y libolm-dev
       - name: Go Mod Tidy
         shell: bash
         run: go mod tidy

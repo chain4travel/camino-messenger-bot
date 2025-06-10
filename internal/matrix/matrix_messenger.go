@@ -90,6 +90,8 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
 
 	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
+		m.logger.Debugf("Received %s event %s from %s in room %s", matrix.EventTypeC4TMessage.Type, evt.ID, evt.Sender, evt.RoomID)
+
 		if evt.Sender == m.client.UserID { // ignore own messages
 			return
 		}
@@ -121,6 +123,8 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 		}
 	})
 	syncer.OnEventType(event.StateMember, func(ctx context.Context, evt *event.Event) {
+		m.logger.Debugf("Received %s event %s from %s in room %s", event.StateMember.Type, evt.ID, evt.Sender, evt.RoomID)
+
 		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
 			_, err := m.client.JoinRoomByID(ctx, evt.RoomID)
 			if err == nil {
@@ -135,7 +139,7 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 		}
 	})
 
-	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.dbPath) // TODO refactor
+	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.dbPath) // TODO @nikos refactor
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +216,7 @@ func (m *messenger) SendAsync(ctx context.Context, msg *types.Message, sendTo id
 }
 
 func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []matrix.CaminoMatrixMessage) error {
-	// TODO add retry logic?
+	// TODO @nikos add retry logic?
 	for _, msg := range messages {
 		_, err := m.client.SendMessageEvent(ctx, roomID, eventType, msg)
 		if err != nil {
@@ -245,7 +249,7 @@ func SignPublicKey(key *ecdsa.PrivateKey) (signature string, message string, err
 }
 
 func sign(msg []byte, key *ecdsa.PrivateKey) ([]byte, error) {
-	// TODO: Why don't we use crypto.keccak256 both on ASB and here?
+	// TODO @evlekht use crypto.keccak256 in conduit, here and in asb
 	hash256 := sha256.Sum256(msg)
 
 	signature, err := crypto.Sign(hash256[:], key)

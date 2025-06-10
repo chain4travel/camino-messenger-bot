@@ -28,7 +28,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
@@ -67,7 +66,7 @@ func NewServer(
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
 
-	server := &server{
+	s := &server{
 		cfg:                   cfg,
 		logger:                logger,
 		responseHeaderHandler: responseHeaderHandler,
@@ -78,23 +77,23 @@ func NewServer(
 
 	opts = append(opts, grpc.UnaryInterceptor(
 		selector.UnaryServerInterceptor( // for all cancellationv1grpc methods
-			server.ErrorHandlingInterceptor,
+			s.errorHandlingInterceptor,
 			selector.MatchFunc(func(_ context.Context, callMeta interceptors.CallMeta) bool {
 				return cancellationv1grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
 			}),
 		),
 	))
 
-	server.grpcServer = grpc.NewServer(opts...)
-	generated.RegisterServerServices(server.grpcServer, server)
-	cancellationv1grpc.RegisterCancellationServiceServer(server.grpcServer, cancellationV1Service)
-	readiness.RegisterReadinessServiceServer(server.grpcServer, server)
+	s.grpcServer = grpc.NewServer(opts...)
+	generated.RegisterServerServices(s.grpcServer, s)
+	cancellationv1grpc.RegisterCancellationServiceServer(s.grpcServer, cancellationV1Service)
+	readiness.RegisterReadinessServiceServer(s.grpcServer, s)
 
 	// Register reflection service on gRPC server in developerMode.
 	if developerMode {
-		reflection.Register(server.grpcServer)
+		reflection.Register(s.grpcServer)
 	}
-	return server, nil
+	return s, nil
 }
 
 type server struct {
@@ -157,7 +156,7 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 	}
 	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))
 
-	// TODO set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
+	// TODO @nikos set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 	return response.Content, grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
 }
 
@@ -170,13 +169,7 @@ func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadat
 	return md, err
 }
 
-const StatusReady = "ready"
-
-func (s *server) Readiness(context.Context, *emptypb.Empty) (*readiness.ReadinessResponse, error) {
-	return &readiness.ReadinessResponse{Status: StatusReady}, nil
-}
-
-func (s *server) ErrorHandlingInterceptor(
+func (s *server) errorHandlingInterceptor(
 	ctx context.Context,
 	request any,
 	_ *grpc.UnaryServerInfo,

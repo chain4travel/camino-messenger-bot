@@ -21,15 +21,15 @@ import (
 func testPingV1Setup(ctx context.Context, t *testing.T, tt *Test) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
 	// Register all the services needed for the tests
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
-	supplierPartnerPlugin := tt.CreatePartnerPlugin(ctx, t)
+	supplierPartnerPlugin := tt.createPartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot := tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
+	supplierBot := tt.createBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.PingServiceV1, Fee: 100},
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot := tt.CreateBot(ctx, t, true, nil, nil)
+	distributorBot := tt.createBot(ctx, t, true, nil, nil)
 
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }

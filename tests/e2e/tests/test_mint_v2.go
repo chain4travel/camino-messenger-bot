@@ -35,17 +35,17 @@ func testMintV2Setup(
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV2,
 	))
-	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot = tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
+	supplierBot = tt.createBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
 		{Name: botGenerated.ValidationServiceV2, Fee: 130},
 		{Name: botGenerated.MintServiceV2, Fee: 140},
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
+	distributorBot = tt.createBot(ctx, t, true, nil, nil)
 
 	// bot without partnerPlugin and with rpc server (distributor) but with the
 	// catch, that the bot account does not have funds to pay for the fees when

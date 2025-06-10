@@ -122,10 +122,10 @@ func (p *messageProcessor) Start(ctx context.Context) {
 	go func() {
 		for {
 			select {
-			case msgEvent := <-p.messenger.Inbound():
-				p.logger.Debug("Processing msg event of type: ", msgEvent.Type)
+			case msg := <-p.messenger.Inbound():
 				go func() {
-					if err := p.ProcessIncomingMessage(&msgEvent); err != nil {
+					p.logger.Debugf("Processing incoming message (%s): %s", msg.Type, msg.Metadata.RequestID)
+					if err := p.ProcessIncomingMessage(&msg); err != nil {
 						p.logger.Warnf("could not process message: %v", err)
 					}
 				}()

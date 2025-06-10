@@ -45,10 +45,10 @@ func testCancellationV1Setup(
 		botGenerated.MintServiceV3,
 		botGenerated.CheckCancellationServiceV1,
 	))
-	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot = tt.CreateBot(ctx, t, true, supplierPartnerPlugin, []bot.CMService{
+	supplierBot = tt.createBot(ctx, t, true, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.AccommodationProductListServiceV3, Fee: 100},
 		{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
 		{Name: botGenerated.ValidationServiceV2, Fee: 130},
@@ -56,9 +56,9 @@ func testCancellationV1Setup(
 		{Name: botGenerated.CheckCancellationServiceV1, Fee: 150},
 	})
 
-	distributorPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	distributorPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 	// bot with partnerPlugin and with rpc server (distributor)
-	distributorBot = tt.CreateBot(ctx, t, true, distributorPartnerPlugin, nil)
+	distributorBot = tt.createBot(ctx, t, true, distributorPartnerPlugin, nil)
 
 	return supplierPartnerPlugin, supplierBot, distributorPartnerPlugin, distributorBot
 }

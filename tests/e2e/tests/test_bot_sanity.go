@@ -31,7 +31,7 @@ type botSanityServices struct {
 
 func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *Test) (services *botSanityServices) {
 	services = &botSanityServices{}
-	services.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	services.supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 	var errChan chan error
 	var err error
 
@@ -120,7 +120,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	services.distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
+	services.distributorBot = tt.createBot(ctx, t, true, nil, nil)
 
 	return services
 }

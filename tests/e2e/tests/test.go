@@ -31,7 +31,7 @@ type Test struct {
 	resourceManagerSession *resources.Session
 }
 
-func (tt *Test) CreateBot(
+func (tt *Test) createBot(
 	ctx context.Context,
 	t *testing.T,
 	enableRPCServer bool,
@@ -45,7 +45,7 @@ func (tt *Test) CreateBot(
 	return bot
 }
 
-func (tt *Test) CreatePartnerPlugin(
+func (tt *Test) createPartnerPlugin(
 	ctx context.Context,
 	t *testing.T,
 ) *partnerplugin.PartnerPlugin {

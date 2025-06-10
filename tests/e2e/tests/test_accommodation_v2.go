@@ -44,10 +44,10 @@ func testAccommodationV2Setup(
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV2,
 	))
-	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot = tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
+	supplierBot = tt.createBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.AccommodationProductListServiceV2, Fee: 100},
 		{Name: botGenerated.AccommodationProductInfoServiceV2, Fee: 110},
 		{Name: botGenerated.AccommodationSearchServiceV2, Fee: 120},
@@ -56,7 +56,7 @@ func testAccommodationV2Setup(
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
+	distributorBot = tt.createBot(ctx, t, true, nil, nil)
 
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
