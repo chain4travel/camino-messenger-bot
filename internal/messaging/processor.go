@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chain4travel/camino-matrix-app-service/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
@@ -41,8 +42,6 @@ var (
 	ErrBotNotInCMAccount            = errors.New("bot not in Cm Account")
 	ErrCheckingCmAccount            = errors.New("problem calling contract")
 	ErrBotMissingChequeOperatorRole = errors.New("bot missing permission")
-
-	networkFee = big.NewInt(300000000000000) // 0.00003 CAM
 )
 
 type MessageProcessor interface {
@@ -348,7 +347,7 @@ func (p *messageProcessor) compressMessage(ctx context.Context, msg *types.Messa
 
 func (p *messageProcessor) issueNetworkCheque(ctx context.Context, msg *types.Message) error {
 	numberOfChunks := big.NewInt(int64(len(msg.CompressedContent)))
-	totalNetworkFee := new(big.Int).Mul(networkFee, numberOfChunks)
+	totalNetworkFee := new(big.Int).Mul(config.NetworkFee, numberOfChunks)
 
 	networkFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,
