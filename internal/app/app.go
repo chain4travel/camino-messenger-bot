@@ -108,6 +108,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 			rpcClient,
 			cfg.ResponseTimeout,
 		)
+	} else {
+		logger.Info("Partner plugin is disabled in config, skipping partner plugin (gRPC client) initialization.")
 	}
 
 	// blockchain services
@@ -447,6 +449,8 @@ func (a *App) Run(ctx context.Context) error {
 			}
 			return nil
 		})
+	} else {
+		a.logger.Info("gRPC server is disabled in config, skipping gRPC server start.")
 	}
 
 	// stop

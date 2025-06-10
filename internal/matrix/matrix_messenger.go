@@ -186,9 +186,13 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 func (m *messenger) StopReceiver() error {
 	m.logger.Info("Stopping matrix syncer...")
 	if m.client.cancelSync != nil {
+		// if cancelSync is not nil, it means that the syncer is running
 		m.client.cancelSync()
+		// we only wait for the syncer to stop if it was running,
+		// otherwise no one will close syncerStopChan
+		// and the goroutine will block forever
+		<-m.client.syncerStopChan
 	}
-	<-m.client.syncerStopChan
 	if err := m.client.cryptoHelper.Close(); err != nil {
 		m.logger.Errorf("Failed to close crypto helper: %v", err)
 	}
