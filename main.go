@@ -4,13 +4,13 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/cmd"
 )
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		log.Fatalln(err)
+		os.Exit(1)
 	}
 }
