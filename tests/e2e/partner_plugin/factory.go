@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"sync"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -122,10 +123,21 @@ func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan
 
 func (f *Factory) StopPartnerPlugins(ctx context.Context) error {
 	var errs []error
+	errsMx := sync.Mutex{}
+	wg := sync.WaitGroup{}
+
 	for _, pp := range f.partnerPlugins {
-		if err := pp.Stop(ctx); err != nil {
-			errs = append(errs, fmt.Errorf("failed to stop partner plugin (%d): %w", pp.pid, err))
-		}
+		wg.Add(1)
+		go func(pp *PartnerPlugin) {
+			defer wg.Done()
+			if err := pp.Stop(ctx); err != nil {
+				errsMx.Lock()
+				errs = append(errs, fmt.Errorf("failed to stop partner plugin (%d): %w", pp.pid, err))
+				errsMx.Unlock()
+			}
+		}(pp)
 	}
+
+	wg.Wait()
 	return errors.Join(errs...)
 }

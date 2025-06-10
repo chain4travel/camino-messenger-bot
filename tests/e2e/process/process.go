@@ -15,7 +15,7 @@ import (
 
 const (
 	processTickerInterval = 50 * time.Millisecond
-	killTimeout           = 2 * time.Second
+	killTimeout           = 5 * time.Second
 )
 
 func ListenForProcessError(cmd *exec.Cmd) chan error {
@@ -78,8 +78,6 @@ func waitKillProcess(ctx context.Context, pid int) error {
 				}
 				return fmt.Errorf("failed to send SIGKILL to process with pid %d: %w", pid, err)
 			}
-			// The timeout is done - prevent it from triggering again
-			cancelKillTimeout()
 		case <-ticker.C:
 		}
 	}

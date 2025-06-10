@@ -171,10 +171,15 @@ func (s *Suite) NewTest(t *testing.T) *Test {
 }
 
 func (s *Suite) Cleanup(t *testing.T, tt *Test) {
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*10)
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
 	var wg sync.WaitGroup
+
+	// Components stopped without respecting the order, so they might stop with errors.
+	// That will be most likely reflected in their logs, but we don't care about that at this point.
+	// E.g. if network is stopped before bots, while bots have active event subscriptions,
+	// bots might log errors about failed subscriptions.
 
 	tt.logger.Debug("Stopping all services")
 	wg.Add(1)

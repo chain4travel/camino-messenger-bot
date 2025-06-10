@@ -6,6 +6,7 @@ package blockchain
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -329,13 +330,29 @@ func (n *Network) Stop(ctx context.Context) error {
 	if n == nil {
 		return nil
 	}
+
+	var errs []error
+	errsMx := sync.Mutex{}
+	wg := sync.WaitGroup{}
+
 	for _, node := range n.nodes {
-		if err := node.Stop(ctx); err != nil {
-			return fmt.Errorf("failed to stop node: %w", err)
-		}
+		wg.Add(1)
+		go func(node *Node) {
+			defer wg.Done()
+			if err := node.Stop(ctx); err != nil {
+				errsMx.Lock()
+				errs = append(errs, fmt.Errorf("failed to stop node: %w", err))
+				errsMx.Unlock()
+			}
+		}(node)
 	}
-	n.logger.Debug("Blockchain network stopped")
-	return nil
+
+	wg.Wait()
+
+	if len(errs) == 0 {
+		n.logger.Debug("Blockchain network stopped successfully")
+	}
+	return errors.Join(errs...)
 }
 
 func combineErrChannels(errChans ...chan error) chan error {

@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path"
 	"strconv"
+	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -267,16 +268,21 @@ func (f *Factory) CreateBot(
 
 func (f *Factory) StopBots(ctx context.Context) error {
 	var errs []error
+	errsMx := sync.Mutex{}
+	wg := sync.WaitGroup{}
 
 	for _, bot := range f.bots {
-		if err := bot.Stop(ctx); err != nil {
-			errs = append(errs, fmt.Errorf("failed to stop bot (%d): %w", bot.pid, err))
-		}
+		wg.Add(1)
+		go func(bot *Bot) {
+			defer wg.Done()
+			if err := bot.Stop(ctx); err != nil {
+				errsMx.Lock()
+				errs = append(errs, fmt.Errorf("failed to stop bot (%d): %w", bot.pid, err))
+				errsMx.Unlock()
+			}
+		}(bot)
 	}
 
-	if len(errs) > 0 {
-		return errors.Join(errs...)
-	}
-
-	return nil
+	wg.Wait()
+	return errors.Join(errs...)
 }
