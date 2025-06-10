@@ -353,7 +353,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 		wg.Add(1)
 		go func(txID common.Hash) {
 			defer wg.Done()
-			_ = ch.checkCashInStatus(ctx, txID)
+			_ = ch.checkCashInTxStatus(ctx, txID)
 		}(chequeRecord.TxID)
 	}
 
@@ -381,7 +381,7 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 	for _, chequeRecord := range chequeRecords {
 		txID := chequeRecord.TxID
 		g.Go(func() (err error) {
-			return ch.checkCashInStatus(ctx, txID)
+			return ch.checkCashInTxStatus(ctx, txID)
 		})
 	}
 
@@ -392,7 +392,7 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 	return err
 }
 
-func (ch *evmChequeHandler) checkCashInStatus(ctx context.Context, txID common.Hash) error {
+func (ch *evmChequeHandler) checkCashInTxStatus(ctx context.Context, txID common.Hash) error {
 	// TODO @evlekht timeout? what to do if timeouted?
 	res, err := ch.waitMined(ctx, txID)
 	if err != nil {
