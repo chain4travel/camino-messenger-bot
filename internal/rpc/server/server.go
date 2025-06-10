@@ -168,12 +168,12 @@ func (s *server) ErrorHandlingInterceptor(
 	handler grpc.UnaryHandler,
 ) (response any, err error) {
 	response, err = handler(ctx, request)
-	if err != nil && response != nil {
-		protoMessage, ok := response.(protoreflect.ProtoMessage)
+	if err != nil {
+		responseProtoMessage, ok := response.(protoreflect.ProtoMessage)
 		if !ok {
 			return response, err
 		}
-		s.responseHeaderHandler.AddError(protoMessage, err.Error())
+		s.responseHeaderHandler.AddError(responseProtoMessage, err.Error())
 	}
-	return response, err
+	return response, nil
 }
