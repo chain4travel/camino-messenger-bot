@@ -113,10 +113,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	// blockchain services
 
 	cmAccounts, err := cmaccounts.NewService(
+		ctx,
 		logger,
 		cmAccountsCacheSize,
 		evmClient,
-		chainID,
 	)
 	if err != nil {
 		logger.Errorf("Failed to create cm accounts service: %v", err)
