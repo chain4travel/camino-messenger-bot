@@ -144,8 +144,7 @@ func (p *messageProcessor) ProcessIncomingMessage(msg *types.Message) error {
 	case types.Request:
 		return p.respond(msg)
 	case types.Response:
-		p.forward(msg)
-		return nil
+		return p.forwardToHandler(msg)
 	default:
 		return ErrUnknownMessageCategory
 	}
@@ -318,15 +317,17 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	return ctx, responseMsg
 }
 
-func (p *messageProcessor) forward(msg *types.Message) {
+func (p *messageProcessor) forwardToHandler(msg *types.Message) error {
 	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
 	responseChan, ok := p.getResponseChannel(msg.Metadata.RequestID)
 	if ok {
 		responseChan <- msg
 		close(responseChan)
-		return
+		return nil
 	}
-	p.logger.Warnf("Failed to forward message: no response channel for request (%s)", msg.Metadata.RequestID)
+	err := fmt.Errorf("no response channel for request ID: %s", msg.Metadata.RequestID)
+	p.logger.Errorf("Failed to forward message: %v", err)
+	return err
 }
 
 func (p *messageProcessor) getChequeForThisBot(cheques []cheques.SignedCheque) (*cheques.SignedCheque, error) {
