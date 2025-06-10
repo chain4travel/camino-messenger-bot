@@ -75,6 +75,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.go_version }}
+      - name: Install libolm
+        run: sudo apt update && sudo apt install -y libolm-dev
       - name: Go Mod Tidy
         shell: bash
         run: go mod tidy
@@ -85,6 +87,9 @@ jobs:
       - name: protobuf codegen
         shell: bash
         run: ./scripts/protobuf_codegen.sh
+      - name: mockgen
+        shell: bash
+        run: ./scripts/mock.gen.sh
       - name: Check Clean Branch
         shell: bash
         run: .github/workflows/check-clean-branch.sh
