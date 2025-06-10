@@ -12,7 +12,6 @@ package messaging
 import (
 	reflect "reflect"
 
-	cancellationv1grpc "buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	gomock "go.uber.org/mock/gomock"
@@ -39,34 +38,6 @@ func NewMockServiceRegistry(ctrl *gomock.Controller) *MockServiceRegistry {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockServiceRegistry) EXPECT() *MockServiceRegistryMockRecorder {
 	return m.recorder
-}
-
-// CancellationClient mocks base method.
-func (m *MockServiceRegistry) CancellationClient() cancellationv1grpc.CancellationServiceClient {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CancellationClient")
-	ret0, _ := ret[0].(cancellationv1grpc.CancellationServiceClient)
-	return ret0
-}
-
-// CancellationClient indicates an expected call of CancellationClient.
-func (mr *MockServiceRegistryMockRecorder) CancellationClient() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancellationClient", reflect.TypeOf((*MockServiceRegistry)(nil).CancellationClient))
-}
-
-// CheckCancellationClient mocks base method.
-func (m *MockServiceRegistry) CheckCancellationClient() cancellationv1grpc.CheckCancellationServiceClient {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckCancellationClient")
-	ret0, _ := ret[0].(cancellationv1grpc.CheckCancellationServiceClient)
-	return ret0
-}
-
-// CheckCancellationClient indicates an expected call of CheckCancellationClient.
-func (mr *MockServiceRegistryMockRecorder) CheckCancellationClient() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckCancellationClient", reflect.TypeOf((*MockServiceRegistry)(nil).CheckCancellationClient))
 }
 
 // GetService mocks base method.
