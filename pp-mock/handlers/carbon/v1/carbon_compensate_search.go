@@ -89,10 +89,24 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 			}, nil
 		} else if query.SearchParametersCarbon.CompensationType == carbonv1.CompensationType_COMPENSATION_TYPE_CO2_DEBITS {
 			for _, accommodation := range query.GetAccommodation() {
+				var locAmount float32
+				if accommodation.GetLocationCode() != nil {
+					locAmount = mockdata.LocationCodeToAmountPerDay[accommodation.GetLocationCode().Code]
+				} else {
+					locAmount = 15.0
+				}
 
-				locAmount := mockdata.LocationCodeToAmountPerDay[accommodation.GetLocationCode().Code]
-				days := (float32(accommodation.GetPeriod().EndDatetime.Seconds) - float32(accommodation.GetPeriod().StartDatetime.Seconds)) / (24 * 60 * 60)
-				amount := days * locAmount
+				var amount float32
+				if accommodation.GetPeriod() != nil {
+					days := (float32(accommodation.GetPeriod().EndDatetime.Seconds) - float32(accommodation.GetPeriod().StartDatetime.Seconds)) / (24 * 60 * 60)
+					if days < 1 {
+						days = 1 // Minimum 1 day for activities
+					}
+					amount = days * locAmount
+				} else {
+					// Default to 1 day if no period specified
+					amount = locAmount
+				}
 
 				p := &carbonv1.CarbonCompensation{
 					Price: &typesv3.Price{
@@ -105,7 +119,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
 					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
-					ResultId:            1234,
+					ResultId:            1234, // TODO: make unique
 				},
 				)
 			}
