@@ -354,7 +354,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 		go func(txID common.Hash) {
 			defer func() {
 				if r := recover(); r != nil {
-					ch.logger.Errorf("recovered from panic while checking cash in status for txID %s: %v", txID.Hex(), r)
+					ch.logger.Errorf("recovered from panic: checkCashInTxStatus for tx %s panicked: %v", txID.Hex(), r)
 				}
 				wg.Done()
 			}()
@@ -387,8 +387,8 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 		txID := chequeRecord.TxID
 		g.Go(func() (err error) {
 			defer func() {
-				if panicErr := recover(); panicErr != nil {
-					err = fmt.Errorf("checkCashInTxStatus for tx %s panicked: %v", txID.Hex(), panicErr) // err will be returned
+				if r := recover(); r != nil {
+					err = fmt.Errorf("checkCashInTxStatus for tx %s panicked: %v", txID.Hex(), r) // err will be returned
 					ch.logger.Errorf("recovered from panic: %v", err)
 				}
 			}()
