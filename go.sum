@@ -3,6 +3,7 @@ buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-000000000
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20250307104026-ffe2c3741a33.2/go.mod h1:E8zXOY7OEV0EZ0hJZrnpCrY4DqFON5pZGBn26oQAqgw=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.6-00000000000000-289fe5a50735.1 h1:2f6nP9DtA4W1uZQ+wg1RXk6ts1GltX6cxJ9ifpErUMs=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.6-00000000000000-289fe5a50735.1/go.mod h1:C8VMDErLFWTMnBEpbahvAf+q3wRr0XgyQ40gutGajT4=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.6-20250307104026-ffe2c3741a33.1/go.mod h1:C8VMDErLFWTMnBEpbahvAf+q3wRr0XgyQ40gutGajT4=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/DATA-DOG/go-sqlmock v1.5.1 h1:FK6RCIUSfmbnI/imIICmboyQBkOckutaa6R5YYlLZyo=
