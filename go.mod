@@ -3,10 +3,10 @@ module github.com/chain4travel/camino-messenger-bot/v11
 go 1.23.9
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-289fe5a50735.2
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-20250307104026-ffe2c3741a33.2
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.6-00000000000000-289fe5a50735.1
-	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20250312145536-83b47978c692
 	github.com/chain4travel/camino-matrix-app-service v1.0.0-rc0
+	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20250312145536-83b47978c692
 	github.com/chain4travel/caminogoeth-compat v1.1.0-rc1
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/go-viper/mapstructure/v2 v2.2.1
@@ -111,3 +111,8 @@ require (
 )
 
 replace maunium.net/go/mautrix => ./camino-matrix-go
+
+// Pin to specific versions that contain carbon service
+replace buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go => buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-289fe5a50735.2
+
+replace buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go => buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.6-00000000000000-289fe5a50735.1
