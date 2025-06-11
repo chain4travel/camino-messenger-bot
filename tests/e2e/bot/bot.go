@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -122,28 +123,53 @@ func (b *Bot) Stop(ctx context.Context) error {
 		return nil
 	}
 
-	oldPID := b.pid
-	if err := process.StopProcess(ctx, b.pid); err != nil {
-		return fmt.Errorf("failed to stop cmb process with pid %d: %w", b.pid, err)
-	}
-	b.pid = 0
-	b.logger.Debugf("Bot (pid %d) stopped", oldPID)
+	g := errgroup.Group{}
+	processStopped := make(chan struct{})
+	pid := b.pid
+
+	g.Go(func() error {
+		defer close(processStopped)
+		if err := process.StopProcess(ctx, b.pid); err != nil {
+			err := fmt.Errorf("failed to stop bot process: %w", err)
+			b.logger.Error(err)
+			return err
+		}
+		b.pid = 0
+		b.logger.Debugf("Bot process (pid %d) stopped", pid)
+		return nil
+	})
 
 	if b.logFile != nil {
-		if err := b.logFile.Close(); err != nil {
-			return fmt.Errorf("failed to close cmb logFile: %w", err)
-		}
-		b.logFile = nil
+		g.Go(func() error {
+			select {
+			case <-processStopped:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+			if err := b.logFile.Close(); err != nil {
+				return fmt.Errorf("failed to close bot logFile: %w", err)
+			}
+			b.logFile = nil
+			return nil
+		})
 	}
 
 	if b.rpcClient != nil {
-		if err := b.rpcClient.close(); err != nil {
-			return fmt.Errorf("failed to close rpc client: %w", err)
-		}
-		b.rpcClient = nil
+		g.Go(func() error {
+			if err := b.rpcClient.close(); err != nil {
+				return fmt.Errorf("failed to close rpc client: %w", err)
+			}
+			b.rpcClient = nil
+			return nil
+		})
 	}
 
-	return nil
+	err := g.Wait()
+	if err != nil {
+		err = fmt.Errorf("failed to stop bot (pid %d) or close its resources: %w", b.pid, err)
+		b.logger.Error(err)
+	}
+	return err
 }
 
 func (b *Bot) Restart(ctx context.Context) (chan error, error) {
@@ -152,7 +178,7 @@ func (b *Bot) Restart(ctx context.Context) (chan error, error) {
 	oldPID := b.pid
 
 	if err := b.Stop(ctx); err != nil {
-		return nil, fmt.Errorf("failed to stop bot (pid %d): %w", b.pid, err)
+		return nil, err
 	}
 
 	errChan, err := b.Start(ctx)
