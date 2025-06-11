@@ -108,7 +108,7 @@ func (b *Bot) Start(ctx context.Context) (chan error, error) {
 		defer close(errChan)
 		err := <-process.ListenForProcessError(cmd)
 		if err != nil {
-			errChan <- fmt.Errorf("bot (pid %d) failed: %w", b.pid, err)
+			errChan <- fmt.Errorf("bot (pid %d) failed: %w", cmd.Process.Pid, err)
 		}
 	}()
 
