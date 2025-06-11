@@ -37,6 +37,24 @@ var (
 
 	TripsBasicV3    []*transportv3.TripBasic
 	TripsExtendedV3 []*transportv3.TripExtended
+
+	LocationCodeToAmountPerDay = map[string]float32{
+		"PMI": 25.50,
+		"BCN": 30.75,
+		"MAD": 28.25,
+		"LIS": 22.10,
+		"LAN": 35.00,
+		"HAM": 40.50,
+		"BER": 38.75,
+	}
+
+	DestinationToAmountPerNight = map[string]float32{
+		"Mallorca": 15.25,
+		"Arosa":    22.50,
+		"Antalya":  8.75,
+		"Berlin":   18.90,
+		"Maui":     35.00,
+	}
 )
 
 func init() {
