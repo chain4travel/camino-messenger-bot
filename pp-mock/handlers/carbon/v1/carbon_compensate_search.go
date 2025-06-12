@@ -108,8 +108,8 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				}
 
 				p := &carbonv1.CarbonCompensation{
-					Id:        int32(0),
-					Reference: int32(resultIDnum),
+					Id:        accommodation.Id,
+					Reference: int32(resultIDnum), // TODO Reference is a string in request, but int32 in response
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(10*amount)),
 						Decimals: 2,
@@ -189,7 +189,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				price := float32(120 * totalTransportAmount) // 120 cents per kg CO2
 
 				p30 := &carbonv1.CarbonCompensation{
-					Id:        int32(0),
+					Id:        transport.Id,
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(price*0.3)),
@@ -201,7 +201,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				}
 
 				p50 := &carbonv1.CarbonCompensation{
-					Id:        int32(1),
+					Id:        transport.Id,
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(price*0.5)),
@@ -213,7 +213,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				}
 
 				p100 := &carbonv1.CarbonCompensation{
-					Id:        int32(3),
+					Id:        transport.Id,
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(price*1)),
@@ -224,6 +224,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					ProposalId: "100%",
 				}
 
+				// TODO: OR each package should be a separate result ?!
 				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
 					CompensationPackage: []*carbonv1.CarbonCompensation{p30, p50, p100},
 					QueryId:             query.QueryId,
