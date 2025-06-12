@@ -7,6 +7,7 @@ import (
 	carbonv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
@@ -55,6 +56,9 @@ func testCarbonCompensateV1Search(
 
 	req := &carbonv1.CarbonCompensateSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+		},
 		Queries: []*carbonv1.CarbonSearchQuery{{
 			Accommodation: []*carbonv1.AccommodationCarbonSearchQuery{{
 				Reference: "booking-reference",
