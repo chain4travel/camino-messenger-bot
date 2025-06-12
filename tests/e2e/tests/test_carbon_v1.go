@@ -4,7 +4,11 @@ import (
 	"context"
 	"testing"
 
+	carbonv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
@@ -48,6 +52,33 @@ func testCarbonCompensateV1Search(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
+
+	req := &carbonv1.CarbonCompensateSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		Queries: []*carbonv1.CarbonSearchQuery{{
+			Accommodation: []*carbonv1.AccommodationCarbonSearchQuery{{
+				Reference: "booking-reference",
+				Location: &carbonv1.AccommodationCarbonSearchQuery_LocationCode{
+					LocationCode: &typesv2.LocationCode{
+						Code: "HAM",
+					},
+				},
+			}},
+		}},
+	}
+
+	resp, err := distributorBot.CarbonCompensateServiceV1.CarbonCompensateSearch(
+		requestContext(ctx, &metadata.Metadata{
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status)
+	require.Empty(t, resp.Header.Alerts)
+
 }
 
 func TestCarbonCompensateV1(
