@@ -10,6 +10,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/carbon/v1/carbonv1grpc"
 	carbonv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
+	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
@@ -124,6 +125,81 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 
 				},
 				)
+				resultIDnum++
+			}
+
+			for _, transport := range query.GetTransport() {
+				var transportAmount float32
+
+				// Get departure and arrival codes
+				var departureCode, arrivalCode string
+				if transport.From != nil && transport.From.Location != nil {
+					if locationCodes, ok := transport.From.Location.(*transportv3.QueryTransitEventLocation_LocationCodes); ok {
+						if len(locationCodes.LocationCodes.Codes) > 0 {
+							departureCode = locationCodes.LocationCodes.Codes[0].Code
+						}
+					}
+				}
+				if transport.To != nil && transport.To.Location != nil {
+					if locationCodes, ok := transport.To.Location.(*transportv3.QueryTransitEventLocation_LocationCodes); ok {
+						if len(locationCodes.LocationCodes.Codes) > 0 {
+							arrivalCode = locationCodes.LocationCodes.Codes[0].Code
+						}
+					}
+				}
+
+				// Create route key
+				routeKey := fmt.Sprintf("%s-%s", departureCode, arrivalCode)
+				fmt.Sprintf("%s-%s", departureCode, arrivalCode)
+
+				// Get transport amount from mock data
+				if amount, exists := mockdata.TransportRouteToAmount[routeKey]; exists {
+					transportAmount = amount
+				} else {
+					// Default amount if route not found
+					transportAmount = 51.0
+				}
+
+				price := float32(120 * transportAmount)
+
+				p30 := &carbonv1.CarbonCompensation{
+					Id:        int32(0),
+					Reference: int32(resultIDnum),
+					Price: &typesv3.Price{
+						Value:    fmt.Sprintf("%d", int(price*0.3)), // 120 cents per kg CO2
+						Decimals: 2,
+					},
+					Amount:     transportAmount,
+					ProposalId: "30%",
+				}
+
+				p50 := &carbonv1.CarbonCompensation{
+					Id:        int32(1),
+					Reference: int32(resultIDnum),
+					Price: &typesv3.Price{
+						Value:    fmt.Sprintf("%d", int(price*0.5)), // 120 cents per kg CO2
+						Decimals: 2,
+					},
+					Amount:     transportAmount,
+					ProposalId: "50%",
+				}
+
+				p100 := &carbonv1.CarbonCompensation{
+					Id:        int32(3),
+					Reference: int32(resultIDnum),
+					Price: &typesv3.Price{
+						Value:    fmt.Sprintf("%d", int(price*1)), // 120 cents per kg CO2
+						Decimals: 2,
+					},
+					Amount:     transportAmount,
+					ProposalId: "100%",
+				}
+
+				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
+					CompensationPackage: []*carbonv1.CarbonCompensation{p30, p50, p100},
+					QueryId:             query.QueryId,
+					ResultId:            resultIDnum,
+				})
 				resultIDnum++
 			}
 		}

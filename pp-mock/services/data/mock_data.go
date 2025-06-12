@@ -48,6 +48,19 @@ var (
 		"BER": 38.75,
 	}
 
+	// Transport carbon compensation amounts per route (kg CO2)
+	TransportRouteToAmount = map[string]float32{
+		"HAM-BER": 45.20,
+		"BER-HAM": 45.20,
+		"PMI-BCN": 52.30,
+		"BCN-PMI": 52.30,
+		"BCN-MAD": 38.90,
+		"MAD-BCN": 38.90,
+		"MAD-LIS": 42.15,
+		"LIS-MAD": 42.15,
+		"LAN-HAM": 65.80,
+		"HAM-LAN": 65.80,
+	}
 )
 
 func init() {

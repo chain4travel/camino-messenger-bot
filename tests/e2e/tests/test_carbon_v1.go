@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	carbonv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
+	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
@@ -62,12 +63,40 @@ func testCarbonCompensateV1Search(
 		},
 		Queries: []*carbonv1.CarbonSearchQuery{{
 			Accommodation: []*carbonv1.AccommodationCarbonSearchQuery{{
-				Reference: "booking-reference",
+				Id:        1,
+				Reference: "booking-reference-1",
 				Location: &carbonv1.AccommodationCarbonSearchQuery_LocationCode{
 					LocationCode: &typesv2.LocationCode{
 						Code: "HAM",
 					},
 				},
+			}},
+			Transport: []*carbonv1.TransportCarbonSearchQuery{{
+				Id:        2,
+				Reference: "booking-reference-2",
+				From: &transportv3.QueryTransitEventLocation{
+					Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+						LocationCodes: &typesv2.LocationCodes{
+							Codes: []*typesv2.LocationCode{
+								{
+									Code: "HAM",
+								},
+							},
+						},
+					},
+				},
+				To: &transportv3.QueryTransitEventLocation{
+					Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+						LocationCodes: &typesv2.LocationCodes{
+							Codes: []*typesv2.LocationCode{
+								{
+									Code: "BER",
+								},
+							},
+						},
+					},
+				},
+				VehicleType: "plane",
 			}},
 			SearchParametersCarbon: &carbonv1.CarbonSearchParameters{
 				CompensationType: carbonv1.CompensationType_COMPENSATION_TYPE_CO2_DEBITS,
