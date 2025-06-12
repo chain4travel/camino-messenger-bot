@@ -100,9 +100,6 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				var amount float32
 				if accommodation.GetPeriod() != nil {
 					days := (float32(accommodation.GetPeriod().EndDatetime.Seconds) - float32(accommodation.GetPeriod().StartDatetime.Seconds)) / (24 * 60 * 60)
-					if days < 1 {
-						days = 1 // Minimum 1 day for activities
-					}
 					amount = days * locAmount
 				} else {
 					// Default to 1 day if no period specified
@@ -110,17 +107,21 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				}
 
 				p := &carbonv1.CarbonCompensation{
+					Id:        int32(0),
+					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(10*amount)),
 						Decimals: 2,
 					},
-					Amount: amount,
+					Amount:     amount,
+					ProposalId: "1234567890",
 				}
 
 				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
 					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
 					ResultId:            resultIDnum, // TODO: make unique
+
 				},
 				)
 				resultIDnum++
