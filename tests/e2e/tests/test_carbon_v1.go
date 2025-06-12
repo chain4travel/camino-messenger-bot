@@ -10,10 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testCarbonSetup(
+func testCarbonCompensateV1Setup(
 	ctx context.Context,
 	t *testing.T,
-	tt *Test) (
+	tt *Test,
+) (
 	supplierPartnerPlugin *partnerplugin.PartnerPlugin,
 	supplierBot *bot.Bot,
 	distributorBot *bot.Bot,
@@ -47,4 +48,10 @@ func testCarbonSetup(
 	expectNoErrorAsync(t, errChan)
 
 	return supplierPartnerPlugin, supplierBot, distributorBot, distributorBotWithoutFunds
+}
+
+func TestCarbonCompensateV1(
+	t *testing.T,
+	tt *Test,
+) {
 }
