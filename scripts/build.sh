@@ -74,10 +74,10 @@ echo "  git_commit             : $git_commit"
 echo "  protocolbuffers_release: $protocolbuffers_release"
 echo "  grpc_release           : $grpc_release"
 
-LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/internal/version.AppGitCommit=$git_commit"
-LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/internal/version.AppVersion=$git_tag"
-LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/internal/version.BufBuildPBCMPRelease=$protocolbuffers_release"
-LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/internal/version.BufBuildGRPCCMPRelease=$grpc_release"
+LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/v11/internal/version.AppGitCommit=$git_commit"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v11/internal/version.AppVersion=$git_tag"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v11/internal/version.BufBuildPBCMPRelease=$protocolbuffers_release"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v11/internal/version.BufBuildGRPCCMPRelease=$grpc_release"
 
 # Build the Go application
 echo "Building camino-messenger-bot..."

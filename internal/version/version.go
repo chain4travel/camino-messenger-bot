@@ -70,7 +70,11 @@ func init() {
 }
 
 func InitProtoVersion(logger *zap.SugaredLogger, allowInvalid bool) error {
-	splittedAppVersion := strings.Split(strings.TrimPrefix(AppVersion, "v"), ".")
+	splittedAppVersion := strings.Split(AppVersion, "-")
+	if len(splittedAppVersion) < 1 {
+		return fmt.Errorf("invalid version format: %q, expected format is vMAJOR.MINOR.PATCH", AppVersion)
+	}
+	splittedAppVersion = strings.Split(strings.TrimPrefix(splittedAppVersion[0], "v"), ".")
 	if len(splittedAppVersion) != 3 {
 		if !allowInvalid {
 			err := fmt.Errorf("invalid version format: %q, expected format is vMAJOR.MINOR.PATCH", AppVersion)
