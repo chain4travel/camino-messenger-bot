@@ -129,47 +129,56 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 			}
 
 			for _, transport := range query.GetTransport() {
-				var transportAmount float32
+				var totalTransportAmount float32
 
-				// Get departure and arrival codes
-				var departureCode, arrivalCode string
+				// Get departure and arrival location codes
+				var departureCodes, arrivalCodes []string
+
 				if transport.From != nil && transport.From.Location != nil {
 					if locationCodes, ok := transport.From.Location.(*transportv3.QueryTransitEventLocation_LocationCodes); ok {
-						if len(locationCodes.LocationCodes.Codes) > 0 {
-							departureCode = locationCodes.LocationCodes.Codes[0].Code
+						for _, code := range locationCodes.LocationCodes.Codes {
+							departureCodes = append(departureCodes, code.Code)
 						}
 					}
 				}
+
 				if transport.To != nil && transport.To.Location != nil {
 					if locationCodes, ok := transport.To.Location.(*transportv3.QueryTransitEventLocation_LocationCodes); ok {
-						if len(locationCodes.LocationCodes.Codes) > 0 {
-							arrivalCode = locationCodes.LocationCodes.Codes[0].Code
+						for _, code := range locationCodes.LocationCodes.Codes {
+							arrivalCodes = append(arrivalCodes, code.Code)
 						}
 					}
 				}
 
-				// Create route key
-				routeKey := fmt.Sprintf("%s-%s", departureCode, arrivalCode)
-				fmt.Sprintf("%s-%s", departureCode, arrivalCode)
-
-				// Get transport amount from mock data
-				if amount, exists := mockdata.TransportRouteToAmount[routeKey]; exists {
-					transportAmount = amount
-				} else {
-					// Default amount if route not found
-					transportAmount = 51.0
+				// Check if from and to have equal length
+				if len(departureCodes) != len(arrivalCodes) {
+					log.Printf("Warning: From and To location codes have different lengths for transport query %d", transport.Id)
+					continue
 				}
 
-				price := float32(120 * transportAmount)
+				// Process all route pairs and sum up the amounts
+				for i := 0; i < len(departureCodes); i++ {
+					routeKey := fmt.Sprintf("%s-%s", departureCodes[i], arrivalCodes[i])
+
+					// Get transport amount from mock data
+					if amount, exists := mockdata.TransportRouteToAmount[routeKey]; exists {
+						totalTransportAmount += amount
+					} else {
+						// Default amount if route not found
+						totalTransportAmount += 51.0
+					}
+				}
+
+				price := float32(120 * totalTransportAmount) // 120 cents per kg CO2
 
 				p30 := &carbonv1.CarbonCompensation{
 					Id:        int32(0),
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price*0.3)), // 120 cents per kg CO2
+						Value:    fmt.Sprintf("%d", int(price*0.3)),
 						Decimals: 2,
 					},
-					Amount:     transportAmount,
+					Amount:     totalTransportAmount,
 					ProposalId: "30%",
 				}
 
@@ -177,10 +186,10 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					Id:        int32(1),
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price*0.5)), // 120 cents per kg CO2
+						Value:    fmt.Sprintf("%d", int(price*0.5)),
 						Decimals: 2,
 					},
-					Amount:     transportAmount,
+					Amount:     totalTransportAmount,
 					ProposalId: "50%",
 				}
 
@@ -188,10 +197,9 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					Id:        int32(3),
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price*1)), // 120 cents per kg CO2
-						Decimals: 2,
+						Value: fmt.Sprintf("%d", int(price*1)),
 					},
-					Amount:     transportAmount,
+					Amount:     totalTransportAmount,
 					ProposalId: "100%",
 				}
 

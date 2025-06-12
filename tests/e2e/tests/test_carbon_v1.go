@@ -81,6 +81,9 @@ func testCarbonCompensateV1Search(
 								{
 									Code: "HAM",
 								},
+								{
+									Code: "BER",
+								},
 							},
 						},
 					},
@@ -91,6 +94,9 @@ func testCarbonCompensateV1Search(
 							Codes: []*typesv2.LocationCode{
 								{
 									Code: "BER",
+								},
+								{
+									Code: "HAM",
 								},
 							},
 						},
