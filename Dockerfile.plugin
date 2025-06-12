@@ -14,7 +14,7 @@ FROM alpine:3.21 AS runtime-stage
 WORKDIR /
 
 ARG port=55555
-COPY --from=build-stage /camino-messenger-bot/pp-mock /pp-mock
+COPY --from=build-stage /camino-messenger-bot/build/pp-mock /pp-mock
 ENV PORT=$port
 
 # Run the 'env' command
