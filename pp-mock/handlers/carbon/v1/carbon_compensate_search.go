@@ -66,6 +66,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 		}, nil
 	}
 	carbonSearchResults := []*carbonv1.CarbonSearchResult{}
+	resultIDnum := int32(1)
 	for _, query := range req.Queries {
 		if query.SearchParametersCarbon.CompensationType == carbonv1.CompensationType_COMPENSATION_TYPE_UNSPECIFIED {
 			return &carbonv1.CarbonCompensateSearchResponse{
@@ -119,9 +120,10 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
 					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
-					ResultId:            1234, // TODO: make unique
+					ResultId:            resultIDnum, // TODO: make unique
 				},
 				)
+				resultIDnum++
 			}
 		}
 	}
