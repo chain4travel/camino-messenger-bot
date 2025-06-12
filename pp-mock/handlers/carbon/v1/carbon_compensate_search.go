@@ -177,6 +177,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(price*0.3)),
 						Decimals: 2,
+						Currency: req.SearchParametersGeneric.Currency,
 					},
 					Amount:     totalTransportAmount,
 					ProposalId: "30%",
@@ -188,6 +189,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					Price: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(price*0.5)),
 						Decimals: 2,
+						Currency: req.SearchParametersGeneric.Currency,
 					},
 					Amount:     totalTransportAmount,
 					ProposalId: "50%",
@@ -197,7 +199,9 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					Id:        int32(3),
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
-						Value: fmt.Sprintf("%d", int(price*1)),
+						Value:    fmt.Sprintf("%d", int(price*1)),
+						Decimals: 2,
+						Currency: req.SearchParametersGeneric.Currency,
 					},
 					Amount:     totalTransportAmount,
 					ProposalId: "100%",
