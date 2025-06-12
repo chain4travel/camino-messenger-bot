@@ -4,8 +4,8 @@ RUN apk update && apk upgrade && apk add build-base
 WORKDIR /camino-messenger-bot
 
 COPY . .
-RUN go mod download
-RUN go build -o plugin  examples/rpc/partner-plugin/server.go
+RUN apk --no-cache add bash
+RUN CAMINOBOT_PATH=$(pwd) bash ./scripts/build_partner_plugin_mock.sh
 
 
 #runtime stage
@@ -14,11 +14,11 @@ FROM alpine:3.21 AS runtime-stage
 WORKDIR /
 
 ARG port=55555
-COPY --from=build-stage /camino-messenger-bot/plugin /plugin
+COPY --from=build-stage /camino-messenger-bot/pp-mock /pp-mock
 ENV PORT=$port
 
 # Run the 'env' command
 
 #EXPOSE $port
 
-ENTRYPOINT [ "./plugin" ]
+ENTRYPOINT [ "./pp-mock" ]
