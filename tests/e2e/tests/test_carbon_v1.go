@@ -57,7 +57,8 @@ func testCarbonCompensateV1Search(
 	req := &carbonv1.CarbonCompensateSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParametersGeneric: &typesv3.SearchParameters{
-			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_NativeToken{}},
 		},
 		Queries: []*carbonv1.CarbonSearchQuery{{
 			Accommodation: []*carbonv1.AccommodationCarbonSearchQuery{{
@@ -68,6 +69,9 @@ func testCarbonCompensateV1Search(
 					},
 				},
 			}},
+			SearchParametersCarbon: &carbonv1.CarbonSearchParameters{
+				CompensationType: carbonv1.CompensationType_COMPENSATION_TYPE_CO2_DEBITS,
+			},
 		}},
 	}
 
