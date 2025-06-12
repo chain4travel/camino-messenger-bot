@@ -15,7 +15,7 @@ WORKDIR /
 
 ARG port=55555
 COPY --from=build-stage /camino-messenger-bot/build/pp-mock /pp-mock
-ENV PORT=$port
+ENV CMB_PARTNER_PLUGIN_MOCK_PORT=$port
 
 # Run the 'env' command
 
