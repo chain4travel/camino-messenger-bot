@@ -18,12 +18,12 @@ func testCarbonCompensateV1Setup(
 	supplierPartnerPlugin *partnerplugin.PartnerPlugin,
 	supplierBot *bot.Bot,
 	distributorBot *bot.Bot,
-	distributorBotWithoutFunds *bot.Bot,
 ) {
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.AccommodationSearchServiceV3,
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV2,
+		botGenerated.CarbonCompensateServiceV1,
 	))
 	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 
@@ -38,20 +38,28 @@ func testCarbonCompensateV1Setup(
 	// bot without partnerPlugin and with rpc server (distributor)
 	distributorBot = tt.createBot(ctx, t, true, nil, nil)
 
-	// bot without partnerPlugin and with rpc server (distributor) but with the
-	// catch, that the bot account does not have funds to pay for the fees when
-	// trying to buy the booking token.
-	distributorBotWithoutFunds, errChan, err := tt.botFactory.CreateBot(ctx, true, nil, nil,
-		&bot.Skip{PrefundBot: true},
-	)
-	require.NoError(t, err)
-	expectNoErrorAsync(t, errChan)
+	return supplierPartnerPlugin, supplierBot, distributorBot
+}
 
-	return supplierPartnerPlugin, supplierBot, distributorBot, distributorBotWithoutFunds
+func testCarbonCompensateV1Search(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) {
 }
 
 func TestCarbonCompensateV1(
 	t *testing.T,
 	tt *Test,
 ) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
+	defer cancel()
+
+	_, supplierBot, distributorBot := testCarbonCompensateV1Setup(ctx, t, tt)
+
+	t.Run("Search", func(t *testing.T) {
+		testCarbonCompensateV1Search(ctx, t, tt, distributorBot, supplierBot)
+	})
 }
