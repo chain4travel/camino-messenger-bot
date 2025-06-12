@@ -3,7 +3,9 @@ package tests
 import (
 	"context"
 	"testing"
+	"time"
 
+	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	carbonv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
@@ -14,6 +16,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func testCarbonCompensateV1Setup(
@@ -69,6 +72,12 @@ func testCarbonCompensateV1Search(
 					LocationCode: &typesv2.LocationCode{
 						Code: "HAM",
 					},
+				},
+				CategoryRating: accommodationv3.CategoryRating_CATEGORY_RATING_4_5,
+				CategoryUnit:   accommodationv3.CategoryUnit_CATEGORY_UNIT_STARS,
+				Period: &typesv1.DateTimeRange{
+					StartDatetime: timestamppb.New(time.Date(2024, 1, 1, 16, 0, 0, 0, time.UTC)),
+					EndDatetime:   timestamppb.New(time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC)),
 				},
 			}},
 			Transport: []*carbonv1.TransportCarbonSearchQuery{{

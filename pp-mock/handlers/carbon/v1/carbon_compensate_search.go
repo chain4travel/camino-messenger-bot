@@ -160,12 +160,29 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				for i := 0; i < len(departureCodes); i++ {
 					routeKey := fmt.Sprintf("%s-%s", departureCodes[i], arrivalCodes[i])
 
-					// Get transport amount from mock data
-					if amount, exists := mockdata.TransportRouteToAmount[routeKey]; exists {
+					// Get transport amount from mock data based on vehicle type
+					var amount float32
+					var exists bool
+
+					switch transport.VehicleType {
+					case "plane", "airplane", "aircraft":
+						amount, exists = mockdata.PlaneRouteToAmount[routeKey]
+					case "train", "railway", "rail":
+						amount, exists = mockdata.TrainRouteToAmount[routeKey]
+					default:
+						// Default to plane mapping for unknown vehicle types
+						amount, exists = mockdata.PlaneRouteToAmount[routeKey]
+					}
+
+					if exists {
 						totalTransportAmount += amount
 					} else {
-						// Default amount if route not found
-						totalTransportAmount += 51.0
+						// Default amount if route not found - higher for planes, lower for trains
+						if transport.VehicleType == "train" || transport.VehicleType == "railway" || transport.VehicleType == "rail" {
+							totalTransportAmount += 5.0 // Lower default for trains
+						} else {
+							totalTransportAmount += 51.0 // Higher default for planes
+						}
 					}
 				}
 
@@ -179,7 +196,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 						Decimals: 2,
 						Currency: req.SearchParametersGeneric.Currency,
 					},
-					Amount:     totalTransportAmount,
+					Amount:     totalTransportAmount * 0.3,
 					ProposalId: "30%",
 				}
 
@@ -191,7 +208,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 						Decimals: 2,
 						Currency: req.SearchParametersGeneric.Currency,
 					},
-					Amount:     totalTransportAmount,
+					Amount:     totalTransportAmount * 0.5,
 					ProposalId: "50%",
 				}
 
@@ -203,7 +220,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 						Decimals: 2,
 						Currency: req.SearchParametersGeneric.Currency,
 					},
-					Amount:     totalTransportAmount,
+					Amount:     totalTransportAmount * 1,
 					ProposalId: "100%",
 				}
 

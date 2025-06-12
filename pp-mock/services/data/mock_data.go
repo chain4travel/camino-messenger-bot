@@ -61,6 +61,38 @@ var (
 		"LAN-HAM": 65.80,
 		"HAM-LAN": 65.80,
 	}
+
+	// Plane transport carbon compensation (kg CO2) - higher emissions
+	PlaneRouteToAmount = map[string]float32{
+		"HAM-BER": 45.20,
+		"BER-HAM": 45.20,
+		"PMI-BCN": 52.30,
+		"BCN-PMI": 52.30,
+		"BCN-MAD": 38.90,
+		"MAD-BCN": 38.90,
+		"MAD-LIS": 42.15,
+		"LIS-MAD": 42.15,
+		"LAN-HAM": 65.80,
+		"HAM-LAN": 65.80,
+		"PMI-MAD": 68.50,
+		"MAD-PMI": 68.50,
+		"LIS-BCN": 55.40,
+		"BCN-LIS": 55.40,
+	}
+
+	// Train transport carbon compensation (kg CO2) - much lower emissions
+	TrainRouteToAmount = map[string]float32{
+		"HAM-BER": 4.10,
+		"BER-HAM": 4.10,
+		"BCN-MAD": 2.90,
+		"MAD-BCN": 2.90,
+		"MAD-LIS": 3.10,
+		"LIS-MAD": 3.10,
+		"HAM-LAN": 6.15,
+		"LAN-HAM": 6.15,
+		"BER-LAN": 5.20,
+		"LAN-BER": 5.20,
+	}
 )
 
 func init() {
