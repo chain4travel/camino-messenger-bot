@@ -114,22 +114,6 @@ func (c *client) CreateRoomForUser(ctx context.Context, recipient id.UserID) (id
 	return resp.RoomID, nil
 }
 
-func (c *client) EnableRoomEncryption(ctx context.Context, roomID id.RoomID) error {
-	c.logger.Debugf("Enabling encryption for room %s", roomID)
-	if _, err := c.client.SendStateEvent(
-		ctx,
-		roomID,
-		event.StateEncryption,
-		"",
-		event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1},
-	); err != nil {
-		c.logger.Errorf("Failed to enable encryption for room %s: %v", roomID, err)
-		return err
-	}
-	c.logger.Debugf("Encryption enabled for room %s", roomID)
-	return nil
-}
-
 func (c *client) JoinRoom(ctx context.Context, roomID id.RoomID) error {
 	c.logger.Debugf("Joining room %s", roomID)
 	if _, err := c.client.JoinRoomByID(ctx, roomID); err != nil {
@@ -137,6 +121,26 @@ func (c *client) JoinRoom(ctx context.Context, roomID id.RoomID) error {
 		return err
 	}
 	c.logger.Debugf("Joined room %s", roomID)
+	return nil
+}
+
+func (c *client) LeaveRoom(ctx context.Context, roomID id.RoomID) error {
+	c.logger.Debugf("Leaving room %s", roomID)
+	if _, err := c.client.LeaveRoom(ctx, roomID); err != nil {
+		c.logger.Errorf("Failed to leave room %s: %v", roomID, err)
+		return err
+	}
+	c.logger.Debugf("Left room %s", roomID)
+	return nil
+}
+
+func (c *client) ForgetRoom(ctx context.Context, roomID id.RoomID) error {
+	c.logger.Debugf("Forgetting room %s", roomID)
+	if _, err := c.client.ForgetRoom(ctx, roomID); err != nil {
+		c.logger.Errorf("Failed to forget room %s: %v", roomID, err)
+		return err
+	}
+	c.logger.Debugf("Forgot room %s", roomID)
 	return nil
 }
 

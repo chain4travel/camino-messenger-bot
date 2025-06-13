@@ -94,6 +94,14 @@ func (m *messenger) checkpoint() string {
 }
 
 func (m *messenger) Start(ctx context.Context) (chan error, error) {
+	// Initially, messenger used matrix e2e encryption. Starting from v12, messenger will use its own e2e encryption.
+	// Because of that, we need to remove all encrypted rooms and only use unencrypted rooms from now on.
+	if err := m.removeEncryptedRooms(ctx); err != nil {
+		err := fmt.Errorf("failed to remove encrypted rooms: %w", err)
+		m.logger.Error(err)
+		return nil, err
+	}
+
 	// Start syncer, that will listen for incoming events
 
 	syncCtx, cancelSync := context.WithCancel(ctx)

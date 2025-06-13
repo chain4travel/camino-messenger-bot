@@ -71,18 +71,18 @@ func (mr *MockClientMockRecorder) CreateRoomForUser(arg0, arg1 any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoomForUser", reflect.TypeOf((*MockClient)(nil).CreateRoomForUser), arg0, arg1)
 }
 
-// EnableRoomEncryption mocks base method.
-func (m *MockClient) EnableRoomEncryption(arg0 context.Context, arg1 id.RoomID) error {
+// ForgetRoom mocks base method.
+func (m *MockClient) ForgetRoom(arg0 context.Context, arg1 id.RoomID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EnableRoomEncryption", arg0, arg1)
+	ret := m.ctrl.Call(m, "ForgetRoom", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// EnableRoomEncryption indicates an expected call of EnableRoomEncryption.
-func (mr *MockClientMockRecorder) EnableRoomEncryption(arg0, arg1 any) *gomock.Call {
+// ForgetRoom indicates an expected call of ForgetRoom.
+func (mr *MockClientMockRecorder) ForgetRoom(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableRoomEncryption", reflect.TypeOf((*MockClient)(nil).EnableRoomEncryption), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForgetRoom", reflect.TypeOf((*MockClient)(nil).ForgetRoom), arg0, arg1)
 }
 
 // IsRoomEncrypted mocks base method.
@@ -142,6 +142,20 @@ func (m *MockClient) JoinedRooms(arg0 context.Context) ([]id.RoomID, error) {
 func (mr *MockClientMockRecorder) JoinedRooms(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JoinedRooms", reflect.TypeOf((*MockClient)(nil).JoinedRooms), arg0)
+}
+
+// LeaveRoom mocks base method.
+func (m *MockClient) LeaveRoom(arg0 context.Context, arg1 id.RoomID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LeaveRoom", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// LeaveRoom indicates an expected call of LeaveRoom.
+func (mr *MockClientMockRecorder) LeaveRoom(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LeaveRoom", reflect.TypeOf((*MockClient)(nil).LeaveRoom), arg0, arg1)
 }
 
 // SendMessageEvent mocks base method.

@@ -20,6 +20,14 @@ func (m *messenger) stateMemberEventHandler(ctx context.Context, evt *event.Even
 	m.logger.Debugf("Received %s event %s from %s in room %s", event.StateMember.Type, evt.ID, evt.Sender, evt.RoomID)
 
 	if evt.GetStateKey() == m.botUserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
+		if encrypted, err := m.client.IsRoomEncrypted(ctx, evt.RoomID); err != nil {
+			m.logger.Errorf("Failed to check if room %s is encrypted: %v", evt.RoomID, err)
+			return
+		} else if encrypted {
+			m.logger.Infof("Room %s is encrypted, ignoring invite event", evt.RoomID)
+			return
+		}
+
 		if err := m.client.JoinRoom(ctx, evt.RoomID); err != nil {
 			m.logger.Error("Failed to join room after invite",
 				zap.String("room_id", evt.RoomID.String()),
@@ -33,6 +41,34 @@ func (m *messenger) stateMemberEventHandler(ctx context.Context, evt *event.Even
 	}
 }
 
+func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
+	rooms, err := m.client.JoinedRooms(ctx)
+	if err != nil {
+		m.logger.Errorf("failed to get joined rooms: %v", err)
+		return err
+	}
+
+	for _, roomID := range rooms {
+		if encrypted, err := m.client.IsRoomEncrypted(ctx, roomID); err != nil {
+			m.logger.Errorf("failed to check if room %s is encrypted: %v", roomID, err)
+			return err
+		} else if !encrypted {
+			continue
+		}
+
+		if err := m.client.LeaveRoom(ctx, roomID); err != nil {
+			m.logger.Errorf("failed to leave room %s: %v", roomID, err)
+			return err
+		}
+		// TODO@ what if forget fails? we already left room. how can we recover?
+		if err := m.client.ForgetRoom(ctx, roomID); err != nil {
+			m.logger.Errorf("failed to forget room %s: %v", roomID, err)
+			return err
+		}
+	}
+	return nil
+}
+
 func (m *messenger) getRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error) {
 	roomID, found := m.findExistingRoomForRecipient(ctx, recipient)
 	if found {
@@ -41,11 +77,6 @@ func (m *messenger) getRoomForRecipient(ctx context.Context, recipient id.UserID
 
 	roomID, err := m.client.CreateRoomForUser(ctx, recipient)
 	if err != nil {
-		return "", err
-	}
-
-	if err := m.client.EnableRoomEncryption(ctx, roomID); err != nil {
-		m.logger.Errorf("failed to enable encryption for room %s: %v", roomID, err)
 		return "", err
 	}
 
@@ -67,13 +98,6 @@ func (m *messenger) findExistingRoomForRecipient(ctx context.Context, recipient 
 	}
 
 	for _, roomID := range rooms {
-		if encrypted, err := m.client.IsRoomEncrypted(ctx, roomID); err != nil {
-			m.logger.Errorf("failed to check if room %s is encrypted: %v", roomID, err)
-			return "", false
-		} else if !encrypted {
-			continue
-		}
-
 		if joined, err := m.client.IsUserJoinedRoom(ctx, roomID, recipient); err != nil {
 			m.logger.Errorf("failed to check if user %s is joined to room %s: %v", recipient, roomID, err)
 			return "", false

@@ -48,17 +48,6 @@ func TestGetRoomForRecipient(t *testing.T) {
 			recipient:   recipientUserID,
 			expectedErr: testErr,
 		},
-		"Encrypt room fails": {
-			client: func(ctrl *gomock.Controller) *MockClient {
-				c := NewMockClient(ctrl)
-				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{}, nil)
-				c.EXPECT().CreateRoomForUser(ctx, recipientUserID).Return(roomID1, nil)
-				c.EXPECT().EnableRoomEncryption(ctx, roomID1).Return(testErr)
-				return c
-			},
-			recipient:   recipientUserID,
-			expectedErr: testErr,
-		},
 		"OK: room already established and cached": {
 			roomsCache: map[id.UserID]id.RoomID{
 				recipientUserID: roomID1,
@@ -70,8 +59,7 @@ func TestGetRoomForRecipient(t *testing.T) {
 			client: func(ctrl *gomock.Controller) *MockClient {
 				c := NewMockClient(ctrl)
 				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{roomID1, roomID2}, nil)
-				c.EXPECT().IsRoomEncrypted(ctx, roomID1).Return(false, nil)
-				c.EXPECT().IsRoomEncrypted(ctx, roomID2).Return(true, nil)
+				c.EXPECT().IsUserJoinedRoom(ctx, roomID1, recipientUserID).Return(false, nil)
 				c.EXPECT().IsUserJoinedRoom(ctx, roomID2, recipientUserID).Return(true, nil)
 				return c
 			},
@@ -82,10 +70,8 @@ func TestGetRoomForRecipient(t *testing.T) {
 			client: func(ctrl *gomock.Controller) *MockClient {
 				c := NewMockClient(ctrl)
 				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{roomID1}, nil)
-				c.EXPECT().IsRoomEncrypted(ctx, roomID1).Return(true, nil)
 				c.EXPECT().IsUserJoinedRoom(ctx, roomID1, recipientUserID).Return(false, nil)
 				c.EXPECT().CreateRoomForUser(ctx, recipientUserID).Return(roomID2, nil)
-				c.EXPECT().EnableRoomEncryption(ctx, roomID2).Return(nil)
 				return c
 			},
 			recipient:      recipientUserID,

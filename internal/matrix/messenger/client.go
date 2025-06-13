@@ -15,8 +15,9 @@ type Client interface {
 	SetEventHandler(eventType event.Type, handler func(ctx context.Context, evt *event.Event))
 	IsRoomEncrypted(ctx context.Context, roomID id.RoomID) (bool, error)
 	CreateRoomForUser(ctx context.Context, recipient id.UserID) (id.RoomID, error)
-	EnableRoomEncryption(ctx context.Context, roomID id.RoomID) error
 	JoinRoom(ctx context.Context, roomID id.RoomID) error
+	LeaveRoom(ctx context.Context, roomID id.RoomID) error
+	ForgetRoom(ctx context.Context, roomID id.RoomID) error
 	JoinedRooms(ctx context.Context) ([]id.RoomID, error)
 	IsUserJoinedRoom(ctx context.Context, roomID id.RoomID, userID id.UserID) (bool, error)
 	SendMessageEvent(ctx context.Context, roomID id.RoomID, eventType event.Type, event matrix.CaminoMatrixMessageEventContent) error
