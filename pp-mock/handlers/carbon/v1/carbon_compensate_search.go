@@ -15,8 +15,10 @@ import (
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
+	"google.golang.org/grpc"
 )
 
 type carbonCompensateSearchV1Server struct {
@@ -279,6 +281,31 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 		response.Metadata = &typesv3.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
+
+		// Store search results for validation
+		validationPrices := make([]*state.UnifiedPrice, len(carbonSearchResults))
+		for i, result := range carbonSearchResults {
+			validationPrices[i] = &state.UnifiedPrice{
+				Price:                result.TotalPrice.Value,
+				Decimals:             result.TotalPrice.Decimals,
+				IsNative:             result.TotalPrice.Currency != nil && result.TotalPrice.Currency.GetNativeToken() != nil,
+				IsoCurrencyEnum:      int32(result.TotalPrice.Currency.GetIsoCurrency()),
+				TokenContractAddress: "", // Not used for carbon compensation
+			}
+		}
+
+		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
+			NumResults:   len(carbonSearchResults),
+			NumTravelers: 1, // Default for carbon compensation
+			Prices:       validationPrices,
+			JSONRequest:  req.String(),
+			JSONResponse: response.String(),
+		})
+	}
+
+	// Set gRPC headers
+	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
+		log.Printf("Failed to set header: %v", err)
 	}
 
 	response.Results = carbonSearchResults
