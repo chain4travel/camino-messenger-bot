@@ -210,33 +210,8 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					}
 				}
 
-				price := float32(120 * totalTransportAmount) // 120 cents per kg CO2
-				// TODO: Can't have 3 packagese - each should be it's own result?
-				p30 := &carbonv1.CarbonCompensation{
-					Id:        transport.Id,
-					Reference: int32(resultIDnum),
-					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price*0.3)),
-						Decimals: 2,
-						Currency: req.SearchParametersGeneric.Currency,
-					},
-					Amount:     totalTransportAmount * 0.3,
-					ProposalId: "30%",
-				}
-
-				p50 := &carbonv1.CarbonCompensation{
-					Id:        transport.Id,
-					Reference: int32(resultIDnum),
-					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price*0.5)),
-						Decimals: 2,
-						Currency: req.SearchParametersGeneric.Currency,
-					},
-					Amount:     totalTransportAmount * 0.5,
-					ProposalId: "50%",
-				}
-
-				p100 := &carbonv1.CarbonCompensation{
+				price := float32(120 * totalTransportAmount) // e.g. 120 cents per kg CO2
+				p := &carbonv1.CarbonCompensation{
 					Id:        transport.Id,
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
@@ -245,15 +220,13 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 						Currency: req.SearchParametersGeneric.Currency,
 					},
 					Amount:     totalTransportAmount * 1,
-					ProposalId: "100%",
+					ProposalId: "1234567890",
 				}
 
-				// TODO: OR each package should be a separate result ?!
 				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
-					CompensationPackage: []*carbonv1.CarbonCompensation{p30, p50, p100},
+					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
 					ResultId:            resultIDnum,
-					// TODO : Determine total price
 					TotalPrice: &typesv3.Price{
 						Value:    fmt.Sprintf("%d", int(price)),
 						Decimals: 2,
