@@ -2,10 +2,13 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
+	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	carbonv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
@@ -56,6 +59,10 @@ func testCarbonCompensateV1Search(
 	tt *Test,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
+) (
+	searchID string,
+	resultID int32,
+	totalPrice float64,
 ) {
 
 	req := &carbonv1.CarbonCompensateSearchRequest{
@@ -131,6 +138,45 @@ func testCarbonCompensateV1Search(
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status)
 	require.Empty(t, resp.Header.Alerts)
 
+	// Extract the total price from the response
+	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Value, 64)
+	require.NoError(t, err)
+
+	return resp.Metadata.SearchId.Value, resp.Results[0].ResultId, totalPrice
+}
+
+func testCarbonCompensateV1ValidateV2(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	searchID string,
+	resultID int32,
+	expectedTotalPrice float64,
+) (ValidationId string) {
+	req := &bookv2.ValidationRequest{
+		ValidationObject: &bookv2.ValidationObject{
+			SearchIdentifier: &typesv2.SearchIdentifier{
+				SearchId: &typesv1.UUID{Value: searchID},
+				ResultId: resultID,
+			},
+		},
+	}
+
+	resp, err := distributorBot.ValidationServiceV2.Validation(
+		requestContext(ctx, &metadata.Metadata{
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	return resp.ValidationId.Value
 }
 
 func TestCarbonCompensateV1(
@@ -143,6 +189,8 @@ func TestCarbonCompensateV1(
 	_, supplierBot, distributorBot := testCarbonCompensateV1Setup(ctx, t, tt)
 
 	t.Run("Search", func(t *testing.T) {
-		testCarbonCompensateV1Search(ctx, t, tt, distributorBot, supplierBot)
+		searchID, resultID, totalPrice := testCarbonCompensateV1Search(ctx, t, tt, distributorBot, supplierBot)
+		validationId := testCarbonCompensateV1ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
+		fmt.Println("validationId", validationId)
 	})
 }

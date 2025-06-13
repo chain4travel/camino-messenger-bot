@@ -16,6 +16,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
+	"github.com/google/uuid"
 )
 
 type carbonCompensateSearchV1Server struct {
@@ -66,9 +67,25 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 			},
 		}, nil
 	}
+
 	carbonSearchResults := []*carbonv1.CarbonSearchResult{}
 	resultIDnum := int32(1)
 	for _, query := range req.Queries {
+
+		// Check if SearchParametersCarbon is missing
+		if query.SearchParametersCarbon == nil {
+			return &carbonv1.CarbonCompensateSearchResponse{
+				Header: &typesv1.ResponseHeader{
+					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+					Alerts: []*typesv1.Alert{{
+						Message: "Mandatory field SearchParametersCarbon is missing",
+						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+					}},
+				},
+			}, nil
+		}
+
+		// Check if CompensationType is not UNDEFINED
 		if query.SearchParametersCarbon.CompensationType == carbonv1.CompensationType_COMPENSATION_TYPE_UNSPECIFIED {
 			return &carbonv1.CarbonCompensateSearchResponse{
 				Header: &typesv1.ResponseHeader{
@@ -79,6 +96,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					}},
 				},
 			}, nil
+
 		} else if query.SearchParametersCarbon.CompensationType == carbonv1.CompensationType_COMPENSATION_TYPE_PURCHASE_TREE {
 			return &carbonv1.CarbonCompensateSearchResponse{
 				Header: &typesv1.ResponseHeader{
@@ -122,7 +140,11 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
 					ResultId:            resultIDnum, // TODO: make unique
-
+					TotalPrice: &typesv3.Price{
+						Value:    fmt.Sprintf("%d", int(100)),
+						Decimals: 2,
+						Currency: req.SearchParametersGeneric.Currency,
+					},
 				},
 				)
 				resultIDnum++
@@ -229,16 +251,36 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					CompensationPackage: []*carbonv1.CarbonCompensation{p30, p50, p100},
 					QueryId:             query.QueryId,
 					ResultId:            resultIDnum,
+					// TODO : Determine total price
+					TotalPrice: &typesv3.Price{
+						Value:    fmt.Sprintf("%d", int(price)),
+						Decimals: 2,
+						Currency: req.SearchParametersGeneric.Currency,
+					},
 				})
 				resultIDnum++
 			}
 		}
 	}
 
-	return &carbonv1.CarbonCompensateSearchResponse{
+	response := &carbonv1.CarbonCompensateSearchResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		Results: carbonSearchResults,
-	}, nil
+	}
+
+	if len(carbonSearchResults) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: fmt.Sprintf("No results found for search %v", req.Queries),
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
+	} else {
+		response.Metadata = &typesv3.SearchResponseMetadata{
+			SearchId: &typesv1.UUID{Value: uuid.New().String()},
+		}
+	}
+
+	response.Results = carbonSearchResults
+	return response, nil
 }
