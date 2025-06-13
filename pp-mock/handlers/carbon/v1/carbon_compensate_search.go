@@ -143,7 +143,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					QueryId:             query.QueryId,
 					ResultId:            resultIDnum, // TODO: make unique
 					TotalPrice: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(100)),
+						Value:     fmt.Sprintf("%d", int(10*amount)),
 						Decimals: 2,
 						Currency: req.SearchParametersGeneric.Currency,
 					},
