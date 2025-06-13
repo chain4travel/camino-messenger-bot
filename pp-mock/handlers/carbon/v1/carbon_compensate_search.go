@@ -215,11 +215,11 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					Id:        transport.Id,
 					Reference: int32(resultIDnum),
 					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price*1)),
+						Value:    fmt.Sprintf("%d", int(price)),
 						Decimals: 2,
 						Currency: req.SearchParametersGeneric.Currency,
 					},
-					Amount:     totalTransportAmount * 1,
+					Amount:     totalTransportAmount,
 					ProposalId: "1234567890",
 				}
 
