@@ -179,6 +179,44 @@ func testCarbonCompensateV1ValidateV2(
 	return resp.ValidationId.Value
 }
 
+func testCarbonCompensateV1MintV2(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	validationID string,
+) (
+	tokenID uint64,
+	price *typesv2.Price,
+	mintID string,
+) {
+	req := &bookv2.MintRequest{
+		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		ValidationId: &typesv1.UUID{Value: validationID},
+	}
+	resp, err := distributorBot.MintServiceV2.Mint(
+		requestContext(ctx, &metadata.Metadata{
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+
+	// Check if the MintId is set
+	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
+	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
+
+	// check if the transaction ids are set and return them for further tests
+	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
+	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
+
+	return resp.BookingTokenId, resp.Price, resp.MintId.Value
+}
+
 func TestCarbonCompensateV1(
 	t *testing.T,
 	tt *Test,
@@ -188,9 +226,13 @@ func TestCarbonCompensateV1(
 
 	_, supplierBot, distributorBot := testCarbonCompensateV1Setup(ctx, t, tt)
 
-	t.Run("Search", func(t *testing.T) {
+	t.Run("Search->Validate->Mint", func(t *testing.T) {
 		searchID, resultID, totalPrice := testCarbonCompensateV1Search(ctx, t, tt, distributorBot, supplierBot)
 		validationId := testCarbonCompensateV1ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		fmt.Println("validationId", validationId)
+		tokenID, price, mintID := testCarbonCompensateV1MintV2(ctx, t, tt, distributorBot, supplierBot, validationId)
+		fmt.Println("tokenID", tokenID)
+		fmt.Println("price", price)
+		fmt.Println("mintID", mintID)
 	})
 }
