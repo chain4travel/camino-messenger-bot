@@ -211,7 +211,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				}
 
 				price := float32(120 * totalTransportAmount) // 120 cents per kg CO2
-
+				// TODO: Can't have 3 packagese - each should be it's own result?
 				p30 := &carbonv1.CarbonCompensation{
 					Id:        transport.Id,
 					Reference: int32(resultIDnum),
