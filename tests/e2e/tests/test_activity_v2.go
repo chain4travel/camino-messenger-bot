@@ -45,10 +45,10 @@ func testActivityV2Setup(
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV2,
 	))
-	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot = tt.CreateBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
+	supplierBot = tt.createBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.ActivityProductListServiceV2, Fee: 100},
 		{Name: botGenerated.ActivityProductInfoServiceV2, Fee: 110},
 		{Name: botGenerated.ActivitySearchServiceV2, Fee: 120},
@@ -57,7 +57,7 @@ func testActivityV2Setup(
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
+	distributorBot = tt.createBot(ctx, t, true, nil, nil)
 
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
