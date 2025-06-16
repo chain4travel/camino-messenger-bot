@@ -14,11 +14,8 @@
 		"unit_code": "EESPMI46VY",
 		"service_code": "XO",
 		"bookability": {
-			"type": 2,
-			"confirmation_time": {
-				"hours": 24,
-				"minutes": 0
-			}
+			"type": 1,
+			"confirmation_time": null
 		}
 	},
 	{
@@ -36,11 +33,8 @@
 		"unit_code": "EESPMI46VY",
 		"service_code": "XO",
 		"bookability": {
-			"type": 2,
-			"confirmation_time": {
-				"hours": 168,
-				"minutes": 0
-			}
+			"type": 1,
+			"confirmation_time": null
 		}
 	},
 	{
