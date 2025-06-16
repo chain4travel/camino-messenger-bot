@@ -53,6 +53,142 @@ func testCarbonCompensateV1Setup(
 	return supplierPartnerPlugin, supplierBot, distributorBot
 }
 
+func testCarbonCompensateAccommodationV1Search(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) (
+	searchID string,
+	resultID int32,
+	totalPrice float64,
+) {
+
+	req := &carbonv1.CarbonCompensateSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_NativeToken{}},
+		},
+		Queries: []*carbonv1.CarbonSearchQuery{{
+			Accommodation: []*carbonv1.AccommodationCarbonSearchQuery{{
+				Id:        1,
+				Reference: "booking-reference-1",
+				Location: &carbonv1.AccommodationCarbonSearchQuery_LocationCode{
+					LocationCode: &typesv2.LocationCode{
+						Code: "BER",
+					},
+				},
+				CategoryRating: accommodationv3.CategoryRating_CATEGORY_RATING_4_5,
+				CategoryUnit:   accommodationv3.CategoryUnit_CATEGORY_UNIT_STARS,
+				Period: &typesv1.DateTimeRange{
+					StartDatetime: timestamppb.New(time.Date(2024, 1, 1, 16, 0, 0, 0, time.UTC)),
+					EndDatetime:   timestamppb.New(time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC)),
+				},
+			}},
+			SearchParametersCarbon: &carbonv1.CarbonSearchParameters{
+				CompensationType: carbonv1.CompensationType_COMPENSATION_TYPE_CO2_DEBITS,
+			},
+		}},
+	}
+
+	resp, err := distributorBot.CarbonCompensateServiceV1.CarbonCompensateSearch(
+		requestContext(ctx, &metadata.Metadata{
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status)
+	require.Empty(t, resp.Header.Alerts)
+
+	// Extract the total price from the response
+	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Value, 64)
+	require.NoError(t, err)
+
+	return resp.Metadata.SearchId.Value, resp.Results[0].ResultId, totalPrice
+}
+
+func testCarbonCompensateTransportV1Search(
+	ctx context.Context,
+	t *testing.T,
+	tt *Test,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) (
+	searchID string,
+	resultID int32,
+	totalPrice float64,
+) {
+
+	req := &carbonv1.CarbonCompensateSearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_NativeToken{}},
+		},
+		Queries: []*carbonv1.CarbonSearchQuery{{
+			Transport: []*carbonv1.TransportCarbonSearchQuery{{
+				Id:        2,
+				Reference: "booking-reference-2",
+				From: &transportv3.QueryTransitEventLocation{
+					Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+						LocationCodes: &typesv2.LocationCodes{
+							Codes: []*typesv2.LocationCode{
+								{
+									Code: "HAM",
+								},
+								{
+									Code: "BER",
+								},
+							},
+						},
+					},
+				},
+				To: &transportv3.QueryTransitEventLocation{
+					Location: &transportv3.QueryTransitEventLocation_LocationCodes{
+						LocationCodes: &typesv2.LocationCodes{
+							Codes: []*typesv2.LocationCode{
+								{
+									Code: "BER",
+								},
+								{
+									Code: "HAM",
+								},
+							},
+						},
+					},
+				},
+				VehicleType: "plane",
+			}},
+			SearchParametersCarbon: &carbonv1.CarbonSearchParameters{
+				CompensationType: carbonv1.CompensationType_COMPENSATION_TYPE_CO2_DEBITS,
+			},
+		}},
+	}
+
+	resp, err := distributorBot.CarbonCompensateServiceV1.CarbonCompensateSearch(
+		requestContext(ctx, &metadata.Metadata{
+			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
+		}),
+		req,
+	)
+	require.NoError(t, err)
+	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status)
+	require.Empty(t, resp.Header.Alerts)
+
+	// Extract the total price from the response
+	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Value, 64)
+	require.NoError(t, err)
+
+	return resp.Metadata.SearchId.Value, resp.Results[0].ResultId, totalPrice
+}
+
 func testCarbonCompensateV1Search(
 	ctx context.Context,
 	t *testing.T,
@@ -226,8 +362,18 @@ func TestCarbonCompensateV1(
 
 	_, supplierBot, distributorBot := testCarbonCompensateV1Setup(ctx, t, tt)
 
-	t.Run("Search->Validate->Mint", func(t *testing.T) {
-		searchID, resultID, totalPrice := testCarbonCompensateV1Search(ctx, t, tt, distributorBot, supplierBot)
+	t.Run("Transport Search->Validate->Mint", func(t *testing.T) {
+		searchID, resultID, totalPrice := testCarbonCompensateTransportV1Search(ctx, t, tt, distributorBot, supplierBot)
+		validationId := testCarbonCompensateV1ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
+		fmt.Println("validationId", validationId)
+		tokenID, price, mintID := testCarbonCompensateV1MintV2(ctx, t, tt, distributorBot, supplierBot, validationId)
+		fmt.Println("tokenID", tokenID)
+		fmt.Println("price", price)
+		fmt.Println("mintID", mintID)
+	})
+
+	t.Run("Accommodation Search->Validate->Mint", func(t *testing.T) {
+		searchID, resultID, totalPrice := testCarbonCompensateAccommodationV1Search(ctx, t, tt, distributorBot, supplierBot)
 		validationId := testCarbonCompensateV1ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		fmt.Println("validationId", validationId)
 		tokenID, price, mintID := testCarbonCompensateV1MintV2(ctx, t, tt, distributorBot, supplierBot, validationId)

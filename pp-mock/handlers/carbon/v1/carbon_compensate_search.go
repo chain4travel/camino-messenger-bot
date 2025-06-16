@@ -141,9 +141,9 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
 					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
-					ResultId:            resultIDnum, // TODO: make unique
+					ResultId:            resultIDnum,
 					TotalPrice: &typesv3.Price{
-						Value:     fmt.Sprintf("%d", int(10*amount)),
+						Value:    fmt.Sprintf("%d", int(10*amount)),
 						Decimals: 2,
 						Currency: req.SearchParametersGeneric.Currency,
 					},
@@ -189,10 +189,14 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					var exists bool
 
 					switch transport.VehicleType {
-					case "plane", "airplane", "aircraft":
+					case "plane", "airplane", "aircraft", "aeroplane":
 						amount, exists = mockdata.PlaneRouteToAmount[routeKey]
 					case "train", "railway", "rail":
 						amount, exists = mockdata.TrainRouteToAmount[routeKey]
+					case "car", "automobile", "trailer", "van":
+						amount, exists = mockdata.TransportRouteToAmount[routeKey]
+					case "bus":
+						amount, exists = mockdata.BusRouteToAmount[routeKey]
 					default:
 						// Default to plane mapping for unknown vehicle types
 						amount, exists = mockdata.PlaneRouteToAmount[routeKey]

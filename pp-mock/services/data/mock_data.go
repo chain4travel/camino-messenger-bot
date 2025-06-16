@@ -38,6 +38,7 @@ var (
 	TripsBasicV3    []*transportv3.TripBasic
 	TripsExtendedV3 []*transportv3.TripExtended
 
+	// Mocked accommodation carbon compensation per location code per day (EUR)
 	LocationCodeToAmountPerDay = map[string]float32{
 		"PMI": 25.50,
 		"BCN": 30.75,
@@ -48,7 +49,7 @@ var (
 		"BER": 38.75,
 	}
 
-	// Transport carbon compensation amounts per route (kg CO2)
+	// Mocked transport carbon compensation amounts per route (kg CO2)
 	TransportRouteToAmount = map[string]float32{
 		"HAM-BER": 45.20,
 		"BER-HAM": 45.20,
@@ -62,7 +63,7 @@ var (
 		"HAM-LAN": 65.80,
 	}
 
-	// Plane transport carbon compensation (kg CO2) - higher emissions
+	// Mocked plane transport carbon compensation (kg CO2)
 	PlaneRouteToAmount = map[string]float32{
 		"HAM-BER": 45.20,
 		"BER-HAM": 45.20,
@@ -80,7 +81,7 @@ var (
 		"BCN-LIS": 55.40,
 	}
 
-	// Train transport carbon compensation (kg CO2) - much lower emissions
+	// Mocked train transport carbon compensation (kg CO2)
 	TrainRouteToAmount = map[string]float32{
 		"HAM-BER": 4.10,
 		"BER-HAM": 4.10,
@@ -92,6 +93,20 @@ var (
 		"LAN-HAM": 6.15,
 		"BER-LAN": 5.20,
 		"LAN-BER": 5.20,
+	}
+
+	// Mocked bus transport carbon compensation (kg CO2)
+	BusRouteToAmount = map[string]float32{
+		"HAM-BER": 2.50,
+		"BER-HAM": 2.50,
+		"PMI-BCN": 3.00,
+		"BCN-PMI": 3.00,
+		"BCN-MAD": 2.20,
+		"MAD-BCN": 2.20,
+		"MAD-LIS": 2.40,
+		"LIS-MAD": 2.40,
+		"LAN-HAM": 3.70,
+		"HAM-LAN": 3.70,
 	}
 )
 
