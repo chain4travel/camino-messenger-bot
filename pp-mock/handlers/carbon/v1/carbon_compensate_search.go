@@ -130,14 +130,14 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				}
 
 				pricev3 := &typesv3.Price{
-					Value:    fmt.Sprintf("%d", int(10*amount)),
+					Value:    fmt.Sprintf("%.0f", 120*amount), // price per kg CO2
 					Decimals: 2,
 					Currency: req.SearchParametersGeneric.Currency,
 				}
 
 				p := &carbonv1.CarbonCompensation{
 					Id:         accommodation.Id,
-					Reference:  int32(resultIDnum), // TODO Reference is a string in request, but int32 in response
+					Reference:  int32(resultIDnum), // TODO: Reference is a string in request, but int32 in response
 					Price:      pricev3,
 					Amount:     amount,
 					ProposalId: "1234567890",
@@ -218,9 +218,9 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					}
 				}
 
-				price := float32(120 * totalTransportAmount) // e.g. 120 cents per kg CO2
+				price := float32(120 * totalTransportAmount) // price per kg CO2
 				pricev3 := &typesv3.Price{
-					Value:    fmt.Sprintf("%d", int(price)),
+					Value:    fmt.Sprintf("%.0f", price),
 					Decimals: 2,
 					Currency: req.SearchParametersGeneric.Currency,
 				}
