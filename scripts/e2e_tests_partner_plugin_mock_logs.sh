@@ -1,4 +1,7 @@
 #!/bin/bash
+# The script is a tests related debug utility.
+# It finds and shows logs from partner plugin mock services that were running during e2e tests
+# It's useful for debugging test failures or understanding test behavior
 
 if [ -d "$HOME/tmp/cmb-e2e" ] ; then
 	target_dir="$HOME/tmp/cmb-e2e"
