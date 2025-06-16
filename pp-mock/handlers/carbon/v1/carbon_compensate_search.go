@@ -264,8 +264,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 		}
 
 		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
-			NumResults: len(carbonSearchResults),
-			// NumTravelers: 1, // Default for carbon compensation
+			NumResults:   len(carbonSearchResults),
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: response.String(),
