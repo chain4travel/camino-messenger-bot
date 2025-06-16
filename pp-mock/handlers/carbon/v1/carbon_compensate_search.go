@@ -72,6 +72,8 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 
 	carbonSearchResults := []*carbonv1.CarbonSearchResult{}
 	resultIDnum := int32(1)
+	validationPrices := []*state.UnifiedPrice{}
+
 	for _, query := range req.Queries {
 
 		// Check if SearchParametersCarbon is missing
@@ -127,13 +129,16 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					amount = locAmount
 				}
 
+				pricev3 := &typesv3.Price{
+					Value:    fmt.Sprintf("%d", int(10*amount)),
+					Decimals: 2,
+					Currency: req.SearchParametersGeneric.Currency,
+				}
+
 				p := &carbonv1.CarbonCompensation{
-					Id:        accommodation.Id,
-					Reference: int32(resultIDnum), // TODO Reference is a string in request, but int32 in response
-					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(10*amount)),
-						Decimals: 2,
-					},
+					Id:         accommodation.Id,
+					Reference:  int32(resultIDnum), // TODO Reference is a string in request, but int32 in response
+					Price:      pricev3,
 					Amount:     amount,
 					ProposalId: "1234567890",
 				}
@@ -142,13 +147,12 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
 					ResultId:            resultIDnum,
-					TotalPrice: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(10*amount)),
-						Decimals: 2,
-						Currency: req.SearchParametersGeneric.Currency,
-					},
-				},
-				)
+					TotalPrice:          pricev3,
+				})
+
+				validationPrice := state.PriceV3ToUnifiedPrice(pricev3)
+				validationPrices = append(validationPrices, validationPrice)
+
 				resultIDnum++
 			}
 
@@ -215,14 +219,15 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 				}
 
 				price := float32(120 * totalTransportAmount) // e.g. 120 cents per kg CO2
+				pricev3 := &typesv3.Price{
+					Value:    fmt.Sprintf("%d", int(price)),
+					Decimals: 2,
+					Currency: req.SearchParametersGeneric.Currency,
+				}
 				p := &carbonv1.CarbonCompensation{
-					Id:        transport.Id,
-					Reference: int32(resultIDnum),
-					Price: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price)),
-						Decimals: 2,
-						Currency: req.SearchParametersGeneric.Currency,
-					},
+					Id:         transport.Id,
+					Reference:  int32(resultIDnum),
+					Price:      pricev3,
 					Amount:     totalTransportAmount,
 					ProposalId: "1234567890",
 				}
@@ -231,12 +236,11 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					CompensationPackage: []*carbonv1.CarbonCompensation{p},
 					QueryId:             query.QueryId,
 					ResultId:            resultIDnum,
-					TotalPrice: &typesv3.Price{
-						Value:    fmt.Sprintf("%d", int(price)),
-						Decimals: 2,
-						Currency: req.SearchParametersGeneric.Currency,
-					},
+					TotalPrice:          pricev3,
 				})
+
+				validationPrice := state.PriceV3ToUnifiedPrice(pricev3)
+				validationPrices = append(validationPrices, validationPrice)
 				resultIDnum++
 			}
 		}
@@ -259,21 +263,9 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
 
-		// Store search results for validation
-		validationPrices := make([]*state.UnifiedPrice, len(carbonSearchResults))
-		for i, result := range carbonSearchResults {
-			validationPrices[i] = &state.UnifiedPrice{
-				Price:                result.TotalPrice.Value,
-				Decimals:             result.TotalPrice.Decimals,
-				IsNative:             result.TotalPrice.Currency != nil && result.TotalPrice.Currency.GetNativeToken() != nil,
-				IsoCurrencyEnum:      int32(result.TotalPrice.Currency.GetIsoCurrency()),
-				TokenContractAddress: "", // Not used for carbon compensation
-			}
-		}
-
 		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
-			NumResults:   len(carbonSearchResults),
-			NumTravelers: 1, // Default for carbon compensation
+			NumResults: len(carbonSearchResults),
+			// NumTravelers: 1, // Default for carbon compensation
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: response.String(),
