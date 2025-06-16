@@ -14,7 +14,7 @@
 		"unit_code": "EESPMI46VY",
 		"service_code": "XO",
 		"bookability": {
-			"type": 1,
+			"type": 2,
 			"confirmation_time": {
 				"hours": 24,
 				"minutes": 0
@@ -59,10 +59,7 @@
 		"service_code": "XO",
 		"bookability": {
 			"type": 1,
-			"confirmation_time": {
-				"hours": 24,
-				"minutes": 0
-			}
+			"confirmation_time": null
 		}
 	}
 ]
