@@ -8,6 +8,7 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
+	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
@@ -28,6 +29,15 @@ var tripsV3BasicJSON []byte
 
 //go:embed tripsv3_extended.json
 var tripsV3ExtendedJSON []byte
+
+//go:embed activityv1.json
+var activityV1JSON []byte
+
+//go:embed activityv1_extended.json
+var activityExtendedV1JSON []byte
+
+//go:embed activityv1_search.json
+var activitySearchResultV1JSON []byte
 
 //go:embed activityv2.json
 var activityV2JSON []byte
@@ -57,6 +67,10 @@ var (
 
 	TripsBasicV3    []*transportv3.TripBasic    // used by product list
 	TripsExtendedV3 []*transportv3.TripExtended // used by search
+
+	ActivityV1             []*activityv1.Activity
+	ActivityExtendedV1     []*activityv1.ActivityExtendedInfo
+	ActivitySearchResultV1 []*activityv1.ActivitySearchResult
 
 	ActivityV2             []*activityv2.Activity
 	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo
@@ -88,6 +102,15 @@ func init() {
 	}
 	if err := json.Unmarshal(tripsV3ExtendedJSON, &TripsExtendedV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling trips v3 extended: %w", err))
+	}
+	if err := json.Unmarshal(activityV1JSON, &ActivityV1); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities v1: %w", err))
+	}
+	if err := json.Unmarshal(activityExtendedV1JSON, &ActivityExtendedV1); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities extended v1: %w", err))
+	}
+	if err := json.Unmarshal(activitySearchResultV1JSON, &ActivitySearchResultV1); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities search v1: %w", err))
 	}
 	if err := json.Unmarshal(activityV2JSON, &ActivityV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities v2: %w", err))
