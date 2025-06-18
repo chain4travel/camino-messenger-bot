@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/carbon/v1/carbonv1grpc"
 	carbonv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/carbon/v1"
@@ -76,6 +77,8 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 
 	for _, query := range req.Queries {
 
+		packages := []*carbonv1.CarbonCompensation{}
+
 		// Check if SearchParametersCarbon is missing
 		if query.SearchParametersCarbon == nil {
 			return &carbonv1.CarbonCompensateSearchResponse{
@@ -142,18 +145,7 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					Amount:     amount,
 					ProposalId: "1234567890",
 				}
-
-				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
-					CompensationPackage: []*carbonv1.CarbonCompensation{p},
-					QueryId:             query.QueryId,
-					ResultId:            resultIDnum,
-					TotalPrice:          pricev3,
-				})
-
-				validationPrice := state.PriceV3ToUnifiedPrice(pricev3)
-				validationPrices = append(validationPrices, validationPrice)
-
-				resultIDnum++
+				packages = append(packages, p)
 			}
 
 			for _, transport := range query.GetTransport() {
@@ -232,18 +224,47 @@ func (s *carbonCompensateSearchV1Server) CarbonCompensateSearch(ctx context.Cont
 					ProposalId: "1234567890",
 				}
 
-				carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
-					CompensationPackage: []*carbonv1.CarbonCompensation{p},
-					QueryId:             query.QueryId,
-					ResultId:            resultIDnum,
-					TotalPrice:          pricev3,
-				})
-
-				validationPrice := state.PriceV3ToUnifiedPrice(pricev3)
-				validationPrices = append(validationPrices, validationPrice)
-				resultIDnum++
+				packages = append(packages, p)
 			}
 		}
+
+		var totalPriceFloat float64
+		for _, p := range packages {
+			priceValue, err := strconv.ParseFloat(p.Price.Value, 64)
+			if err != nil {
+				return &carbonv1.CarbonCompensateSearchResponse{
+					Header: &typesv1.ResponseHeader{
+						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+						Alerts: []*typesv1.Alert{{
+							Message: fmt.Sprintf("Failed to parse price value: %v", err),
+							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+						}},
+					},
+				}, nil
+			}
+			totalPriceFloat += priceValue
+		}
+		// HARDCODED ISO CURRENCY EUR
+		totalPrice := &typesv3.Price{
+			Value:    fmt.Sprintf("%.0f", totalPriceFloat),
+			Decimals: 2,
+			Currency: &typesv3.Currency{
+				Currency: &typesv3.Currency_IsoCurrency{
+					IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+				},
+			},
+		}
+
+		carbonSearchResults = append(carbonSearchResults, &carbonv1.CarbonSearchResult{
+			CompensationPackage: packages,
+			QueryId:             query.QueryId,
+			ResultId:            resultIDnum,
+			TotalPrice:          totalPrice,
+		})
+
+		validationPrice := state.PriceV3ToUnifiedPrice(totalPrice)
+		validationPrices = append(validationPrices, validationPrice)
+		resultIDnum++
 	}
 
 	response := &carbonv1.CarbonCompensateSearchResponse{

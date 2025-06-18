@@ -69,7 +69,9 @@ func testCarbonCompensateAccommodationV1Search(
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParametersGeneric: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_NativeToken{}},
+				Currency: &typesv3.Currency_IsoCurrency{
+					IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+				}},
 		},
 		Queries: []*carbonv1.CarbonSearchQuery{{
 			Accommodation: []*carbonv1.AccommodationCarbonSearchQuery{{
@@ -128,7 +130,9 @@ func testCarbonCompensateTransportV1Search(
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParametersGeneric: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_NativeToken{}},
+				Currency: &typesv3.Currency_IsoCurrency{
+					IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+				}},
 		},
 		Queries: []*carbonv1.CarbonSearchQuery{{
 			Transport: []*carbonv1.TransportCarbonSearchQuery{{
@@ -205,7 +209,9 @@ func testCarbonCompensateV1Search(
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParametersGeneric: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_NativeToken{}},
+				Currency: &typesv3.Currency_IsoCurrency{
+					IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+				}},
 		},
 		Queries: []*carbonv1.CarbonSearchQuery{{
 			Accommodation: []*carbonv1.AccommodationCarbonSearchQuery{{
@@ -374,6 +380,16 @@ func TestCarbonCompensateV1(
 
 	t.Run("Accommodation Search->Validate->Mint", func(t *testing.T) {
 		searchID, resultID, totalPrice := testCarbonCompensateAccommodationV1Search(ctx, t, tt, distributorBot, supplierBot)
+		validationId := testCarbonCompensateV1ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
+		fmt.Println("validationId", validationId)
+		tokenID, price, mintID := testCarbonCompensateV1MintV2(ctx, t, tt, distributorBot, supplierBot, validationId)
+		fmt.Println("tokenID", tokenID)
+		fmt.Println("price", price)
+		fmt.Println("mintID", mintID)
+	})
+
+	t.Run("Accommodation and Transport Search->Validate->Mint", func(t *testing.T) {
+		searchID, resultID, totalPrice := testCarbonCompensateV1Search(ctx, t, tt, distributorBot, supplierBot)
 		validationId := testCarbonCompensateV1ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
 		fmt.Println("validationId", validationId)
 		tokenID, price, mintID := testCarbonCompensateV1MintV2(ctx, t, tt, distributorBot, supplierBot, validationId)
