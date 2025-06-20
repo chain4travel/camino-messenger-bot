@@ -28,7 +28,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const activityProductV2Code = "XPTFAOH15O"
+const activityV2ProductCode = "XPTFAOH15O"
 
 // Setting up the basic applications and services used in all sub-test-cases
 func testActivityV2Setup(
@@ -197,7 +197,7 @@ func testActivityV2ProductInfoService(
 
 	tt.logger.Debug("ActivityProductInfoServiceV2.ActivityProductInfo response:\n", protoMessageToJSON(tt, allActivitiesResp))
 
-	supplierCode2 := "XPTFAOH15O"
+	supplierCode2 := activityV2ProductCode
 
 	req2 := &activityv2.ActivityProductInfoRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -390,7 +390,7 @@ func testActivityV2SearchServiceWithoutTravelPeriod(
 		SearchParametersActivity: &activityv2.ActivitySearchParameters{
 			ProductCodes: []*typesv2.ProductCode{
 				{
-					Code: activityProductV2Code,
+					Code: activityV2ProductCode,
 				},
 			},
 		},
@@ -431,7 +431,7 @@ func testActivityV2SearchServiceTravelPeriodOutOfBounds(
 		SearchParametersActivity: &activityv2.ActivitySearchParameters{
 			ProductCodes: []*typesv2.ProductCode{
 				{
-					Code: activityProductV2Code,
+					Code: activityV2ProductCode,
 				},
 			},
 		},
@@ -478,7 +478,7 @@ func testActivityV2SearchServiceTravelPeriodReversed(
 			SearchParametersActivity: &activityv2.ActivitySearchParameters{
 				ProductCodes: []*typesv2.ProductCode{
 					{
-						Code: activityProductV2Code,
+						Code: activityV2ProductCode,
 					},
 				},
 			},
@@ -522,7 +522,7 @@ func testActivityV2SearchServiceWithTravelPeriod(
 		SearchParametersActivity: &activityv2.ActivitySearchParameters{
 			ProductCodes: []*typesv2.ProductCode{
 				{
-					Code: activityProductV2Code,
+					Code: activityV2ProductCode,
 				},
 			},
 		},

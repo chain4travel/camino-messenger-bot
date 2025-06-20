@@ -199,7 +199,7 @@ func testactivityv3ProductInfoService(
 
 	tt.logger.Debug("ActivityProductInfoServiceV3.ActivityProductInfo response:\n", protoMessageToJSON(tt, allActivitiesResp))
 
-	supplierCode3 := "XPTFAOH15O"
+	supplierCode3 := activityV3ProductCode
 
 	req2 := &activityv3.ActivityProductInfoRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
