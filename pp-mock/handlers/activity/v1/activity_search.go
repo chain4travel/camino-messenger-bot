@@ -17,6 +17,8 @@ import (
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ activityv1grpc.ActivitySearchServiceServer = (*ActivitySearchV1Server)(nil)
@@ -38,16 +40,7 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	if err := md.ExtractMetadata(ctx); err != nil {
 		// TODO Improve error handling for metadata extraction - handle consistently across all files. Must either return error or error response.
 		log.Printf("ERROR extracting metadata: %v", err) // Log the actual error
-		// Consider returning an error response here as well
-		return &activityv1.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Internal server error: failed to extract request metadata",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil // Or return err if the framework handles it appropriately
+		return nil, status.Error(codes.InvalidArgument, "failed to extract request metadata")
 	}
 	// Log extracted metadata before stamping
 	log.Printf("Metadata extracted successfully. Metadata content (before stamp): %+v", md)
@@ -61,16 +54,7 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	log.Printf("Checking if request metadata (req.Metadata) is nil. Value: %+v", req.Metadata)
 	if req.Metadata == nil {
 		log.Printf("Request metadata (req.Metadata) is missing.")
-		// return error if metadata is missing
-		return &activityv1.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Metadata is missing",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return nil, status.Error(codes.InvalidArgument, "metadata is missing")
 	}
 
 	// Validate search parameters generic and currency
@@ -83,30 +67,14 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	}
 	if req.SearchParametersGeneric == nil || req.SearchParametersGeneric.Currency == nil {
 		log.Printf("Validation failed: SearchParametersGeneric or Currency is missing.")
-		return &activityv1.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Mandatory field SearchParametersGeneric.Currency is missing",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return nil, status.Error(codes.InvalidArgument, "mandatory field SearchParametersGeneric.Currency is missing")
 	}
 
 	// Validate travel period
 	log.Printf("Checking req.TravelPeriod. Value: %+v", req.TravelPeriod)
 	if req.TravelPeriod == nil {
 		log.Printf("Validation failed: TravelPeriod is missing.")
-		return &activityv1.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Mandatory field TravelPeriod is missing",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return nil, status.Error(codes.InvalidArgument, "mandatory field TravelPeriod is missing")
 	}
 
 	// Validate travellers
@@ -114,15 +82,7 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	log.Printf("Checking number of travellers. Count: %d. Travellers list: %+v", len(req.Travellers), req.Travellers)
 	if len(req.Travellers) == 0 {
 		log.Printf("Validation failed: At least one traveller is required.")
-		return &activityv1.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "At least one traveller is required to search for activities",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return nil, status.Error(codes.InvalidArgument, "at least one traveller is required to search for activities")
 	}
 
 	// FIX: Initialize outer slice, not inside the loop
