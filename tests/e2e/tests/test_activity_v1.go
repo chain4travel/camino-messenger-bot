@@ -24,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -195,12 +194,12 @@ func testActivityV1ProductInfoService(
 
 	tt.logger.Debug("ActivityProductInfoServiceV1.ActivityProductInfo response:\n", protoMessageToJSON(tt, allActivitiesResp))
 
-	supplierCode := "XPTFAOH15O"
+	supplierCode1 := "XPTFAOH15O"
 
 	req2 := &activityv1.ActivityProductInfoRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SupplierCodes: []*typesv1.SupplierProductCode{
-			{SupplierCode: supplierCode},
+			{SupplierCode: supplierCode1},
 		},
 	}
 	resp, err := distributorBot.ActivityProductInfoServiceV1.ActivityProductInfo(
@@ -226,7 +225,7 @@ func testActivityV1ProductInfoService(
 
 	// Check supplier code
 	require.NotNil(t, activity.SupplierCode, "unexpected nil SupplierCode")
-	require.Equal(t, supplierCode, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
+	require.Equal(t, supplierCode1, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
 
 	// Check additional activity data
 	require.NotEmpty(t, activity.CategoryCode, "unexpected empty CategoryCode")

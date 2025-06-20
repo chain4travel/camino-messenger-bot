@@ -195,12 +195,12 @@ func testActivityV2ProductInfoService(
 
 	tt.logger.Debug("ActivityProductInfoServiceV2.ActivityProductInfo response:\n", protoMessageToJSON(tt, allActivitiesResp))
 
-	supplierCode := "XPTFAOH15O"
+	supplierCode2 := "XPTFAOH15O"
 
 	req2 := &activityv2.ActivityProductInfoRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SupplierCodes: []*typesv2.SupplierProductCode{
-			{SupplierCode: supplierCode},
+			{SupplierCode: supplierCode2},
 		},
 	}
 	resp, err := distributorBot.ActivityProductInfoServiceV2.ActivityProductInfo(
@@ -226,7 +226,7 @@ func testActivityV2ProductInfoService(
 
 	// Check supplier code
 	require.NotNil(t, activity.SupplierCode, "unexpected nil SupplierCode")
-	require.Equal(t, supplierCode, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
+	require.Equal(t, supplierCode2, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
 
 	// Check additional activity data
 	require.NotEmpty(t, activity.CategoryCode, "unexpected empty CategoryCode")

@@ -197,12 +197,12 @@ func testactivityv3ProductInfoService(
 
 	tt.logger.Debug("ActivityProductInfoServiceV3.ActivityProductInfo response:\n", protoMessageToJSON(tt, allActivitiesResp))
 
-	supplierCode := "XPTFAOH15O"
+	supplierCode3 := "XPTFAOH15O"
 
 	req2 := &activityv3.ActivityProductInfoRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SupplierCodes: []*typesv2.SupplierProductCode{
-			{SupplierCode: supplierCode},
+			{SupplierCode: supplierCode3},
 		},
 	}
 	resp, err := distributorBot.ActivityProductInfoServiceV3.ActivityProductInfo(
@@ -228,7 +228,7 @@ func testactivityv3ProductInfoService(
 
 	// Check supplier code
 	require.NotNil(t, activity.SupplierCode, "unexpected nil SupplierCode")
-	require.Equal(t, supplierCode, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
+	require.Equal(t, supplierCode3, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
 
 	// Check additional activity data
 	require.NotEmpty(t, activity.CategoryCode, "unexpected empty CategoryCode")
@@ -379,7 +379,7 @@ func testactivityv3SearchServiceWithoutTravelPeriod(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-	const activityProductCode = "XPTFAOH15O"
+	const activityProductCode3 = "XPTFAOH15O"
 	req := &activityv3.ActivitySearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		Metadata: &typesv3.SearchRequestMetadata{
@@ -391,7 +391,7 @@ func testactivityv3SearchServiceWithoutTravelPeriod(
 		SearchParametersActivity: &activityv3.ActivitySearchParameters{
 			ProductCodes: []*typesv2.ProductCode{
 				{
-					Code: activityProductCode,
+					Code: activityProductCode3,
 				},
 			},
 		},
@@ -462,7 +462,7 @@ func testactivityv3SearchServiceTravelPeriodReversed(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-	const activityProductCode = "XPTFAOH15O"
+	const activityProductCode3 = "XPTFAOH15O"
 
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
@@ -483,7 +483,7 @@ func testactivityv3SearchServiceTravelPeriodReversed(
 			SearchParametersActivity: &activityv3.ActivitySearchParameters{
 				ProductCodes: []*typesv2.ProductCode{
 					{
-						Code: activityProductCode,
+						Code: activityProductCode3,
 					},
 				},
 			},
