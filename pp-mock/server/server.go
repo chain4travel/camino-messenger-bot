@@ -18,6 +18,7 @@ import (
 	accommodation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v1"
 	accommodation_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v2"
 	accommodation_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v3"
+	activity_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v1"
 	activity_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v2"
 	activity_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v3"
 	book_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v1"
@@ -36,6 +37,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
@@ -99,7 +101,10 @@ func Run() error {
 	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v3.NewAccommodationProductInfoV3Server())
 	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListV3Server())
 
-	// todo Activity V1
+	//Activity V1
+	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, &activity_v1.ActivityProductListV1Server{})
+	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, &activity_v1.ActivityProductInfoV1Server{})
+	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, &activity_v1.ActivitySearchV1Server{})
 	// Activity V2
 	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, &activity_v2.ActivityProductListV2Server{})
 	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, &activity_v2.ActivityProductInfoV2Server{})
