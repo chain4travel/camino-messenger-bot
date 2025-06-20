@@ -30,6 +30,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const activityV3ProductCode = "XPTFAOH15O"
+
 // Setting up the basic applications and services used in all sub-test-cases
 func testActivityV3Setup(
 	ctx context.Context,
@@ -379,7 +381,6 @@ func testactivityv3SearchServiceWithoutTravelPeriod(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-	const activityProductCode3 = "XPTFAOH15O"
 	req := &activityv3.ActivitySearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		Metadata: &typesv3.SearchRequestMetadata{
@@ -391,7 +392,7 @@ func testactivityv3SearchServiceWithoutTravelPeriod(
 		SearchParametersActivity: &activityv3.ActivitySearchParameters{
 			ProductCodes: []*typesv2.ProductCode{
 				{
-					Code: activityProductCode3,
+					Code: activityV3ProductCode,
 				},
 			},
 		},
@@ -417,8 +418,6 @@ func testactivityv3SearchServiceTravelPeriodOutOfBounds(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-	const activityProductCode = "XPTFAOH15O"
-
 	const nights = 12                                 // 12 nights
 	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
@@ -434,7 +433,7 @@ func testactivityv3SearchServiceTravelPeriodOutOfBounds(
 		SearchParametersActivity: &activityv3.ActivitySearchParameters{
 			ProductCodes: []*typesv2.ProductCode{
 				{
-					Code: activityProductCode,
+					Code: activityV3ProductCode,
 				},
 			},
 		},
@@ -462,8 +461,6 @@ func testactivityv3SearchServiceTravelPeriodReversed(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-	const activityProductCode3 = "XPTFAOH15O"
-
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
@@ -483,7 +480,7 @@ func testactivityv3SearchServiceTravelPeriodReversed(
 			SearchParametersActivity: &activityv3.ActivitySearchParameters{
 				ProductCodes: []*typesv2.ProductCode{
 					{
-						Code: activityProductCode3,
+						Code: activityV3ProductCode,
 					},
 				},
 			},
@@ -512,7 +509,6 @@ func testactivityv3SearchServiceWithTravelPeriod(
 	resultID int32,
 	totalPrice float64,
 ) {
-	const activityProductCode = "XPTFAOH15O"
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
@@ -528,7 +524,7 @@ func testactivityv3SearchServiceWithTravelPeriod(
 		SearchParametersActivity: &activityv3.ActivitySearchParameters{
 			ProductCodes: []*typesv2.ProductCode{
 				{
-					Code: activityProductCode,
+					Code: activityV3ProductCode,
 				},
 			},
 		},
