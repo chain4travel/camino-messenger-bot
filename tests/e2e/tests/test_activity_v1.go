@@ -63,7 +63,7 @@ func testActivityV1Setup(
 }
 
 // Simple product list request which shall return all activities. Checking if all are present
-func TestActivityV1ProductListService(
+func testActivityV1ProductListService(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -123,7 +123,7 @@ func TestActivityV1ProductListService(
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
-func TestActivityV1ProductListServiceWithFilter(
+func testActivityV1ProductListServiceWithFilter(
 	ctx context.Context,
 	t *testing.T,
 	tt *Test,
@@ -713,11 +713,11 @@ func TestActivityV1(t *testing.T, tt *Test) {
 
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the activities
-		TestActivityV1ProductListService(ctx, t, tt, distributorBot, supplierBot)
+		testActivityV1ProductListService(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product list with filter", func(t *testing.T) {
 		// Happy path: will return only one activity
-		TestActivityV1ProductListServiceWithFilter(ctx, t, tt, distributorBot, supplierBot)
+		testActivityV1ProductListServiceWithFilter(ctx, t, tt, distributorBot, supplierBot)
 	})
 	t.Run("Product info", func(t *testing.T) {
 		// Happy path: will return only one activity
