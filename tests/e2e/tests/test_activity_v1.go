@@ -415,7 +415,6 @@ func testActivityV1SearchServiceTravelPeriodOutOfBounds(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-
 	const nights = 12                                 // 12 nights
 	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
@@ -459,7 +458,6 @@ func testActivityV1SearchServiceTravelPeriodReversed(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) {
-
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))

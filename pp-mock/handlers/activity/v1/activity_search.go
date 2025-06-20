@@ -26,7 +26,6 @@ var _ activityv1grpc.ActivitySearchServiceServer = (*ActivitySearchV1Server)(nil
 type ActivitySearchV1Server struct{}
 
 func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
-
 	// Log the entire incoming request at the beginning
 	log.Printf("ActivitySearch received request: %+v", req)
 	md := metadata.Metadata{}
