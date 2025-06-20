@@ -101,7 +101,7 @@ func Run() error {
 	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v3.NewAccommodationProductInfoV3Server())
 	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListV3Server())
 
-	//Activity V1
+	// Activity V1
 	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, &activity_v1.ActivityProductListV1Server{})
 	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, &activity_v1.ActivityProductInfoV1Server{})
 	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, &activity_v1.ActivitySearchV1Server{})
