@@ -55,45 +55,45 @@ func (mr *MockMessengerMockRecorder) Inbound() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Inbound", reflect.TypeOf((*MockMessenger)(nil).Inbound))
 }
 
-// SendAsync mocks base method.
-func (m *MockMessenger) SendAsync(arg0 context.Context, arg1 *types.Message, arg2 id.UserID) error {
+// SendMessage mocks base method.
+func (m *MockMessenger) SendMessage(arg0 context.Context, arg1 *types.Message, arg2 id.UserID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendAsync", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SendMessage", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendAsync indicates an expected call of SendAsync.
-func (mr *MockMessengerMockRecorder) SendAsync(arg0, arg1, arg2 any) *gomock.Call {
+// SendMessage indicates an expected call of SendMessage.
+func (mr *MockMessengerMockRecorder) SendMessage(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAsync", reflect.TypeOf((*MockMessenger)(nil).SendAsync), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockMessenger)(nil).SendMessage), arg0, arg1, arg2)
 }
 
-// StartReceiver mocks base method.
-func (m *MockMessenger) StartReceiver(arg0 context.Context) (chan error, error) {
+// Start mocks base method.
+func (m *MockMessenger) Start(arg0 context.Context) (chan error, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartReceiver", arg0)
+	ret := m.ctrl.Call(m, "Start", arg0)
 	ret0, _ := ret[0].(chan error)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// StartReceiver indicates an expected call of StartReceiver.
-func (mr *MockMessengerMockRecorder) StartReceiver(arg0 any) *gomock.Call {
+// Start indicates an expected call of Start.
+func (mr *MockMessengerMockRecorder) Start(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartReceiver", reflect.TypeOf((*MockMessenger)(nil).StartReceiver), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockMessenger)(nil).Start), arg0)
 }
 
-// StopReceiver mocks base method.
-func (m *MockMessenger) StopReceiver() error {
+// Stop mocks base method.
+func (m *MockMessenger) Stop() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StopReceiver")
+	ret := m.ctrl.Call(m, "Stop")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// StopReceiver indicates an expected call of StopReceiver.
-func (mr *MockMessengerMockRecorder) StopReceiver() *gomock.Call {
+// Stop indicates an expected call of Stop.
+func (mr *MockMessengerMockRecorder) Stop() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopReceiver", reflect.TypeOf((*MockMessenger)(nil).StopReceiver))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockMessenger)(nil).Stop))
 }

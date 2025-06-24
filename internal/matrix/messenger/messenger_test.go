@@ -1,9 +1,13 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package matrix
+package messenger
 
 import (
+	"crypto/ecdsa"
+	"crypto/rand"
+	"errors"
+	"fmt"
 	"testing"
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
@@ -12,177 +16,271 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	gomock "go.uber.org/mock/gomock"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 	"maunium.net/go/mautrix/event"
+	"maunium.net/go/mautrix/id"
 )
 
-func TestAssembleMessage(t *testing.T) {
-	pingResponseMsg := types.Message{
+var testKey *ecdsa.PrivateKey
+
+func init() {
+	var err error
+	testKey, err = ecdsa.GenerateKey(crypto.S256(), rand.Reader)
+	if err != nil {
+		panic(fmt.Errorf("failed to generate test key: %w", err))
+	}
+}
+
+func TestTryAssembleMessage(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	botKey := testKey
+	testError := errors.New("test error")
+
+	msg := types.Message{
+		Metadata: metadata.Metadata{
+			RequestID:          "testRequestID",
+			RecipientCMAccount: "0xADDRESS",
+		},
 		Type:    generated.PingServiceV1Response,
 		Content: &pingv1.PingResponse{PingMessage: "pong"},
 	}
-	type fields struct {
-		partialMessages map[string][]*matrix.CaminoMatrixMessage
-	}
+	contentBytes, err := msg.MarshalContent()
+	require.NoError(t, err)
 
-	type args struct {
-		msg *matrix.CaminoMatrixMessage
-	}
-
-	// mocks
-	ctrl := gomock.NewController(t)
-	mockedDecompressor := compression.NewMockDecompressor(ctrl)
+	compressedContentBytes := []byte{'c', 'o', 'm', 'p', 'r', 'e', 's', 's', 'e', 'd'}
 
 	tests := map[string]struct {
-		fields     fields
-		args       args
-		prepare    func()
-		want       *matrix.CaminoMatrixMessage
-		isComplete bool
-		err        error
+		decompressor                     func(c *gomock.Controller) *compression.MockDecompressor
+		existingMsgEventContents         map[string][]*matrix.CaminoMatrixMessageEventContent
+		msgEventContent                  *matrix.CaminoMatrixMessageEventContent
+		expectedExistingMsgEventContents map[string][]*matrix.CaminoMatrixMessageEventContent
+		expectedMessage                  types.Message
+		expectedComplete                 bool
+		expectedErr                      error
 	}{
-		"err: decoder failed to decompress": {
-			args: args{
-				msg: &matrix.CaminoMatrixMessage{
-					Metadata: metadata.Metadata{
-						RequestID:      "test",
-						NumberOfChunks: 1,
-					},
-				},
+		"Decoder failed to decompress": {
+			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
+				d := compression.NewMockDecompressor(c)
+				d.EXPECT().Decompress(compressedContentBytes).Return(nil, testError)
+				return d
 			},
-			prepare: func() {
-				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(nil, ErrDecompressFailed)
-			},
-			isComplete: false,
-			err:        ErrDecompressFailed,
-		},
-		"err: unknown message type": {
-			args: args{
-				msg: &matrix.CaminoMatrixMessage{
-					Metadata: metadata.Metadata{
-						RequestID:      "test",
-						NumberOfChunks: 1,
-					},
-				},
-			},
-			prepare: func() {
-				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return([]byte{}, nil)
-			},
-			isComplete: false,
-			err:        ErrUnmarshalContent,
-		},
-		"empty input": {
-			fields: fields{
-				partialMessages: map[string][]*matrix.CaminoMatrixMessage{},
-			},
-			args: args{
-				msg: &matrix.CaminoMatrixMessage{},
-			},
-			isComplete: false,
-			err:        nil,
-		},
-		"partial message delivery [metadata number fo chunks do not match provided messages]": {
-			fields: fields{
-				partialMessages: map[string][]*matrix.CaminoMatrixMessage{},
-			},
-			args: args{
-				msg: &matrix.CaminoMatrixMessage{
-					Metadata: metadata.Metadata{
-						RequestID:      "test",
-						NumberOfChunks: 2,
-					},
-				},
-			},
-			isComplete: false,
-			err:        nil,
-		},
-		"success: single chunk message": {
-			fields: fields{
-				partialMessages: map[string][]*matrix.CaminoMatrixMessage{},
-			},
-			args: args{
-				msg: &matrix.CaminoMatrixMessage{
-					MessageEventContent: event.MessageEventContent{
-						MsgType: event.MessageType(generated.PingServiceV1Response),
-					},
-					Metadata: metadata.Metadata{
-						RequestID:      "id",
-						NumberOfChunks: 1,
-					},
-				}, // last message
-			},
-			prepare: func() {
-				msg := pingResponseMsg
-				msgBytes, err := msg.MarshalContent()
-				require.NoError(t, err)
-				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
-			},
-			want: &matrix.CaminoMatrixMessage{
+			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
 				Metadata: metadata.Metadata{
-					RequestID:      "id",
+					RequestID:      msg.Metadata.RequestID,
 					NumberOfChunks: 1,
 				},
+				CompressedContent: compressedContentBytes,
+			},
+			expectedErr: errDecompressFailed,
+		},
+		"Unknown message type": {
+			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
+				d := compression.NewMockDecompressor(c)
+				d.EXPECT().Decompress(compressedContentBytes).Return([]byte{}, nil)
+				return d
+			},
+			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
+				Metadata: metadata.Metadata{
+					RequestID:      msg.Metadata.RequestID,
+					NumberOfChunks: 1,
+				},
+				CompressedContent: compressedContentBytes,
+			},
+			expectedErr: errUnmarshalContent,
+		},
+		"OK: Empty input": {
+			msgEventContent: &matrix.CaminoMatrixMessageEventContent{},
+			expectedExistingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
+				"": {{}},
+			},
+		},
+		"OK: Single chunk message": {
+			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
+				d := compression.NewMockDecompressor(c)
+				d.EXPECT().Decompress(compressedContentBytes).Return(contentBytes, nil)
+				return d
+			},
+			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
 				MessageEventContent: event.MessageEventContent{
 					MsgType: event.MessageType(generated.PingServiceV1Response),
 				},
-				Content: pingResponseMsg.Content,
+				Metadata: metadata.Metadata{
+					RequestID:      msg.Metadata.RequestID,
+					NumberOfChunks: 1,
+				},
+				CompressedContent: compressedContentBytes,
 			},
-			isComplete: true,
-			err:        nil,
+			expectedMessage: types.Message{
+				Type:    generated.PingServiceV1Response,
+				Content: proto.Clone(msg.Content),
+				Metadata: metadata.Metadata{
+					RequestID:      msg.Metadata.RequestID,
+					NumberOfChunks: 1,
+				},
+			},
+			expectedComplete: true,
 		},
-		"success: multi-chunk message": {
-			fields: fields{
-				partialMessages: map[string][]*matrix.CaminoMatrixMessage{"id": {
-					// only 2 chunks because the last one is passed as the last argument triggering the call of AssembleMessage
-					// msgType is necessary only for 1st chunk
-					{MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(generated.PingServiceV1Response)}}, {},
+		"OK: 3-chunk message, first chunk": {
+			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
+				Metadata: metadata.Metadata{
+					RequestID:      msg.Metadata.RequestID,
+					NumberOfChunks: 3,
+					ChunkIndex:     1,
+				},
+				CompressedContent: compressedContentBytes[3:5],
+			},
+			expectedExistingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
+				msg.Metadata.RequestID: {
+					{
+						Metadata: metadata.Metadata{
+							RequestID:      msg.Metadata.RequestID,
+							NumberOfChunks: 3,
+							ChunkIndex:     1,
+						},
+						CompressedContent: compressedContentBytes[3:5],
+					},
+				},
+			},
+		},
+		"OK: 3-chunk message, not first, but not last chunk": {
+			existingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
+				msg.Metadata.RequestID: {{
+					Metadata: metadata.Metadata{
+						RequestID:      msg.Metadata.RequestID,
+						NumberOfChunks: 3,
+						ChunkIndex:     1,
+					},
+					CompressedContent: compressedContentBytes[3:5],
 				}},
 			},
-			args: args{
-				msg: &matrix.CaminoMatrixMessage{
-					Metadata: metadata.Metadata{
-						RequestID:      "id",
-						NumberOfChunks: 3,
-					},
-				}, // last message
-			},
-			prepare: func() {
-				msg := pingResponseMsg
-				msgBytes, err := msg.MarshalContent()
-				require.NoError(t, err)
-				mockedDecompressor.EXPECT().Decompress(gomock.Any()).Times(1).Return(msgBytes, nil)
-			},
-			want: &matrix.CaminoMatrixMessage{
-				MessageEventContent: event.MessageEventContent{
-					MsgType: event.MessageType(generated.PingServiceV1Response),
+			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
+				Metadata: metadata.Metadata{
+					RequestID:          msg.Metadata.RequestID,
+					NumberOfChunks:     3,
+					ChunkIndex:         0,
+					RecipientCMAccount: msg.Metadata.RecipientCMAccount,
 				},
-				Content: pingResponseMsg.Content,
+				CompressedContent: compressedContentBytes[0:3],
 			},
-			isComplete: true,
-			err:        nil,
+			expectedExistingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
+				msg.Metadata.RequestID: {
+					{
+						Metadata: metadata.Metadata{
+							RequestID:      msg.Metadata.RequestID,
+							NumberOfChunks: 3,
+							ChunkIndex:     1,
+						},
+						CompressedContent: compressedContentBytes[3:5],
+					},
+					{
+						Metadata: metadata.Metadata{
+							RequestID:          msg.Metadata.RequestID,
+							NumberOfChunks:     3,
+							ChunkIndex:         0,
+							RecipientCMAccount: msg.Metadata.RecipientCMAccount,
+						},
+						CompressedContent: compressedContentBytes[0:3],
+					},
+				},
+			},
+		},
+		"OK: 3-chunk message, last chunk": {
+			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
+				d := compression.NewMockDecompressor(c)
+				d.EXPECT().Decompress(compressedContentBytes).Return(contentBytes, nil)
+				return d
+			},
+			existingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
+				msg.Metadata.RequestID: {
+					{
+						Metadata: metadata.Metadata{
+							RequestID:      msg.Metadata.RequestID,
+							NumberOfChunks: 3,
+							ChunkIndex:     1,
+						},
+						CompressedContent: compressedContentBytes[3:5],
+					},
+					{
+						MessageEventContent: event.MessageEventContent{
+							MsgType: event.MessageType(generated.PingServiceV1Response),
+						},
+						Metadata: metadata.Metadata{
+							RequestID:          msg.Metadata.RequestID,
+							NumberOfChunks:     3,
+							ChunkIndex:         0,
+							RecipientCMAccount: msg.Metadata.RecipientCMAccount,
+						},
+						CompressedContent: compressedContentBytes[0:3],
+					},
+				},
+			},
+			msgEventContent: &matrix.CaminoMatrixMessageEventContent{ // last message
+				Metadata: metadata.Metadata{
+					RequestID:      msg.Metadata.RequestID,
+					NumberOfChunks: 3,
+					ChunkIndex:     2,
+				},
+				CompressedContent: compressedContentBytes[5:],
+			},
+			expectedMessage: types.Message{
+				Type:    generated.PingServiceV1Response,
+				Content: proto.Clone(msg.Content),
+				Metadata: metadata.Metadata{
+					RequestID:          msg.Metadata.RequestID,
+					NumberOfChunks:     3,
+					RecipientCMAccount: msg.Metadata.RecipientCMAccount,
+				},
+			},
+			expectedComplete: true,
 		},
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			a := &messageAssembler{
-				partialMessages: tt.fields.partialMessages,
-				decompressor:    mockedDecompressor,
-			}
-			if tt.prepare != nil {
-				tt.prepare()
-			}
-			got, isComplete, err := a.AssembleMessage(tt.args.msg)
-			require.ErrorIs(t, err, tt.err)
-			require.Equal(t, tt.isComplete, isComplete, "AssembleMessage() isComplete = %v, expRoomID %v", isComplete, tt.isComplete)
+			ctrl := gomock.NewController(t)
 
-			// Reset the response content to avoid comparisons of pb fields like sizeCache
-			if tt.want != nil && got != nil {
-				proto.Reset(tt.want.Content)
-				proto.Reset(got.Content)
+			matrixClient := NewMockClient(ctrl)
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeC4TMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
+
+			if tt.decompressor == nil {
+				tt.decompressor = compression.NewMockDecompressor
 			}
-			require.Equal(t, tt.want, got, "AssembleMessage() got = %v, expRoomID %v", got, tt.want)
+
+			matrixMessenger, err := NewMessenger(
+				logger,
+				matrixClient,
+				tt.decompressor(ctrl),
+				botKey,
+				id.UserID("botUserID"),
+			)
+			require.NoError(t, err)
+			matrixMessengerImpl := matrixMessenger.(*messenger)
+
+			if tt.existingMsgEventContents != nil {
+				matrixMessengerImpl.messages = tt.existingMsgEventContents
+			}
+
+			message, completed, err := matrixMessengerImpl.tryAssembleMessage(tt.msgEventContent)
+			require.ErrorIs(t, err, tt.expectedErr)
+			require.Equal(t, tt.expectedComplete, completed)
+
+			if tt.expectedComplete {
+				require.True(t, proto.Equal(tt.expectedMessage.Content, message.Content))
+				proto.Reset(tt.expectedMessage.Content)
+				proto.Reset(message.Content)
+				require.Equal(t, tt.expectedMessage, message)
+			} else {
+				require.Empty(t, message)
+			}
+
+			if tt.expectedExistingMsgEventContents == nil {
+				tt.expectedExistingMsgEventContents = make(map[string][]*matrix.CaminoMatrixMessageEventContent)
+			}
+			require.Equal(t, tt.expectedExistingMsgEventContents, matrixMessengerImpl.messages)
 		})
 	}
 }

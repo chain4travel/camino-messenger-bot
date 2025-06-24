@@ -1,186 +1,107 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package matrix
+package messenger
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"errors"
 	"fmt"
-	"math"
+	"sort"
+	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/config"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/ethereum/go-ethereum/crypto"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/crypto/cryptohelper"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
-
-	// required to initialize the sqlite driver
-	_ "github.com/mattn/go-sqlite3"
 )
 
-var _ messaging.Messenger = (*messenger)(nil)
+const roomsCacheSize = 100
+
+var (
+	_ messaging.Messenger = (*messenger)(nil)
+
+	errDecompressFailed = errors.New("failed to decompress assembled camino matrix msg")
+	errUnmarshalContent = errors.New("failed to unmarshal content")
+)
 
 func NewMessenger(
 	logger *zap.SugaredLogger,
-	cfg config.MatrixConfig,
+	matrixClient Client,
+	decompressor compression.Decompressor,
 	botKey *ecdsa.PrivateKey,
-	expectedBotUserID id.UserID,
+	botUserID id.UserID,
 ) (messaging.Messenger, error) {
-	c, err := mautrix.NewClient(cfg.Host, "", "")
+	roomsCache, err := lru.New[id.UserID, id.RoomID](roomsCacheSize)
 	if err != nil {
-		logger.Errorf("failed to create matrix client: %v", err)
+		logger.Errorf("failed to create rooms cache: %v", err)
 		return nil, err
 	}
-	return &messenger{
-		msgChannel: make(chan types.Message),
-		logger:     logger,
-		tracer:     otel.GetTracerProvider().Tracer(""),
-		client: client{
-			Client:         c,
-			syncerStopChan: make(chan struct{}),
-		},
-		roomHandler:       NewRoomHandler(NewClient(c), logger),
-		msgAssembler:      NewMessageAssembler(),
-		botKey:            botKey,
-		expectedBotUserID: expectedBotUserID,
-		dbPath:            cfg.Store,
-	}, nil
+
+	m := &messenger{
+		msgChannel:   make(chan types.Message),
+		logger:       logger,
+		tracer:       otel.GetTracerProvider().Tracer(""),
+		client:       matrixClient,
+		rooms:        roomsCache,
+		decompressor: decompressor,
+		messages:     make(map[string][]*matrix.CaminoMatrixMessageEventContent),
+		botKey:       botKey,
+		botUserID:    botUserID,
+	}
+
+	m.client.SetEventHandler(matrix.EventTypeC4TMessage, m.c4tMessageEventHandler)
+	m.client.SetEventHandler(event.StateMember, m.stateMemberEventHandler)
+
+	return m, nil
 }
 
 type messenger struct {
-	msgChannel chan types.Message
+	botKey    *ecdsa.PrivateKey
+	botUserID id.UserID
 
-	dbPath            string
-	botKey            *ecdsa.PrivateKey
-	expectedBotUserID id.UserID
-	logger            *zap.SugaredLogger
-	tracer            trace.Tracer
+	msgChannel     chan types.Message
+	rooms          *lru.Cache[id.UserID, id.RoomID]
+	messages       map[string][]*matrix.CaminoMatrixMessageEventContent
+	messagesMutex  sync.RWMutex
+	cancelSync     func()
+	syncerDoneChan chan struct{}
 
-	client       client
-	roomHandler  RoomHandler
-	msgAssembler MessageAssembler
+	logger       *zap.SugaredLogger
+	tracer       trace.Tracer
+	client       Client
+	decompressor compression.Decompressor
 }
 
-type client struct {
-	*mautrix.Client
-	ctx            context.Context
-	cancelSync     context.CancelFunc
-	syncerStopChan chan struct{}
-	cryptoHelper   *cryptohelper.CryptoHelper
+func (m *messenger) Inbound() chan types.Message {
+	return m.msgChannel
 }
 
 func (m *messenger) checkpoint() string {
 	return "messenger-gateway"
 }
 
-func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
-	syncer := m.client.Syncer.(*mautrix.DefaultSyncer)
+func (m *messenger) Start(ctx context.Context) (chan error, error) {
+	// Start syncer, that will listen for incoming events
 
-	syncer.OnEventType(matrix.EventTypeC4TMessage, func(ctx context.Context, evt *event.Event) {
-		defer func() {
-			if r := recover(); r != nil {
-				m.logger.Errorf("failed to process %s event, recovered from panic: %v", matrix.EventTypeC4TMessage.Type, r)
-			}
-		}()
-		m.logger.Debugf("Received %s event %s from %s in room %s", matrix.EventTypeC4TMessage.Type, evt.ID, evt.Sender, evt.RoomID)
-
-		if evt.Sender == m.client.UserID { // ignore own messages
-			return
-		}
-
-		msg := evt.Content.Parsed.(*matrix.CaminoMatrixMessage)
-		traceID, err := trace.TraceIDFromHex(msg.Metadata.RequestID)
-		if err != nil {
-			m.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msg.Metadata.RequestID, err)
-		}
-		ctx = trace.ContextWithRemoteSpanContext(ctx, trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
-		_, span := m.tracer.Start(ctx, "messenger.OnC4TMessageReceive", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", evt.Type.Type)))
-		defer span.End()
-		t := time.Now()
-		completeMsg, completed, err := m.msgAssembler.AssembleMessage(msg)
-		if err != nil {
-			m.logger.Errorf("failed to assemble message: %v", err)
-			return
-		}
-		if !completed {
-			return // partial messages are not passed down to the msgChannel
-		}
-		completeMsg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", completeMsg.MsgType), evt.Timestamp)
-		completeMsg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.checkpoint(), "received", completeMsg.MsgType), t.UnixMilli())
-		m.msgChannel <- types.Message{
-			Metadata:        completeMsg.Metadata,
-			Content:         completeMsg.Content,
-			Type:            types.MessageType(msg.MsgType),
-			SenderBotUserID: evt.Sender,
-		}
-	})
-	syncer.OnEventType(event.StateMember, func(ctx context.Context, evt *event.Event) {
-		defer func() {
-			if r := recover(); r != nil {
-				m.logger.Errorf("failed to process %s event, recovered from panic: %v", event.StateMember.Type, r)
-			}
-		}()
-		m.logger.Debugf("Received %s event %s from %s in room %s", event.StateMember.Type, evt.ID, evt.Sender, evt.RoomID)
-
-		if evt.GetStateKey() == m.client.UserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
-			_, err := m.client.JoinRoomByID(ctx, evt.RoomID)
-			if err == nil {
-				m.logger.Info("Joined room after invite",
-					zap.String("room_id", evt.RoomID.String()),
-					zap.String("inviter", evt.Sender.String()))
-			} else {
-				m.logger.Error("Failed to join room after invite",
-					zap.String("room_id", evt.RoomID.String()),
-					zap.String("inviter", evt.Sender.String()))
-			}
-		}
-	})
-
-	cryptoHelper, err := cryptohelper.NewCryptoHelper(m.client.Client, []byte("meow"), m.dbPath) // TODO @nikos refactor
-	if err != nil {
-		return nil, err
-	}
-
-	signature, message, err := SignPublicKey(m.botKey)
-	if err != nil {
-		return nil, err
-	}
-
-	cryptoHelper.LoginAs = &mautrix.ReqLogin{
-		Type:      mautrix.AuthTypeCamino,
-		PublicKey: message[2:],   // removing 0x prefix
-		Signature: signature[2:], // removing 0x prefix
-	}
-
-	if err = cryptoHelper.Init(ctx); err != nil {
-		return nil, err
-	}
-
-	if m.client.Client.UserID != m.expectedBotUserID {
-		return nil, fmt.Errorf("expected user ID %s, got %s", m.expectedBotUserID, m.client.Client.UserID)
-	}
-
-	// Set the wrappedClient crypto helper in order to automatically encrypt outgoing messages
-	m.client.Crypto = cryptoHelper
-	m.client.cryptoHelper = cryptoHelper // nikos: we need the struct cause stop method is not available on the interface level
-
-	m.logger.Infof("Successfully logged in as: %s", m.client.UserID)
-	m.client.ctx, m.client.cancelSync = context.WithCancel(ctx)
+	syncCtx, cancelSync := context.WithCancel(ctx)
 	errChan := make(chan error)
+	m.cancelSync = cancelSync
+	m.syncerDoneChan = make(chan struct{})
 
+	// by default, the syncer will get all events from the last hour
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -189,10 +110,10 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 				errChan <- err
 			}
 			close(errChan)
-			close(m.client.syncerStopChan)
+			close(m.syncerDoneChan)
 		}()
 
-		if err := m.client.SyncWithContext(m.client.ctx); err != nil && !errors.Is(err, context.Canceled) {
+		if err := m.client.SyncWithContext(syncCtx); err != nil && !errors.Is(err, context.Canceled) {
 			err := fmt.Errorf("matrix event syncer exited with error: %w", err)
 			m.logger.Error(err)
 			errChan <- err
@@ -202,102 +123,170 @@ func (m *messenger) StartReceiver(ctx context.Context) (chan error, error) {
 	return errChan, nil
 }
 
-func (m *messenger) StopReceiver() error {
-	m.logger.Info("Stopping matrix syncer...")
-	if m.client.cancelSync != nil {
+func (m *messenger) Stop() error {
+	if m.cancelSync != nil {
+		m.logger.Info("Stopping matrix syncer...")
 		// if cancelSync is not nil, it means that the syncer is running
-		m.client.cancelSync()
+		m.cancelSync()
 		// we only wait for the syncer to stop if it was running,
 		// otherwise no one will close syncerStopChan
 		// and the goroutine will block forever
-		<-m.client.syncerStopChan
+		<-m.syncerDoneChan
+		m.logger.Info("Matrix syncer stopped")
 	}
-	if err := m.client.cryptoHelper.Close(); err != nil {
-		m.logger.Errorf("Failed to close crypto helper: %v", err)
+
+	if err := m.client.Close(); err != nil {
+		m.logger.Errorf("Failed to close matrix client: %v", err)
+		return err
 	}
-	m.logger.Info("Matrix syncer stopped")
+
 	return nil
 }
 
-func (m *messenger) SendAsync(ctx context.Context, msg *types.Message, sendTo id.UserID) error {
-	m.logger.Info("Sending async message", zap.String("msg", msg.Metadata.RequestID))
-	ctx, span := m.tracer.Start(ctx, "messenger.SendAsync", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
+func (m *messenger) SendMessage(ctx context.Context, msg *types.Message, sendTo id.UserID) error {
+	m.logger.Infof("Sending message (requestID %s) to %s", msg.Metadata.RequestID, sendTo)
+
+	ctx, span := m.tracer.Start(ctx, "messenger.SendMessage", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
-	ctx, roomSpan := m.tracer.Start(ctx, "roomHandler.GetOrCreateRoom", trace.WithAttributes(attribute.String("type", string(msg.Type))))
-	roomID, err := m.roomHandler.GetOrCreateRoomForRecipient(ctx, sendTo)
+	ctx, roomSpan := m.tracer.Start(ctx, "messenger.getRoomForRecipient", trace.WithAttributes(attribute.String("type", string(msg.Type))))
+	roomID, err := m.getRoomForRecipient(ctx, sendTo)
 	if err != nil {
 		return err
 	}
 	roomSpan.End()
 
-	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, createMatrixMessages(msg))
+	return m.sendMessageEvents(ctx, roomID, matrix.EventTypeC4TMessage, createMessageEventContents(msg))
 }
 
-func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messages []matrix.CaminoMatrixMessage) error {
+func (m *messenger) sendMessageEvents(ctx context.Context, roomID id.RoomID, eventType event.Type, messageEvents []matrix.CaminoMatrixMessageEventContent) error {
 	// TODO @nikos add retry logic?
-	for _, msg := range messages {
-		_, err := m.client.SendMessageEvent(ctx, roomID, eventType, msg)
-		if err != nil {
+	for _, msg := range messageEvents {
+		if err := m.client.SendMessageEvent(ctx, roomID, eventType, msg); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m *messenger) Inbound() chan types.Message {
-	return m.msgChannel
+func (m *messenger) c4tMessageEventHandler(ctx context.Context, evt *event.Event) {
+	defer func() {
+		if r := recover(); r != nil {
+			m.logger.Errorf("failed to process %s event, recovered from panic: %v", matrix.EventTypeC4TMessage.Type, r)
+		}
+	}()
+	m.logger.Debugf("Received %s event %s from %s in room %s", matrix.EventTypeC4TMessage.Type, evt.ID, evt.Sender, evt.RoomID)
+
+	if evt.Sender == m.botUserID { // ignore own messages
+		m.logger.Debugf("Ignoring own message from %s in room %s", evt.Sender, evt.RoomID)
+		return
+	}
+
+	msgEventContent := evt.Content.Parsed.(*matrix.CaminoMatrixMessageEventContent)
+
+	traceID, err := trace.TraceIDFromHex(msgEventContent.Metadata.RequestID)
+	if err != nil {
+		m.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", msgEventContent.Metadata.RequestID, err)
+	}
+	ctx = trace.ContextWithRemoteSpanContext(ctx, trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
+
+	_, span := m.tracer.Start(ctx, "messenger.OnC4TMessageReceive", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", evt.Type.Type)))
+	defer span.End()
+
+	receivedAt := time.Now()
+
+	msg, completed, err := m.tryAssembleMessage(msgEventContent)
+	if err != nil {
+		m.logger.Errorf("failed to assemble message: %v", err)
+		return
+	}
+	if !completed {
+		m.logger.Debugf("Received partial message with requestID %s, waiting for more chunks", msgEventContent.Metadata.RequestID)
+		return // partial messages are not passed down to the msgChannel
+	}
+
+	msg.SenderBotUserID = evt.Sender
+
+	msg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", msgEventContent.MsgType), evt.Timestamp)
+	msg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.checkpoint(), "received", msgEventContent.MsgType), receivedAt.UnixMilli())
+
+	m.msgChannel <- msg
 }
 
-func SignPublicKey(key *ecdsa.PrivateKey) (signature string, message string, err error) {
-	pubKeyBytes := crypto.FromECDSAPub(&key.PublicKey)
-	signatureBytes, err := sign(pubKeyBytes, key)
-	if err != nil {
-		return "", "", err
+func (m *messenger) tryAssembleMessage(msgEventContent *matrix.CaminoMatrixMessageEventContent) (types.Message, bool, error) {
+	// if the message is not chunked, we can assemble it immediately
+	if msgEventContent.Metadata.NumberOfChunks == 1 {
+		msg, err := m.assembleMessage(
+			msgEventContent.CompressedContent,
+			msgEventContent.Metadata,
+			types.MessageType(msgEventContent.MsgType),
+		)
+		return msg, err == nil, err
 	}
 
-	signature, err = hexWithChecksum(signatureBytes)
-	if err != nil {
-		return "", "", err
+	msgEventContents, complete := m.tryCompleteChunks(msgEventContent)
+	if !complete {
+		return types.Message{}, false, nil
 	}
-	message, err = hexWithChecksum(pubKeyBytes)
-	if err != nil {
-		return "", "", err
+
+	// assemble payload from all chunks
+	sort.Sort(matrix.ByChunkIndex(msgEventContents))
+	compressedPayloads := make([][]byte, 0, len(msgEventContents))
+	for _, msg := range msgEventContents {
+		compressedPayloads = append(compressedPayloads, msg.CompressedContent)
 	}
-	return signature, message, nil
+	payload := bytes.Join(compressedPayloads, nil)
+
+	msg, err := m.assembleMessage(
+		payload,
+		msgEventContents[0].Metadata,
+		types.MessageType(msgEventContents[0].MsgType),
+	)
+	return msg, err == nil, err
 }
 
-func sign(msg []byte, key *ecdsa.PrivateKey) ([]byte, error) {
-	// TODO @evlekht use crypto.keccak256 in conduit, here and in asb
-	hash256 := sha256.Sum256(msg)
+func (m *messenger) tryCompleteChunks(msgEventContent *matrix.CaminoMatrixMessageEventContent) ([]*matrix.CaminoMatrixMessageEventContent, bool) {
+	m.messagesMutex.Lock()
+	defer m.messagesMutex.Unlock()
 
-	signature, err := crypto.Sign(hash256[:], key)
+	id := msgEventContent.Metadata.RequestID
+
+	msgEventContents := append(m.messages[id], msgEventContent) //nolint:gocritic
+
+	if uint64(len(msgEventContents)) != msgEventContent.Metadata.NumberOfChunks {
+		// don't have all chunks yet, store for later assembly and return
+		m.messages[id] = msgEventContents
+		return nil, false
+	}
+
+	delete(m.messages, id)
+
+	return msgEventContents, true
+}
+
+func (m *messenger) assembleMessage(payload []byte, metadata metadata.Metadata, msgType types.MessageType) (types.Message, error) {
+	contentBytes, err := m.decompressor.Decompress(payload)
 	if err != nil {
-		return nil, err
+		return types.Message{}, fmt.Errorf("%w: %w", errDecompressFailed, err)
 	}
 
-	return signature, nil
-}
-
-func hexWithChecksum(bytes []byte) (string, error) {
-	const checksumLen = 4
-	bytesLen := len(bytes)
-	if bytesLen > math.MaxInt32-checksumLen {
-		return "", errors.New("encoding overflow")
+	msg := types.Message{
+		Metadata: metadata,
+		Type:     msgType,
 	}
-	checked := make([]byte, bytesLen+checksumLen)
-	copy(checked, bytes)
-	hash := sha256.Sum256(bytes)
-	copy(checked[len(bytes):], hash[len(hash)-checksumLen:])
-	bytes = checked
-	return fmt.Sprintf("0x%x", bytes), nil
+
+	if err := generated.UnmarshalContent(contentBytes, msgType, &msg.Content); err != nil {
+		return types.Message{}, fmt.Errorf("%w: %w %v", errUnmarshalContent, err, msgType)
+	}
+
+	return msg, nil
 }
 
-func createMatrixMessages(msg *types.Message) []matrix.CaminoMatrixMessage {
-	messages := make([]matrix.CaminoMatrixMessage, 0, len(msg.CompressedContent))
+func createMessageEventContents(msg *types.Message) []matrix.CaminoMatrixMessageEventContent {
+	messages := make([]matrix.CaminoMatrixMessageEventContent, 0, len(msg.CompressedContent))
 
 	// add first chunk to messages slice
-	caminoMatrixMsg := matrix.CaminoMatrixMessage{
+	caminoMatrixMsg := matrix.CaminoMatrixMessageEventContent{
 		MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
 		Metadata:            msg.Metadata,
 	}
@@ -308,7 +297,7 @@ func createMatrixMessages(msg *types.Message) []matrix.CaminoMatrixMessage {
 
 	// if multiple chunks were produced upon compression, add them to messages slice
 	for i, chunk := range msg.CompressedContent[1:] {
-		messages = append(messages, matrix.CaminoMatrixMessage{
+		messages = append(messages, matrix.CaminoMatrixMessageEventContent{
 			MessageEventContent: event.MessageEventContent{MsgType: event.MessageType(msg.Type)},
 			Metadata:            metadata.Metadata{RequestID: msg.Metadata.RequestID, NumberOfChunks: uint64(len(msg.CompressedContent)), ChunkIndex: uint64(i + 1)},
 			CompressedContent:   chunk,

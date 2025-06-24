@@ -1,153 +1,125 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package matrix
+package messenger
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"maunium.net/go/mautrix/event"
-
-	"maunium.net/go/mautrix"
-
 	"go.uber.org/mock/gomock"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/stretchr/testify/require"
 
 	"go.uber.org/zap"
+	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 )
 
-func TestGetOrCreateRoomForRecipient(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	mockRoomClient := NewMockClient(mockCtrl)
-	defer mockCtrl.Finish()
+func TestGetRoomForRecipient(t *testing.T) {
+	ctx := context.Background()
+	logger := zap.NewNop().Sugar()
+	botKey := testKey
 
-	userID := id.UserID("userID")
-	roomID := id.RoomID("roomID")
-	newRoomID := id.RoomID("newRoomID")
+	recipientUserID := id.UserID("recipientUserID")
+	roomID1 := id.RoomID("roomID1")
+	roomID2 := id.RoomID("roomID2")
+	zeroRoomID := id.RoomID("")
 
-	errCreateRoomFailed := errors.New("create-room-failed")
-	errEnableEncryptionFailed := errors.New("enable-encryption-failed")
+	testErr := errors.New("test err")
 
-	type fields struct {
-		rooms map[id.UserID]id.RoomID
-	}
-	type args struct {
-		recipient id.UserID
-	}
 	tests := map[string]struct {
-		fields fields
-		args   args
-		want   id.RoomID
-		mocks  func(r *roomHandler)
-		err    error
+		client         func(*gomock.Controller) *MockClient
+		roomsCache     map[id.UserID]id.RoomID
+		recipient      id.UserID
+		expectedRoomID id.RoomID
+		expectedErr    error
 	}{
-		"err: create new encrypted room fails": {
-			fields: fields{
-				rooms: map[id.UserID]id.RoomID{},
+		"Create room fails": {
+			client: func(ctrl *gomock.Controller) *MockClient {
+				c := NewMockClient(ctrl)
+				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{}, nil)
+				c.EXPECT().CreateRoomForUser(ctx, recipientUserID).Return(zeroRoomID, testErr)
+				return c
 			},
-			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(false, nil)
-				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
-					Visibility: "private",
-					Preset:     "private_chat",
-					Invite:     []id.UserID{userID},
-				}).Times(1).Return(nil, errCreateRoomFailed)
-			},
-			args: args{recipient: userID},
-			err:  errCreateRoomFailed,
+			recipient:   recipientUserID,
+			expectedErr: testErr,
 		},
-		"err: room exists but is unencrypted so create new encrypted room created but enable encryption fails": { //nolint:dupl
-			fields: fields{
-				rooms: map[id.UserID]id.RoomID{},
+		"Encrypt room fails": {
+			client: func(ctrl *gomock.Controller) *MockClient {
+				c := NewMockClient(ctrl)
+				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{}, nil)
+				c.EXPECT().CreateRoomForUser(ctx, recipientUserID).Return(roomID1, nil)
+				c.EXPECT().EnableRoomEncryption(ctx, roomID1).Return(testErr)
+				return c
 			},
-			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(false, nil)
-				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
-					Visibility: "private",
-					Preset:     "private_chat",
-					Invite:     []id.UserID{userID},
-				}).Times(1).Return(&mautrix.RespCreateRoom{RoomID: newRoomID}, nil)
-				mockRoomClient.EXPECT().SendStateEvent(gomock.Any(), newRoomID, event.StateEncryption, "",
-					event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1}).Times(1).Return(nil, errEnableEncryptionFailed)
-			},
-			args: args{recipient: userID},
-			err:  errEnableEncryptionFailed,
+			recipient:   recipientUserID,
+			expectedErr: testErr,
 		},
-		"success: room already established and cached": {
-			fields: fields{
-				rooms: map[id.UserID]id.RoomID{userID: roomID},
+		"OK: room already established and cached": {
+			roomsCache: map[id.UserID]id.RoomID{
+				recipientUserID: roomID1,
 			},
-			args: args{recipient: userID},
-			want: roomID,
+			recipient:      recipientUserID,
+			expectedRoomID: roomID1,
 		},
-		"success: room already established but not cached": {
-			fields: fields{
-				rooms: map[id.UserID]id.RoomID{},
+		"OK: room already established but not cached": {
+			client: func(ctrl *gomock.Controller) *MockClient {
+				c := NewMockClient(ctrl)
+				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{roomID1, roomID2}, nil)
+				c.EXPECT().IsRoomEncrypted(ctx, roomID1).Return(false, nil)
+				c.EXPECT().IsRoomEncrypted(ctx, roomID2).Return(true, nil)
+				c.EXPECT().IsUserJoinedRoom(ctx, roomID2, recipientUserID).Return(true, nil)
+				return c
 			},
-			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(true, nil)
-				mockRoomClient.EXPECT().JoinedMembers(gomock.Any(), roomID).Times(1).Return(&mautrix.RespJoinedMembers{Joined: map[id.UserID]mautrix.JoinedMember{userID: {}}}, nil)
-			},
-			args: args{recipient: userID},
-			want: roomID,
+			recipient:      recipientUserID,
+			expectedRoomID: roomID2,
 		},
-		"success: room exists but recipient is not member so create new encrypted room created and invite user": { //nolint:dupl
-			fields: fields{
-				rooms: map[id.UserID]id.RoomID{},
+		"OK: room exists but recipient is not member so create new encrypted room created and invite user": {
+			client: func(ctrl *gomock.Controller) *MockClient {
+				c := NewMockClient(ctrl)
+				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{roomID1}, nil)
+				c.EXPECT().IsRoomEncrypted(ctx, roomID1).Return(true, nil)
+				c.EXPECT().IsUserJoinedRoom(ctx, roomID1, recipientUserID).Return(false, nil)
+				c.EXPECT().CreateRoomForUser(ctx, recipientUserID).Return(roomID2, nil)
+				c.EXPECT().EnableRoomEncryption(ctx, roomID2).Return(nil)
+				return c
 			},
-			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{}}, nil)
-				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
-					Visibility: "private",
-					Preset:     "private_chat",
-					Invite:     []id.UserID{userID},
-				}).Times(1).Return(&mautrix.RespCreateRoom{RoomID: newRoomID}, nil)
-				mockRoomClient.EXPECT().SendStateEvent(gomock.Any(), newRoomID, event.StateEncryption, "",
-					event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1}).Times(1).Return(nil, nil)
-			},
-			args: args{recipient: userID},
-			want: newRoomID,
-		},
-		"success: room exists but is unencrypted so create new encrypted room created and invite user": { //nolint:dupl
-			fields: fields{
-				rooms: map[id.UserID]id.RoomID{},
-			},
-			mocks: func(*roomHandler) {
-				mockRoomClient.EXPECT().JoinedRooms(gomock.Any()).Times(1).Return(&mautrix.RespJoinedRooms{JoinedRooms: []id.RoomID{roomID}}, nil)
-				mockRoomClient.EXPECT().IsEncrypted(gomock.Any(), roomID).Times(1).Return(false, nil)
-				mockRoomClient.EXPECT().CreateRoom(gomock.Any(), &mautrix.ReqCreateRoom{
-					Visibility: "private",
-					Preset:     "private_chat",
-					Invite:     []id.UserID{userID},
-				}).Times(1).Return(&mautrix.RespCreateRoom{RoomID: newRoomID}, nil)
-				mockRoomClient.EXPECT().SendStateEvent(gomock.Any(), newRoomID, event.StateEncryption, "",
-					event.EncryptionEventContent{Algorithm: id.AlgorithmMegolmV1}).Times(1).Return(nil, nil)
-			},
-			args: args{recipient: userID},
-			want: newRoomID,
+			recipient:      recipientUserID,
+			expectedRoomID: roomID2,
 		},
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			r := &roomHandler{
-				client: mockRoomClient,
-				logger: zap.NewNop().Sugar(),
-				rooms:  tt.fields.rooms,
+			ctrl := gomock.NewController(t)
+
+			if tt.client == nil {
+				tt.client = NewMockClient
 			}
-			if tt.mocks != nil {
-				tt.mocks(r)
+			matrixClient := tt.client(ctrl)
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeC4TMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
+
+			matrixMessenger, err := NewMessenger(
+				logger,
+				matrixClient,
+				compression.NewMockDecompressor(ctrl),
+				botKey,
+				id.UserID("botUserID"),
+			)
+			require.NoError(t, err)
+
+			matrixMessengerImpl := matrixMessenger.(*messenger)
+			for userID, roomID := range tt.roomsCache {
+				matrixMessengerImpl.rooms.Add(userID, roomID)
 			}
 
-			got, err := r.GetOrCreateRoomForRecipient(context.Background(), tt.args.recipient)
-			require.ErrorIs(t, err, tt.err, "GetOrCreateRoomForRecipient() error = %w, wantErr %w", err, tt.err)
-			require.Equal(t, got, tt.want, "GetOrCreateRoomForRecipient() got = %v, expRoomID %v", got, tt.want)
+			roomID, err := matrixMessengerImpl.getRoomForRecipient(ctx, tt.recipient)
+			require.ErrorIs(t, err, tt.expectedErr)
+			require.Equal(t, tt.expectedRoomID, roomID)
 		})
 	}
 }

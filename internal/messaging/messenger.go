@@ -15,15 +15,15 @@ type APIMessageResponse struct {
 	Err     error
 }
 type Messenger interface {
-	// start receiving messages.
-	StartReceiver(ctx context.Context) (chan error, error)
+	// Initializes messenger and starts receiving messages.
+	Start(ctx context.Context) (chan error, error)
 
-	// stop receiving messages
-	StopReceiver() error
+	// Stop receiving messages.
+	Stop() error
 
-	// asynchronous call (fire and forget)
-	SendAsync(ctx context.Context, m *types.Message, sendTo id.UserID) error
+	// Should only be called after Start() was called.
+	SendMessage(ctx context.Context, m *types.Message, sendTo id.UserID) error
 
-	// channel where incoming messages are written
+	// Channel where incoming messages are written
 	Inbound() chan types.Message
 }

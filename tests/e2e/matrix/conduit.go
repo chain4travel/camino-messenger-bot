@@ -20,7 +20,7 @@ import (
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix"
+	matrixClient "github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/client"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
@@ -161,7 +161,7 @@ func (m *ConduitServer) awaitReady(ctx context.Context) error {
 		return fmt.Errorf("failed to generate random key for matrix login: %w", err)
 	}
 
-	signature, message, err := matrix.SignPublicKey(randomKey)
+	signature, message, err := matrixClient.SignPublicKey(randomKey)
 	if err != nil {
 		return err
 	}

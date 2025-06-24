@@ -18,18 +18,18 @@ import (
 var EventTypeC4TMessage = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
 
 func init() {
-	event.TypeMap[EventTypeC4TMessage] = reflect.TypeOf(CaminoMatrixMessage{})
+	event.TypeMap[EventTypeC4TMessage] = reflect.TypeOf(CaminoMatrixMessageEventContent{})
 }
 
-// CaminoMatrixMessage is a matrix-specific message format used for communication between the messenger and the service
-type CaminoMatrixMessage struct {
+// CaminoMatrixMessageEventContent is a matrix-specific message format used for communication between the messenger and the service
+type CaminoMatrixMessageEventContent struct {
 	event.MessageEventContent
 	Content           protoreflect.ProtoMessage `json:"content"`
 	CompressedContent []byte                    `json:"compressed_content"`
 	Metadata          metadata.Metadata         `json:"metadata"`
 }
 
-type ByChunkIndex []*CaminoMatrixMessage
+type ByChunkIndex []*CaminoMatrixMessageEventContent
 
 func (b ByChunkIndex) Len() int { return len(b) }
 func (b ByChunkIndex) Less(i, j int) bool {
@@ -37,11 +37,11 @@ func (b ByChunkIndex) Less(i, j int) bool {
 }
 func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 
-func (m *CaminoMatrixMessage) UnmarshalContent(src []byte) error {
+func (m *CaminoMatrixMessageEventContent) UnmarshalContent(src []byte) error {
 	return generated.UnmarshalContent(src, types.MessageType(m.MsgType), &m.Content)
 }
 
-func (m *CaminoMatrixMessage) GetChequeFor(addr common.Address) *cheques.SignedCheque {
+func (m *CaminoMatrixMessageEventContent) GetChequeFor(addr common.Address) *cheques.SignedCheque {
 	for _, cheque := range m.Metadata.Cheques {
 		if cheque.Cheque.ToCMAccount == addr {
 			return &cheque

@@ -227,7 +227,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 
 	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", requestMsg.SenderBotUserID, recipientBotAddr, requestMsg.Metadata.RecipientCMAccount)
 
-	if err := p.messenger.SendAsync(
+	if err := p.messenger.SendMessage(
 		ctx,
 		requestMsg,
 		matrix.UserIDFromAddress(recipientBotAddr, p.matrixHost),
@@ -298,7 +298,7 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 		return err
 	}
 
-	return p.messenger.SendAsync(ctx, responseMsg, requestMsg.SenderBotUserID)
+	return p.messenger.SendMessage(ctx, responseMsg, requestMsg.SenderBotUserID)
 }
 
 func (p *messageProcessor) callPartnerPluginAndGetResponse(

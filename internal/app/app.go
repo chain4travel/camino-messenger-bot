@@ -26,7 +26,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
 	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener/storage/sqlite"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix"
+	matrixClient "github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/client"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/messenger"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
@@ -244,7 +245,26 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
 	botUserID := matrixPkg.UserIDFromAddress(botAddress, matrixHostname)
 
-	matrixMessenger, err := matrix.NewMessenger(logger, cfg.Matrix, cfg.BotKey, botUserID)
+	matrixClient, err := matrixClient.New(
+		ctx,
+		logger,
+		cfg.Matrix.Host,
+		cfg.Matrix.Store,
+		cfg.BotKey,
+		botUserID,
+	)
+	if err != nil {
+		logger.Errorf("failed to create matrix client: %v", err)
+		return nil, err
+	}
+
+	matrixMessenger, err := messenger.NewMessenger(
+		logger,
+		matrixClient,
+		&compression.ZSTDDecompressor{},
+		cfg.BotKey,
+		botUserID,
+	)
 	if err != nil {
 		logger.Errorf("Failed to create matrix messenger: %v", err)
 		return nil, err
@@ -343,7 +363,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	// run
 
-	messengerReceiverStarted := make(chan struct{})
+	messengerStarted := make(chan struct{})
 	cashInStatusCheckDone := make(chan struct{})
 	schedulerStarted := make(chan struct{})
 	messageProcessorStarted := make(chan struct{})
@@ -419,18 +439,18 @@ func (a *App) Run(ctx context.Context) error {
 			return nil
 		}
 
-		a.logger.Info("Starting message receiver...")
+		a.logger.Info("Starting matrix messenger...")
 
-		errChan, err := a.messenger.StartReceiver(ctx)
+		errChan, err := a.messenger.Start(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to start message receiver: %w", err)
+			return fmt.Errorf("failed to start matrix messenger: %w", err)
 		}
 
-		a.logger.Info("Message receiver started.")
-		close(messengerReceiverStarted)
+		a.logger.Info("Matrix messenger started.")
+		close(messengerStarted)
 
 		if err := <-errChan; err != nil && !errors.Is(err, context.Canceled) {
-			a.logger.Errorf("Message receiver exited with error: %v", err)
+			a.logger.Errorf("Matrix messenger exited with error: %v", err)
 			return err
 		}
 		return nil
@@ -438,7 +458,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	if a.rpcServer != nil { // rpcServer will be nil, if its disabled in config
 		a.safeGo(g, func() error {
-			if !awaitChan(ctx, messengerReceiverStarted) {
+			if !awaitChan(ctx, messengerStarted) {
 				return nil
 			}
 
@@ -487,12 +507,12 @@ func (a *App) Run(ctx context.Context) error {
 
 	a.safeGo(g, func() error {
 		<-ctx.Done()
-		a.logger.Info("Stopping message receiver...")
-		if err := a.messenger.StopReceiver(); err != nil && !errors.Is(err, context.Canceled) {
-			a.logger.Errorf("Failed to stop message receiver: %v", err)
+		a.logger.Info("Stopping matrix messenger...")
+		if err := a.messenger.Stop(); err != nil && !errors.Is(err, context.Canceled) {
+			a.logger.Errorf("Failed to stop matrix messenger: %v", err)
 			return err
 		}
-		a.logger.Info("Message receiver stopped.")
+		a.logger.Info("Matrix messenger stopped.")
 		return nil
 	})
 

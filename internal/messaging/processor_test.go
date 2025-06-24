@@ -133,7 +133,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(errSomeError)
+				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(errSomeError)
 			},
 			args: args{
 				msg: &types.Message{
@@ -164,7 +164,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			args: args{
 				msg: &types.Message{
@@ -322,7 +322,7 @@ func TestSendRequestMessage(t *testing.T) {
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			err: ErrExceededResponseTimeout,
 		},
@@ -350,7 +350,7 @@ func TestSendRequestMessage(t *testing.T) {
 					Return(big.NewInt(1), nil)
 				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).
+				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(errSomeError)
 			},
 			err: errSomeError,
@@ -377,7 +377,7 @@ func TestSendRequestMessage(t *testing.T) {
 				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(ethCommon.Address{}, nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
 				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
-				mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(&cheques.SignedCheque{}, nil)
 			},
 			writeResponseToChannel: func(p *messageProcessor) {
@@ -453,7 +453,7 @@ func TestStart(t *testing.T) {
 	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
 	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
 	mockMessenger := NewMockMessenger(mockCtrl)
-	mockMessenger.EXPECT().SendAsync(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
+	mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
 
 	mockResponseHeaderHandler := common.NewMockResponseHeaderHandler(mockCtrl)
 
