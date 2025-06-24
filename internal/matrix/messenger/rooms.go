@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 )
@@ -20,7 +21,8 @@ func (m *messenger) stateMemberEventHandler(ctx context.Context, evt *event.Even
 	m.logger.Debugf("Received %s event %s from %s in room %s", event.StateMember.Type, evt.ID, evt.Sender, evt.RoomID)
 
 	if evt.GetStateKey() == m.botUserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
-		if encrypted, err := m.client.IsRoomEncrypted(ctx, evt.RoomID); err != nil { // TODO@ what if room encryption will be enabled later?
+		// TODO@ what if room encryption will be enabled later? we can listen for encryption events or check if room is encrypted before messaging - both are bad
+		if encrypted, err := m.client.IsRoomEncrypted(ctx, evt.RoomID); err != nil {
 			m.logger.Errorf("Failed to check if room %s is encrypted: %v", evt.RoomID, err)
 			return
 		} else if encrypted {
@@ -48,25 +50,35 @@ func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 		return err
 	}
 
+	g := errgroup.Group{}
 	for _, roomID := range rooms {
-		if encrypted, err := m.client.IsRoomEncrypted(ctx, roomID); err != nil {
-			m.logger.Errorf("failed to check if room %s is encrypted: %v", roomID, err)
-			return err
-		} else if !encrypted {
-			continue
-		}
+		roomID := roomID
+		g.Go(func() error {
+			if encrypted, err := m.client.IsRoomEncrypted(ctx, roomID); err != nil {
+				m.logger.Errorf("failed to check if room %s is encrypted: %v", roomID, err)
+				return err
+			} else if !encrypted {
+				return nil
+			}
 
-		if err := m.client.LeaveRoom(ctx, roomID); err != nil {
-			m.logger.Errorf("failed to leave room %s: %v", roomID, err)
-			return err
-		}
+			if err := m.client.LeaveRoom(ctx, roomID); err != nil {
+				m.logger.Errorf("failed to leave room %s: %v", roomID, err)
+				return err
+			}
 
-		if err := m.client.ForgetRoom(ctx, roomID); err != nil {
-			m.logger.Errorf("failed to forget room %s: %v", roomID, err)
-			return err
-		}
+			if err := m.client.ForgetRoom(ctx, roomID); err != nil {
+				m.logger.Errorf("failed to forget room %s: %v", roomID, err)
+				return err
+			}
+
+			return nil
+		})
 	}
-	return nil
+
+	if err = g.Wait(); err != nil {
+		m.logger.Errorf("failed to remove all encrypted rooms: %v", err)
+	}
+	return err
 }
 
 func (m *messenger) getRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error) {
