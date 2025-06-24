@@ -52,7 +52,6 @@ func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 
 	g := errgroup.Group{}
 	for _, roomID := range rooms {
-		roomID := roomID
 		g.Go(func() error {
 			if encrypted, err := m.client.IsRoomEncrypted(ctx, roomID); err != nil {
 				m.logger.Errorf("failed to check if room %s is encrypted: %v", roomID, err)
