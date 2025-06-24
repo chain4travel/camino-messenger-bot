@@ -21,7 +21,6 @@ func (m *messenger) stateMemberEventHandler(ctx context.Context, evt *event.Even
 	m.logger.Debugf("Received %s event %s from %s in room %s", event.StateMember.Type, evt.ID, evt.Sender, evt.RoomID)
 
 	if evt.GetStateKey() == m.botUserID.String() && evt.Content.AsMember().Membership == event.MembershipInvite {
-		// TODO@ what if room encryption will be enabled later? we can listen for encryption events or check if room is encrypted before messaging - both are bad
 		if encrypted, err := m.client.IsRoomEncrypted(ctx, evt.RoomID); err != nil {
 			m.logger.Errorf("Failed to check if room %s is encrypted: %v", evt.RoomID, err)
 			return
