@@ -60,7 +60,7 @@ func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 			m.logger.Errorf("failed to leave room %s: %v", roomID, err)
 			return err
 		}
-		// TODO@ what if forget fails? we already left room. how can we recover?
+
 		if err := m.client.ForgetRoom(ctx, roomID); err != nil {
 			m.logger.Errorf("failed to forget room %s: %v", roomID, err)
 			return err
