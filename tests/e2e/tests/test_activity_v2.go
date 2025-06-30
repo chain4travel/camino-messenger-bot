@@ -74,7 +74,7 @@ func testActivityV2ProductListService(
 ) {
 	activityProductCodes := []string{
 		"TC000000",
-		"HOTEL345678",
+		"ACTIVITY345678",
 		"87456",
 	}
 
