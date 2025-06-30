@@ -625,10 +625,10 @@
         },
         "supplier_code_name": "Island Air Tours",
         "duration_range": {
-            "min_minutes": {
+            "min_duration": {
                 "minutes": 45
             },
-            "max_minutes": {
+            "max_duration": {
                 "minutes": 60
             }
         },
@@ -753,10 +753,10 @@
         },
         "supplier_code_name": "Sea Explorers",
         "duration_range": {
-            "min_minutes": {
+            "min_duration": {
                 "minutes": 300
             },
-            "max_minutes": {
+            "max_duration": {
                 "minutes": 360
             }
         },
