@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package handlers
+package v2
 
 import (
 	"context"
@@ -142,12 +142,13 @@ func (s *ActivitySearchV2Server) ActivitySearch(ctx context.Context, req *activi
 	validationPrices := []*state.UnifiedPrice{}
 
 	log.Printf("Filtering activities by product codes: %+v", req.SearchParametersActivity.GetProductCodes())
+	log.Printf("Filtering activities by service codes: %+v", req.SearchParametersActivity.GetServiceCodes())
+
 	filteredActivities := mockdata.ActivityExtendedV2
 	filteredActivities = filterExtendedActivitiesByProductCodes(filteredActivities, req.SearchParametersActivity.GetProductCodes())
 	filteredActivities = filterExtendedActivitiesBySupplierCodes(filteredActivities, req.SearchParametersActivity.GetSupplierCodes())
 	filteredActivities = filterExtendedActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.GetServiceCodes())
 
-	log.Printf("Filtering activities by service codes: %+v", req.SearchParametersActivity.GetServiceCodes())
 	for _, activity := range filteredActivities {
 		// mock price for each activity
 		searchPrice := &typesv2.Price{
@@ -264,7 +265,6 @@ func (s *ActivitySearchV2Server) ActivitySearch(ctx context.Context, req *activi
 }
 
 func getTotalScheduleFromUnits(units []*activityv2.ActivityUnit) *typesv1.DateTimeRange {
-
 	totalSchedule := &typesv1.DateTimeRange{}
 
 	totalSchedule.StartDatetime = units[0].Schedule.StartDatetime
