@@ -45,9 +45,6 @@ var activityV2JSON []byte
 //go:embed activityv2_extended.json
 var activityExtendedV2JSON []byte
 
-//go:embed activityv2_search.json
-var activitySearchResultV2JSON []byte
-
 //go:embed activityv3.json
 var activityV3JSON []byte
 
@@ -74,7 +71,6 @@ var (
 
 	ActivityV2             []*activityv2.Activity
 	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo
-	ActivitySearchResultV2 []*activityv2.ActivitySearchResult
 
 	ActivityV3             []*activityv3.Activity
 	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo
@@ -117,9 +113,6 @@ func init() {
 	}
 	if err := json.Unmarshal(activityExtendedV2JSON, &ActivityExtendedV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities extended v2: %w", err))
-	}
-	if err := json.Unmarshal(activitySearchResultV2JSON, &ActivitySearchResultV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities search v2: %w", err))
 	}
 	if err := json.Unmarshal(activityV3JSON, &ActivityV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities v3: %w", err))
