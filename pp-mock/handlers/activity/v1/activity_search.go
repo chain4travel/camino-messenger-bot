@@ -219,6 +219,10 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 func getTotalScheduleFromUnits(units []*activityv1.ActivityUnit) *typesv1.DateTimeRange {
 	totalSchedule := &typesv1.DateTimeRange{}
 
+	if len(units) == 0 {
+		return &typesv1.DateTimeRange{}
+	}
+
 	totalSchedule.StartDatetime = units[0].Schedule.StartDatetime
 	totalSchedule.EndDatetime = units[0].Schedule.EndDatetime
 
