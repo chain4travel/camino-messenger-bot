@@ -527,6 +527,9 @@ func testactivityv3SearchServiceWithTravelPeriod(
 					Code: activityV3ProductCode,
 				},
 			},
+			ServiceCodes: []string{
+				"XO",
+			},
 		},
 		TravelPeriod: &typesv1.TravelPeriod{
 			StartDate: common.TimeToDateV1(startDate),

@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package handlers
+package v3
 
 import (
 	"context"
@@ -128,7 +128,11 @@ func (s *ActivitySearchV3Server) ActivitySearch(ctx context.Context, req *activi
 	validationPrices := []*state.UnifiedPrice{}
 
 	log.Printf("Assigning filteredActivities using mockdata.ActivitySearchResultV3")
+
 	filteredActivities := mockdata.ActivitySearchResultV3
+	filteredActivities = filterSearchResultActivitiesByProductCodes(filteredActivities, req.SearchParametersActivity.ProductCodes)
+	filteredActivities = filterSearchResultActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.ServiceCodes)
+
 	log.Printf("Number of activities to process (from mock data): %d", len(filteredActivities))
 
 	// Generate search results

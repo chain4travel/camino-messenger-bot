@@ -214,7 +214,6 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	// Log before returning
 	log.Printf("Returning final response for Request ID: %s", md.RequestID)
 	return response, nil
-
 }
 
 func getTotalScheduleFromUnits(units []*activityv1.ActivityUnit) *typesv1.DateTimeRange {
