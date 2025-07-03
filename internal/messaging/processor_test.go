@@ -10,20 +10,20 @@ import (
 	"testing"
 	"time"
 
-	"maunium.net/go/mautrix/id"
-
 	"go.uber.org/mock/gomock"
 
+	"github.com/chain4travel/camino-matrix-app-service/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
+	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	m "github.com/chain4travel/camino-messenger-bot/v11/tests/matchers"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 
 	"github.com/stretchr/testify/require"
@@ -31,463 +31,420 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	userID       = id.UserID("0x4626cb544230e4d13fb72950501ff91740116a0a:localhost")
-	requestID    = "requestID"
-	errSomeError = errors.New("some error")
-)
+type messageProcessorArgs struct {
+	messenger             *MockMessenger
+	serviceRegistry       *MockServiceRegistry
+	responseHandler       ResponseHandler
+	partnerPlugin         *partnerplugin.MockPartnerPlugin
+	chequeHandler         *chequehandler.MockChequeHandler
+	cmAccounts            *cmaccounts.MockService
+	responseHeaderHandler *common.MockResponseHeaderHandler
+}
+
+func defaultMessageProcessorArgs(c *gomock.Controller) messageProcessorArgs {
+	return messageProcessorArgs{
+		messenger:             NewMockMessenger(c),
+		serviceRegistry:       NewMockServiceRegistry(c),
+		responseHandler:       NoopResponseHandler{},
+		partnerPlugin:         partnerplugin.NewMockPartnerPlugin(c),
+		chequeHandler:         chequehandler.NewMockChequeHandler(c),
+		cmAccounts:            cmaccounts.NewMockService(c),
+		responseHeaderHandler: common.NewMockResponseHeaderHandler(c),
+	}
+}
 
 func TestProcessIncomingMessage(t *testing.T) {
-	responseMessage := types.Message{
-		Type:      generated.PingServiceV1Response,
-		RequestID: requestID,
-	}
+	testErr := errors.New("test error")
+	requestID := "requestID"
+	matrixHomeServer := "localhost"
 
+	senderBotAddress := ethCommon.Address{1}
+	senderBotUserID := matrix.UserIDFromAddress(senderBotAddress, matrixHomeServer)
+	senderCMAccount := ethCommon.Address{2}
+
+	ownBot := ethCommon.Address{3}
+	ownBotUserID := matrix.UserIDFromAddress(ownBot, matrixHomeServer)
+	ownCMAccount := ethCommon.Address{4}
+
+	const serviceName = "dummy"
+	serviceFee := big.NewInt(1)
 	serviceFeeCheque := &cheques.SignedCheque{
 		Cheque: cheques.Cheque{
-			FromCMAccount: ethCommon.Address{1},
-			ToCMAccount:   ethCommon.Address{2},
+			FromCMAccount: senderCMAccount,
+			ToCMAccount:   ownCMAccount,
+			ToBot:         ownBot,
 		},
+		Signature: []byte("signature"),
 	}
 
-	mockCtrl := gomock.NewController(t)
-	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
-	mockService := rpc.NewMockService(mockCtrl)
-	mockMessenger := NewMockMessenger(mockCtrl)
-	mockCMAccounts := cmaccounts.NewMockService(mockCtrl)
-	mockChequeHandler := chequehandler.NewMockChequeHandler(mockCtrl)
-	mockPartnerPlugin := partnerplugin.NewMockPartnerPlugin(mockCtrl)
-	mockResponseHeaderHandler := common.NewMockResponseHeaderHandler(mockCtrl)
+	networkFeeBot := ethCommon.Address{5}
+	networkFeeCMAccount := ethCommon.Address{6}
 
-	type fields struct {
-		messenger             Messenger
-		serviceRegistry       ServiceRegistry
-		responseHandler       ResponseHandler
-		partnerPlugin         partnerplugin.PartnerPlugin
-		chequeHandler         chequehandler.ChequeHandler
-		compressor            compression.Compressor[*types.Message, [][]byte]
-		cmAccounts            cmaccounts.Service
-		responseHeaderHandler common.ResponseHeaderHandler
+	responseMessage := &types.Message{
+		Type:             generated.PingServiceV1Response,
+		RequestID:        requestID,
+		NetworkFeeCheque: &cheques.SignedCheque{Signature: []byte("network fee signature")},
 	}
+
 	type args struct {
 		msg *types.Message
 	}
+
 	tests := map[string]struct {
-		fields  fields
-		args    args
-		prepare func(*messageProcessor)
-		err     error
-		assert  func(*testing.T, *messageProcessor)
+		messageProcessorArgs func(*gomock.Controller, *messageProcessorArgs, args)
+		responseChannels     map[string]chan *types.Message
+		args                 args
+		expectedErr          error
+		require              func(*testing.T, *messageProcessor)
 	}{
-		"err: invalid message type": {
-			fields: fields{},
+		"Invalid message type": {
 			args: args{
 				msg: &types.Message{Type: "invalid"},
 			},
-			err: ErrUnknownMessageCategory,
+			expectedErr: ErrUnknownMessageCategory,
 		},
-		"err: unsupported request message": {
-			fields: fields{
-				serviceRegistry: mockServiceRegistry,
-			},
-			prepare: func(*messageProcessor) {
-				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(nil, false)
-			},
-			args: args{
-				msg: &types.Message{
-					Type: generated.PingServiceV1Request,
-				},
-			},
-			err: ErrUnsupportedService,
-		},
-		"err: process request message failed": {
-			fields: fields{
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				partnerPlugin:         mockPartnerPlugin,
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
-			},
-			prepare: func(*messageProcessor) {
-				mockService.EXPECT().Name().Return("dummy")
-				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true)
-				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
-				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
-				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(errSomeError)
+		"Not supported service": {
+			messageProcessorArgs: func(_ *gomock.Controller, pArgs *messageProcessorArgs, args args) {
+				pArgs.serviceRegistry.EXPECT().GetService(args.msg.Type).Return(nil, false)
 			},
 			args: args{
 				msg: &types.Message{
 					Type:             generated.PingServiceV1Request,
-					ServiceFeeCheque: serviceFeeCheque,
 					Timestamps:       metadata.Timestamps{},
+					ServiceFeeCheque: serviceFeeCheque,
+					SenderBotUserID:  senderBotUserID,
 				},
 			},
-			err: errSomeError,
+			expectedErr: ErrUnsupportedService,
 		},
-		"success: process request message": {
-			fields: fields{
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				partnerPlugin:         mockPartnerPlugin,
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
-			},
-			prepare: func(*messageProcessor) {
-				mockService.EXPECT().Name().Return("dummy")
-				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true)
-				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
-				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
-				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		"Messenger failed to send message": {
+			messageProcessorArgs: func(c *gomock.Controller, pArgs *messageProcessorArgs, a args) {
+				rpcService := rpc.NewMockService(c)
+				rpcService.EXPECT().Name().Return(serviceName)
+				pArgs.serviceRegistry.EXPECT().GetService(a.msg.Type).Return(rpcService, true)
+				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
+				pArgs.chequeHandler.EXPECT().VerifyCheque(m.Context, a.msg.ServiceFeeCheque, senderBotAddress, serviceFee).Return(nil)
+				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.msg.ServiceFeeCheque.FromCMAccount, a.msg.ServiceFeeCheque.ToCMAccount).Return(context.Background(), responseMessage, nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, config.NetworkFee).Return(responseMessage.NetworkFeeCheque, nil)
+				pArgs.messenger.EXPECT().SendMessage(m.Context, responseMessage, senderBotUserID).Return(testErr)
 			},
 			args: args{
 				msg: &types.Message{
 					Type:             generated.PingServiceV1Request,
-					ServiceFeeCheque: serviceFeeCheque,
 					Timestamps:       metadata.Timestamps{},
+					ServiceFeeCheque: serviceFeeCheque,
+					SenderBotUserID:  senderBotUserID,
+				},
+			},
+			expectedErr: testErr,
+		},
+		"OK: process request message": {
+			messageProcessorArgs: func(c *gomock.Controller, pArgs *messageProcessorArgs, a args) {
+				rpcService := rpc.NewMockService(c)
+				rpcService.EXPECT().Name().Return(serviceName)
+				pArgs.serviceRegistry.EXPECT().GetService(a.msg.Type).Return(rpcService, true)
+				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
+				pArgs.chequeHandler.EXPECT().VerifyCheque(m.Context, a.msg.ServiceFeeCheque, senderBotAddress, serviceFee).Return(nil)
+				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.msg.ServiceFeeCheque.FromCMAccount, a.msg.ServiceFeeCheque.ToCMAccount).Return(context.Background(), responseMessage, nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, config.NetworkFee).Return(responseMessage.NetworkFeeCheque, nil)
+				pArgs.messenger.EXPECT().SendMessage(m.Context, responseMessage, senderBotUserID).Return(nil)
+			},
+			args: args{
+				msg: &types.Message{
+					Type:             generated.PingServiceV1Request,
+					Timestamps:       metadata.Timestamps{},
+					ServiceFeeCheque: serviceFeeCheque,
+					SenderBotUserID:  senderBotUserID,
 				},
 			},
 		},
-		"success: process response message": {
-			fields: fields{
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				partnerPlugin:         mockPartnerPlugin,
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
-			},
-			prepare: func(p *messageProcessor) {
-				p.responseChannels[requestID] = make(chan *types.Message, 1)
+		"OK: process response message": {
+			responseChannels: map[string]chan *types.Message{
+				requestID: make(chan *types.Message, 1),
 			},
 			args: args{
-				msg: &responseMessage,
+				msg: responseMessage,
 			},
-			assert: func(t *testing.T, p *messageProcessor) {
+			require: func(t *testing.T, p *messageProcessor) {
 				responseChan, ok := p.getResponseChannel(requestID)
 				require.True(t, ok)
 				msgReceived := <-responseChan
-				require.Equal(t, responseMessage, *msgReceived)
+				require.Equal(t, responseMessage, msgReceived)
 			},
 		},
 	}
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			messageProcessorArgs := defaultMessageProcessorArgs(ctrl)
+			if tt.messageProcessorArgs != nil {
+				tt.messageProcessorArgs(ctrl, &messageProcessorArgs, tt.args)
+			}
+
 			p := NewMessageProcessor(
-				tt.fields.messenger,
+				messageProcessorArgs.messenger,
 				zap.NewNop().Sugar(),
 				time.Duration(0),
-				userID,
-				ethCommon.Address{},
-				ethCommon.Address{},
-				ethCommon.Address{},
-				tt.fields.serviceRegistry,
-				tt.fields.responseHandler,
-				tt.fields.partnerPlugin,
-				tt.fields.chequeHandler,
-				tt.fields.compressor,
-				tt.fields.cmAccounts,
-				tt.fields.responseHeaderHandler,
+				ownBotUserID,
+				ownCMAccount,
+				networkFeeBot,
+				networkFeeCMAccount,
+				messageProcessorArgs.serviceRegistry,
+				messageProcessorArgs.responseHandler,
+				messageProcessorArgs.partnerPlugin,
+				messageProcessorArgs.chequeHandler,
+				&noopCompressor{},
+				messageProcessorArgs.cmAccounts,
+				messageProcessorArgs.responseHeaderHandler,
 				big.NewInt(0),
 			)
-			if tt.prepare != nil {
-				tt.prepare(p.(*messageProcessor))
+			messageProcessor := p.(*messageProcessor)
+			for requestID, responseChan := range tt.responseChannels {
+				messageProcessor.setResponseChannel(requestID, responseChan)
 			}
-			err := p.ProcessIncomingMessage(tt.args.msg)
-			require.ErrorIs(t, err, tt.err)
+			err := messageProcessor.ProcessIncomingMessage(tt.args.msg)
+			require.ErrorIs(t, err, tt.expectedErr)
 
-			if tt.assert != nil {
-				tt.assert(t, p.(*messageProcessor))
+			if tt.require != nil {
+				tt.require(t, messageProcessor)
 			}
 		})
 	}
 }
 
 func TestSendRequestMessage(t *testing.T) {
-	productListResponse := &types.Message{
+	testErr := errors.New("test error")
+	requestID := "requestID"
+
+	responseMessage := &types.Message{
 		Type:      generated.PingServiceV1Response,
 		RequestID: requestID,
 	}
 
-	recipientCMAccount := ethCommon.Address{1}
+	matrixHomeServer := "localhost"
 
-	mockCtrl := gomock.NewController(t)
-	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
-	mockMessenger := NewMockMessenger(mockCtrl)
-	mockCMAccounts := cmaccounts.NewMockService(mockCtrl)
-	mockChequeHandler := chequehandler.NewMockChequeHandler(mockCtrl)
-	mockResponseHeaderHandler := common.NewMockResponseHeaderHandler(mockCtrl)
+	serviceFee := big.NewInt(1)
+	ownBot := ethCommon.Address{1}
+	ownBotUserID := matrix.UserIDFromAddress(ownBot, matrixHomeServer)
+	ownCMAccount := ethCommon.Address{2}
+	recipientBot := ethCommon.Address{3}
+	recipientBotUserID := matrix.UserIDFromAddress(recipientBot, matrixHomeServer)
+	recipientCMAccount := ethCommon.Address{4}
 
-	type fields struct {
-		responseTimeout       time.Duration
-		messenger             Messenger
-		serviceRegistry       ServiceRegistry
-		responseHandler       ResponseHandler
-		partnerPlugin         partnerplugin.PartnerPlugin
-		chequeHandler         chequehandler.ChequeHandler
-		compressor            compression.Compressor[*types.Message, [][]byte]
-		cmAccounts            cmaccounts.Service
-		responseHeaderHandler common.ResponseHeaderHandler
-		maxAllowedServiceFee  *big.Int
+	serviceFeeCheque := &cheques.SignedCheque{
+		Cheque: cheques.Cheque{
+			FromCMAccount: ownCMAccount,
+			ToCMAccount:   recipientCMAccount,
+			ToBot:         recipientBot,
+		},
+		Signature: []byte("signature"),
 	}
+
+	networkFeeBot := ethCommon.Address{5}
+	networkFeeCMAccount := ethCommon.Address{6}
+
+	networkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
+
 	type args struct {
 		msg                *types.Message
 		recipientCMAccount ethCommon.Address
 	}
+
 	tests := map[string]struct {
-		fields                 fields
-		args                   args
-		want                   *types.Message
-		err                    error
-		prepare                func()
-		writeResponseToChannel func(*messageProcessor)
+		messageProcessorArgs    func(*messageProcessorArgs, args)
+		args                    args
+		expectedResponseMessage *types.Message
+		expectedErr             error
+		responses               func(*messageProcessor)
 	}{
-		"err: non-request outbound message": {
-			fields: fields{
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
+		"Messenger failed to send message": {
+			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
+				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
+				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, config.NetworkFee).Return(networkFeeCheque, nil)
+				pArgs.messenger.EXPECT().SendMessage(m.Context, a.msg, recipientBotUserID).Return(testErr)
 			},
 			args: args{
 				msg: &types.Message{
-					RequestID:  requestID,
-					Type:       generated.PingServiceV1Response,
-					Timestamps: metadata.Timestamps{},
+					Type:      generated.PingServiceV1Request,
+					RequestID: requestID,
 				},
 				recipientCMAccount: recipientCMAccount,
 			},
-			err: ErrOnlyRequestMessagesAllowed,
+			expectedErr: testErr,
 		},
-		"err: awaiting-response-timeout exceeded": {
-			fields: fields{
-				responseTimeout:       10 * time.Millisecond, // 10ms
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
-				maxAllowedServiceFee:  big.NewInt(1),
+		"Response timeout": {
+			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
+				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
+				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, config.NetworkFee).Return(networkFeeCheque, nil)
+				pArgs.messenger.EXPECT().SendMessage(m.Context, a.msg, recipientBotUserID).Return(nil)
 			},
 			args: args{
 				msg: &types.Message{
-					RequestID:  requestID,
-					Type:       generated.PingServiceV1Request,
-					Timestamps: metadata.Timestamps{},
+					Type:      generated.PingServiceV1Request,
+					RequestID: requestID,
 				},
 				recipientCMAccount: recipientCMAccount,
 			},
-			prepare: func() {
-				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(ethCommon.Address{}, nil)
-				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
-				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
-				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-			},
-			err: ErrExceededResponseTimeout,
+			expectedErr: ErrExceededResponseTimeout,
 		},
-		"err: while sending request": {
-			fields: fields{
-				responseTimeout:       100 * time.Millisecond, // 100ms
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
-				maxAllowedServiceFee:  big.NewInt(1),
+		"OK": {
+			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
+				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
+				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
+				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, config.NetworkFee).Return(networkFeeCheque, nil)
+				pArgs.messenger.EXPECT().SendMessage(m.Context, a.msg, recipientBotUserID).Return(nil)
 			},
 			args: args{
 				msg: &types.Message{
-					RequestID:  requestID,
-					Type:       generated.PingServiceV1Request,
-					Timestamps: metadata.Timestamps{},
+					Type:      generated.PingServiceV1Request,
+					RequestID: requestID,
 				},
 				recipientCMAccount: recipientCMAccount,
 			},
-			prepare: func() {
-				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(ethCommon.Address{}, nil)
-				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(big.NewInt(1), nil)
-				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
-				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(&cheques.SignedCheque{}, nil)
-				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(errSomeError)
-			},
-			err: errSomeError,
-		},
-		"success: response before timeout": {
-			fields: fields{
-				responseTimeout:       500 * time.Millisecond, // long enough timeout for response to be received
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
-				maxAllowedServiceFee:  big.NewInt(1),
-			},
-			args: args{
-				msg: &types.Message{
-					RequestID:  requestID,
-					Type:       generated.PingServiceV1Request,
-					Timestamps: metadata.Timestamps{},
-				},
-				recipientCMAccount: recipientCMAccount,
-			},
-			prepare: func() {
-				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(ethCommon.Address{}, nil)
-				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
-				mockCMAccounts.EXPECT().IsBotAllowed(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil)
-				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(&cheques.SignedCheque{}, nil)
-			},
-			writeResponseToChannel: func(p *messageProcessor) {
-				done := func() bool {
+			responses: func(p *messageProcessor) {
+				for {
 					responseChan, ok := p.getResponseChannel(requestID)
 					if ok {
-						responseChan <- productListResponse
-						return true
+						responseChan <- responseMessage
+						return
 					}
-					return false
-				}
-				for {
-					// wait until the response channel is created
-					if done() {
-						break
-					}
+					time.Sleep(50 * time.Millisecond)
 				}
 			},
-			want: productListResponse,
+			expectedResponseMessage: responseMessage,
 		},
 	}
 
 	for tc, tt := range tests {
 		t.Run(tc, func(t *testing.T) {
-			p := NewMessageProcessor(
-				tt.fields.messenger,
-				zap.NewNop().Sugar(),
-				tt.fields.responseTimeout,
-				userID,
-				ethCommon.Address{},
-				ethCommon.Address{},
-				ethCommon.Address{},
-				tt.fields.serviceRegistry,
-				tt.fields.responseHandler,
-				tt.fields.partnerPlugin,
-				tt.fields.chequeHandler,
-				tt.fields.compressor,
-				tt.fields.cmAccounts,
-				tt.fields.responseHeaderHandler,
-				big.NewInt(1),
-			)
-			if tt.prepare != nil {
-				tt.prepare()
+			ctrl := gomock.NewController(t)
+			messageProcessorArgs := defaultMessageProcessorArgs(ctrl)
+			if tt.messageProcessorArgs != nil {
+				tt.messageProcessorArgs(&messageProcessorArgs, tt.args)
 			}
-			if tt.writeResponseToChannel != nil {
-				go tt.writeResponseToChannel(p.(*messageProcessor))
-			}
-			got, err := p.SendRequestMessage(context.Background(), tt.args.msg, tt.args.recipientCMAccount)
 
-			require.ErrorIs(t, err, tt.err)
-			require.Equal(t, tt.want, got)
+			p := NewMessageProcessor(
+				messageProcessorArgs.messenger,
+				zap.NewNop().Sugar(),
+				1*time.Second, // response timeout
+				ownBotUserID,
+				ownCMAccount,
+				networkFeeBot,
+				networkFeeCMAccount,
+				messageProcessorArgs.serviceRegistry,
+				messageProcessorArgs.responseHandler,
+				messageProcessorArgs.partnerPlugin,
+				messageProcessorArgs.chequeHandler,
+				&noopCompressor{},
+				messageProcessorArgs.cmAccounts,
+				messageProcessorArgs.responseHeaderHandler,
+				big.NewInt(1), // max allowed service fee
+			)
+			if tt.responses != nil {
+				go tt.responses(p.(*messageProcessor))
+			}
+			responseMessage, err := p.SendRequestMessage(context.Background(), tt.args.msg, tt.args.recipientCMAccount)
+			require.ErrorIs(t, err, tt.expectedErr)
+			require.Equal(t, tt.expectedResponseMessage, responseMessage)
 		})
 	}
 }
 
 func TestStart(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-
-	serviceFeeCheque := &cheques.SignedCheque{
-		Cheque: cheques.Cheque{
-			FromCMAccount: ethCommon.Address{1},
-			ToCMAccount:   ethCommon.Address{2},
-		},
-	}
-
-	mockService := rpc.NewMockService(mockCtrl)
-	mockService.EXPECT().Name().Return("dummy").Times(2)
-
-	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
-	mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true).AnyTimes()
-
-	mockCMAccounts := cmaccounts.NewMockService(mockCtrl)
-	mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil).Times(2)
-
-	mockChequeHandler := chequehandler.NewMockChequeHandler(mockCtrl)
-	mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
-	mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil).Times(2)
-
-	mockPartnerPlugin := partnerplugin.NewMockPartnerPlugin(mockCtrl)
-	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(context.Background(), &types.Message{}, nil)
-	mockMessenger := NewMockMessenger(mockCtrl)
-	mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
-
-	mockResponseHeaderHandler := common.NewMockResponseHeaderHandler(mockCtrl)
-
-	ch := make(chan types.Message, 5) // incoming messages
-
-	// msg without sender
-	ch <- types.Message{Timestamps: metadata.Timestamps{}} // should fail
-	// msg with sender, but without valid msgType
-	ch <- types.Message{Timestamps: metadata.Timestamps{}, ServiceFeeCheque: serviceFeeCheque} // should fail
-	// msg with sender and valid msgType
-	ch <- types.Message{
-		Timestamps:       metadata.Timestamps{},
-		Type:             generated.PingServiceV1Request,
-		ServiceFeeCheque: serviceFeeCheque,
-		SenderBotUserID:  userID,
-	}
-	// 2nd msg with sender == userID and valid msgType
-	ch <- types.Message{
-		Timestamps:       metadata.Timestamps{},
-		Type:             generated.AccommodationProductInfoServiceV2Request,
-		ServiceFeeCheque: serviceFeeCheque,
-		SenderBotUserID:  userID,
-	}
-
-	// mocks
-	mockMessenger.EXPECT().Inbound().AnyTimes().Return(ch)
-
 	ctx, cancel := context.WithCancel(context.Background())
-	p := NewMessageProcessor(
-		mockMessenger,
+	defer cancel()
+
+	c := gomock.NewController(t)
+	serviceRegistry := NewMockServiceRegistry(c)
+	cmAccounts := cmaccounts.NewMockService(c)
+	chequeHandler := chequehandler.NewMockChequeHandler(c)
+	partnerPlugin := partnerplugin.NewMockPartnerPlugin(c)
+	messenger := NewMockMessenger(c)
+	responseHeaderHandler := common.NewMockResponseHeaderHandler(c)
+
+	matrixHomeServer := "localhost"
+
+	senderBot := ethCommon.Address{1}
+	senderBotUserID := matrix.UserIDFromAddress(senderBot, matrixHomeServer)
+	senderCMAccount := ethCommon.Address{2}
+
+	ownBot := ethCommon.Address{3}
+	ownBotUserID := matrix.UserIDFromAddress(ownBot, matrixHomeServer)
+	ownCMAccount := ethCommon.Address{4}
+
+	networkFeeBot := ethCommon.Address{5}
+	networkFeeCMAccount := ethCommon.Address{6}
+
+	incomingMessages := []types.Message{}
+
+	// OK message
+
+	requestMsg := &types.Message{
+		Type:       generated.PingServiceV1Request,
+		RequestID:  "requestID",
+		Timestamps: metadata.Timestamps{},
+		ServiceFeeCheque: &cheques.SignedCheque{Cheque: cheques.Cheque{
+			FromCMAccount: senderCMAccount,
+			ToCMAccount:   ownCMAccount,
+			ToBot:         ownBot,
+		}},
+		SenderBotUserID: senderBotUserID,
+	}
+	incomingMessages = append(incomingMessages, *requestMsg)
+
+	const serviceName = "dummy"
+	rpcService := rpc.NewMockService(c)
+	rpcService.EXPECT().Name().Return(serviceName)
+
+	serviceFee := big.NewInt(1)
+	respNetworkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
+	responseMessage := &types.Message{
+		Type:      generated.PingServiceV1Response,
+		RequestID: requestMsg.RequestID,
+	}
+
+	serviceRegistry.EXPECT().GetService(requestMsg.Type).Return(rpcService, true)
+	cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
+	chequeHandler.EXPECT().VerifyCheque(m.Context, requestMsg.ServiceFeeCheque, senderBot, serviceFee).Return(nil)
+	partnerPlugin.EXPECT().DoServiceRequest(m.Context, requestMsg, rpcService, requestMsg.ServiceFeeCheque.FromCMAccount, requestMsg.ServiceFeeCheque.ToCMAccount).Return(context.Background(), responseMessage, nil)
+	chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, config.NetworkFee).Return(respNetworkFeeCheque, nil)
+	messenger.EXPECT().SendMessage(m.Context, responseMessage, senderBotUserID).Return(nil)
+
+	// set up incoming messages channel
+
+	incomingMessagesChan := make(chan types.Message, len(incomingMessages))
+	for _, msg := range incomingMessages {
+		incomingMessagesChan <- msg
+	}
+	messenger.EXPECT().Inbound().Times(len(incomingMessages) + 1).Return(incomingMessagesChan)
+
+	// set up and start messenger
+
+	NewMessageProcessor(
+		messenger,
 		zap.NewNop().Sugar(),
 		time.Duration(0),
-		userID,
-		ethCommon.Address{},
-		ethCommon.Address{},
-		ethCommon.Address{},
-		mockServiceRegistry,
+		ownBotUserID,
+		ownCMAccount,
+		networkFeeBot,
+		networkFeeCMAccount,
+		serviceRegistry,
 		NoopResponseHandler{},
-		mockPartnerPlugin,
-		mockChequeHandler,
+		partnerPlugin,
+		chequeHandler,
 		&noopCompressor{},
-		mockCMAccounts,
-		mockResponseHeaderHandler,
+		cmAccounts,
+		responseHeaderHandler,
 		big.NewInt(1),
-	)
-
-	go p.Start(ctx)
+	).Start(ctx)
 
 	time.Sleep(1 * time.Second)
-	cancel()
 }
