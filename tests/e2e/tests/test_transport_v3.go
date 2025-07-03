@@ -18,7 +18,6 @@ import (
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
@@ -89,9 +88,7 @@ func testTransportV3ProductListService(
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 	}
 	resp, err := distributorBot.TransportProductListServiceV3.TransportProductList(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -148,9 +145,7 @@ func testTransportV3ProductListServiceWithFilter(
 		},
 	}
 	resp, err := distributorBot.TransportProductListServiceV3.TransportProductList(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -189,9 +184,7 @@ func testTransportV3SearchServiceWithoutQuery(
 		Queries: []*transportv3.TransportSearchQuery{},
 	}
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -276,9 +269,7 @@ func testTransportV3SearchServiceTravelDatesReversed(
 		},
 	}
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -362,9 +353,7 @@ func testTransportV3SearchServiceTravelDatesWrong(
 		},
 	}
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -455,9 +444,7 @@ func testTransportV3SearchServiceTravelWithoutArrivalDate(
 	}
 
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -557,9 +544,7 @@ func testTransportV3SearchServiceWithoutArrivalLocation(
 		},
 	}
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -654,9 +639,7 @@ func testTransportV3SearchServiceWithFilters(
 		},
 	}
 	resp, err := distributorBot.TransportSearchServiceV3.TransportSearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -714,9 +697,7 @@ func testTransportV3ValidateV2(
 		},
 	}
 	resp, err := distributorBot.ValidationServiceV2.Validation(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -765,9 +746,7 @@ func testTransportV3MintV2(
 		ValidationId: &typesv1.UUID{Value: validationID},
 	}
 	resp, err := distributorBot.MintServiceV2.Mint(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)

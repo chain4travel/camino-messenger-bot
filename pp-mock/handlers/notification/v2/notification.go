@@ -5,7 +5,6 @@ package v2
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
@@ -34,12 +33,8 @@ func (s *notificationServiceV2Server) TokenBoughtNotification(ctx context.Contex
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (TokenBoughtNotification)", md.RequestID)
 
 	return &emptypb.Empty{}, nil
@@ -51,12 +46,8 @@ func (s *notificationServiceV2Server) TokenExpiredNotification(ctx context.Conte
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (TokenExpiredNotification)", md.RequestID)
 
 	return &emptypb.Empty{}, nil
@@ -67,12 +58,8 @@ func (s *notificationServiceV2Server) CancellationPendingNotification(ctx contex
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (CancellationPendingNotification)", md.RequestID)
 
 	return &emptypb.Empty{}, nil
@@ -83,12 +70,8 @@ func (s *notificationServiceV2Server) CancellationWithdrawnNotification(ctx cont
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (CancellationWithdrawnNotification)", md.RequestID)
 
 	return &emptypb.Empty{}, nil
@@ -99,12 +82,8 @@ func (s *notificationServiceV2Server) CancellationRejectedNotification(ctx conte
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (CancellationRejectedNotification)", md.RequestID)
 
 	return &emptypb.Empty{}, nil
@@ -115,12 +94,8 @@ func (s *notificationServiceV2Server) CancellationFinalizedNotification(ctx cont
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (CancellationFinalizedNotification)", md.RequestID)
 
 	return &emptypb.Empty{}, nil

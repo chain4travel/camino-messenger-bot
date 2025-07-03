@@ -12,7 +12,7 @@ import (
 
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
-	messageMetadata "github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
@@ -28,8 +28,10 @@ const (
 	Distributor
 )
 
-func requestContext(ctx context.Context, metadata *messageMetadata.Metadata) context.Context {
-	return grpcMetadata.NewOutgoingContext(ctx, metadata.ToGrpcMD())
+func requestContext(ctx context.Context, recipientCMAccount common.Address) context.Context {
+	return grpcMetadata.NewOutgoingContext(ctx, grpcMetadata.Pairs(
+		metadata.KeyRecipientCMAccount, recipientCMAccount.Hex(),
+	))
 }
 
 // Gets the current function name including the whole package path

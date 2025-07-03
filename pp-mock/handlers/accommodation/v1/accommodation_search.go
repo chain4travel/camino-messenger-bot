@@ -18,7 +18,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -37,15 +36,10 @@ func (s *accommodationSearchV1Server) AccommodationSearch(ctx context.Context, r
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-
 	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
 
-	if err := md.ExtractMetadata(ctx); err != nil {
-		log.Print("error extracting metadata")
-	}
+	md := metadata.FromGRPCContext(ctx)
 
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request (Accommodation Search): %s", md.RequestID)
 
 	// if there is no query, return no results
@@ -232,10 +226,6 @@ func (s *accommodationSearchV1Server) AccommodationSearch(ctx context.Context, r
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
 
 	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
 		NumResults:   len(searchResults),

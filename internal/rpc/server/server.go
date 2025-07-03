@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
@@ -20,12 +19,16 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/utils/tls"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
+
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
+
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
-
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	grpcMetadata "google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -149,32 +152,38 @@ func (s *server) Stop() {
 func (s *server) HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	ctx, span := s.tracer.Start(ctx, "server.HandleMessageRequest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
-	md, err := s.processMetadata(ctx, s.tracer.TraceIDForSpan(span))
+
+	recipientCMAccountAddress, err := s.getRecipientAddress(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error processing metadata: %w", err)
+		return nil, fmt.Errorf("failed to get recipient cm account address from request context: %w", err)
 	}
 
-	response, err := s.processor.SendRequestMessage(ctx, &types.Message{
-		Type:     requestType,
-		Content:  request,
-		Metadata: md,
-	})
+	requestMsg := &types.Message{
+		Type:       requestType,
+		Content:    request,
+		RequestID:  s.tracer.TraceIDForSpan(span).String(),
+		Timestamps: metadata.Timestamps{},
+	}
+
+	requestMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "received"))
+
+	responseMsg, err := s.processor.SendRequestMessage(ctx, requestMsg, recipientCMAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("error processing outbound request: %w", err)
 	}
-	response.Metadata.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))
+
+	responseMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))
+
+	timestampsStr, err := responseMsg.Timestamps.MarshalToString()
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling timestamps: %w", err)
+	}
 
 	// TODO @nikos set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
-	return response.Content, grpc.SendHeader(ctx, response.Metadata.ToGrpcMD())
-}
-
-func (s *server) processMetadata(ctx context.Context, id trace.TraceID) (metadata.Metadata, error) {
-	md := metadata.Metadata{
-		RequestID: id.String(),
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "received"))
-	err := md.ExtractMetadata(ctx)
-	return md, err
+	return responseMsg.Content, grpc.SendHeader(ctx, grpcMetadata.Pairs(
+		metadata.KeyRequestID, responseMsg.RequestID,
+		metadata.KeyTimestamps, timestampsStr,
+	))
 }
 
 func (s *server) errorHandlingInterceptor(
@@ -194,14 +203,28 @@ func (s *server) errorHandlingInterceptor(
 	return response, nil
 }
 
+func (s *server) getRecipientAddress(ctx context.Context) (ethCommon.Address, error) {
+	mdPairs, ok := grpcMetadata.FromIncomingContext(ctx)
+	if !ok {
+		return ethCommon.Address{}, fmt.Errorf("metadata not found in incoming context")
+	}
+
+	recipient := mdPairs[metadata.KeyRecipientCMAccount]
+	if len(recipient) != 1 || !ethCommon.IsHexAddress(recipient[0]) {
+		return ethCommon.Address{}, fmt.Errorf("invalid recipient address: %s", recipient)
+	}
+
+	return ethCommon.HexToAddress(recipient[0]), nil
+}
+
 func (s *server) unaryRecoverInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response any, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			md := &metadata.Metadata{}
-			if err := md.ExtractMetadata(ctx); err != nil {
-				s.logger.Error("error extracting metadata from context", zap.Error(err))
+			recipientCMAccountAddress, err := s.getRecipientAddress(ctx)
+			if err != nil {
+				s.logger.Errorf("failed to get recipient cm account address from request context: %v", err)
 			}
-			err = fmt.Errorf("gRPC %s (request %s) handler panicked: %v", info.FullMethod, md.RequestID, r) // we return this error to the client
+			err = fmt.Errorf("gRPC %s (recipient %s) handler panicked: %v", info.FullMethod, recipientCMAccountAddress.Hex(), r) // we return this error to the client
 			s.logger.Errorf("recovered from panic: %v", err)
 		}
 	}()

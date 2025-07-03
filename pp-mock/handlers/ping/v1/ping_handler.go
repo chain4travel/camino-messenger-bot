@@ -30,12 +30,8 @@ func (s *pingServiceV1Server) Ping(ctx context.Context, req *pingv1.PingRequest)
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (Ping)", md.RequestID)
 
 	return &pingv1.PingResponse{

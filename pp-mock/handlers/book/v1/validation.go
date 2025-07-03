@@ -11,7 +11,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"google.golang.org/grpc"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
@@ -38,12 +37,8 @@ func (s *validationServiceV1Server) Validation(ctx context.Context, req *bookv1.
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (Validation)", md.RequestID)
 	if req.ValidationObject == nil ||
 		req.ValidationObject.SearchIdentifier == nil ||
@@ -81,8 +76,5 @@ func (s *validationServiceV1Server) Validation(ctx context.Context, req *bookv1.
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
 	return &response, nil
 }

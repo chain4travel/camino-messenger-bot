@@ -5,7 +5,6 @@ package v3
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	"github.com/google/uuid"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -38,12 +36,8 @@ func (s *mintServiceV3Server) Mint(ctx context.Context, req *bookv3.MintRequest)
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
+	md := metadata.FromGRPCContext(ctx)
 
-	if err := md.ExtractMetadata(ctx); err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request (MintV3): %s", md.RequestID)
 
 	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
@@ -84,10 +78,6 @@ func (s *mintServiceV3Server) Mint(ctx context.Context, req *bookv3.MintRequest)
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
 
 	return &response, nil
 }

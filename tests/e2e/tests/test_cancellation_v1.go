@@ -15,7 +15,6 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	cancellation_handlers "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/cancellation/v1"
@@ -109,9 +108,7 @@ func testAccommodationV3MintV3(
 		ValidationId: &typesv1.UUID{Value: validationID},
 	}
 	resp, err := distributorBot.MintServiceV3.Mint(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
@@ -354,9 +351,7 @@ func testCheckCancellationV1(
 		Reason:  cancellationv1.CancellationReason_CANCELLATION_REASON_AMENITY_REQUIREMENT_CHANGE,
 	}
 	resp, err := distributorBot.CheckCancellationServiceV1.CheckCancellation(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)

@@ -11,7 +11,6 @@ import (
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/stretchr/testify/require"
@@ -44,9 +43,7 @@ func testPingV1Service(ctx context.Context, t *testing.T, tt *Test, distributorB
 		Timestamp:   timestamppb.Now(),
 	}
 	resp, err := distributorBot.PingServiceV1.Ping(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 

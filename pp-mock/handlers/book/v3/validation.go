@@ -5,14 +5,12 @@ package v3
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
-	"google.golang.org/grpc"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
@@ -39,12 +37,8 @@ func (s *validationServiceV3Server) Validation(ctx context.Context, req *bookv3.
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request: %s (Validation)", md.RequestID)
 	if req.ValidationObject == nil ||
 		req.ValidationObject.SearchIdentifier == nil ||
@@ -104,10 +98,6 @@ func (s *validationServiceV3Server) Validation(ctx context.Context, req *bookv3.
 		},
 	}
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
 
 	state.GetStore().AddValidationResult(response.ValidationId.Value, state.ValidationData{
 		InitialSearchData: storedSearchData.Data,

@@ -5,7 +5,6 @@ package v3
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
@@ -14,7 +13,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
-	"google.golang.org/grpc"
 )
 
 var _ accommodationv3grpc.AccommodationProductListServiceServer = (*accommodationProductListV3Server)(nil)
@@ -32,13 +30,8 @@ func (s *accommodationProductListV3Server) AccommodationProductList(ctx context.
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
+	md := metadata.FromGRPCContext(ctx)
 
-	if err := md.ExtractMetadata(ctx); err != nil {
-		log.Print("error extracting metadata")
-	}
-
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
 
 	filteredProperties := filterPropertiesByLastModified(mockdata.PropertiesV3, req.GetModifiedAfter().AsTime())
@@ -58,10 +51,6 @@ func (s *accommodationProductListV3Server) AccommodationProductList(ctx context.
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
 
 	return response, nil
 }

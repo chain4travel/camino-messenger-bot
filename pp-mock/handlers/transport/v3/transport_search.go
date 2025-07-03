@@ -21,7 +21,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -40,14 +39,8 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
+	md := metadata.FromGRPCContext(ctx)
 
-	err := md.ExtractMetadata(ctx)
-	if err != nil {
-		log.Print("error extracting metadata")
-	}
-
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
 	log.Printf("Responding to request: %s (TransportSearch) v3", md.RequestID)
 
 	// if there is no query, return no results
@@ -269,10 +262,6 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
 
 	if len(searchResults) > 0 {
 		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{

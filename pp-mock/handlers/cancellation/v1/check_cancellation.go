@@ -5,7 +5,6 @@ package v1
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
@@ -16,7 +15,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -37,13 +35,7 @@ func (s *checkCancellationV1Server) CheckCancellation(ctx context.Context, req *
 		log.Printf("error sending event: %v", err)
 	}
 
-	md := metadata.Metadata{}
-
-	if err := md.ExtractMetadata(ctx); err != nil {
-		log.Print("error extracting metadata")
-	}
-
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
 
 	log.Printf("Responding to request (CheckCancellation): %s", md.RequestID)
 
@@ -65,10 +57,6 @@ func (s *checkCancellationV1Server) CheckCancellation(ctx context.Context, req *
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
 
 	return response, nil
 }

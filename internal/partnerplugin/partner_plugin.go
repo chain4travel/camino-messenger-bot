@@ -17,19 +17,25 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	grpc_metadata "google.golang.org/grpc/metadata"
 
 	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 )
 
 var _ PartnerPlugin = (*partnerPlugin)(nil)
 
 // Handles all communication with the partner plugin
 type PartnerPlugin interface {
-	DoServiceRequest(ctx context.Context, requestMsg *types.Message, service rpc.Client) (context.Context, *types.Message, error)
+	DoServiceRequest(
+		ctx context.Context,
+		requestMsg *types.Message,
+		serviceClient rpc.Client,
+		fromCMAccount common.Address,
+		toCMAccount common.Address,
+	) (context.Context, *types.Message, error)
 
 	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
@@ -62,23 +68,29 @@ type partnerPlugin struct {
 	responseTimeout    time.Duration
 }
 
-func (p *partnerPlugin) DoServiceRequest(ctx context.Context, requestMsg *types.Message, service rpc.Client) (context.Context, *types.Message, error) {
+func (p *partnerPlugin) DoServiceRequest(
+	ctx context.Context,
+	requestMsg *types.Message,
+	serviceClient rpc.Client,
+	fromCMAccount common.Address,
+	toCMAccount common.Address,
+) (context.Context, *types.Message, error) {
 	responseMsg := &types.Message{
-		Metadata: requestMsg.Metadata,
+		RequestID:  requestMsg.RequestID,
+		Timestamps: requestMsg.Timestamps,
 	}
+
+	ctx, partnerPluginSpan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
+	defer partnerPluginSpan.End()
 
 	var err error
-	header := &grpc_metadata.MD{}
-	ctx = grpc_metadata.NewOutgoingContext(ctx, requestMsg.Metadata.ToGrpcMD())
-	ctx, partnerPluginSpan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	responseMsg.Content, responseMsg.Type, err = service.Call(ctx, requestMsg.Content, grpc.Header(header))
-	partnerPluginSpan.End()
+	responseMsg.Content, responseMsg.Type, err = serviceClient.Call(grpc_metadata.NewOutgoingContext(ctx, grpc_metadata.Pairs(
+		metadata.KeyRequestID, requestMsg.RequestID,
+		metadata.KeyRecipientCMAccount, toCMAccount.Hex(),
+		metadata.KeySenderCMAccount, fromCMAccount.Hex(),
+	)), requestMsg.Content)
 	if err != nil {
 		return ctx, responseMsg, fmt.Errorf("error calling partner plugin service: %w", err)
-	}
-
-	if err := responseMsg.Metadata.FromGrpcMD(*header); err != nil {
-		return ctx, responseMsg, fmt.Errorf("error extracting metadata from response: %w", err)
 	}
 
 	return ctx, responseMsg, nil
