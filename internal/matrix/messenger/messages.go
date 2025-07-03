@@ -22,9 +22,10 @@ import (
 )
 
 type chunkedMessage struct {
-	msgType  types.MessageType
-	metadata metadata.Metadata
-	chunks   []messageChunk
+	msgType     types.MessageType
+	timestamps  metadata.Timestamps
+	chunksCount uint32
+	chunks      []messageChunk
 }
 
 type messageChunk struct {
@@ -39,7 +40,7 @@ func (b byChunkIndex) Less(i, j int) bool { return b[i].index < b[j].index }
 func (b byChunkIndex) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 func (m *messenger) SendMessage(ctx context.Context, msg *types.Message, sendTo id.UserID) error {
-	m.logger.Debugf("Sending message (id %s) to %s", msg.Metadata.RequestID, sendTo)
+	m.logger.Debugf("Sending message (id %s) to %s", msg.RequestID, sendTo)
 
 	ctx, span := m.tracer.Start(ctx, "messenger.SendMessage", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
@@ -52,19 +53,20 @@ func (m *messenger) SendMessage(ctx context.Context, msg *types.Message, sendTo 
 	roomSpan.End()
 
 	messageEvent := matrix.MessageEventContent{
-		MsgType:  msg.Type,
-		Metadata: msg.Metadata,
-		Data:     msg.CompressedContent[0],
+		MessageChunkEventContent: matrix.MessageChunkEventContent{
+			RequestID: msg.RequestID,
+			Data:      msg.CompressedContent[0],
+		},
+		MsgType:     msg.Type,
+		ChunksCount: conversion.MustIntToUInt32(len(msg.CompressedContent)),
 	}
 
-	messageEvent.Metadata.NumberOfChunks = uint64(len(msg.CompressedContent))
-
 	var chunkEvents []matrix.MessageChunkEventContent
-	if msg.Metadata.NumberOfChunks > 1 {
-		chunkEvents = make([]matrix.MessageChunkEventContent, 0, msg.Metadata.NumberOfChunks-1)
+	if messageEvent.ChunksCount > 1 {
+		chunkEvents = make([]matrix.MessageChunkEventContent, 0, messageEvent.ChunksCount-1)
 		for i, chunk := range msg.CompressedContent[1:] {
 			chunkEvents = append(chunkEvents, matrix.MessageChunkEventContent{
-				RequestID:  msg.Metadata.RequestID,
+				RequestID:  msg.RequestID,
 				ChunkIndex: conversion.MustIntToUInt32(i + 1),
 				Data:       chunk,
 			})
@@ -99,9 +101,9 @@ func (m *messenger) messageEventHandler(ctx context.Context, evt *event.Event) {
 
 	eventContent := evt.Content.Parsed.(*matrix.MessageEventContent)
 
-	traceID, err := trace.TraceIDFromHex(eventContent.Metadata.RequestID)
+	traceID, err := trace.TraceIDFromHex(eventContent.RequestID)
 	if err != nil {
-		m.logger.Warnf("failed to parse traceID from hex [requestID: %s]: %v", eventContent.Metadata.RequestID, err)
+		m.logger.Warnf("failed to parse traceID from hex [requestID: %s]: %v", eventContent.RequestID, err)
 	}
 	ctx = trace.ContextWithRemoteSpanContext(ctx, trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
 
@@ -109,7 +111,7 @@ func (m *messenger) messageEventHandler(ctx context.Context, evt *event.Event) {
 	defer span.End()
 
 	if err := eventContent.Verify(); err != nil {
-		m.logger.Warnf("Received invalid %s event (id %s): %v", &matrix.EventTypeMessage.Type, eventContent.Metadata.RequestID, err)
+		m.logger.Warnf("Received invalid %s event (id %s): %v", &matrix.EventTypeMessage.Type, eventContent.RequestID, err)
 		return
 	}
 
@@ -117,17 +119,17 @@ func (m *messenger) messageEventHandler(ctx context.Context, evt *event.Event) {
 
 	msg, completed, err := m.tryCompleteMessageWithFirstChunk(eventContent)
 	if err != nil {
-		m.logger.Warnf("Failed to assemble message from %s event (id %s): %v", &matrix.EventTypeMessage.Type, eventContent.Metadata.RequestID, err)
+		m.logger.Warnf("Failed to assemble message from %s event (id %s): %v", &matrix.EventTypeMessage.Type, eventContent.RequestID, err)
 		return
 	} else if !completed {
-		m.logger.Debugf("Received message (id %s) first chunk, waiting for more chunks", eventContent.Metadata.RequestID)
+		m.logger.Debugf("Received message (id %s) first chunk, waiting for more chunks", eventContent.RequestID)
 		return
 	}
 
 	msg.SenderBotUserID = evt.Sender
 
-	msg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", msg.Type), evt.Timestamp)
-	msg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.checkpoint(), "received", msg.Type), receivedAt.UnixMilli())
+	msg.Timestamps.StampOn(fmt.Sprintf("matrix-sent-%s", msg.Type), evt.Timestamp)
+	msg.Timestamps.StampOn(fmt.Sprintf("%s-%s-%s", m.checkpoint(), "received", msg.Type), receivedAt.UnixMilli())
 
 	m.msgChannel <- msg
 }
@@ -174,16 +176,16 @@ func (m *messenger) messageChunkEventHandler(ctx context.Context, evt *event.Eve
 
 	msg.SenderBotUserID = evt.Sender
 
-	msg.Metadata.StampOn(fmt.Sprintf("matrix-sent-%s", msg.Type), evt.Timestamp)
-	msg.Metadata.StampOn(fmt.Sprintf("%s-%s-%s", m.checkpoint(), "received", msg.Type), receivedAt.UnixMilli())
+	msg.Timestamps.StampOn(fmt.Sprintf("matrix-sent-%s", msg.Type), evt.Timestamp)
+	msg.Timestamps.StampOn(fmt.Sprintf("%s-%s-%s", m.checkpoint(), "received", msg.Type), receivedAt.UnixMilli())
 
 	m.msgChannel <- msg
 }
 
 func (m *messenger) tryCompleteMessageWithFirstChunk(eventContent *matrix.MessageEventContent) (types.Message, bool, error) {
 	// if the message is not chunked, we can already complete it
-	if eventContent.Metadata.NumberOfChunks == 1 {
-		msg, err := m.assembleMessage(eventContent.Data, eventContent.Metadata, eventContent.MsgType)
+	if eventContent.ChunksCount == 1 {
+		msg, err := m.assembleMessage(eventContent.Data, eventContent.RequestID, eventContent.Timestamps, eventContent.MsgType)
 		return msg, err == nil, err
 	}
 
@@ -191,7 +193,7 @@ func (m *messenger) tryCompleteMessageWithFirstChunk(eventContent *matrix.Messag
 	if !complete {
 		return types.Message{}, false, nil
 	}
-	msg, err := m.assembleMessageFromChunks(chunkedMessage)
+	msg, err := m.assembleMessageFromChunks(eventContent.RequestID, chunkedMessage)
 	return msg, err == nil, err
 }
 
@@ -200,7 +202,7 @@ func (m *messenger) tryCompleteMessage(eventContent *matrix.MessageChunkEventCon
 	if !complete {
 		return types.Message{}, false, nil
 	}
-	msg, err := m.assembleMessageFromChunks(chunkedMessage)
+	msg, err := m.assembleMessageFromChunks(eventContent.RequestID, chunkedMessage)
 	return msg, err == nil, err
 }
 
@@ -208,17 +210,18 @@ func (m *messenger) addMessageFirstChunk(eventContent *matrix.MessageEventConten
 	m.messagesMutex.Lock()
 	defer m.messagesMutex.Unlock()
 
-	message, ok := m.chunkedMessages[eventContent.Metadata.RequestID]
+	message, ok := m.chunkedMessages[eventContent.RequestID]
 	if !ok {
-		message = &chunkedMessage{chunks: make([]messageChunk, 0, eventContent.Metadata.NumberOfChunks)}
-		m.chunkedMessages[eventContent.Metadata.RequestID] = message
+		message = &chunkedMessage{chunks: make([]messageChunk, 0, eventContent.ChunksCount)}
+		m.chunkedMessages[eventContent.RequestID] = message
 	}
 
-	message.metadata = eventContent.Metadata
+	message.chunksCount = eventContent.ChunksCount
+	message.timestamps = eventContent.Timestamps
 	message.msgType = eventContent.MsgType
 
 	return m.addMessageChunk(message, &matrix.MessageChunkEventContent{
-		RequestID: eventContent.Metadata.RequestID,
+		RequestID: eventContent.RequestID,
 		Data:      eventContent.Data,
 	})
 }
@@ -242,7 +245,7 @@ func (m *messenger) addMessageChunk(message *chunkedMessage, eventContent *matri
 		data:  eventContent.Data,
 	})
 
-	if message.metadata.NumberOfChunks == 0 || uint64(len(message.chunks)) < message.metadata.NumberOfChunks {
+	if message.chunksCount == 0 || conversion.MustIntToUInt32(len(message.chunks)) < message.chunksCount {
 		return nil, false
 	}
 
@@ -251,24 +254,25 @@ func (m *messenger) addMessageChunk(message *chunkedMessage, eventContent *matri
 	return message, true
 }
 
-func (m *messenger) assembleMessageFromChunks(chunkedMessage *chunkedMessage) (types.Message, error) {
+func (m *messenger) assembleMessageFromChunks(requestID string, chunkedMessage *chunkedMessage) (types.Message, error) {
 	sort.Sort(byChunkIndex(chunkedMessage.chunks))
 	compressedPayloads := make([][]byte, 0, len(chunkedMessage.chunks))
 	for _, chunk := range chunkedMessage.chunks {
 		compressedPayloads = append(compressedPayloads, chunk.data)
 	}
-	return m.assembleMessage(bytes.Join(compressedPayloads, nil), chunkedMessage.metadata, chunkedMessage.msgType)
+	return m.assembleMessage(bytes.Join(compressedPayloads, nil), requestID, chunkedMessage.timestamps, chunkedMessage.msgType)
 }
 
-func (m *messenger) assembleMessage(payload []byte, metadata metadata.Metadata, msgType types.MessageType) (types.Message, error) {
+func (m *messenger) assembleMessage(payload []byte, requestID string, timestamps metadata.Timestamps, msgType types.MessageType) (types.Message, error) {
 	contentBytes, err := m.decompressor.Decompress(payload)
 	if err != nil {
 		return types.Message{}, fmt.Errorf("%w: %w", errDecompressFailed, err)
 	}
 
 	msg := types.Message{
-		Type:     msgType,
-		Metadata: metadata,
+		Type:       msgType,
+		RequestID:  requestID,
+		Timestamps: timestamps,
 	}
 
 	if err := generated.UnmarshalContent(contentBytes, msgType, &msg.Content); err != nil {

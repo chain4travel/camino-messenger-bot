@@ -47,8 +47,9 @@ func ServiceNameToRequestMessageType(serviceName string) MessageType {
 }
 
 type Message struct {
-	Type       MessageType
-	Content    protoreflect.ProtoMessage
-	RequestID  string
-	Timestamps metadata.Timestamps
+	Type              MessageType
+	Content           protoreflect.ProtoMessage
+	CompressedContent [][]byte
+	RequestID         string
+	Timestamps        metadata.Timestamps
 }

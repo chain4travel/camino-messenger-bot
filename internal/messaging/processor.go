@@ -129,7 +129,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 							p.logger.Errorf("Recovered from panic while processing message: %v", r)
 						}
 					}()
-					p.logger.Debugf("Processing incoming message (%s): %s", msg.Type, msg.Metadata.RequestID)
+					p.logger.Debugf("Processing incoming message (%s): %s", msg.Type, msg.RequestID)
 
 					if err := p.ProcessIncomingMessage(&msg); err != nil {
 						p.logger.Warnf("could not process message: %v", err)
@@ -165,8 +165,8 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 
 	p.logger.Debug("Sending outbound request message")
 	responseChan := make(chan *types.Message)
-	p.setResponseChannel(requestMsg.Metadata.RequestID, responseChan)
-	defer p.deleteResponseChannel(requestMsg.Metadata.RequestID)
+	p.setResponseChannel(requestMsg.RequestID, responseChan)
+	defer p.deleteResponseChannel(requestMsg.RequestID)
 
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
@@ -240,23 +240,23 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 
 	select {
 	case responseMsg := <-responseChan:
-		if responseMsg.Metadata.RequestID == requestMsg.Metadata.RequestID {
+		if responseMsg.RequestID == requestMsg.RequestID {
 			p.responseHandler.ProcessResponseMessage(ctx, responseMsg)
 			return responseMsg, nil
 		} else {
-			err := fmt.Errorf("unexpected response (%s) for request (%s)", responseMsg.Metadata.RequestID, requestMsg.Metadata.RequestID)
+			err := fmt.Errorf("unexpected response (%s) for request (%s)", responseMsg.RequestID, requestMsg.RequestID)
 			p.logger.Error(err)
 			return nil, err
 		}
 	case <-ctx.Done():
-		return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, requestMsg.Metadata.RequestID)
+		return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, requestMsg.RequestID)
 	}
 }
 
 func (p *messageProcessor) respond(requestMsg *types.Message) error {
-	traceID, err := trace.TraceIDFromHex(requestMsg.Metadata.RequestID)
+	traceID, err := trace.TraceIDFromHex(requestMsg.RequestID)
 	if err != nil {
-		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", requestMsg.Metadata.RequestID, err)
+		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", requestMsg.RequestID, err)
 	}
 
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
@@ -324,14 +324,14 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 }
 
 func (p *messageProcessor) forwardToHandler(msg *types.Message) error {
-	p.logger.Debugf("Forwarding outbound response message: %s", msg.Metadata.RequestID)
-	responseChan, ok := p.getResponseChannel(msg.Metadata.RequestID)
+	p.logger.Debugf("Forwarding outbound response message: %s", msg.RequestID)
+	responseChan, ok := p.getResponseChannel(msg.RequestID)
 	if ok {
 		responseChan <- msg
 		close(responseChan)
 		return nil
 	}
-	err := fmt.Errorf("no response channel for request ID: %s", msg.Metadata.RequestID)
+	err := fmt.Errorf("no response channel for request ID: %s", msg.RequestID)
 	p.logger.Errorf("Failed to forward message: %v", err)
 	return err
 }

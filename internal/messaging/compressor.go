@@ -9,6 +9,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -47,7 +48,7 @@ func (c *chunkingCompressor) split(bytes []byte) ([][]byte, error) {
 }
 
 func compress(msg *types.Message) ([]byte, error) {
-	content, err := msg.MarshalContent()
+	content, err := proto.Marshal(msg.Content)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrEncodingMsg, err)
 	}

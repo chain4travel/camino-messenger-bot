@@ -43,20 +43,16 @@ func (e *MessageChunkEventContent) Verify() error {
 }
 
 type MessageEventContent struct {
-	MsgType  types.MessageType `json:"msgtype"`
-	Metadata metadata.Metadata `json:"metadata"`
-	Data     []byte            `json:"data"`
+	MessageChunkEventContent
+
+	MsgType     types.MessageType   `json:"msgtype"`
+	ChunksCount uint32              `json:"chunks_count"`
+	Timestamps  metadata.Timestamps `json:"timestamps"`
 }
 
 func (e *MessageEventContent) Verify() error {
-	if e.Metadata.NumberOfChunks == 0 {
+	if e.ChunksCount == 0 {
 		return ErrNoChunks
 	}
-	if e.Metadata.RequestID == "" {
-		return ErrNoRequestID
-	}
-	if len(e.Data) == 0 {
-		return ErrNoData
-	}
-	return nil
+	return e.MessageChunkEventContent.Verify()
 }
