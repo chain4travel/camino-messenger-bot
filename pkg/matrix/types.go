@@ -4,48 +4,59 @@
 package matrix
 
 import (
+	"errors"
 	"reflect"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/ethereum/go-ethereum/common"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"maunium.net/go/mautrix/event"
 )
 
-var EventTypeC4TMessage = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
+var (
+	EventTypeMessage      = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
+	EventTypeMessageChunk = event.Type{Type: "m.room.c4t-msg-chunk", Class: event.MessageEventType}
+
+	ErrNoChunks    = errors.New("zero chunks count")
+	ErrNoData      = errors.New("no data in message chunk")
+	ErrNoRequestID = errors.New("missing request ID")
+)
 
 func init() {
-	event.TypeMap[EventTypeC4TMessage] = reflect.TypeOf(CaminoMatrixMessageEventContent{})
+	event.TypeMap[EventTypeMessage] = reflect.TypeOf(MessageEventContent{})
+	event.TypeMap[EventTypeMessageChunk] = reflect.TypeOf(MessageChunkEventContent{})
 }
 
-// CaminoMatrixMessageEventContent is a matrix-specific message format used for communication between the messenger and the service
-type CaminoMatrixMessageEventContent struct {
-	event.MessageEventContent
-	Content           protoreflect.ProtoMessage `json:"content"`
-	CompressedContent []byte                    `json:"compressed_content"`
-	Metadata          metadata.Metadata         `json:"metadata"`
+type MessageChunkEventContent struct {
+	RequestID  string `json:"request_id"`
+	ChunkIndex uint32 `json:"chunk_index,omitempty"`
+	Data       []byte `json:"data"`
 }
 
-type ByChunkIndex []*CaminoMatrixMessageEventContent
-
-func (b ByChunkIndex) Len() int { return len(b) }
-func (b ByChunkIndex) Less(i, j int) bool {
-	return b[i].Metadata.ChunkIndex < b[j].Metadata.ChunkIndex
-}
-func (b ByChunkIndex) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
-
-func (m *CaminoMatrixMessageEventContent) UnmarshalContent(src []byte) error {
-	return generated.UnmarshalContent(src, types.MessageType(m.MsgType), &m.Content)
+func (e *MessageChunkEventContent) Verify() error {
+	if len(e.Data) == 0 {
+		return ErrNoData
+	}
+	if e.RequestID == "" {
+		return ErrNoRequestID
+	}
+	return nil
 }
 
-func (m *CaminoMatrixMessageEventContent) GetChequeFor(addr common.Address) *cheques.SignedCheque {
-	for _, cheque := range m.Metadata.Cheques {
-		if cheque.Cheque.ToCMAccount == addr {
-			return &cheque
-		}
+type MessageEventContent struct {
+	MsgType  types.MessageType `json:"msgtype"`
+	Metadata metadata.Metadata `json:"metadata"`
+	Data     []byte            `json:"data"`
+}
+
+func (e *MessageEventContent) Verify() error {
+	if e.Metadata.NumberOfChunks == 0 {
+		return ErrNoChunks
+	}
+	if e.Metadata.RequestID == "" {
+		return ErrNoRequestID
+	}
+	if len(e.Data) == 0 {
+		return ErrNoData
 	}
 	return nil
 }

@@ -6,7 +6,6 @@ package messenger
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"testing"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	gomock "go.uber.org/mock/gomock"
@@ -35,205 +35,148 @@ func init() {
 	}
 }
 
-func TestTryAssembleMessage(t *testing.T) {
+func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	botKey := testKey
-	testError := errors.New("test error")
 
-	msg := types.Message{
-		Metadata: metadata.Metadata{
-			RequestID:          "testRequestID",
-			RecipientCMAccount: "0xADDRESS",
-		},
-		Type:    generated.PingServiceV1Response,
-		Content: &pingv1.PingResponse{PingMessage: "pong"},
+	requestID := "message-id"
+
+	// we will always expect this message chunk to be present in the map unchanged in addition to case-specific expects
+	otherRequestID := "other-message-id"
+	otherChunkedMessage := func() *chunkedMessage { // to make copies, not references
+		return &chunkedMessage{
+			metadata: metadata.Metadata{
+				NumberOfChunks:  4,
+				SenderCMAccount: common.Address{2}.Hex(),
+			},
+			msgType: generated.AccommodationProductInfoServiceV1Request,
+			chunks: []messageChunk{
+				{index: 0, data: []byte("other-chunk0")},
+				{index: 1, data: []byte("other-chunk1")},
+			},
+		}
 	}
-	contentBytes, err := msg.MarshalContent()
+
+	content := pingv1.PingRequest{
+		PingMessage: "ping message",
+	}
+	contentBytes, err := proto.Marshal(&content)
 	require.NoError(t, err)
 
-	compressedContentBytes := []byte{'c', 'o', 'm', 'p', 'r', 'e', 's', 's', 'e', 'd'}
-
 	tests := map[string]struct {
-		decompressor                     func(c *gomock.Controller) *compression.MockDecompressor
-		existingMsgEventContents         map[string][]*matrix.CaminoMatrixMessageEventContent
-		msgEventContent                  *matrix.CaminoMatrixMessageEventContent
-		expectedExistingMsgEventContents map[string][]*matrix.CaminoMatrixMessageEventContent
-		expectedMessage                  types.Message
-		expectedComplete                 bool
-		expectedErr                      error
+		decompressor            func(*gomock.Controller) *compression.MockDecompressor
+		msgEventContent         *matrix.MessageEventContent
+		existingChunkedMessages map[string]*chunkedMessage
+		expectedChunkedMessages map[string]*chunkedMessage
+		expectedMessage         types.Message
+		expectedComplete        bool
+		expectedError           error
 	}{
-		"Decoder failed to decompress": {
-			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
-				d := compression.NewMockDecompressor(c)
-				d.EXPECT().Decompress(compressedContentBytes).Return(nil, testError)
-				return d
+		"Single-chunk message": {
+			decompressor: func(ctrl *gomock.Controller) *compression.MockDecompressor {
+				decompressor := compression.NewMockDecompressor(ctrl)
+				decompressor.EXPECT().Decompress([]byte("single chunk data")).Return(contentBytes, nil)
+				return decompressor
 			},
-			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
+			msgEventContent: &matrix.MessageEventContent{
+				MsgType: generated.PingServiceV1Request,
 				Metadata: metadata.Metadata{
-					RequestID:      msg.Metadata.RequestID,
 					NumberOfChunks: 1,
+					RequestID:      requestID,
 				},
-				CompressedContent: compressedContentBytes,
-			},
-			expectedErr: errDecompressFailed,
-		},
-		"Unknown message type": {
-			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
-				d := compression.NewMockDecompressor(c)
-				d.EXPECT().Decompress(compressedContentBytes).Return([]byte{}, nil)
-				return d
-			},
-			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
-				Metadata: metadata.Metadata{
-					RequestID:      msg.Metadata.RequestID,
-					NumberOfChunks: 1,
-				},
-				CompressedContent: compressedContentBytes,
-			},
-			expectedErr: errUnmarshalContent,
-		},
-		"OK: Empty input": {
-			msgEventContent: &matrix.CaminoMatrixMessageEventContent{},
-			expectedExistingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
-				"": {{}},
-			},
-		},
-		"OK: Single chunk message": {
-			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
-				d := compression.NewMockDecompressor(c)
-				d.EXPECT().Decompress(compressedContentBytes).Return(contentBytes, nil)
-				return d
-			},
-			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
-				MessageEventContent: event.MessageEventContent{
-					MsgType: event.MessageType(generated.PingServiceV1Response),
-				},
-				Metadata: metadata.Metadata{
-					RequestID:      msg.Metadata.RequestID,
-					NumberOfChunks: 1,
-				},
-				CompressedContent: compressedContentBytes,
+				Data: []byte("single chunk data"),
 			},
 			expectedMessage: types.Message{
-				Type:    generated.PingServiceV1Response,
-				Content: proto.Clone(msg.Content),
+				Type: generated.PingServiceV1Request,
 				Metadata: metadata.Metadata{
-					RequestID:      msg.Metadata.RequestID,
 					NumberOfChunks: 1,
+					RequestID:      requestID,
 				},
+				Content: proto.Clone(&content),
 			},
 			expectedComplete: true,
 		},
-		"OK: 3-chunk message, first chunk": {
-			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
+		"First chunk is actually first": {
+			msgEventContent: &matrix.MessageEventContent{
+				MsgType: generated.PingServiceV1Request,
 				Metadata: metadata.Metadata{
-					RequestID:      msg.Metadata.RequestID,
+					RequestID:      requestID,
 					NumberOfChunks: 3,
-					ChunkIndex:     1,
 				},
-				CompressedContent: compressedContentBytes[3:5],
+				Data: []byte("chunk0"),
 			},
-			expectedExistingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
-				msg.Metadata.RequestID: {
-					{
-						Metadata: metadata.Metadata{
-							RequestID:      msg.Metadata.RequestID,
-							NumberOfChunks: 3,
-							ChunkIndex:     1,
-						},
-						CompressedContent: compressedContentBytes[3:5],
-					},
-				},
-			},
-		},
-		"OK: 3-chunk message, not first, but not last chunk": {
-			existingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
-				msg.Metadata.RequestID: {{
-					Metadata: metadata.Metadata{
-						RequestID:      msg.Metadata.RequestID,
+			expectedChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					msgType: generated.PingServiceV1Request,
+					metadata: metadata.Metadata{
+						RequestID:      requestID,
 						NumberOfChunks: 3,
-						ChunkIndex:     1,
 					},
-					CompressedContent: compressedContentBytes[3:5],
-				}},
-			},
-			msgEventContent: &matrix.CaminoMatrixMessageEventContent{
-				Metadata: metadata.Metadata{
-					RequestID:          msg.Metadata.RequestID,
-					NumberOfChunks:     3,
-					ChunkIndex:         0,
-					RecipientCMAccount: msg.Metadata.RecipientCMAccount,
-				},
-				CompressedContent: compressedContentBytes[0:3],
-			},
-			expectedExistingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
-				msg.Metadata.RequestID: {
-					{
-						Metadata: metadata.Metadata{
-							RequestID:      msg.Metadata.RequestID,
-							NumberOfChunks: 3,
-							ChunkIndex:     1,
-						},
-						CompressedContent: compressedContentBytes[3:5],
-					},
-					{
-						Metadata: metadata.Metadata{
-							RequestID:          msg.Metadata.RequestID,
-							NumberOfChunks:     3,
-							ChunkIndex:         0,
-							RecipientCMAccount: msg.Metadata.RecipientCMAccount,
-						},
-						CompressedContent: compressedContentBytes[0:3],
+					chunks: []messageChunk{
+						{index: 0, data: []byte("chunk0")},
 					},
 				},
 			},
 		},
-		"OK: 3-chunk message, last chunk": {
-			decompressor: func(c *gomock.Controller) *compression.MockDecompressor {
-				d := compression.NewMockDecompressor(c)
-				d.EXPECT().Decompress(compressedContentBytes).Return(contentBytes, nil)
-				return d
-			},
-			existingMsgEventContents: map[string][]*matrix.CaminoMatrixMessageEventContent{
-				msg.Metadata.RequestID: {
-					{
-						Metadata: metadata.Metadata{
-							RequestID:      msg.Metadata.RequestID,
-							NumberOfChunks: 3,
-							ChunkIndex:     1,
-						},
-						CompressedContent: compressedContentBytes[3:5],
-					},
-					{
-						MessageEventContent: event.MessageEventContent{
-							MsgType: event.MessageType(generated.PingServiceV1Response),
-						},
-						Metadata: metadata.Metadata{
-							RequestID:          msg.Metadata.RequestID,
-							NumberOfChunks:     3,
-							ChunkIndex:         0,
-							RecipientCMAccount: msg.Metadata.RecipientCMAccount,
-						},
-						CompressedContent: compressedContentBytes[0:3],
-					},
-				},
-			},
-			msgEventContent: &matrix.CaminoMatrixMessageEventContent{ // last message
+		"First chunk is second": {
+			msgEventContent: &matrix.MessageEventContent{
+				MsgType: generated.PingServiceV1Request,
 				Metadata: metadata.Metadata{
-					RequestID:      msg.Metadata.RequestID,
+					RequestID:      requestID,
 					NumberOfChunks: 3,
-					ChunkIndex:     2,
 				},
-				CompressedContent: compressedContentBytes[5:],
+				Data: []byte("chunk0"),
+			},
+			existingChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					chunks: []messageChunk{
+						{index: 1, data: []byte("chunk1")},
+					},
+				},
+			},
+			expectedChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					msgType: generated.PingServiceV1Request,
+					metadata: metadata.Metadata{
+						RequestID:      requestID,
+						NumberOfChunks: 3,
+					},
+					chunks: []messageChunk{
+						{index: 1, data: []byte("chunk1")},
+						{index: 0, data: []byte("chunk0")},
+					},
+				},
+			},
+		},
+		"First chunk is last": {
+			decompressor: func(ctrl *gomock.Controller) *compression.MockDecompressor {
+				decompressor := compression.NewMockDecompressor(ctrl)
+				decompressor.EXPECT().Decompress([]byte("chunk0chunk1chunk2")).Return(contentBytes, nil)
+				return decompressor
+			},
+			msgEventContent: &matrix.MessageEventContent{
+				MsgType: generated.PingServiceV1Request,
+				Metadata: metadata.Metadata{
+					RequestID:      requestID,
+					NumberOfChunks: 3,
+				},
+				Data: []byte("chunk0"),
+			},
+			existingChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					chunks: []messageChunk{
+						{index: 1, data: []byte("chunk1")},
+						{index: 2, data: []byte("chunk2")},
+					},
+				},
 			},
 			expectedMessage: types.Message{
-				Type:    generated.PingServiceV1Response,
-				Content: proto.Clone(msg.Content),
+				Type: generated.PingServiceV1Request,
 				Metadata: metadata.Metadata{
-					RequestID:          msg.Metadata.RequestID,
-					NumberOfChunks:     3,
-					RecipientCMAccount: msg.Metadata.RecipientCMAccount,
+					NumberOfChunks: 3,
+					RequestID:      requestID,
 				},
+				Content: proto.Clone(&content),
 			},
 			expectedComplete: true,
 		},
@@ -243,7 +186,8 @@ func TestTryAssembleMessage(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			matrixClient := NewMockClient(ctrl)
-			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeC4TMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessageChunk, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
 
 			if tt.decompressor == nil {
@@ -260,27 +204,185 @@ func TestTryAssembleMessage(t *testing.T) {
 			require.NoError(t, err)
 			matrixMessengerImpl := matrixMessenger.(*messenger)
 
-			if tt.existingMsgEventContents != nil {
-				matrixMessengerImpl.messages = tt.existingMsgEventContents
+			for msgID, chunkedMessage := range tt.existingChunkedMessages {
+				matrixMessengerImpl.chunkedMessages[msgID] = chunkedMessage
 			}
 
-			message, completed, err := matrixMessengerImpl.tryAssembleMessage(tt.msgEventContent)
-			require.ErrorIs(t, err, tt.expectedErr)
-			require.Equal(t, tt.expectedComplete, completed)
+			if tt.expectedChunkedMessages == nil {
+				tt.expectedChunkedMessages = make(map[string]*chunkedMessage)
+			}
 
-			if tt.expectedComplete {
+			// we expect the other message to be present in the map unchanged
+			matrixMessengerImpl.chunkedMessages[otherRequestID] = otherChunkedMessage()
+			tt.expectedChunkedMessages[otherRequestID] = otherChunkedMessage()
+
+			message, completed, err := matrixMessengerImpl.tryCompleteMessageWithFirstChunk(tt.msgEventContent)
+			require.ErrorIs(t, err, tt.expectedError)
+			require.Equal(t, tt.expectedComplete, completed)
+			if completed {
 				require.True(t, proto.Equal(tt.expectedMessage.Content, message.Content))
 				proto.Reset(tt.expectedMessage.Content)
 				proto.Reset(message.Content)
-				require.Equal(t, tt.expectedMessage, message)
-			} else {
-				require.Empty(t, message)
+			}
+			require.Equal(t, tt.expectedMessage, message)
+			require.Equal(t, tt.expectedChunkedMessages, matrixMessengerImpl.chunkedMessages)
+		})
+	}
+}
+
+func TestTryCompleteMessage(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	botKey := testKey
+
+	requestID := "message-id"
+
+	// we will always expect this message chunk to be present in the map unchanged in addition to case-specific expects
+	otherRequestID := "other-message-id"
+	otherChunkedMessage := func() *chunkedMessage { // to make copies, not references
+		return &chunkedMessage{
+			metadata: metadata.Metadata{
+				RequestID:      otherRequestID,
+				NumberOfChunks: 4,
+			},
+			msgType: generated.AccommodationProductInfoServiceV1Request,
+			chunks: []messageChunk{
+				{index: 0, data: []byte("other-chunk0")},
+				{index: 1, data: []byte("other-chunk1")},
+			},
+		}
+	}
+
+	content := pingv1.PingRequest{
+		PingMessage: "ping message",
+	}
+	contentBytes, err := proto.Marshal(&content)
+	require.NoError(t, err)
+
+	tests := map[string]struct {
+		decompressor            func(*gomock.Controller) *compression.MockDecompressor
+		msgEventContent         *matrix.MessageChunkEventContent
+		existingChunkedMessages map[string]*chunkedMessage
+		expectedChunkedMessages map[string]*chunkedMessage
+		expectedMessage         types.Message
+		expectedComplete        bool
+		expectedError           error
+	}{
+		"Chunk is first": {
+			msgEventContent: &matrix.MessageChunkEventContent{
+				RequestID:  requestID,
+				Data:       []byte("chunk1"),
+				ChunkIndex: 1,
+			},
+			expectedChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					chunks: []messageChunk{
+						{index: 1, data: []byte("chunk1")},
+					},
+				},
+			},
+		},
+		"Chunk is second": {
+			msgEventContent: &matrix.MessageChunkEventContent{
+				RequestID:  requestID,
+				Data:       []byte("chunk2"),
+				ChunkIndex: 2,
+			},
+			existingChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					chunks: []messageChunk{
+						{index: 1, data: []byte("chunk1")},
+					},
+				},
+			},
+			expectedChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					chunks: []messageChunk{
+						{index: 1, data: []byte("chunk1")},
+						{index: 2, data: []byte("chunk2")},
+					},
+				},
+			},
+		},
+		"Chunk is last": {
+			decompressor: func(ctrl *gomock.Controller) *compression.MockDecompressor {
+				decompressor := compression.NewMockDecompressor(ctrl)
+				decompressor.EXPECT().Decompress([]byte("chunk0chunk1chunk2")).Return(contentBytes, nil)
+				return decompressor
+			},
+			msgEventContent: &matrix.MessageChunkEventContent{
+				RequestID:  requestID,
+				Data:       []byte("chunk1"),
+				ChunkIndex: 1,
+			},
+			existingChunkedMessages: map[string]*chunkedMessage{
+				requestID: {
+					metadata: metadata.Metadata{
+						RequestID:      requestID,
+						NumberOfChunks: 3,
+					},
+					msgType: generated.PingServiceV1Request,
+					chunks: []messageChunk{
+						{index: 2, data: []byte("chunk2")},
+						{index: 0, data: []byte("chunk0")},
+					},
+				},
+			},
+			expectedMessage: types.Message{
+				Metadata: metadata.Metadata{
+					RequestID:      requestID,
+					NumberOfChunks: 3,
+				},
+				Type:    generated.PingServiceV1Request,
+				Content: proto.Clone(&content),
+			},
+			expectedComplete: true,
+		},
+	}
+	for tc, tt := range tests {
+		t.Run(tc, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			matrixClient := NewMockClient(ctrl)
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessageChunk, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
+
+			if tt.decompressor == nil {
+				tt.decompressor = compression.NewMockDecompressor
 			}
 
-			if tt.expectedExistingMsgEventContents == nil {
-				tt.expectedExistingMsgEventContents = make(map[string][]*matrix.CaminoMatrixMessageEventContent)
+			matrixMessenger, err := NewMessenger(
+				logger,
+				matrixClient,
+				tt.decompressor(ctrl),
+				botKey,
+				id.UserID("botUserID"),
+			)
+			require.NoError(t, err)
+			matrixMessengerImpl := matrixMessenger.(*messenger)
+
+			for msgID, chunkedMessage := range tt.existingChunkedMessages {
+				matrixMessengerImpl.chunkedMessages[msgID] = chunkedMessage
 			}
-			require.Equal(t, tt.expectedExistingMsgEventContents, matrixMessengerImpl.messages)
+
+			if tt.expectedChunkedMessages == nil {
+				tt.expectedChunkedMessages = make(map[string]*chunkedMessage)
+			}
+
+			// we expect the other message to be present in the map unchanged
+			matrixMessengerImpl.chunkedMessages[otherRequestID] = otherChunkedMessage()
+			tt.expectedChunkedMessages[otherRequestID] = otherChunkedMessage()
+
+			message, completed, err := matrixMessengerImpl.tryCompleteMessage(tt.msgEventContent)
+			require.ErrorIs(t, err, tt.expectedError)
+			require.Equal(t, tt.expectedComplete, completed)
+			if completed {
+				require.True(t, proto.Equal(tt.expectedMessage.Content, message.Content))
+				proto.Reset(tt.expectedMessage.Content)
+				proto.Reset(message.Content)
+			}
+			require.Equal(t, tt.expectedMessage, message)
+			require.Equal(t, tt.expectedChunkedMessages, matrixMessengerImpl.chunkedMessages)
 		})
 	}
 }

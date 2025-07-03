@@ -45,18 +45,19 @@ func NewMessenger(
 	}
 
 	m := &messenger{
-		msgChannel:   make(chan types.Message),
-		logger:       logger,
-		tracer:       otel.GetTracerProvider().Tracer(""),
-		client:       matrixClient,
-		rooms:        roomsCache,
-		decompressor: decompressor,
-		messages:     make(map[string][]*matrix.CaminoMatrixMessageEventContent),
-		botKey:       botKey,
-		botUserID:    botUserID,
+		msgChannel:      make(chan types.Message),
+		logger:          logger,
+		tracer:          otel.GetTracerProvider().Tracer(""),
+		client:          matrixClient,
+		rooms:           roomsCache,
+		decompressor:    decompressor,
+		chunkedMessages: make(map[string]*chunkedMessage),
+		botKey:          botKey,
+		botUserID:       botUserID,
 	}
 
-	m.client.SetEventHandler(matrix.EventTypeC4TMessage, m.c4tMessageEventHandler)
+	m.client.SetEventHandler(matrix.EventTypeMessage, m.messageEventHandler)
+	m.client.SetEventHandler(matrix.EventTypeMessageChunk, m.messageChunkEventHandler)
 	m.client.SetEventHandler(event.StateMember, m.stateMemberEventHandler)
 
 	return m, nil
@@ -66,12 +67,12 @@ type messenger struct {
 	botKey    *ecdsa.PrivateKey
 	botUserID id.UserID
 
-	msgChannel     chan types.Message
-	rooms          *lru.Cache[id.UserID, id.RoomID]
-	messages       map[string][]*matrix.CaminoMatrixMessageEventContent
-	messagesMutex  sync.RWMutex
-	cancelSync     func()
-	syncerDoneChan chan struct{}
+	msgChannel      chan types.Message
+	rooms           *lru.Cache[id.UserID, id.RoomID]
+	chunkedMessages map[string]*chunkedMessage
+	messagesMutex   sync.RWMutex
+	cancelSync      func()
+	syncerDoneChan  chan struct{}
 
 	logger       *zap.SugaredLogger
 	tracer       trace.Tracer

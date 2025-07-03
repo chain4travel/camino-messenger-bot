@@ -158,18 +158,32 @@ func (mr *MockClientMockRecorder) LeaveRoom(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LeaveRoom", reflect.TypeOf((*MockClient)(nil).LeaveRoom), arg0, arg1)
 }
 
-// SendMessageEvent mocks base method.
-func (m *MockClient) SendMessageEvent(arg0 context.Context, arg1 id.RoomID, arg2 event.Type, arg3 matrix.CaminoMatrixMessageEventContent) error {
+// SendMessageChunkEvent mocks base method.
+func (m *MockClient) SendMessageChunkEvent(arg0 context.Context, arg1 id.RoomID, arg2 matrix.MessageChunkEventContent) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMessageEvent", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "SendMessageChunkEvent", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendMessageChunkEvent indicates an expected call of SendMessageChunkEvent.
+func (mr *MockClientMockRecorder) SendMessageChunkEvent(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessageChunkEvent", reflect.TypeOf((*MockClient)(nil).SendMessageChunkEvent), arg0, arg1, arg2)
+}
+
+// SendMessageEvent mocks base method.
+func (m *MockClient) SendMessageEvent(arg0 context.Context, arg1 id.RoomID, arg2 matrix.MessageEventContent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendMessageEvent", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendMessageEvent indicates an expected call of SendMessageEvent.
-func (mr *MockClientMockRecorder) SendMessageEvent(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockClientMockRecorder) SendMessageEvent(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessageEvent", reflect.TypeOf((*MockClient)(nil).SendMessageEvent), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessageEvent", reflect.TypeOf((*MockClient)(nil).SendMessageEvent), arg0, arg1, arg2)
 }
 
 // SetEventHandler mocks base method.

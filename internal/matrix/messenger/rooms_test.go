@@ -86,7 +86,8 @@ func TestGetRoomForRecipient(t *testing.T) {
 				tt.client = NewMockClient
 			}
 			matrixClient := tt.client(ctrl)
-			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeC4TMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessageChunk, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
 
 			matrixMessenger, err := NewMessenger(

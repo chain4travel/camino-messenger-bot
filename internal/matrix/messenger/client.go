@@ -20,7 +20,8 @@ type Client interface {
 	ForgetRoom(ctx context.Context, roomID id.RoomID) error
 	JoinedRooms(ctx context.Context) ([]id.RoomID, error)
 	IsUserJoinedRoom(ctx context.Context, roomID id.RoomID, userID id.UserID) (bool, error)
-	SendMessageEvent(ctx context.Context, roomID id.RoomID, eventType event.Type, event matrix.CaminoMatrixMessageEventContent) error
+	SendMessageEvent(ctx context.Context, roomID id.RoomID, event matrix.MessageEventContent) error
+	SendMessageChunkEvent(ctx context.Context, roomID id.RoomID, event matrix.MessageChunkEventContent) error
 	SyncWithContext(ctx context.Context) error
 	Close() error
 }

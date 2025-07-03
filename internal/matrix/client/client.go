@@ -163,14 +163,25 @@ func (c *client) IsUserJoinedRoom(ctx context.Context, roomID id.RoomID, userID 
 	return joined, nil
 }
 
-func (c *client) SendMessageEvent(ctx context.Context, roomID id.RoomID, eventType event.Type, event matrix.CaminoMatrixMessageEventContent) error {
-	c.logger.Debugf("Sending message event of type %s to room %s", eventType.Type, roomID)
-	_, err := c.client.SendMessageEvent(ctx, roomID, eventType, event)
+func (c *client) SendMessageEvent(ctx context.Context, roomID id.RoomID, event matrix.MessageEventContent) error {
+	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeMessage.Type, roomID)
+	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessage, event)
 	if err != nil {
-		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", eventType.Type, roomID, err)
+		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessage.Type, roomID, err)
 		return err
 	}
-	c.logger.Debugf("Sent message event of type %s to room %s", eventType.Type, roomID)
+	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeMessage.Type, roomID)
+	return nil
+}
+
+func (c *client) SendMessageChunkEvent(ctx context.Context, roomID id.RoomID, event matrix.MessageChunkEventContent) error {
+	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeMessageChunk.Type, roomID)
+	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessageChunk, event)
+	if err != nil {
+		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessageChunk.Type, roomID, err)
+		return err
+	}
+	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeMessageChunk.Type, roomID)
 	return nil
 }
 
