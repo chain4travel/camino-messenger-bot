@@ -13,9 +13,9 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	gomock "go.uber.org/mock/gomock"
@@ -40,16 +40,19 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 	botKey := testKey
 
 	requestID := "message-id"
+	serviceFeeCheque := &cheques.SignedCheque{Signature: []byte("service-fee-signature")}
+	networkFeeCheque := &cheques.SignedCheque{Signature: []byte("network-fee-signature")}
+	timestamps := metadata.Timestamps{"1": 9876543210}
 
 	// we will always expect this message chunk to be present in the map unchanged in addition to case-specific expects
 	otherRequestID := "other-message-id"
 	otherChunkedMessage := func() *chunkedMessage { // to make copies, not references
 		return &chunkedMessage{
-			metadata: metadata.Metadata{
-				NumberOfChunks:  4,
-				SenderCMAccount: common.Address{2}.Hex(),
-			},
-			msgType: generated.AccommodationProductInfoServiceV1Request,
+			timestamps:       metadata.Timestamps{"1-other": 1234567890},
+			serviceFeeCheque: &cheques.SignedCheque{Signature: []byte("other-service-fee-signature")},
+			networkFeeCheque: &cheques.SignedCheque{Signature: []byte("other-network-fee-signature")},
+			chunksCount:      4,
+			msgType:          generated.AccommodationProductInfoServiceV1Request,
 			chunks: []messageChunk{
 				{index: 0, data: []byte("other-chunk0")},
 				{index: 1, data: []byte("other-chunk1")},
@@ -79,39 +82,45 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 				return decompressor
 			},
 			msgEventContent: &matrix.MessageEventContent{
-				MsgType: generated.PingServiceV1Request,
-				Metadata: metadata.Metadata{
-					NumberOfChunks: 1,
-					RequestID:      requestID,
+				MessageChunkEventContent: matrix.MessageChunkEventContent{
+					RequestID: requestID,
+					Data:      []byte("single chunk data"),
 				},
-				Data: []byte("single chunk data"),
+				MsgType:          generated.PingServiceV1Request,
+				Timestamps:       timestamps,
+				ServiceFeeCheque: serviceFeeCheque,
+				NetworkFeeCheque: *networkFeeCheque,
+				ChunksCount:      1,
 			},
 			expectedMessage: types.Message{
-				Type: generated.PingServiceV1Request,
-				Metadata: metadata.Metadata{
-					NumberOfChunks: 1,
-					RequestID:      requestID,
-				},
-				Content: proto.Clone(&content),
+				RequestID:        requestID,
+				Type:             generated.PingServiceV1Request,
+				Timestamps:       timestamps,
+				ServiceFeeCheque: serviceFeeCheque,
+				NetworkFeeCheque: networkFeeCheque,
+				Content:          proto.Clone(&content),
 			},
 			expectedComplete: true,
 		},
 		"First chunk is actually first": {
 			msgEventContent: &matrix.MessageEventContent{
-				MsgType: generated.PingServiceV1Request,
-				Metadata: metadata.Metadata{
-					RequestID:      requestID,
-					NumberOfChunks: 3,
+				MessageChunkEventContent: matrix.MessageChunkEventContent{
+					RequestID: requestID,
+					Data:      []byte("chunk0"),
 				},
-				Data: []byte("chunk0"),
+				MsgType:          generated.PingServiceV1Request,
+				Timestamps:       timestamps,
+				ServiceFeeCheque: serviceFeeCheque,
+				NetworkFeeCheque: *networkFeeCheque,
+				ChunksCount:      3,
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
 				requestID: {
-					msgType: generated.PingServiceV1Request,
-					metadata: metadata.Metadata{
-						RequestID:      requestID,
-						NumberOfChunks: 3,
-					},
+					msgType:          generated.PingServiceV1Request,
+					chunksCount:      3,
+					timestamps:       timestamps,
+					serviceFeeCheque: serviceFeeCheque,
+					networkFeeCheque: networkFeeCheque,
 					chunks: []messageChunk{
 						{index: 0, data: []byte("chunk0")},
 					},
@@ -120,12 +129,15 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 		},
 		"First chunk is second": {
 			msgEventContent: &matrix.MessageEventContent{
-				MsgType: generated.PingServiceV1Request,
-				Metadata: metadata.Metadata{
-					RequestID:      requestID,
-					NumberOfChunks: 3,
+				MessageChunkEventContent: matrix.MessageChunkEventContent{
+					RequestID: requestID,
+					Data:      []byte("chunk0"),
 				},
-				Data: []byte("chunk0"),
+				MsgType:          generated.PingServiceV1Request,
+				Timestamps:       timestamps,
+				ServiceFeeCheque: serviceFeeCheque,
+				NetworkFeeCheque: *networkFeeCheque,
+				ChunksCount:      3,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
 				requestID: {
@@ -136,11 +148,11 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
 				requestID: {
-					msgType: generated.PingServiceV1Request,
-					metadata: metadata.Metadata{
-						RequestID:      requestID,
-						NumberOfChunks: 3,
-					},
+					msgType:          generated.PingServiceV1Request,
+					chunksCount:      3,
+					timestamps:       timestamps,
+					serviceFeeCheque: serviceFeeCheque,
+					networkFeeCheque: networkFeeCheque,
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 						{index: 0, data: []byte("chunk0")},
@@ -155,12 +167,15 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 				return decompressor
 			},
 			msgEventContent: &matrix.MessageEventContent{
-				MsgType: generated.PingServiceV1Request,
-				Metadata: metadata.Metadata{
-					RequestID:      requestID,
-					NumberOfChunks: 3,
+				MessageChunkEventContent: matrix.MessageChunkEventContent{
+					RequestID: requestID,
+					Data:      []byte("chunk0"),
 				},
-				Data: []byte("chunk0"),
+				MsgType:          generated.PingServiceV1Request,
+				Timestamps:       timestamps,
+				ServiceFeeCheque: serviceFeeCheque,
+				NetworkFeeCheque: *networkFeeCheque,
+				ChunksCount:      3,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
 				requestID: {
@@ -171,12 +186,12 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 				},
 			},
 			expectedMessage: types.Message{
-				Type: generated.PingServiceV1Request,
-				Metadata: metadata.Metadata{
-					NumberOfChunks: 3,
-					RequestID:      requestID,
-				},
-				Content: proto.Clone(&content),
+				RequestID:        requestID,
+				Type:             generated.PingServiceV1Request,
+				Timestamps:       timestamps,
+				ServiceFeeCheque: serviceFeeCheque,
+				NetworkFeeCheque: networkFeeCheque,
+				Content:          proto.Clone(&content),
 			},
 			expectedComplete: true,
 		},
@@ -235,16 +250,19 @@ func TestTryCompleteMessage(t *testing.T) {
 	botKey := testKey
 
 	requestID := "message-id"
+	serviceFeeCheque := &cheques.SignedCheque{Signature: []byte("service-fee-signature")}
+	networkFeeCheque := &cheques.SignedCheque{Signature: []byte("network-fee-signature")}
+	timestamps := metadata.Timestamps{"1": 9876543210}
 
 	// we will always expect this message chunk to be present in the map unchanged in addition to case-specific expects
 	otherRequestID := "other-message-id"
 	otherChunkedMessage := func() *chunkedMessage { // to make copies, not references
 		return &chunkedMessage{
-			metadata: metadata.Metadata{
-				RequestID:      otherRequestID,
-				NumberOfChunks: 4,
-			},
-			msgType: generated.AccommodationProductInfoServiceV1Request,
+			timestamps:       metadata.Timestamps{"1-other": 1234567890},
+			serviceFeeCheque: &cheques.SignedCheque{Signature: []byte("other-service-fee-signature")},
+			networkFeeCheque: &cheques.SignedCheque{Signature: []byte("other-network-fee-signature")},
+			chunksCount:      4,
+			msgType:          generated.AccommodationProductInfoServiceV1Request,
 			chunks: []messageChunk{
 				{index: 0, data: []byte("other-chunk0")},
 				{index: 1, data: []byte("other-chunk1")},
@@ -316,11 +334,11 @@ func TestTryCompleteMessage(t *testing.T) {
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
 				requestID: {
-					metadata: metadata.Metadata{
-						RequestID:      requestID,
-						NumberOfChunks: 3,
-					},
-					msgType: generated.PingServiceV1Request,
+					chunksCount:      3,
+					msgType:          generated.PingServiceV1Request,
+					timestamps:       timestamps,
+					serviceFeeCheque: serviceFeeCheque,
+					networkFeeCheque: networkFeeCheque,
 					chunks: []messageChunk{
 						{index: 2, data: []byte("chunk2")},
 						{index: 0, data: []byte("chunk0")},
@@ -328,12 +346,12 @@ func TestTryCompleteMessage(t *testing.T) {
 				},
 			},
 			expectedMessage: types.Message{
-				Metadata: metadata.Metadata{
-					RequestID:      requestID,
-					NumberOfChunks: 3,
-				},
-				Type:    generated.PingServiceV1Request,
-				Content: proto.Clone(&content),
+				RequestID:        requestID,
+				Timestamps:       timestamps,
+				ServiceFeeCheque: serviceFeeCheque,
+				NetworkFeeCheque: networkFeeCheque,
+				Type:             generated.PingServiceV1Request,
+				Content:          proto.Clone(&content),
 			},
 			expectedComplete: true,
 		},

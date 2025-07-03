@@ -101,9 +101,9 @@ func (mr *MockPartnerPluginMockRecorder) CancellationWithdrawnNotification(arg0,
 }
 
 // DoServiceRequest mocks base method.
-func (m *MockPartnerPlugin) DoServiceRequest(arg0 context.Context, arg1 *types.Message, arg2 rpc.Client) (context.Context, *types.Message, error) {
+func (m *MockPartnerPlugin) DoServiceRequest(arg0 context.Context, arg1 *types.Message, arg2 rpc.Client, arg3, arg4 common.Address) (context.Context, *types.Message, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DoServiceRequest", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "DoServiceRequest", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(context.Context)
 	ret1, _ := ret[1].(*types.Message)
 	ret2, _ := ret[2].(error)
@@ -111,9 +111,9 @@ func (m *MockPartnerPlugin) DoServiceRequest(arg0 context.Context, arg1 *types.M
 }
 
 // DoServiceRequest indicates an expected call of DoServiceRequest.
-func (mr *MockPartnerPluginMockRecorder) DoServiceRequest(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockPartnerPluginMockRecorder) DoServiceRequest(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoServiceRequest", reflect.TypeOf((*MockPartnerPlugin)(nil).DoServiceRequest), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoServiceRequest", reflect.TypeOf((*MockPartnerPlugin)(nil).DoServiceRequest), arg0, arg1, arg2, arg3, arg4)
 }
 
 // TokenBoughtNotificationWithBuyTx mocks base method.

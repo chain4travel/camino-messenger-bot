@@ -18,7 +18,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -35,7 +34,6 @@ var (
 	ErrUnknownMessageCategory       = errors.New("unknown message category")
 	ErrOnlyRequestMessagesAllowed   = errors.New("only request messages allowed")
 	ErrUnsupportedService           = errors.New("unsupported service")
-	ErrInvalidRecipient             = errors.New("invalid recipient address")
 	ErrForeignCMAccount             = errors.New("foreign or Invalid CM Account")
 	ErrExceededResponseTimeout      = errors.New("response exceeded configured timeout")
 	ErrMissingCheques               = errors.New("missing cheques in metadata")
@@ -47,7 +45,11 @@ var (
 type MessageProcessor interface {
 	Start(ctx context.Context)
 	ProcessIncomingMessage(message *types.Message) error
-	SendRequestMessage(ctx context.Context, message *types.Message) (*types.Message, error)
+	SendRequestMessage(
+		ctx context.Context,
+		message *types.Message,
+		recipientCMAccountAddress ethCommon.Address,
+	) (*types.Message, error)
 }
 
 func NewMessageProcessor(
@@ -156,7 +158,11 @@ func (p *messageProcessor) ProcessIncomingMessage(msg *types.Message) error {
 	}
 }
 
-func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *types.Message) (*types.Message, error) {
+func (p *messageProcessor) SendRequestMessage(
+	ctx context.Context,
+	requestMsg *types.Message,
+	recipientCMAccountAddress ethCommon.Address,
+) (*types.Message, error) {
 	if requestMsg.Type.Category() != types.Request {
 		return nil, ErrOnlyRequestMessagesAllowed
 	}
@@ -171,19 +177,12 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
-	if !ethCommon.IsHexAddress(requestMsg.Metadata.RecipientCMAccount) {
-		return nil, ErrInvalidRecipient
-	}
-
-	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", requestMsg.Metadata.RecipientCMAccount)
+	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", recipientCMAccountAddress)
 	// lookup for CM Account -> bot
-	recipientCMAccAddr := ethCommon.HexToAddress(requestMsg.Metadata.RecipientCMAccount)
-	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccAddr)
+	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccountAddress)
 	if err != nil {
 		return nil, err
 	}
-
-	requestMsg.Metadata.Cheques = []cheques.SignedCheque{}
 
 	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.myBotAddress)
 	if err != nil {
@@ -193,7 +192,7 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 		return nil, ErrBotMissingChequeOperatorRole
 	}
 
-	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccAddr, requestMsg.Type.ToServiceName())
+	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccountAddress, requestMsg.Type.ToServiceName())
 	if err != nil {
 		// TODO @evlekht explicitly say if service is not supported and its not just some network error
 		return nil, err
@@ -218,14 +217,14 @@ func (p *messageProcessor) SendRequestMessage(ctx context.Context, requestMsg *t
 		return nil, err
 	}
 
-	if err := p.issueServiceCheque(ctx, requestMsg, serviceFee, recipientCMAccAddr, recipientBotAddr); err != nil {
+	if err := p.issueServiceCheque(ctx, requestMsg, serviceFee, recipientCMAccountAddress, recipientBotAddr); err != nil {
 		return nil, err
 	}
 
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
 	defer span.End()
 
-	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", requestMsg.SenderBotUserID, recipientBotAddr, requestMsg.Metadata.RecipientCMAccount)
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", requestMsg.SenderBotUserID, recipientBotAddr, recipientCMAccountAddress)
 
 	if err := p.messenger.SendMessage(
 		ctx,
@@ -268,24 +267,18 @@ func (p *messageProcessor) respond(requestMsg *types.Message) error {
 		return fmt.Errorf("%w: %s", ErrUnsupportedService, requestMsg.Type)
 	}
 
-	cheque, err := p.getChequeForThisBot(requestMsg.Metadata.Cheques)
+	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, p.cmAccountAddress, service.Name())
 	if err != nil {
 		return err
 	}
 
-	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, ethCommon.HexToAddress(requestMsg.Metadata.RecipientCMAccount), service.Name())
-	if err != nil {
+	if err := p.chequeHandler.VerifyCheque(ctx, requestMsg.ServiceFeeCheque, matrix.AddressFromUserID(requestMsg.SenderBotUserID), serviceFee); err != nil {
 		return err
 	}
 
-	if err := p.chequeHandler.VerifyCheque(ctx, cheque, matrix.AddressFromUserID(requestMsg.SenderBotUserID), serviceFee); err != nil {
-		return err
-	}
-	requestMsg.Metadata.SenderCMAccount = cheque.FromCMAccount.Hex()
+	p.logger.Infof("CMAccount %s is calling partner-plugin of the CMAccount %s", requestMsg.ServiceFeeCheque.FromCMAccount, requestMsg.ServiceFeeCheque.ToCMAccount)
 
-	p.logger.Infof("CMAccount %s is calling partner-plugin of the CMAccount %s", requestMsg.Metadata.SenderCMAccount, requestMsg.Metadata.RecipientCMAccount)
-
-	ctx, responseMsg := p.callPartnerPluginAndGetResponse(ctx, requestMsg, service)
+	ctx, responseMsg := p.callPartnerPluginAndGetResponse(ctx, requestMsg, service, requestMsg.ServiceFeeCheque.FromCMAccount, requestMsg.ServiceFeeCheque.ToCMAccount)
 
 	ctx, err = p.compressMessage(ctx, responseMsg)
 	if err != nil {
@@ -305,10 +298,12 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	ctx context.Context,
 	requestMsg *types.Message,
 	service rpc.Client,
+	fromCMAccount ethCommon.Address,
+	toCMAccount ethCommon.Address,
 ) (context.Context, *types.Message) {
-	requestMsg.Metadata.Stamp(fmt.Sprintf("%s-%s", p.checkpoint(), "request"))
+	requestMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", p.checkpoint(), "request"))
 
-	ctx, responseMsg, err := p.partnerPlugin.DoServiceRequest(ctx, requestMsg, service)
+	ctx, responseMsg, err := p.partnerPlugin.DoServiceRequest(ctx, requestMsg, service, fromCMAccount, toCMAccount)
 	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
 		p.logger.Errorf(errMessage)
@@ -334,15 +329,6 @@ func (p *messageProcessor) forwardToHandler(msg *types.Message) error {
 	err := fmt.Errorf("no response channel for request ID: %s", msg.RequestID)
 	p.logger.Errorf("Failed to forward message: %v", err)
 	return err
-}
-
-func (p *messageProcessor) getChequeForThisBot(cheques []cheques.SignedCheque) (*cheques.SignedCheque, error) {
-	for _, cheque := range cheques {
-		if cheque.ToBot == p.myBotAddress && cheque.ToCMAccount == p.cmAccountAddress {
-			return &cheque, nil
-		}
-	}
-	return nil, ErrMissingCheques
 }
 
 func (p *messageProcessor) compressMessage(ctx context.Context, msg *types.Message) (context.Context, error) {
@@ -372,7 +358,7 @@ func (p *messageProcessor) issueNetworkCheque(ctx context.Context, msg *types.Me
 		return err
 	}
 
-	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *networkFeeCheque)
+	msg.NetworkFeeCheque = networkFeeCheque
 	return nil
 }
 
@@ -395,7 +381,7 @@ func (p *messageProcessor) issueServiceCheque(
 		return err
 	}
 
-	msg.Metadata.Cheques = append(msg.Metadata.Cheques, *serviceFeeCheque)
+	msg.ServiceFeeCheque = serviceFeeCheque
 	return nil
 }
 

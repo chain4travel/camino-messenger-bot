@@ -12,6 +12,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
@@ -22,10 +23,12 @@ import (
 )
 
 type chunkedMessage struct {
-	msgType     types.MessageType
-	timestamps  metadata.Timestamps
-	chunksCount uint32
-	chunks      []messageChunk
+	msgType          types.MessageType
+	timestamps       metadata.Timestamps
+	serviceFeeCheque *cheques.SignedCheque
+	networkFeeCheque *cheques.SignedCheque
+	chunksCount      uint32
+	chunks           []messageChunk
 }
 
 type messageChunk struct {
@@ -185,7 +188,14 @@ func (m *messenger) messageChunkEventHandler(ctx context.Context, evt *event.Eve
 func (m *messenger) tryCompleteMessageWithFirstChunk(eventContent *matrix.MessageEventContent) (types.Message, bool, error) {
 	// if the message is not chunked, we can already complete it
 	if eventContent.ChunksCount == 1 {
-		msg, err := m.assembleMessage(eventContent.Data, eventContent.RequestID, eventContent.Timestamps, eventContent.MsgType)
+		msg, err := m.assembleMessage(
+			eventContent.Data,
+			eventContent.RequestID,
+			eventContent.Timestamps,
+			eventContent.MsgType,
+			eventContent.ServiceFeeCheque,
+			&eventContent.NetworkFeeCheque,
+		)
 		return msg, err == nil, err
 	}
 
@@ -219,6 +229,8 @@ func (m *messenger) addMessageFirstChunk(eventContent *matrix.MessageEventConten
 	message.chunksCount = eventContent.ChunksCount
 	message.timestamps = eventContent.Timestamps
 	message.msgType = eventContent.MsgType
+	message.serviceFeeCheque = eventContent.ServiceFeeCheque
+	message.networkFeeCheque = &eventContent.NetworkFeeCheque
 
 	return m.addMessageChunk(message, &matrix.MessageChunkEventContent{
 		RequestID: eventContent.RequestID,
@@ -260,19 +272,35 @@ func (m *messenger) assembleMessageFromChunks(requestID string, chunkedMessage *
 	for _, chunk := range chunkedMessage.chunks {
 		compressedPayloads = append(compressedPayloads, chunk.data)
 	}
-	return m.assembleMessage(bytes.Join(compressedPayloads, nil), requestID, chunkedMessage.timestamps, chunkedMessage.msgType)
+	return m.assembleMessage(
+		bytes.Join(compressedPayloads, nil),
+		requestID,
+		chunkedMessage.timestamps,
+		chunkedMessage.msgType,
+		chunkedMessage.serviceFeeCheque,
+		chunkedMessage.networkFeeCheque,
+	)
 }
 
-func (m *messenger) assembleMessage(payload []byte, requestID string, timestamps metadata.Timestamps, msgType types.MessageType) (types.Message, error) {
+func (m *messenger) assembleMessage(
+	payload []byte,
+	requestID string,
+	timestamps metadata.Timestamps,
+	msgType types.MessageType,
+	serviceFeeCheque *cheques.SignedCheque,
+	networkFeeCheque *cheques.SignedCheque,
+) (types.Message, error) {
 	contentBytes, err := m.decompressor.Decompress(payload)
 	if err != nil {
 		return types.Message{}, fmt.Errorf("%w: %w", errDecompressFailed, err)
 	}
 
 	msg := types.Message{
-		Type:       msgType,
-		RequestID:  requestID,
-		Timestamps: timestamps,
+		Type:             msgType,
+		RequestID:        requestID,
+		Timestamps:       timestamps,
+		ServiceFeeCheque: serviceFeeCheque,
+		NetworkFeeCheque: networkFeeCheque,
 	}
 
 	if err := generated.UnmarshalContent(contentBytes, msgType, &msg.Content); err != nil {

@@ -7,8 +7,10 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"maunium.net/go/mautrix/id"
 )
 
 var ErrUnknownMessageType = errors.New("unknown message type")
@@ -52,4 +54,7 @@ type Message struct {
 	CompressedContent [][]byte
 	RequestID         string
 	Timestamps        metadata.Timestamps
+	ServiceFeeCheque  *cheques.SignedCheque
+	NetworkFeeCheque  *cheques.SignedCheque
+	SenderBotUserID   id.UserID
 }

@@ -32,32 +32,21 @@ import (
 )
 
 var (
-	userID        = id.UserID("0x4626cb544230e4d13fb72950501ff91740116a0a:localhost")
-	cmAccountAddr = "0x25a113a7bba8f898c546f1ebf2331b086645f40f"
-	requestID     = "requestID"
-	errSomeError  = errors.New("some error")
-
-	dummyCheque = cheques.SignedCheque{
-		Cheque: cheques.Cheque{
-			FromCMAccount: ethCommon.Address{},
-			ToCMAccount:   ethCommon.Address{},
-			ToBot:         ethCommon.Address{},
-			Counter:       big.NewInt(0),
-			Amount:        big.NewInt(0),
-			CreatedAt:     big.NewInt(0),
-			ExpiresAt:     big.NewInt(0),
-		},
-		Signature: []byte("signature"),
-	}
+	userID       = id.UserID("0x4626cb544230e4d13fb72950501ff91740116a0a:localhost")
+	requestID    = "requestID"
+	errSomeError = errors.New("some error")
 )
 
 func TestProcessIncomingMessage(t *testing.T) {
 	responseMessage := types.Message{
-		Type: generated.PingServiceV1Response,
-		Metadata: metadata.Metadata{
-			RequestID:       requestID,
-			SenderCMAccount: cmAccountAddr,
-			Cheques:         []cheques.SignedCheque{},
+		Type:      generated.PingServiceV1Response,
+		RequestID: requestID,
+	}
+
+	serviceFeeCheque := &cheques.SignedCheque{
+		Cheque: cheques.Cheque{
+			FromCMAccount: ethCommon.Address{1},
+			ToCMAccount:   ethCommon.Address{2},
 		},
 	}
 
@@ -93,7 +82,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 		"err: invalid message type": {
 			fields: fields{},
 			args: args{
-				msg: &types.Message{Type: "invalid", Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{}}},
+				msg: &types.Message{Type: "invalid"},
 			},
 			err: ErrUnknownMessageCategory,
 		},
@@ -107,10 +96,6 @@ func TestProcessIncomingMessage(t *testing.T) {
 			args: args{
 				msg: &types.Message{
 					Type: generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{
-						SenderCMAccount: cmAccountAddr,
-						Cheques:         []cheques.SignedCheque{},
-					},
 				},
 			},
 			err: ErrUnsupportedService,
@@ -131,17 +116,15 @@ func TestProcessIncomingMessage(t *testing.T) {
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true)
 				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
-				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
+				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
 				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(errSomeError)
 			},
 			args: args{
 				msg: &types.Message{
-					Type: generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{
-						SenderCMAccount: cmAccountAddr,
-						Cheques:         []cheques.SignedCheque{dummyCheque},
-					},
+					Type:             generated.PingServiceV1Request,
+					ServiceFeeCheque: serviceFeeCheque,
+					Timestamps:       metadata.Timestamps{},
 				},
 			},
 			err: errSomeError,
@@ -162,17 +145,15 @@ func TestProcessIncomingMessage(t *testing.T) {
 				mockServiceRegistry.EXPECT().GetService(gomock.Any()).Return(mockService, true)
 				mockChequeHandler.EXPECT().VerifyCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockCMAccounts.EXPECT().GetServiceFee(gomock.Any(), gomock.Any(), gomock.Any()).Return(big.NewInt(1), nil)
-				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
+				mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &responseMessage, nil)
 				mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil)
 				mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			args: args{
 				msg: &types.Message{
-					Type: generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{
-						SenderCMAccount: cmAccountAddr,
-						Cheques:         []cheques.SignedCheque{dummyCheque},
-					},
+					Type:             generated.PingServiceV1Request,
+					ServiceFeeCheque: serviceFeeCheque,
+					Timestamps:       metadata.Timestamps{},
 				},
 			},
 		},
@@ -235,9 +216,11 @@ func TestProcessIncomingMessage(t *testing.T) {
 
 func TestSendRequestMessage(t *testing.T) {
 	productListResponse := &types.Message{
-		Type:     generated.PingServiceV1Response,
-		Metadata: metadata.Metadata{RequestID: requestID},
+		Type:      generated.PingServiceV1Response,
+		RequestID: requestID,
 	}
+
+	recipientCMAccount := ethCommon.Address{1}
 
 	mockCtrl := gomock.NewController(t)
 	mockServiceRegistry := NewMockServiceRegistry(mockCtrl)
@@ -259,7 +242,8 @@ func TestSendRequestMessage(t *testing.T) {
 		maxAllowedServiceFee  *big.Int
 	}
 	type args struct {
-		msg *types.Message
+		msg                *types.Message
+		recipientCMAccount ethCommon.Address
 	}
 	tests := map[string]struct {
 		fields                 fields
@@ -280,24 +264,14 @@ func TestSendRequestMessage(t *testing.T) {
 				responseHeaderHandler: mockResponseHeaderHandler,
 			},
 			args: args{
-				msg: &types.Message{Type: generated.PingServiceV1Response},
+				msg: &types.Message{
+					RequestID:  requestID,
+					Type:       generated.PingServiceV1Response,
+					Timestamps: metadata.Timestamps{},
+				},
+				recipientCMAccount: recipientCMAccount,
 			},
 			err: ErrOnlyRequestMessagesAllowed,
-		},
-		"err: invalid recipient": {
-			fields: fields{
-				serviceRegistry:       mockServiceRegistry,
-				responseHandler:       NoopResponseHandler{},
-				chequeHandler:         mockChequeHandler,
-				messenger:             mockMessenger,
-				compressor:            &noopCompressor{},
-				cmAccounts:            mockCMAccounts,
-				responseHeaderHandler: mockResponseHeaderHandler,
-			},
-			args: args{
-				msg: &types.Message{Type: generated.PingServiceV1Request},
-			},
-			err: ErrInvalidRecipient,
 		},
 		"err: awaiting-response-timeout exceeded": {
 			fields: fields{
@@ -313,9 +287,11 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:     generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{RecipientCMAccount: cmAccountAddr},
+					RequestID:  requestID,
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
 				},
+				recipientCMAccount: recipientCMAccount,
 			},
 			prepare: func() {
 				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(ethCommon.Address{}, nil)
@@ -340,9 +316,11 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:     generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{RecipientCMAccount: cmAccountAddr},
+					RequestID:  requestID,
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
 				},
+				recipientCMAccount: recipientCMAccount,
 			},
 			prepare: func() {
 				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(ethCommon.Address{}, nil)
@@ -369,9 +347,11 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:     generated.PingServiceV1Request,
-					Metadata: metadata.Metadata{RecipientCMAccount: cmAccountAddr, RequestID: requestID},
+					RequestID:  requestID,
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
 				},
+				recipientCMAccount: recipientCMAccount,
 			},
 			prepare: func() {
 				mockCMAccounts.EXPECT().GetFirstChequeOperator(gomock.Any(), gomock.Any()).Return(ethCommon.Address{}, nil)
@@ -425,7 +405,7 @@ func TestSendRequestMessage(t *testing.T) {
 			if tt.writeResponseToChannel != nil {
 				go tt.writeResponseToChannel(p.(*messageProcessor))
 			}
-			got, err := p.SendRequestMessage(context.Background(), tt.args.msg)
+			got, err := p.SendRequestMessage(context.Background(), tt.args.msg, tt.args.recipientCMAccount)
 
 			require.ErrorIs(t, err, tt.err)
 			require.Equal(t, tt.want, got)
@@ -435,6 +415,13 @@ func TestSendRequestMessage(t *testing.T) {
 
 func TestStart(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
+
+	serviceFeeCheque := &cheques.SignedCheque{
+		Cheque: cheques.Cheque{
+			FromCMAccount: ethCommon.Address{1},
+			ToCMAccount:   ethCommon.Address{2},
+		},
+	}
 
 	mockService := rpc.NewMockService(mockCtrl)
 	mockService.EXPECT().Name().Return("dummy").Times(2)
@@ -450,8 +437,7 @@ func TestStart(t *testing.T) {
 	mockChequeHandler.EXPECT().IssueCheque(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&cheques.SignedCheque{}, nil).Times(2)
 
 	mockPartnerPlugin := partnerplugin.NewMockPartnerPlugin(mockCtrl)
-	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
-	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(context.Background(), &types.Message{}, nil)
+	mockPartnerPlugin.EXPECT().DoServiceRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(2).Return(context.Background(), &types.Message{}, nil)
 	mockMessenger := NewMockMessenger(mockCtrl)
 	mockMessenger.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
 
@@ -460,20 +446,22 @@ func TestStart(t *testing.T) {
 	ch := make(chan types.Message, 5) // incoming messages
 
 	// msg without sender
-	ch <- types.Message{Metadata: metadata.Metadata{}}
-	// msg with sender == userID
-	ch <- types.Message{Metadata: metadata.Metadata{}, SenderBotUserID: userID}
-	// msg with sender == userID but without valid msgType
-	ch <- types.Message{Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{dummyCheque}}}
-	// msg with sender == userID and valid msgType
+	ch <- types.Message{Timestamps: metadata.Timestamps{}} // should fail
+	// msg with sender, but without valid msgType
+	ch <- types.Message{Timestamps: metadata.Timestamps{}, ServiceFeeCheque: serviceFeeCheque} // should fail
+	// msg with sender and valid msgType
 	ch <- types.Message{
-		Type:     generated.PingServiceV1Request,
-		Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{dummyCheque}},
+		Timestamps:       metadata.Timestamps{},
+		Type:             generated.PingServiceV1Request,
+		ServiceFeeCheque: serviceFeeCheque,
+		SenderBotUserID:  userID,
 	}
 	// 2nd msg with sender == userID and valid msgType
 	ch <- types.Message{
-		Type:     generated.AccommodationProductInfoServiceV2Request,
-		Metadata: metadata.Metadata{SenderCMAccount: cmAccountAddr, Cheques: []cheques.SignedCheque{dummyCheque}},
+		Timestamps:       metadata.Timestamps{},
+		Type:             generated.AccommodationProductInfoServiceV2Request,
+		ServiceFeeCheque: serviceFeeCheque,
+		SenderBotUserID:  userID,
 	}
 
 	// mocks
