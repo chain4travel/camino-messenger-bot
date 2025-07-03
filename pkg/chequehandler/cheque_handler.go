@@ -196,8 +196,7 @@ func (ch *evmChequeHandler) IssueCheque(
 			ch.logger.Errorf("failed to verify cheque with smart contract after getting last cash-in: %v", err)
 			return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 		} else if !isChequeValid {
-			b, _ := signedCheque.MarshalJSON()
-			ch.logger.Errorf("failed to issue valid cheque: %s", string(b))
+			ch.logger.Errorf("failed to issue valid cheque")
 			return nil, fmt.Errorf("failed to issue valid cheque")
 		}
 	}

@@ -60,8 +60,11 @@ func (m *messenger) SendMessage(ctx context.Context, msg *types.Message, sendTo 
 			RequestID: msg.RequestID,
 			Data:      msg.CompressedContent[0],
 		},
-		MsgType:     msg.Type,
-		ChunksCount: conversion.MustIntToUInt32(len(msg.CompressedContent)),
+		MsgType:          msg.Type,
+		Timestamps:       msg.Timestamps,
+		ServiceFeeCheque: msg.ServiceFeeCheque,
+		NetworkFeeCheque: *msg.NetworkFeeCheque,
+		ChunksCount:      conversion.MustIntToUInt32(len(msg.CompressedContent)),
 	}
 
 	var chunkEvents []matrix.MessageChunkEventContent
