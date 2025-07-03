@@ -81,7 +81,7 @@ func NewMessageProcessor(
 		compressor:                          compressor,
 		cmAccounts:                          cmAccounts,
 		matrixHost:                          botUserID.Homeserver(),
-		myBotAddress:                        matrix.AddressFromUserID(botUserID),
+		botAddress:                          matrix.AddressFromUserID(botUserID),
 		botUserID:                           botUserID,
 		cmAccountAddress:                    cmAccountAddress,
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
@@ -95,7 +95,7 @@ type messageProcessor struct {
 	responseTimeout                     time.Duration // timeout after which a request is considered failed
 	matrixHost                          string
 	botUserID                           id.UserID
-	myBotAddress                        ethCommon.Address
+	botAddress                          ethCommon.Address
 	cmAccountAddress                    ethCommon.Address
 	networkFeeRecipientBotAddress       ethCommon.Address
 	networkFeeRecipientCMAccountAddress ethCommon.Address
@@ -183,7 +183,7 @@ func (p *messageProcessor) SendRequestMessage(
 		return nil, err
 	}
 
-	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.myBotAddress)
+	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.botAddress)
 	if err != nil {
 		return nil, err
 	}
