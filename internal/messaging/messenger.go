@@ -25,5 +25,5 @@ type Messenger interface {
 	SendMessage(ctx context.Context, m *types.Message, sendTo id.UserID) error
 
 	// Channel where incoming messages are written
-	Inbound() chan types.Message
+	ReceivedMessageChan() chan types.Message
 }

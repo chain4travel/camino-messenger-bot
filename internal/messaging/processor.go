@@ -124,7 +124,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 	go func() {
 		for {
 			select {
-			case msg := <-p.messenger.Inbound():
+			case msg := <-p.messenger.ReceivedMessageChan():
 				go func() {
 					defer func() {
 						if r := recover(); r != nil {

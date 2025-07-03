@@ -80,7 +80,7 @@ type messenger struct {
 	decompressor compression.Decompressor
 }
 
-func (m *messenger) Inbound() chan types.Message {
+func (m *messenger) ReceivedMessageChan() chan types.Message {
 	return m.msgChannel
 }
 
