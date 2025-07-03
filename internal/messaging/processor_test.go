@@ -55,8 +55,8 @@ func defaultMessageProcessorArgs(c *gomock.Controller) messageProcessorArgs {
 
 func TestProcessIncomingMessage(t *testing.T) {
 	testErr := errors.New("test error")
-	requestID := "requestID"
-	matrixHomeServer := "localhost"
+	const requestID = "requestID"
+	const matrixHomeServer = "localhost"
 
 	senderBotAddress := ethCommon.Address{1}
 	senderBotUserID := matrix.UserIDFromAddress(senderBotAddress, matrixHomeServer)
@@ -214,14 +214,14 @@ func TestProcessIncomingMessage(t *testing.T) {
 
 func TestSendRequestMessage(t *testing.T) {
 	testErr := errors.New("test error")
-	requestID := "requestID"
+	const requestID = "requestID"
 
 	responseMessage := &types.Message{
 		Type:      generated.PingServiceV1Response,
 		RequestID: requestID,
 	}
 
-	matrixHomeServer := "localhost"
+	const matrixHomeServer = "localhost"
 
 	serviceFee := big.NewInt(1)
 	ownBot := ethCommon.Address{1}
@@ -370,7 +370,7 @@ func TestStart(t *testing.T) {
 	messenger := NewMockMessenger(c)
 	responseHeaderHandler := common.NewMockResponseHeaderHandler(c)
 
-	matrixHomeServer := "localhost"
+	const matrixHomeServer = "localhost"
 
 	senderBot := ethCommon.Address{1}
 	senderBotUserID := matrix.UserIDFromAddress(senderBot, matrixHomeServer)
