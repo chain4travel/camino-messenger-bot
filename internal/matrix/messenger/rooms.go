@@ -80,6 +80,9 @@ func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 }
 
 func (m *messenger) getRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error) {
+	ctx, roomSpan := m.tracer.Start(ctx, "messenger.getRoomForRecipient")
+	defer roomSpan.End()
+
 	roomID, found := m.findExistingRoomForRecipient(ctx, recipient)
 	if found {
 		return roomID, nil

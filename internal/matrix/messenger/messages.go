@@ -48,12 +48,10 @@ func (m *messenger) SendMessage(ctx context.Context, msg *types.Message, sendTo 
 	ctx, span := m.tracer.Start(ctx, "messenger.SendMessage", trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	defer span.End()
 
-	ctx, roomSpan := m.tracer.Start(ctx, "messenger.getRoomForRecipient", trace.WithAttributes(attribute.String("type", string(msg.Type))))
 	roomID, err := m.getRoomForRecipient(ctx, sendTo)
 	if err != nil {
 		return err
 	}
-	roomSpan.End()
 
 	messageEvent := matrix.MessageEventContent{
 		MessageChunkEventContent: matrix.MessageChunkEventContent{
