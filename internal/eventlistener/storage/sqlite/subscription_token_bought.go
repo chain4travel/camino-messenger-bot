@@ -11,7 +11,8 @@ import (
 	"math/big"
 	"time"
 
-	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -26,7 +27,7 @@ type tokenBoughtSubscription struct {
 }
 
 func (s *storage) AddTokenBoughtSubscription(ctx context.Context, session eventlistener.Session, subscription *eventlistener.TokenBoughtSubscription) error {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -48,7 +49,7 @@ func (s *storage) AddTokenBoughtSubscription(ctx context.Context, session eventl
 }
 
 func (s *storage) RemoveTokenBoughtSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) error {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -69,7 +70,7 @@ func (s *storage) RemoveTokenBoughtSubscription(ctx context.Context, session eve
 }
 
 func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session eventlistener.Session) ([]eventlistener.TokenBoughtSubscription, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -93,7 +94,7 @@ func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session ev
 }
 
 func (s *storage) GetTokenBoughtSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) (*eventlistener.TokenBoughtSubscription, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -110,7 +111,7 @@ func (s *storage) GetTokenBoughtSubscription(ctx context.Context, session eventl
 }
 
 func (s *storage) GetTokenBoughtSubscriptionByMinTimeout(ctx context.Context, session eventlistener.Session) (*eventlistener.TokenBoughtSubscription, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err

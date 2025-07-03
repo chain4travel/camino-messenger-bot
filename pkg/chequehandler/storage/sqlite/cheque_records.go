@@ -12,6 +12,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )
@@ -39,7 +40,7 @@ type chequeRecord struct {
 }
 
 func (s *storage) GetNotCashedChequeRecords(ctx context.Context, session chequehandler.Session) ([]*chequehandler.ChequeRecord, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -63,7 +64,7 @@ func (s *storage) GetNotCashedChequeRecords(ctx context.Context, session chequeh
 }
 
 func (s *storage) GetChequeRecordsWithPendingTxs(ctx context.Context, session chequehandler.Session) ([]*chequehandler.ChequeRecord, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -87,7 +88,7 @@ func (s *storage) GetChequeRecordsWithPendingTxs(ctx context.Context, session ch
 }
 
 func (s *storage) GetChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecordID common.Hash) (*chequehandler.ChequeRecord, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -104,7 +105,7 @@ func (s *storage) GetChequeRecord(ctx context.Context, session chequehandler.Ses
 }
 
 func (s *storage) GetChequeRecordByTxID(ctx context.Context, session chequehandler.Session, txID common.Hash) (*chequehandler.ChequeRecord, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -121,7 +122,7 @@ func (s *storage) GetChequeRecordByTxID(ctx context.Context, session chequehandl
 }
 
 func (s *storage) UpsertChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecord *chequehandler.ChequeRecord) error {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err

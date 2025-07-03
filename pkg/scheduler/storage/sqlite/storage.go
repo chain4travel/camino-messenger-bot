@@ -12,8 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/scheduler"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3" // sql driver, required
+	_ "github.com/mattn/go-sqlite3"                      // sql driver, required
 	"go.uber.org/zap"
 )
 
@@ -73,14 +72,6 @@ func (s *storage) Commit(session scheduler.Session) error {
 
 func (s *storage) Abort(session scheduler.Session) {
 	s.base.Abort(session)
-}
-
-func getSQLXTx(session scheduler.Session) (*sqlx.Tx, error) {
-	s, ok := session.(sqlite.SQLxTxer)
-	if !ok {
-		return nil, sqlite.ErrUnexpectedSessionType
-	}
-	return s.SQLxTx(), nil
 }
 
 func upgradeError(err error) error {

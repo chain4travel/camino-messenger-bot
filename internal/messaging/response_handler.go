@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
-	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
+	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 

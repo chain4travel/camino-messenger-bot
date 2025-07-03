@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/scheduler"
 	"github.com/jmoiron/sqlx"
 )
@@ -25,7 +26,7 @@ type job struct {
 }
 
 func (s *storage) GetJobByName(ctx context.Context, session scheduler.Session, jobName string) (*scheduler.Job, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -42,7 +43,7 @@ func (s *storage) GetJobByName(ctx context.Context, session scheduler.Session, j
 }
 
 func (s *storage) UpsertJob(ctx context.Context, session scheduler.Session, job *scheduler.Job) error {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -64,7 +65,7 @@ func (s *storage) UpsertJob(ctx context.Context, session scheduler.Session, job 
 }
 
 func (s *storage) GetAllJobs(ctx context.Context, session scheduler.Session) ([]*scheduler.Job, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err

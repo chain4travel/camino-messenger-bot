@@ -10,7 +10,8 @@ import (
 	"fmt"
 	"math/big"
 
-	eventlistener "github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,7 +20,7 @@ const cancellationSubscriptionsTable = "cancellation_subscriptions"
 var _ eventlistener.Storage = (*storage)(nil)
 
 func (s *storage) AddCancellationSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) error {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -41,7 +42,7 @@ func (s *storage) AddCancellationSubscription(ctx context.Context, session event
 }
 
 func (s *storage) RemoveCancellationSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) error {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err
@@ -62,7 +63,7 @@ func (s *storage) RemoveCancellationSubscription(ctx context.Context, session ev
 }
 
 func (s *storage) GetAllCancellationSubscriptions(ctx context.Context, session eventlistener.Session) ([]*big.Int, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -86,7 +87,7 @@ func (s *storage) GetAllCancellationSubscriptions(ctx context.Context, session e
 }
 
 func (s *storage) IsCancellationSubscriptionExist(ctx context.Context, session eventlistener.Session, tokenID *big.Int) (bool, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return false, err

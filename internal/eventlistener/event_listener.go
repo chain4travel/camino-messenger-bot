@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/event_listener/subscriber"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener/subscriber"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"

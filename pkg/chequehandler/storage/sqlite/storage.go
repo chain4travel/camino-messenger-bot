@@ -12,8 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3" // sql driver, required
+	_ "github.com/mattn/go-sqlite3"                      // sql driver, required
 	"go.uber.org/zap"
 )
 
@@ -77,14 +76,6 @@ func (s *storage) Commit(session chequehandler.Session) error {
 
 func (s *storage) Abort(session chequehandler.Session) {
 	s.base.Abort(session)
-}
-
-func getSQLXTx(session chequehandler.Session) (*sqlx.Tx, error) {
-	s, ok := session.(sqlite.SQLxTxer)
-	if !ok {
-		return nil, sqlite.ErrUnexpectedSessionType
-	}
-	return s.SQLxTx(), nil
 }
 
 func upgradeError(err error) error {

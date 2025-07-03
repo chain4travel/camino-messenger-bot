@@ -11,6 +11,7 @@ import (
 	"math/big"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )
@@ -26,7 +27,7 @@ type issuedChequeRecord struct {
 }
 
 func (s *storage) GetIssuedChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecordID common.Hash) (*chequehandler.IssuedChequeRecord, error) {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return nil, err
@@ -43,7 +44,7 @@ func (s *storage) GetIssuedChequeRecord(ctx context.Context, session chequehandl
 }
 
 func (s *storage) UpsertIssuedChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecord *chequehandler.IssuedChequeRecord) error {
-	tx, err := getSQLXTx(session)
+	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
 		s.base.Logger.Error(err)
 		return err

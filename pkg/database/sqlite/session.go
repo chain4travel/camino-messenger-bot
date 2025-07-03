@@ -79,3 +79,11 @@ func (s *SQLxTxSession) Abort() error {
 func (s *SQLxTxSession) SQLxTx() *sqlx.Tx {
 	return s.Tx
 }
+
+func GetSQLXTx(session any) (*sqlx.Tx, error) {
+	s, ok := session.(SQLxTxer)
+	if !ok {
+		return nil, ErrUnexpectedSessionType
+	}
+	return s.SQLxTx(), nil
+}
