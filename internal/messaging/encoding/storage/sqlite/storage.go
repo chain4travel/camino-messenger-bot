@@ -59,7 +59,7 @@ func (s *storage) Close() error {
 
 func (s *storage) prepare(ctx context.Context) error {
 	return errors.Join(
-		s.prepareChequeRecordsStmts(ctx),
+		s.preparePubKeysStmts(ctx),
 	)
 }
 

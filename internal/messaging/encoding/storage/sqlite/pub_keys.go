@@ -69,7 +69,7 @@ type pubKeysStatements struct {
 	getPubKey, setPubKey *sqlx.Stmt
 }
 
-func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
+func (s *storage) preparePubKeysStmts(ctx context.Context) error {
 	getPubKey, err := s.base.DB.PreparexContext(ctx, fmt.Sprintf(`
 		SELECT pub_key FROM %s
 		WHERE address = ?
