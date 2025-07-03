@@ -169,7 +169,7 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 
 	responseMsg, err := s.processor.SendRequestMessage(ctx, requestMsg, recipientCMAccountAddress)
 	if err != nil {
-		return nil, fmt.Errorf("error processing outbound request: %w", err)
+		return nil, fmt.Errorf("error sending request message: %w", err)
 	}
 
 	responseMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))

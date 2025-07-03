@@ -168,7 +168,7 @@ func (p *messageProcessor) SendRequestMessage(
 
 	requestMsg.SenderBotUserID = p.botUserID
 
-	p.logger.Debug("Sending outbound request message")
+	p.logger.Debug("Sending request message")
 	responseChan := make(chan *types.Message)
 	p.setResponseChannel(requestMsg.RequestID, responseChan)
 	defer p.deleteResponseChannel(requestMsg.RequestID)
@@ -318,7 +318,7 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 }
 
 func (p *messageProcessor) forwardToHandler(msg *types.Message) error {
-	p.logger.Debugf("Forwarding outbound response message: %s", msg.RequestID)
+	p.logger.Debugf("Forwarding response message to handler: %s", msg.RequestID)
 	responseChan, ok := p.getResponseChannel(msg.RequestID)
 	if ok {
 		responseChan <- msg
