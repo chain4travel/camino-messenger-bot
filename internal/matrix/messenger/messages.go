@@ -39,7 +39,7 @@ func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSigne
 	ctx, span := m.tracer.Start(ctx, "messenger.SendMessage", trace.WithSpanKind(trace.SpanKindProducer))
 	defer span.End()
 
-	messageID := m.tracer.TraceIDForSpan(span).String() // TODO@ fix 0 id
+	messageID := m.tracer.TraceIDForSpan(span).String()
 
 	m.logger.Debugf("Sending message (id %s) to %s", messageID, sendTo)
 

@@ -163,7 +163,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// event listener with additional logic for subscribing and reacting on blockchain events
 
-	eventListenerStorage, err := event_listener_storage.New(ctx, logger, cfg.DB.EventListener.DBPath)
+	eventListenerStorage, err := eventlistener_storage.New(ctx, logger, cfg.DB.EventListener.DBPath)
 	if err != nil {
 		logger.Errorf("Failed to create event listener storage: %v", err)
 		return nil, err
