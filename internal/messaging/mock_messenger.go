@@ -44,15 +44,15 @@ func (m *MockMessenger) EXPECT() *MockMessengerMockRecorder {
 // ReceivedMessageChan mocks base method.
 func (m *MockMessenger) ReceivedMessageChan() chan types.Message {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Inbound")
+	ret := m.ctrl.Call(m, "ReceivedMessageChan")
 	ret0, _ := ret[0].(chan types.Message)
 	return ret0
 }
 
-// Inbound indicates an expected call of Inbound.
-func (mr *MockMessengerMockRecorder) Inbound() *gomock.Call {
+// ReceivedMessageChan indicates an expected call of ReceivedMessageChan.
+func (mr *MockMessengerMockRecorder) ReceivedMessageChan() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Inbound", reflect.TypeOf((*MockMessenger)(nil).ReceivedMessageChan))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceivedMessageChan", reflect.TypeOf((*MockMessenger)(nil).ReceivedMessageChan))
 }
 
 // SendMessage mocks base method.

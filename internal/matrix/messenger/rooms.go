@@ -6,7 +6,6 @@ package messenger
 import (
 	"context"
 
-	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
@@ -30,15 +29,11 @@ func (m *messenger) stateMemberEventHandler(ctx context.Context, evt *event.Even
 		}
 
 		if err := m.client.JoinRoom(ctx, evt.RoomID); err != nil {
-			m.logger.Error("Failed to join room after invite",
-				zap.String("room_id", evt.RoomID.String()),
-				zap.String("inviter", evt.Sender.String()))
+			m.logger.Errorf("Failed to join room %s after invite from %s: %v", evt.RoomID.String(), evt.Sender.String(), err)
 			return
 		}
 
-		m.logger.Info("Joined room after invite",
-			zap.String("room_id", evt.RoomID.String()),
-			zap.String("inviter", evt.Sender.String()))
+		m.logger.Infof("Joined room %s after invite from %s", evt.RoomID.String(), evt.Sender.String())
 	}
 }
 
@@ -80,8 +75,8 @@ func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 }
 
 func (m *messenger) getRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, error) {
-	ctx, roomSpan := m.tracer.Start(ctx, "messenger.getRoomForRecipient")
-	defer roomSpan.End()
+	ctx, span := m.tracer.Start(ctx, "messenger.getRoomForRecipient")
+	defer span.End()
 
 	roomID, found := m.findExistingRoomForRecipient(ctx, recipient)
 	if found {

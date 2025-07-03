@@ -21,6 +21,13 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	// MaxChunkSize a moderate/safe max chunk size is 48KB. This is because the maximum size of a matrix event is 64KB.
+	// Megolm encryption adds an extra 33% overhead to the encrypted content due to base64 encryption. This means that
+	// the maximum size of pre-encrypted chunk should be 48KB / 1.33 ~= 36KB. We round down to 35KB to be safe.
+	MaxChunkSize = 30 << 10 // max pre-encrypted chunk size is 30KB - 35KB proved to be an unsafe limit (TODO investigate optimal limit)
+)
+
 var _ messenger.Client = (*client)(nil)
 
 func New(
@@ -165,7 +172,7 @@ func (c *client) IsUserJoinedRoom(ctx context.Context, roomID id.RoomID, userID 
 
 func (c *client) SendMessageEvent(ctx context.Context, roomID id.RoomID, event matrix.MessageEventContent) error {
 	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeMessage.Type, roomID)
-	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessage, event)
+	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessage, event, mautrix.ReqSendEvent{DontEncrypt: true})
 	if err != nil {
 		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessage.Type, roomID, err)
 		return err
@@ -176,7 +183,7 @@ func (c *client) SendMessageEvent(ctx context.Context, roomID id.RoomID, event m
 
 func (c *client) SendMessageChunkEvent(ctx context.Context, roomID id.RoomID, event matrix.MessageChunkEventContent) error {
 	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeMessageChunk.Type, roomID)
-	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessageChunk, event)
+	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessageChunk, event, mautrix.ReqSendEvent{DontEncrypt: true})
 	if err != nil {
 		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessageChunk.Type, roomID, err)
 		return err

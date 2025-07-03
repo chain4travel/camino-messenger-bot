@@ -424,7 +424,7 @@ func TestStart(t *testing.T) {
 	for _, msg := range incomingMessages {
 		incomingMessagesChan <- msg
 	}
-	messenger.EXPECT().Inbound().Times(len(incomingMessages) + 1).Return(incomingMessagesChan)
+	messenger.EXPECT().ReceivedMessageChan().Times(len(incomingMessages) + 1).Return(incomingMessagesChan)
 
 	// set up and start messenger
 
