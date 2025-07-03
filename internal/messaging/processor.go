@@ -44,7 +44,6 @@ var (
 
 type MessageProcessor interface {
 	Start(ctx context.Context)
-	ProcessIncomingMessage(message *types.Message) error
 	SendRequestMessage(
 		ctx context.Context,
 		message *types.Message,
@@ -133,7 +132,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 					}()
 					p.logger.Debugf("Processing incoming message (%s): %s", msg.Type, msg.RequestID)
 
-					if err := p.ProcessIncomingMessage(&msg); err != nil {
+					if err := p.processIncomingMessage(&msg); err != nil {
 						p.logger.Warnf("could not process message: %v", err)
 					}
 				}()
@@ -147,7 +146,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 	}()
 }
 
-func (p *messageProcessor) ProcessIncomingMessage(msg *types.Message) error {
+func (p *messageProcessor) processIncomingMessage(msg *types.Message) error {
 	switch msg.Type.Category() {
 	case types.Request:
 		return p.respond(msg)

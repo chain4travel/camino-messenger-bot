@@ -202,7 +202,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			for requestID, responseChan := range tt.responseChannels {
 				messageProcessor.setResponseChannel(requestID, responseChan)
 			}
-			err := messageProcessor.ProcessIncomingMessage(tt.args.msg)
+			err := messageProcessor.processIncomingMessage(tt.args.msg)
 			require.ErrorIs(t, err, tt.expectedErr)
 
 			if tt.require != nil {
