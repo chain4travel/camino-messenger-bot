@@ -26,7 +26,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener"
 	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener/storage/sqlite"
-	matrixClient "github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/client"
+	matrix_client "github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/client"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/messenger"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
@@ -245,7 +245,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	botAddress := crypto.PubkeyToAddress(cfg.BotKey.PublicKey)
 	botUserID := matrixPkg.UserIDFromAddress(botAddress, matrixHostname)
 
-	matrixClient, err := matrixClient.New(
+	matrixClient, err := matrix_client.New(
 		ctx,
 		logger,
 		cfg.Matrix.Host,
@@ -282,7 +282,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		responseHandler,
 		partnerPlugin,
 		chequeHandler,
-		messaging.NewCompressor(compression.MaxChunkSize),
+		messaging.NewCompressor(matrix_client.MaxChunkSize),
 		cmAccounts,
 		responseHeaderHandler,
 		cfg.MaxAllowedServiceFee,
