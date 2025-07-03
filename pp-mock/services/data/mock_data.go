@@ -36,11 +36,17 @@ var activityV1JSON []byte
 //go:embed activityv1_extended.json
 var activityExtendedV1JSON []byte
 
+//go:embed activityv1_search.json
+var activitySearchResultV1JSON []byte
+
 //go:embed activityv2.json
 var activityV2JSON []byte
 
 //go:embed activityv2_extended.json
 var activityExtendedV2JSON []byte
+
+//go:embed activityv2_search.json
+var activitySearchResultV2JSON []byte
 
 //go:embed activityv3.json
 var activityV3JSON []byte
@@ -62,11 +68,13 @@ var (
 	TripsBasicV3    []*transportv3.TripBasic    // used by product list
 	TripsExtendedV3 []*transportv3.TripExtended // used by search
 
-	ActivityV1         []*activityv1.Activity
-	ActivityExtendedV1 []*activityv1.ActivityExtendedInfo
+	ActivityV1             []*activityv1.Activity
+	ActivityExtendedV1     []*activityv1.ActivityExtendedInfo
+	ActivitySearchResultV1 []*activityv1.ActivitySearchResult
 
-	ActivityV2         []*activityv2.Activity
-	ActivityExtendedV2 []*activityv2.ActivityExtendedInfo
+	ActivityV2             []*activityv2.Activity
+	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo
+	ActivitySearchResultV2 []*activityv2.ActivitySearchResult
 
 	ActivityV3             []*activityv3.Activity
 	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo
@@ -101,11 +109,17 @@ func init() {
 	if err := json.Unmarshal(activityExtendedV1JSON, &ActivityExtendedV1); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities extended v1: %w", err))
 	}
+	if err := json.Unmarshal(activitySearchResultV1JSON, &ActivitySearchResultV1); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities search v1: %w", err))
+	}
 	if err := json.Unmarshal(activityV2JSON, &ActivityV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities v2: %w", err))
 	}
 	if err := json.Unmarshal(activityExtendedV2JSON, &ActivityExtendedV2); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities extended v2: %w", err))
+	}
+	if err := json.Unmarshal(activitySearchResultV2JSON, &ActivitySearchResultV2); err != nil {
+		panic(fmt.Errorf("error unmarshaling activities search v2: %w", err))
 	}
 	if err := json.Unmarshal(activityV3JSON, &ActivityV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities v3: %w", err))

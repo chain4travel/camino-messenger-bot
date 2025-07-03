@@ -7,21 +7,20 @@ import (
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"google.golang.org/protobuf/proto"
 )
 
-func filterExtendedActivitiesByProductCodes(
-	activities []*activityv1.ActivityExtendedInfo,
+func filterSearchResultActivitiesByProductCodes(
+	activities []*activityv1.ActivitySearchResult,
 	productCodes []*typesv1.ProductCode,
-) []*activityv1.ActivityExtendedInfo {
+) []*activityv1.ActivitySearchResult {
 	if len(productCodes) == 0 {
 		return common.CloneProtoSlice(activities)
 	}
 
-	filtered := []*activityv1.ActivityExtendedInfo{}
+	filtered := []*activityv1.ActivitySearchResult{}
 	for _, activity := range activities {
 		for _, code := range productCodes {
-			if activity.Activity.ProductCode.Code == code.Code {
+			if activity.Info.ProductCode.Code == code.Code {
 				filtered = append(filtered, common.CloneProto(activity))
 				break
 			}
@@ -30,39 +29,19 @@ func filterExtendedActivitiesByProductCodes(
 	return filtered
 }
 
-func filterExtendedActivitiesBySupplierCodes(
-	activities []*activityv1.ActivityExtendedInfo,
-	supplierCodes []*typesv1.SupplierProductCode,
-) []*activityv1.ActivityExtendedInfo {
-	if len(supplierCodes) == 0 {
-		return common.CloneProtoSlice(activities)
-	}
-
-	filtered := []*activityv1.ActivityExtendedInfo{}
-	for _, activity := range activities {
-		for _, code := range supplierCodes {
-			if proto.Equal(activity.SupplierCode, code) {
-				filtered = append(filtered, common.CloneProto(activity))
-				break
-			}
-		}
-	}
-	return filtered
-}
-
-func filterExtendedActivitiesByServiceCodes(
-	activities []*activityv1.ActivityExtendedInfo,
+func filterSearchResultActivitiesByServiceCodes(
+	activities []*activityv1.ActivitySearchResult,
 	serviceCodes []string,
-) []*activityv1.ActivityExtendedInfo {
+) []*activityv1.ActivitySearchResult {
 	if len(serviceCodes) == 0 {
 		return common.CloneProtoSlice(activities)
 	}
 
-	filtered := []*activityv1.ActivityExtendedInfo{}
+	filtered := []*activityv1.ActivitySearchResult{}
 
 	for _, activity := range activities {
 		for _, code := range serviceCodes {
-			if activity.Activity.ServiceCode == code {
+			if activity.Info.ServiceCode == code {
 				filtered = append(filtered, common.CloneProto(activity))
 				break
 			}

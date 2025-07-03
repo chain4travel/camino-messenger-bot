@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
@@ -85,50 +84,64 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 		return nil, status.Error(codes.InvalidArgument, "at least one traveller is required to search for activities")
 	}
 
-	// FIX: Initialize outer slice, not inside the loop
-	log.Printf("Initializing outerSearchResults slice")
+	log.Printf("Initializing searchResults slice")
 	searchResults := []*activityv1.ActivitySearchResult{}
 	log.Printf("Initializing resultIDnum to 1")
 	resultIDnum := int32(1)
 	log.Printf("Initializing validationPrices slice")
 	validationPrices := []*state.UnifiedPrice{}
 
-	log.Printf("Filtering activities by product codes: %+v", req.SearchParametersActivity.GetProductCodes())
-	log.Printf("Filtering activities by service codes: %+v", req.SearchParametersActivity.GetServiceCodes())
+	// Filter activities based on search parameters
+	log.Printf("Assigning filteredActivities using mockdata.ActivitySearchResultV1") // Log assignment source
+	filteredActivities := mockdata.ActivitySearchResultV1
+	filteredActivities = filterSearchResultActivitiesByProductCodes(filteredActivities, req.SearchParametersActivity.ProductCodes)
+	filteredActivities = filterSearchResultActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.ServiceCodes)
 
-	filteredActivities := mockdata.ActivityExtendedV1
-	filteredActivities = filterExtendedActivitiesByProductCodes(filteredActivities, req.SearchParametersActivity.GetProductCodes())
-	filteredActivities = filterExtendedActivitiesBySupplierCodes(filteredActivities, req.SearchParametersActivity.GetSupplierCodes())
-	filteredActivities = filterExtendedActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.GetServiceCodes())
+	log.Printf("Number of activities to process (from mock data): %d", len(filteredActivities))
 
-	for _, activity := range filteredActivities {
-		// mock price for each activity
+	log.Printf("Starting loop through filtered activities")
+	for i, activity := range filteredActivities { // Added index for clearer logging
+		log.Printf("Processing loop iteration %d. Current activity ProductCode: %s", i, activity.Info.ProductCode)
+		log.Printf("Activity details: %+v", activity) // Log the whole activity being processed
+
+		// Assuming mockdata.ActivityV2 has a Price field of type *typesv2.Price
+		// Log price before checking if nil
+		log.Printf("Checking if activity.Price is nil. Activity Product Code: %s. Price value: %+v", activity.Info.ProductCode, activity.Price)
+		if activity.Price == nil {
+			log.Printf("Skipping activity %s due to missing price information", activity.Info.ProductCode)
+			continue // Skip if price info is missing
+		}
+
+		// Log values used for searchPrice assignment
+		log.Printf("Preparing to assign searchPrice. Using activity Price: %+v and request Currency: %+v", activity.Price, req.SearchParametersGeneric.Currency)
 		searchPrice := &typesv1.Price{
-			Value:    strconv.Itoa(150000 + int(resultIDnum)),
-			Decimals: 2,
+			Value:    activity.Price.Value, // Use price from the mock activity data
+			Decimals: activity.Price.Decimals,
 			Currency: common.CloneProto(req.SearchParametersGeneric.Currency), // Use currency from the request
 		}
+		log.Printf("Assigned searchPrice: %+v", searchPrice)
 
-		searchResult := &activityv1.ActivitySearchResult{
-			Info: &activityv1.Activity{
-				Context:           activity.Activity.Context,
-				LastModified:      activity.Activity.LastModified,
-				ExternalSessionId: activity.Activity.ExternalSessionId,
-				ProductCode:       activity.Activity.ProductCode,
-				UnitCode:          activity.Activity.UnitCode,
-				ServiceCode:       activity.Activity.ServiceCode,
-				Bookability:       activity.Activity.Bookability,
-			},
+		// Log values before appending to searchResults
+		log.Printf("Preparing to append to searchResults. Current Result ID: %d. Activity Info: %+v, Price: %+v", resultIDnum, activity.Info, searchPrice)
+		searchResults = append(searchResults, &activityv1.ActivitySearchResult{
 			ResultId: resultIDnum,
-			Schedule: getTotalScheduleFromUnits(activity.Units),
-			Location: activity.Location,
-			// hardcoding (mocking) participants and price per group
-			MinParticipants: 3,
-			MaxParticipants: 5,
+			Info: &activityv1.Activity{
+				Context:           activity.Info.Context,
+				LastModified:      activity.Info.LastModified,
+				ExternalSessionId: activity.Info.ExternalSessionId,
+				ProductCode:       activity.Info.ProductCode,
+				UnitCode:          activity.Info.UnitCode,
+				ServiceCode:       activity.Info.ServiceCode,
+				Bookability:       activity.Info.Bookability,
+			},
+			Schedule:        activity.Schedule,
+			Location:        activity.Location,
+			MinParticipants: activity.MinParticipants,
+			MaxParticipants: activity.MaxParticipants,
 			Price:           searchPrice,
-			ChargeType:      typesv1.ChargeType_CHARGE_TYPE_PER_GROUP,
-		}
-		searchResults = append(searchResults, searchResult)
+			ChargeType:      activity.ChargeType,
+		})
+		log.Printf("Appended to searchResults. New length: %d", len(searchResults))
 
 		// Log before converting price and appending to validationPrices
 		log.Printf("Converting searchPrice to UnifiedPrice. searchPrice: %+v", searchPrice)
@@ -194,7 +207,7 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 
 	// Store search result in state
 	// Log before storing state
-	log.Printf("Preparing to store search result in state. Search ID: %s, NumResults: %d, NumTravelers: %d", searchID, len(searchResults), len(req.Travellers))
+	log.Printf("Preparing to store search result in state. Search ID: %s, NumResults: %d, NumTravelers: %d", searchID, len(searchResults), len(req.Travellers)) // Use the outer slice length
 	// Log the actual data being stored (JSON parts might be large, consider truncating in production)
 	// Be cautious logging full request/response if they contain sensitive data.
 	log.Printf("State data to be stored: NumResults=%d, NumTravelers=%d, Prices=%+v", len(searchResults), len(req.Travellers), validationPrices)
@@ -214,25 +227,4 @@ func (s *ActivitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	// Log before returning
 	log.Printf("Returning final response for Request ID: %s", md.RequestID)
 	return response, nil
-}
-
-func getTotalScheduleFromUnits(units []*activityv1.ActivityUnit) *typesv1.DateTimeRange {
-	totalSchedule := &typesv1.DateTimeRange{}
-
-	if len(units) == 0 {
-		return &typesv1.DateTimeRange{}
-	}
-
-	totalSchedule.StartDatetime = units[0].Schedule.StartDatetime
-	totalSchedule.EndDatetime = units[0].Schedule.EndDatetime
-
-	for _, unit := range units {
-		if unit.Schedule.StartDatetime.AsTime().Before(totalSchedule.StartDatetime.AsTime()) {
-			totalSchedule.StartDatetime = unit.Schedule.StartDatetime
-		}
-		if unit.Schedule.EndDatetime.AsTime().After(totalSchedule.EndDatetime.AsTime()) {
-			totalSchedule.EndDatetime = unit.Schedule.EndDatetime
-		}
-	}
-	return totalSchedule
 }
