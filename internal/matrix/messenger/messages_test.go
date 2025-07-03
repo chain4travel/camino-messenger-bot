@@ -9,18 +9,15 @@ import (
 	"fmt"
 	"testing"
 
-	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	gomock "go.uber.org/mock/gomock"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 )
@@ -39,20 +36,20 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	botKey := testKey
 
-	requestID := "message-id"
-	serviceFeeCheque := &cheques.SignedCheque{Signature: []byte("service-fee-signature")}
-	networkFeeCheque := &cheques.SignedCheque{Signature: []byte("network-fee-signature")}
-	timestamps := metadata.Timestamps{"1": 9876543210}
+	messageID := "message-id"
+	messageSignature := []byte("signature")
+
+	networkFeeCheque := cheques.SignedCheque{Cheque: cheques.Cheque{
+		FromCMAccount: common.Address{1},
+	}}
 
 	// we will always expect this message chunk to be present in the map unchanged in addition to case-specific expects
-	otherRequestID := "other-message-id"
+	otherMessageID := "other-message-id"
 	otherChunkedMessage := func() *chunkedMessage { // to make copies, not references
 		return &chunkedMessage{
-			timestamps:       metadata.Timestamps{"1-other": 1234567890},
-			serviceFeeCheque: &cheques.SignedCheque{Signature: []byte("other-service-fee-signature")},
-			networkFeeCheque: &cheques.SignedCheque{Signature: []byte("other-network-fee-signature")},
-			chunksCount:      4,
-			msgType:          generated.AccommodationProductInfoServiceV1Request,
+			chunksCount:   4,
+			signature:     []byte("other-signature"),
+			fromCMAccount: common.Address{2},
 			chunks: []messageChunk{
 				{index: 0, data: []byte("other-chunk0")},
 				{index: 1, data: []byte("other-chunk1")},
@@ -60,67 +57,47 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 		}
 	}
 
-	content := pingv1.PingRequest{
-		PingMessage: "ping message",
-	}
-	contentBytes, err := proto.Marshal(&content)
-	require.NoError(t, err)
-
 	tests := map[string]struct {
-		decompressor            func(*gomock.Controller) *compression.MockDecompressor
-		msgEventContent         *matrix.MessageEventContent
+		msgEventContent         *matrix.SignedMessageEventContent
 		existingChunkedMessages map[string]*chunkedMessage
 		expectedChunkedMessages map[string]*chunkedMessage
-		expectedMessage         types.Message
+		expectedMessage         messaging.EncodedSignedMessageWithSender
 		expectedComplete        bool
-		expectedError           error
 	}{
 		"Single-chunk message": {
-			decompressor: func(ctrl *gomock.Controller) *compression.MockDecompressor {
-				decompressor := compression.NewMockDecompressor(ctrl)
-				decompressor.EXPECT().Decompress([]byte("single chunk data")).Return(contentBytes, nil)
-				return decompressor
-			},
-			msgEventContent: &matrix.MessageEventContent{
+			msgEventContent: &matrix.SignedMessageEventContent{
 				MessageChunkEventContent: matrix.MessageChunkEventContent{
-					RequestID: requestID,
+					MessageID: messageID,
 					Data:      []byte("single chunk data"),
 				},
-				MsgType:          generated.PingServiceV1Request,
-				Timestamps:       timestamps,
-				ServiceFeeCheque: serviceFeeCheque,
-				NetworkFeeCheque: *networkFeeCheque,
 				ChunksCount:      1,
-			},
-			expectedMessage: types.Message{
-				RequestID:        requestID,
-				Type:             generated.PingServiceV1Request,
-				Timestamps:       timestamps,
-				ServiceFeeCheque: serviceFeeCheque,
 				NetworkFeeCheque: networkFeeCheque,
-				Content:          proto.Clone(&content),
+				Signature:        messageSignature,
+			},
+			expectedMessage: messaging.EncodedSignedMessageWithSender{
+				Message: messaging.EncodedSignedMessage{
+					ChunkedEncodedMessage: [][]byte{[]byte("single chunk data")},
+					Signature:             messageSignature,
+				},
+				SenderCMAccountAddress: networkFeeCheque.Cheque.FromCMAccount,
 			},
 			expectedComplete: true,
 		},
 		"First chunk is actually first": {
-			msgEventContent: &matrix.MessageEventContent{
+			msgEventContent: &matrix.SignedMessageEventContent{
 				MessageChunkEventContent: matrix.MessageChunkEventContent{
-					RequestID: requestID,
+					MessageID: messageID,
 					Data:      []byte("chunk0"),
 				},
-				MsgType:          generated.PingServiceV1Request,
-				Timestamps:       timestamps,
-				ServiceFeeCheque: serviceFeeCheque,
-				NetworkFeeCheque: *networkFeeCheque,
 				ChunksCount:      3,
+				NetworkFeeCheque: networkFeeCheque,
+				Signature:        messageSignature,
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
-					msgType:          generated.PingServiceV1Request,
-					chunksCount:      3,
-					timestamps:       timestamps,
-					serviceFeeCheque: serviceFeeCheque,
-					networkFeeCheque: networkFeeCheque,
+				messageID: {
+					chunksCount:   3,
+					signature:     messageSignature,
+					fromCMAccount: networkFeeCheque.Cheque.FromCMAccount,
 					chunks: []messageChunk{
 						{index: 0, data: []byte("chunk0")},
 					},
@@ -128,31 +105,27 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 			},
 		},
 		"First chunk is second": {
-			msgEventContent: &matrix.MessageEventContent{
+			msgEventContent: &matrix.SignedMessageEventContent{
 				MessageChunkEventContent: matrix.MessageChunkEventContent{
-					RequestID: requestID,
+					MessageID: messageID,
 					Data:      []byte("chunk0"),
 				},
-				MsgType:          generated.PingServiceV1Request,
-				Timestamps:       timestamps,
-				ServiceFeeCheque: serviceFeeCheque,
-				NetworkFeeCheque: *networkFeeCheque,
 				ChunksCount:      3,
+				NetworkFeeCheque: networkFeeCheque,
+				Signature:        messageSignature,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
+				messageID: {
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 					},
 				},
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
-					msgType:          generated.PingServiceV1Request,
-					chunksCount:      3,
-					timestamps:       timestamps,
-					serviceFeeCheque: serviceFeeCheque,
-					networkFeeCheque: networkFeeCheque,
+				messageID: {
+					chunksCount:   3,
+					signature:     messageSignature,
+					fromCMAccount: networkFeeCheque.Cheque.FromCMAccount,
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 						{index: 0, data: []byte("chunk0")},
@@ -161,37 +134,29 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 			},
 		},
 		"First chunk is last": {
-			decompressor: func(ctrl *gomock.Controller) *compression.MockDecompressor {
-				decompressor := compression.NewMockDecompressor(ctrl)
-				decompressor.EXPECT().Decompress([]byte("chunk0chunk1chunk2")).Return(contentBytes, nil)
-				return decompressor
-			},
-			msgEventContent: &matrix.MessageEventContent{
+			msgEventContent: &matrix.SignedMessageEventContent{
 				MessageChunkEventContent: matrix.MessageChunkEventContent{
-					RequestID: requestID,
+					MessageID: messageID,
 					Data:      []byte("chunk0"),
 				},
-				MsgType:          generated.PingServiceV1Request,
-				Timestamps:       timestamps,
-				ServiceFeeCheque: serviceFeeCheque,
-				NetworkFeeCheque: *networkFeeCheque,
 				ChunksCount:      3,
+				NetworkFeeCheque: networkFeeCheque,
+				Signature:        messageSignature,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
+				messageID: {
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 						{index: 2, data: []byte("chunk2")},
 					},
 				},
 			},
-			expectedMessage: types.Message{
-				RequestID:        requestID,
-				Type:             generated.PingServiceV1Request,
-				Timestamps:       timestamps,
-				ServiceFeeCheque: serviceFeeCheque,
-				NetworkFeeCheque: networkFeeCheque,
-				Content:          proto.Clone(&content),
+			expectedMessage: messaging.EncodedSignedMessageWithSender{
+				Message: messaging.EncodedSignedMessage{
+					ChunkedEncodedMessage: [][]byte{[]byte("chunk0"), []byte("chunk1"), []byte("chunk2")},
+					Signature:             messageSignature,
+				},
+				SenderCMAccountAddress: networkFeeCheque.Cheque.FromCMAccount,
 			},
 			expectedComplete: true,
 		},
@@ -201,18 +166,17 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			matrixClient := NewMockClient(ctrl)
-			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeSignedMessage, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessageChunk, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
 
-			if tt.decompressor == nil {
-				tt.decompressor = compression.NewMockDecompressor
-			}
+			tracer, err := tracing.NewNoOpTracer()
+			require.NoError(t, err)
 
 			matrixMessenger, err := NewMessenger(
 				logger,
+				tracer,
 				matrixClient,
-				tt.decompressor(ctrl),
 				botKey,
 				id.UserID("botUserID"),
 			)
@@ -228,17 +192,11 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 			}
 
 			// we expect the other message to be present in the map unchanged
-			matrixMessengerImpl.chunkedMessages[otherRequestID] = otherChunkedMessage()
-			tt.expectedChunkedMessages[otherRequestID] = otherChunkedMessage()
+			matrixMessengerImpl.chunkedMessages[otherMessageID] = otherChunkedMessage()
+			tt.expectedChunkedMessages[otherMessageID] = otherChunkedMessage()
 
-			message, completed, err := matrixMessengerImpl.tryCompleteMessageWithFirstChunk(tt.msgEventContent)
-			require.ErrorIs(t, err, tt.expectedError)
+			message, completed := matrixMessengerImpl.tryCompleteMessageWithFirstChunk(tt.msgEventContent)
 			require.Equal(t, tt.expectedComplete, completed)
-			if completed {
-				require.True(t, proto.Equal(tt.expectedMessage.Content, message.Content))
-				proto.Reset(tt.expectedMessage.Content)
-				proto.Reset(message.Content)
-			}
 			require.Equal(t, tt.expectedMessage, message)
 			require.Equal(t, tt.expectedChunkedMessages, matrixMessengerImpl.chunkedMessages)
 		})
@@ -249,20 +207,17 @@ func TestTryCompleteMessage(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	botKey := testKey
 
-	requestID := "message-id"
-	serviceFeeCheque := &cheques.SignedCheque{Signature: []byte("service-fee-signature")}
-	networkFeeCheque := &cheques.SignedCheque{Signature: []byte("network-fee-signature")}
-	timestamps := metadata.Timestamps{"1": 9876543210}
+	messageID := "message-id"
+	messageSignature := []byte("signature")
+	senderCMAccount := common.Address{1}
 
 	// we will always expect this message chunk to be present in the map unchanged in addition to case-specific expects
-	otherRequestID := "other-message-id"
+	otherMessageID := "other-message-id"
 	otherChunkedMessage := func() *chunkedMessage { // to make copies, not references
 		return &chunkedMessage{
-			timestamps:       metadata.Timestamps{"1-other": 1234567890},
-			serviceFeeCheque: &cheques.SignedCheque{Signature: []byte("other-service-fee-signature")},
-			networkFeeCheque: &cheques.SignedCheque{Signature: []byte("other-network-fee-signature")},
-			chunksCount:      4,
-			msgType:          generated.AccommodationProductInfoServiceV1Request,
+			chunksCount:   4,
+			signature:     []byte("other-signature"),
+			fromCMAccount: common.Address{2},
 			chunks: []messageChunk{
 				{index: 0, data: []byte("other-chunk0")},
 				{index: 1, data: []byte("other-chunk1")},
@@ -270,29 +225,21 @@ func TestTryCompleteMessage(t *testing.T) {
 		}
 	}
 
-	content := pingv1.PingRequest{
-		PingMessage: "ping message",
-	}
-	contentBytes, err := proto.Marshal(&content)
-	require.NoError(t, err)
-
 	tests := map[string]struct {
-		decompressor            func(*gomock.Controller) *compression.MockDecompressor
 		msgEventContent         *matrix.MessageChunkEventContent
 		existingChunkedMessages map[string]*chunkedMessage
 		expectedChunkedMessages map[string]*chunkedMessage
-		expectedMessage         types.Message
+		expectedMessage         messaging.EncodedSignedMessageWithSender
 		expectedComplete        bool
-		expectedError           error
 	}{
 		"Chunk is first": {
 			msgEventContent: &matrix.MessageChunkEventContent{
-				RequestID:  requestID,
+				MessageID:  messageID,
 				Data:       []byte("chunk1"),
 				ChunkIndex: 1,
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
+				messageID: {
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 					},
@@ -301,19 +248,19 @@ func TestTryCompleteMessage(t *testing.T) {
 		},
 		"Chunk is second": {
 			msgEventContent: &matrix.MessageChunkEventContent{
-				RequestID:  requestID,
+				MessageID:  messageID,
 				Data:       []byte("chunk2"),
 				ChunkIndex: 2,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
+				messageID: {
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 					},
 				},
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
+				messageID: {
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 						{index: 2, data: []byte("chunk2")},
@@ -322,36 +269,28 @@ func TestTryCompleteMessage(t *testing.T) {
 			},
 		},
 		"Chunk is last": {
-			decompressor: func(ctrl *gomock.Controller) *compression.MockDecompressor {
-				decompressor := compression.NewMockDecompressor(ctrl)
-				decompressor.EXPECT().Decompress([]byte("chunk0chunk1chunk2")).Return(contentBytes, nil)
-				return decompressor
-			},
 			msgEventContent: &matrix.MessageChunkEventContent{
-				RequestID:  requestID,
+				MessageID:  messageID,
 				Data:       []byte("chunk1"),
 				ChunkIndex: 1,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
-				requestID: {
-					chunksCount:      3,
-					msgType:          generated.PingServiceV1Request,
-					timestamps:       timestamps,
-					serviceFeeCheque: serviceFeeCheque,
-					networkFeeCheque: networkFeeCheque,
+				messageID: {
+					chunksCount:   3,
+					signature:     messageSignature,
+					fromCMAccount: senderCMAccount,
 					chunks: []messageChunk{
 						{index: 2, data: []byte("chunk2")},
 						{index: 0, data: []byte("chunk0")},
 					},
 				},
 			},
-			expectedMessage: types.Message{
-				RequestID:        requestID,
-				Timestamps:       timestamps,
-				ServiceFeeCheque: serviceFeeCheque,
-				NetworkFeeCheque: networkFeeCheque,
-				Type:             generated.PingServiceV1Request,
-				Content:          proto.Clone(&content),
+			expectedMessage: messaging.EncodedSignedMessageWithSender{
+				Message: messaging.EncodedSignedMessage{
+					ChunkedEncodedMessage: [][]byte{[]byte("chunk0"), []byte("chunk1"), []byte("chunk2")},
+					Signature:             messageSignature,
+				},
+				SenderCMAccountAddress: senderCMAccount,
 			},
 			expectedComplete: true,
 		},
@@ -361,18 +300,17 @@ func TestTryCompleteMessage(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			matrixClient := NewMockClient(ctrl)
-			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessage, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeSignedMessage, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessageChunk, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
 
-			if tt.decompressor == nil {
-				tt.decompressor = compression.NewMockDecompressor
-			}
+			tracer, err := tracing.NewNoOpTracer()
+			require.NoError(t, err)
 
 			matrixMessenger, err := NewMessenger(
 				logger,
+				tracer,
 				matrixClient,
-				tt.decompressor(ctrl),
 				botKey,
 				id.UserID("botUserID"),
 			)
@@ -388,17 +326,11 @@ func TestTryCompleteMessage(t *testing.T) {
 			}
 
 			// we expect the other message to be present in the map unchanged
-			matrixMessengerImpl.chunkedMessages[otherRequestID] = otherChunkedMessage()
-			tt.expectedChunkedMessages[otherRequestID] = otherChunkedMessage()
+			matrixMessengerImpl.chunkedMessages[otherMessageID] = otherChunkedMessage()
+			tt.expectedChunkedMessages[otherMessageID] = otherChunkedMessage()
 
-			message, completed, err := matrixMessengerImpl.tryCompleteMessage(tt.msgEventContent)
-			require.ErrorIs(t, err, tt.expectedError)
+			message, completed := matrixMessengerImpl.tryCompleteMessage(tt.msgEventContent)
 			require.Equal(t, tt.expectedComplete, completed)
-			if completed {
-				require.True(t, proto.Equal(tt.expectedMessage.Content, message.Content))
-				proto.Reset(tt.expectedMessage.Content)
-				proto.Reset(message.Content)
-			}
 			require.Equal(t, tt.expectedMessage, message)
 			require.Equal(t, tt.expectedChunkedMessages, matrixMessengerImpl.chunkedMessages)
 		})

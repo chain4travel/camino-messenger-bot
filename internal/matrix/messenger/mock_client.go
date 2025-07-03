@@ -172,18 +172,18 @@ func (mr *MockClientMockRecorder) SendMessageChunkEvent(arg0, arg1, arg2 any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessageChunkEvent", reflect.TypeOf((*MockClient)(nil).SendMessageChunkEvent), arg0, arg1, arg2)
 }
 
-// SendMessageEvent mocks base method.
-func (m *MockClient) SendMessageEvent(arg0 context.Context, arg1 id.RoomID, arg2 matrix.MessageEventContent) error {
+// SendSignedMessageEvent mocks base method.
+func (m *MockClient) SendSignedMessageEvent(arg0 context.Context, arg1 id.RoomID, arg2 matrix.SignedMessageEventContent) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMessageEvent", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SendSignedMessageEvent", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendMessageEvent indicates an expected call of SendMessageEvent.
-func (mr *MockClientMockRecorder) SendMessageEvent(arg0, arg1, arg2 any) *gomock.Call {
+// SendSignedMessageEvent indicates an expected call of SendSignedMessageEvent.
+func (mr *MockClientMockRecorder) SendSignedMessageEvent(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessageEvent", reflect.TypeOf((*MockClient)(nil).SendMessageEvent), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSignedMessageEvent", reflect.TypeOf((*MockClient)(nil).SendSignedMessageEvent), arg0, arg1, arg2)
 }
 
 // SetEventHandler mocks base method.

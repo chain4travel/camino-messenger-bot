@@ -6,9 +6,20 @@ package messaging
 import (
 	"context"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
-	"maunium.net/go/mautrix/id"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
+	"github.com/ethereum/go-ethereum/common"
 )
+
+type EncodedSignedMessageWithSender struct {
+	Message                EncodedSignedMessage
+	SenderBotAddress       common.Address
+	SenderCMAccountAddress common.Address
+}
+
+type EncodedSignedMessage struct {
+	ChunkedEncodedMessage [][]byte
+	Signature             []byte
+}
 
 type Messenger interface {
 	// Initializes messenger and starts receiving messages.
@@ -18,8 +29,8 @@ type Messenger interface {
 	Stop() error
 
 	// Should only be called after Start() was called.
-	SendMessage(ctx context.Context, m *types.Message, sendTo id.UserID) error
+	SendMessage(ctx context.Context, msg *EncodedSignedMessage, sendTo common.Address, networkFeeCheque *cheques.SignedCheque) error
 
 	// Channel where incoming messages are written
-	ReceivedMessageChan() chan types.Message
+	ReceivedMessageChan() chan EncodedSignedMessageWithSender
 }

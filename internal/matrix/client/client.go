@@ -170,14 +170,14 @@ func (c *client) IsUserJoinedRoom(ctx context.Context, roomID id.RoomID, userID 
 	return joined, nil
 }
 
-func (c *client) SendMessageEvent(ctx context.Context, roomID id.RoomID, event matrix.MessageEventContent) error {
-	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeMessage.Type, roomID)
-	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessage, event, mautrix.ReqSendEvent{DontEncrypt: true})
+func (c *client) SendSignedMessageEvent(ctx context.Context, roomID id.RoomID, event matrix.SignedMessageEventContent) error {
+	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeSignedMessage.Type, roomID)
+	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeSignedMessage, event, mautrix.ReqSendEvent{DontEncrypt: true})
 	if err != nil {
-		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessage.Type, roomID, err)
+		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeSignedMessage.Type, roomID, err)
 		return err
 	}
-	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeMessage.Type, roomID)
+	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeSignedMessage.Type, roomID)
 	return nil
 }
 

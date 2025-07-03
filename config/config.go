@@ -47,10 +47,11 @@ type Config struct {
 }
 
 type SQLiteDBConfig struct {
-	Common        UnparsedSQLiteDBConfig
-	Scheduler     UnparsedSQLiteDBConfig
-	ChequeHandler UnparsedSQLiteDBConfig
-	EventListener UnparsedSQLiteDBConfig
+	Common                 UnparsedSQLiteDBConfig
+	Scheduler              UnparsedSQLiteDBConfig
+	ChequeHandler          UnparsedSQLiteDBConfig
+	EventListener          UnparsedSQLiteDBConfig
+	MessagesEncoderDecoder UnparsedSQLiteDBConfig
 }
 
 // ******* Common *******

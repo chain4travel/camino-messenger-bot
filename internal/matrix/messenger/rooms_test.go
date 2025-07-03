@@ -10,7 +10,7 @@ import (
 
 	"go.uber.org/mock/gomock"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/matchers"
 	"github.com/stretchr/testify/require"
@@ -89,14 +89,17 @@ func TestGetRoomForRecipient(t *testing.T) {
 				tt.client = NewMockClient
 			}
 			matrixClient := tt.client(ctrl)
-			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessage, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeMessageChunk, gomock.Any())
+			matrixClient.EXPECT().SetEventHandler(matrix.EventTypeSignedMessage, gomock.Any())
 			matrixClient.EXPECT().SetEventHandler(event.StateMember, gomock.Any())
+
+			tracer, err := tracing.NewNoOpTracer()
+			require.NoError(t, err)
 
 			matrixMessenger, err := NewMessenger(
 				logger,
+				tracer,
 				matrixClient,
-				compression.NewMockDecompressor(ctrl),
 				botKey,
 				id.UserID("botUserID"),
 			)

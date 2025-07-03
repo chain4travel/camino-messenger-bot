@@ -145,6 +145,9 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 			EventListener: UnparsedSQLiteDBConfig{
 				DBPath: cfg.DB.DBPath + "/event_listener",
 			},
+			MessagesEncoderDecoder: UnparsedSQLiteDBConfig{
+				DBPath: cfg.DB.DBPath + "/messages_encoder_decoder",
+			},
 		},
 		RPCServer:     cfg.RPCServer,
 		Tracing:       cfg.Tracing,

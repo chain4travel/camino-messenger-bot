@@ -23,3 +23,19 @@ func MustIntToUInt32(value int) uint32 {
 	}
 	return uint32(value) // nolint:gosec
 }
+
+// Safely converts an int to uint16, panicking with error if out of range.
+func MustIntToUInt16(value int) uint16 {
+	if value < 0 || value > math.MaxUint16 {
+		panic(fmt.Errorf("value out of range for uint16: %d", value))
+	}
+	return uint16(value) // nolint:gosec
+}
+
+// Safely converts an uint64 to int64, panicking with error if out of range.
+func MustUInt64ToInt64(value uint64) int64 {
+	if value > math.MaxInt64 {
+		panic(fmt.Errorf("value out of range for int64: %d", value))
+	}
+	return int64(value) // nolint:gosec
+}

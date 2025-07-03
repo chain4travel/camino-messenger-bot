@@ -10,13 +10,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	lru "github.com/hashicorp/golang-lru/v2"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
@@ -24,17 +21,12 @@ import (
 
 const roomsCacheSize = 100
 
-var (
-	_ messaging.Messenger = (*messenger)(nil)
-
-	errDecompressFailed = errors.New("failed to decompress assembled camino matrix msg")
-	errUnmarshalContent = errors.New("failed to unmarshal content")
-)
+var _ messaging.Messenger = (*messenger)(nil)
 
 func NewMessenger(
 	logger *zap.SugaredLogger,
+	tracer tracing.Tracer,
 	matrixClient Client,
-	decompressor compression.Decompressor,
 	botKey *ecdsa.PrivateKey,
 	botUserID id.UserID,
 ) (messaging.Messenger, error) {
@@ -45,18 +37,18 @@ func NewMessenger(
 	}
 
 	m := &messenger{
-		msgChannel:      make(chan types.Message),
+		msgChannel:      make(chan messaging.EncodedSignedMessageWithSender),
 		logger:          logger,
-		tracer:          otel.GetTracerProvider().Tracer(""),
+		tracer:          tracer,
 		client:          matrixClient,
 		rooms:           roomsCache,
-		decompressor:    decompressor,
 		chunkedMessages: make(map[string]*chunkedMessage),
 		botKey:          botKey,
 		botUserID:       botUserID,
+		matrixHost:      botUserID.Homeserver(),
 	}
 
-	m.client.SetEventHandler(matrix.EventTypeMessage, m.messageEventHandler)
+	m.client.SetEventHandler(matrix.EventTypeSignedMessage, m.signedMessageEventHandler)
 	m.client.SetEventHandler(matrix.EventTypeMessageChunk, m.messageChunkEventHandler)
 	m.client.SetEventHandler(event.StateMember, m.stateMemberEventHandler)
 
@@ -64,28 +56,24 @@ func NewMessenger(
 }
 
 type messenger struct {
-	botKey    *ecdsa.PrivateKey
-	botUserID id.UserID
+	botKey     *ecdsa.PrivateKey
+	botUserID  id.UserID
+	matrixHost string
 
-	msgChannel      chan types.Message
+	msgChannel      chan messaging.EncodedSignedMessageWithSender
 	rooms           *lru.Cache[id.UserID, id.RoomID]
 	chunkedMessages map[string]*chunkedMessage
 	messagesMutex   sync.RWMutex
 	cancelSync      func()
 	syncerDoneChan  chan struct{}
 
-	logger       *zap.SugaredLogger
-	tracer       trace.Tracer
-	client       Client
-	decompressor compression.Decompressor
+	logger *zap.SugaredLogger
+	tracer tracing.Tracer
+	client Client
 }
 
-func (m *messenger) ReceivedMessageChan() chan types.Message {
+func (m *messenger) ReceivedMessageChan() chan messaging.EncodedSignedMessageWithSender {
 	return m.msgChannel
-}
-
-func (m *messenger) checkpoint() string {
-	return "messenger-gateway"
 }
 
 func (m *messenger) Start(ctx context.Context) (chan error, error) {

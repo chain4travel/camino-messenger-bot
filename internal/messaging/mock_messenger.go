@@ -13,9 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
+	cheques "github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
+	common "github.com/ethereum/go-ethereum/common"
 	gomock "go.uber.org/mock/gomock"
-	id "maunium.net/go/mautrix/id"
 )
 
 // MockMessenger is a mock of Messenger interface.
@@ -42,10 +42,10 @@ func (m *MockMessenger) EXPECT() *MockMessengerMockRecorder {
 }
 
 // ReceivedMessageChan mocks base method.
-func (m *MockMessenger) ReceivedMessageChan() chan types.Message {
+func (m *MockMessenger) ReceivedMessageChan() chan EncodedSignedMessageWithSender {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReceivedMessageChan")
-	ret0, _ := ret[0].(chan types.Message)
+	ret0, _ := ret[0].(chan EncodedSignedMessageWithSender)
 	return ret0
 }
 
@@ -56,17 +56,17 @@ func (mr *MockMessengerMockRecorder) ReceivedMessageChan() *gomock.Call {
 }
 
 // SendMessage mocks base method.
-func (m *MockMessenger) SendMessage(arg0 context.Context, arg1 *types.Message, arg2 id.UserID) error {
+func (m *MockMessenger) SendMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address, arg3 *cheques.SignedCheque) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMessage", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SendMessage", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendMessage indicates an expected call of SendMessage.
-func (mr *MockMessengerMockRecorder) SendMessage(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockMessengerMockRecorder) SendMessage(arg0, arg1, arg2, arg3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockMessenger)(nil).SendMessage), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockMessenger)(nil).SendMessage), arg0, arg1, arg2, arg3)
 }
 
 // Start mocks base method.

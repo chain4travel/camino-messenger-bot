@@ -7,10 +7,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"maunium.net/go/mautrix/id"
 )
 
 var ErrUnknownMessageType = errors.New("unknown message type")
@@ -49,12 +47,8 @@ func ServiceNameToRequestMessageType(serviceName string) MessageType {
 }
 
 type Message struct {
-	Type              MessageType
-	Content           protoreflect.ProtoMessage
-	CompressedContent [][]byte
-	RequestID         string
-	Timestamps        metadata.Timestamps
-	ServiceFeeCheque  *cheques.SignedCheque
-	NetworkFeeCheque  *cheques.SignedCheque
-	SenderBotUserID   id.UserID
+	Type       MessageType
+	Content    protoreflect.ProtoMessage
+	RequestID  string
+	Timestamps metadata.Timestamps
 }

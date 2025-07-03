@@ -7,28 +7,26 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"maunium.net/go/mautrix/event"
 )
 
 var (
-	EventTypeMessage      = event.Type{Type: "m.room.c4t-msg", Class: event.MessageEventType}
-	EventTypeMessageChunk = event.Type{Type: "m.room.c4t-msg-chunk", Class: event.MessageEventType}
+	EventTypeSignedMessage = event.Type{Type: "m.room.c4t-signed-msg", Class: event.MessageEventType}
+	EventTypeMessageChunk  = event.Type{Type: "m.room.c4t-msg-chunk", Class: event.MessageEventType}
 
 	ErrNoChunks    = errors.New("zero chunks count")
 	ErrNoData      = errors.New("no data in message chunk")
-	ErrNoRequestID = errors.New("missing request ID")
+	ErrNoMessageID = errors.New("missing message ID")
 )
 
 func init() {
-	event.TypeMap[EventTypeMessage] = reflect.TypeOf(MessageEventContent{})
+	event.TypeMap[EventTypeSignedMessage] = reflect.TypeOf(SignedMessageEventContent{})
 	event.TypeMap[EventTypeMessageChunk] = reflect.TypeOf(MessageChunkEventContent{})
 }
 
 type MessageChunkEventContent struct {
-	RequestID  string `json:"request_id"`
+	MessageID  string `json:"message_id"`
 	ChunkIndex uint32 `json:"chunk_index,omitempty"`
 	Data       []byte `json:"data"`
 }
@@ -37,23 +35,21 @@ func (e *MessageChunkEventContent) Verify() error {
 	if len(e.Data) == 0 {
 		return ErrNoData
 	}
-	if e.RequestID == "" {
-		return ErrNoRequestID
+	if e.MessageID == "" {
+		return ErrNoMessageID
 	}
 	return nil
 }
 
-type MessageEventContent struct {
+type SignedMessageEventContent struct {
 	MessageChunkEventContent
 
-	MsgType          types.MessageType     `json:"msgtype"`
-	ChunksCount      uint32                `json:"chunks_count"`
-	Timestamps       metadata.Timestamps   `json:"timestamps"`
-	ServiceFeeCheque *cheques.SignedCheque `json:"service_fee_cheque,omitempty"`
-	NetworkFeeCheque cheques.SignedCheque  `json:"network_fee_cheque"`
+	ChunksCount      uint32               `json:"chunks_count"`
+	Signature        []byte               `json:"signature"`
+	NetworkFeeCheque cheques.SignedCheque `json:"network_fee_cheque"`
 }
 
-func (e *MessageEventContent) Verify() error {
+func (e *SignedMessageEventContent) Verify() error {
 	if e.ChunksCount == 0 {
 		return ErrNoChunks
 	}

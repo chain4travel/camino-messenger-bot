@@ -23,12 +23,13 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/cancellation"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/compression"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener"
 	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener/storage/sqlite"
 	matrix_client "github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/client"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/messenger"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/encoding"
+	messagesEncoderDecoderStorage "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/encoding/storage/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/server"
@@ -162,7 +163,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// event listener with additional logic for subscribing and reacting on blockchain events
 
-	eventListenerStorage, err := eventlistener_storage.New(ctx, logger, cfg.DB.EventListener.DBPath)
+	eventListenerStorage, err := event_listener_storage.New(ctx, logger, cfg.DB.EventListener.DBPath)
 	if err != nil {
 		logger.Errorf("Failed to create event listener storage: %v", err)
 		return nil, err
@@ -258,10 +259,31 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
+	messagesEncoderDecoderStorage, err := messagesEncoderDecoderStorage.New(
+		ctx,
+		logger,
+		cfg.DB.MessagesEncoderDecoder.DBPath,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create messages encoder/decoder storage: %v", err)
+		return nil, err
+	}
+
+	messagesEncoderDecoder, err := encoding.NewEncoderDecoder(
+		logger,
+		messagesEncoderDecoderStorage,
+		matrix_client.MaxChunkSize,
+		cfg.BotKey,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create messages encoder/decoder: %v", err)
+		return nil, err
+	}
+
 	matrixMessenger, err := messenger.NewMessenger(
 		logger,
+		tracer,
 		matrixClient,
-		&compression.ZSTDDecompressor{},
 		cfg.BotKey,
 		botUserID,
 	)
@@ -274,7 +296,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		matrixMessenger,
 		logger,
 		cfg.ResponseTimeout,
-		botUserID,
+		botAddress,
 		cfg.CMAccountAddress,
 		cfg.NetworkFeeRecipientBotAddress,
 		cfg.NetworkFeeRecipientCMAccountAddress,
@@ -282,10 +304,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		responseHandler,
 		partnerPlugin,
 		chequeHandler,
-		messaging.NewCompressor(matrix_client.MaxChunkSize),
 		cmAccounts,
 		responseHeaderHandler,
 		cfg.MaxAllowedServiceFee,
+		messagesEncoderDecoder,
 	)
 
 	cancellationService := cancellation.NewService(
