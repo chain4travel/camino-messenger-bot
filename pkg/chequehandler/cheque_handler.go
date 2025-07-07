@@ -220,12 +220,12 @@ func (ch *evmChequeHandler) VerifyCheque(
 	fromBot common.Address,
 	expectedAmountIncrement *big.Int,
 ) error {
-	session, err := ch.storage.NewSession(ctx)
-	if err != nil {
-		ch.logger.Errorf("failed to create storage session: %v", err)
-		return err
+	if cheque.ToBot != ch.botAddress {
+		return fmt.Errorf("cheque is not for this bot, expected %s, got %s", ch.botAddress.Hex(), cheque.ToBot.Hex())
 	}
-	defer ch.storage.Abort(session)
+	if cheque.ToCMAccount != ch.cmAccountAddress {
+		return fmt.Errorf("cheque is not for this CM account, expected %s, got %s", ch.cmAccountAddress.Hex(), cheque.ToCMAccount.Hex())
+	}
 
 	chequeIssuerPubKey, err := ch.signer.RecoverPublicKey(cheque)
 	if err != nil {
@@ -236,6 +236,13 @@ func (ch *evmChequeHandler) VerifyCheque(
 	if fromBot != crypto.PubkeyToAddress(*chequeIssuerPubKey) {
 		return fmt.Errorf("cheque issuer does not match sender")
 	}
+
+	session, err := ch.storage.NewSession(ctx)
+	if err != nil {
+		ch.logger.Errorf("failed to create storage session: %v", err)
+		return err
+	}
+	defer ch.storage.Abort(session)
 
 	chequeRecordID := ChequeRecordID(&cheque.Cheque)
 	chequeRecord, err := ch.storage.GetChequeRecord(ctx, session, chequeRecordID)
