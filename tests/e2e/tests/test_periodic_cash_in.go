@@ -14,7 +14,6 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
@@ -31,17 +30,17 @@ func testPeriodicCashInSetup(ctx context.Context, t *testing.T, tt *Test) (
 ) {
 	// Register all the services needed for the tests
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
-	supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 
 	pingFee = 5_000_000_000_000_000_000
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot = tt.CreateBot(ctx, t, true, supplierPartnerPlugin, []bot.CMService{
+	supplierBot = tt.createBot(ctx, t, true, supplierPartnerPlugin, []bot.CMService{
 		{Name: botGenerated.PingServiceV1, Fee: pingFee},
 	})
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
+	distributorBot = tt.createBot(ctx, t, true, nil, nil)
 
 	return supplierPartnerPlugin, supplierBot, distributorBot, pingFee
 }
@@ -78,9 +77,7 @@ func testPeriodicCashInWithPingV1(
 		Timestamp:   timestamppb.Now(),
 	}
 	resp, err := distributorBot.PingServiceV1.Ping(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 
