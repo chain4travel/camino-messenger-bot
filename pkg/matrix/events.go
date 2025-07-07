@@ -28,6 +28,8 @@ func init() {
 
 type MessageChunkEventContent struct {
 	ChunkData
+
+	ChunkIndex uint32
 }
 
 func (e *MessageChunkEventContent) Verify() error {
@@ -49,16 +51,12 @@ func (e *SignedMessageEventContent) Verify() error {
 	if e.ChunksCount == 0 {
 		return ErrNoChunks
 	}
-	if e.ChunkIndex != 0 {
-		return ErrWrongChunkIndex
-	}
 	return e.ChunkData.Verify()
 }
 
 type ChunkData struct {
-	MessageID  string
-	ChunkIndex uint32 `json:"omitempty"`
-	Data       []byte
+	MessageID string
+	Data      []byte
 }
 
 func (c *ChunkData) Verify() error {

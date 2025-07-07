@@ -235,10 +235,10 @@ func TestTryCompleteMessage(t *testing.T) {
 		"Chunk is first": {
 			msgEventContent: &matrix.MessageChunkEventContent{
 				ChunkData: matrix.ChunkData{
-					MessageID:  messageID,
-					Data:       []byte("chunk1"),
-					ChunkIndex: 1,
+					MessageID: messageID,
+					Data:      []byte("chunk1"),
 				},
+				ChunkIndex: 1,
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
 				messageID: {
@@ -251,10 +251,10 @@ func TestTryCompleteMessage(t *testing.T) {
 		"Chunk is second": {
 			msgEventContent: &matrix.MessageChunkEventContent{
 				ChunkData: matrix.ChunkData{
-					MessageID:  messageID,
-					Data:       []byte("chunk2"),
-					ChunkIndex: 2,
+					MessageID: messageID,
+					Data:      []byte("chunk2"),
 				},
+				ChunkIndex: 2,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
 				messageID: {
@@ -275,10 +275,10 @@ func TestTryCompleteMessage(t *testing.T) {
 		"Chunk is last": {
 			msgEventContent: &matrix.MessageChunkEventContent{
 				ChunkData: matrix.ChunkData{
-					MessageID:  messageID,
-					Data:       []byte("chunk1"),
-					ChunkIndex: 1,
+					MessageID: messageID,
+					Data:      []byte("chunk1"),
 				},
+				ChunkIndex: 1,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
 				messageID: {

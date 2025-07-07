@@ -64,10 +64,10 @@ func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSigne
 		for i, chunk := range msg.ChunkedEncodedMessage[1:] {
 			chunkEvents = append(chunkEvents, matrix.MessageChunkEventContent{
 				ChunkData: matrix.ChunkData{
-					MessageID:  messageID,
-					ChunkIndex: conversion.MustIntToUInt32(i + 1),
-					Data:       chunk,
+					MessageID: messageID,
+					Data:      chunk,
 				},
+				ChunkIndex: conversion.MustIntToUInt32(i + 1),
 			})
 		}
 	}
@@ -204,7 +204,7 @@ func (m *messenger) addMessageFirstChunk(eventContent *matrix.SignedMessageEvent
 	message.chunksCount = eventContent.ChunksCount
 	message.fromCMAccount = eventContent.NetworkFeeCheque.FromCMAccount
 
-	return m.addMessageChunk(message, &eventContent.ChunkData)
+	return m.addMessageChunk(message, &eventContent.ChunkData, 0)
 }
 
 func (m *messenger) addMessageNextChunk(eventContent *matrix.MessageChunkEventContent) (*chunkedMessage, bool) {
@@ -217,12 +217,12 @@ func (m *messenger) addMessageNextChunk(eventContent *matrix.MessageChunkEventCo
 		m.chunkedMessages[eventContent.MessageID] = message
 	}
 
-	return m.addMessageChunk(message, &eventContent.ChunkData)
+	return m.addMessageChunk(message, &eventContent.ChunkData, eventContent.ChunkIndex)
 }
 
-func (m *messenger) addMessageChunk(message *chunkedMessage, chunkData *matrix.ChunkData) (*chunkedMessage, bool) {
+func (m *messenger) addMessageChunk(message *chunkedMessage, chunkData *matrix.ChunkData, chunkIndex uint32) (*chunkedMessage, bool) {
 	message.chunks = append(message.chunks, messageChunk{
-		index: chunkData.ChunkIndex,
+		index: chunkIndex,
 		data:  chunkData.Data,
 	})
 
