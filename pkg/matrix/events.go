@@ -15,9 +15,10 @@ var (
 	EventTypeSignedMessage = event.Type{Type: "m.room.c4t-signed-msg", Class: event.MessageEventType}
 	EventTypeMessageChunk  = event.Type{Type: "m.room.c4t-msg-chunk", Class: event.MessageEventType}
 
-	ErrNoChunks    = errors.New("zero chunks count")
-	ErrNoData      = errors.New("no data in message chunk")
-	ErrNoMessageID = errors.New("missing message ID")
+	ErrWrongChunkIndex = errors.New("wrong chunk index")
+	ErrNoChunks        = errors.New("zero chunks count")
+	ErrNoData          = errors.New("no data in message chunk")
+	ErrNoMessageID     = errors.New("missing message ID")
 )
 
 func init() {
@@ -26,32 +27,46 @@ func init() {
 }
 
 type MessageChunkEventContent struct {
-	MessageID  string `json:"message_id"`
-	ChunkIndex uint32 `json:"chunk_index,omitempty"`
-	Data       []byte `json:"data"`
+	ChunkData
 }
 
 func (e *MessageChunkEventContent) Verify() error {
-	if len(e.Data) == 0 {
-		return ErrNoData
+	if e.ChunkIndex == 0 {
+		return ErrWrongChunkIndex
 	}
-	if e.MessageID == "" {
-		return ErrNoMessageID
-	}
-	return nil
+	return e.ChunkData.Verify()
 }
 
 type SignedMessageEventContent struct {
-	MessageChunkEventContent
+	ChunkData
 
-	ChunksCount      uint32               `json:"chunks_count"`
-	Signature        []byte               `json:"signature"`
-	NetworkFeeCheque cheques.SignedCheque `json:"network_fee_cheque"`
+	ChunksCount      uint32
+	Signature        []byte
+	NetworkFeeCheque cheques.SignedCheque
 }
 
 func (e *SignedMessageEventContent) Verify() error {
 	if e.ChunksCount == 0 {
 		return ErrNoChunks
 	}
-	return e.MessageChunkEventContent.Verify()
+	if e.ChunkIndex != 0 {
+		return ErrWrongChunkIndex
+	}
+	return e.ChunkData.Verify()
+}
+
+type ChunkData struct {
+	MessageID  string
+	ChunkIndex uint32 `json:"omitempty"`
+	Data       []byte
+}
+
+func (c *ChunkData) Verify() error {
+	if len(c.Data) == 0 {
+		return ErrNoData
+	}
+	if c.MessageID == "" {
+		return ErrNoMessageID
+	}
+	return nil
 }

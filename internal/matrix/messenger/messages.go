@@ -49,7 +49,7 @@ func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSigne
 	}
 
 	messageEvent := matrix.SignedMessageEventContent{
-		MessageChunkEventContent: matrix.MessageChunkEventContent{
+		ChunkData: matrix.ChunkData{
 			MessageID: messageID,
 			Data:      msg.ChunkedEncodedMessage[0],
 		},
@@ -63,9 +63,11 @@ func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSigne
 		chunkEvents = make([]matrix.MessageChunkEventContent, 0, len(msg.ChunkedEncodedMessage)-1)
 		for i, chunk := range msg.ChunkedEncodedMessage[1:] {
 			chunkEvents = append(chunkEvents, matrix.MessageChunkEventContent{
-				MessageID:  messageID,
-				ChunkIndex: conversion.MustIntToUInt32(i + 1),
-				Data:       chunk,
+				ChunkData: matrix.ChunkData{
+					MessageID:  messageID,
+					ChunkIndex: conversion.MustIntToUInt32(i + 1),
+					Data:       chunk,
+				},
 			})
 		}
 	}
@@ -202,7 +204,7 @@ func (m *messenger) addMessageFirstChunk(eventContent *matrix.SignedMessageEvent
 	message.chunksCount = eventContent.ChunksCount
 	message.fromCMAccount = eventContent.NetworkFeeCheque.FromCMAccount
 
-	return m.addMessageChunk(message, &eventContent.MessageChunkEventContent)
+	return m.addMessageChunk(message, &eventContent.ChunkData)
 }
 
 func (m *messenger) addMessageNextChunk(eventContent *matrix.MessageChunkEventContent) (*chunkedMessage, bool) {
@@ -215,20 +217,20 @@ func (m *messenger) addMessageNextChunk(eventContent *matrix.MessageChunkEventCo
 		m.chunkedMessages[eventContent.MessageID] = message
 	}
 
-	return m.addMessageChunk(message, eventContent)
+	return m.addMessageChunk(message, &eventContent.ChunkData)
 }
 
-func (m *messenger) addMessageChunk(message *chunkedMessage, eventContent *matrix.MessageChunkEventContent) (*chunkedMessage, bool) {
+func (m *messenger) addMessageChunk(message *chunkedMessage, chunkData *matrix.ChunkData) (*chunkedMessage, bool) {
 	message.chunks = append(message.chunks, messageChunk{
-		index: eventContent.ChunkIndex,
-		data:  eventContent.Data,
+		index: chunkData.ChunkIndex,
+		data:  chunkData.Data,
 	})
 
 	if message.chunksCount == 0 || conversion.MustIntToUInt32(len(message.chunks)) < message.chunksCount {
 		return nil, false
 	}
 
-	delete(m.chunkedMessages, eventContent.MessageID)
+	delete(m.chunkedMessages, chunkData.MessageID)
 
 	return message, true
 }
