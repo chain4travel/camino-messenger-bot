@@ -7,6 +7,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"fmt"
+	"maps"
 	"testing"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
@@ -178,9 +179,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 			require.NoError(t, err)
 			matrixMessengerImpl := matrixMessenger.(*messenger)
 
-			for msgID, chunkedMessage := range tt.existingChunkedMessages {
-				matrixMessengerImpl.chunkedMessages[msgID] = chunkedMessage
-			}
+			maps.Copy(matrixMessengerImpl.chunkedMessages, tt.existingChunkedMessages)
 
 			if tt.expectedChunkedMessages == nil {
 				tt.expectedChunkedMessages = make(map[string]*chunkedMessage)
@@ -314,9 +313,7 @@ func TestTryCompleteMessage(t *testing.T) {
 			require.NoError(t, err)
 			matrixMessengerImpl := matrixMessenger.(*messenger)
 
-			for msgID, chunkedMessage := range tt.existingChunkedMessages {
-				matrixMessengerImpl.chunkedMessages[msgID] = chunkedMessage
-			}
+			maps.Copy(matrixMessengerImpl.chunkedMessages, tt.existingChunkedMessages)
 
 			if tt.expectedChunkedMessages == nil {
 				tt.expectedChunkedMessages = make(map[string]*chunkedMessage)
