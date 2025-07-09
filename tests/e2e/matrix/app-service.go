@@ -32,6 +32,8 @@ const (
 	asAccessToken            = "wfghWEGh3wgWHEf3478sHFWE" //nolint:gosec // this is not real credentials
 	asbRequestTickerInterval = 500 * time.Millisecond
 	asbPingTimeout           = 5 * time.Second
+
+	ASBCashInPeriodSeconds = 10
 )
 
 func StartNewAppService(
@@ -90,8 +92,8 @@ func StartNewAppService(
 		},
 		NetworkFeeRecipientCMAccountAddress: networkFeeCMAccountAddress.Hex(),
 		NetworkFeeRecipientBotKey:           hex.EncodeToString(crypto.FromECDSA(networkFeeKey)),
-		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6,            // 6 months
-		CashInPeriod:                        e2eCommon.CashInPeriodSeconds, // 10s
+		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6, // 6 months
+		CashInPeriod:                        ASBCashInPeriodSeconds,
 	}
 
 	configPath := path.Join(asbDir, "config.yaml")

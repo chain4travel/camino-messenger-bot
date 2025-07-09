@@ -627,8 +627,16 @@ func (h *cancellationV1Helper) finalizeCancellation(refundAmount *typesv3.Price)
 	distributorBalanceAfter, err := h.tt.caminoNetwork.Client.BalanceOf(h.ctx, h.distributorBot.CMAccountAddress())
 	h.require.NoError(err)
 
-	h.require.Equal(expectedSupplierBalance.Uint64(), supplierBalanceAfter.Uint64(), "unexpected supplier balance after cancellation")
-	h.require.Equal(expectedDistributorBalance.Uint64(), distributorBalanceAfter.Uint64(), "unexpected distributor balance after cancellation")
+	h.require.Truef(
+		supplierBalanceAfter.Cmp(expectedSupplierBalance) == 0,
+		"unexpected supplier balance after cancellation: expected %s, actual %s",
+		expectedSupplierBalance.String(), supplierBalanceAfter.String(),
+	)
+	h.require.Truef(
+		distributorBalanceAfter.Cmp(expectedDistributorBalance) == 0,
+		"unexpected distributor balance after cancellation: expected %s, actual %s",
+		expectedDistributorBalance.String(), distributorBalanceAfter.String(),
+	)
 }
 
 func (h *cancellationV1Helper) expectCancellationPendingNotification(

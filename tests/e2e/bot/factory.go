@@ -27,6 +27,8 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
 
+const CashInPeriodSeconds = 3600 // 1h
+
 func NewFactory(
 	logger *zap.SugaredLogger,
 	resourceManagerSession *resources.Session,
@@ -114,14 +116,14 @@ func (f *Factory) CreateBot(
 	partnerPlugin *partnerplugin.PartnerPlugin,
 	opts ...Option,
 ) (*Bot, chan error, error) {
-	options := options{
+	options := &options{
 		skips: &Skip{},
 		cashInConfig: &CashInConfig{ // default cash in config
-			CashInPeriodSeconds: e2eCommon.CashInPeriodSeconds, // 3600 1h
+			CashInPeriodSeconds: CashInPeriodSeconds, // 1h
 		},
 	}
 	for _, opt := range opts {
-		opt(&options)
+		opt(options)
 	}
 
 	cmAccountOwnerKey, err := ecdsa.GenerateKey(crypto.S256(), rand.Reader)
