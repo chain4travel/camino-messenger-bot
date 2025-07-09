@@ -122,7 +122,6 @@ func TestE2E(t *testing.T) {
 		}
 		testsRunner.Register(t, name, test)
 	}
-	// testsRunner.Register(t, "BotSanity", tests.TestBotSanity)
 
 	maxParallelRuns := 0
 	flagTestParallel := flag.Lookup("test.parallel")

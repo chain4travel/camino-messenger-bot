@@ -20,7 +20,7 @@ var (
 	DefaultCMAccountOwnerFunds = big.NewInt(0).Mul(CAM, big.NewInt(100))
 )
 
-func ExpectChannelErrorWithTimeout(t *testing.T, errChan chan error, errContent string, timeout time.Duration) {
+func AwaitError(t *testing.T, errChan chan error, errContent string, timeout time.Duration) {
 	t.Helper()
 
 	select {

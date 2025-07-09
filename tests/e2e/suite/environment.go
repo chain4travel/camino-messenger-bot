@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -54,6 +55,31 @@ func (e *Environment) CreateBot(
 	require.NoError(t, err)
 	common.ExpectNoErrorAsync(t, errChan)
 	return bot
+}
+
+func (e *Environment) CreateBotWithError(
+	ctx context.Context,
+	enableRPCServer bool,
+	partnerPlugin *partnerplugin.PartnerPlugin,
+	opts ...bot.Option,
+) error {
+	_, _, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
+	return err
+}
+
+func (e *Environment) CreateBotAwaitError(
+	ctx context.Context,
+	t *testing.T,
+	enableRPCServer bool,
+	partnerPlugin *partnerplugin.PartnerPlugin,
+	errorContains string,
+	timeout time.Duration,
+	opts ...bot.Option,
+) {
+	t.Helper()
+	_, errChan, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
+	require.NoError(t, err)
+	common.AwaitError(t, errChan, errorContains, timeout)
 }
 
 func (e *Environment) RestartBot(
