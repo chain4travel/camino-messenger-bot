@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
 	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
@@ -113,12 +112,12 @@ func mintBuyTokenV3(
 	_, err := supplierPPEventStream.Recv()                                                                                     // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID := testAccommodationV3ValidateV2(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
-	_, err = supplierPPEventStream.Recv()                                                                                 // skip ValidateRequest
+	validationID := testValidateV2(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	tokenID, bookingPrice, _ := testAccommodationV3MintV3(ctx, t, e, distributorBot, supplierBot, validationID) // see test_accommodation_v3.go
-	_, err = supplierPPEventStream.Recv()                                                                       // skip MintRequest
+	tokenID, bookingPrice, _ := testMintV3(ctx, t, e, distributorBot, supplierBot, validationID)
+	_, err = supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
 	eventMsg, err := supplierPPEventStream.Recv()
@@ -128,42 +127,6 @@ func mintBuyTokenV3(
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
 
 	return tokenID, bookingPrice
-}
-
-func testAccommodationV3MintV3(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-	validationID string,
-) (
-	tokenID uint64,
-	price *typesv3.Price,
-	mintID string,
-) {
-	req := &bookv3.MintRequest{
-		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		ValidationId: &typesv1.UUID{Value: validationID},
-	}
-	resp, err := distributorBot.MintServiceV3.Mint(
-		requestContext(ctx, supplierBot.CMAccountAddress()),
-		req,
-	)
-	require.NoError(t, err)
-	e.DebugPrintRequestResponse(currentFuncName(), req, resp)
-
-	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-
-	// Check if the MintId is set
-	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
-	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
-
-	// check if the transaction ids are set and return them for further tests
-	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
-	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
-
-	return resp.BookingTokenId, resp.Price, resp.MintId.Value
 }
 
 func (tt *TestCancellationV1) testCancellationV1DistributorInitiatesBasic(ctx context.Context, t *testing.T) {

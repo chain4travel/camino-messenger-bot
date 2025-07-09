@@ -729,42 +729,6 @@ package tests
 // 	return resp.ValidationId.Value
 // }
 
-// // Lastly we do the mint request based on the validation id
-// func testTransportV3MintV2(
-// 	ctx context.Context,
-// 	t *testing.T,
-// 	tt *Environment,
-// 	distributorBot *bot.Bot,
-// 	supplierBot *bot.Bot,
-// 	validationID string,
-// ) (
-// 	tokenID uint64,
-// 	price *typesv2.Price,
-// ) {
-// 	req := &bookv2.MintRequest{
-// 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-// 		ValidationId: &typesv1.UUID{Value: validationID},
-// 	}
-// 	resp, err := distributorBot.MintServiceV2.Mint(
-// 		requestContext(ctx, supplierBot.CMAccountAddress()),
-// 		req,
-// 	)
-// 	require.NoError(t, err)
-// 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
-
-// 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-
-// 	// Check if the MintId is set
-// 	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
-// 	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
-
-// 	// check if the transaction ids are set and return them for further tests
-// 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
-// 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
-
-// 	return resp.BookingTokenId, resp.Price
-// }
-
 // func testTransportV3VerifyBlockchainState(
 // 	ctx context.Context,
 // 	t *testing.T,
@@ -833,7 +797,7 @@ package tests
 // 		productListResponse := testTransportV3ProductListService(ctx, t, tt, distributorBot, supplierBot)
 // 		searchID, resultID, totalPrice := testTransportV3SearchServiceWithFilters(ctx, t, tt, distributorBot, supplierBot, productListResponse)
 // 		validationID := testTransportV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
-// 		tokenID, price := testTransportV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
+// 		tokenID, price := testMintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
 // 		testTransportV3VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
 // 	})
 // }

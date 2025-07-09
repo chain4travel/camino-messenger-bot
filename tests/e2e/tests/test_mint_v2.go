@@ -65,11 +65,11 @@ package tests
 // 	_, err := ppEventStream.Recv()                                                                                              // skip AccommodationSearchRequest
 // 	require.NoError(t, err)
 
-// 	validationID := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
+// 	validationID := testValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
 // 	_, err = ppEventStream.Recv()                                                                                          // skip ValidateRequest
 // 	require.NoError(t, err)
 
-// 	tokenID, _, mintID := testAccommodationV3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID) // see test_accommodation_v3.go
+// 	tokenID, _, mintID := testMintV2(ctx, t, tt, distributorBot, supplierBot, validationID) // see test_accommodation_v3.go
 // 	_, err = ppEventStream.Recv()                                                                          // skip MintRequest
 // 	require.NoError(t, err)
 
@@ -130,7 +130,7 @@ package tests
 // 	_, err := ppEventStream.Recv()                                                                                              // skip AccommodationSearchRequest
 // 	require.NoError(t, err)
 
-// 	validationID1 := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
+// 	validationID1 := testValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
 // 	_, err = ppEventStream.Recv()                                                                                           // skip ValidateRequest
 // 	require.NoError(t, err)
 
@@ -138,7 +138,7 @@ package tests
 // 	_, err = ppEventStream.Recv()                                                                                              // skip AccommodationSearchRequest
 // 	require.NoError(t, err)
 
-// 	validationID2 := testAccommodationV3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
+// 	validationID2 := testValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice) // see test_accommodation_v3.go
 // 	_, err = ppEventStream.Recv()                                                                                           // skip ValidateRequest
 // 	require.NoError(t, err)
 
