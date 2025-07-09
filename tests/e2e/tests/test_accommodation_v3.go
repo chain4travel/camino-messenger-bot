@@ -130,7 +130,7 @@ func (tt *TestAccommodationV3) testAccommodationV3ProductListService(ctx context
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -163,7 +163,7 @@ func (tt *TestAccommodationV3) testAccommodationV3ProductListServiceWithFilter(c
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -191,7 +191,7 @@ func (tt *TestAccommodationV3) testAccommodationV3ProductInfoService(ctx context
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -240,7 +240,7 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceWithoutCurrency(c
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -266,7 +266,7 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceWithoutTravelPeri
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -300,7 +300,7 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceTravelPeriodOutOf
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -334,7 +334,7 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceTravelPeriodRever
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -377,7 +377,7 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 		req,
 	)
 	require.NoError(t, err)
-	e.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	e.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")

@@ -192,7 +192,7 @@ func (tt *TestMintV2) testMintV2MintV2ExpectedError(
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 

@@ -76,7 +76,7 @@ func testValidateV2(
 		req,
 	)
 	require.NoError(t, err)
-	e.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	e.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -126,7 +126,7 @@ func testMintV2(
 		req,
 	)
 	require.NoError(t, err)
-	e.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	e.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 
@@ -162,7 +162,7 @@ func testMintV3(
 		req,
 	)
 	require.NoError(t, err)
-	e.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	e.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 

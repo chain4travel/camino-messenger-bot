@@ -143,7 +143,7 @@ func (tt *TestTransportV3) testTransportV3ProductListService(ctx context.Context
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -194,7 +194,7 @@ func (tt *TestTransportV3) testTransportV3ProductListServiceWithFilter(ctx conte
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -227,7 +227,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceWithoutQuery(ctx context.
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -306,7 +306,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceTravelDatesReversed(ctx c
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -384,7 +384,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceTravelDatesWrong(ctx cont
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	// Note: an empty result is still a success as the request was valid
 	// There is just no result for the given filters
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
@@ -472,7 +472,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceTravelWithoutArrivalDate(
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	// We expect 1 result
@@ -569,7 +569,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceWithoutArrivalLocation(
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
@@ -664,7 +664,7 @@ func testTransportV3SearchServiceWithFilters(
 		req,
 	)
 	require.NoError(t, err)
-	e.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	e.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	// We expect 1 result

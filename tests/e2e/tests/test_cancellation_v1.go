@@ -300,7 +300,7 @@ func (tt *TestCancellationV1) testCheckCancellationV1(ctx context.Context, t *te
 	_, err = tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 
-	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 	require.Equal(t, req.TokenId, resp.TokenId, "unexpected response TokenID")

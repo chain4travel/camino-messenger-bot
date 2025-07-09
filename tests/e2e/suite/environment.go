@@ -8,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"reflect"
+	"runtime"
 	"testing"
 	"time"
 
@@ -113,7 +114,13 @@ func (e *Environment) DebugPrintProtoMessage(message proto.Message) {
 }
 
 // Debug print used in each test case to print the request and response as json
-func (e *Environment) DebugPrintRequestResponse(functionName string, request proto.Message, response proto.Message) {
+func (e *Environment) DebugPrintRequestResponse(request proto.Message, response proto.Message) {
+	functionName := "unknown"
+	pc, _, _, ok := runtime.Caller(1)
+	if ok {
+		functionName = runtime.FuncForPC(pc).Name()
+	}
+
 	// Skip the potentially expensive conversion to JSON if debug logging is disabled
 	if e.Logger.Level().Enabled(zapcore.DebugLevel) {
 		e.Logger.Debugf("Function: %s", functionName)

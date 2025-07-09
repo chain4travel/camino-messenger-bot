@@ -33,8 +33,10 @@ const (
 
 type Test = runner.Test[*Environment]
 
-var _ runner.BeforeRunFunc[*Environment] = (*Suite)(nil).SetupEnvironment
-var _ runner.AfterRunFunc[*Environment] = (*Suite)(nil).Cleanup
+var (
+	_ runner.BeforeRunFunc[*Environment] = (*Suite)(nil).SetupEnvironment
+	_ runner.AfterRunFunc[*Environment]  = (*Suite)(nil).Cleanup
+)
 
 func New(
 	nodeBinPath string,

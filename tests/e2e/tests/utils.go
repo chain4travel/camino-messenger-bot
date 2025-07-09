@@ -6,7 +6,6 @@ package tests
 import (
 	"context"
 	"math/big"
-	"runtime"
 	"testing"
 	"time"
 
@@ -19,11 +18,7 @@ import (
 	grpcMetadata "google.golang.org/grpc/metadata"
 )
 
-var Tests map[string]suite.Test
-
-func init() {
-	Tests = make(map[string]suite.Test)
-}
+var Tests = make(map[string]suite.Test)
 
 const defaultTestTimeout = 120 * time.Second
 
@@ -38,15 +33,6 @@ func requestContext(ctx context.Context, recipientCMAccount common.Address) cont
 	return grpcMetadata.NewOutgoingContext(ctx, grpcMetadata.Pairs(
 		metadata.KeyRecipientCMAccount, recipientCMAccount.Hex(),
 	))
-}
-
-// Returns the current function name including the whole package path
-func currentFuncName() string {
-	pc, _, _, ok := runtime.Caller(1)
-	if !ok {
-		return "unknown"
-	}
-	return runtime.FuncForPC(pc).Name()
 }
 
 func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {
