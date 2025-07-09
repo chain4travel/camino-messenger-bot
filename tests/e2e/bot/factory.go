@@ -62,23 +62,15 @@ type Factory struct {
 }
 
 type options struct {
-	skips        *Skip
-	cashInConfig *CashInConfig
-	services     []CMService
+	skips               *Skip
+	cashInPeriodSeconds int64
+	services            []CMService
 }
 
 type Option func(*options)
 
 func WithSkips(skips *Skip) Option {
 	return func(o *options) { o.skips = skips }
-}
-
-func WithCashInConfig(cashInConfig *CashInConfig) Option {
-	return func(o *options) { o.cashInConfig = cashInConfig }
-}
-
-func WithServices(services ...CMService) Option {
-	return func(o *options) { o.services = services }
 }
 
 // Intentionally skip some steps in bot creation.
@@ -100,8 +92,12 @@ type Skip struct {
 	ServiceRegistration bool
 }
 
-type CashInConfig struct {
-	CashInPeriodSeconds int64
+func WithCashInPeriod(cashInPeriodSeconds int64) Option {
+	return func(o *options) { o.cashInPeriodSeconds = cashInPeriodSeconds }
+}
+
+func WithServices(services ...CMService) Option {
+	return func(o *options) { o.services = services }
 }
 
 type CMService struct {
@@ -109,7 +105,6 @@ type CMService struct {
 	Fee  int64
 }
 
-// CashInPeriod is in seconds. Use 0 to use default value.
 func (f *Factory) CreateBot(
 	ctx context.Context,
 	enableRPCServer bool,
@@ -117,10 +112,8 @@ func (f *Factory) CreateBot(
 	opts ...Option,
 ) (*Bot, chan error, error) {
 	options := &options{
-		skips: &Skip{},
-		cashInConfig: &CashInConfig{ // default cash in config
-			CashInPeriodSeconds: CashInPeriodSeconds, // 1h
-		},
+		skips:               &Skip{},
+		cashInPeriodSeconds: CashInPeriodSeconds, // 1h
 	}
 	for _, opt := range opts {
 		opt(options)
@@ -195,7 +188,7 @@ func (f *Factory) CreateBot(
 		NetworkFeeRecipientCMAccountAddress: f.asb.NetworkFeeRecipientCMAccountAddress().Hex(),
 		ChequeExpirationTime:                3600 * 24 * 30 * 7, // 7 months
 		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6, // 6 months
-		CashInPeriod:                        options.cashInConfig.CashInPeriodSeconds,
+		CashInPeriod:                        options.cashInPeriodSeconds,
 		MaxAllowedServiceFee:                "1000000000000000000", // 1 CAM
 		ResponseTimeout:                     30000,                 // 30s
 		PartnerPlugin: config.PartnerPluginConfig{

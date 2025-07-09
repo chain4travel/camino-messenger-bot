@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/runner"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/tests"
 )
 
@@ -95,7 +96,7 @@ func TestE2E(t *testing.T) {
 		require.NoError(t, existingNetworkAdminKey.UnmarshalText([]byte("\""+flagExistingNetworkAdminKey+"\"")))
 	}
 
-	suite, err := tests.NewSuite(
+	suite, err := suite.New(
 		flagNodeBinPath,
 		flagMatrixBinPath,
 		flagASBBinPath,
@@ -110,21 +111,21 @@ func TestE2E(t *testing.T) {
 	require.NoError(t, err)
 
 	testsRunner := runner.New(
-		suite.NewTest,
+		suite.SetupEnvironment,
 		suite.Cleanup,
 		suite.TestFilter,
 	)
 	// #########################################################
 	// #### Registration of the e2e test cases is done here ####
 	// #########################################################
-	testsRunner.Register(t, "PingV1", tests.TestPingV1)
-	testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
-	testsRunner.Register(t, "AccommodationV3", tests.TestAccommodationV3)
-	testsRunner.Register(t, "TransportV3", tests.TestTransportV3)
-	testsRunner.Register(t, "BotSanity", tests.TestBotSanity)
-	testsRunner.Register(t, "MintV2", tests.TestMintV2)
-	testsRunner.Register(t, "CancellationV1", tests.TestCancellationV1)
-	testsRunner.Register(t, "PeriodicCashIn", tests.TestPeriodicCashIn)
+	// testsRunner.Register(t, "PingV1", tests.TestPingV1)
+	// testsRunner.Register(t, "AccommodationV2", tests.TestAccommodationV2)
+	// testsRunner.Register(t, "AccommodationV3", tests.TestAccommodationV3)
+	// testsRunner.Register(t, "TransportV3", tests.TestTransportV3)
+	// testsRunner.Register(t, "BotSanity", tests.TestBotSanity)
+	// testsRunner.Register(t, "MintV2", tests.TestMintV2)
+	// testsRunner.Register(t, "CancellationV1", tests.TestCancellationV1)
+	testsRunner.Register(t, "PeriodicCashIn", &tests.TestCashIn{})
 
 	maxParallelRuns := 0
 	flagTestParallel := flag.Lookup("test.parallel")

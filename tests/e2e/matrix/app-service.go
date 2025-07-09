@@ -32,9 +32,17 @@ const (
 	asAccessToken            = "wfghWEGh3wgWHEf3478sHFWE" //nolint:gosec // this is not real credentials
 	asbRequestTickerInterval = 500 * time.Millisecond
 	asbPingTimeout           = 5 * time.Second
-
-	ASBCashInPeriodSeconds = 10
 )
+
+type options struct {
+	cashInPeriodSeconds int64
+}
+
+type ASBOption func(*options)
+
+func WithCashInPeriod(cashInPeriodSeconds int64) ASBOption {
+	return func(o *options) { o.cashInPeriodSeconds = cashInPeriodSeconds }
+}
 
 func StartNewAppService(
 	ctx context.Context,
@@ -44,7 +52,15 @@ func StartNewAppService(
 	asbBinPath string,
 	networkFeeKey *ecdsa.PrivateKey,
 	networkClient *blockchain.Client,
+	opts ...ASBOption,
 ) (*AppService, chan error, error) {
+	options := &options{
+		cashInPeriodSeconds: 3600, // 1h
+	}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	logger.Debug("Starting matrix app-service...")
 
 	asbDir := path.Join(dataDir, "asb")
@@ -93,7 +109,7 @@ func StartNewAppService(
 		NetworkFeeRecipientCMAccountAddress: networkFeeCMAccountAddress.Hex(),
 		NetworkFeeRecipientBotKey:           hex.EncodeToString(crypto.FromECDSA(networkFeeKey)),
 		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6, // 6 months
-		CashInPeriod:                        ASBCashInPeriodSeconds,
+		CashInPeriod:                        options.cashInPeriodSeconds,
 	}
 
 	configPath := path.Join(asbDir, "config.yaml")

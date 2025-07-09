@@ -17,65 +17,81 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/stretchr/testify/assert" //nolint:depguard // we don't user assert's assertions, we use assert.CollectT type as needed in require pkg
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const botCashInPeriodSeconds = 10
+var _ suite.Test = (*TestCashIn)(nil)
 
-func testPeriodicCashInSetup(ctx context.Context, t *testing.T, tt *Test) (
-	supplierPartnerPlugin *partnerplugin.PartnerPlugin,
-	supplierBot *bot.Bot,
-	distributorBot *bot.Bot,
-	pingFee int64,
-) {
-	// Register all the services needed for the tests
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
-	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
+const cashInPeriodSeconds = 10
 
-	pingFee = 5_000_000_000_000_000
+type TestCashIn struct {
+	e *suite.Environment
 
-	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot, errChan, err := tt.botFactory.CreateBot(ctx, true, supplierPartnerPlugin,
-		bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: pingFee}),
-		bot.WithCashInConfig(&bot.CashInConfig{CashInPeriodSeconds: botCashInPeriodSeconds}), // cash-in every 10 seconds
-	)
-	require.NoError(t, err)
-	expectNoErrorAsync(t, errChan)
-
-	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot, errChan, err = tt.botFactory.CreateBot(ctx, true, nil,
-		bot.WithCashInConfig(&bot.CashInConfig{CashInPeriodSeconds: botCashInPeriodSeconds}), // cash-in every 10 seconds
-	)
-	require.NoError(t, err)
-	expectNoErrorAsync(t, errChan)
-
-	return supplierPartnerPlugin, supplierBot, distributorBot, pingFee
+	cashInPeriodSeconds   int64
+	supplierPartnerPlugin *partnerplugin.PartnerPlugin
+	supplierBot           *bot.Bot
+	distributorBot        *bot.Bot
+	pingFee               int64
 }
 
-func testPeriodicCashInWithPingV1(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-	pingFee int64,
-) {
-	initialDistributorBalance, err := tt.caminoNetwork.Client.ETHClient().BalanceAt(ctx, distributorBot.CMAccountAddress(), nil)
+func (t *TestCashIn) Setup(e *suite.Environment) {
+	e.ASBOptions = []matrix.ASBOption{
+		matrix.WithCashInPeriod(t.cashInPeriodSeconds),
+	}
+	t.e = e
+}
+
+func (tt *TestCashIn) Run(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
+	defer cancel()
+
+	t.Run("Setup", func(t *testing.T) {
+		tt.prepare(ctx, t)
+	})
+	t.Run("Ping", func(t *testing.T) {
+		tt.testPeriodicCashInWithPingV1(ctx, t)
+	})
+}
+
+func (tt *TestCashIn) prepare(ctx context.Context, t *testing.T) {
+	// Register all the services needed for the tests
+	require.NoError(t, tt.e.CaminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
+
+	tt.supplierPartnerPlugin = tt.e.CreatePartnerPlugin(ctx, t)
+
+	tt.pingFee = 5_000_000_000_000_000
+
+	// bot with partnerPlugin and without rpc server (supplier)
+	tt.supplierBot = tt.e.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+		bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: tt.pingFee}),
+		bot.WithCashInPeriod(cashInPeriodSeconds), // cash-in every 10 seconds
+	)
+
+	// bot without partnerPlugin and with rpc server (distributor)
+	tt.distributorBot = tt.e.CreateBot(ctx, t, true, nil,
+		// has nothing to cash in, so we'll just check that nothing unexpected happens
+		bot.WithCashInPeriod(cashInPeriodSeconds), // cash-in every 10 seconds
+	)
+}
+
+func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testing.T) {
+	initialDistributorBalance, err := tt.e.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.distributorBot.CMAccountAddress(), nil)
 	require.NoError(t, err)
 
-	initialSupplierBalance, err := tt.caminoNetwork.Client.ETHClient().BalanceAt(ctx, supplierBot.CMAccountAddress(), nil)
+	initialSupplierBalance, err := tt.e.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.supplierBot.CMAccountAddress(), nil)
 	require.NoError(t, err)
 
-	initialASBBalance, err := tt.caminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.asb.NetworkFeeRecipientCMAccountAddress(), nil)
+	initialASBBalance, err := tt.e.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.e.ASB.NetworkFeeRecipientCMAccountAddress(), nil)
 	require.NoError(t, err)
 
-	tt.logger.Debugf("Initial distributor CM account balance: %s", initialDistributorBalance.String())
-	tt.logger.Debugf("Initial supplier CM account balance: %s", initialSupplierBalance.String())
-	tt.logger.Debugf("Initial ASB CM account balance: %s", initialASBBalance.String())
+	tt.e.Logger.Debugf("Initial distributor CM account balance: %s", initialDistributorBalance.String())
+	tt.e.Logger.Debugf("Initial supplier CM account balance: %s", initialSupplierBalance.String())
+	tt.e.Logger.Debugf("Initial ASB CM account balance: %s", initialASBBalance.String())
 
-	pingFeeBig := big.NewInt(pingFee)
+	pingFeeBig := big.NewInt(tt.pingFee)
 
 	pingMessage := "ping"
 	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
@@ -85,13 +101,13 @@ func testPeriodicCashInWithPingV1(
 		PingMessage: pingMessage,
 		Timestamp:   timestamppb.Now(),
 	}
-	resp, err := distributorBot.PingServiceV1.Ping(
-		requestContext(ctx, supplierBot.CMAccountAddress()),
+	resp, err := tt.distributorBot.PingServiceV1.Ping(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 
 	require.NoError(t, err)
-	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
+	tt.e.DebugPrintRequestResponse(getCurrentFuncName(), req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 	require.Contains(t, resp.PingMessage, expectedResponseMessageSubString, "unexpected response message")
@@ -106,21 +122,21 @@ func testPeriodicCashInWithPingV1(
 	expectedSupplierBalance := initialSupplierBalance.Add(initialSupplierBalance, supplierCashedIn)
 	expectedASBBalance := initialASBBalance.Add(initialASBBalance, asbCashedIn)
 
-	tt.logger.Debugf("Expected distributor CM account balance: %s", expectedDistributorBalance.String())
-	tt.logger.Debugf("Expected supplier CM account balance: %s", expectedSupplierBalance.String())
-	tt.logger.Debugf("Expected ASB CM account balance: %s", expectedASBBalance.String())
+	tt.e.Logger.Debugf("Expected distributor CM account balance: %s", expectedDistributorBalance.String())
+	tt.e.Logger.Debugf("Expected supplier CM account balance: %s", expectedSupplierBalance.String())
+	tt.e.Logger.Debugf("Expected ASB CM account balance: %s", expectedASBBalance.String())
 
-	botCashInTimeout := botCashInPeriodSeconds * time.Second * 3 // supplier cash-in every 10s, triple that
+	cashInTimeout := cashInPeriodSeconds * time.Second * 3 // ASB and supplier cash-in every 10s, triple that
 
 	t.Run("Check distributor balance", func(t *testing.T) {
 		t.Parallel()
 		var distributorBalance *big.Int
 		require.EventuallyWithTf(t, func(t *assert.CollectT) {
-			distributorBalance, err = tt.caminoNetwork.Client.ETHClient().BalanceAt(ctx, distributorBot.CMAccountAddress(), nil)
+			distributorBalance, err = tt.e.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.distributorBot.CMAccountAddress(), nil)
 			require.NoError(t, err)
-			tt.logger.Debugf("Distributor CM account balance: %s", distributorBalance.String())
+			tt.e.Logger.Debugf("Distributor CM account balance: %s", distributorBalance.String())
 			require.True(t, distributorBalance.Cmp(expectedDistributorBalance) == 0)
-		}, botCashInTimeout, time.Second,
+		}, cashInTimeout, time.Second,
 			"Distributor CM account balance did not decrease by expected amount before timeout: expected %s, actual %s",
 			expectedDistributorBalance.String(), distributorBalance.String(),
 		)
@@ -130,44 +146,27 @@ func testPeriodicCashInWithPingV1(
 		t.Parallel()
 		var supplierBalance *big.Int
 		require.EventuallyWithTf(t, func(t *assert.CollectT) {
-			supplierBalance, err = tt.caminoNetwork.Client.ETHClient().BalanceAt(ctx, supplierBot.CMAccountAddress(), nil)
+			supplierBalance, err = tt.e.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.supplierBot.CMAccountAddress(), nil)
 			require.NoError(t, err)
-			tt.logger.Debugf("Supplier CM account balance: %s", supplierBalance.String())
+			tt.e.Logger.Debugf("Supplier CM account balance: %s", supplierBalance.String())
 			require.True(t, supplierBalance.Cmp(expectedSupplierBalance) == 0)
-		}, botCashInTimeout, time.Second,
+		}, cashInTimeout, time.Second,
 			"Supplier CM account balance did not increase by expected amount before timeout: expected %s, actual %s",
 			expectedSupplierBalance.String(), supplierBalance.String(),
 		)
 	})
 
-	asbCashInTimeout := matrix.ASBCashInPeriodSeconds * time.Second * 3 // ASB cash-in every 10s, triple that
-
 	t.Run("Check network fee receiver (ASB) balance", func(t *testing.T) {
 		t.Parallel()
 		var asbBalance *big.Int
 		require.EventuallyWithTf(t, func(t *assert.CollectT) {
-			asbBalance, err = tt.caminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.asb.NetworkFeeRecipientCMAccountAddress(), nil)
+			asbBalance, err = tt.e.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.e.ASB.NetworkFeeRecipientCMAccountAddress(), nil)
 			require.NoError(t, err)
-			tt.logger.Debugf("ASB CM account balance: %s", asbBalance.String())
+			tt.e.Logger.Debugf("ASB CM account balance: %s", asbBalance.String())
 			require.True(t, asbBalance.Cmp(expectedASBBalance) == 0)
-		}, asbCashInTimeout, time.Second,
+		}, cashInTimeout, time.Second,
 			"ASB CM account balance did not increase by expected amount before timeout: expected %s, actual %s",
 			expectedASBBalance.String(), asbBalance.String(),
 		)
-	})
-}
-
-func TestPeriodicCashIn(t *testing.T, tt *Test) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
-	defer cancel()
-	var supplierBot *bot.Bot
-	var distributorBot *bot.Bot
-	var pingFee int64
-
-	t.Run("Setup", func(t *testing.T) {
-		_, supplierBot, distributorBot, pingFee = testPeriodicCashInSetup(ctx, t, tt)
-	})
-	t.Run("Ping", func(t *testing.T) {
-		testPeriodicCashInWithPingV1(ctx, t, tt, distributorBot, supplierBot, pingFee)
 	})
 }

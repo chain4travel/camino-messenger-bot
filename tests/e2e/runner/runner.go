@@ -11,45 +11,48 @@ import (
 )
 
 type (
-	runFunc[T any]       func(*testing.T, T)
-	beforeRunFunc[T any] func(*testing.T) T
-	afterRunFunc[T any]  func(*testing.T, T)
+	Test[T any] interface {
+		Setup(T)
+		Run(*testing.T)
+	}
+	BeforeRunFunc[T any] func(*testing.T, Test[T])
+	AfterRunFunc[T any]  func(*testing.T, T)
 )
 
 // Creates a new runner. [T] type will be created with beforeRun func, passed to run func and then to afterRun func.
 func New[T any](
-	beforeRun beforeRunFunc[T],
-	afterRun afterRunFunc[T],
+	beforeRun BeforeRunFunc[T],
+	afterRun AfterRunFunc[T],
 	filter []string,
 ) *Runner[T] {
 	return &Runner[T]{
 		beforeRun:  beforeRun,
 		afterRun:   afterRun,
-		funcs:      make(map[string]runFunc[T]),
+		tests:      make(map[string]Test[T]),
 		testFilter: filter,
 	}
 }
 
 // Not safe for concurrent use.
 type Runner[T any] struct {
-	beforeRun  beforeRunFunc[T]
-	afterRun   afterRunFunc[T]
-	funcs      map[string]runFunc[T]
+	beforeRun  BeforeRunFunc[T]
+	afterRun   AfterRunFunc[T]
+	tests      map[string]Test[T]
 	testFilter []string
 }
 
-func (r *Runner[T]) Register(t *testing.T, name string, f runFunc[T]) {
+func (r *Runner[T]) Register(t *testing.T, name string, test Test[T]) {
 	if len(r.testFilter) > 0 && !slices.Contains(r.testFilter, name) {
 		return
 	}
 
-	_, ok := r.funcs[name]
+	_, ok := r.tests[name]
 	require.False(t, ok)
-	r.funcs[name] = f
+	r.tests[name] = test
 }
 
 func (r *Runner[T]) Run(t *testing.T) {
-	for name, test := range r.funcs {
+	for name, test := range r.tests {
 		t.Run(name, func(t *testing.T) {
 			var tt T
 
@@ -60,15 +63,15 @@ func (r *Runner[T]) Run(t *testing.T) {
 			})
 
 			if r.beforeRun != nil {
-				tt = r.beforeRun(t)
+				r.beforeRun(t, test)
 			}
-			test(t, tt)
+			test.Run(t)
 		})
 	}
 }
 
 func (r *Runner[T]) RunParallel(t *testing.T) {
-	for name, test := range r.funcs {
+	for name, test := range r.tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -81,9 +84,9 @@ func (r *Runner[T]) RunParallel(t *testing.T) {
 			})
 
 			if r.beforeRun != nil {
-				tt = r.beforeRun(t)
+				r.beforeRun(t, test)
 			}
-			test(t, tt)
+			test.Run(t)
 		})
 	}
 }
