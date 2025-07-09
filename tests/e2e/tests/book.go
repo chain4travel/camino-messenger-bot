@@ -115,6 +115,7 @@ func testMintV2(
 ) (
 	tokenID uint64,
 	price *typesv2.Price,
+	mintID string,
 ) {
 	req := &bookv2.MintRequest{
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -137,7 +138,7 @@ func testMintV2(
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.Price
+	return resp.BookingTokenId, resp.Price, resp.MintId.Value
 }
 
 func testMintV3(
