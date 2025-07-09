@@ -70,6 +70,7 @@ type Option func(*options)
 func WithSkips(skips *Skip) Option {
 	return func(o *options) { o.skips = skips }
 }
+
 func WithCashInConfig(cashInConfig *CashInConfig) Option {
 	return func(o *options) { o.cashInConfig = cashInConfig }
 }
