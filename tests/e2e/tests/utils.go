@@ -7,14 +7,10 @@ import (
 	"context"
 	"math/big"
 	"runtime"
-	"testing"
 	"time"
 
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/stretchr/testify/require"
 	grpcMetadata "google.golang.org/grpc/metadata"
 )
 
@@ -34,7 +30,7 @@ func requestContext(ctx context.Context, recipientCMAccount common.Address) cont
 }
 
 // Gets the current function name including the whole package path
-func getCurrentFuncName() string {
+func currentFuncName() string {
 	pc, _, _, ok := runtime.Caller(1)
 	if !ok {
 		return "unknown"
@@ -42,19 +38,19 @@ func getCurrentFuncName() string {
 	return runtime.FuncForPC(pc).Name()
 }
 
-func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {
-	require.NotNil(t, price, "unexpected nil price")
-	switch currency := price.GetCurrency().GetCurrency().(type) {
-	case *typesv2.Currency_NativeToken:
-		return booking.NativePaymentToken
-	case *typesv2.Currency_IsoCurrency:
-		return booking.ISOPaymentToken
-	case *typesv2.Currency_TokenCurrency:
-		return common.HexToAddress(currency.TokenCurrency.ContractAddress)
-	}
-	require.Fail(t, "unexpected currency type")
-	return common.Address{}
-}
+// func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {
+// 	require.NotNil(t, price, "unexpected nil price")
+// 	switch currency := price.GetCurrency().GetCurrency().(type) {
+// 	case *typesv2.Currency_NativeToken:
+// 		return booking.NativePaymentToken
+// 	case *typesv2.Currency_IsoCurrency:
+// 		return booking.ISOPaymentToken
+// 	case *typesv2.Currency_TokenCurrency:
+// 		return common.HexToAddress(currency.TokenCurrency.ContractAddress)
+// 	}
+// 	require.Fail(t, "unexpected currency type")
+// 	return common.Address{}
+// }
 
 var (
 	c4tFeeCutNominator   = big.NewInt(10) // 10% fee cut for C4T

@@ -96,7 +96,7 @@ type Suite struct {
 	TestFilter              []string
 }
 
-func (s *Suite) SetupEnvironment(t *testing.T, test Test) {
+func (s *Suite) SetupEnvironment(t *testing.T, test Test) *Environment {
 	ctx, cancel := context.WithTimeout(context.Background(), startupTimeout)
 	defer cancel()
 
@@ -174,6 +174,8 @@ func (s *Suite) SetupEnvironment(t *testing.T, test Test) {
 		e.matrix,
 		e.ASB,
 	)
+
+	return e
 }
 
 func (s *Suite) Cleanup(t *testing.T, e *Environment) {
