@@ -26,15 +26,19 @@ import (
 
 // Not safe for concurrent use.
 type Environment struct {
-	Logger                 *zap.SugaredLogger
+	// used by tests; we don't bother to abstract it for safety, because its tests and we expect tests to not modify those fields
+	Logger        *zap.SugaredLogger
+	ASB           *matrix.AppService
+	CaminoNetwork *blockchain.Network
+
+	// those are not used by tests directly, so we can hide them for at least some safety
 	matrix                 *matrix.ConduitServer
-	ASB                    *matrix.AppService
-	CaminoNetwork          *blockchain.Network
 	partnerPluginFactory   *partnerplugin.Factory
 	botFactory             *bot.Factory
 	networkFeeKey          *ecdsa.PrivateKey
 	resourceManagerSession *resources.Session
 
+	// those are expected to be set by tests within Setup method
 	ASBOptions []matrix.ASBOption
 }
 

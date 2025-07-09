@@ -33,10 +33,8 @@ const (
 
 type Test = runner.Test[*Environment]
 
-var _ runner.BeforeRunFunc[*Environment] = (*Suite)(nil).SetupEnvironment // TODO@ will it panic?
+var _ runner.BeforeRunFunc[*Environment] = (*Suite)(nil).SetupEnvironment
 var _ runner.AfterRunFunc[*Environment] = (*Suite)(nil).Cleanup
-
-// var _ runner.BeforeRunFunc[*Environment] = (&Suite{}).NewTest
 
 func New(
 	nodeBinPath string,
