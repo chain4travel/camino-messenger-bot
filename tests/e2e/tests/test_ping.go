@@ -3,64 +3,81 @@
 
 package tests
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"testing"
+import (
+	"context"
+	"fmt"
+	"testing"
 
-// 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-// 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-// 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
-// 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
-// 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
-// 	"github.com/stretchr/testify/require"
-// 	"google.golang.org/protobuf/types/known/timestamppb"
-// )
+	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
+	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
 
-// func testPingV1Setup(ctx context.Context, t *testing.T, tt *Environment) (*partnerplugin.PartnerPlugin, *bot.Bot, *bot.Bot) {
-// 	// Register all the services needed for the tests
-// 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
-// 	supplierPartnerPlugin := tt.createPartnerPlugin(ctx, t)
+var _ suite.Test = (*TestPingV1)(nil)
 
-// 	// bot with partnerPlugin and without rpc server (supplier)
-// 	supplierBot := tt.createBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
-// 		{Name: botGenerated.PingServiceV1, Fee: 100},
-// 	})
+func init() {
+	Tests["PingV1"] = &TestPingV1{}
+}
 
-// 	// bot without partnerPlugin and with rpc server (distributor)
-// 	distributorBot := tt.createBot(ctx, t, true, nil, nil)
+type TestPingV1 struct {
+	*suite.Environment
 
-// 	return supplierPartnerPlugin, supplierBot, distributorBot
-// }
+	supplierPartnerPlugin *partnerplugin.PartnerPlugin
+	supplierBot           *bot.Bot
+	distributorBot        *bot.Bot
+}
 
-// func testPingV1Service(ctx context.Context, t *testing.T, tt *Environment, distributorBot *bot.Bot, supplierBot *bot.Bot) {
-// 	pingMessage := "ping"
-// 	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
+func (tt *TestPingV1) Setup(e *suite.Environment) {
+	tt.Environment = e
+}
 
-// 	req := &pingv1.PingRequest{
-// 		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-// 		PingMessage: pingMessage,
-// 		Timestamp:   timestamppb.Now(),
-// 	}
-// 	resp, err := distributorBot.PingServiceV1.Ping(
-// 		requestContext(ctx, supplierBot.CMAccountAddress()),
-// 		req,
-// 	)
+func (tt *TestPingV1) Run(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
+	defer cancel()
 
-// 	require.NoError(t, err)
-// 	debugPrintRequestResponse(tt, getCurrentFuncName(), req, resp)
-// 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-// 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-// 	require.Contains(t, resp.PingMessage, expectedResponseMessageSubString, "unexpected response message")
-// }
+	tt.prepare(ctx, t)
 
-// func TestPingV1(t *testing.T, tt *Environment) {
-// 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
-// 	defer cancel()
+	t.Run("Ping", func(t *testing.T) {
+		tt.testPingV1Service(ctx, t)
+	})
+}
 
-// 	_, supplierBot, distributorBot := testPingV1Setup(ctx, t, tt)
+func (tt *TestPingV1) prepare(ctx context.Context, t *testing.T) {
+	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
 
-// 	t.Run("Ping", func(t *testing.T) {
-// 		testPingV1Service(ctx, t, tt, distributorBot, supplierBot)
-// 	})
-// }
+	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+
+	// bot with partnerPlugin and without rpc server (supplier)
+	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+	)
+
+	// bot without partnerPlugin and with rpc server (distributor)
+	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+}
+
+func (tt *TestPingV1) testPingV1Service(ctx context.Context, t *testing.T) {
+	pingMessage := "ping"
+	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
+
+	req := &pingv1.PingRequest{
+		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		PingMessage: pingMessage,
+		Timestamp:   timestamppb.Now(),
+	}
+	resp, err := tt.distributorBot.PingServiceV1.Ping(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(currentFuncName(), req, resp)
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	require.Contains(t, resp.PingMessage, expectedResponseMessageSubString, "unexpected response message")
+}

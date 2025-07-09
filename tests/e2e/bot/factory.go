@@ -96,7 +96,7 @@ func WithCashInPeriod(cashInPeriodSeconds int64) Option {
 	return func(o *options) { o.cashInPeriodSeconds = cashInPeriodSeconds }
 }
 
-func WithServices(services ...CMService) Option {
+func WithServices(services []CMService) Option {
 	return func(o *options) { o.services = services }
 }
 

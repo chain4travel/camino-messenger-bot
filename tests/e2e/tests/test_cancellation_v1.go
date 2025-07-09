@@ -28,6 +28,10 @@ import (
 
 var _ suite.Test = (*TestCancellationV1)(nil)
 
+func init() {
+	Tests["CancellationV1"] = &TestCancellationV1{}
+}
+
 type TestCancellationV1 struct {
 	*suite.Environment
 
@@ -48,9 +52,7 @@ func (tt *TestCancellationV1) Run(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
 
-	t.Run("Setup", func(t *testing.T) {
-		tt.prepare(ctx, t)
-	})
+	tt.prepare(ctx, t)
 
 	t.Run("CheckCancellationV1", func(t *testing.T) {
 		tt.testCheckCancellationV1(ctx, t)
@@ -68,7 +70,6 @@ func (tt *TestCancellationV1) Run(t *testing.T) {
 
 func (tt *TestCancellationV1) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
-		botGenerated.AccommodationProductListServiceV3,
 		botGenerated.AccommodationSearchServiceV3,
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV3,
@@ -80,12 +81,11 @@ func (tt *TestCancellationV1) prepare(ctx context.Context, t *testing.T) {
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationProductListServiceV3, Fee: 100},
 			{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
 			{Name: botGenerated.ValidationServiceV2, Fee: 130},
 			{Name: botGenerated.MintServiceV3, Fee: 140},
 			{Name: botGenerated.CheckCancellationServiceV1, Fee: 150},
-		}...),
+		}),
 	)
 
 	tt.distributorPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
@@ -98,35 +98,6 @@ func (tt *TestCancellationV1) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, err)
 	tt.distributorPPEventStream, err = tt.distributorPartnerPlugin.SubscribeForEvents(ctx)
 	require.NoError(t, err)
-}
-
-func mintBuyTokenV3(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	supplierPPEventStream events.EventsService_SubscribeClient,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) (uint64, *typesv3.Price) {
-	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, e, distributorBot, supplierBot) // see test_accommodation_v3.go
-	_, err := supplierPPEventStream.Recv()                                                                                     // skip AccommodationSearchRequest
-	require.NoError(t, err)
-
-	validationID := testValidateV2(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
-	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
-	require.NoError(t, err)
-
-	tokenID, bookingPrice, _ := testMintV3(ctx, t, e, distributorBot, supplierBot, validationID)
-	_, err = supplierPPEventStream.Recv() // skip MintRequest
-	require.NoError(t, err)
-
-	eventMsg, err := supplierPPEventStream.Recv()
-	require.NoError(t, err)
-	e.DebugPrintProtoMessage(eventMsg)
-	tokenBoughtNotification := &notificationv2.TokenBought{}
-	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
-
-	return tokenID, bookingPrice
 }
 
 func (tt *TestCancellationV1) testCancellationV1DistributorInitiatesBasic(ctx context.Context, t *testing.T) {

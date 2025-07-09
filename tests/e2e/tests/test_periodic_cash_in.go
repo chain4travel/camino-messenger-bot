@@ -25,6 +25,10 @@ import (
 
 var _ suite.Test = (*TestCashIn)(nil)
 
+func init() {
+	Tests["PeriodicCashIn"] = &TestCashIn{}
+}
+
 type TestCashIn struct {
 	*suite.Environment
 
@@ -48,9 +52,8 @@ func (tt *TestCashIn) Run(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
 
-	t.Run("Setup", func(t *testing.T) {
-		tt.prepare(ctx, t)
-	})
+	tt.prepare(ctx, t)
+
 	t.Run("Ping", func(t *testing.T) {
 		tt.testPeriodicCashInWithPingV1(ctx, t)
 	})
@@ -66,7 +69,7 @@ func (tt *TestCashIn) prepare(ctx context.Context, t *testing.T) {
 
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-		bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: tt.pingFee}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: tt.pingFee}}),
 		bot.WithCashInPeriod(tt.cashInPeriodSeconds), // cash-in every 10 seconds
 	)
 
