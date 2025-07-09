@@ -218,9 +218,6 @@ func (p *messageProcessor) SendRequestMessage(
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
-	recipientCMAccountAddressHex := recipientCMAccount.Hex()
-	p.logger.Infof("Distributor: received a request to propagate to CMAccount %s", recipientCMAccountAddressHex)
-
 	// lookup for CM Account -> bot
 	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccount)
 	if err != nil {
@@ -281,7 +278,7 @@ func (p *messageProcessor) SendRequestMessage(
 	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
 	defer span.End()
 
-	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", p.botAddress, recipientBotAddr, recipientCMAccountAddressHex)
+	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", p.botAddress, recipientBotAddr, recipientCMAccount.Hex())
 
 	if err := p.messenger.SendMessage(
 		ctx,

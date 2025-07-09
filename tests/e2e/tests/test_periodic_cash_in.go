@@ -32,7 +32,7 @@ func testPeriodicCashInSetup(ctx context.Context, t *testing.T, tt *Test) (
 	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
 	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
 
-	pingFee = 5_000_000_000_000_000_000
+	pingFee = 5_000_000_000_000_000
 
 	// bot with partnerPlugin and without rpc server (supplier)
 	supplierBot = tt.createBot(ctx, t, true, supplierPartnerPlugin, []bot.CMService{
