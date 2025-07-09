@@ -36,8 +36,8 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 
 	t.Run("Missing CM-Account", func(t *testing.T) {
 		_, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
-			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.Skip{CMAccountCreation: true},
+			bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: 100}),
+			bot.WithSkips(&bot.Skip{CMAccountCreation: true}),
 		)
 
 		// This should fail already when the bot starts up as there is no
@@ -48,8 +48,8 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 
 	t.Run("Missing CM-Account owner funds", func(t *testing.T) {
 		services.supplierBotUnregisteredNoServices, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
-			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.Skip{PrefundOwner: true},
+			bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: 100}),
+			bot.WithSkips(&bot.Skip{PrefundOwner: true}),
 		)
 
 		// This bot skips the bot registration and the service registration
@@ -61,8 +61,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 
 	t.Run("Missing global CM-Account-Manager services", func(t *testing.T) {
 		_, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
-			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.Skip{},
+			bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: 100}),
 		)
 
 		// This should fail already before the bot is even started up
@@ -79,8 +78,8 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 
 	t.Run("Missing Bot-Registration", func(t *testing.T) {
 		services.supplierBotUnregistered, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
-			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.Skip{BotRegistration: true},
+			bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: 100}),
+			bot.WithSkips(&bot.Skip{BotRegistration: true}),
 		)
 
 		// This bot does actually have the CM-Account and prefunding of the owner
@@ -93,8 +92,8 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 
 	t.Run("Missing Bot service registration", func(t *testing.T) {
 		services.supplierBotNoServices, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
-			[]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}},
-			&bot.Skip{ServiceRegistration: true},
+			bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: 100}),
+			bot.WithSkips(&bot.Skip{ServiceRegistration: true}),
 		)
 
 		// This bot does actually have the CM-Account and prefunding of the owner
@@ -108,8 +107,7 @@ func testBotSanitySetupWithSanityChecks(ctx context.Context, t *testing.T, tt *T
 
 	t.Run("Different services", func(t *testing.T) {
 		services.supplierBotDifferentServices, errChan, err = tt.botFactory.CreateBot(ctx, false, services.supplierPartnerPlugin,
-			[]bot.CMService{{Name: botGenerated.MintServiceV3, Fee: 100}},
-			&bot.Skip{},
+			bot.WithServices(bot.CMService{Name: botGenerated.MintServiceV3, Fee: 100}),
 		)
 
 		// All good here - just a different service used which should then

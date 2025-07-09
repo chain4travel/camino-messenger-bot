@@ -35,12 +35,19 @@ func testPeriodicCashInSetup(ctx context.Context, t *testing.T, tt *Test) (
 	pingFee = 5_000_000_000_000_000
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot = tt.createBot(ctx, t, true, supplierPartnerPlugin, []bot.CMService{
-		{Name: botGenerated.PingServiceV1, Fee: pingFee},
-	})
+	supplierBot, errChan, err := tt.botFactory.CreateBot(ctx, true, supplierPartnerPlugin,
+		bot.WithServices(bot.CMService{Name: botGenerated.PingServiceV1, Fee: pingFee}),
+		bot.WithCashInConfig(&bot.CashInConfig{CashInPeriodSeconds: 10}), // cash-in every 10 seconds
+	)
+	require.NoError(t, err)
+	expectNoErrorAsync(t, errChan)
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot = tt.createBot(ctx, t, true, nil, nil)
+	distributorBot, errChan, err = tt.botFactory.CreateBot(ctx, true, nil,
+		bot.WithCashInConfig(&bot.CashInConfig{CashInPeriodSeconds: 10}), // cash-in every 10 seconds
+	)
+	require.NoError(t, err)
+	expectNoErrorAsync(t, errChan)
 
 	return supplierPartnerPlugin, supplierBot, distributorBot, pingFee
 }

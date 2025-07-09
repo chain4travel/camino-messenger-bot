@@ -27,11 +27,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
 
-type CMService struct {
-	Name string
-	Fee  int64
-}
-
 func NewFactory(
 	logger *zap.SugaredLogger,
 	resourceManagerSession *resources.Session,
@@ -64,6 +59,25 @@ type Factory struct {
 	bots                   []*Bot
 }
 
+type options struct {
+	skips        *Skip
+	cashInConfig *CashInConfig
+	services     []CMService
+}
+
+type Option func(*options)
+
+func WithSkips(skips *Skip) Option {
+	return func(o *options) { o.skips = skips }
+}
+func WithCashInConfig(cashInConfig *CashInConfig) Option {
+	return func(o *options) { o.cashInConfig = cashInConfig }
+}
+
+func WithServices(services ...CMService) Option {
+	return func(o *options) { o.services = services }
+}
+
 // Intentionally skip some steps in bot creation.
 // Only used for very specific testing purposes.
 type Skip struct {
@@ -83,18 +97,31 @@ type Skip struct {
 	ServiceRegistration bool
 }
 
+type CashInConfig struct {
+	CashInPeriodSeconds int64
+}
+
+type CMService struct {
+	Name string
+	Fee  int64
+}
+
 // CashInPeriod is in seconds. Use 0 to use default value.
 func (f *Factory) CreateBot(
 	ctx context.Context,
 	enableRPCServer bool,
 	partnerPlugin *partnerplugin.PartnerPlugin,
-	services []CMService,
-	skips *Skip,
+	opts ...Option,
 ) (*Bot, chan error, error) {
-	if skips == nil {
-		skips = &Skip{}
+	options := options{
+		skips: &Skip{},
+		cashInConfig: &CashInConfig{ // default cash in config
+			CashInPeriodSeconds: e2eCommon.CashInPeriodSeconds, // 3600 1h
+		},
 	}
-	var cmAccountAddress common.Address
+	for _, opt := range opts {
+		opt(&options)
+	}
 
 	cmAccountOwnerKey, err := ecdsa.GenerateKey(crypto.S256(), rand.Reader)
 	if err != nil {
@@ -106,7 +133,8 @@ func (f *Factory) CreateBot(
 		return nil, nil, fmt.Errorf("failed to generate key: %w", err)
 	}
 
-	if !skips.CMAccountCreation {
+	var cmAccountAddress common.Address
+	if !options.skips.CMAccountCreation {
 		botAddr := crypto.PubkeyToAddress(botKey.PublicKey)
 		cmAccountOwnerAddress := crypto.PubkeyToAddress(cmAccountOwnerKey.PublicKey)
 		cmAccountAddress, _, err = f.networkClient.CreateCMAccount(ctx, cmAccountOwnerKey)
@@ -114,19 +142,19 @@ func (f *Factory) CreateBot(
 			return nil, nil, fmt.Errorf("failed to create CM account: %w", err)
 		}
 
-		if !skips.PrefundOwner {
+		if !options.skips.PrefundOwner {
 			if err := f.networkClient.Transfer(ctx, f.networkClient.PrefundedKeys()[0], cmAccountOwnerAddress, e2eCommon.DefaultCMAccountOwnerFunds); err != nil {
 				return nil, nil, fmt.Errorf("failed to transfer funds to cm account owner: %w", err)
 			}
 
-			if !skips.BotRegistration {
+			if !options.skips.BotRegistration {
 				if err := f.networkClient.AddBotToCMAccount(ctx, cmAccountAddress, cmAccountOwnerKey, botAddr); err != nil {
 					return nil, nil, fmt.Errorf("failed to add bot to CM account: %w", err)
 				}
 			}
 
-			if !skips.ServiceRegistration {
-				for _, service := range services {
+			if !options.skips.ServiceRegistration {
+				for _, service := range options.services {
 					if err := f.networkClient.AddCMService(ctx, cmAccountAddress, cmAccountOwnerKey, service.Name, service.Fee); err != nil {
 						return nil, nil, fmt.Errorf("failed to add %s service to CM account: %w", service.Name, err)
 					}
@@ -134,7 +162,7 @@ func (f *Factory) CreateBot(
 			}
 		}
 
-		if !skips.PrefundBot {
+		if !options.skips.PrefundBot {
 			if err := f.networkClient.Transfer(ctx, f.networkClient.PrefundedKeys()[0], botAddr, e2eCommon.DefaultCMAccountOwnerFunds); err != nil {
 				return nil, nil, fmt.Errorf("failed to transfer funds to bot: %w", err)
 			}
@@ -162,11 +190,11 @@ func (f *Factory) CreateBot(
 		BookingTokenAddress:                 f.networkClient.BookingTokenContractAddress().Hex(),
 		NetworkFeeRecipientBotAddress:       f.asb.NetworkFeeRecipientBotAddress().Hex(),
 		NetworkFeeRecipientCMAccountAddress: f.asb.NetworkFeeRecipientCMAccountAddress().Hex(),
-		ChequeExpirationTime:                3600 * 24 * 30 * 7,            // 7 months
-		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6,            // 6 months
-		CashInPeriod:                        e2eCommon.CashInPeriodSeconds, // 10s
-		MaxAllowedServiceFee:                "1000000000000000000",         // 1 CAM
-		ResponseTimeout:                     30000,                         // 30s
+		ChequeExpirationTime:                3600 * 24 * 30 * 7, // 7 months
+		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6, // 6 months
+		CashInPeriod:                        options.cashInConfig.CashInPeriodSeconds,
+		MaxAllowedServiceFee:                "1000000000000000000", // 1 CAM
+		ResponseTimeout:                     30000,                 // 30s
 		PartnerPlugin: config.PartnerPluginConfig{
 			Enabled:     partnerPlugin != nil,
 			Host:        partnerPlugin.Host(),

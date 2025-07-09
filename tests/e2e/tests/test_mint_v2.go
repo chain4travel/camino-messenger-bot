@@ -49,9 +49,7 @@ func testMintV2Setup(
 	// bot without partnerPlugin and with rpc server (distributor) but with the
 	// catch, that the bot account does not have funds to pay for the fees when
 	// trying to buy the booking token.
-	distributorBotWithoutFunds, errChan, err := tt.botFactory.CreateBot(ctx, true, nil, nil,
-		&bot.Skip{PrefundBot: true},
-	)
+	distributorBotWithoutFunds, errChan, err := tt.botFactory.CreateBot(ctx, true, nil, bot.WithSkips(&bot.Skip{PrefundBot: true}))
 	require.NoError(t, err)
 	expectNoErrorAsync(t, errChan)
 
