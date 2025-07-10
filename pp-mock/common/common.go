@@ -42,8 +42,8 @@ func DateV1ToTime(date *typesv1.Date) time.Time {
 	return time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 0, 0, 0, 0, time.UTC)
 }
 
-func DaysBetweenDates(startDate, endDate *typesv1.Date) int64 {
-	duration := DateV1ToTime(startDate).Sub(DateV1ToTime(endDate))
+func DaysBetweenDates(endDate, startDate *typesv1.Date) int64 {
+	duration := DateV1ToTime(endDate).Sub(DateV1ToTime(startDate))
 	return int64(duration / (time.Hour * 24))
 }
 
