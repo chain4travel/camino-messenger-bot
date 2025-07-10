@@ -124,7 +124,7 @@ func (tt *TestBotSanity) prepare(ctx context.Context, t *testing.T) {
 	)
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	tt.distributorBot = tt.CreateBot(ctx, t, true, nil, nil)
+	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 }
 
 func testBotSanitySendCommonRequest(ctx context.Context, pingMessage string, distributorBot *bot.Bot, supplierBot *bot.Bot) error {
