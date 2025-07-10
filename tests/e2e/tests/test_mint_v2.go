@@ -126,19 +126,19 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	// We just receive all the messages from the pp-mock event stream without any
 	// further checks as we're only really interested in the last one.
 
-	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_accommodation_v3.go
-	_, err := tt.supplierPPEventStream.Recv()                                                                                                     // skip AccommodationSearchRequest
+	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot) // see test_accommodation_v3.go
+	_, err := tt.supplierPPEventStream.Recv()                                                                                                                 // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID1 := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+	validationID1 := testValidateV2(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, searchID, resultID, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	searchID, resultID, totalPrice = testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_accommodation_v3.go
-	_, err = tt.supplierPPEventStream.Recv()                                                                                                     // skip AccommodationSearchRequest
+	searchID, resultID, totalPrice = testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot) // see test_accommodation_v3.go
+	_, err = tt.supplierPPEventStream.Recv()                                                                                                                 // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID2 := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+	validationID2 := testValidateV2(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, searchID, resultID, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
