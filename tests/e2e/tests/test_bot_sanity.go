@@ -45,7 +45,7 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
 
-	tt.prepare(ctx, t)
+	tt.prepareBeforeCMManagerRegisterServices(ctx, t)
 
 	t.Run("Missing global CM-Account-Manager services", func(t *testing.T) {
 		// This should fail already before the bot is even started up
@@ -56,6 +56,9 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 		)
 		require.ErrorContains(t, err, blockchain.ErrorAddServiceTxFailed.Error())
 	})
+
+	tt.prepareAfterCMManagerRegisterServices(ctx, t)
+
 	t.Run("Missing CM-Account", func(t *testing.T) {
 		// This should fail already when the bot starts up as there is no
 		// CM-Account to use - we check that accordingly with the return value
@@ -82,7 +85,7 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 	})
 }
 
-func (tt *TestBotSanity) prepare(ctx context.Context, t *testing.T) {
+func (tt *TestBotSanity) prepareBeforeCMManagerRegisterServices(ctx context.Context, t *testing.T) {
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 
 	// This bot skips the bot registration and the service registration
@@ -92,12 +95,9 @@ func (tt *TestBotSanity) prepare(ctx context.Context, t *testing.T) {
 		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
 		bot.WithSkips(&bot.Skip{PrefundOwner: true}),
 	)
+}
 
-	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
-		botGenerated.PingServiceV1,
-		botGenerated.MintServiceV3,
-	))
-
+func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Context, t *testing.T) {
 	// This bot does actually have the CM-Account and prefunding of the owner
 	// But only the bot registration is missing in the CM-Account
 	// With that the distributor bot should not be able to find the supplier bot
@@ -120,7 +120,7 @@ func (tt *TestBotSanity) prepare(ctx context.Context, t *testing.T) {
 	// All good here - just a different service used which should then
 	// fail in the later test
 	tt.supplierBotDifferentServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.MintServiceV3, Fee: 100}}),
 	)
 
 	// bot without partnerPlugin and with rpc server (distributor)
