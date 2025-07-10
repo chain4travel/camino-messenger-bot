@@ -98,6 +98,11 @@ func (tt *TestBotSanity) prepareBeforeCMManagerRegisterServices(ctx context.Cont
 }
 
 func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Context, t *testing.T) {
+	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
+		botGenerated.PingServiceV1,
+		botGenerated.MintServiceV3,
+	))
+
 	// This bot does actually have the CM-Account and prefunding of the owner
 	// But only the bot registration is missing in the CM-Account
 	// With that the distributor bot should not be able to find the supplier bot
