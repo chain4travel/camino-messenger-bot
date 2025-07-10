@@ -10,8 +10,10 @@ import (
 	"time"
 
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
@@ -33,6 +35,20 @@ func requestContext(ctx context.Context, recipientCMAccount common.Address) cont
 	return grpcMetadata.NewOutgoingContext(ctx, grpcMetadata.Pairs(
 		metadata.KeyRecipientCMAccount, recipientCMAccount.Hex(),
 	))
+}
+
+func nativeTokenPriceV3(t *testing.T, protoPrice *typesv3.Price) *big.Int {
+	require.NotNil(t, protoPrice)
+	priceValue, err := price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
+	require.NoError(t, err)
+	return priceValue
+}
+
+func nativeTokenPriceV2(t *testing.T, protoPrice *typesv2.Price) *big.Int {
+	require.NotNil(t, protoPrice)
+	priceValue, err := price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
+	require.NoError(t, err)
+	return priceValue
 }
 
 func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {

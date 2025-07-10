@@ -5,7 +5,7 @@ package tests
 
 import (
 	"context"
-	"strconv"
+	"math/big"
 	"testing"
 	"time"
 
@@ -346,7 +346,7 @@ func testAccommodationV2SearchServiceWithTravelPeriod(
 ) (
 	searchID string,
 	resultID int32,
-	totalPrice float64,
+	totalPrice *big.Int,
 ) {
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
@@ -388,17 +388,15 @@ func testAccommodationV2SearchServiceWithTravelPeriod(
 	require.Equal(t, resp.Results[1].Units[0].SupplierCode.SupplierCode, "HOTEL345678", "unexpected response Results[1].Units[0].SupplierCode.SupplierCode")
 
 	// Check if the price per night is set correctly
-	resultPricePerNight, err := strconv.ParseFloat(resp.Results[1].Units[0].PriceDetail.Price.Value, 64)
-	require.NoError(t, err)
-	require.Equal(t, common.DefaultPricePerNight*100, resultPricePerNight, "unexpected price per night")
+	pricePerNight := nativeTokenPriceV2(t, resp.Results[1].Units[0].PriceDetail.Price)
+	require.True(t, pricePerNight.Cmp(common.DefaultPricePerNightNativeTokenBig) == 0, "unexpected price per night: got %s, expected %s", pricePerNight.String(), common.DefaultPricePerNightNativeTokenBig.String())
 
 	// Extract the total price from the response
-	totalPrice, err = strconv.ParseFloat(resp.Results[1].TotalPriceDetail.Price.Value, 64)
-	require.NoError(t, err)
+	totalPrice = nativeTokenPriceV2(t, resp.Results[1].TotalPriceDetail.Price)
 
 	// Check if this adds up with the total price of the unit
-	require.NoError(t, err)
-	require.Equal(t, common.DefaultPricePerNight*100*float64(nights), totalPrice, "unexpected total price")
+	expectedTotalPrice := big.NewInt(0).Mul(common.DefaultPricePerNightNativeTokenBig, big.NewInt(nights))
+	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price: got %s, expected %s", totalPrice.String(), expectedTotalPrice.String())
 
 	// Now extract all the values needed for the validate step which comes next
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")

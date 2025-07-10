@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
@@ -137,9 +136,7 @@ func (s *accommodationSearchV1Server) AccommodationSearch(ctx context.Context, r
 		filteredProps = filterExtendedPropertiesBySupplierCodes(filteredProps, query.SearchParametersAccommodation.GetSupplierCodes())
 
 		// extract the duration of the travel period in days
-		// and round up the result to full days
-		duration := common.DateV1ToTime(query.TravelPeriod.GetEndDate()).Sub(common.DateV1ToTime(query.TravelPeriod.GetStartDate())).Hours() / 24
-		duration = math.Ceil(duration)
+		duration := common.DaysBetweenDates(query.TravelPeriod.GetEndDate(), query.TravelPeriod.GetStartDate())
 
 		// generate search result
 		for _, prop := range filteredProps {
@@ -168,8 +165,8 @@ func (s *accommodationSearchV1Server) AccommodationSearch(ctx context.Context, r
 					Beds:         room.Beds,
 					PriceDetail: &typesv1.PriceDetail{
 						Price: &typesv1.Price{
-							Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
-							Decimals: 2,
+							Value:    common.DefaultPricePerNightStr,
+							Decimals: common.DefaultPricePerNightDecimals,
 							Currency: common.CloneProto(req.SearchParametersGeneric.Currency),
 						},
 						Description: "price per night",
@@ -187,8 +184,8 @@ func (s *accommodationSearchV1Server) AccommodationSearch(ctx context.Context, r
 			}
 
 			searchPrice := &typesv1.Price{
-				Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*duration*100),
-				Decimals: 2,
+				Value:    fmt.Sprintf("%d", common.DefaultPricePerNight*duration),
+				Decimals: common.DefaultPricePerNightDecimals,
 				Currency: common.CloneProto(req.SearchParametersGeneric.Currency),
 			}
 			searchResults = append(searchResults, &accommodationv1.AccommodationSearchResult{

@@ -165,6 +165,7 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID1)
+
 	eventMsg, err = tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
@@ -187,7 +188,7 @@ func (tt *TestMintV2) testMintV2MintV2ExpectedError(
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		ValidationId: &typesv1.UUID{Value: validationID},
 	}
-	resp, err := tt.distributorBot.MintServiceV2.Mint(
+	resp, err := tt.distributorBotWithoutFunds.MintServiceV2.Mint(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)

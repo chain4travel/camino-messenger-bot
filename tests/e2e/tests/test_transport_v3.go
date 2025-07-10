@@ -5,8 +5,7 @@ package tests
 
 import (
 	"context"
-	"math"
-	"strconv"
+	"math/big"
 	"testing"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
@@ -577,7 +577,7 @@ func testTransportV3SearchServiceWithFilters(
 ) (
 	searchID string,
 	resultID int32,
-	totalPrice float64,
+	totalPrice *big.Int,
 ) {
 	// Extract the filters from the product list response which double also
 	// as the expected results later
@@ -590,15 +590,14 @@ func testTransportV3SearchServiceWithFilters(
 	arrivalDate := time.Unix(lastSegmentArrival.DateTime.Seconds, 0)
 	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
 	arrivalLocationCode := lastSegmentArrival.Location.GetLocationCode()
-	expectedTotalPrice := 750.0
+	expectedTotalPrice, err := price.ToBigInt("750", 0, price.NativeTokenDecimals)
+	require.NoError(t, err)
 
 	req := &transportv3.TransportSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParameters: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_IsoCurrency{
-					IsoCurrency: typesv3.IsoCurrency(*typesv2.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
-				},
+				Currency: &typesv3.Currency_NativeToken{},
 			},
 		},
 		Queries: []*transportv3.TransportSearchQuery{
@@ -677,10 +676,8 @@ func testTransportV3SearchServiceWithFilters(
 	require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.Location.GetLocationCode()), "unexpected arrival location code")
 
 	// Extract the price from the response
-	totalPrice, err = strconv.ParseFloat(resp.Results[0].TotalPrice.Price.Value, 64)
-	totalPrice /= math.Pow(10, float64(resp.Results[0].TotalPrice.Price.Decimals))
-	require.NoError(t, err)
-	require.InEpsilon(t, expectedTotalPrice, totalPrice, 0.0001, "unexpected total price")
+	totalPrice = nativeTokenPriceV3(t, resp.Results[0].TotalPrice.Price)
+	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price: got %s, expected %s", totalPrice.String(), expectedTotalPrice.String())
 
 	// Now extract all the values needed for the validate step which comes next
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")

@@ -4,21 +4,47 @@
 package common
 
 import (
+	"math/big"
 	"time"
 
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"google.golang.org/protobuf/proto"
 )
 
 const (
-	DefaultPricePerNight   = 105.33
-	BookingTokenPriceValue = "1"
+	DefaultPricePerNight         int64 = 105_33 // 105.33 with 2 decimals
+	DefaultPricePerNightStr            = "10533"
+	DefaultPricePerNightDecimals       = 2
+	BookingTokenPriceValue             = "1"
 )
+
+var (
+	DefaultPricePerNightNativeTokenBig *big.Int
+	DefaultPricePerNightISOBig         *big.Int
+)
+
+func init() {
+	var err error
+	DefaultPricePerNightNativeTokenBig, err = price.ToBigInt(DefaultPricePerNightStr, DefaultPricePerNightDecimals, price.NativeTokenDecimals)
+	if err != nil {
+		panic("failed to convert default price per night to big.Int: " + err.Error())
+	}
+	DefaultPricePerNightISOBig, err = price.ToBigInt(DefaultPricePerNightStr, DefaultPricePerNightDecimals, price.ISODecimals)
+	if err != nil {
+		panic("failed to convert default price per night to big.Int: " + err.Error())
+	}
+}
 
 func DateV1ToTime(date *typesv1.Date) time.Time {
 	return time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 0, 0, 0, 0, time.UTC)
+}
+
+func DaysBetweenDates(startDate, endDate *typesv1.Date) int64 {
+	duration := DateV1ToTime(startDate).Sub(DateV1ToTime(endDate))
+	return int64(duration / (time.Hour * 24))
 }
 
 func TimeToDateV1(time time.Time) *typesv1.Date {

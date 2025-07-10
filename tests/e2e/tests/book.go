@@ -6,7 +6,6 @@ package tests
 import (
 	"context"
 	"math/big"
-	"strconv"
 	"testing"
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
@@ -64,7 +63,7 @@ func testValidateV2(
 	supplierBot *bot.Bot,
 	searchID string,
 	resultID int32,
-	expectedTotalPrice float64,
+	expectedTotalPrice *big.Int,
 ) (validateID string) {
 	req := &bookv2.ValidationRequest{
 		ValidationObject: &bookv2.ValidationObject{
@@ -96,9 +95,9 @@ func testValidateV2(
 	require.NotEmpty(t, resp.PriceDetail, "unexpected empty response PriceDetail")
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
-	totalPriceResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
-	require.NoError(t, err)
-	require.Equal(t, expectedTotalPrice, totalPriceResponse, "unexpected total price in validation")
+
+	totalPrice := nativeTokenPriceV2(t, resp.PriceDetail.Price)
+	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
 	require.NotEmpty(t, resp.ValidationId, "unexpected empty response validationID")

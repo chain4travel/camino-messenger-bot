@@ -5,7 +5,6 @@ package v1
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
@@ -64,8 +63,8 @@ func (s *validationServiceV1Server) Validation(ctx context.Context, req *bookv1.
 		ValidationObject: req.ValidationObject,
 		PriceDetail: &typesv1.PriceDetail{
 			Price: &typesv1.Price{
-				Value:    fmt.Sprintf("%.0f", common.DefaultPricePerNight*100),
-				Decimals: 2,
+				Value:    common.DefaultPricePerNightStr,
+				Decimals: common.DefaultPricePerNightDecimals,
 
 				Currency: &typesv1.Currency{
 					Currency: &typesv1.Currency_NativeToken{},
