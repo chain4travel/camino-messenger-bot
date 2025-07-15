@@ -258,5 +258,10 @@ func init() {
 			},
 		},
 	}
+	TripsExtendedV3[2].Price.Currency = &typesv3.Currency{
+		Currency: &typesv3.Currency_IsoCurrency{
+			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }
