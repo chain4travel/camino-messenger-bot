@@ -8,6 +8,7 @@ import (
 
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"google.golang.org/protobuf/proto"
 )
@@ -144,6 +145,16 @@ func filterTripsByLocations(
 			}
 		} else {
 			// If no arrival location is specified, add the trip if departure matches
+			filtered = append(filtered, common.CloneProto(trip))
+		}
+	}
+	return filtered
+}
+
+func filterTripsByCurrency(trips []*transportv3.TripExtended, currency *typesv3.Currency) []*transportv3.TripExtended {
+	filtered := []*transportv3.TripExtended{}
+	for _, trip := range trips {
+		if proto.Equal(trip.Price.Currency, currency) {
 			filtered = append(filtered, common.CloneProto(trip))
 		}
 	}

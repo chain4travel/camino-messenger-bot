@@ -180,6 +180,16 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 	searchResults := []*transportv3.TransportSearchResult{}
 	validationPrices := []*state.UnifiedPrice{}
 
+	decimals := price.NativeTokenDecimals
+	switch req.SearchParameters.Currency.Currency.(type) {
+	case *typesv3.Currency_IsoCurrency:
+		decimals = price.ISODecimals
+	case *typesv3.Currency_NativeToken:
+		decimals = price.NativeTokenDecimals
+	default:
+		return nil, fmt.Errorf("unexpected currency type: %T", req.SearchParameters.Currency.Currency)
+	}
+
 	for _, query := range req.Queries {
 		filteredTrips := mockdata.TripsExtendedV3
 		for _, queryTrip := range query.GetTrips() {
@@ -194,6 +204,7 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 			if queryTrip.SearchParametersTransport.MaxSegments != 0 {
 				filteredTrips = filterTripsByMaxSegments(filteredTrips, queryTrip.SearchParametersTransport.MaxSegments)
 			}
+			filteredTrips = filterTripsByCurrency(filteredTrips, req.SearchParameters.Currency)
 		}
 
 		if len(filteredTrips) == 0 {
@@ -204,10 +215,10 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 		totalPrice := big.NewInt(0)
 
 		for _, trip := range filteredTrips {
-			price, err := price.ToBigInt(
+			priceBig, err := price.ToBigInt(
 				trip.Price.Value,
 				trip.Price.Decimals,
-				price.NativeTokenDecimals, // max possible decimals
+				decimals,
 			)
 			if err != nil {
 				return &transportv3.TransportSearchResponse{
@@ -220,14 +231,15 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 					},
 				}, nil
 			}
-			totalPrice = new(big.Int).Add(totalPrice, price)
+			totalPrice = new(big.Int).Add(totalPrice, priceBig)
 		}
 
 		searchPrice := &typesv3.Price{
 			Value:    totalPrice.String(),
-			Decimals: price.NativeTokenDecimals,
 			Currency: req.SearchParameters.Currency,
+			Decimals: decimals,
 		}
+
 		searchResults = append(searchResults, &transportv3.TransportSearchResult{
 			ResultId:        resultIDnum,
 			QueryId:         query.QueryId,

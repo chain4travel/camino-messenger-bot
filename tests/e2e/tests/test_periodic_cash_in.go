@@ -18,6 +18,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert" //nolint:depguard // we don't user assert's assertions, we use assert.CollectT type as needed in require pkg
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -131,45 +132,27 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testi
 
 	cashInTimeout := time.Duration(tt.cashInPeriodSeconds) * time.Second * 3 // ASB and supplier cash-in every 10s, triple that
 
-	t.Run("Check distributor balance", func(t *testing.T) {
-		t.Parallel()
-		var distributorBalance *big.Int
-		require.EventuallyWithTf(t, func(t *assert.CollectT) {
-			distributorBalance, err = tt.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.distributorBot.CMAccountAddress(), nil)
-			require.NoError(t, err)
-			tt.Logger.Debugf("Distributor CM account balance: %s", distributorBalance.String())
-			require.True(t, distributorBalance.Cmp(expectedDistributorBalance) == 0)
-		}, cashInTimeout, time.Second,
-			"Distributor CM account balance did not decrease by expected amount before timeout: expected %s, actual %s",
-			expectedDistributorBalance.String(), distributorBalance.String(),
-		)
-	})
+	checkBalanceEventually := func(
+		t *testing.T,
+		message string,
+		expectedBalance *big.Int,
+		address common.Address,
+	) {
+		t.Run("Check "+message, func(t *testing.T) {
+			t.Parallel()
+			var actualBalance *big.Int
+			require.EventuallyWithTf(t, func(t *assert.CollectT) {
+				actualBalance, err = tt.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, address, nil)
+				require.NoError(t, err)
+				tt.Logger.Debugf("%s: %s", message, actualBalance.String())
+				require.True(t, actualBalance.Cmp(expectedBalance) == 0)
+			}, cashInTimeout, time.Second,
+				"%s did not change by expected amount before timeout: expected %s, actual %s", message, expectedBalance.String(), actualBalance.String(),
+			)
+		})
+	}
 
-	t.Run("Check supplier balance", func(t *testing.T) {
-		t.Parallel()
-		var supplierBalance *big.Int
-		require.EventuallyWithTf(t, func(t *assert.CollectT) {
-			supplierBalance, err = tt.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.supplierBot.CMAccountAddress(), nil)
-			require.NoError(t, err)
-			tt.Logger.Debugf("Supplier CM account balance: %s", supplierBalance.String())
-			require.True(t, supplierBalance.Cmp(expectedSupplierBalance) == 0)
-		}, cashInTimeout, time.Second,
-			"Supplier CM account balance did not increase by expected amount before timeout: expected %s, actual %s",
-			expectedSupplierBalance.String(), supplierBalance.String(),
-		)
-	})
-
-	t.Run("Check network fee receiver (ASB) balance", func(t *testing.T) {
-		t.Parallel()
-		var asbBalance *big.Int
-		require.EventuallyWithTf(t, func(t *assert.CollectT) {
-			asbBalance, err = tt.CaminoNetwork.Client.ETHClient().BalanceAt(ctx, tt.ASB.NetworkFeeRecipientCMAccountAddress(), nil)
-			require.NoError(t, err)
-			tt.Logger.Debugf("ASB CM account balance: %s", asbBalance.String())
-			require.True(t, asbBalance.Cmp(expectedASBBalance) == 0)
-		}, cashInTimeout, time.Second,
-			"ASB CM account balance did not increase by expected amount before timeout: expected %s, actual %s",
-			expectedASBBalance.String(), asbBalance.String(),
-		)
-	})
+	checkBalanceEventually(t, "distributor CM account balance", expectedDistributorBalance, tt.distributorBot.CMAccountAddress())
+	checkBalanceEventually(t, "supplier CM account balance", expectedSupplierBalance, tt.supplierBot.CMAccountAddress())
+	checkBalanceEventually(t, "network fee receiver (ASB) CM account balance", expectedASBBalance, tt.ASB.NetworkFeeRecipientCMAccountAddress())
 }
