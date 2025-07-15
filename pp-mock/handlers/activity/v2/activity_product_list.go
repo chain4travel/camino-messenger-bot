@@ -6,7 +6,6 @@ package v2
 import (
 	"context"
 	"log"
-	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
@@ -35,27 +34,20 @@ func (s *activityProductListV2Server) ActivityProductList(ctx context.Context, r
 
 	log.Printf("Responding to request (Activity Product List): %s", md.RequestID)
 
-	var lastModifiedFilter time.Time
-	if req.ModifiedAfter != nil {
-		lastModifiedFilter = req.ModifiedAfter.AsTime()
-	}
-
-	filteredActivities := []*activityv2.Activity{}
-	for _, activity := range mockdata.ActivityV2 {
-		if activity.LastModified.AsTime().Before(lastModifiedFilter) {
-			continue
-		}
-
-		filteredActivities = append(filteredActivities, activity)
-	}
-
-	log.Printf("Filtered activities: %v", filteredActivities)
+	filteredActivities := filterByLastModified(mockdata.ActivityExtendedV2, req.GetModifiedAfter().AsTime())
 
 	response := &activityv2.ActivityProductListResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		Activities: filteredActivities,
+	}
+
+	if len(filteredActivities) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: "No activities found that match request",
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)

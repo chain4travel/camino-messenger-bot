@@ -5,7 +5,6 @@ package v3
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
@@ -14,7 +13,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
-	"google.golang.org/protobuf/proto"
 )
 
 var _ activityv3grpc.ActivityProductInfoServiceServer = (*activityProductInfoV3Server)(nil)
@@ -34,85 +32,11 @@ func (s *activityProductInfoV3Server) ActivityProductInfo(ctx context.Context, r
 
 	md := metadata.FromGRPCContext(ctx)
 
-	log.Printf("Responding to request (Activity Product Info V3): %s", md.RequestID)
+	log.Printf("Responding to request (Activity Product Info): %s", md.RequestID)
 
-	// Initialize activitiesFiltered with the correct type
-	activitiesFiltered := []*activityv3.ActivityExtendedInfo{}
-
-	// Check if there are supplier codes in the request
-	if len(req.SupplierCodes) > 0 {
-		log.Printf("Supplier codes requested: %v", req.SupplierCodes)
-		// Filter activities by supplier codes
-		for _, activity := range mockdata.ActivityExtendedV3 {
-			if activity.SupplierCode != nil {
-				for _, sc := range req.SupplierCodes {
-					if activity.SupplierCode.SupplierCode == sc.SupplierCode {
-						activitiesFiltered = append(activitiesFiltered, proto.Clone(activity).(*activityv3.ActivityExtendedInfo))
-						break
-					}
-				}
-			}
-		}
-	} else {
-		// If no supplier codes provided, return all activities
-		for i := range mockdata.ActivityExtendedV3 {
-			cloned := proto.Clone(mockdata.ActivityExtendedV3[i]).(*activityv3.ActivityExtendedInfo)
-			activitiesFiltered = append(activitiesFiltered, cloned)
-		}
-	}
-
-	// Apply modified after filter if provided
-	if req.ModifiedAfter != nil {
-		lastModifiedFilter := req.ModifiedAfter.AsTime()
-		tempActivities := []*activityv3.ActivityExtendedInfo{}
-
-		for _, activity := range activitiesFiltered {
-			if activity != nil && activity.Activity != nil && activity.Activity.LastModified != nil &&
-				!activity.Activity.LastModified.AsTime().Before(lastModifiedFilter) {
-				tempActivities = append(tempActivities, activity)
-			}
-		}
-		activitiesFiltered = tempActivities
-	}
-
-	// Filter by language if specified
-	filteredActivities := []*activityv3.ActivityExtendedInfo{}
-
-	if len(req.Languages) > 0 {
-		log.Printf("Languages requested: %v", req.Languages)
-
-		for _, activity := range activitiesFiltered {
-			filteredDescriptions := []*typesv1.LocalizedDescriptionSet{}
-
-			for _, descSet := range activity.Descriptions {
-				for _, reqLang := range req.Languages {
-					if descSet.Language == reqLang {
-						filteredDescriptions = append(filteredDescriptions, descSet)
-						break
-					}
-				}
-			}
-
-			if len(filteredDescriptions) > 0 && !containsActivityV3(filteredActivities, activity) {
-				activity.Descriptions = filteredDescriptions
-				filteredActivities = append(filteredActivities, activity)
-			}
-		}
-	} else {
-		filteredActivities = activitiesFiltered
-	}
-
-	if len(filteredActivities) == 0 {
-		return &activityv3.ActivityProductInfoResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("No activities found for supplier codes: %v", req.SupplierCodes),
-					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-				}},
-			},
-		}, nil
-	}
+	filteredActivities := filterBySupplierCodes(mockdata.ActivityExtendedV3, req.SupplierCodes)
+	filteredActivities = filterExtendedByLastModified(filteredActivities, req.ModifiedAfter.AsTime())
+	filteredActivities = filterByLanguage(filteredActivities, req.Languages)
 
 	response := &activityv3.ActivityProductInfoResponse{
 		Header: &typesv1.ResponseHeader{
@@ -121,22 +45,14 @@ func (s *activityProductInfoV3Server) ActivityProductInfo(ctx context.Context, r
 		Activities: filteredActivities,
 	}
 
+	if len(filteredActivities) == 0 {
+		response.Header.Alerts = []*typesv1.Alert{{
+			Message: "No activities found that match request",
+			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		}}
+	}
+
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return response, nil
-}
-
-// containsActivityV3 checks if an activity already exists in the slice
-func containsActivityV3(activities []*activityv3.ActivityExtendedInfo, activity *activityv3.ActivityExtendedInfo) bool {
-	if activity == nil || activity.Activity == nil || activity.SupplierCode == nil {
-		return false
-	}
-
-	for _, a := range activities {
-		if a.Activity != nil && a.SupplierCode != nil &&
-			a.SupplierCode.SupplierCode == activity.SupplierCode.SupplierCode {
-			return true
-		}
-	}
-	return false
 }

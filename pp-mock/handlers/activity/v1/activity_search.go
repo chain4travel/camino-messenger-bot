@@ -17,8 +17,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var _ activityv1grpc.ActivitySearchServiceServer = (*activitySearchV1Server)(nil)
@@ -40,82 +38,69 @@ func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 
 	md := metadata.FromGRPCContext(ctx)
 
-	log.Printf("Responding to request (Activity Search): %s", md.RequestID) // Existing log is good
+	log.Printf("Responding to request (Activity Search): %s", md.RequestID)
 
-	// Log the request metadata before checking if it's nil
-	log.Printf("Checking if request metadata (req.Metadata) is nil. Value: %+v", req.Metadata)
-	if req.Metadata == nil {
-		log.Printf("Request metadata (req.Metadata) is missing.")
-		return nil, status.Error(codes.InvalidArgument, "metadata is missing")
-	}
-
-	// Validate search parameters generic and currency
-	// Log the values before the check
-	log.Printf("Checking req.SearchParametersGeneric. Value: %+v", req.SearchParametersGeneric)
-	if req.SearchParametersGeneric != nil {
-		log.Printf("Checking req.SearchParametersGeneric.Currency. Value: %+v", req.SearchParametersGeneric.Currency)
-	} else {
-		log.Printf("req.SearchParametersGeneric is nil, currency check will fail.")
-	}
+	// check if SearchParametersGeneric is nil or if Currency is nil
 	if req.SearchParametersGeneric == nil || req.SearchParametersGeneric.Currency == nil {
-		log.Printf("Validation failed: SearchParametersGeneric or Currency is missing.")
-		return nil, status.Error(codes.InvalidArgument, "mandatory field SearchParametersGeneric.Currency is missing")
+		return &activityv1.ActivitySearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Mandatory field SearchParametersGeneric.Currency is missing",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// Validate travel period
-	log.Printf("Checking req.TravelPeriod. Value: %+v", req.TravelPeriod)
 	if req.TravelPeriod == nil {
-		log.Printf("Validation failed: TravelPeriod is missing.")
-		return nil, status.Error(codes.InvalidArgument, "mandatory field TravelPeriod is missing")
+		return &activityv1.ActivitySearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for activities (with limits of start/end values of now() / now() + 60 days)",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
+	}
+
+	if !common.IsTravelPeriodAllowed(req.TravelPeriod) {
+		return &activityv1.ActivitySearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// Validate travellers
-	// Log the value before the check
-	log.Printf("Checking number of travellers. Count: %d. Travellers list: %+v", len(req.Travellers), req.Travellers)
 	if len(req.Travellers) == 0 {
-		log.Printf("Validation failed: At least one traveller is required.")
-		return nil, status.Error(codes.InvalidArgument, "at least one traveller is required to search for activities")
+		return &activityv1.ActivitySearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "Mandatory field Travellers is missing. At least one traveller is required to search for activities.",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
-	log.Printf("Initializing searchResults slice")
 	searchResults := []*activityv1.ActivitySearchResult{}
-	log.Printf("Initializing resultIDnum to 1")
 	resultIDnum := int32(1)
-	log.Printf("Initializing validationPrices slice")
 	validationPrices := []*state.UnifiedPrice{}
 
-	// Filter activities based on search parameters
-	log.Printf("Assigning filteredActivities using mockdata.ActivitySearchResultV1") // Log assignment source
-	filteredActivities := mockdata.ActivitySearchResultV1
-	filteredActivities = filterSearchResultActivitiesByProductCodes(filteredActivities, req.SearchParametersActivity.ProductCodes)
+	filteredActivities := filterSearchResultActivitiesByProductCodes(mockdata.ActivitySearchResultV1, req.SearchParametersActivity.ProductCodes)
 	filteredActivities = filterSearchResultActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.ServiceCodes)
+	filteredActivities = filterSearchResultByCurrency(filteredActivities, req.SearchParametersGeneric.Currency)
 
-	log.Printf("Number of activities to process (from mock data): %d", len(filteredActivities))
-
-	log.Printf("Starting loop through filtered activities")
-	for i, activity := range filteredActivities { // Added index for clearer logging
-		log.Printf("Processing loop iteration %d. Current activity ProductCode: %s", i, activity.Info.ProductCode)
-		log.Printf("Activity details: %+v", activity) // Log the whole activity being processed
-
-		// Assuming mockdata.ActivityV2 has a Price field of type *typesv2.Price
-		// Log price before checking if nil
-		log.Printf("Checking if activity.Price is nil. Activity Product Code: %s. Price value: %+v", activity.Info.ProductCode, activity.Price)
-		if activity.Price == nil {
-			log.Printf("Skipping activity %s due to missing price information", activity.Info.ProductCode)
-			continue // Skip if price info is missing
-		}
-
-		// Log values used for searchPrice assignment
-		log.Printf("Preparing to assign searchPrice. Using activity Price: %+v and request Currency: %+v", activity.Price, req.SearchParametersGeneric.Currency)
-		searchPrice := &typesv1.Price{
-			Value:    activity.Price.Value, // Use price from the mock activity data
-			Decimals: activity.Price.Decimals,
-			Currency: common.CloneProto(req.SearchParametersGeneric.Currency), // Use currency from the request
-		}
-		log.Printf("Assigned searchPrice: %+v", searchPrice)
-
-		// Log values before appending to searchResults
-		log.Printf("Preparing to append to searchResults. Current Result ID: %d. Activity Info: %+v, Price: %+v", resultIDnum, activity.Info, searchPrice)
+	for i, activity := range filteredActivities {
+		activity.ResultId = int32(i) + 1
 		searchResults = append(searchResults, &activityv1.ActivitySearchResult{
 			ResultId: resultIDnum,
 			Info: &activityv1.Activity{
@@ -131,84 +116,43 @@ func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 			Location:        activity.Location,
 			MinParticipants: activity.MinParticipants,
 			MaxParticipants: activity.MaxParticipants,
-			Price:           searchPrice,
 			ChargeType:      activity.ChargeType,
 		})
-		log.Printf("Appended to searchResults. New length: %d", len(searchResults))
 
-		// Log before converting price and appending to validationPrices
-		log.Printf("Converting searchPrice to UnifiedPrice. searchPrice: %+v", searchPrice)
-		validationPrice := state.PriceV1ToUnifiedPrice(searchPrice)
-		log.Printf("Created validationPrice: %+v", validationPrice)
-		log.Printf("Preparing to append to validationPrices. Price: %+v", validationPrice)
+		validationPrice := state.PriceV1ToUnifiedPrice(activity.Price)
 		validationPrices = append(validationPrices, validationPrice)
-		log.Printf("Appended to validationPrices. New length: %d", len(validationPrices))
 
-		// Log before incrementing resultIDnum
-		log.Printf("Incrementing resultIDnum from %d", resultIDnum)
 		resultIDnum++
-		log.Printf("resultIDnum is now %d", resultIDnum)
 	}
-	log.Printf("Finished loop through filtered activities.")
 
-	// Generate search ID
-	log.Printf("Generating new UUID for searchId")
-	searchID := uuid.New().String()
-	log.Printf("Generated searchId: %s", searchID)
-
-	// Create response
-	log.Printf("Creating final response object. Search ID: %s, Results Count: %d, Travellers Count: %d", searchID, len(searchResults), len(req.Travellers))
 	response := &activityv1.ActivitySearchResponse{
 		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS, // Default to success
-		},
-		// Always include metadata with searchId
-		Metadata: &typesv1.SearchResponseMetadata{
-			SearchId: &typesv1.UUID{Value: searchID},
+			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
 		Results:    searchResults,
-		Travellers: req.Travellers, // Return travellers from the request
+		Travellers: req.Travellers,
 	}
-	// Log key parts of the created response
-	log.Printf("Created response object. Header Status: %s, Metadata SearchId: %s, Results count: %d, Travellers count: %d", response.Header.Status, response.Metadata.SearchId.GetValue(), len(response.Results), len(response.Travellers))
 
-	// Add info alert if no results were found
-	// Log before the check
-	log.Printf("Checking if searchResults is empty. Length: %d", len(searchResults))
 	if len(searchResults) == 0 {
-		log.Printf("No results found. Adding INFO alert to response header.")
 		response.Header.Alerts = []*typesv1.Alert{{
-			Message: "No results found for activity search",
+			Message: "No results found for search",
 			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
 		}}
-		// Log the updated header with the alert
-		log.Printf("Response header updated with INFO alert: %+v", response.Header)
-		// No need to set metadata again here, it's already set above.
+	} else {
+		response.Metadata = &typesv1.SearchResponseMetadata{
+			SearchId: &typesv1.UUID{Value: uuid.New().String()},
+		}
 	}
 
-	// Log sender/recipient info
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount) // Existing log is good
+	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
-	// Store search result in state
-	// Log before storing state
-	log.Printf("Preparing to store search result in state. Search ID: %s, NumResults: %d, NumTravelers: %d", searchID, len(searchResults), len(req.Travellers)) // Use the outer slice length
-	// Log the actual data being stored (JSON parts might be large, consider truncating in production)
-	// Be cautious logging full request/response if they contain sensitive data.
-	log.Printf("State data to be stored: NumResults=%d, NumTravelers=%d, Prices=%+v", len(searchResults), len(req.Travellers), validationPrices)
-	// Optionally log JSON strings if debugging requires it and size/sensitivity permits
-	// log.Printf("State data JSONRequest (truncated): %s...", req.String()[0:min(len(req.String()), 200)]) // Example truncation
-	// log.Printf("State data JSONResponse (truncated): %s...", response.String()[0:min(len(response.String()), 200)]) // Example truncation
-
-	state.GetStore().AddSearchResult(searchID, state.SearchData{
+	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
 		NumResults:   len(searchResults),
 		NumTravelers: len(req.Travellers),
 		Prices:       validationPrices,
-		JSONRequest:  req.String(),      // Be careful with logging sensitive data from requests
-		JSONResponse: response.String(), // Be careful with logging sensitive data from responses
+		JSONRequest:  req.String(),
+		JSONResponse: response.String(),
 	})
-	log.Printf("Stored search result in state for Search ID: %s", searchID)
 
-	// Log before returning
-	log.Printf("Returning final response for Request ID: %s", md.RequestID)
 	return response, nil
 }
