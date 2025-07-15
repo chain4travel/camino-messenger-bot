@@ -96,7 +96,7 @@ func testValidateV2(
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
 
-	totalPrice := nativeTokenPriceV2(t, resp.PriceDetail.Price)
+	totalPrice := priceBigV2(t, resp.PriceDetail.Price)
 	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step

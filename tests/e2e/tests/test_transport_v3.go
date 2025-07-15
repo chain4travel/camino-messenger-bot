@@ -234,7 +234,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceTravelDatesReversed(ctx c
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParameters: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_NativeToken{},
+				Currency: &typesv3.Currency_IsoCurrency{IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR},
 			},
 		},
 		Queries: []*transportv3.TransportSearchQuery{
@@ -312,7 +312,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceTravelDatesWrong(ctx cont
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParameters: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_NativeToken{},
+				Currency: &typesv3.Currency_IsoCurrency{IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR},
 			},
 		},
 		Queries: []*transportv3.TransportSearchQuery{
@@ -404,9 +404,7 @@ func (tt *TestTransportV3) testTransportV3SearchServiceTravelWithoutArrivalDate(
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParameters: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_IsoCurrency{
-					IsoCurrency: typesv3.IsoCurrency(*typesv2.IsoCurrency_ISO_CURRENCY_EUR.Enum()),
-				},
+				Currency: &typesv3.Currency_IsoCurrency{IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR},
 			},
 		},
 		Queries: []*transportv3.TransportSearchQuery{
@@ -590,14 +588,14 @@ func testTransportV3SearchServiceWithFilters(
 	arrivalDate := time.Unix(lastSegmentArrival.DateTime.Seconds, 0)
 	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
 	arrivalLocationCode := lastSegmentArrival.Location.GetLocationCode()
-	expectedTotalPrice, err := price.ToBigInt("750", 0, price.NativeTokenDecimals)
+	expectedTotalPrice, err := price.ToBigInt("750", 0, price.ISODecimals)
 	require.NoError(t, err)
 
 	req := &transportv3.TransportSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		SearchParameters: &typesv3.SearchParameters{
 			Currency: &typesv3.Currency{
-				Currency: &typesv3.Currency_NativeToken{},
+				Currency: &typesv3.Currency_IsoCurrency{IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR},
 			},
 		},
 		Queries: []*transportv3.TransportSearchQuery{
@@ -676,7 +674,7 @@ func testTransportV3SearchServiceWithFilters(
 	require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.Location.GetLocationCode()), "unexpected arrival location code")
 
 	// Extract the price from the response
-	totalPrice = nativeTokenPriceV3(t, resp.Results[0].TotalPrice.Price)
+	totalPrice = priceBigV3(t, resp.Results[0].TotalPrice.Price)
 	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price: got %s, expected %s", totalPrice.String(), expectedTotalPrice.String())
 
 	// Now extract all the values needed for the validate step which comes next

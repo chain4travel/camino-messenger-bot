@@ -37,18 +37,38 @@ func requestContext(ctx context.Context, recipientCMAccount common.Address) cont
 	))
 }
 
-func nativeTokenPriceV3(t *testing.T, protoPrice *typesv3.Price) *big.Int {
+func priceBigV3(t *testing.T, protoPrice *typesv3.Price) *big.Int {
 	require.NotNil(t, protoPrice)
-	priceValue, err := price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
+	var priceBig *big.Int
+	var err error
+	switch protoPrice.Currency.Currency.(type) {
+	case *typesv3.Currency_IsoCurrency:
+		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.ISODecimals)
+	case *typesv3.Currency_NativeToken:
+		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
+	default:
+		require.FailNow(t, "unexpected currency type in price")
+		return nil
+	}
 	require.NoError(t, err)
-	return priceValue
+	return priceBig
 }
 
-func nativeTokenPriceV2(t *testing.T, protoPrice *typesv2.Price) *big.Int {
+func priceBigV2(t *testing.T, protoPrice *typesv2.Price) *big.Int {
 	require.NotNil(t, protoPrice)
-	priceValue, err := price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
+	var priceBig *big.Int
+	var err error
+	switch protoPrice.Currency.Currency.(type) {
+	case *typesv2.Currency_IsoCurrency:
+		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.ISODecimals)
+	case *typesv2.Currency_NativeToken:
+		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
+	default:
+		require.FailNow(t, "unexpected currency type in price")
+		return nil
+	}
 	require.NoError(t, err)
-	return priceValue
+	return priceBig
 }
 
 func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {

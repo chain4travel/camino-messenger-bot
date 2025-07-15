@@ -190,8 +190,22 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 		return nil, fmt.Errorf("unexpected currency type: %T", req.SearchParameters.Currency.Currency)
 	}
 
+	tripsFilteredByCurrency := filterTripsByCurrency(mockdata.TripsExtendedV3, req.SearchParameters.Currency)
+	if len(tripsFilteredByCurrency) == 0 {
+		return &transportv3.TransportSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("No trips found for currency %s", req.SearchParameters.Currency.String()),
+					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+				}},
+			},
+			Results: searchResults,
+		}, nil
+	}
+
 	for _, query := range req.Queries {
-		filteredTrips := mockdata.TripsExtendedV3
+		filteredTrips := tripsFilteredByCurrency
 		for _, queryTrip := range query.GetTrips() {
 			filteredTrips = filterTripsByDates(filteredTrips, queryTrip)
 			filteredTrips = filterTripsByLocations(filteredTrips, queryTrip)
@@ -204,7 +218,6 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 			if queryTrip.SearchParametersTransport.MaxSegments != 0 {
 				filteredTrips = filterTripsByMaxSegments(filteredTrips, queryTrip.SearchParametersTransport.MaxSegments)
 			}
-			filteredTrips = filterTripsByCurrency(filteredTrips, req.SearchParameters.Currency)
 		}
 
 		if len(filteredTrips) == 0 {
