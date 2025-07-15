@@ -14,41 +14,31 @@ import (
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
-	"google.golang.org/grpc"
 )
 
-var _ activityv3grpc.ActivitySearchServiceServer = (*ActivitySearchV3Server)(nil)
+var _ activityv3grpc.ActivitySearchServiceServer = (*activitySearchV3Server)(nil)
 
-type ActivitySearchV3Server struct{}
+type activitySearchV3Server struct {
+	eventSender events.Sender
+}
 
-func (s *ActivitySearchV3Server) ActivitySearch(ctx context.Context, req *activityv3.ActivitySearchRequest) (*activityv3.ActivitySearchResponse, error) {
-	log.Printf("ActivitySearch V3 received request: %+v", req)
+func NewActivitySearchV3Server(eventSender events.Sender) activityv3grpc.ActivitySearchServiceServer {
+	return &activitySearchV3Server{eventSender: eventSender}
+}
 
-	md := metadata.Metadata{}
-
-	log.Printf("Activity Search V3 generic params (from req): %+v\n", req.SearchParametersGeneric)
-	fmt.Printf("Activity Search V3 generic params: %+v\n", req.SearchParametersGeneric)
-
-	log.Printf("Attempting to extract metadata from context")
-	if err := md.ExtractMetadata(ctx); err != nil {
-		log.Printf("ERROR extracting metadata: %v", err)
-		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Internal server error: failed to extract request metadata",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+func (s *activitySearchV3Server) ActivitySearch(ctx context.Context, req *activityv3.ActivitySearchRequest) (*activityv3.ActivitySearchResponse, error) {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
+		log.Printf("error sending event: %v", err)
 	}
 
-	log.Printf("Metadata extracted successfully. Metadata content (before stamp): %+v", md)
-	log.Printf("Stamping metadata with Request ID: %s", md.RequestID)
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
+
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request (Activity Search V3): %s", md.RequestID)
 
 	log.Printf("Checking if request metadata (req.Metadata) is nil. Value: %+v", req.Metadata)
@@ -220,13 +210,6 @@ func (s *ActivitySearchV3Server) ActivitySearch(ctx context.Context, req *activi
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	log.Printf("Attempting to set response header metadata using md: %+v", md)
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("ERROR: Failed to set response header metadata: %v", err)
-	} else {
-		log.Printf("Successfully set response header metadata.")
-	}
 
 	// Store search result in state
 	log.Printf("Preparing to store search result in state. Search ID: %s, NumResults: %d, NumTravelers: %d", searchID, len(outerSearchResults), len(req.Travellers))

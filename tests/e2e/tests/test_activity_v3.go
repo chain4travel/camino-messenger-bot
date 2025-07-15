@@ -6,74 +6,113 @@ package tests
 import (
 	"context"
 	"math/big"
-	"strconv"
 	"testing"
 	"time"
 
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
-	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
-
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const activityV3ProductCode = "XPTFAOH15O"
+var _ suite.Test = (*TestActivityV3)(nil)
 
-// Setting up the basic applications and services used in all sub-test-cases
-func testActivityV3Setup(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-) (
-	supplierPartnerPlugin *partnerplugin.PartnerPlugin,
-	supplierBot *bot.Bot,
-	distributorBot *bot.Bot,
-) {
-	require.NoError(t, tt.caminoNetwork.Client.RegisterCMServices(ctx,
+func init() {
+	Tests["ActivityV3"] = &TestActivityV3{}
+}
+
+type TestActivityV3 struct {
+	*suite.Environment
+
+	supplierPartnerPlugin *partnerplugin.PartnerPlugin
+	supplierBot           *bot.Bot
+	distributorBot        *bot.Bot
+}
+
+func (tt *TestActivityV3) Setup(e *suite.Environment) {
+	tt.Environment = e
+}
+
+func (tt *TestActivityV3) Run(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
+	defer cancel()
+
+	tt.prepare(ctx, t)
+
+	t.Run("Product list", func(t *testing.T) {
+		// Happy path: will just return all the properties
+		tt.testActivityV3ProductListService(ctx, t)
+	})
+	t.Run("Product list with filter", func(t *testing.T) {
+		// Happy path: will return only one property
+		tt.testActivityV3ProductListServiceWithFilter(ctx, t)
+	})
+	t.Run("Product info", func(t *testing.T) {
+		// Happy path: will return the detailed info of a property
+		tt.testActivityV3ProductInfoService(ctx, t)
+	})
+	t.Run("Search w/o currency", func(t *testing.T) {
+		// ERROR path: without currency it should return an error
+		tt.testActivityV3SearchServiceWithoutCurrency(ctx, t)
+	})
+	t.Run("Search w/o travel period", func(t *testing.T) {
+		// ERROR path: without travel period it should return an error
+		tt.testActivityV3SearchServiceWithoutTravelPeriod(ctx, t)
+	})
+	t.Run("Search with travel period oob", func(t *testing.T) {
+		// ERROR path: with travel period outside of allowed constraints it should return an error
+		tt.testActivityV3SearchServiceTravelPeriodOutOfBounds(ctx, t)
+	})
+	t.Run("Search with travel period reversed", func(t *testing.T) {
+		// ERROR path: with travel period reversed it should return an error
+		tt.testActivityV3SearchServiceTravelPeriodReversed(ctx, t)
+	})
+	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
+		searchID, resultID, totalPrice := testActivityV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
+		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+		tokenID, price, _ := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+		verifyBookingTokenStateWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
+	})
+}
+
+func (tt *TestActivityV3) prepare(ctx context.Context, t *testing.T) {
+	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.ActivityProductListServiceV3,
 		botGenerated.ActivityProductInfoServiceV3,
 		botGenerated.ActivitySearchServiceV3,
 		botGenerated.ValidationServiceV2,
 		botGenerated.MintServiceV2,
 	))
-	supplierPartnerPlugin = tt.createPartnerPlugin(ctx, t)
+
+	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	supplierBot = tt.createBot(ctx, t, false, supplierPartnerPlugin, []bot.CMService{
-		{Name: botGenerated.ActivityProductListServiceV3, Fee: 100},
-		{Name: botGenerated.ActivityProductInfoServiceV3, Fee: 110},
-		{Name: botGenerated.ActivitySearchServiceV3, Fee: 120},
-		{Name: botGenerated.ValidationServiceV2, Fee: 130},
-		{Name: botGenerated.MintServiceV2, Fee: 140},
-	})
+	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+		bot.WithServices([]bot.CMService{
+			{Name: botGenerated.ActivityProductListServiceV3, Fee: 100},
+			{Name: botGenerated.ActivityProductInfoServiceV3, Fee: 110},
+			{Name: botGenerated.ActivitySearchServiceV3, Fee: 120},
+			{Name: botGenerated.ValidationServiceV2, Fee: 130},
+			{Name: botGenerated.MintServiceV2, Fee: 140},
+		}),
+	)
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	distributorBot = tt.createBot(ctx, t, true, nil, nil)
-
-	return supplierPartnerPlugin, supplierBot, distributorBot
+	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 }
 
+const activityV3ProductCode = "XPTFAOH15O"
+
 // Simple product list request which shall return all activities. Checking if all are present
-func testActivityv3ProductListService(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) {
+func (tt *TestActivityV3) testActivityV3ProductListService(ctx context.Context, t *testing.T) {
 	activityProductCodes := []string{
 		"TC000000",
 		"ACTIVITY345678",
@@ -86,15 +125,13 @@ func testActivityv3ProductListService(
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 	}
 
-	resp, err := distributorBot.ActivityProductListServiceV3.ActivityProductList(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	resp, err := tt.distributorBot.ActivityProductListServiceV3.ActivityProductList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
 
-	tt.logger.Debug("ActivityProductListServiceV3.ActivityProductList response:\n", protoMessageToJSON(tt, resp))
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
@@ -127,33 +164,22 @@ func testActivityv3ProductListService(
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
-func testActivityv3ProductListServiceWithFilter(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) {
+func (tt *TestActivityV3) testActivityV3ProductListServiceWithFilter(ctx context.Context, t *testing.T) {
 	// Modification timestamp which should exactly return one result (see expectedProductCode).
 	// See the activityv3.json file in the pp-mock for more info
 	const modifiedAfterSecs int64 = 1710237631
 	const expectedProductCode = "TC000000"
 
 	req := &activityv3.ActivityProductListRequest{
-		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		ModifiedAfter: &timestamppb.Timestamp{
-			Seconds: modifiedAfterSecs,
-		},
+		Header:        &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		ModifiedAfter: &timestamppb.Timestamp{Seconds: modifiedAfterSecs},
 	}
-	resp, err := distributorBot.ActivityProductListServiceV3.ActivityProductList(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	resp, err := tt.distributorBot.ActivityProductListServiceV3.ActivityProductList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("ActivityProductListServiceV3.ActivityProductList response:\n", protoMessageToJSON(tt, resp))
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -177,45 +203,31 @@ func testActivityv3ProductListServiceWithFilter(
 }
 
 // Get detailed activity information for a specific product code.
-func testactivityv3ProductInfoService(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) {
+func (tt *TestActivityV3) testActivityV3ProductInfoService(ctx context.Context, t *testing.T) {
 	req := &activityv3.ActivityProductInfoRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		// No filter to get all activities
 	}
 
-	allActivitiesResp, err := distributorBot.ActivityProductInfoServiceV3.ActivityProductInfo(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	allActivitiesResp, err := tt.distributorBot.ActivityProductInfoServiceV3.ActivityProductInfo(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, allActivitiesResp)
 
-	tt.logger.Debug("ActivityProductInfoServiceV3.ActivityProductInfo response:\n", protoMessageToJSON(tt, allActivitiesResp))
-
-	supplierCode3 := activityV3ProductCode
+	supplierCode1 := activityV3ProductCode
 
 	req2 := &activityv3.ActivityProductInfoRequest{
-		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		SupplierCodes: []*typesv2.SupplierProductCode{
-			{SupplierCode: supplierCode3},
-		},
+		Header:        &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SupplierCodes: []*typesv2.SupplierProductCode{{SupplierCode: supplierCode1}},
 	}
-	resp, err := distributorBot.ActivityProductInfoServiceV3.ActivityProductInfo(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	resp, err := tt.distributorBot.ActivityProductInfoServiceV3.ActivityProductInfo(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req2,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("ActivityProductInfoServiceV3.ActivityProductInfo response:\n", protoMessageToJSON(tt, resp))
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -230,7 +242,7 @@ func testactivityv3ProductInfoService(
 
 	// Check supplier code
 	require.NotNil(t, activity.SupplierCode, "unexpected nil SupplierCode")
-	require.Equal(t, supplierCode3, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
+	require.Equal(t, supplierCode1, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
 
 	// Check additional activity data
 	require.NotEmpty(t, activity.CategoryCode, "unexpected empty CategoryCode")
@@ -346,13 +358,7 @@ func testactivityv3ProductInfoService(
 	require.NotEmpty(t, activity.AvailabilityType, "unexpected empty AvailabilityType")
 }
 
-func testactivityv3SearchServiceWithoutCurrency(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) {
+func (tt *TestActivityV3) testActivityV3SearchServiceWithoutCurrency(ctx context.Context, t *testing.T) {
 	req := &activityv3.ActivitySearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		Metadata: &typesv3.SearchRequestMetadata{
@@ -361,26 +367,18 @@ func testactivityv3SearchServiceWithoutCurrency(
 		SearchParametersGeneric: &typesv3.SearchParameters{},
 	}
 
-	resp, err := distributorBot.ActivitySearchServiceV3.ActivitySearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	resp, err := tt.distributorBot.ActivitySearchServiceV3.ActivitySearch(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 
 	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
 
-	tt.logger.Debug("ActivitySearchServiceV3.ActivitySearch response:\n", protoMessageToJSON(tt, resp))
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-func testactivityv3SearchServiceWithoutTravelPeriod(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) {
+func (tt *TestActivityV3) testActivityV3SearchServiceWithoutTravelPeriod(ctx context.Context, t *testing.T) {
 	req := &activityv3.ActivitySearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		Metadata: &typesv3.SearchRequestMetadata{
@@ -390,34 +388,23 @@ func testactivityv3SearchServiceWithoutTravelPeriod(
 			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
 		},
 		SearchParametersActivity: &activityv3.ActivitySearchParameters{
-			ProductCodes: []*typesv2.ProductCode{
-				{
-					Code: activityV3ProductCode,
-				},
-			},
+			ProductCodes: []*typesv2.ProductCode{{Code: activityV3ProductCode}},
 		},
 	}
-	resp, err := distributorBot.ActivitySearchServiceV3.ActivitySearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	resp, err := tt.distributorBot.ActivitySearchServiceV3.ActivitySearch(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
-	tt.logger.Debug("ActivitySearchServiceV3.ActivitySearch response:\n", protoMessageToJSON(tt, resp))
+	tt.DebugPrintRequestResponse(req, resp)
+
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 	require.NotEmpty(t, resp.Header.Alerts, "unexpected empty response alerts")
 	require.Equal(t, 1, len(resp.Header.Alerts), "unexpected number of alerts in response")
 	require.Equal(t, typesv1.AlertType_ALERT_TYPE_ERROR, resp.Header.Alerts[0].Type, "unexpected alert type")
 }
 
-func testactivityv3SearchServiceTravelPeriodOutOfBounds(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) {
+func (tt *TestActivityV3) testActivityV3SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
 	const nights = 12                                 // 12 nights
 	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
@@ -431,44 +418,29 @@ func testactivityv3SearchServiceTravelPeriodOutOfBounds(
 			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
 		},
 		SearchParametersActivity: &activityv3.ActivitySearchParameters{
-			ProductCodes: []*typesv2.ProductCode{
-				{
-					Code: activityV3ProductCode,
-				},
-			},
+			ProductCodes: []*typesv2.ProductCode{{Code: activityV3ProductCode}},
 		},
 		TravelPeriod: &typesv1.TravelPeriod{
 			StartDate: common.TimeToDateV1(startDate),
 			EndDate:   common.TimeToDateV1(endDate),
 		},
 	}
-	resp, err := distributorBot.ActivitySearchServiceV3.ActivitySearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	resp, err := tt.distributorBot.ActivitySearchServiceV3.ActivitySearch(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
 
-	tt.logger.Debug("ActivitySearchServiceV3.ActivitySearch response:\n", protoMessageToJSON(tt, resp))
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 }
 
-func testactivityv3SearchServiceTravelPeriodReversed(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) {
+func (tt *TestActivityV3) testActivityV3SearchServiceTravelPeriodReversed(ctx context.Context, t *testing.T) {
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
-	resp, err := distributorBot.ActivitySearchServiceV3.ActivitySearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+	req :=
 		&activityv3.ActivitySearchRequest{
 			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 			Metadata: &typesv3.SearchRequestMetadata{
@@ -478,36 +450,35 @@ func testactivityv3SearchServiceTravelPeriodReversed(
 				Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
 			},
 			SearchParametersActivity: &activityv3.ActivitySearchParameters{
-				ProductCodes: []*typesv2.ProductCode{
-					{
-						Code: activityV3ProductCode,
-					},
-				},
+				ProductCodes: []*typesv2.ProductCode{{Code: activityV3ProductCode}},
 			},
 			TravelPeriod: &typesv1.TravelPeriod{
 				StartDate: common.TimeToDateV1(endDate),   // End date used as start
 				EndDate:   common.TimeToDateV1(startDate), // Start date used as end
 			},
-		},
+		}
+	resp, err := tt.distributorBot.ActivitySearchServiceV3.ActivitySearch(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
 	)
 	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
 
-	tt.logger.Debug("ActivitySearchServiceV3.ActivitySearch response:\n", protoMessageToJSON(tt, resp))
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
 	require.NotEmpty(t, resp.Header.Alerts, "unexpected empty response alerts")
 }
 
 // Test search with a valid travel period. Expect valid search results.
-func testactivityv3SearchServiceWithTravelPeriod(
+func testActivityV3SearchServiceWithTravelPeriod(
 	ctx context.Context,
 	t *testing.T,
-	tt *Test,
+	e *suite.Environment,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 ) (
 	searchID string,
 	resultID int32,
-	totalPrice float64,
+	totalPrice *big.Int,
 ) {
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
@@ -522,14 +493,8 @@ func testactivityv3SearchServiceWithTravelPeriod(
 			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
 		},
 		SearchParametersActivity: &activityv3.ActivitySearchParameters{
-			ProductCodes: []*typesv2.ProductCode{
-				{
-					Code: activityV3ProductCode,
-				},
-			},
-			ServiceCodes: []string{
-				"XO",
-			},
+			ProductCodes: []*typesv2.ProductCode{{Code: activityV3ProductCode}},
+			ServiceCodes: []string{"XO"},
 		},
 		TravelPeriod: &typesv1.TravelPeriod{
 			StartDate: common.TimeToDateV1(startDate),
@@ -539,27 +504,18 @@ func testactivityv3SearchServiceWithTravelPeriod(
 			{
 				TravellerId: 0,
 				Type:        typesv3.TravellerType_TRAVELLER_TYPE_ADULT,
-				Birthdate: &typesv1.Date{
-					Year:  1990,
-					Month: 1,
-					Day:   1,
-				},
+				Birthdate:   &typesv1.Date{Year: 1990, Month: 1, Day: 1},
 				Nationality: typesv2.Country_COUNTRY_ES,
 			},
 		},
 	}
 
-	tt.logger.Debug("ActivitySearchServiceV3.ActivitySearch request:\n", protoMessageToJSON(tt, req))
-
 	resp, err := distributorBot.ActivitySearchServiceV3.ActivitySearch(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
+		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
-
-	tt.logger.Debug("ActivitySearchServiceV3.ActivitySearch response:\n", protoMessageToJSON(tt, resp))
+	e.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
@@ -574,10 +530,12 @@ func testactivityv3SearchServiceWithTravelPeriod(
 	// Extract the total price from the response
 	require.NotEmpty(t, resp.Results[0], "unexpected empty TotalPriceDetail")
 	require.NotEmpty(t, resp.Results[0].Price, "unexpected empty Price")
-	require.NotEmpty(t, resp.Results[0].Price.Value, "unexpected empty Price.Value")
 
-	totalPrice, err = strconv.ParseFloat(resp.Results[0].Price.Value, 64)
-	require.NoError(t, err)
+	totalPrice = priceBigV3(t, resp.Results[0].Price)
+
+	// Check if this adds up with the total price of the unit // TODO@ copy pasted from accommodation v3, does it make sense here?
+	expectedTotalPrice := big.NewInt(0).Mul(common.DefaultPricePerNightNativeTokenBig, big.NewInt(nights))
+	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price: got %s, expected %s", totalPrice.String(), expectedTotalPrice.String())
 
 	// Now extract all the values needed for the validate step which comes next
 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
@@ -585,163 +543,4 @@ func testactivityv3SearchServiceWithTravelPeriod(
 	require.NotEmpty(t, resp.Metadata.SearchId.Value, "unexpected empty response Metadata.SearchId.Value")
 
 	return resp.Metadata.SearchId.Value, resp.Results[0].ResultId, totalPrice
-}
-
-// Let's test the validation step with the values extracted from the search request
-func testactivityv3ValidateV2(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-	searchID string,
-	resultID int32,
-	expectedTotalPrice float64,
-) (validateID string) {
-	resp, err := distributorBot.ValidationServiceV2.Validation(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
-		&bookv2.ValidationRequest{
-			ValidationObject: &bookv2.ValidationObject{
-				SearchIdentifier: &typesv2.SearchIdentifier{
-					SearchId: &typesv1.UUID{Value: searchID},
-					ResultId: resultID,
-				},
-			},
-		},
-	)
-	require.NoError(t, err)
-
-	tt.logger.Debug("ValidationServiceV2.Validation response:\n", protoMessageToJSON(tt, resp))
-
-	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-
-	// Check if the validationObject is correct in the response
-	require.NotEmpty(t, resp.ValidationObject, "unexpected empty response ValidationObject")
-	require.NotEmpty(t, resp.ValidationObject.SearchIdentifier, "unexpected empty response ValidationObject.SearchIdentifier")
-	require.NotEmpty(t, resp.ValidationObject.SearchIdentifier.SearchId, "unexpected empty response ValidationObject.SearchIdentifier.SearchId")
-	require.NotEmpty(t, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected empty response ValidationObject.SearchIdentifier.SearchId.Value")
-	require.Equal(t, searchID, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected searchID in response")
-	require.Equal(t, resultID, resp.ValidationObject.SearchIdentifier.ResultId, "unexpected resultID in response")
-
-	// Check if the price is as expected
-	require.NotEmpty(t, resp.PriceDetail, "unexpected empty response PriceDetail")
-	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
-	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
-	totalPriceResponse, err := strconv.ParseFloat(resp.PriceDetail.Price.Value, 64)
-	require.NoError(t, err)
-	require.Equal(t, expectedTotalPrice, totalPriceResponse, "unexpected total price in validation")
-
-	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
-	require.NotEmpty(t, resp.ValidationId, "unexpected empty response validationID")
-	require.NotEmpty(t, resp.ValidationId.Value, "unexpected empty response validationID.Value")
-	return resp.ValidationId.Value
-}
-
-// Lastly we do the mint request based on the validation id
-func testactivityv3MintV2(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-	validationID string,
-) (
-	tokenID uint64,
-	price *typesv2.Price,
-	mintID string,
-) {
-	resp, err := distributorBot.MintServiceV2.Mint(
-		requestContext(ctx, &metadata.Metadata{
-			RecipientCMAccount: supplierBot.CMAccountAddress().Hex(),
-		}),
-		&bookv2.MintRequest{
-			Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			ValidationId: &typesv1.UUID{Value: validationID},
-		},
-	)
-	require.NoError(t, err)
-
-	tt.logger.Debug("MintServiceV2.Mint response:\n", protoMessageToJSON(tt, resp))
-
-	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-
-	// Check if the MintId is set
-	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
-	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
-
-	// check if the transaction ids are set and return them for further tests
-	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
-	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
-
-	return resp.BookingTokenId, resp.Price, resp.MintId.Value
-}
-
-func testactivityv3VerifyBlockchainState(
-	ctx context.Context,
-	t *testing.T,
-	tt *Test,
-	distributorBot *bot.Bot,
-	tokenID uint64,
-	tokenPrice *typesv2.Price,
-) {
-	bigTokenID := big.NewInt(0).SetUint64(tokenID)
-	callOpts := &bind.CallOpts{Context: ctx}
-
-	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, tokenPrice))
-	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, tokenPrice.Decimals, price.NativeTokenDecimals)
-	require.NoError(t, err)
-
-	reservationPrice, err := tt.caminoNetwork.Client.BookingToken.GetReservationPrice(callOpts, bigTokenID)
-	require.NoError(t, err)
-	require.Equal(t, booking.NativePaymentToken, reservationPrice.PaymentToken)
-	require.Equal(t, expectedReservationPrice, reservationPrice.Price)
-
-	ownerAddr, err := tt.caminoNetwork.Client.BookingToken.OwnerOf(callOpts, bigTokenID)
-	require.NoError(t, err)
-	require.Equal(t, distributorBot.CMAccountAddress(), ownerAddr)
-
-	tokenStatus, err := tt.caminoNetwork.Client.BookingToken.GetBookingStatus(callOpts, bigTokenID)
-	require.NoError(t, err)
-	require.Equal(t, booking.StatusBought, booking.Status(tokenStatus))
-}
-
-func TestActivityV3(t *testing.T, tt *Test) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
-	defer cancel()
-	_, supplierBot, distributorBot := testActivityV3Setup(ctx, t, tt)
-
-	t.Run("Product list", func(t *testing.T) {
-		// Happy path: will just return all the activities
-		testActivityv3ProductListService(ctx, t, tt, distributorBot, supplierBot)
-	})
-	t.Run("Product list with filter", func(t *testing.T) {
-		// Happy path: will return only one activity
-		testActivityv3ProductListServiceWithFilter(ctx, t, tt, distributorBot, supplierBot)
-	})
-	t.Run("Product info", func(t *testing.T) {
-		// Happy path: will return only one activity
-		testactivityv3ProductInfoService(ctx, t, tt, distributorBot, supplierBot)
-	})
-	t.Run("Product Search without currency", func(t *testing.T) {
-		testactivityv3SearchServiceWithoutCurrency(ctx, t, tt, distributorBot, supplierBot)
-	})
-	t.Run("Product Search without travel period", func(t *testing.T) {
-		testactivityv3SearchServiceWithoutTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
-	})
-	t.Run("Product Search travel period out of bounds", func(t *testing.T) {
-		testactivityv3SearchServiceTravelPeriodOutOfBounds(ctx, t, tt, distributorBot, supplierBot)
-	})
-	t.Run("Product Search travel period reversed", func(t *testing.T) {
-		testactivityv3SearchServiceTravelPeriodReversed(ctx, t, tt, distributorBot, supplierBot)
-	})
-
-	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-		searchID, resultID, totalPrice := testactivityv3SearchServiceWithTravelPeriod(ctx, t, tt, distributorBot, supplierBot)
-		validationID := testactivityv3ValidateV2(ctx, t, tt, distributorBot, supplierBot, searchID, resultID, totalPrice)
-		tokenID, price, _ := testactivityv3MintV2(ctx, t, tt, distributorBot, supplierBot, validationID)
-		testactivityv3VerifyBlockchainState(ctx, t, tt, distributorBot, tokenID, price)
-	})
 }

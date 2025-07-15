@@ -14,48 +14,31 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
-	"google.golang.org/grpc"
 )
 
-var _ activityv2grpc.ActivitySearchServiceServer = (*ActivitySearchV2Server)(nil)
+var _ activityv2grpc.ActivitySearchServiceServer = (*activitySearchV2Server)(nil)
 
-type ActivitySearchV2Server struct{}
+type activitySearchV2Server struct {
+	eventSender events.Sender
+}
 
-func (s *ActivitySearchV2Server) ActivitySearch(ctx context.Context, req *activityv2.ActivitySearchRequest) (*activityv2.ActivitySearchResponse, error) {
-	// Log the entire incoming request at the beginning
-	log.Printf("ActivitySearch received request: %+v", req)
+func NewActivitySearchV2Server(eventSender events.Sender) activityv2grpc.ActivitySearchServiceServer {
+	return &activitySearchV2Server{eventSender: eventSender}
+}
 
-	md := metadata.Metadata{}
-
-	// Log generic search parameters from the request
-	log.Printf("Activity Search generic params (from req): %+v\n", req.SearchParametersGeneric)
-	// Keep original fmt.Printf if needed for specific console output distinct from logs
-	fmt.Printf("Activity Search generic params: %+v\n", req.SearchParametersGeneric)
-
-	log.Printf("Attempting to extract metadata from context")
-	if err := md.ExtractMetadata(ctx); err != nil {
-		// TODO Improve error handling for metadata extraction - handle consistently across all files. Must either return error or error response.
-		log.Printf("ERROR extracting metadata: %v", err) // Log the actual error
-		// Consider returning an error response here as well
-		return &activityv2.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Internal server error: failed to extract request metadata",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil // Or return err if the framework handles it appropriately
+func (s *activitySearchV2Server) ActivitySearch(ctx context.Context, req *activityv2.ActivitySearchRequest) (*activityv2.ActivitySearchResponse, error) {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
+		log.Printf("error sending event: %v", err)
 	}
-	// Log extracted metadata before stamping
-	log.Printf("Metadata extracted successfully. Metadata content (before stamp): %+v", md)
 
-	// Log the metadata request ID before stamping
-	log.Printf("Stamping metadata with Request ID: %s", md.RequestID) // Log the ID being used for stamping context
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
+
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request (Activity Search): %s", md.RequestID) // Existing log is good
 
 	// Log the request metadata before checking if it's nil
@@ -259,15 +242,6 @@ func (s *ActivitySearchV2Server) ActivitySearch(ctx context.Context, req *activi
 
 	// Log sender/recipient info
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount) // Existing log is good
-
-	// Log before setting gRPC header
-	log.Printf("Attempting to set response header metadata using md: %+v", md)
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		// Log the error but don't necessarily fail the whole request unless required
-		log.Printf("ERROR: Failed to set response header metadata: %v", err)
-	} else {
-		log.Printf("Successfully set response header metadata.")
-	}
 
 	// Store search result in state
 	// Log before storing state

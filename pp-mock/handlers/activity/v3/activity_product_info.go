@@ -12,23 +12,28 @@ import (
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
-var _ activityv3grpc.ActivityProductInfoServiceServer = (*ActivityProductInfoV3Server)(nil)
+var _ activityv3grpc.ActivityProductInfoServiceServer = (*activityProductInfoV3Server)(nil)
 
-type ActivityProductInfoV3Server struct{}
+type activityProductInfoV3Server struct {
+	eventSender events.Sender
+}
 
-func (*ActivityProductInfoV3Server) ActivityProductInfo(ctx context.Context, req *activityv3.ActivityProductInfoRequest) (*activityv3.ActivityProductInfoResponse, error) {
-	md := metadata.Metadata{}
+func NewActivityProductInfoV3Server(eventSender events.Sender) activityv3grpc.ActivityProductInfoServiceServer {
+	return &activityProductInfoV3Server{eventSender: eventSender}
+}
 
-	if err := md.ExtractMetadata(ctx); err != nil {
-		log.Print("error extracting metadata")
+func (s *activityProductInfoV3Server) ActivityProductInfo(ctx context.Context, req *activityv3.ActivityProductInfoRequest) (*activityv3.ActivityProductInfoResponse, error) {
+	if err := s.eventSender.SendProtoEvent(req); err != nil {
+		log.Printf("error sending event: %v", err)
 	}
 
-	md.Stamp(fmt.Sprintf("%s-%s", "ext-system", "response"))
+	md := metadata.FromGRPCContext(ctx)
+
 	log.Printf("Responding to request (Activity Product Info V3): %s", md.RequestID)
 
 	// Initialize activitiesFiltered with the correct type
@@ -117,12 +122,6 @@ func (*ActivityProductInfoV3Server) ActivityProductInfo(ctx context.Context, req
 	}
 
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	if err := grpc.SetHeader(ctx, md.ToGrpcMD()); err != nil {
-		log.Printf("Failed to set header: %v", err)
-	}
-
-	log.Printf("Response: %v", response)
 
 	return response, nil
 }
