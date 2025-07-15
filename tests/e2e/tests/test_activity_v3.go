@@ -440,23 +440,22 @@ func (tt *TestActivityV3) testActivityV3SearchServiceTravelPeriodReversed(ctx co
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
-	req :=
-		&activityv3.ActivitySearchRequest{
-			Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-			Metadata: &typesv3.SearchRequestMetadata{
-				RequestId: &typesv1.UUID{Value: uuid.New().String()},
-			},
-			SearchParametersGeneric: &typesv3.SearchParameters{
-				Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
-			},
-			SearchParametersActivity: &activityv3.ActivitySearchParameters{
-				ProductCodes: []*typesv2.ProductCode{{Code: activityV3ProductCode}},
-			},
-			TravelPeriod: &typesv1.TravelPeriod{
-				StartDate: common.TimeToDateV1(endDate),   // End date used as start
-				EndDate:   common.TimeToDateV1(startDate), // Start date used as end
-			},
-		}
+	req := &activityv3.ActivitySearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		Metadata: &typesv3.SearchRequestMetadata{
+			RequestId: &typesv1.UUID{Value: uuid.New().String()},
+		},
+		SearchParametersGeneric: &typesv3.SearchParameters{
+			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+		},
+		SearchParametersActivity: &activityv3.ActivitySearchParameters{
+			ProductCodes: []*typesv2.ProductCode{{Code: activityV3ProductCode}},
+		},
+		TravelPeriod: &typesv1.TravelPeriod{
+			StartDate: common.TimeToDateV1(endDate),   // End date used as start
+			EndDate:   common.TimeToDateV1(startDate), // Start date used as end
+		},
+	}
 	resp, err := tt.distributorBot.ActivitySearchServiceV3.ActivitySearch(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
