@@ -82,7 +82,7 @@ func filterByLanguage(
 		if len(filteredDescriptions) > 0 {
 			clonedActivity := common.CloneProto(activity)
 			clonedActivity.Descriptions = filteredDescriptions
-			filtered = append(activities, activity)
+			filtered = append(filtered, activity)
 		}
 	}
 	return filtered

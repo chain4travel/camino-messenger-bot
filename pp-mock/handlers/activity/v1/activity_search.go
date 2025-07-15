@@ -91,7 +91,6 @@ func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 		}, nil
 	}
 
-	searchResults := []*activityv1.ActivitySearchResult{}
 	resultIDnum := int32(1)
 	validationPrices := []*state.UnifiedPrice{}
 
@@ -99,29 +98,10 @@ func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	filteredActivities = filterSearchResultActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.ServiceCodes)
 	filteredActivities = filterSearchResultByCurrency(filteredActivities, req.SearchParametersGeneric.Currency)
 
-	for i, activity := range filteredActivities {
-		activity.ResultId = int32(i) + 1
-		searchResults = append(searchResults, &activityv1.ActivitySearchResult{
-			ResultId: resultIDnum,
-			Info: &activityv1.Activity{
-				Context:           activity.Info.Context,
-				LastModified:      activity.Info.LastModified,
-				ExternalSessionId: activity.Info.ExternalSessionId,
-				ProductCode:       activity.Info.ProductCode,
-				UnitCode:          activity.Info.UnitCode,
-				ServiceCode:       activity.Info.ServiceCode,
-				Bookability:       activity.Info.Bookability,
-			},
-			Schedule:        activity.Schedule,
-			Location:        activity.Location,
-			MinParticipants: activity.MinParticipants,
-			MaxParticipants: activity.MaxParticipants,
-			ChargeType:      activity.ChargeType,
-		})
-
+	for _, activity := range filteredActivities {
+		activity.ResultId = resultIDnum
 		validationPrice := state.PriceV1ToUnifiedPrice(activity.Price)
 		validationPrices = append(validationPrices, validationPrice)
-
 		resultIDnum++
 	}
 
@@ -129,11 +109,11 @@ func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
 		},
-		Results:    searchResults,
+		Results:    filteredActivities,
 		Travellers: req.Travellers,
 	}
 
-	if len(searchResults) == 0 {
+	if len(filteredActivities) == 0 {
 		response.Header.Alerts = []*typesv1.Alert{{
 			Message: "No results found for search",
 			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
@@ -147,7 +127,7 @@ func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
-		NumResults:   len(searchResults),
+		NumResults:   len(filteredActivities),
 		NumTravelers: len(req.Travellers),
 		Prices:       validationPrices,
 		JSONRequest:  req.String(),
