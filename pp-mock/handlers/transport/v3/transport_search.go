@@ -182,10 +182,9 @@ func (s *transportSearchV3Server) TransportSearch(ctx context.Context, req *tran
 
 	decimals := price.NativeTokenDecimals
 	switch req.SearchParameters.Currency.Currency.(type) {
+	case *typesv3.Currency_NativeToken:
 	case *typesv3.Currency_IsoCurrency:
 		decimals = price.ISODecimals
-	case *typesv3.Currency_NativeToken:
-		decimals = price.NativeTokenDecimals
 	default:
 		return nil, fmt.Errorf("unexpected currency type: %T", req.SearchParameters.Currency.Currency)
 	}
