@@ -102,17 +102,17 @@ func Run() error {
 	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListV3Server())
 
 	// Activity V1
-	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v1.NewActivityProductListV1Server(eventSender))
-	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v1.NewActivityProductInfoV1Server(eventSender))
-	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v1.NewActivitySearchV1Server(eventSender))
+	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v1.NewActivityProductListV1Server())
+	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v1.NewActivityProductInfoV1Server())
+	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v1.NewActivitySearchV1Server())
 	// Activity V2
-	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v2.NewActivityProductListV2Server(eventSender))
-	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v2.NewActivityProductInfoV2Server(eventSender))
-	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v2.NewActivitySearchV2Server(eventSender))
+	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v2.NewActivityProductListV2Server())
+	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v2.NewActivityProductInfoV2Server())
+	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v2.NewActivitySearchV2Server())
 	// Activity V3
-	activityv3grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v3.NewActivityProductListV3Server(eventSender))
-	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v3.NewActivityProductInfoV3Server(eventSender))
-	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v3.NewActivitySearchV3Server(eventSender))
+	activityv3grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v3.NewActivityProductListV3Server())
+	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v3.NewActivityProductInfoV3Server())
+	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v3.NewActivitySearchV3Server())
 
 	// Book V1
 	bookv1grpc.RegisterMintServiceServer(grpcServer, book_v1.NewMintServiceV1Server())

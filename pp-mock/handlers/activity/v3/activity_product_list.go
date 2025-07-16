@@ -5,35 +5,23 @@ package v3
 
 import (
 	"context"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 )
 
 var _ activityv3grpc.ActivityProductListServiceServer = (*activityProductListV3Server)(nil)
 
 type activityProductListV3Server struct {
-	eventSender events.Sender
 }
 
-func NewActivityProductListV3Server(eventSender events.Sender) activityv3grpc.ActivityProductListServiceServer {
-	return &activityProductListV3Server{eventSender: eventSender}
+func NewActivityProductListV3Server() activityv3grpc.ActivityProductListServiceServer {
+	return &activityProductListV3Server{}
 }
 
 func (s *activityProductListV3Server) ActivityProductList(ctx context.Context, req *activityv3.ActivityProductListRequest) (*activityv3.ActivityProductListResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (Activity Product List V3): %s", md.RequestID)
-
 	filteredActivities := filterByLastModified(mockdata.ActivityV3, req.GetModifiedAfter().AsTime())
 
 	response := &activityv3.ActivityProductListResponse{
@@ -49,8 +37,6 @@ func (s *activityProductListV3Server) ActivityProductList(ctx context.Context, r
 			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
 		}}
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return response, nil
 }

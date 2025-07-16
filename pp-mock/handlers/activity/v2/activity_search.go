@@ -6,15 +6,12 @@ package v2
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
@@ -23,24 +20,14 @@ import (
 var _ activityv2grpc.ActivitySearchServiceServer = (*activitySearchV2Server)(nil)
 
 type activitySearchV2Server struct {
-	eventSender events.Sender
 }
 
-func NewActivitySearchV2Server(eventSender events.Sender) activityv2grpc.ActivitySearchServiceServer {
-	return &activitySearchV2Server{eventSender: eventSender}
+func NewActivitySearchV2Server() activityv2grpc.ActivitySearchServiceServer {
+	return &activitySearchV2Server{}
 }
 
 func (s *activitySearchV2Server) ActivitySearch(ctx context.Context, req *activityv2.ActivitySearchRequest) (*activityv2.ActivitySearchResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
 	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (Activity Search): %s", md.RequestID)
-
 	// check if SearchParametersGeneric is nil or if Currency is nil
 	if req.SearchParametersGeneric == nil || req.SearchParametersGeneric.Currency == nil {
 		return &activityv2.ActivitySearchResponse{
@@ -123,17 +110,14 @@ func (s *activitySearchV2Server) ActivitySearch(ctx context.Context, req *activi
 		response.Metadata = &typesv2.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
+		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
+			NumResults:   len(filteredActivities),
+			NumTravelers: len(req.Travellers),
+			Prices:       validationPrices,
+			JSONRequest:  req.String(),
+			JSONResponse: response.String(),
+		})
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
-		NumResults:   len(filteredActivities),
-		NumTravelers: len(req.Travellers),
-		Prices:       validationPrices,
-		JSONRequest:  req.String(),
-		JSONResponse: response.String(),
-	})
 
 	return response, nil
 }

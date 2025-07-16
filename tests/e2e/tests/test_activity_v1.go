@@ -55,32 +55,32 @@ func (tt *TestActivityV1) Run(t *testing.T) {
 		// Happy path: will return only one property
 		tt.testActivityV1ProductListServiceWithFilter(ctx, t)
 	})
-	// t.Run("Product info", func(t *testing.T) {
-	// 	// Happy path: will return the detailed info of a property
-	// 	tt.testActivityV1ProductInfoService(ctx, t)
-	// })
-	// t.Run("Search w/o currency", func(t *testing.T) {
-	// 	// ERROR path: without currency it should return an error
-	// 	tt.testActivityV1SearchServiceWithoutCurrency(ctx, t)
-	// })
-	// t.Run("Search w/o travel period", func(t *testing.T) {
-	// 	// ERROR path: without travel period it should return an error
-	// 	tt.testActivityV1SearchServiceWithoutTravelPeriod(ctx, t)
-	// })
-	// t.Run("Search with travel period oob", func(t *testing.T) {
-	// 	// ERROR path: with travel period outside of allowed constraints it should return an error
-	// 	tt.testActivityV1SearchServiceTravelPeriodOutOfBounds(ctx, t)
-	// })
-	// t.Run("Search with travel period reversed", func(t *testing.T) {
-	// 	// ERROR path: with travel period reversed it should return an error
-	// 	tt.testActivityV1SearchServiceTravelPeriodReversed(ctx, t)
-	// })
-	// t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-	// 	searchID, resultID, totalPrice := testActivityV1SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
-	// 	validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
-	// 	tokenID, price, _ := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
-	// 	verifyBookingTokenStateWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
-	// })
+	t.Run("Product info", func(t *testing.T) {
+		// Happy path: will return the detailed info of a property
+		tt.testActivityV1ProductInfoService(ctx, t)
+	})
+	t.Run("Search w/o currency", func(t *testing.T) {
+		// ERROR path: without currency it should return an error
+		tt.testActivityV1SearchServiceWithoutCurrency(ctx, t)
+	})
+	t.Run("Search w/o travel period", func(t *testing.T) {
+		// ERROR path: without travel period it should return an error
+		tt.testActivityV1SearchServiceWithoutTravelPeriod(ctx, t)
+	})
+	t.Run("Search with travel period oob", func(t *testing.T) {
+		// ERROR path: with travel period outside of allowed constraints it should return an error
+		tt.testActivityV1SearchServiceTravelPeriodOutOfBounds(ctx, t)
+	})
+	t.Run("Search with travel period reversed", func(t *testing.T) {
+		// ERROR path: with travel period reversed it should return an error
+		tt.testActivityV1SearchServiceTravelPeriodReversed(ctx, t)
+	})
+	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
+		searchID, resultID, totalPrice := testActivityV1SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
+		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+		tokenID, price, _ := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+		verifyBookingTokenStateWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
+	})
 }
 
 func (tt *TestActivityV1) prepare(ctx context.Context, t *testing.T) {
@@ -108,8 +108,6 @@ func (tt *TestActivityV1) prepare(ctx context.Context, t *testing.T) {
 	// bot without partnerPlugin and with rpc server (distributor)
 	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 }
-
-const activityV1ProductCode = "XPTFAOH15O"
 
 // Simple product list request which shall return all activities. Checking if all are present
 func (tt *TestActivityV1) testActivityV1ProductListService(ctx context.Context, t *testing.T) {
@@ -172,29 +170,43 @@ func (tt *TestActivityV1) testActivityV1ProductListServiceWithFilter(ctx context
 	require.True(t, proto.Equal(resp.Activities[0], expectedActivity), "activity fields does not match expected mock data activity, but their product codes match (%s)", expectedProductCode)
 }
 
-// Get detailed activity information for a specific product code.
+// Get detailed activity information for a specific supplier code.
 func (tt *TestActivityV1) testActivityV1ProductInfoService(ctx context.Context, t *testing.T) {
 	req := &activityv1.ActivityProductInfoRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		// No filter to get all activities
 	}
 
-	allActivitiesResp, err := tt.distributorBot.ActivityProductInfoServiceV1.ActivityProductInfo(
+	resp, err := tt.distributorBot.ActivityProductInfoServiceV1.ActivityProductInfo(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(req, allActivitiesResp)
+	tt.DebugPrintRequestResponse(req, resp)
 
-	supplierCode1 := activityV1ProductCode
+	require.Len(t, resp.Activities, len(mockdata.ActivityExtendedV1), "unexpected number of activities in response")
 
-	req2 := &activityv1.ActivityProductInfoRequest{
-		Header:        &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		SupplierCodes: []*typesv1.SupplierProductCode{{SupplierCode: supplierCode1}},
+	expectedActivities := make([]*activityv1.ActivityExtendedInfo, 0, len(mockdata.ActivityExtendedV1))
+	for _, activity := range resp.Activities {
+		expectedActivities = append(expectedActivities, activityExtendedV1WithSupplierCode(t, mockdata.ActivityExtendedV1, activity.GetSupplierCode()))
 	}
-	resp, err := tt.distributorBot.ActivityProductInfoServiceV1.ActivityProductInfo(
+	require.Len(t, expectedActivities, len(mockdata.ActivityExtendedV1), "not all expected activities found in response")
+
+	for i, activity := range resp.Activities {
+		require.True(t, proto.Equal(activity, expectedActivities[i]), "activities[%d] fields does not match expected mock data activity, but their supplier codes match (%+v)", i, activity.GetSupplierCode().GetSupplierCode())
+	}
+
+	expectedSupplierCode := &typesv1.SupplierProductCode{
+		SupplierCode:   "XPTFAOH15O",
+		SupplierNumber: 31345,
+	}
+	req = &activityv1.ActivityProductInfoRequest{
+		Header:        &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		SupplierCodes: []*typesv1.SupplierProductCode{expectedSupplierCode},
+	}
+	resp, err = tt.distributorBot.ActivityProductInfoServiceV1.ActivityProductInfo(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
-		req2,
+		req,
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
@@ -204,128 +216,9 @@ func (tt *TestActivityV1) testActivityV1ProductInfoService(ctx context.Context, 
 
 	// The response should contain only the one activity filtered in the request
 	require.Len(t, resp.Activities, 1, "unexpected number of activities in response")
-	activity := resp.Activities[0]
 
-	// Validate the activity data
-	require.NotNil(t, activity.Activity, "unexpected nil Activity in response")
-	require.NotEmpty(t, activity.Activity.Context, "unexpected empty activity Context")
-
-	// Check supplier code
-	require.NotNil(t, activity.SupplierCode, "unexpected nil SupplierCode")
-	require.Equal(t, supplierCode1, activity.SupplierCode.SupplierCode, "unexpected SupplierCode value")
-
-	// Check additional activity data
-	require.NotEmpty(t, activity.CategoryCode, "unexpected empty CategoryCode")
-	require.NotEmpty(t, activity.CategoryName, "unexpected empty CategoryName")
-	require.NotEmpty(t, activity.TypeCode, "unexpected empty TypeCode")
-	require.NotEmpty(t, activity.TypeName, "unexpected empty TypeName")
-
-	// Check location data
-	require.NotNil(t, activity.Location, "unexpected nil Location")
-	require.NotNil(t, activity.Location.Address, "unexpected nil Address")
-
-	// Check units
-	require.NotEmpty(t, activity.Units, "unexpected empty Units")
-	require.NotEmpty(t, activity.Units[0].Code, "unexpected empty unit Code")
-	require.NotEmpty(t, activity.Units[0].Name, "unexpected empty unit Name")
-
-	// Check services
-	require.NotEmpty(t, activity.Services, "unexpected empty Services")
-	require.NotEmpty(t, activity.Services[0].Code, "unexpected empty service Code")
-	require.NotEmpty(t, activity.Services[0].Name, "unexpected empty service Name")
-
-	// Check zones and pickup/dropoff events if available
-	if len(activity.Zones) > 0 {
-		require.NotEmpty(t, activity.Zones[0].Code, "unexpected empty zone Code")
-		if len(activity.Zones[0].PickupDropoffEvents) > 0 {
-			event := activity.Zones[0].PickupDropoffEvents[0]
-			require.NotEmpty(t, event.LocationCode, "unexpected empty LocationCode")
-			require.NotEmpty(t, event.LocationName, "unexpected empty LocationName")
-		}
-	}
-
-	// Check media
-	require.NotEmpty(t, activity.Images, "unexpected empty Images")
-	require.NotEmpty(t, activity.Images[0].File, "unexpected empty image File")
-	require.NotEmpty(t, activity.Images[0].Width, "unexpected empty image Width")
-	require.NotEmpty(t, activity.Images[0].Height, "unexpected empty image Height")
-	require.NotEmpty(t, activity.Images[0].Category, "unexpected empty image Category")
-
-	// Check features and tags
-	require.NotEmpty(t, activity.Features, "unexpected empty Features")
-	require.NotEmpty(t, activity.Tags, "unexpected empty Tags")
-
-	// Check availability and delivery options
-	require.True(t, activity.InstantConfirmation, "unexpected InstantConfirmation value")
-	require.NotEmpty(t, activity.DeliveryFormats, "unexpected empty DeliveryFormats")
-	require.NotEmpty(t, activity.DeliveryMethods, "unexpected empty DeliveryMethods")
-
-	// NEW CHECKS START HERE
-
-	// Check descriptions
-	require.NotEmpty(t, activity.Descriptions, "unexpected empty Descriptions")
-	if len(activity.Descriptions) > 0 {
-		require.NotNil(t, activity.Descriptions[0], "unexpected nil Description")
-		require.NotEmpty(t, activity.Descriptions[0].Descriptions, "unexpected empty Description texts")
-	}
-
-	// Check contact info
-	require.NotNil(t, activity.ContactInfo, "unexpected nil ContactInfo")
-	if activity.ContactInfo != nil {
-		require.NotNil(t, activity.ContactInfo.Address, "unexpected nil ContactInfo.Address")
-		require.NotEmpty(t, activity.ContactInfo.Emails, "unexpected empty ContactInfo.Emails")
-		require.NotNil(t, activity.ContactInfo.Phones, "unexpected nil ContactInfo.Phones")
-	}
-
-	// Check videos if available
-	if len(activity.Videos) > 0 {
-		require.NotEmpty(t, activity.Videos[0].File, "unexpected empty video File")
-		require.NotEmpty(t, activity.Videos[0].Category, "unexpected empty video Category")
-	}
-
-	// Check languages
-	require.NotEmpty(t, activity.Languages, "unexpected empty Languages")
-
-	// Check duration range
-	require.NotNil(t, activity.DurationRange, "unexpected nil DurationRange")
-	if activity.DurationRange != nil {
-		require.NotNil(t, activity.DurationRange.MinDuration, "unexpected nil MinDuration")
-		require.NotNil(t, activity.DurationRange.MaxDuration, "unexpected nil MaxDuration")
-	}
-
-	// Check max confirmation duration
-	require.NotNil(t, activity.MaxConfirmationDuration, "unexpected nil MaxConfirmationDuration")
-
-	// Check redemption methods if available
-	if len(activity.RedemptionMethods) > 0 {
-		require.NotEmpty(t, activity.RedemptionMethods, "unexpected empty RedemptionMethods")
-	}
-
-	// Check specific feature content (at least one feature should have a meaningful code and description)
-	featureFound := false
-	for _, feature := range activity.Features {
-		if feature.Code != "" && feature.Description != "" {
-			featureFound = true
-			break
-		}
-	}
-	require.True(t, featureFound, "no feature with valid code and description found")
-
-	// Check specific tag content (at least one tag should have a name and slug)
-	tagFound := false
-	for _, tag := range activity.Tags {
-		if tag.Name != "" && tag.Slug != "" {
-			tagFound = true
-			break
-		}
-	}
-	require.True(t, tagFound, "no tag with valid name and slug found")
-
-	// Check supplier code name
-	require.NotEmpty(t, activity.SupplierCodeName, "unexpected empty SupplierCodeName")
-
-	// Check availability related fields
-	require.NotEmpty(t, activity.AvailabilityType, "unexpected empty AvailabilityType")
+	expectedActivity := activityExtendedV1WithSupplierCode(t, mockdata.ActivityExtendedV1, expectedSupplierCode)
+	require.True(t, proto.Equal(resp.Activities[0], expectedActivity), "activity fields does not match expected mock data activity, but their supplier codes match (%+v)", expectedSupplierCode)
 }
 
 func (tt *TestActivityV1) testActivityV1SearchServiceWithoutCurrency(ctx context.Context, t *testing.T) {
@@ -358,7 +251,7 @@ func (tt *TestActivityV1) testActivityV1SearchServiceWithoutTravelPeriod(ctx con
 			Currency: &typesv1.Currency{Currency: &typesv1.Currency_NativeToken{}},
 		},
 		SearchParametersActivity: &activityv1.ActivitySearchParameters{
-			ProductCodes: []*typesv1.ProductCode{{Code: activityV1ProductCode}},
+			ProductCodes: []*typesv1.ProductCode{{Code: "XPTFAOH15O"}},
 		},
 	}
 	resp, err := tt.distributorBot.ActivitySearchServiceV1.ActivitySearch(
@@ -388,7 +281,7 @@ func (tt *TestActivityV1) testActivityV1SearchServiceTravelPeriodOutOfBounds(ctx
 			Currency: &typesv1.Currency{Currency: &typesv1.Currency_NativeToken{}},
 		},
 		SearchParametersActivity: &activityv1.ActivitySearchParameters{
-			ProductCodes: []*typesv1.ProductCode{{Code: activityV1ProductCode}},
+			ProductCodes: []*typesv1.ProductCode{{Code: "XPTFAOH15O"}},
 		},
 		TravelPeriod: &typesv1.TravelPeriod{
 			StartDate: common.TimeToDateV1(startDate),
@@ -419,7 +312,7 @@ func (tt *TestActivityV1) testActivityV1SearchServiceTravelPeriodReversed(ctx co
 			Currency: &typesv1.Currency{Currency: &typesv1.Currency_NativeToken{}},
 		},
 		SearchParametersActivity: &activityv1.ActivitySearchParameters{
-			ProductCodes: []*typesv1.ProductCode{{Code: activityV1ProductCode}},
+			ProductCodes: []*typesv1.ProductCode{{Code: "XPTFAOH15O"}},
 		},
 		TravelPeriod: &typesv1.TravelPeriod{
 			StartDate: common.TimeToDateV1(endDate),   // End date used as start
@@ -459,10 +352,12 @@ func testActivityV1SearchServiceWithTravelPeriod(
 			RequestId: &typesv1.UUID{Value: uuid.New().String()},
 		},
 		SearchParametersGeneric: &typesv1.SearchParameters{
-			Currency: &typesv1.Currency{Currency: &typesv1.Currency_NativeToken{}},
+			Currency: &typesv1.Currency{
+				Currency: &typesv1.Currency_IsoCurrency{IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR},
+			},
 		},
 		SearchParametersActivity: &activityv1.ActivitySearchParameters{
-			ProductCodes: []*typesv1.ProductCode{{Code: activityV1ProductCode}},
+			ProductCodes: []*typesv1.ProductCode{{Code: "XPTFAOH15O"}},
 			ServiceCodes: []string{"XO"},
 		},
 		TravelPeriod: &typesv1.TravelPeriod{
@@ -490,7 +385,7 @@ func testActivityV1SearchServiceWithTravelPeriod(
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
 	// We expect results - check at least one exists
-	require.NotEmpty(t, resp.Results, "unexpected empty results in response")
+	require.Len(t, resp.Results, 2, "unexpected number of results in response")
 
 	// Let's check if the first result is as expected
 	require.NotEmpty(t, resp.Results[0].ResultId, "unexpected empty response Results[0].ResultId")
@@ -525,5 +420,19 @@ func activityV1WithProductCode(
 		}
 	}
 	require.FailNow(t, "activity with product code not found", "product code: %s", productCode)
+	return nil
+}
+
+func activityExtendedV1WithSupplierCode(
+	t *testing.T,
+	activities []*activityv1.ActivityExtendedInfo,
+	supplierCode *typesv1.SupplierProductCode,
+) *activityv1.ActivityExtendedInfo {
+	for _, activity := range activities {
+		if proto.Equal(activity.GetSupplierCode(), supplierCode) {
+			return activity
+		}
+	}
+	require.FailNow(t, "activity with supplier code not found", "supplier code: %s", supplierCode)
 	return nil
 }

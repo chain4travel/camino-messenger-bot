@@ -5,35 +5,23 @@ package v2
 
 import (
 	"context"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 )
 
 var _ activityv2grpc.ActivityProductInfoServiceServer = (*activityProductInfoV2Server)(nil)
 
 type activityProductInfoV2Server struct {
-	eventSender events.Sender
 }
 
-func NewActivityProductInfoV2Server(eventSender events.Sender) activityv2grpc.ActivityProductInfoServiceServer {
-	return &activityProductInfoV2Server{eventSender: eventSender}
+func NewActivityProductInfoV2Server() activityv2grpc.ActivityProductInfoServiceServer {
+	return &activityProductInfoV2Server{}
 }
 
 func (s *activityProductInfoV2Server) ActivityProductInfo(ctx context.Context, req *activityv2.ActivityProductInfoRequest) (*activityv2.ActivityProductInfoResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (Activity Product Info): %s", md.RequestID)
-
 	filteredActivities := filterBySupplierCodes(mockdata.ActivityExtendedV2, req.SupplierCodes)
 	filteredActivities = filterExtendedByLastModified(filteredActivities, req.ModifiedAfter.AsTime())
 	filteredActivities = filterByLanguage(filteredActivities, req.Languages)
@@ -51,8 +39,6 @@ func (s *activityProductInfoV2Server) ActivityProductInfo(ctx context.Context, r
 			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
 		}}
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return response, nil
 }

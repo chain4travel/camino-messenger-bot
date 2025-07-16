@@ -6,14 +6,11 @@ package v1
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
@@ -22,23 +19,14 @@ import (
 var _ activityv1grpc.ActivitySearchServiceServer = (*activitySearchV1Server)(nil)
 
 type activitySearchV1Server struct {
-	eventSender events.Sender
 }
 
-func NewActivitySearchV1Server(eventSender events.Sender) activityv1grpc.ActivitySearchServiceServer {
-	return &activitySearchV1Server{eventSender: eventSender}
+func NewActivitySearchV1Server() activityv1grpc.ActivitySearchServiceServer {
+	return &activitySearchV1Server{}
 }
 
 func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
 	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (Activity Search): %s", md.RequestID)
 
 	// check if SearchParametersGeneric is nil or if Currency is nil
 	if req.SearchParametersGeneric == nil || req.SearchParametersGeneric.Currency == nil {
@@ -122,17 +110,14 @@ func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activi
 		response.Metadata = &typesv1.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
+		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
+			NumResults:   len(filteredActivities),
+			NumTravelers: len(req.Travellers),
+			Prices:       validationPrices,
+			JSONRequest:  req.String(),
+			JSONResponse: response.String(),
+		})
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
-
-	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
-		NumResults:   len(filteredActivities),
-		NumTravelers: len(req.Travellers),
-		Prices:       validationPrices,
-		JSONRequest:  req.String(),
-		JSONResponse: response.String(),
-	})
 
 	return response, nil
 }
