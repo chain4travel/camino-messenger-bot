@@ -14,8 +14,7 @@ import (
 
 var _ activityv1grpc.ActivityProductListServiceServer = (*activityProductListV1Server)(nil)
 
-type activityProductListV1Server struct {
-}
+type activityProductListV1Server struct{}
 
 func NewActivityProductListV1Server() activityv1grpc.ActivityProductListServiceServer {
 	return &activityProductListV1Server{}

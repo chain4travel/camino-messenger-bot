@@ -19,8 +19,7 @@ import (
 
 var _ activityv2grpc.ActivitySearchServiceServer = (*activitySearchV2Server)(nil)
 
-type activitySearchV2Server struct {
-}
+type activitySearchV2Server struct{}
 
 func NewActivitySearchV2Server() activityv2grpc.ActivitySearchServiceServer {
 	return &activitySearchV2Server{}
