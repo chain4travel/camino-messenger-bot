@@ -6,16 +6,13 @@ package v3
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
@@ -24,25 +21,14 @@ import (
 
 var _ accommodationv3grpc.AccommodationSearchServiceServer = (*accommodationSearchV3Server)(nil)
 
-type accommodationSearchV3Server struct {
-	eventSender events.Sender
+type accommodationSearchV3Server struct{}
+
+func NewAccommodationSearchV3Server() accommodationv3grpc.AccommodationSearchServiceServer {
+	return &accommodationSearchV3Server{}
 }
 
-func NewAccommodationSearchV3Server(eventSender events.Sender) accommodationv3grpc.AccommodationSearchServiceServer {
-	return &accommodationSearchV3Server{eventSender: eventSender}
-}
-
-func (s *accommodationSearchV3Server) AccommodationSearch(ctx context.Context, req *accommodationv3.AccommodationSearchRequest) (*accommodationv3.AccommodationSearchResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
+func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req *accommodationv3.AccommodationSearchRequest) (*accommodationv3.AccommodationSearchResponse, error) {
 	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (Accommodation Search): %s", md.RequestID)
-
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv3.AccommodationSearchResponse{
@@ -222,8 +208,6 @@ func (s *accommodationSearchV3Server) AccommodationSearch(ctx context.Context, r
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
 		NumResults:   len(searchResults),

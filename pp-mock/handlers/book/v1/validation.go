@@ -5,15 +5,12 @@ package v1
 
 import (
 	"context"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/google/uuid"
 )
 
@@ -21,24 +18,15 @@ import (
 var _ bookv1grpc.ValidationServiceServer = (*validationServiceV1Server)(nil)
 
 // ValidationServiceV1Server is the server that provides Validation services.
-type validationServiceV1Server struct {
-	eventSender events.Sender
-}
+type validationServiceV1Server struct{}
 
 // NewValidationServiceV1Server creates a new ValidationServiceV1Server.
-func NewValidationServiceV1Server(eventSender events.Sender) bookv1grpc.ValidationServiceServer {
-	return &validationServiceV1Server{eventSender: eventSender}
+func NewValidationServiceV1Server() bookv1grpc.ValidationServiceServer {
+	return &validationServiceV1Server{}
 }
 
 // Validate handles ValidationRequest and returns a mock ValidationResponse.
-func (s *validationServiceV1Server) Validation(ctx context.Context, req *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request: %s (Validation)", md.RequestID)
+func (s *validationServiceV1Server) Validation(_ context.Context, req *bookv1.ValidationRequest) (*bookv1.ValidationResponse, error) {
 	if req.ValidationObject == nil ||
 		req.ValidationObject.SearchIdentifier == nil ||
 		req.ValidationObject.SearchIdentifier.ResultId == 0 ||
@@ -73,7 +61,6 @@ func (s *validationServiceV1Server) Validation(ctx context.Context, req *bookv1.
 			Description: "price per night",
 		},
 	}
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return &response, nil
 }

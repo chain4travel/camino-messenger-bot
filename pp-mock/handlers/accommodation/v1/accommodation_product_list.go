@@ -5,35 +5,22 @@ package v1
 
 import (
 	"context"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 )
 
 var _ accommodationv1grpc.AccommodationProductListServiceServer = (*accommodationProductListV1Server)(nil)
 
-type accommodationProductListV1Server struct {
-	eventSender events.Sender
+type accommodationProductListV1Server struct{}
+
+func NewAccommodationProductListV1Server() accommodationv1grpc.AccommodationProductListServiceServer {
+	return &accommodationProductListV1Server{}
 }
 
-func NewAccommodationProductListV1Server(eventSender events.Sender) accommodationv1grpc.AccommodationProductListServiceServer {
-	return &accommodationProductListV1Server{eventSender: eventSender}
-}
-
-func (s *accommodationProductListV1Server) AccommodationProductList(ctx context.Context, req *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (Accommodation Product List): %s", md.RequestID)
-
+func (s *accommodationProductListV1Server) AccommodationProductList(_ context.Context, req *accommodationv1.AccommodationProductListRequest) (*accommodationv1.AccommodationProductListResponse, error) {
 	filteredProperties := filterPropertiesByLastModified(mockdata.PropertiesV1, req.GetModifiedAfter().AsTime())
 
 	response := &accommodationv1.AccommodationProductListResponse{
@@ -49,8 +36,6 @@ func (s *accommodationProductListV1Server) AccommodationProductList(ctx context.
 			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
 		}}
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return response, nil
 }

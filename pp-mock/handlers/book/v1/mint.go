@@ -5,39 +5,26 @@ package v1
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/config"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ bookv1grpc.MintServiceServer = (*mintServiceV1Server)(nil)
 
-type mintServiceV1Server struct {
-	eventSender events.Sender
+type mintServiceV1Server struct{}
+
+func NewMintServiceV1Server() bookv1grpc.MintServiceServer {
+	return &mintServiceV1Server{}
 }
 
-func NewMintServiceV1Server(eventSender events.Sender) bookv1grpc.MintServiceServer {
-	return &mintServiceV1Server{eventSender: eventSender}
-}
-
-func (s *mintServiceV1Server) Mint(ctx context.Context, req *bookv1.MintRequest) (*bookv1.MintResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (MintV1): %s", md.RequestID)
-
+func (s *mintServiceV1Server) Mint(_ context.Context, req *bookv1.MintRequest) (*bookv1.MintResponse, error) {
 	response := bookv1.MintResponse{
 		Header: &typesv1.ResponseHeader{
 			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
@@ -54,8 +41,6 @@ func (s *mintServiceV1Server) Mint(ctx context.Context, req *bookv1.MintRequest)
 			},
 		},
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return &response, nil
 }

@@ -6,40 +6,27 @@ package v2
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/big"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
 )
 
 var _ transportv2grpc.TransportSearchServiceServer = (*transportSearchV2Server)(nil)
 
-type transportSearchV2Server struct {
-	eventSender events.Sender
+type transportSearchV2Server struct{}
+
+func NewTransportSearchV2Server() transportv2grpc.TransportSearchServiceServer {
+	return &transportSearchV2Server{}
 }
 
-func NewTransportSearchV2Server(eventSender events.Sender) transportv2grpc.TransportSearchServiceServer {
-	return &transportSearchV2Server{eventSender: eventSender}
-}
-
-func (s *transportSearchV2Server) TransportSearch(ctx context.Context, req *transportv2.TransportSearchRequest) (*transportv2.TransportSearchResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request: %s (TransportSearch) v2", md.RequestID)
-
+func (s *transportSearchV2Server) TransportSearch(_ context.Context, req *transportv2.TransportSearchRequest) (*transportv2.TransportSearchResponse, error) {
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &transportv2.TransportSearchResponse{
@@ -203,8 +190,6 @@ func (s *transportSearchV2Server) TransportSearch(ctx context.Context, req *tran
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return response, nil
 }

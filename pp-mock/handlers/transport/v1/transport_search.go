@@ -6,39 +6,26 @@ package v1
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/big"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/google/uuid"
 )
 
 var _ transportv1grpc.TransportSearchServiceServer = (*transportSearchV1Server)(nil)
 
-type transportSearchV1Server struct {
-	eventSender events.Sender
+type transportSearchV1Server struct{}
+
+func NewTransportSearchV1Server() transportv1grpc.TransportSearchServiceServer {
+	return &transportSearchV1Server{}
 }
 
-func NewTransportSearchV1Server(eventSender events.Sender) transportv1grpc.TransportSearchServiceServer {
-	return &transportSearchV1Server{eventSender: eventSender}
-}
-
-func (s *transportSearchV1Server) TransportSearch(ctx context.Context, req *transportv1.TransportSearchRequest) (*transportv1.TransportSearchResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request: %s (TransportSearch) v1", md.RequestID)
-
+func (s *transportSearchV1Server) TransportSearch(_ context.Context, req *transportv1.TransportSearchRequest) (*transportv1.TransportSearchResponse, error) {
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &transportv1.TransportSearchResponse{
@@ -202,8 +189,6 @@ func (s *transportSearchV1Server) TransportSearch(ctx context.Context, req *tran
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return response, nil
 }

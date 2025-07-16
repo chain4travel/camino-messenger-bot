@@ -28,15 +28,15 @@ var tripsV3BasicJSON []byte
 var tripsV3ExtendedJSON []byte
 
 var (
-	PropertiesV1 []*accommodationv1.PropertyExtendedInfo
-	PropertiesV2 []*accommodationv2.PropertyExtendedInfo
-	PropertiesV3 []*accommodationv3.PropertyExtendedInfo
+	PropertiesV1 []*accommodationv1.PropertyExtendedInfo // used by product list, info and search
+	PropertiesV2 []*accommodationv2.PropertyExtendedInfo // used by product list, info and search
+	PropertiesV3 []*accommodationv3.PropertyExtendedInfo // used by product list, info and search
 
-	TripsV1 []*transportv1.Trip
-	TripsV2 []*transportv2.Trip
+	TripsV1 []*transportv1.Trip // used by search
+	TripsV2 []*transportv2.Trip // used by search
 
-	TripsBasicV3    []*transportv3.TripBasic
-	TripsExtendedV3 []*transportv3.TripExtended
+	TripsBasicV3    []*transportv3.TripBasic    // used by product list
+	TripsExtendedV3 []*transportv3.TripExtended // used by search
 )
 
 func init() {
@@ -263,5 +263,6 @@ func init() {
 			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
 		},
 	}
+
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }

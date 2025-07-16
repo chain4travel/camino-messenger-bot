@@ -5,17 +5,14 @@ package v3
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/config"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -23,23 +20,13 @@ import (
 
 var _ bookv3grpc.MintServiceServer = (*mintServiceV3Server)(nil)
 
-type mintServiceV3Server struct {
-	eventSender events.Sender
+type mintServiceV3Server struct{}
+
+func NewMintServiceV3Server() bookv3grpc.MintServiceServer {
+	return &mintServiceV3Server{}
 }
 
-func NewMintServiceV3Server(eventSender events.Sender) bookv3grpc.MintServiceServer {
-	return &mintServiceV3Server{eventSender: eventSender}
-}
-
-func (s *mintServiceV3Server) Mint(ctx context.Context, req *bookv3.MintRequest) (*bookv3.MintResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request (MintV3): %s", md.RequestID)
-
+func (s *mintServiceV3Server) Mint(_ context.Context, req *bookv3.MintRequest) (*bookv3.MintResponse, error) {
 	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
 	if !ok {
 		return &bookv3.MintResponse{
@@ -76,8 +63,6 @@ func (s *mintServiceV3Server) Mint(ctx context.Context, req *bookv3.MintRequest)
 		},
 		Cancellable: true,
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return &response, nil
 }

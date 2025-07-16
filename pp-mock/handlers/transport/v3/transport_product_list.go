@@ -5,35 +5,22 @@ package v3
 
 import (
 	"context"
-	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 )
 
 var _ transportv3grpc.TransportProductListServiceServer = (*transportProductListV3Server)(nil)
 
-type transportProductListV3Server struct {
-	eventSender events.Sender
+type transportProductListV3Server struct{}
+
+func NewTransportProductListV3Server() transportv3grpc.TransportProductListServiceServer {
+	return &transportProductListV3Server{}
 }
 
-func NewTransportProductListV3Server(eventSender events.Sender) transportv3grpc.TransportProductListServiceServer {
-	return &transportProductListV3Server{eventSender: eventSender}
-}
-
-func (s *transportProductListV3Server) TransportProductList(ctx context.Context, req *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
-	if err := s.eventSender.SendProtoEvent(req); err != nil {
-		log.Printf("error sending event: %v", err)
-	}
-
-	md := metadata.FromGRPCContext(ctx)
-
-	log.Printf("Responding to request: %s (TransportProductList)", md.RequestID)
-
+func (s *transportProductListV3Server) TransportProductList(_ context.Context, req *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
 	filteredTrips := filterPropertiesByLastModified(mockdata.TripsBasicV3, req.GetModifiedAfter().AsTime())
 
 	response := &transportv3.TransportProductListResponse{
@@ -49,8 +36,6 @@ func (s *transportProductListV3Server) TransportProductList(ctx context.Context,
 			Type:    typesv1.AlertType_ALERT_TYPE_INFO,
 		}}
 	}
-
-	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 
 	return response, nil
 }
