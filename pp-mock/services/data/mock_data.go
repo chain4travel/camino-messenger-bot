@@ -56,7 +56,7 @@ var activityV3JSON []byte
 var activityV3ExtendedJSON []byte
 
 //go:embed activityv3_search.json
-var activityV3SearchJSON []byte
+var activitySearchResultV3JSON []byte
 
 var (
 	PropertiesV1 []*accommodationv1.PropertyExtendedInfo // used by product list, info and search
@@ -128,7 +128,7 @@ func init() {
 	if err := json.Unmarshal(activityV3ExtendedJSON, &ActivityExtendedV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities extended v3: %w", err))
 	}
-	if err := json.Unmarshal(activityV3SearchJSON, &ActivitySearchResultV3); err != nil {
+	if err := json.Unmarshal(activitySearchResultV3JSON, &ActivitySearchResultV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities search v3: %w", err))
 	}
 
