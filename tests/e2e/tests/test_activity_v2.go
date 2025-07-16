@@ -5,6 +5,7 @@ package tests
 
 import (
 	"context"
+	"math/big"
 	"testing"
 	"time"
 
@@ -75,12 +76,12 @@ func (tt *TestActivityV2) Run(t *testing.T) {
 		// ERROR path: with travel period reversed it should return an error
 		tt.testActivityV2SearchServiceTravelPeriodReversed(ctx, t)
 	})
-	// t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-	// 	searchID, resultID, totalPrice := testActivityV2SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
-	// 	validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
-	// 	tokenID, price, _ := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
-	// 	verifyBookingTokenStateWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
-	// })
+	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
+		searchID, resultID, totalPrice := testActivityV2SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
+		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+		tokenID, price, _ := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+		verifyBookingTokenStateWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
+	})
 }
 
 func (tt *TestActivityV2) prepare(ctx context.Context, t *testing.T) {
@@ -330,82 +331,70 @@ func (tt *TestActivityV2) testActivityV2SearchServiceTravelPeriodReversed(ctx co
 	require.NotEmpty(t, resp.Header.Alerts, "unexpected empty response alerts")
 }
 
-// // Test search with a valid travel period. Expect valid search results.
-// func testActivityV2SearchServiceWithTravelPeriod(
-// 	ctx context.Context,
-// 	t *testing.T,
-// 	e *suite.Environment,
-// 	distributorBot *bot.Bot,
-// 	supplierBot *bot.Bot,
-// ) (
-// 	searchID string,
-// 	resultID int32,
-// 	totalPrice *big.Int,
-// ) {
-// 	const nights = 12                           // 12 nights
-// 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
-// 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+// Test search with a valid travel period. Expect valid search results.
+func testActivityV2SearchServiceWithTravelPeriod(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) (
+	searchID string,
+	resultID int32,
+	totalPrice *big.Int,
+) {
+	const nights = 12                           // 12 nights
+	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
-// 	req := &activityv2.ActivitySearchRequest{
-// 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-// 		Metadata: &typesv2.SearchRequestMetadata{
-// 			RequestId: &typesv1.UUID{Value: uuid.New().String()},
-// 		},
-// 		SearchParametersGeneric: &typesv2.SearchParameters{
-// 			Currency: &typesv2.Currency{Currency: &typesv2.Currency_NativeToken{}},
-// 		},
-// 		SearchParametersActivity: &activityv2.ActivitySearchParameters{
-// 			ProductCodes: []*typesv2.ProductCode{{Code: activityV2ProductCode}},
-// 			ServiceCodes: []string{"XO"},
-// 		},
-// 		TravelPeriod: &typesv1.TravelPeriod{
-// 			StartDate: common.TimeToDateV1(startDate),
-// 			EndDate:   common.TimeToDateV1(endDate),
-// 		},
-// 		Travellers: []*typesv2.BasicTraveller{
-// 			{
-// 				TravellerId: 0,
-// 				Type:        typesv2.TravellerType_TRAVELLER_TYPE_ADULT,
-// 				Birthdate:   &typesv1.Date{Year: 1990, Month: 1, Day: 1},
-// 				Nationality: typesv2.Country_COUNTRY_ES,
-// 			},
-// 		},
-// 	}
+	req := &activityv2.ActivitySearchRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+		Metadata: &typesv2.SearchRequestMetadata{
+			RequestId: &typesv1.UUID{Value: uuid.New().String()},
+		},
+		SearchParametersGeneric: &typesv2.SearchParameters{
+			Currency: &typesv2.Currency{
+				Currency: &typesv2.Currency_IsoCurrency{IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR},
+			},
+		},
+		SearchParametersActivity: &activityv2.ActivitySearchParameters{
+			ProductCodes: []*typesv2.ProductCode{{Code: "XPTFAOH15O"}},
+			ServiceCodes: []string{"XO"},
+		},
+		TravelPeriod: &typesv1.TravelPeriod{
+			StartDate: common.TimeToDateV1(startDate),
+			EndDate:   common.TimeToDateV1(endDate),
+		},
+		Travellers: []*typesv2.BasicTraveller{
+			{
+				TravellerId: 0,
+				Type:        typesv2.TravellerType_TRAVELLER_TYPE_ADULT,
+				Birthdate:   &typesv1.Date{Year: 1990, Month: 1, Day: 1},
+				Nationality: typesv2.Country_COUNTRY_ES,
+			},
+		},
+	}
 
-// 	resp, err := distributorBot.ActivitySearchServiceV2.ActivitySearch(
-// 		requestContext(ctx, supplierBot.CMAccountAddress()),
-// 		req,
-// 	)
-// 	require.NoError(t, err)
-// 	e.DebugPrintRequestResponse(req, resp)
+	resp, err := distributorBot.ActivitySearchServiceV2.ActivitySearch(
+		requestContext(ctx, supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	e.DebugPrintRequestResponse(req, resp)
 
-// 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-// 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-// 	// We expect results - check at least one exists
-// 	require.NotEmpty(t, resp.Results, "unexpected empty results in response")
+	require.Len(t, resp.Results, 1, "unexpected number of results in response")
+	require.Equal(t, resp.Results[0].ResultId, int32(1), "unexpected ResultId in response")
+	resultID = resp.Results[0].ResultId
+	resp.Results[0].ResultId = 0 // Reset ResultId for comparison with mock data
 
-// 	// Let's check if the first result is as expected
-// 	require.NotEmpty(t, resp.Results[0].ResultId, "unexpected empty response Results[0].ResultId")
-// 	require.NotEmpty(t, resp.Results[0].Info, "unexpected empty response Results[0].Info")
+	expectedActivity := activitySearchV2WithProductCode(t, mockdata.ActivitySearchResultV2, req.SearchParametersActivity.ProductCodes[0].Code)
+	require.True(t, proto.Equal(resp.Results[0], expectedActivity), "activity fields does not match expected mock data activity, but their product codes match (%s)", req.SearchParametersActivity.ProductCodes[0].Code)
 
-// 	// Extract the total price from the response
-// 	require.NotEmpty(t, resp.Results[0], "unexpected empty TotalPriceDetail")
-// 	require.NotEmpty(t, resp.Results[0].Price, "unexpected empty Price")
-
-// 	totalPrice = priceBigV2(t, resp.Results[0].Price)
-
-// 	// Check if this adds up with the total price of the unit // TODO@ copy pasted from accommodation v3, does it make sense here?
-// 	expectedTotalPrice := big.NewInt(0).Mul(common.DefaultPricePerNightNativeTokenBig, big.NewInt(nights))
-// 	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price: got %s, expected %s", totalPrice.String(), expectedTotalPrice.String())
-
-// 	// Now extract all the values needed for the validate step which comes next
-// 	require.NotEmpty(t, resp.Metadata, "unexpected empty response Metadata")
-// 	require.NotEmpty(t, resp.Metadata.SearchId, "unexpected empty response Metadata.SearchId")
-// 	require.NotEmpty(t, resp.Metadata.SearchId.Value, "unexpected empty response Metadata.SearchId.Value")
-
-// 	return resp.Metadata.SearchId.Value, resp.Results[0].ResultId, totalPrice
-// }
+	return resp.Metadata.SearchId.Value, resultID, priceBigV2(t, resp.Results[0].Price)
+}
 
 func activityV2WithProductCode(
 	t *testing.T,
@@ -432,5 +421,19 @@ func activityExtendedV2WithSupplierCode(
 		}
 	}
 	require.FailNow(t, "activity with supplier code not found", "supplier code: %s", supplierCode)
+	return nil
+}
+
+func activitySearchV2WithProductCode(
+	t *testing.T,
+	activities []*activityv2.ActivitySearchResult,
+	productCode string,
+) *activityv2.ActivitySearchResult {
+	for _, activity := range activities {
+		if activity.GetInfo().GetProductCode().GetCode() == productCode {
+			return activity
+		}
+	}
+	require.FailNow(t, "activity with product code not found", "product code: %s", productCode)
 	return nil
 }

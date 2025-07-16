@@ -14,6 +14,7 @@ import (
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 )
@@ -330,6 +331,51 @@ func init() {
 	TripsExtendedV3[2].Price.Currency = &typesv3.Currency{
 		Currency: &typesv3.Currency_IsoCurrency{
 			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+
+	// ActivitySearchV1[0]
+	ActivitySearchResultV1[0].Price.Currency = &typesv1.Currency{
+		Currency: &typesv1.Currency_IsoCurrency{
+			IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+	// ActivitySearchV1[1]
+	ActivitySearchResultV1[1].Price.Currency = &typesv1.Currency{
+		Currency: &typesv1.Currency_IsoCurrency{
+			IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+
+	// ActivitySearchV2[0]
+	ActivitySearchResultV2[0].Price.Currency = &typesv2.Currency{
+		Currency: &typesv2.Currency_IsoCurrency{
+			IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+	// ActivitySearchV2[1]
+	ActivitySearchResultV2[1].Price.Currency = &typesv2.Currency{
+		Currency: &typesv2.Currency_IsoCurrency{
+			IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+
+	// ActivitySearchV3[0]
+	ActivitySearchResultV3[0].Price.Currency = &typesv3.Currency{
+		Currency: &typesv3.Currency_IsoCurrency{
+			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+	// ActivitySearchV3[1]
+	ActivitySearchResultV3[1].Price.Currency = &typesv3.Currency{
+		Currency: &typesv3.Currency_IsoCurrency{
+			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+	// ActivitySearchV3[2]
+	ActivitySearchResultV3[2].Price.Currency = &typesv3.Currency{
+		Currency: &typesv3.Currency_IsoCurrency{
+			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_USD,
 		},
 	}
 
