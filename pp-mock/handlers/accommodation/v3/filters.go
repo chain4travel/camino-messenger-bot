@@ -117,8 +117,7 @@ func filterExtendedPropertiesByLanguage(
 			}
 		}
 
-		if (len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0) &&
-			!containsPropertyWithSupplierCode(filtered, property) {
+		if len(filteredDescriptions) > 0 || len(filteredRoomDescriptions) > 0 {
 			clonedProperty := common.CloneProto(property)
 			clonedProperty.LocalizedDescriptions = filteredDescriptions
 			clonedProperty.LocalizedRoomDescriptions = filteredRoomDescriptions
@@ -140,17 +139,4 @@ func filterPropertiesByLastModified(
 		}
 	}
 	return filtered
-}
-
-// Returns true if [properties] contains property with matching supplier code.
-func containsPropertyWithSupplierCode(
-	properties []*accommodationv3.PropertyExtendedInfo,
-	property *accommodationv3.PropertyExtendedInfo,
-) bool {
-	for _, p := range properties {
-		if proto.Equal(p.Property.SupplierCode, property.Property.SupplierCode) {
-			return true
-		}
-	}
-	return false
 }

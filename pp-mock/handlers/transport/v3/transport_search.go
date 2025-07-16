@@ -140,26 +140,6 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 					},
 				}, nil
 			}
-
-			searchParametersTransport := queryTrip.GetSearchParametersTransport()
-			if searchParametersTransport == nil {
-				continue
-			}
-
-			// Mock simplification: we're limiting mock example to work only with currencies,
-			// that have <= than 18 decimals in order to avoid adding blockchain interaction
-			// to pp mock (it would be needed to get erc20 token decimals)
-			if searchParametersTransport.GetMinPrice().GetDecimals() > price.NativeTokenDecimals { // 18 decimals
-				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: fmt.Sprintf("Invalid min price: decimals must be less than or equal to %d", price.NativeTokenDecimals),
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
-				}, nil
-			}
 		}
 	}
 
@@ -173,7 +153,16 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 	case *typesv3.Currency_IsoCurrency:
 		decimals = price.ISODecimals
 	default:
-		return nil, fmt.Errorf("unexpected currency type: %T", req.SearchParameters.Currency.Currency)
+		return &transportv3.TransportSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: "not supported currency type; only NativeToken and IsoCurrency are supported",
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+			Results: searchResults,
+		}, nil
 	}
 
 	tripsFilteredByCurrency := filterTripsByCurrency(mockdata.TripsExtendedV3, req.SearchParameters.Currency)
@@ -270,9 +259,6 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 		response.Metadata = &typesv3.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
-	}
-
-	if len(searchResults) > 0 {
 		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
 			NumResults:   len(searchResults),
 			NumTravelers: len(req.Queries[0].Travellers),

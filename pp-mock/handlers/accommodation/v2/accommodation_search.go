@@ -208,15 +208,14 @@ func (s *accommodationSearchV2Server) AccommodationSearch(_ context.Context, req
 		response.Metadata = &typesv2.SearchResponseMetadata{
 			SearchId: &typesv1.UUID{Value: uuid.New().String()},
 		}
+		state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
+			NumResults:   len(searchResults),
+			NumTravelers: len(req.Queries[0].Travellers),
+			Prices:       validationPrices,
+			JSONRequest:  req.String(),
+			JSONResponse: response.String(),
+		})
 	}
-
-	state.GetStore().AddSearchResult(response.Metadata.SearchId.Value, state.SearchData{
-		NumResults:   len(searchResults),
-		NumTravelers: len(req.Queries[0].Travellers),
-		Prices:       validationPrices,
-		JSONRequest:  req.String(),
-		JSONResponse: response.String(),
-	})
 
 	return response, nil
 }
