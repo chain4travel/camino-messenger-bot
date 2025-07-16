@@ -111,7 +111,6 @@ func (tt *TestActivityV1) prepare(ctx context.Context, t *testing.T) {
 
 // Simple product list request which shall return all activities. Checking if all are present
 func (tt *TestActivityV1) testActivityV1ProductListService(ctx context.Context, t *testing.T) {
-
 	req := &activityv1.ActivityProductListRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 	}
