@@ -184,13 +184,13 @@ func (tt *TestActivityV2) testActivityV2ProductInfoService(ctx context.Context, 
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Len(t, resp.Activities, len(mockdata.ActivityExtendedV1), "unexpected number of activities in response")
+	require.Len(t, resp.Activities, len(mockdata.ActivityExtendedV2), "unexpected number of activities in response")
 
-	expectedActivities := make([]*activityv2.ActivityExtendedInfo, 0, len(mockdata.ActivityExtendedV1))
+	expectedActivities := make([]*activityv2.ActivityExtendedInfo, 0, len(mockdata.ActivityExtendedV2))
 	for _, activity := range resp.Activities {
 		expectedActivities = append(expectedActivities, activityExtendedV2WithSupplierCode(t, mockdata.ActivityExtendedV2, activity.GetSupplierCode()))
 	}
-	require.Len(t, expectedActivities, len(mockdata.ActivityExtendedV1), "not all expected activities found in response")
+	require.Len(t, expectedActivities, len(mockdata.ActivityExtendedV2), "not all expected activities found in response")
 
 	for i, activity := range resp.Activities {
 		require.True(t, proto.Equal(activity, expectedActivities[i]), "activities[%d] fields does not match expected mock data activity, but their supplier codes match (%+v)", i, activity.GetSupplierCode().GetSupplierCode())
