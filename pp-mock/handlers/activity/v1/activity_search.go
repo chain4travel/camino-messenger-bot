@@ -25,7 +25,7 @@ func NewActivitySearchV1Server() activityv1grpc.ActivitySearchServiceServer {
 	return &activitySearchV1Server{}
 }
 
-func (s *activitySearchV1Server) ActivitySearch(ctx context.Context, req *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
+func (s *activitySearchV1Server) ActivitySearch(_ context.Context, req *activityv1.ActivitySearchRequest) (*activityv1.ActivitySearchResponse, error) {
 	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
 
 	// check if SearchParametersGeneric is nil or if Currency is nil

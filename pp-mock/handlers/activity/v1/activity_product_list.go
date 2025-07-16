@@ -21,7 +21,7 @@ func NewActivityProductListV1Server() activityv1grpc.ActivityProductListServiceS
 	return &activityProductListV1Server{}
 }
 
-func (s *activityProductListV1Server) ActivityProductList(ctx context.Context, req *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
+func (s *activityProductListV1Server) ActivityProductList(_ context.Context, req *activityv1.ActivityProductListRequest) (*activityv1.ActivityProductListResponse, error) {
 	filteredActivities := filterByLastModified(mockdata.ActivityV1, req.GetModifiedAfter().AsTime())
 
 	response := &activityv1.ActivityProductListResponse{

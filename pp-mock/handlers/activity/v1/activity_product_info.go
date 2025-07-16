@@ -21,7 +21,7 @@ func NewActivityProductInfoV1Server() activityv1grpc.ActivityProductInfoServiceS
 	return &activityProductInfoV1Server{}
 }
 
-func (s *activityProductInfoV1Server) ActivityProductInfo(ctx context.Context, req *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
+func (s *activityProductInfoV1Server) ActivityProductInfo(_ context.Context, req *activityv1.ActivityProductInfoRequest) (*activityv1.ActivityProductInfoResponse, error) {
 	filteredActivities := filterBySupplierCodes(mockdata.ActivityExtendedV1, req.SupplierCodes)
 	filteredActivities = filterExtendedByLastModified(filteredActivities, req.ModifiedAfter.AsTime())
 	filteredActivities = filterByLanguage(filteredActivities, req.Languages)
