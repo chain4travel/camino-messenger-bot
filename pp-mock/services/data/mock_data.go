@@ -68,17 +68,17 @@ var (
 	TripsBasicV3    []*transportv3.TripBasic    // used by product list
 	TripsExtendedV3 []*transportv3.TripExtended // used by search
 
-	ActivityV1             []*activityv1.Activity
-	ActivityExtendedV1     []*activityv1.ActivityExtendedInfo
-	ActivitySearchResultV1 []*activityv1.ActivitySearchResult
+	ActivityV1             []*activityv1.Activity             // used by product list
+	ActivityExtendedV1     []*activityv1.ActivityExtendedInfo // used by product info
+	ActivitySearchResultV1 []*activityv1.ActivitySearchResult // used by search
 
-	ActivityV2             []*activityv2.Activity
-	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo
-	ActivitySearchResultV2 []*activityv2.ActivitySearchResult
+	ActivityV2             []*activityv2.Activity             // used by product list
+	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo // used by product info
+	ActivitySearchResultV2 []*activityv2.ActivitySearchResult // used by search
 
-	ActivityV3             []*activityv3.Activity
-	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo
-	ActivitySearchResultV3 []*activityv3.ActivitySearchResult
+	ActivityV3             []*activityv3.Activity             // used by product list
+	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo // used by product info
+	ActivitySearchResultV3 []*activityv3.ActivitySearchResult // used by search
 )
 
 func init() {

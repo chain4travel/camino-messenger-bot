@@ -46,13 +46,13 @@ func filterExtendedByLastModified(
 }
 
 func filterByLastModified(
-	activities []*activityv1.ActivityExtendedInfo,
+	activities []*activityv1.Activity,
 	lastModified time.Time,
 ) []*activityv1.Activity {
 	filtered := []*activityv1.Activity{}
 	for _, activity := range activities {
-		if !activity.Activity.LastModified.AsTime().Before(lastModified) {
-			filtered = append(filtered, common.CloneProto(activity.Activity))
+		if !activity.LastModified.AsTime().Before(lastModified) {
+			filtered = append(filtered, common.CloneProto(activity))
 		}
 	}
 	return filtered

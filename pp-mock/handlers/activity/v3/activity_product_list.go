@@ -34,7 +34,7 @@ func (s *activityProductListV3Server) ActivityProductList(ctx context.Context, r
 
 	log.Printf("Responding to request (Activity Product List V3): %s", md.RequestID)
 
-	filteredActivities := filterByLastModified(mockdata.ActivityExtendedV3, req.GetModifiedAfter().AsTime())
+	filteredActivities := filterByLastModified(mockdata.ActivityV3, req.GetModifiedAfter().AsTime())
 
 	response := &activityv3.ActivityProductListResponse{
 		Header: &typesv1.ResponseHeader{
