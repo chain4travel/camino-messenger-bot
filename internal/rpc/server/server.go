@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
@@ -19,6 +18,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/utils/tls"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
+	"github.com/google/uuid"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 
@@ -108,10 +108,6 @@ type server struct {
 	readiness.UnimplementedReadinessServiceServer
 }
 
-func (*server) checkpoint() string {
-	return "request-gateway"
-}
-
 func (s *server) Start() (chan error, error) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.cfg.Port))
 	if err != nil {
@@ -146,8 +142,6 @@ func (s *server) Stop() {
 }
 
 func (s *server) HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
-	receivedRequestAt := time.Now()
-
 	recipientCMAccountAddress, err := s.getRecipientAddress(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recipient cm account address from request context: %w", err)
@@ -156,11 +150,11 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 	requestMsg := &types.Message{
 		Type:       requestType,
 		Content:    request,
-		RequestID:  "", // TODO@
+		RequestID:  uuid.New().String(),
 		Timestamps: metadata.Timestamps{},
 	}
 
-	requestMsg.Timestamps.StampOn(metadata.CheckpointP2PRequestReceived, receivedRequestAt)
+	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestReceived)
 
 	responseMsg, err := s.processor.SendRequestMessage(ctx, requestMsg, recipientCMAccountAddress)
 	if err != nil {

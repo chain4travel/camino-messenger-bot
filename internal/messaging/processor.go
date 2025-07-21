@@ -16,7 +16,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/encryption"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
@@ -121,10 +120,6 @@ type messageProcessor struct {
 	cmAccounts            cmaccounts.Service
 	responseHeaderHandler common.ResponseHeaderHandler
 	encoderDecoder        EncoderDecoder
-}
-
-func (*messageProcessor) checkpoint() string {
-	return "processor"
 }
 
 func (p *messageProcessor) Start(ctx context.Context) {
@@ -326,13 +321,24 @@ func (p *messageProcessor) respond(
 
 	p.logger.Infof("CMAccount %s is calling partner-plugin of the CMAccount %s", serviceFeeCheque.FromCMAccount, serviceFeeCheque.ToCMAccount)
 
-	ctx, responseMsg := p.callPartnerPluginAndGetResponse(
+	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToPP)
+
+	responseMsg, err := p.partnerPlugin.DoServiceRequest(
 		ctx,
 		requestMsg,
 		service,
 		serviceFeeCheque.FromCMAccount,
 		serviceFeeCheque.ToCMAccount,
 	)
+	if err != nil {
+		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
+		p.logger.Errorf(errMessage)
+		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
+	}
+
+	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageReceivedFromPP)
+
+	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botAddress, senderBotAddress)
 
@@ -349,36 +355,6 @@ func (p *messageProcessor) respond(
 	}
 
 	return p.messenger.SendMessage(ctx, encodedResponseMessage, senderBotAddress, networkFeeCheque)
-}
-
-func (p *messageProcessor) callPartnerPluginAndGetResponse(
-	ctx context.Context,
-	requestMsg *types.Message,
-	service rpc.Client,
-	fromCMAccount ethCommon.Address,
-	toCMAccount ethCommon.Address,
-) (context.Context, *types.Message) {
-	// 4) request message sent to pp // TODO@ trace
-
-	responseMsg, err := p.partnerPlugin.DoServiceRequest(
-		ctx,
-		requestMsg,
-		service,
-		fromCMAccount,
-		toCMAccount,
-	)
-	if err != nil {
-		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
-		p.logger.Errorf(errMessage)
-		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
-		return ctx, responseMsg
-	}
-
-	// 5) response message received from pp // TODO@ trace
-
-	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
-
-	return ctx, responseMsg
 }
 
 func (p *messageProcessor) forwardToHandler(msg *types.Message) error {

@@ -4,7 +4,7 @@
 package metadata
 
 import (
-	"maps"
+	"fmt"
 	"testing"
 	"time"
 
@@ -23,16 +23,14 @@ func TestTimestamps(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, timestamps, timestampsFromStr)
 
-	now := time.Now().Unix()
-	nowPlus100 := now + 100
+	before := time.Now().UnixMilli()
+	time.Sleep(time.Millisecond)
+	timestamps.Stamp(CheckpointP2PResponseSent)
+	time.Sleep(time.Millisecond)
+	after := time.Now().UnixMilli()
 
-	expectedTimestamps := Timestamps{}
-	maps.Copy(expectedTimestamps, timestamps)
-	expectedTimestamps["3-now"] = now
-	expectedTimestamps["4-now+100"] = nowPlus100
+	actual := timestamps[fmt.Sprintf("3-%s", CheckpointP2PResponseSent)]
 
-	timestamps.StampOn("now", now)
-	timestamps.StampOn("now+100", nowPlus100)
-
-	require.Equal(t, expectedTimestamps, timestamps)
+	require.Greater(t, actual, before)
+	require.Less(t, actual, after)
 }

@@ -230,7 +230,23 @@ See [README.MD](pp-mock/docs/README.md) for more information about partner plugi
 
 ## Tracing
 
-TODO@
+Response metadata ("timestamps" key) contains json with traced steps.
+
+In case of errors, some steps may be missing.
+
+Example with all steps:
+```json
+{
+   "0-p2p_request_received": 1740518819,
+   "1-p2p_request_message_sent_to_server": 1740518819,
+   "2-p2p_request_message_received_from_server": 1740518819,
+   "3-p2p_request_message_sent_to_pp": 1740518819,
+   "4-p2p_response_message_received_from_pp": 1740518819,
+   "5-p2p_response_message_sent_to_server": 1740518819,
+   "6-p2p_response_message_received_from_server": 1740518819,
+   "7-p2p_response_sent": 1740518819,
+}
+```
 
 ## E2E tests
 

@@ -12,6 +12,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/google/uuid"
 	"maunium.net/go/mautrix/event"
 )
 
@@ -34,7 +35,7 @@ func (b byChunkIndex) Less(i, j int) bool { return b[i].index < b[j].index }
 func (b byChunkIndex) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSignedMessage, sendTo common.Address, networkFeeCheque *cheques.SignedCheque) error {
-	messageID := "" // TODO@
+	messageID := uuid.New().String()
 
 	m.logger.Debugf("Sending message (id %s) to %s", messageID, sendTo)
 
