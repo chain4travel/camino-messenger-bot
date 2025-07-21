@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"go.uber.org/zap"
@@ -25,7 +24,6 @@ var _ messaging.Messenger = (*messenger)(nil)
 
 func NewMessenger(
 	logger *zap.SugaredLogger,
-	tracer tracing.Tracer,
 	matrixClient Client,
 	botKey *ecdsa.PrivateKey,
 	botUserID id.UserID,
@@ -39,7 +37,6 @@ func NewMessenger(
 	m := &messenger{
 		msgChannel:      make(chan messaging.EncodedSignedMessageWithSender),
 		logger:          logger,
-		tracer:          tracer,
 		client:          matrixClient,
 		rooms:           roomsCache,
 		chunkedMessages: make(map[string]*chunkedMessage),
@@ -68,7 +65,6 @@ type messenger struct {
 	syncerDoneChan  chan struct{}
 
 	logger *zap.SugaredLogger
-	tracer tracing.Tracer
 	client Client
 }
 

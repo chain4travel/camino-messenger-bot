@@ -41,7 +41,6 @@ type Config struct {
 
 	RPCServer     RPCServerConfig
 	PartnerPlugin PartnerPluginConfig
-	Tracing       TracingConfig
 	DB            SQLiteDBConfig
 	Matrix        MatrixConfig
 }
@@ -57,14 +56,6 @@ type SQLiteDBConfig struct {
 // ******* Common *******
 //
 //
-
-type TracingConfig struct {
-	Enabled  bool   `mapstructure:"enabled"`
-	Host     string `mapstructure:"host"`
-	Insecure bool   `mapstructure:"insecure"`
-	CertFile string `mapstructure:"cert_file"`
-	KeyFile  string `mapstructure:"key_file"`
-}
 
 type PartnerPluginConfig struct {
 	Enabled     bool   `mapstructure:"enabled"`
@@ -113,7 +104,6 @@ type UnparsedConfig struct {
 	RecordExpiration bool `mapstructure:"record_expiration"`
 
 	PartnerPlugin PartnerPluginConfig `mapstructure:"partner_plugin"`
-	Tracing       TracingConfig       `mapstructure:"tracing"`
 	RPCServer     RPCServerConfig     `mapstructure:"rpc_server"`
 
 	Matrix UnparsedMatrixConfig   `mapstructure:"matrix"`
@@ -132,7 +122,6 @@ func (cfg *Config) unparse() *UnparsedConfig {
 	return &UnparsedConfig{
 		DB:            cfg.DB.Common,
 		RPCServer:     cfg.RPCServer,
-		Tracing:       cfg.Tracing,
 		PartnerPlugin: cfg.PartnerPlugin,
 		Matrix: UnparsedMatrixConfig{
 			Host: cfg.Matrix.Host,

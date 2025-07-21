@@ -27,9 +27,3 @@ rpc_server:
     key_file: server-key.pem
     port: 9090
     unencrypted: true
-tracing:
-    cert_file: server-cert.pem
-    enabled: true
-    host: localhost:4317
-    insecure: true
-    key_file: server-key.pem

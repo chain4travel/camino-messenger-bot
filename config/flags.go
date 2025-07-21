@@ -36,13 +36,6 @@ func Flags() *pflag.FlagSet {
 	// DB config flags
 	flags.String("db.path", "cmb-db", "Path to database dir.")
 
-	// Tracing config flags
-	flags.Bool("tracing.enabled", false, "Whether tracing is enabled.")
-	flags.String("tracing.host", "localhost:4317", "The tracing host.")
-	flags.Bool("tracing.insecure", true, "Whether the tracing connection should be insecure.")
-	flags.String("tracing.cert_file", "", "The tracing certificate file.")
-	flags.String("tracing.key_file", "", "The tracing key file.")
-
 	// Partner plugin config flags
 	flags.Bool("partner_plugin.enabled", false, "Enable or disable the partner plugin rpc client. It must be enabled if bot's cm account supports at least one service.")
 	flags.String("partner_plugin.host", "localhost:50051", "partner plugin RPC server host.")

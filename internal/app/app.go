@@ -33,7 +33,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/server"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler"
 	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/v11/pkg/chequehandler/storage/sqlite"
@@ -66,22 +65,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	// tracer
-	var tracer tracing.Tracer
-	if cfg.Tracing.Enabled {
-		tracer, err = tracing.NewTracer(
-			ctx,
-			cfg.Tracing,
-			fmt.Sprintf("%s:%d", appName, cfg.RPCServer.Port),
-		)
-	} else {
-		tracer, err = tracing.NewNoOpTracer()
-	}
-	if err != nil {
-		logger.Errorf("Failed to initialize tracer: %v", err)
-		return nil, err
-	}
-
 	// partner-plugin rpc client
 	rpcClient, err := client.NewClient(cfg.PartnerPlugin, logger)
 	if err != nil {
@@ -106,7 +89,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	if cfg.PartnerPlugin.Enabled {
 		partnerPlugin = partnerplugin.New(
 			logger,
-			tracer,
 			rpcClient,
 			cfg.ResponseTimeout,
 		)
@@ -282,7 +264,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	matrixMessenger, err := messenger.NewMessenger(
 		logger,
-		tracer,
 		matrixClient,
 		cfg.BotKey,
 		botUserID,
@@ -323,7 +304,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.RPCServer,
 		logger,
 		responseHeaderHandler,
-		tracer,
 		messageProcessor,
 		serviceRegistry,
 		cancellationService,
@@ -354,7 +334,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		rpcServer:        rpcServer,
 		messageProcessor: messageProcessor,
 		messenger:        matrixMessenger,
-		tracer:           tracer,
 		botUserID:        botUserID,
 	}, nil
 }
@@ -362,7 +341,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 type App struct {
 	cfg              *config.Config
 	logger           *zap.SugaredLogger
-	tracer           tracing.Tracer
 	scheduler        scheduler.Scheduler
 	chequeHandler    chequehandler.ChequeHandler
 	eventListener    eventlistener.EventListener
@@ -374,13 +352,6 @@ type App struct {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	defer func() {
-		// we use background context, because we want to try to shutdown tracer gracefully regardless
-		if err := a.tracer.Shutdown(context.Background()); err != nil {
-			a.logger.Errorf("failed to shutdown tracer: %v", err)
-		}
-	}()
-
 	g, ctx := errgroup.WithContext(ctx) // error here will call ctx.cancel() and finish other Go-s
 
 	// run

@@ -150,7 +150,6 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 			},
 		},
 		RPCServer:     cfg.RPCServer,
-		Tracing:       cfg.Tracing,
 		PartnerPlugin: cfg.PartnerPlugin,
 		Matrix: MatrixConfig{
 			Host:  cfg.Matrix.Host,

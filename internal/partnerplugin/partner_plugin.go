@@ -14,8 +14,6 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/ethereum/go-ethereum/common"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	grpc_metadata "google.golang.org/grpc/metadata"
 
@@ -35,7 +33,7 @@ type PartnerPlugin interface {
 		serviceClient rpc.Client,
 		fromCMAccount common.Address,
 		toCMAccount common.Address,
-	) (context.Context, *types.Message, error)
+	) (*types.Message, error)
 
 	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
@@ -49,13 +47,11 @@ type PartnerPlugin interface {
 
 func New(
 	logger *zap.SugaredLogger,
-	tracer trace.Tracer,
 	rpcClient *client.RPCClient,
 	responseTimeout time.Duration,
 ) PartnerPlugin {
 	return &partnerPlugin{
 		logger:             logger,
-		tracer:             tracer,
 		notificationClient: notificationv2grpc.NewNotificationServiceClient(rpcClient.ClientConn),
 		responseTimeout:    responseTimeout,
 	}
@@ -63,7 +59,6 @@ func New(
 
 type partnerPlugin struct {
 	logger             *zap.SugaredLogger
-	tracer             trace.Tracer
 	notificationClient notificationv2grpc.NotificationServiceClient
 	responseTimeout    time.Duration
 }
@@ -74,14 +69,11 @@ func (p *partnerPlugin) DoServiceRequest(
 	serviceClient rpc.Client,
 	fromCMAccount common.Address,
 	toCMAccount common.Address,
-) (context.Context, *types.Message, error) {
+) (*types.Message, error) {
 	responseMsg := &types.Message{
 		RequestID:  requestMsg.RequestID,
 		Timestamps: requestMsg.Timestamps,
 	}
-
-	ctx, partnerPluginSpan := p.tracer.Start(ctx, "service.Call", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	defer partnerPluginSpan.End()
 
 	var err error
 	responseMsg.Content, responseMsg.Type, err = serviceClient.Call(grpc_metadata.NewOutgoingContext(ctx, grpc_metadata.Pairs(
@@ -90,10 +82,10 @@ func (p *partnerPlugin) DoServiceRequest(
 		metadata.KeySenderCMAccount, fromCMAccount.Hex(),
 	)), requestMsg.Content)
 	if err != nil {
-		return ctx, responseMsg, fmt.Errorf("error calling partner plugin service: %w", err)
+		return responseMsg, fmt.Errorf("error calling partner plugin service: %w", err)
 	}
 
-	return ctx, responseMsg, nil
+	return responseMsg, nil
 }
 
 func (p *partnerPlugin) TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {

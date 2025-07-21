@@ -21,9 +21,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
 	ethCommon "github.com/ethereum/go-ethereum/common"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -87,7 +84,6 @@ func NewMessageProcessor(
 	return &messageProcessor{
 		messenger:                           messenger,
 		logger:                              logger,
-		tracer:                              otel.GetTracerProvider().Tracer(""),
 		responseTimeout:                     responseTimeout, // for now applies to all request types
 		responseChannels:                    make(map[string]chan *types.Message),
 		serviceRegistry:                     registry,
@@ -115,7 +111,6 @@ type messageProcessor struct {
 
 	messenger             Messenger
 	logger                *zap.SugaredLogger
-	tracer                trace.Tracer
 	responseChannelsLock  sync.RWMutex
 	responseChannels      map[string]chan *types.Message
 	serviceRegistry       ServiceRegistry
@@ -196,7 +191,7 @@ func (p *messageProcessor) processIncomingMessage(
 
 	switch msgCategory {
 	case types.Request:
-		return p.respond(msg, serviceFeeCheque, senderBotAddress, sharedKey)
+		return p.respond(context.Background(), msg, serviceFeeCheque, senderBotAddress, sharedKey)
 	case types.Response:
 		return p.forwardToHandler(msg)
 	default:
@@ -275,9 +270,6 @@ func (p *messageProcessor) SendRequestMessage(
 		return nil, err
 	}
 
-	ctx, span := p.tracer.Start(ctx, "processor.Request", trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	defer span.End()
-
 	p.logger.Infof("Distributor: Bot %s is contacting bot %s of the CMaccount %s", p.botAddress, recipientBotAddr, recipientCMAccount.Hex())
 
 	if err := p.messenger.SendMessage(
@@ -288,9 +280,6 @@ func (p *messageProcessor) SendRequestMessage(
 	); err != nil {
 		return nil, err
 	}
-
-	ctx, responseSpan := p.tracer.Start(ctx, "processor.AwaitResponse", trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	defer responseSpan.End()
 
 	select {
 	case responseMsg := <-responseChan:
@@ -308,20 +297,13 @@ func (p *messageProcessor) SendRequestMessage(
 }
 
 func (p *messageProcessor) respond(
+	ctx context.Context,
 	requestMsg *types.Message,
 	serviceFeeCheque *cheques.SignedCheque,
 	senderBotAddress ethCommon.Address,
 	sharedKey encryption.Key,
 ) error {
 	p.logger.Debugf("Responding to request message %s (id %s) from bot %s", requestMsg.Type, requestMsg.RequestID, senderBotAddress.Hex())
-	traceID, err := trace.TraceIDFromHex(requestMsg.RequestID)
-	if err != nil {
-		p.logger.Warnf("failed to parse traceID from hex [requestID:%s]: %v", requestMsg.RequestID, err)
-	}
-
-	ctx := trace.ContextWithRemoteSpanContext(context.Background(), trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID}))
-	ctx, responseSpan := p.tracer.Start(ctx, "processor-response", trace.WithAttributes(attribute.String("type", string(requestMsg.Type))))
-	defer responseSpan.End()
 
 	service, supported := p.serviceRegistry.GetService(requestMsg.Type)
 	if !supported {
@@ -371,7 +353,7 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 ) (context.Context, *types.Message) {
 	requestMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", p.checkpoint(), "request"))
 
-	ctx, responseMsg, err := p.partnerPlugin.DoServiceRequest(
+	responseMsg, err := p.partnerPlugin.DoServiceRequest(
 		ctx,
 		requestMsg,
 		service,

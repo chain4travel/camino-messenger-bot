@@ -205,7 +205,6 @@ func (f *Factory) CreateBot(
 		DB: config.UnparsedSQLiteDBConfig{
 			DBPath: path.Join(botDir, "db"),
 		},
-		Tracing: config.TracingConfig{Enabled: false},
 	}
 
 	if err := os.RemoveAll(botDir); err != nil {

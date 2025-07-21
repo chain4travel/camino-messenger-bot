@@ -15,7 +15,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/tracing"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/utils/tls"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
@@ -25,7 +24,6 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpcMetadata "google.golang.org/grpc/metadata"
@@ -48,7 +46,6 @@ func NewServer(
 	cfg config.RPCServerConfig,
 	logger *zap.SugaredLogger,
 	responseHeaderHandler common.ResponseHeaderHandler,
-	tracer tracing.Tracer,
 	processor messaging.MessageProcessor,
 	serviceRegistry messaging.ServiceRegistry,
 	cancellationV1Service cancellationv1grpc.CancellationServiceServer,
@@ -73,7 +70,6 @@ func NewServer(
 		cfg:                   cfg,
 		logger:                logger,
 		responseHeaderHandler: responseHeaderHandler,
-		tracer:                tracer,
 		processor:             processor,
 		serviceRegistry:       serviceRegistry,
 	}
@@ -105,7 +101,6 @@ type server struct {
 	cfg                   config.RPCServerConfig
 	logger                *zap.SugaredLogger
 	responseHeaderHandler common.ResponseHeaderHandler
-	tracer                tracing.Tracer
 	processor             messaging.MessageProcessor
 	serviceRegistry       messaging.ServiceRegistry
 
@@ -150,9 +145,6 @@ func (s *server) Stop() {
 }
 
 func (s *server) HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
-	ctx, span := s.tracer.Start(ctx, "server.HandleMessageRequest", trace.WithSpanKind(trace.SpanKindServer))
-	defer span.End()
-
 	recipientCMAccountAddress, err := s.getRecipientAddress(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recipient cm account address from request context: %w", err)
@@ -161,7 +153,7 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 	requestMsg := &types.Message{
 		Type:       requestType,
 		Content:    request,
-		RequestID:  s.tracer.TraceIDForSpan(span).String(),
+		RequestID:  "", // TODO@
 		Timestamps: metadata.Timestamps{},
 	}
 
