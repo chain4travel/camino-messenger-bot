@@ -81,8 +81,9 @@ func TestProcessIncomingMessage(t *testing.T) {
 	networkFeeCMAccount := ethCommon.Address{6}
 
 	responseMessage := types.Message{
-		Type:      generated.PingServiceV1Response,
-		RequestID: requestID,
+		Type:       generated.PingServiceV1Response,
+		RequestID:  requestID,
+		Timestamps: metadata.Timestamps{},
 	}
 	encodedRespMsg := &EncodedSignedMessage{
 		ChunkedEncodedMessage: [][]byte{[]byte("chunk1"), []byte("chunk2")},
@@ -119,7 +120,10 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.serviceRegistry.EXPECT().GetService(args.msg.Type).Return(nil, false)
 			},
 			args: args{
-				msg:                    &types.Message{Type: generated.PingServiceV1Request},
+				msg: &types.Message{
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
+				},
 				serviceFeeCheque:       serviceFeeCheque,
 				senderBotAddress:       ethCommon.Address{},
 				senderCMAccountAddress: serviceFeeCheque.FromCMAccount,
@@ -133,7 +137,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.serviceRegistry.EXPECT().GetService(a.msg.Type).Return(rpcService, true)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
 				pArgs.chequeHandler.EXPECT().VerifyCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
-				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(context.Background(), &responseMessage, nil)
+				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(&responseMessage, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, &responseMessage, nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, respNetworkFeeCheque).Return(testErr)
@@ -157,7 +161,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.serviceRegistry.EXPECT().GetService(a.msg.Type).Return(rpcService, true)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
 				pArgs.chequeHandler.EXPECT().VerifyCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
-				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(context.Background(), &responseMessage, nil)
+				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(&responseMessage, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, &responseMessage, nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, respNetworkFeeCheque).Return(nil)
@@ -289,7 +293,8 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type: generated.PingServiceV1Request,
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
 				},
 				recipientCMAccount: recipientCMAccount,
 			},
@@ -307,7 +312,8 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type: generated.PingServiceV1Request,
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
 				},
 				recipientCMAccount: recipientCMAccount,
 			},
@@ -325,8 +331,9 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:      generated.PingServiceV1Request,
-					RequestID: requestID,
+					Type:       generated.PingServiceV1Request,
+					RequestID:  requestID,
+					Timestamps: metadata.Timestamps{},
 				},
 				recipientCMAccount: recipientCMAccount,
 			},
@@ -448,8 +455,9 @@ func TestStart(t *testing.T) {
 	serviceFee := big.NewInt(1)
 	respNetworkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
 	responseMessage := types.Message{
-		Type:      generated.PingServiceV1Response,
-		RequestID: requestMsg.RequestID,
+		Type:       generated.PingServiceV1Response,
+		RequestID:  requestMsg.RequestID,
+		Timestamps: metadata.Timestamps{},
 	}
 	encodedRespMsg := &EncodedSignedMessage{
 		ChunkedEncodedMessage: [][]byte{[]byte("chunk1"), []byte("chunk2")},
@@ -462,7 +470,7 @@ func TestStart(t *testing.T) {
 	serviceRegistry.EXPECT().GetService(requestMsg.Type).Return(rpcService, true)
 	cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
 	chequeHandler.EXPECT().VerifyCheque(m.Context, serviceFeeCheque, senderBot, serviceFee).Return(nil)
-	partnerPlugin.EXPECT().DoServiceRequest(m.Context, requestMsg, rpcService, serviceFeeCheque.FromCMAccount, serviceFeeCheque.ToCMAccount).Return(context.Background(), &responseMessage, nil)
+	partnerPlugin.EXPECT().DoServiceRequest(m.Context, requestMsg, rpcService, serviceFeeCheque.FromCMAccount, serviceFeeCheque.ToCMAccount).Return(&responseMessage, nil)
 	encoderDecoder.EXPECT().EncodeMessage(m.Context, &responseMessage, nil, senderBot, sharedKey).Return(encodedRespMsg, nil)
 	chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
 	messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBot, respNetworkFeeCheque).Return(nil)

@@ -81,7 +81,7 @@ func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSigne
 	return nil
 }
 
-func (m *messenger) signedMessageEventHandler(ctx context.Context, evt *event.Event) {
+func (m *messenger) signedMessageEventHandler(_ context.Context, evt *event.Event) {
 	defer func() {
 		if r := recover(); r != nil {
 			m.logger.Errorf("failed to process %s event, recovered from panic: %v", &matrix.EventTypeSignedMessage.Type, r)
@@ -111,7 +111,7 @@ func (m *messenger) signedMessageEventHandler(ctx context.Context, evt *event.Ev
 	m.msgChannel <- msg
 }
 
-func (m *messenger) messageChunkEventHandler(ctx context.Context, evt *event.Event) {
+func (m *messenger) messageChunkEventHandler(_ context.Context, evt *event.Event) {
 	defer func() {
 		if r := recover(); r != nil {
 			m.logger.Errorf("failed to process %s event, recovered from panic: %v", &matrix.EventTypeMessageChunk.Type, r)

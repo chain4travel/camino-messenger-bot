@@ -11,7 +11,6 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/matchers"
 	"github.com/stretchr/testify/require"
 
 	"go.uber.org/zap"
@@ -43,8 +42,8 @@ func TestGetRoomForRecipient(t *testing.T) {
 		"Create room fails": {
 			client: func(ctrl *gomock.Controller) *MockClient {
 				c := NewMockClient(ctrl)
-				c.EXPECT().JoinedRooms(matchers.Context).Return([]id.RoomID{}, nil)
-				c.EXPECT().CreateRoomForUser(matchers.Context, recipientUserID).Return(zeroRoomID, testErr)
+				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{}, nil)
+				c.EXPECT().CreateRoomForUser(ctx, recipientUserID).Return(zeroRoomID, testErr)
 				return c
 			},
 			recipient:   recipientUserID,
@@ -60,9 +59,9 @@ func TestGetRoomForRecipient(t *testing.T) {
 		"OK: room already established but not cached": {
 			client: func(ctrl *gomock.Controller) *MockClient {
 				c := NewMockClient(ctrl)
-				c.EXPECT().JoinedRooms(matchers.Context).Return([]id.RoomID{roomID1, roomID2}, nil)
-				c.EXPECT().IsUserJoinedRoom(matchers.Context, roomID1, recipientUserID).Return(false, nil)
-				c.EXPECT().IsUserJoinedRoom(matchers.Context, roomID2, recipientUserID).Return(true, nil)
+				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{roomID1, roomID2}, nil)
+				c.EXPECT().IsUserJoinedRoom(ctx, roomID1, recipientUserID).Return(false, nil)
+				c.EXPECT().IsUserJoinedRoom(ctx, roomID2, recipientUserID).Return(true, nil)
 				return c
 			},
 			recipient:      recipientUserID,
@@ -71,9 +70,9 @@ func TestGetRoomForRecipient(t *testing.T) {
 		"OK: room exists but recipient is not member so create new encrypted room created and invite user": {
 			client: func(ctrl *gomock.Controller) *MockClient {
 				c := NewMockClient(ctrl)
-				c.EXPECT().JoinedRooms(matchers.Context).Return([]id.RoomID{roomID1}, nil)
-				c.EXPECT().IsUserJoinedRoom(matchers.Context, roomID1, recipientUserID).Return(false, nil)
-				c.EXPECT().CreateRoomForUser(matchers.Context, recipientUserID).Return(roomID2, nil)
+				c.EXPECT().JoinedRooms(ctx).Return([]id.RoomID{roomID1}, nil)
+				c.EXPECT().IsUserJoinedRoom(ctx, roomID1, recipientUserID).Return(false, nil)
+				c.EXPECT().CreateRoomForUser(ctx, recipientUserID).Return(roomID2, nil)
 				return c
 			},
 			recipient:      recipientUserID,
