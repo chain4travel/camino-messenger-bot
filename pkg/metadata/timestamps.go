@@ -12,7 +12,6 @@ import (
 type Checkpoint string
 
 const (
-	CheckpointUnspecified                          = "unspecified"
 	CheckpointP2PRequestReceived                   = "p2p_request_received"
 	CheckpointP2PRequestMessageSentToServer        = "p2p_request_message_sent_to_server"
 	CheckpointP2PRequestMessageReceivedFromServer  = "p2p_request_message_received_from_server"

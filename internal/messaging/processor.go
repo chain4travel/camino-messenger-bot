@@ -258,7 +258,7 @@ func (p *messageProcessor) SendRequestMessage(
 		return nil, fmt.Errorf("failed to get encryption key: %w", err)
 	}
 
-	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageSentToServer)
+	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToServer)
 
 	encodedRequestMessage, err := p.encoderDecoder.EncodeMessage(ctx, requestMsg, serviceFeeCheque, recipientBotAddr, sharedKey)
 	if err != nil {
