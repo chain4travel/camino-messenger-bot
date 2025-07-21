@@ -56,12 +56,12 @@ func TimestampsFromString(s string) (Timestamps, error) {
 }
 
 func (t Timestamps) Stamp(checkpoint Checkpoint) {
-	t.StampOn(checkpoint, time.Now().UnixMilli())
+	t.StampOn(checkpoint, time.Now())
 }
 
-func (t Timestamps) StampOn(checkpoint Checkpoint, timestamp int64) {
+func (t Timestamps) StampOn(checkpoint Checkpoint, time time.Time) {
 	// order-checkpoint -> timestamp
-	t[fmt.Sprintf("%d-%d", len(t), checkpoint)] = timestamp
+	t[fmt.Sprintf("%d-%d", len(t), checkpoint)] = time.UnixMilli()
 }
 
 func (t Timestamps) MarshalToString() (string, error) {

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
@@ -145,6 +146,8 @@ func (s *server) Stop() {
 }
 
 func (s *server) HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+	receivedRequestAt := time.Now()
+
 	recipientCMAccountAddress, err := s.getRecipientAddress(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recipient cm account address from request context: %w", err)
@@ -157,7 +160,7 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 		Timestamps: metadata.Timestamps{},
 	}
 
-	requestMsg.Timestamps.StampOn(metadata.CheckpointP2PRequestReceived, span)
+	requestMsg.Timestamps.StampOn(metadata.CheckpointP2PRequestReceived, receivedRequestAt)
 
 	responseMsg, err := s.processor.SendRequestMessage(ctx, requestMsg, recipientCMAccountAddress)
 	if err != nil {
