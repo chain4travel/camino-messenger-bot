@@ -157,14 +157,14 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 		Timestamps: metadata.Timestamps{},
 	}
 
-	requestMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "received"))
+	requestMsg.Timestamps.StampOn(metadata.CheckpointP2PRequestReceived, span)
 
 	responseMsg, err := s.processor.SendRequestMessage(ctx, requestMsg, recipientCMAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("error sending request message: %w", err)
 	}
 
-	responseMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", s.checkpoint(), "processed"))
+	responseMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseSent)
 
 	timestampsStr, err := responseMsg.Timestamps.MarshalToString()
 	if err != nil {

@@ -9,6 +9,42 @@ import (
 	"time"
 )
 
+type Checkpoint int
+
+const (
+	CheckpointP2PRequestReceived Checkpoint = iota
+	CheckpointP2PRequestMessageSentToServer
+	CheckpointP2PRequestMessageReceivedFromServer
+	CheckpointP2PRequestMessageSentToPP
+	CheckpointP2PResponseMessageReceivedFromPP
+	CheckpointP2PResponseMessageSentToServer
+	CheckpointP2PResponseMessageReceivedFromServer
+	CheckpointP2PResponseSent
+)
+
+func (c Checkpoint) String() string {
+	switch c {
+	case CheckpointP2PRequestReceived:
+		return "p2p_request_received"
+	case CheckpointP2PRequestMessageSentToServer:
+		return "p2p_request_message_sent_to_server"
+	case CheckpointP2PRequestMessageReceivedFromServer:
+		return "p2p_request_message_received_from_server"
+	case CheckpointP2PRequestMessageSentToPP:
+		return "p2p_request_message_sent_to_pp"
+	case CheckpointP2PResponseMessageReceivedFromPP:
+		return "p2p_response_message_received_from_pp"
+	case CheckpointP2PResponseMessageSentToServer:
+		return "p2p_response_message_sent_to_server"
+	case CheckpointP2PResponseMessageReceivedFromServer:
+		return "p2p_response_message_received_from_server"
+	case CheckpointP2PResponseSent:
+		return "p2p_response_sent"
+	default:
+		return fmt.Sprintf("unknown_checkpoint_%d", c)
+	}
+}
+
 type Timestamps map[string]int64
 
 func TimestampsFromString(s string) (Timestamps, error) {
@@ -19,13 +55,13 @@ func TimestampsFromString(s string) (Timestamps, error) {
 	return timestamps, nil
 }
 
-func (t Timestamps) Stamp(checkpoint string) {
+func (t Timestamps) Stamp(checkpoint Checkpoint) {
 	t.StampOn(checkpoint, time.Now().UnixMilli())
 }
 
-func (t Timestamps) StampOn(checkpoint string, timestamp int64) {
-	idx := len(t) // for analysis' sake, we want to know the order of the checkpoints
-	t[fmt.Sprintf("%d-%s", idx, checkpoint)] = timestamp
+func (t Timestamps) StampOn(checkpoint Checkpoint, timestamp int64) {
+	// order-checkpoint -> timestamp
+	t[fmt.Sprintf("%d-%d", len(t), checkpoint)] = timestamp
 }
 
 func (t Timestamps) MarshalToString() (string, error) {

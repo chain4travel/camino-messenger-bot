@@ -158,6 +158,9 @@ func (p *messageProcessor) Start(ctx context.Context) {
 					}
 					p.logger.Debugf("Decoded message (%s, %s), processing", msg.Type, msg.RequestID)
 
+					// 3) request message received from matrix (before decoding, but after receiving all chunks or after decoding? timestamps are part of encrypted private data) // TODO@ trace
+					// 7) response message received from matrix (see (3)) // TODO@ trace
+
 					if err := p.processIncomingMessage(msg, serviceFeeCheque, encodedMessage.SenderBotAddress, encodedMessage.SenderCMAccountAddress, sharedKey); err != nil {
 						p.logger.Warnf("Could not process message: %v", err)
 						return
@@ -260,6 +263,8 @@ func (p *messageProcessor) SendRequestMessage(
 		return nil, fmt.Errorf("failed to get encryption key: %w", err)
 	}
 
+	// 2) request message sent to matrix (before encoding, because we need to write timestamp which is part of message) // TODO@ trace
+
 	encodedRequestMessage, err := p.encoderDecoder.EncodeMessage(ctx, requestMsg, serviceFeeCheque, recipientBotAddr, sharedKey)
 	if err != nil {
 		return nil, err
@@ -331,6 +336,8 @@ func (p *messageProcessor) respond(
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botAddress, senderBotAddress)
 
+	// 6) response message sent to matrix (see (2)) // TODO@ trace
+
 	encodedResponseMessage, err := p.encoderDecoder.EncodeMessage(ctx, responseMsg, nil, senderBotAddress, sharedKey)
 	if err != nil {
 		return err
@@ -351,6 +358,8 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 	fromCMAccount ethCommon.Address,
 	toCMAccount ethCommon.Address,
 ) (context.Context, *types.Message) {
+	// 4) request message sent to pp // TODO@ trace
+
 	requestMsg.Timestamps.Stamp(fmt.Sprintf("%s-%s", p.checkpoint(), "request"))
 
 	responseMsg, err := p.partnerPlugin.DoServiceRequest(
@@ -366,6 +375,8 @@ func (p *messageProcessor) callPartnerPluginAndGetResponse(
 		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
 		return ctx, responseMsg
 	}
+
+	// 5) response message received from pp // TODO@ trace
 
 	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
 
