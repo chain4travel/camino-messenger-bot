@@ -338,6 +338,7 @@ func (p *messageProcessor) respond(
 
 	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageReceivedFromPP)
 
+	// is is expected, that PrepareResponseMessage will correctly process failure responses
 	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botAddress, senderBotAddress)
