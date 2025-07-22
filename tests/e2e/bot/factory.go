@@ -63,9 +63,9 @@ type Factory struct {
 }
 
 type options struct {
-	skips               *Skip
-	cashInPeriodSeconds int64
-	services            []CMService
+	skips        *Skip
+	cashInConfig config.UnparsedCashInConfig
+	services     []CMService
 }
 
 type Option func(*options)
@@ -94,7 +94,7 @@ type Skip struct {
 }
 
 func WithCashInPeriod(cashInPeriodSeconds int64) Option {
-	return func(o *options) { o.cashInPeriodSeconds = cashInPeriodSeconds }
+	return func(o *options) { o.cashInConfig.Period = cashInPeriodSeconds }
 }
 
 func WithServices(services []CMService) Option {
@@ -113,8 +113,11 @@ func (f *Factory) CreateBot(
 	opts ...Option,
 ) (*Bot, error) {
 	options := &options{
-		skips:               &Skip{},
-		cashInPeriodSeconds: CashInPeriodSeconds, // 1h
+		skips: &Skip{},
+		cashInConfig: config.UnparsedCashInConfig{
+			Period:    CashInPeriodSeconds, // 1h
+			MinAmount: 1000000000000000000, // TODO@ default value
+		},
 	}
 	for _, opt := range opts {
 		opt(options)
@@ -192,7 +195,7 @@ func (f *Factory) CreateBot(
 		NetworkFeeRecipientCMAccountAddress: f.asb.NetworkFeeRecipientCMAccountAddress().Hex(),
 		ChequeExpirationTime:                3600 * 24 * 30 * 7, // 7 months
 		MinChequeDurationUntilExpiration:    3600 * 24 * 30 * 6, // 6 months
-		CashInPeriod:                        options.cashInPeriodSeconds,
+		CashIn:                              options.cashInConfig,
 		MaxAllowedServiceFee:                "1000000000000000000", // 1 CAM
 		ResponseTimeout:                     30000,                 // 30s
 		PartnerPlugin: config.PartnerPluginConfig{

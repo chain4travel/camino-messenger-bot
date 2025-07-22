@@ -297,6 +297,17 @@ func (ch *evmChequeHandler) VerifyAndStoreCheque(
 	return ch.storage.Commit(session)
 }
 
+// TODO@ cash in must happen either when time is reached or when there are enough funds
+// TODO@ scheduling no longer works, because if we skip schedule because of no funds, then we'll need to wait for the next schedule
+// TODO@ I think of something like events which will fire on:
+// TODO@   - scheduled time
+// TODO@   - funds accumulated
+// TODO@ then on each event we just check if all conditions are met and if so, do cash in
+//
+// TODO@ but here is issue with product requirements:
+// TODO@ we designed single min-cash-in-amount value and single cash-in-period value
+// TODO@ but funds value is actually per cheque, because we have 1 tx per each cm account - no sense in comparing value with sum from all cheques, as tx fee is deducted per cheque tx
+
 func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 	ch.logger.Debug("Cashing in...")
 	defer ch.logger.Debug("Finished cashing in")

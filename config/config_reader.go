@@ -165,9 +165,12 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		NetworkFeeRecipientCMAccountAddress: common.HexToAddress(cfg.NetworkFeeRecipientCMAccountAddress),
 		ChequeExpirationTime:                big.NewInt(0).SetUint64(cfg.ChequeExpirationTime),
 		MinChequeDurationUntilExpiration:    big.NewInt(0).SetUint64(cfg.MinChequeDurationUntilExpiration),
-		CashInPeriod:                        time.Duration(cfg.CashInPeriod) * time.Second,
-		MaxAllowedServiceFee:                maxAllowedServiceFee,
-		ResponseTimeout:                     time.Duration(cfg.ResponseTimeout) * time.Millisecond,
-		RecordExpiration:                    cfg.RecordExpiration,
+		CashIn: CashInConfig{
+			Period:    time.Duration(cfg.CashIn.Period) * time.Second,
+			MinAmount: cfg.CashIn.MinAmount,
+		},
+		MaxAllowedServiceFee: maxAllowedServiceFee,
+		ResponseTimeout:      time.Duration(cfg.ResponseTimeout) * time.Millisecond,
+		RecordExpiration:     cfg.RecordExpiration,
 	}, nil
 }

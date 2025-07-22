@@ -1,6 +1,8 @@
 booking_token_address: 0xe55E387F5474a012D1b048155E25ea78C7DBfBBC
 bot_key: b466d215f7bf0bcb3be3fc704c16ac5447008e24c2b17bb6c04994f2da850822
-cash_in_period: 86400
+cash_in:
+    min_amount: 1000000000000000000 # TODO@ verify
+    period: 604800 # TODO@ verify
 chain_rpc_url: wss://columbus.camino.network/ext/bc/C/ws
 cheque_expiration_time: 18144000
 cm_account_address: 0xe55E387F5474a012D1b048155E25ea78C7DBfBBC

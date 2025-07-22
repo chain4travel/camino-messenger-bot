@@ -407,7 +407,7 @@ func (a *App) Run(ctx context.Context) error {
 			}
 		})
 
-		if err := a.scheduler.Schedule(ctx, a.cfg.CashInPeriod, cashInJobName); err != nil {
+		if err := a.scheduler.Schedule(ctx, a.cfg.CashIn.Period, cashInJobName); err != nil {
 			return fmt.Errorf("failed to schedule cash in job: %w", err)
 		}
 		if err := a.scheduler.Start(ctx); err != nil {

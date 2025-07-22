@@ -29,9 +29,12 @@ func Flags() *pflag.FlagSet {
 	flags.String("network_fee_recipient_cm_account", "", "Network fee recipient CMAccount address.")
 	flags.Uint64("cheque_expiration_time", 3600*24*30*7, "Cheque expiration time (in seconds).")
 	flags.Uint64("min_cheque_duration_until_expiration", 3600*24*30*6, "Minimum valid duration until cheque expiration (in seconds).")
-	flags.Int64("cash_in_period", 3600*24, "Cash-in period (in seconds).")
 	flags.String("max_allowed_service_fee", "1000000000000000000", "Maximum allowed service fee (in aCAM).")
 	flags.Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
+
+	// Cash-in flags // TODO@ maybe move other cheque related flags here?
+	flags.Int64("cash_in_period", 3600*24, "Cash-in period (in seconds).")
+	flags.Uint64("min_cash_in_amount", 10000000000000000, "Minimum cash-in amount (in aCAM).") // TODO@ set default value; do comment in CAM
 
 	// DB config flags
 	flags.String("db.path", "cmb-db", "Path to database dir.")

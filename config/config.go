@@ -32,7 +32,6 @@ type Config struct {
 
 	ChequeExpirationTime             *big.Int // seconds
 	MinChequeDurationUntilExpiration *big.Int // seconds
-	CashInPeriod                     time.Duration
 	MaxAllowedServiceFee             *big.Int // aCAM
 
 	ResponseTimeout time.Duration
@@ -43,6 +42,7 @@ type Config struct {
 	PartnerPlugin PartnerPluginConfig
 	DB            SQLiteDBConfig
 	Matrix        MatrixConfig
+	CashIn        CashInConfig // TODO@ keep naming consistent with other cash-in config structs and flags
 }
 
 type SQLiteDBConfig struct {
@@ -51,6 +51,11 @@ type SQLiteDBConfig struct {
 	ChequeHandler          UnparsedSQLiteDBConfig
 	EventListener          UnparsedSQLiteDBConfig
 	MessagesEncoderDecoder UnparsedSQLiteDBConfig
+}
+
+type CashInConfig struct { // TODO@ keep naming consistent with other cash-in config structs and flags
+	Period    time.Duration `mapstructure:"period"`
+	MinAmount uint64        `mapstructure:"min_amount"` // aCAM // TODO@ clarify if its aCAM; maybe be do big int
 }
 
 // ******* Common *******
@@ -96,7 +101,6 @@ type UnparsedConfig struct {
 
 	ChequeExpirationTime             uint64 `mapstructure:"cheque_expiration_time"`               // seconds
 	MinChequeDurationUntilExpiration uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
-	CashInPeriod                     int64  `mapstructure:"cash_in_period"`                       // seconds
 	MaxAllowedServiceFee             string `mapstructure:"max_allowed_service_fee"`              // aCAM
 
 	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
@@ -106,8 +110,9 @@ type UnparsedConfig struct {
 	PartnerPlugin PartnerPluginConfig `mapstructure:"partner_plugin"`
 	RPCServer     RPCServerConfig     `mapstructure:"rpc_server"`
 
-	Matrix UnparsedMatrixConfig   `mapstructure:"matrix"`
 	DB     UnparsedSQLiteDBConfig `mapstructure:"db"`
+	Matrix UnparsedMatrixConfig   `mapstructure:"matrix"`
+	CashIn UnparsedCashInConfig   `mapstructure:"cash_in"` // TODO@ keep naming consistent with other cash-in config structs and flags
 }
 
 type UnparsedSQLiteDBConfig struct {
@@ -116,6 +121,11 @@ type UnparsedSQLiteDBConfig struct {
 
 type UnparsedMatrixConfig struct {
 	Host string `mapstructure:"host"`
+}
+
+type UnparsedCashInConfig struct { // TODO@ keep naming consistent with other cash-in config structs and flags
+	Period    int64  `mapstructure:"period"`     // seconds
+	MinAmount uint64 `mapstructure:"min_amount"` // aCAM // TODO@ clarify if its aCAM;
 }
 
 func (cfg *Config) unparse() *UnparsedConfig {
@@ -136,9 +146,12 @@ func (cfg *Config) unparse() *UnparsedConfig {
 		NetworkFeeRecipientCMAccountAddress: cfg.NetworkFeeRecipientCMAccountAddress.Hex(),
 		ChequeExpirationTime:                cfg.ChequeExpirationTime.Uint64(),
 		MinChequeDurationUntilExpiration:    cfg.MinChequeDurationUntilExpiration.Uint64(),
-		CashInPeriod:                        int64(cfg.CashInPeriod / time.Second),
-		MaxAllowedServiceFee:                cfg.MaxAllowedServiceFee.String(),
-		ResponseTimeout:                     int64(cfg.ResponseTimeout / time.Millisecond),
-		RecordExpiration:                    cfg.RecordExpiration,
+		CashIn: UnparsedCashInConfig{
+			Period:    int64(cfg.CashIn.Period / time.Second),
+			MinAmount: cfg.CashIn.MinAmount,
+		},
+		MaxAllowedServiceFee: cfg.MaxAllowedServiceFee.String(),
+		ResponseTimeout:      int64(cfg.ResponseTimeout / time.Millisecond),
+		RecordExpiration:     cfg.RecordExpiration,
 	}
 }
