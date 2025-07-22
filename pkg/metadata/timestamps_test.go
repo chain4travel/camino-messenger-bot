@@ -25,11 +25,11 @@ func TestTimestamps(t *testing.T) {
 
 	before := time.Now().UnixMilli()
 	time.Sleep(time.Millisecond)
-	timestamps.Stamp(CheckpointP2PResponseSent)
+	timestamps.Stamp(CheckpointGRPCResponseSent)
 	time.Sleep(time.Millisecond)
 	after := time.Now().UnixMilli()
 
-	actual := timestamps[fmt.Sprintf("3-%s", CheckpointP2PResponseSent)]
+	actual := timestamps[fmt.Sprintf("3-%s", CheckpointGRPCResponseSent)]
 
 	require.Greater(t, actual, before)
 	require.Less(t, actual, after)

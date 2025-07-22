@@ -78,7 +78,10 @@ func NewServer(
 	opts = append(opts, grpc.ChainUnaryInterceptor(
 		s.unaryRecoverInterceptor,
 		selector.UnaryServerInterceptor( // for all cancellationv1grpc methods
-			s.errorHandlingInterceptor,
+			chainUnaryServerInterceptors(
+				s.tracingInterceptor,
+				s.errorHandlingInterceptor,
+			),
 			selector.MatchFunc(func(_ context.Context, callMeta interceptors.CallMeta) bool {
 				return cancellationv1grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
 			}),
@@ -154,14 +157,14 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 		Timestamps: metadata.Timestamps{},
 	}
 
-	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestReceived)
+	requestMsg.Timestamps.Stamp(metadata.CheckpointGRPCRequestReceived)
 
 	responseMsg, err := s.processor.SendRequestMessage(ctx, requestMsg, recipientCMAccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("error sending request message: %w", err)
 	}
 
-	responseMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseSent)
+	responseMsg.Timestamps.Stamp(metadata.CheckpointGRPCResponseSent)
 
 	timestampsStr, err := responseMsg.Timestamps.MarshalToString()
 	if err != nil {
@@ -219,4 +222,41 @@ func (s *server) unaryRecoverInterceptor(ctx context.Context, req any, info *grp
 	}()
 
 	return handler(ctx, req)
+}
+
+// Not intended to be used with p2p services, as they are managing headers themselves.
+func (s *server) tracingInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	timestamps := metadata.Timestamps{}
+	timestamps.Stamp(metadata.CheckpointGRPCRequestReceived)
+
+	defer func() {
+		timestamps.Stamp(metadata.CheckpointGRPCResponseSent)
+
+		timestampsStr, err := timestamps.MarshalToString()
+		if err != nil {
+			s.logger.Errorf("error marshalling timestamps: %v", err)
+		}
+
+		if err := grpc.SendHeader(ctx, grpcMetadata.Pairs(
+			metadata.KeyTimestamps, timestampsStr,
+		)); err != nil {
+			s.logger.Errorf("failed to send header: %v", err)
+		}
+	}()
+
+	return handler(ctx, req)
+}
+
+func chainUnaryServerInterceptors(interceptors ...grpc.UnaryServerInterceptor) grpc.UnaryServerInterceptor {
+	composed := interceptors[len(interceptors)-1]
+	for i := len(interceptors) - 2; i >= 0; i-- {
+		interceptor := interceptors[i]
+		next := composed
+		composed = func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+			return interceptor(ctx, req, info, func(ctx2 context.Context, innerReq any) (any, error) {
+				return next(ctx2, innerReq, info, handler)
+			})
+		}
+	}
+	return composed
 }

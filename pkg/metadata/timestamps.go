@@ -12,14 +12,14 @@ import (
 type Checkpoint string
 
 const (
-	CheckpointP2PRequestReceived                   = "p2p_request_received"
+	CheckpointGRPCRequestReceived                  = "grpc_request_received"
 	CheckpointP2PRequestMessageSentToServer        = "p2p_request_message_sent_to_server"
 	CheckpointP2PRequestMessageReceivedFromServer  = "p2p_request_message_received_from_server"
 	CheckpointP2PRequestMessageSentToPP            = "p2p_request_message_sent_to_pp"
 	CheckpointP2PResponseMessageReceivedFromPP     = "p2p_response_message_received_from_pp"
 	CheckpointP2PResponseMessageSentToServer       = "p2p_response_message_sent_to_server"
 	CheckpointP2PResponseMessageReceivedFromServer = "p2p_response_message_received_from_server"
-	CheckpointP2PResponseSent                      = "p2p_response_sent"
+	CheckpointGRPCResponseSent                     = "grpc_response_sent"
 )
 
 type Timestamps map[string]int64
