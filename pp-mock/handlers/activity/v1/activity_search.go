@@ -20,7 +20,7 @@ var _ activityv1grpc.ActivitySearchServiceServer = (*activitySearchV1Server)(nil
 
 type activitySearchV1Server struct{}
 
-func NewActivitySearchV1Server() activityv1grpc.ActivitySearchServiceServer {
+func NewActivitySearchServer() activityv1grpc.ActivitySearchServiceServer {
 	return &activitySearchV1Server{}
 }
 
@@ -53,7 +53,7 @@ func (s *activitySearchV1Server) ActivitySearch(_ context.Context, req *activity
 		}, nil
 	}
 
-	if !common.IsTravelPeriodAllowed(req.TravelPeriod) {
+	if !common.IsTravelPeriodAllowedV1(req.TravelPeriod) {
 		return &activityv1.ActivitySearchResponse{
 			Header: &typesv1.ResponseHeader{
 				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,

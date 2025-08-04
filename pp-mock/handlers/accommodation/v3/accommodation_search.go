@@ -23,7 +23,7 @@ var _ accommodationv3grpc.AccommodationSearchServiceServer = (*accommodationSear
 
 type accommodationSearchV3Server struct{}
 
-func NewAccommodationSearchV3Server() accommodationv3grpc.AccommodationSearchServiceServer {
+func NewAccommodationSearchServer() accommodationv3grpc.AccommodationSearchServiceServer {
 	return &accommodationSearchV3Server{}
 }
 
@@ -69,7 +69,7 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 			}, nil
 		}
 
-		if !common.IsTravelPeriodAllowed(query.TravelPeriod) {
+		if !common.IsTravelPeriodAllowedV1(query.TravelPeriod) {
 			return &accommodationv3.AccommodationSearchResponse{
 				Header: &typesv1.ResponseHeader{
 					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
@@ -124,7 +124,7 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 		filteredProps = filterExtendedPropertiesBySupplierCodes(filteredProps, query.SearchParametersAccommodation.GetSupplierCodes())
 
 		// extract the duration of the travel period in days
-		duration := common.DaysBetweenDates(query.TravelPeriod.GetEndDate(), query.TravelPeriod.GetStartDate())
+		duration := common.DaysBetweenDatesV1(query.TravelPeriod.GetEndDate(), query.TravelPeriod.GetStartDate())
 
 		// generate search result
 		for _, prop := range filteredProps {

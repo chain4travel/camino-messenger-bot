@@ -21,7 +21,7 @@ var _ cancellationv1grpc.CheckCancellationServiceServer = (*checkCancellationV1S
 
 type checkCancellationV1Server struct{}
 
-func NewCheckCancellationV1Server() cancellationv1grpc.CheckCancellationServiceServer {
+func NewCheckCancellationServer() cancellationv1grpc.CheckCancellationServiceServer {
 	return &checkCancellationV1Server{}
 }
 

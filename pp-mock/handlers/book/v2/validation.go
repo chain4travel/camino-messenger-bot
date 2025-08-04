@@ -15,18 +15,14 @@ import (
 	"github.com/google/uuid"
 )
 
-// Ensure that ValidationServiceV1Server implements the ValidationServiceServer interface
 var _ bookv2grpc.ValidationServiceServer = (*validationServiceV2Server)(nil)
 
-// ValidationServiceV2Server is the server that provides Validation services.
 type validationServiceV2Server struct{}
 
-// NewValidationServiceV2Server creates a new ValidationServiceV2Server.
-func NewValidationServiceV2Server() bookv2grpc.ValidationServiceServer {
+func NewValidationServiceServer() bookv2grpc.ValidationServiceServer {
 	return &validationServiceV2Server{}
 }
 
-// Validate handles ValidationRequest and returns a mock ValidationResponse.
 func (s *validationServiceV2Server) Validation(_ context.Context, req *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
 	if req.ValidationObject == nil ||
 		req.ValidationObject.SearchIdentifier == nil ||

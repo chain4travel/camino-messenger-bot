@@ -50,6 +50,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
+	"buf.build/go/protovalidate"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"google.golang.org/grpc"
@@ -83,65 +84,66 @@ func Run() error {
 			eventSenderInterceptor(eventSender),
 			metadataExtractorInterceptor,
 			loggingInterceptor,
+			protoValidateInterceptor,
 		),
 	)
 
 	events_pb.RegisterEventsServiceServer(grpcServer, eventServer)
 
 	// Accommodation V1
-	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v1.NewAccommodationSearchV1Server())
-	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v1.NewAccommodationProductInfoV1Server())
-	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v1.NewAccommodationProductListV1Server())
+	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v1.NewAccommodationSearchServer())
+	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v1.NewAccommodationProductInfoServer())
+	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v1.NewAccommodationProductListServer())
 	// Accommodation V2
-	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v2.NewAccommodationSearchV2Server())
-	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v2.NewAccommodationProductInfoV2Server())
-	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v2.NewAccommodationProductListV2Server())
+	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v2.NewAccommodationSearchServer())
+	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v2.NewAccommodationProductInfoServer())
+	accommodationv2grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v2.NewAccommodationProductListServer())
 	// Accommodation V3
-	accommodationv3grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v3.NewAccommodationSearchV3Server())
-	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v3.NewAccommodationProductInfoV3Server())
-	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListV3Server())
+	accommodationv3grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v3.NewAccommodationSearchServer())
+	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v3.NewAccommodationProductInfoServer())
+	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListServer())
 
 	// Activity V1
-	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v1.NewActivityProductListV1Server())
-	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v1.NewActivityProductInfoV1Server())
-	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v1.NewActivitySearchV1Server())
+	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v1.NewActivityProductListServer())
+	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v1.NewActivityProductInfoServer())
+	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v1.NewActivitySearchServer())
 	// Activity V2
-	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v2.NewActivityProductListV2Server())
-	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v2.NewActivityProductInfoV2Server())
-	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v2.NewActivitySearchV2Server())
+	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v2.NewActivityProductListServer())
+	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v2.NewActivityProductInfoServer())
+	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v2.NewActivitySearchServer())
 	// Activity V3
-	activityv3grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v3.NewActivityProductListV3Server())
-	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v3.NewActivityProductInfoV3Server())
-	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v3.NewActivitySearchV3Server())
+	activityv3grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v3.NewActivityProductListServer())
+	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v3.NewActivityProductInfoServer())
+	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v3.NewActivitySearchServer())
 
 	// Book V1
-	bookv1grpc.RegisterMintServiceServer(grpcServer, book_v1.NewMintServiceV1Server())
-	bookv1grpc.RegisterValidationServiceServer(grpcServer, book_v1.NewValidationServiceV1Server())
+	bookv1grpc.RegisterMintServiceServer(grpcServer, book_v1.NewMintServiceServer())
+	bookv1grpc.RegisterValidationServiceServer(grpcServer, book_v1.NewValidationServiceServer())
 	// Book V2
-	bookv2grpc.RegisterMintServiceServer(grpcServer, book_v2.NewMintServiceV2Server())
-	bookv2grpc.RegisterValidationServiceServer(grpcServer, book_v2.NewValidationServiceV2Server())
+	bookv2grpc.RegisterMintServiceServer(grpcServer, book_v2.NewMintServiceServer())
+	bookv2grpc.RegisterValidationServiceServer(grpcServer, book_v2.NewValidationServiceServer())
 	// Book V3
-	bookv3grpc.RegisterMintServiceServer(grpcServer, book_v3.NewMintServiceV3Server())
-	bookv3grpc.RegisterValidationServiceServer(grpcServer, book_v3.NewValidationServiceV3Server())
+	bookv3grpc.RegisterMintServiceServer(grpcServer, book_v3.NewMintServiceServer())
+	bookv3grpc.RegisterValidationServiceServer(grpcServer, book_v3.NewValidationServiceServer())
 
 	// Ping V1
-	pingv1grpc.RegisterPingServiceServer(grpcServer, ping_v1.NewPingServiceV1Server())
+	pingv1grpc.RegisterPingServiceServer(grpcServer, ping_v1.NewPingServiceServer())
 
 	// Notification V1
-	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, notification_v1.NewNotificationServiceV1Server())
+	notificationv1grpc.RegisterNotificationServiceServer(grpcServer, notification_v1.NewNotificationServiceServer())
 	// Notification V2
-	notificationv2grpc.RegisterNotificationServiceServer(grpcServer, notification_v2.NewNotificationServiceV2Server())
+	notificationv2grpc.RegisterNotificationServiceServer(grpcServer, notification_v2.NewNotificationServiceServer())
 
 	// Transport V1
-	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v1.NewTransportSearchV1Server())
+	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v1.NewTransportSearchServer())
 	// Transport V2
-	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v2.NewTransportSearchV2Server())
+	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v2.NewTransportSearchServer())
 	// Transport V3
-	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, transport_v3.NewTransportProductListV3Server())
-	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v3.NewTransportSearchV3Server())
+	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, transport_v3.NewTransportProductListServer())
+	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v3.NewTransportSearchServer())
 
 	// Cancellation V1
-	cancellationv1grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v1.NewCheckCancellationV1Server())
+	cancellationv1grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v1.NewCheckCancellationServer())
 
 	reflection.Register(grpcServer)
 
@@ -207,5 +209,31 @@ func loggingInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo
 	callMeta := interceptors.NewServerCallMeta(info.FullMethod, nil, req)
 	log.Printf("CMAccount %s received request from CMAccount %s", md.RecipientCMAccount, md.SenderCMAccount)
 	log.Printf("Responding to %s: %s", callMeta.Service, md.RequestID)
-	return handler(ctx, req)
+	resp, err := handler(ctx, req)
+	if err != nil {
+		log.Printf("Error handling request: %v", err)
+	}
+	return resp, err
+}
+
+func protoValidateInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	protoReq, ok := req.(proto.Message)
+	if !ok {
+		return nil, fmt.Errorf("request is not a proto message: %T", req)
+	}
+	if err := protovalidate.Validate(protoReq); err != nil {
+		return nil, fmt.Errorf("request validation failed: %w", err)
+	}
+	resp, err := handler(ctx, req)
+	if err != nil {
+		return resp, err
+	}
+	protoResp, ok := resp.(proto.Message)
+	if !ok {
+		return nil, fmt.Errorf("response is not a proto message: %T", resp)
+	}
+	if err := protovalidate.Validate(protoResp); err != nil {
+		return nil, fmt.Errorf("response validation failed: %w", err)
+	}
+	return resp, nil
 }

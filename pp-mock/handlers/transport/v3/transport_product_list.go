@@ -16,7 +16,7 @@ var _ transportv3grpc.TransportProductListServiceServer = (*transportProductList
 
 type transportProductListV3Server struct{}
 
-func NewTransportProductListV3Server() transportv3grpc.TransportProductListServiceServer {
+func NewTransportProductListServer() transportv3grpc.TransportProductListServiceServer {
 	return &transportProductListV3Server{}
 }
 

@@ -17,7 +17,7 @@ var _ pingv1grpc.PingServiceServer = (*pingServiceV1Server)(nil)
 
 type pingServiceV1Server struct{}
 
-func NewPingServiceV1Server() pingv1grpc.PingServiceServer {
+func NewPingServiceServer() pingv1grpc.PingServiceServer {
 	return &pingServiceV1Server{}
 }
 

@@ -21,7 +21,7 @@ var _ transportv1grpc.TransportSearchServiceServer = (*transportSearchV1Server)(
 
 type transportSearchV1Server struct{}
 
-func NewTransportSearchV1Server() transportv1grpc.TransportSearchServiceServer {
+func NewTransportSearchServer() transportv1grpc.TransportSearchServiceServer {
 	return &transportSearchV1Server{}
 }
 
@@ -80,7 +80,7 @@ func (s *transportSearchV1Server) TransportSearch(_ context.Context, req *transp
 				}, nil
 			}
 
-			if queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValid(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
+			if queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValidV1(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
 				return &transportv1.TransportSearchResponse{
 					Header: &typesv1.ResponseHeader{
 						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,

@@ -381,3 +381,31 @@ func init() {
 
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }
+
+func unmarshalStrictAndValidate[T proto.Message](data []byte, destination *[]T, postUnmarshal func([]T)) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(destination); err != nil {
+		return fmt.Errorf("error unmarshaling data: %w", err)
+	}
+	if postUnmarshal != nil {
+		postUnmarshal(*destination)
+	}
+	for i, item := range *destination {
+		if err := protovalidate.Validate(item); err != nil {
+			return fmt.Errorf("error validating item %d: %w", i, err)
+		}
+	}
+	return nil
+}
+
+func overrideServiceCurrencies(service *typesv4.ServiceFact) {
+	service.PriceDetail.Price.Currency = &typesv4.Currency{
+		Currency: &typesv4.Currency_IsoCurrency{
+			IsoCurrency: typesv4.IsoCurrency_ISO_CURRENCY_EUR,
+		},
+	}
+	for _, detail := range service.Details {
+		overrideServiceCurrencies(detail)
+	}
+}

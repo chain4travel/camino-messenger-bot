@@ -16,7 +16,7 @@ var _ activityv3grpc.ActivityProductInfoServiceServer = (*activityProductInfoV3S
 
 type activityProductInfoV3Server struct{}
 
-func NewActivityProductInfoV3Server() activityv3grpc.ActivityProductInfoServiceServer {
+func NewActivityProductInfoServer() activityv3grpc.ActivityProductInfoServiceServer {
 	return &activityProductInfoV3Server{}
 }
 

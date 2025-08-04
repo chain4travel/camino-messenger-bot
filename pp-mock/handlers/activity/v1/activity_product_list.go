@@ -16,7 +16,7 @@ var _ activityv1grpc.ActivityProductListServiceServer = (*activityProductListV1S
 
 type activityProductListV1Server struct{}
 
-func NewActivityProductListV1Server() activityv1grpc.ActivityProductListServiceServer {
+func NewActivityProductListServer() activityv1grpc.ActivityProductListServiceServer {
 	return &activityProductListV1Server{}
 }
 

@@ -22,7 +22,7 @@ var _ bookv2grpc.MintServiceServer = (*mintServiceV2Server)(nil)
 
 type mintServiceV2Server struct{}
 
-func NewMintServiceV2Server() bookv2grpc.MintServiceServer {
+func NewMintServiceServer() bookv2grpc.MintServiceServer {
 	return &mintServiceV2Server{}
 }
 

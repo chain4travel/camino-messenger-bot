@@ -11,23 +11,18 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// Ensure that NotificationServiceV2Server implements the NotificationServiceServer interface
 var _ notificationv2grpc.NotificationServiceServer = (*notificationServiceV2Server)(nil)
 
-// NotificationServiceV2Server is the server that provides Notification services.
 type notificationServiceV2Server struct{}
 
-// NewNotificationServiceV2Server creates a new NotificationServiceV2Server.
-func NewNotificationServiceV2Server() notificationv2grpc.NotificationServiceServer {
+func NewNotificationServiceServer() notificationv2grpc.NotificationServiceServer {
 	return &notificationServiceV2Server{}
 }
 
-// TokenBoughtNotification handles TokenBoughtNotification and returns a mock TokenBoughtNotificationResponse.
 func (s *notificationServiceV2Server) TokenBoughtNotification(context.Context, *notificationv2.TokenBought) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, nil
 }
 
-// TokenExpiredNotification handles TokenExpiredNotification and returns a mock TokenExpiredNotificationResponse.
 func (s *notificationServiceV2Server) TokenExpiredNotification(context.Context, *notificationv2.TokenExpired) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, nil
 }

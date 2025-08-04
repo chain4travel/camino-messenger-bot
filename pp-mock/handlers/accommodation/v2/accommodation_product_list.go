@@ -16,7 +16,7 @@ var _ accommodationv2grpc.AccommodationProductListServiceServer = (*accommodatio
 
 type accommodationProductListV2Server struct{}
 
-func NewAccommodationProductListV2Server() accommodationv2grpc.AccommodationProductListServiceServer {
+func NewAccommodationProductListServer() accommodationv2grpc.AccommodationProductListServiceServer {
 	return &accommodationProductListV2Server{}
 }
 

@@ -10,6 +10,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"google.golang.org/protobuf/proto"
 )
@@ -42,8 +43,17 @@ func DateV1ToTime(date *typesv1.Date) time.Time {
 	return time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 0, 0, 0, 0, time.UTC)
 }
 
-func DaysBetweenDates(endDate, startDate *typesv1.Date) int64 {
+func DateV4ToTime(date *typesv4.Date) time.Time {
+	return time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 0, 0, 0, 0, time.UTC)
+}
+
+func DaysBetweenDatesV1(endDate, startDate *typesv1.Date) int64 {
 	duration := DateV1ToTime(endDate).Sub(DateV1ToTime(startDate))
+	return int64(duration / (time.Hour * 24))
+}
+
+func DaysBetweenDatesV4(endDate, startDate *typesv4.Date) int64 {
+	duration := DateV4ToTime(endDate).Sub(DateV4ToTime(startDate))
 	return int64(duration / (time.Hour * 24))
 }
 
@@ -55,21 +65,46 @@ func TimeToDateV1(time time.Time) *typesv1.Date {
 	}
 }
 
+func TimeToDateV4(time time.Time) *typesv4.Date {
+	return &typesv4.Date{
+		Year:  uint32(time.Year()),  //nolint:gosec
+		Month: uint32(time.Month()), //nolint:gosec
+		Day:   uint32(time.Day()),   //nolint:gosec
+	}
+}
+
 // only period between now + 60 days is allowed for bookings
-func IsTravelPeriodAllowed(travelPeriod *typesv1.TravelPeriod) bool {
+func IsTravelPeriodAllowedV1(travelPeriod *typesv1.TravelPeriod) bool {
 	startDate := time.Now()
 	endDate := time.Now().Add(time.Hour * 24 * 60) // 60 days from now
 
 	return DateV1ToTime(travelPeriod.StartDate).After(startDate) && DateV1ToTime(travelPeriod.EndDate).Before(endDate) && DateV1ToTime(travelPeriod.StartDate).Before(DateV1ToTime(travelPeriod.EndDate))
 }
 
-func AreTravelDatesValid(departureDate, arrivalDate *typesv1.Date) bool {
+// only period between now + 60 days is allowed for bookings
+func IsTravelPeriodAllowedV4(travelPeriod *typesv4.TravelPeriod) bool {
+	startDate := time.Now()
+	endDate := time.Now().Add(time.Hour * 24 * 60) // 60 days from now
+
+	return DateV4ToTime(travelPeriod.StartDate).After(startDate) && DateV4ToTime(travelPeriod.EndDate).Before(endDate) && DateV4ToTime(travelPeriod.StartDate).Before(DateV4ToTime(travelPeriod.EndDate))
+}
+
+func AreTravelDatesValidV1(departureDate, arrivalDate *typesv1.Date) bool {
 	if departureDate == nil || arrivalDate == nil {
 		return false
 	}
 
 	// Fail if departure is after arrival
 	return !DateV1ToTime(departureDate).After(DateV1ToTime(arrivalDate))
+}
+
+func AreTravelDatesValidV4(departureDate, arrivalDate *typesv4.Date) bool {
+	if departureDate == nil || arrivalDate == nil {
+		return false
+	}
+
+	// Fail if departure is after arrival
+	return !DateV4ToTime(departureDate).After(DateV4ToTime(arrivalDate))
 }
 
 // GetTravellerIDsV1 extracts traveller IDs from []*typesv1.BasicTraveller
@@ -93,6 +128,15 @@ func GetTravellerIDsV2(travellers []*typesv2.BasicTraveller) []int32 {
 // GetTravellerIDsV3 extracts traveller IDs from []*typesv3.BasicTraveller
 func GetTravellerIDsV3(travellers []*typesv3.BasicTraveller) []int32 {
 	ids := make([]int32, len(travellers))
+	for i, traveller := range travellers {
+		ids[i] = traveller.TravellerId
+	}
+	return ids
+}
+
+// GetTravellerIDsV4 extracts traveller IDs from []*typesv4.BasicTraveller
+func GetTravellerIDsV4(travellers []*typesv4.BasicTraveller) []uint32 {
+	ids := make([]uint32, len(travellers))
 	for i, traveller := range travellers {
 		ids[i] = traveller.TravellerId
 	}
