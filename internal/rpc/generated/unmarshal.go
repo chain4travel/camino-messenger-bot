@@ -6,22 +6,30 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v3"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v4"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -65,6 +73,18 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &accommodationv3.AccommodationSearchRequest{}
 	case AccommodationSearchServiceV3Response:
 		*destination = &accommodationv3.AccommodationSearchResponse{}
+	case AccommodationProductInfoServiceV4Request:
+		*destination = &accommodationv4.AccommodationProductInfoRequest{}
+	case AccommodationProductInfoServiceV4Response:
+		*destination = &accommodationv4.AccommodationProductInfoResponse{}
+	case AccommodationProductListServiceV4Request:
+		*destination = &accommodationv4.AccommodationProductListRequest{}
+	case AccommodationProductListServiceV4Response:
+		*destination = &accommodationv4.AccommodationProductListResponse{}
+	case AccommodationSearchServiceV4Request:
+		*destination = &accommodationv4.AccommodationSearchRequest{}
+	case AccommodationSearchServiceV4Response:
+		*destination = &accommodationv4.AccommodationSearchResponse{}
 	case ActivityProductInfoServiceV1Request:
 		*destination = &activityv1.ActivityProductInfoRequest{}
 	case ActivityProductInfoServiceV1Response:
@@ -101,6 +121,18 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &activityv3.ActivitySearchRequest{}
 	case ActivitySearchServiceV3Response:
 		*destination = &activityv3.ActivitySearchResponse{}
+	case ActivityProductInfoServiceV4Request:
+		*destination = &activityv4.ActivityProductInfoRequest{}
+	case ActivityProductInfoServiceV4Response:
+		*destination = &activityv4.ActivityProductInfoResponse{}
+	case ActivityProductListServiceV4Request:
+		*destination = &activityv4.ActivityProductListRequest{}
+	case ActivityProductListServiceV4Response:
+		*destination = &activityv4.ActivityProductListResponse{}
+	case ActivitySearchServiceV4Request:
+		*destination = &activityv4.ActivitySearchRequest{}
+	case ActivitySearchServiceV4Response:
+		*destination = &activityv4.ActivitySearchResponse{}
 	case MintServiceV1Request:
 		*destination = &bookv1.MintRequest{}
 	case MintServiceV1Response:
@@ -125,10 +157,22 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &bookv3.ValidationRequest{}
 	case ValidationServiceV3Response:
 		*destination = &bookv3.ValidationResponse{}
+	case MintServiceV4Request:
+		*destination = &bookv4.MintRequest{}
+	case MintServiceV4Response:
+		*destination = &bookv4.MintResponse{}
+	case ValidationServiceV4Request:
+		*destination = &bookv4.ValidationRequest{}
+	case ValidationServiceV4Response:
+		*destination = &bookv4.ValidationResponse{}
 	case CheckCancellationServiceV1Request:
 		*destination = &cancellationv1.CheckCancellationRequest{}
 	case CheckCancellationServiceV1Response:
 		*destination = &cancellationv1.CheckCancellationResponse{}
+	case CheckCancellationServiceV2Request:
+		*destination = &cancellationv2.CheckCancellationRequest{}
+	case CheckCancellationServiceV2Response:
+		*destination = &cancellationv2.CheckCancellationResponse{}
 	case CountryEntryRequirementsServiceV1Request:
 		*destination = &infov1.CountryEntryRequirementsRequest{}
 	case CountryEntryRequirementsServiceV1Response:
@@ -137,10 +181,18 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &infov2.CountryEntryRequirementsRequest{}
 	case CountryEntryRequirementsServiceV2Response:
 		*destination = &infov2.CountryEntryRequirementsResponse{}
+	case CountryEntryRequirementsServiceV3Request:
+		*destination = &infov3.CountryEntryRequirementsRequest{}
+	case CountryEntryRequirementsServiceV3Response:
+		*destination = &infov3.CountryEntryRequirementsResponse{}
 	case PingServiceV1Request:
 		*destination = &pingv1.PingRequest{}
 	case PingServiceV1Response:
 		*destination = &pingv1.PingResponse{}
+	case PingServiceV2Request:
+		*destination = &pingv2.PingRequest{}
+	case PingServiceV2Response:
+		*destination = &pingv2.PingResponse{}
 	case SeatMapAvailabilityServiceV1Request:
 		*destination = &seat_mapv1.SeatMapAvailabilityRequest{}
 	case SeatMapAvailabilityServiceV1Response:
@@ -165,6 +217,14 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &seat_mapv3.SeatMapRequest{}
 	case SeatMapServiceV3Response:
 		*destination = &seat_mapv3.SeatMapResponse{}
+	case SeatMapAvailabilityServiceV4Request:
+		*destination = &seat_mapv4.SeatMapAvailabilityRequest{}
+	case SeatMapAvailabilityServiceV4Response:
+		*destination = &seat_mapv4.SeatMapAvailabilityResponse{}
+	case SeatMapServiceV4Request:
+		*destination = &seat_mapv4.SeatMapRequest{}
+	case SeatMapServiceV4Response:
+		*destination = &seat_mapv4.SeatMapResponse{}
 	case TransportSearchServiceV1Request:
 		*destination = &transportv1.TransportSearchRequest{}
 	case TransportSearchServiceV1Response:
@@ -181,6 +241,14 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &transportv3.TransportSearchRequest{}
 	case TransportSearchServiceV3Response:
 		*destination = &transportv3.TransportSearchResponse{}
+	case TransportProductListServiceV4Request:
+		*destination = &transportv4.TransportProductListRequest{}
+	case TransportProductListServiceV4Response:
+		*destination = &transportv4.TransportProductListResponse{}
+	case TransportSearchServiceV4Request:
+		*destination = &transportv4.TransportSearchRequest{}
+	case TransportSearchServiceV4Response:
+		*destination = &transportv4.TransportSearchResponse{}
 	default:
 		return types.ErrUnknownMessageType
 	}
