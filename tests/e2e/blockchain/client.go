@@ -251,7 +251,7 @@ func (c *Client) Transfer(
 		return fmt.Errorf("failed to suggest gas price: %w", err)
 	}
 
-	nonce, err := c.ethClient.PendingNonceAt(ctx, crypto.PubkeyToAddress(from.PublicKey))
+	nonce, err := c.nextNonce(ctx, crypto.PubkeyToAddress(from.PublicKey))
 	if err != nil {
 		return fmt.Errorf("failed to get nonce: %w", err)
 	}
