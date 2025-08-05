@@ -115,8 +115,12 @@ func (e *Environment) CreatePartnerPlugin(
 	t *testing.T,
 ) *partnerplugin.PartnerPlugin {
 	t.Helper()
-	partnerPlugin, errChan, err := e.partnerPluginFactory.CreatePartnerPlugin(ctx)
+	partnerPlugin, err := e.partnerPluginFactory.CreatePartnerPlugin()
 	require.NoError(t, err)
+
+	errChan, err := partnerPlugin.Start(ctx)
+	require.NoError(t, err)
+
 	common.ExpectNoErrorAsync(t, errChan)
 	return partnerPlugin
 }

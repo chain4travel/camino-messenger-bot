@@ -11,17 +11,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/server"
+	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
+
+	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
-
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/server"
-	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot/generated"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 const requestTickerInterval = 500 * time.Millisecond
@@ -45,24 +45,26 @@ func newBot(
 }
 
 type Bot struct {
-	logger              *zap.SugaredLogger
-	pid                 int
+	logger *zap.SugaredLogger
+	mutex  sync.Mutex
+
 	cmAccountAddress    common.Address
-	logFile             *os.File
 	binPath             string
 	configPath          string
 	logPath             string
 	rpcConnectionString string
-	mutex               sync.Mutex
+
+	pid     int
+	logFile *os.File
 
 	*rpcClient
 }
 
 func (b *Bot) Start(ctx context.Context) (chan error, error) {
-	// Prepare log file for bot
-
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
+
+	// Prepare log file for bot
 
 	logFile, err := os.OpenFile(b.logPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {

@@ -15,16 +15,16 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"go.uber.org/zap"
-
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
 	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"go.uber.org/zap"
 )
 
 const CashInPeriodSeconds = 3600 // 1h
@@ -197,7 +197,7 @@ func (f *Factory) CreateBot(
 		ResponseTimeout:                     30000,                 // 30s
 		PartnerPlugin: config.PartnerPluginConfig{
 			Enabled:     partnerPlugin != nil,
-			Host:        partnerPlugin.Host(),
+			Host:        partnerPlugin.RPCClientConnectionString(),
 			Unencrypted: true,
 		},
 		RPCServer: config.RPCServerConfig{
