@@ -83,7 +83,7 @@ type Client struct {
 	adminContract               *contracts.CaminoAdmin
 
 	nonces      map[common.Address]uint64
-	noncesMutex sync.RWMutex
+	noncesMutex sync.Mutex
 }
 
 func (c *Client) ETHClient() *ethclient.Client {
