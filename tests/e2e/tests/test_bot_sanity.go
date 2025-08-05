@@ -5,6 +5,7 @@ package tests
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -103,33 +104,53 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 		botGenerated.MintServiceV3,
 	))
 
+	wg := sync.WaitGroup{}
+
 	// This bot does actually have the CM-Account and prefunding of the owner
 	// But only the bot registration is missing in the CM-Account
 	// With that the distributor bot should not be able to find the supplier bot
 	// and fail with an error in a later test
-	tt.supplierBotUnregistered = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
-		bot.WithSkips(&bot.Skip{BotRegistration: true}),
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.supplierBotUnregistered = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
+			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+			bot.WithSkips(&bot.Skip{BotRegistration: true}),
+		)
+	}()
 
 	// This bot does actually have the CM-Account and prefunding of the owner
 	// and is also registered in the CM-Account **BUT** the service registration
 	// is missing - this is checked by the bot but results only in a warning
 	// inside of the logs. We can later use this bot to check if the distributor
 	// bot acts correctly by rejecting this supplier bot as the required service is missing
-	tt.supplierBotNoServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
-		bot.WithSkips(&bot.Skip{ServiceRegistration: true}),
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.supplierBotNoServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
+			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+			bot.WithSkips(&bot.Skip{ServiceRegistration: true}),
+		)
+	}()
 
 	// All good here - just a different service used which should then
 	// fail in the later test
-	tt.supplierBotDifferentServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.MintServiceV3, Fee: 100}}),
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.supplierBotDifferentServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
+			bot.WithServices([]bot.CMService{{Name: botGenerated.MintServiceV3, Fee: 100}}),
+		)
+	}()
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+	}()
+
+	wg.Wait()
 }
 
 func testBotSanitySendCommonRequest(ctx context.Context, pingMessage string, distributorBot *bot.Bot, supplierBot *bot.Bot) error {

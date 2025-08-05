@@ -70,8 +70,8 @@ func (m *Manager) NewSession() *Session {
 	}
 }
 
-// Not safe for concurrent use.
 type Session struct {
+	mutex       sync.Mutex
 	manager     *Manager
 	lockedPorts []int32
 }
@@ -81,11 +81,18 @@ func (s *Session) GetNetworkPort() (int32, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	s.lockedPorts = append(s.lockedPorts, port)
 	return port, nil
 }
 
 func (s *Session) ReleaseResources() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	for _, port := range s.lockedPorts {
 		s.manager.releaseNetworkPort(port)
 	}

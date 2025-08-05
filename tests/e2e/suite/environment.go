@@ -26,7 +26,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
 )
 
-// Not safe for concurrent use.
 type Environment struct {
 	// used by tests; we don't bother to abstract it for safety, because its tests and we expect tests to not modify those fields
 	Logger        *zap.SugaredLogger
@@ -52,8 +51,13 @@ func (e *Environment) CreateBot(
 	opts ...bot.Option,
 ) *bot.Bot {
 	t.Helper()
-	bot, errChan, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
+
+	bot, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
 	require.NoError(t, err)
+
+	errChan, err := bot.Start(ctx)
+	require.NoError(t, err)
+
 	common.ExpectNoErrorAsync(t, errChan)
 	return bot
 }
@@ -64,8 +68,14 @@ func (e *Environment) CreateBotWithError(
 	partnerPlugin *partnerplugin.PartnerPlugin,
 	opts ...bot.Option,
 ) error {
-	_, _, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
-	return err
+	bot, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
+	if err != nil {
+		return fmt.Errorf("failed to create bot: %w", err)
+	}
+	if _, err := bot.Start(ctx); err != nil {
+		return fmt.Errorf("failed to start bot: %w", err)
+	}
+	return nil
 }
 
 func (e *Environment) CreateBotAwaitError(
@@ -78,8 +88,13 @@ func (e *Environment) CreateBotAwaitError(
 	opts ...bot.Option,
 ) {
 	t.Helper()
-	_, errChan, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
+
+	bot, err := e.botFactory.CreateBot(ctx, enableRPCServer, partnerPlugin, opts...)
 	require.NoError(t, err)
+
+	errChan, err := bot.Start(ctx)
+	require.NoError(t, err)
+
 	common.AwaitError(t, errChan, errorContains, timeout)
 }
 

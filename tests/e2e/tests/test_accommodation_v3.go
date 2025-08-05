@@ -6,6 +6,7 @@ package tests
 import (
 	"context"
 	"math/big"
+	"sync"
 	"testing"
 	"time"
 
@@ -93,21 +94,32 @@ func (tt *TestAccommodationV3) prepare(ctx context.Context, t *testing.T) {
 		botGenerated.MintServiceV2,
 	))
 
-	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	wg := sync.WaitGroup{}
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationProductListServiceV3, Fee: 100},
-			{Name: botGenerated.AccommodationProductInfoServiceV3, Fee: 110},
-			{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV2, Fee: 130},
-			{Name: botGenerated.MintServiceV2, Fee: 140},
-		}),
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+		tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+			bot.WithServices([]bot.CMService{
+				{Name: botGenerated.AccommodationProductListServiceV3, Fee: 100},
+				{Name: botGenerated.AccommodationProductInfoServiceV3, Fee: 110},
+				{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
+				{Name: botGenerated.ValidationServiceV2, Fee: 130},
+				{Name: botGenerated.MintServiceV2, Fee: 140},
+			}),
+		)
+	}()
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+	}()
+
+	wg.Wait()
 }
 
 // Simple product list request which shall return all properties. Checking if all are present

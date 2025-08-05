@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -52,12 +53,16 @@ type Bot struct {
 	configPath          string
 	logPath             string
 	rpcConnectionString string
+	mutex               sync.Mutex
 
 	*rpcClient
 }
 
 func (b *Bot) Start(ctx context.Context) (chan error, error) {
 	// Prepare log file for bot
+
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
 
 	logFile, err := os.OpenFile(b.logPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
@@ -123,6 +128,9 @@ func (b *Bot) Stop(ctx context.Context) error {
 		return nil
 	}
 
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
 	g := errgroup.Group{}
 	processStopped := make(chan struct{})
 	pid := b.pid
@@ -173,6 +181,9 @@ func (b *Bot) Stop(ctx context.Context) error {
 }
 
 func (b *Bot) Restart(ctx context.Context) (chan error, error) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
 	b.logger.Debugf("Restarting bot (pid %d)", b.pid)
 
 	oldPID := b.pid

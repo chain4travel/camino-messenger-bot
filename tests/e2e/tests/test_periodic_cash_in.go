@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sync"
 	"testing"
 	"time"
 
@@ -64,21 +65,32 @@ func (tt *TestCashIn) prepare(ctx context.Context, t *testing.T) {
 	// Register all the services needed for the tests
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
 
-	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
-
 	tt.pingFee = 5_000_000_000_000_000
 
+	wg := sync.WaitGroup{}
+
 	// bot with partnerPlugin and without rpc server (supplier)
-	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: tt.pingFee}}),
-		bot.WithCashInPeriod(tt.cashInPeriodSeconds), // cash-in every 10 seconds
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+		tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: tt.pingFee}}),
+			bot.WithCashInPeriod(tt.cashInPeriodSeconds), // cash-in every 10 seconds
+		)
+	}()
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	tt.distributorBot = tt.CreateBot(ctx, t, true, nil,
-		// has nothing to cash in, so we'll just check that nothing unexpected happens
-		bot.WithCashInPeriod(tt.cashInPeriodSeconds), // cash-in every 10 seconds
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.distributorBot = tt.CreateBot(ctx, t, true, nil,
+			// has nothing to cash in, so we'll just check that nothing unexpected happens
+			bot.WithCashInPeriod(tt.cashInPeriodSeconds), // cash-in every 10 seconds
+		)
+	}()
+
+	wg.Wait()
 }
 
 func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testing.T) {

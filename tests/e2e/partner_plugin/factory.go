@@ -47,10 +47,6 @@ type Factory struct {
 	partnerPlugins         []*PartnerPlugin
 }
 
-func (f *Factory) PartnerPluginsCount() int {
-	return len(f.partnerPlugins)
-}
-
 func (f *Factory) CreatePartnerPlugin(ctx context.Context) (*PartnerPlugin, chan error, error) {
 	port, err := f.resourceManagerSession.GetNetworkPort()
 	if err != nil {

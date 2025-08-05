@@ -5,6 +5,7 @@ package tests
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
@@ -65,30 +66,45 @@ func (tt *TestMintV2) prepare(ctx context.Context, t *testing.T) {
 		botGenerated.MintServiceV2,
 	))
 
-	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	wg := sync.WaitGroup{}
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV2, Fee: 130},
-			{Name: botGenerated.MintServiceV2, Fee: 140},
-		}),
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+		tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+			bot.WithServices([]bot.CMService{
+				{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
+				{Name: botGenerated.ValidationServiceV2, Fee: 130},
+				{Name: botGenerated.MintServiceV2, Fee: 140},
+			}),
+		)
+
+		var err error
+		tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)
+		require.NoError(t, err)
+	}()
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+	}()
 
 	// bot without partnerPlugin and with rpc server (distributor) but with the
 	// catch, that the bot account does not have funds to pay for the fees when
 	// trying to buy the booking token.
-	tt.distributorBotWithoutFunds = tt.CreateBot(ctx, t, true, nil,
-		bot.WithSkips(&bot.Skip{PrefundBot: true}),
-	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tt.distributorBotWithoutFunds = tt.CreateBot(ctx, t, true, nil,
+			bot.WithSkips(&bot.Skip{PrefundBot: true}),
+		)
+	}()
 
-	var err error
-	tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)
-	require.NoError(t, err)
+	wg.Wait()
 }
 
 func (tt *TestMintV2) testMintV2FullWorkflow(ctx context.Context, t *testing.T) {

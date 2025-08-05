@@ -33,6 +33,24 @@ type PartnerPlugin struct {
 	logFile      *os.File
 }
 
+func newPartnerPlugin(
+	logger *zap.SugaredLogger,
+	cmAccountAddress common.Address,
+	binPath string,
+	configPath string,
+	logPath string,
+	rpcConnectionString string,
+) *PartnerPlugin {
+	return &PartnerPlugin{
+		logger:       logger,
+		pid:          cmd.Process.Pid,
+		host:         hostURL,
+		pingClient:   pingv1grpc.NewPingServiceClient(clientConnection),
+		eventsClient: events.NewEventsServiceClient(clientConnection),
+		logFile:      logFile,
+	}
+}
+
 func (pp *PartnerPlugin) Host() string {
 	if pp == nil {
 		return ""
