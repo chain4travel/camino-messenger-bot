@@ -26,4 +26,4 @@ func TestGenerateRandomJSON(t *testing.T) {
 }
 
 // will run init() function to load mock data
-func TestMockData(t *testing.T) {}
+func TestMockData(*testing.T) {}

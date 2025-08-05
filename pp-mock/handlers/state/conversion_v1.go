@@ -3,7 +3,10 @@
 
 package state
 
-import typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+import (
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
+)
 
 func (p *UnifiedPrice) ExtractCurrencyV1() *typesv1.Currency {
 	switch {
@@ -33,7 +36,7 @@ func (p *UnifiedPrice) ToPriceV1() *typesv1.Price {
 	currency := p.ExtractCurrencyV1()
 	return &typesv1.Price{
 		Value:    p.Price,
-		Decimals: p.Decimals,
+		Decimals: conversion.MustUInt32ToInt32(p.Decimals),
 		Currency: currency,
 	}
 }
@@ -41,7 +44,7 @@ func (p *UnifiedPrice) ToPriceV1() *typesv1.Price {
 func PriceV1ToUnifiedPrice(price *typesv1.Price) *UnifiedPrice {
 	out := &UnifiedPrice{
 		Price:    price.Value,
-		Decimals: price.Decimals,
+		Decimals: conversion.MustInt32ToUInt32(price.Decimals),
 	}
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv1.Currency_NativeToken:

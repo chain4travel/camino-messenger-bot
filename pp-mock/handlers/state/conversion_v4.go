@@ -37,7 +37,7 @@ func (p *UnifiedPrice) ToPriceV4() *typesv4.Price {
 	currency := p.ExtractCurrencyV4()
 	return &typesv4.Price{
 		Value:    p.Price,
-		Decimals: uint32(p.Decimals),
+		Decimals: p.Decimals,
 		Currency: currency,
 	}
 }
@@ -45,7 +45,7 @@ func (p *UnifiedPrice) ToPriceV4() *typesv4.Price {
 func PriceV4ToUnifiedPrice(price *typesv4.Price) *UnifiedPrice {
 	out := &UnifiedPrice{
 		Price:    price.Value,
-		Decimals: int32(price.Decimals),
+		Decimals: price.Decimals,
 	}
 	switch currency := price.Currency.Currency.(type) {
 	case *typesv4.Currency_NativeToken:

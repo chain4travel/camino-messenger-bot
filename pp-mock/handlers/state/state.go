@@ -13,7 +13,7 @@ const entryTimeout = 10 * time.Minute
 
 type UnifiedPrice struct {
 	Price                string
-	Decimals             int32
+	Decimals             uint32
 	IsNative             bool
 	IsoCurrencyEnum      int32
 	TokenContractAddress string
