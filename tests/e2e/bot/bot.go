@@ -64,6 +64,10 @@ func (b *Bot) Start(ctx context.Context) (chan error, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
+	return b.start(ctx)
+}
+
+func (b *Bot) start(ctx context.Context) (chan error, error) {
 	// Prepare log file for bot
 
 	logFile, err := os.OpenFile(b.logPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
@@ -133,6 +137,10 @@ func (b *Bot) Stop(ctx context.Context) error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
+	return b.stop(ctx)
+}
+
+func (b *Bot) stop(ctx context.Context) error {
 	g := errgroup.Group{}
 	processStopped := make(chan struct{})
 	pid := b.pid
@@ -190,11 +198,11 @@ func (b *Bot) Restart(ctx context.Context) (chan error, error) {
 
 	oldPID := b.pid
 
-	if err := b.Stop(ctx); err != nil {
+	if err := b.stop(ctx); err != nil {
 		return nil, err
 	}
 
-	errChan, err := b.Start(ctx)
+	errChan, err := b.start(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start bot (old pid %d, new pid %d): %w", oldPID, b.pid, err)
 	}
