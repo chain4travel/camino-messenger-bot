@@ -8,6 +8,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -19,11 +20,13 @@ func NewNotificationServiceServer() notificationv2grpc.NotificationServiceServer
 	return &notificationServiceV2Server{}
 }
 
-func (s *notificationServiceV2Server) TokenBoughtNotification(context.Context, *notificationv2.TokenBought) (*emptypb.Empty, error) {
+func (s *notificationServiceV2Server) TokenBoughtNotification(_ context.Context, req *notificationv2.TokenBought) (*emptypb.Empty, error) {
+	state.GetStore().SetMintBought(req.MintId.Value, true)
 	return &emptypb.Empty{}, nil
 }
 
-func (s *notificationServiceV2Server) TokenExpiredNotification(context.Context, *notificationv2.TokenExpired) (*emptypb.Empty, error) {
+func (s *notificationServiceV2Server) TokenExpiredNotification(_ context.Context, req *notificationv2.TokenExpired) (*emptypb.Empty, error) {
+	state.GetStore().RemoveMintResult(req.MintId.Value)
 	return &emptypb.Empty{}, nil
 }
 

@@ -31,7 +31,7 @@ func mintBuyTokenV3(
 	supplierPPEventStream events.EventsService_SubscribeClient,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
-) (uint64, *typesv3.Price) {
+) (tokenID uint64, mintID string, bookingPrice *typesv3.Price) {
 	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, e, distributorBot, supplierBot) // see test_accommodation_v3.go
 	_, err := supplierPPEventStream.Recv()                                                                                     // skip AccommodationSearchRequest
 	require.NoError(t, err)
@@ -40,7 +40,7 @@ func mintBuyTokenV3(
 	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	tokenID, bookingPrice, _ := testMintV3(ctx, t, e, distributorBot, supplierBot, validationID)
+	tokenID, bookingPrice, mintID = testMintV3(ctx, t, e, distributorBot, supplierBot, validationID)
 	_, err = supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -50,7 +50,7 @@ func mintBuyTokenV3(
 	tokenBoughtNotification := &notificationv2.TokenBought{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
 
-	return tokenID, bookingPrice
+	return tokenID, mintID, bookingPrice
 }
 
 // validate

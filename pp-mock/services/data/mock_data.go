@@ -62,6 +62,17 @@ var activityV3ExtendedJSON []byte
 //go:embed activityv3_search.json
 var activitySearchResultV3JSON []byte
 
+//go:embed seatmapv3.json
+var seatMapV3JSON []byte
+
+//go:embed seatmap_availability_v3.json
+var seatMapAvailabilityV3JSON []byte
+
+const (
+	SeatMapTransportIndex = 0
+	SeatMapActivityIndex  = 1
+)
+
 var (
 	PropertiesV1 []*accommodationv1.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV2 []*accommodationv2.PropertyExtendedInfo // used by product list, info and search
@@ -84,6 +95,10 @@ var (
 	ActivityV3             []*activityv3.Activity             // used by product list
 	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo // used by product info
 	ActivitySearchResultV3 []*activityv3.ActivitySearchResult // used by search
+
+	SeatMapV3             []*typesv3.SeatMap          // used by seatMap
+	SeatMapAvailabilityV3 []*typesv3.SeatMapInventory // used by seatMapAvailability
+
 )
 
 func init() {
@@ -135,6 +150,12 @@ func init() {
 	if err := json.Unmarshal(activitySearchResultV3JSON, &ActivitySearchResultV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities search v3: %w", err))
 	}
+	// if err := json.Unmarshal(seatMapV3JSON, &SeatMapV3); err != nil {
+	// 	panic(fmt.Errorf("error unmarshaling seat map v3: %w", err))
+	// }
+	// if err := json.Unmarshal(seatMapAvailabilityV3JSON, &SeatMapAvailabilityV3); err != nil {
+	// 	panic(fmt.Errorf("error unmarshaling seat map availability v3: %w", err))
+	// }
 
 	// because protobuf location and price are one-of interface types,
 	// json unmarshaling won't work for them and will result in error

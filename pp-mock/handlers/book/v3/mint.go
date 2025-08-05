@@ -64,5 +64,7 @@ func (s *mintServiceV3Server) Mint(_ context.Context, req *bookv3.MintRequest) (
 		Cancellable: true,
 	}
 
+	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapIndex)
+
 	return &response, nil
 }

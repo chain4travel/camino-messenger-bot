@@ -265,6 +265,7 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: response.String(),
+			SeatMapIndex: mockdata.SeatMapTransportIndex,
 		})
 	}
 
