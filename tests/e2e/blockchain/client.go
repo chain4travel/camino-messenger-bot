@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"regexp"
 	"strings"
+	"sync"
 
 	e2ecommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
@@ -65,6 +66,7 @@ func newClient(
 		prefundedKeys: prefundedKeys,
 		adminKey:      adminKey,
 		adminContract: adminContract,
+		nonces:        make(map[common.Address]uint64),
 	}, nil
 }
 
@@ -79,6 +81,9 @@ type Client struct {
 	cmAccountManager            *cmaccountmanager.Cmaccountmanager
 	BookingToken                *bookingtoken.Bookingtoken
 	adminContract               *contracts.CaminoAdmin
+
+	nonces      map[common.Address]uint64
+	noncesMutex sync.RWMutex
 }
 
 func (c *Client) ETHClient() *ethclient.Client {
@@ -301,9 +306,15 @@ func (c *Client) SetKYC(ctx context.Context, account common.Address, isKYCVerifi
 }
 
 func (c *Client) transactor(ctx context.Context, key *ecdsa.PrivateKey, value *big.Int) (*bind.TransactOpts, error) {
+	nonce, err := c.nextNonce(ctx, crypto.PubkeyToAddress(key.PublicKey))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nonce: %w", err)
+	}
+
 	transactor, err := bind.NewKeyedTransactorWithChainID(key, c.ethChainID)
 	transactor.Context = ctx
 	transactor.Value = value
+	transactor.Nonce = new(big.Int).SetUint64(nonce)
 	return transactor, err
 }
 
@@ -345,14 +356,18 @@ func (c *Client) prepareAdmin(ctx context.Context) error {
 
 // TODO @evlekht we can use some kind of snapshotting to skip the process of deploying SCs if we'll use persistent network
 func (c *Client) prepareCMBContracts(ctx context.Context) error {
+	c.noncesMutex.Lock()
+	defer c.noncesMutex.Unlock()
+
 	adminAddress := crypto.PubkeyToAddress(c.adminKey.PublicKey)
 
 	// prepare contracts, will be done in 4 blocks
-	var err error
-	transactor, err := c.transactor(ctx, c.adminKey, common.Big0)
+
+	transactor, err := bind.NewKeyedTransactorWithChainID(c.adminKey, c.ethChainID)
 	if err != nil {
-		return fmt.Errorf("failed to create default transactor: %w", err)
+		return fmt.Errorf("failed to create transactor: %w", err)
 	}
+	transactor.Context = ctx
 
 	// prepare CM Account Manager proxy initialization data
 
@@ -552,5 +567,29 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	c.bookingTokenContractAddress = bookingTokenProxyAddress
 
+	nonce, err := c.ethClient.PendingNonceAt(ctx, adminAddress)
+	if err != nil {
+		return fmt.Errorf("failed to get nonce for admin address: %w", err)
+	}
+	c.nonces[adminAddress] = nonce
+
 	return nil
+}
+
+func (c *Client) nextNonce(ctx context.Context, addr common.Address) (uint64, error) {
+	c.noncesMutex.Lock()
+	defer c.noncesMutex.Unlock()
+
+	nonce, ok := c.nonces[addr]
+	if !ok {
+		var err error
+		nonce, err = c.ethClient.PendingNonceAt(ctx, addr)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get nonce for address %s: %w", addr.Hex(), err)
+		}
+	}
+
+	c.nonces[addr] = nonce + 1
+
+	return nonce, nil
 }

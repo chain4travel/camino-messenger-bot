@@ -115,6 +115,7 @@ func (e *Environment) CreatePartnerPlugin(
 	t *testing.T,
 ) *partnerplugin.PartnerPlugin {
 	t.Helper()
+
 	partnerPlugin, err := e.partnerPluginFactory.CreatePartnerPlugin()
 	require.NoError(t, err)
 
