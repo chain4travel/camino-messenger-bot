@@ -114,7 +114,7 @@ func (tt *TestCancellationV1) prepare(ctx context.Context, t *testing.T) {
 func (tt *TestCancellationV1) testCancellationV1DistributorInitiatesBasic(ctx context.Context, t *testing.T) {
 	// reasons are selected randomly, just to be unique among requests
 
-	tokenID, _, bookingPrice := mintBuyTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+	tokenID, bookingPrice := mintBuyTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 	refundAmount := common.CloneProto(bookingPrice)
 	time.Sleep(2 * time.Second)
 
@@ -145,7 +145,7 @@ func (tt *TestCancellationV1) testCancellationV1DistributorInitiatesBasic(ctx co
 func (tt *TestCancellationV1) testCancellationV1DistributorInitiates(ctx context.Context, t *testing.T) {
 	// reasons are selected randomly, just to be unique among requests
 
-	tokenID, _, bookingPrice := mintBuyTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+	tokenID, bookingPrice := mintBuyTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 	refundAmount := common.CloneProto(bookingPrice)
 	time.Sleep(2 * time.Second)
 
@@ -248,7 +248,7 @@ func (tt *TestCancellationV1) testCancellationV1SupplierInitiates(ctx context.Co
 	// reasons are selected randomly, just to be unique among requests
 
 	// making new booking so we can test different flow
-	tokenID, _, bookingPrice := mintBuyTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+	tokenID, bookingPrice := mintBuyTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 	refundAmount := common.CloneProto(bookingPrice)
 	time.Sleep(2 * time.Second)
 

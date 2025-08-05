@@ -18,6 +18,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/proto"
@@ -62,11 +63,11 @@ var activityV3ExtendedJSON []byte
 //go:embed activityv3_search.json
 var activitySearchResultV3JSON []byte
 
-//go:embed seatmapv3.json
-var seatMapV3JSON []byte
+//go:embed seatmapv4.json
+var seatMapV4JSON []byte
 
-//go:embed seatmap_availability_v3.json
-var seatMapAvailabilityV3JSON []byte
+//go:embed seatmap_availability_v4.json
+var seatMapAvailabilityV4JSON []byte
 
 const (
 	SeatMapTransportIndex = 0
@@ -96,8 +97,8 @@ var (
 	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo // used by product info
 	ActivitySearchResultV3 []*activityv3.ActivitySearchResult // used by search
 
-	SeatMapV3             []*typesv3.SeatMap          // used by seatMap
-	SeatMapAvailabilityV3 []*typesv3.SeatMapInventory // used by seatMapAvailability
+	SeatMapV4             []*typesv4.SeatMap          // used by seatMap
+	SeatMapAvailabilityV4 []*typesv4.SeatMapInventory // used by seatMapAvailability
 
 )
 
