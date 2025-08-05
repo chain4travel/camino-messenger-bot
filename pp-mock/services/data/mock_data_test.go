@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/sryoya/protorand"
 	"github.com/stretchr/testify/require"
 )
@@ -15,8 +15,8 @@ func TestGenerateRandomJSON(t *testing.T) {
 	// t.Skip() // comment this line to run util
 	pr := protorand.New()
 
-	protoMessageType := &typesv3.SeatMapInventory{} // set the type of the proto message you want to generate
-	pr.MaxCollectionElements = 1                    // set the maximum number of elements in arrays
+	protoMessageType := &typesv4.SeatMap{} // set the type of the proto message you want to generate
+	pr.MaxCollectionElements = 1           // set the maximum number of elements in arrays
 
 	fakeProtoMessage, err := pr.Gen(protoMessageType)
 	require.NoError(t, err)

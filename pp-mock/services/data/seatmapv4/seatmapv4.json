@@ -1,0 +1,23 @@
+{
+    "id" : "A320-STD-001",
+    "sections": [
+        {
+            "id": "J-20",
+            "names": [
+                {
+                    "text": "CABIN_CLASS_BUSINESS",
+                    "language": 9
+                }
+            ]
+        },
+        {
+            "id" : "Y-22",
+            "names": [
+                {
+                    "text": "CABIN_CLASS_ECONOMY",
+                    "language": 9
+                }
+            ]
+        }
+    ]
+}

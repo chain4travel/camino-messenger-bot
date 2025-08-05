@@ -28,7 +28,7 @@ import (
 	notification_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v1"
 	notification_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v2"
 	ping_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/ping/v1"
-	seat_map_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/seat_map/v3"
+	seat_map_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/seat_map/v4"
 	transport_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v1"
 	transport_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v2"
 	transport_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v3"
@@ -48,7 +48,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v3/seat_mapv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v4/seat_mapv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
@@ -144,9 +144,9 @@ func Run() error {
 	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, transport_v3.NewTransportProductListServer())
 	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v3.NewTransportSearchServer())
 
-	// SeatMap V3
-	seat_mapv3grpc.RegisterSeatMapServiceServer(grpcServer, seat_map_v3.NewSeatMapV3Server())
-	seat_mapv3grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, seat_map_v3.NewSeatMapAvailabilityV3Server())
+	// SeatMap V4
+	seat_mapv4grpc.RegisterSeatMapServiceServer(grpcServer, seat_map_v4.NewSeatMapServer())
+	seat_mapv4grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, seat_map_v4.NewSeatMapAvailabilityServer())
 
 	// Cancellation V1
 	cancellationv1grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v1.NewCheckCancellationServer())
