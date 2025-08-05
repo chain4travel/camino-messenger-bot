@@ -30,12 +30,12 @@ func NewFactory(
 	}
 }
 
-// Not safe for concurrent use.
 type Factory struct {
 	logger                 *zap.SugaredLogger
 	resourceManagerSession *resources.Session
 	dir                    string
 	binPath                string
+	mutex                  sync.Mutex
 	partnerPlugins         []*PartnerPlugin
 }
 
@@ -55,12 +55,19 @@ func (f *Factory) CreatePartnerPlugin() (*PartnerPlugin, error) {
 		port,
 		path.Join(f.dir, fmt.Sprintf("partner-plugin-%d.log", port)),
 	)
+
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
 	f.partnerPlugins = append(f.partnerPlugins, pp)
 
 	return pp, nil
 }
 
 func (f *Factory) StopPartnerPlugins(ctx context.Context) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
 	var errs []error
 	errsMx := sync.Mutex{}
 	wg := sync.WaitGroup{}

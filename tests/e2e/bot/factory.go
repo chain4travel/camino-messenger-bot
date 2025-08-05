@@ -49,7 +49,6 @@ func NewFactory(
 	}
 }
 
-// Not safe for concurrent use.
 type Factory struct {
 	logger                 *zap.SugaredLogger
 	resourceManagerSession *resources.Session
@@ -243,6 +242,9 @@ func (f *Factory) CreateBot(
 }
 
 func (f *Factory) StopBots(ctx context.Context) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
 	var errs []error
 	errsMx := sync.Mutex{}
 	wg := sync.WaitGroup{}
