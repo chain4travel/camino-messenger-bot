@@ -237,14 +237,14 @@ In case of errors, some steps may be missing.
 Example with all steps:
 ```json
 {
-   "0-p2p_request_received": 1740518819,
-   "1-p2p_request_message_sent_to_server": 1740518819,
-   "2-p2p_request_message_received_from_server": 1740518819,
-   "3-p2p_request_message_sent_to_pp": 1740518819,
-   "4-p2p_response_message_received_from_pp": 1740518819,
-   "5-p2p_response_message_sent_to_server": 1740518819,
-   "6-p2p_response_message_received_from_server": 1740518819,
-   "7-p2p_response_sent": 1740518819,
+   "0-p2p_request_received": 1740518819000,
+   "1-p2p_request_message_sent_to_server": 1740518819100,
+   "2-p2p_request_message_received_from_server": 1740518819200,
+   "3-p2p_request_message_sent_to_pp": 1740518819300,
+   "4-p2p_response_message_received_from_pp": 1740518819400,
+   "5-p2p_response_message_sent_to_server": 1740518819500,
+   "6-p2p_response_message_received_from_server": 1740518819600,
+   "7-p2p_response_sent": 1740518819700,
 }
 ```
 
