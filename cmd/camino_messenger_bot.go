@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/signal"
 	"syscall"
@@ -83,6 +84,11 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 
 	app, err := app.NewApp(ctx, cfg, logger)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			// if context is canceled, it means that the app was stopped by a signal
+			return nil
+		}
+
 		logger.Error(err)
 		return err
 	}
