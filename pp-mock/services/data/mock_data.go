@@ -107,6 +107,8 @@ var (
 )
 
 func init() {
+	var err error
+
 	// because protobuf location and price are one-of interface types,
 	// json unmarshaling won't work for them and will result in error
 	// so, as quick workaround, we are setting them manually
@@ -159,22 +161,18 @@ func init() {
 	if err := json.Unmarshal(activitySearchResultV3JSON, &ActivitySearchResultV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities search v3: %w", err))
 	}
-
-	var seatMapV4SeatList []*typesv4.SeatList
-	if err := unmarshalStrictAndValidate(seatMapV4SeatListJSON, &seatMapV4SeatList, nil); err != nil {
-		panic(fmt.Errorf("error unmarshaling seat map v4 seat list: %w", err))
+	SeatMapV4, err = unmarshalStrictAndValidate(seatMapV4JSON, func(seatMap []*typesv4.SeatMap) {
+		seatMapV4SeatList, err := unmarshalStrictAndValidate[*typesv4.SeatList](seatMapV4SeatListJSON, nil)
+		if err != nil {
+			panic(fmt.Errorf("error unmarshaling seat map v4 seat list: %w", err))
+		}
+		seatMap[0].Sections[0].SeatInfo = &typesv4.Section_SeatList{SeatList: seatMapV4SeatList[0]}
+		seatMap[0].Sections[1].SeatInfo = &typesv4.Section_SeatList{SeatList: seatMapV4SeatList[1]}
+	})
+	if err != nil {
+		panic(fmt.Errorf("error unmarshaling seat map v4: %w", err))
 	}
-	// if err := unmarshalStrictAndValidate(seatMapV4JSON, &SeatMapV4, func(seatMap []*typesv4.SeatMap) {
-	// 	var seatMapV4SeatList []*typesv4.SeatList
-	// 	if err := unmarshalStrictAndValidate(seatMapV4SeatListJSON, &seatMapV4SeatList, nil); err != nil {
-	// 		panic(fmt.Errorf("error unmarshaling seat map v4 seat list: %w", err))
-	// 	}
-	// 	seatMap[0].Sections[0].SeatInfo = &typesv4.Section_SeatList{SeatList: seatMapV4SeatList[0]}
-	// 	seatMap[0].Sections[1].SeatInfo = &typesv4.Section_SeatList{SeatList: seatMapV4SeatList[1]}
-	// }); err != nil {
-	// 	panic(fmt.Errorf("error unmarshaling seat map v4: %w", err))
-	// }
-	if err := unmarshalStrictAndValidate(seatMapAvailabilityV4JSON, &SeatMapAvailabilityV4, func(seatMapInventory []*typesv4.SeatMapInventory) {
+	SeatMapAvailabilityV4, err = unmarshalStrictAndValidate(seatMapAvailabilityV4JSON, func(seatMapInventory []*typesv4.SeatMapInventory) {
 		seatMapInventory[0].Sections[0].SeatInfo = &typesv4.SectionInventory_SeatList{
 			SeatList: &typesv4.SeatInventory{
 				Ids: []string{"1A", "1C", "1D", "1F"},
@@ -235,7 +233,8 @@ func init() {
 		seatMapInventory[0].Sections[3].SeatInfo = &typesv4.SectionInventory_SeatCount{
 			SeatCount: &wrapperspb.Int32Value{Value: 32},
 		}
-	}); err != nil {
+	})
+	if err != nil {
 		panic(fmt.Errorf("error unmarshaling seat map availability v4: %w", err))
 	}
 
@@ -485,21 +484,20 @@ func init() {
 	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
 }
 
-func unmarshalStrictAndValidate[T proto.Message](data []byte, destination *[]T, postUnmarshal func([]T)) error {
+func unmarshalStrictAndValidate[T proto.Message](data []byte, postUnmarshal func([]T)) ([]T, error) {
+	var destination []T
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(destination); err != nil {
-		return fmt.Errorf("error unmarshaling data: %w", err)
+	if err := decoder.Decode(&destination); err != nil {
+		return nil, fmt.Errorf("error unmarshaling data: %w", err)
 	}
 	if postUnmarshal != nil {
-		postUnmarshal(*destination)
+		postUnmarshal(destination)
 	}
-	list := *destination
-	for i, item := range list {
+	for i, item := range destination {
 		if err := protovalidate.Validate(item); err != nil {
-			return fmt.Errorf("error validating item %d: %w", i, err)
+			return nil, fmt.Errorf("error validating item %d: %w", i, err)
 		}
 	}
-	destination = &list
-	return nil
+	return destination, nil
 }
