@@ -22,6 +22,7 @@ import (
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 //go:embed properties.json
@@ -65,6 +66,9 @@ var activitySearchResultV3JSON []byte
 
 //go:embed seatmapv4/seatmapv4.json
 var seatMapV4JSON []byte
+
+//go:embed seatmapv4/seatmapv4_seat_list.json
+var seatMapV4SeatListJSON []byte
 
 //go:embed seatmapv4/seatmap_availability_v4.json
 var seatMapAvailabilityV4JSON []byte
@@ -155,28 +159,38 @@ func init() {
 	if err := json.Unmarshal(activitySearchResultV3JSON, &ActivitySearchResultV3); err != nil {
 		panic(fmt.Errorf("error unmarshaling activities search v3: %w", err))
 	}
-	// if err := unmarshalStrictAndValidate(seatMapV4JSON, &SeatMapV4, func(seatMapV4 []*typesv4.SeatMap) {
-	// 	// TODO@
+
+	var seatMapV4SeatList []*typesv4.SeatList
+	if err := unmarshalStrictAndValidate(seatMapV4SeatListJSON, &seatMapV4SeatList, nil); err != nil {
+		panic(fmt.Errorf("error unmarshaling seat map v4 seat list: %w", err))
+	}
+	// if err := unmarshalStrictAndValidate(seatMapV4JSON, &SeatMapV4, func(seatMap []*typesv4.SeatMap) {
+	// 	var seatMapV4SeatList []*typesv4.SeatList
+	// 	if err := unmarshalStrictAndValidate(seatMapV4SeatListJSON, &seatMapV4SeatList, nil); err != nil {
+	// 		panic(fmt.Errorf("error unmarshaling seat map v4 seat list: %w", err))
+	// 	}
+	// 	seatMap[0].Sections[0].SeatInfo = &typesv4.Section_SeatList{SeatList: seatMapV4SeatList[0]}
+	// 	seatMap[0].Sections[1].SeatInfo = &typesv4.Section_SeatList{SeatList: seatMapV4SeatList[1]}
 	// }); err != nil {
 	// 	panic(fmt.Errorf("error unmarshaling seat map v4: %w", err))
 	// }
-	if err := unmarshalStrictAndValidate(seatMapAvailabilityV4JSON, &SeatMapAvailabilityV4, func(seatMapAvailabilityV4 []*typesv4.SeatMapInventory) {
-		seatMapAvailabilityV4[0].Sections[0].SeatInfo = &typesv4.SectionInventory_SeatList{
+	if err := unmarshalStrictAndValidate(seatMapAvailabilityV4JSON, &SeatMapAvailabilityV4, func(seatMapInventory []*typesv4.SeatMapInventory) {
+		seatMapInventory[0].Sections[0].SeatInfo = &typesv4.SectionInventory_SeatList{
 			SeatList: &typesv4.SeatInventory{
 				Ids: []string{"1A", "1C", "1D", "1F"},
 			},
 		}
-		seatMapAvailabilityV4[0].Sections[1].SeatInfo = &typesv4.SectionInventory_SeatList{
+		seatMapInventory[0].Sections[1].SeatInfo = &typesv4.SectionInventory_SeatList{
 			SeatList: &typesv4.SeatInventory{
 				Ids: []string{"2A", "2C", "2D", "2F"},
 			},
 		}
-		seatMapAvailabilityV4[0].Sections[2].SeatInfo = &typesv4.SectionInventory_SeatList{
+		seatMapInventory[0].Sections[2].SeatInfo = &typesv4.SectionInventory_SeatList{
 			SeatList: &typesv4.SeatInventory{
 				Ids: []string{"4D", "6A", "6C", "9F", "11E", "14A", "16F", "17B", "19C", "23A", "26E", "28C", "30D", "31F", "34B", "36E", "37F", "37A", "38B", "38E"},
 			},
 		}
-		seatMapAvailabilityV4[0].Sections[3].SeatInfo = &typesv4.SectionInventory_SeatList{
+		seatMapInventory[0].Sections[3].SeatInfo = &typesv4.SectionInventory_SeatList{
 			SeatList: &typesv4.SeatInventory{
 				Ids: []string{
 					"3A", "3B", "3C", "3D", "3E", "3F",
@@ -217,6 +231,9 @@ func init() {
 					"38A", "38C", "38D", "38F",
 				},
 			},
+		}
+		seatMapInventory[0].Sections[3].SeatInfo = &typesv4.SectionInventory_SeatCount{
+			SeatCount: &wrapperspb.Int32Value{Value: 32},
 		}
 	}); err != nil {
 		panic(fmt.Errorf("error unmarshaling seat map availability v4: %w", err))
@@ -477,10 +494,12 @@ func unmarshalStrictAndValidate[T proto.Message](data []byte, destination *[]T, 
 	if postUnmarshal != nil {
 		postUnmarshal(*destination)
 	}
-	for i, item := range *destination {
+	list := *destination
+	for i, item := range list {
 		if err := protovalidate.Validate(item); err != nil {
 			return fmt.Errorf("error validating item %d: %w", i, err)
 		}
 	}
+	destination = &list
 	return nil
 }

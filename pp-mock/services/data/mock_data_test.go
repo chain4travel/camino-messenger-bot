@@ -15,8 +15,8 @@ func TestGenerateRandomJSON(t *testing.T) {
 	// t.Skip() // comment this line to run util
 	pr := protorand.New()
 
-	protoMessageType := &typesv4.SeatMap{} // set the type of the proto message you want to generate
-	pr.MaxCollectionElements = 1           // set the maximum number of elements in arrays
+	protoMessageType := &typesv4.SeatMapInventory{} // set the type of the proto message you want to generate
+	pr.MaxCollectionElements = 1                    // set the maximum number of elements in arrays
 
 	fakeProtoMessage, err := pr.Gen(protoMessageType)
 	require.NoError(t, err)

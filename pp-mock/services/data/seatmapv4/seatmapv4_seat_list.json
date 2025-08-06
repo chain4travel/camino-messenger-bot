@@ -5,12 +5,15 @@
                 "id": "1A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -18,8 +21,12 @@
                 "id": "1C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -27,8 +34,12 @@
                 "id": "1D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -36,12 +47,15 @@
                 "id": "1F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -49,8 +63,12 @@
                 "id": "2A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -58,8 +76,12 @@
                 "id": "2C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -67,8 +89,12 @@
                 "id": "2D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -76,8 +102,12 @@
                 "id": "2F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             }
@@ -89,8 +119,12 @@
                 "id": "3A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -98,8 +132,12 @@
                 "id": "3B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -107,8 +145,12 @@
                 "id": "3C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -116,8 +158,12 @@
                 "id": "3D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -125,8 +171,12 @@
                 "id": "3E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -134,8 +184,12 @@
                 "id": "3F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -143,8 +197,12 @@
                 "id": "4A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -152,8 +210,12 @@
                 "id": "4B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -161,8 +223,12 @@
                 "id": "4C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -170,8 +236,12 @@
                 "id": "4D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -179,8 +249,12 @@
                 "id": "4E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -188,8 +262,12 @@
                 "id": "4F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -197,8 +275,12 @@
                 "id": "5A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -206,8 +288,12 @@
                 "id": "5B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -215,8 +301,12 @@
                 "id": "5C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -224,8 +314,12 @@
                 "id": "5D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -233,8 +327,12 @@
                 "id": "5E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -242,8 +340,12 @@
                 "id": "5F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -251,8 +353,12 @@
                 "id": "6A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -260,8 +366,12 @@
                 "id": "6B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -269,8 +379,12 @@
                 "id": "6C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -278,8 +392,12 @@
                 "id": "6D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -287,8 +405,12 @@
                 "id": "6E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -296,8 +418,12 @@
                 "id": "6F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -305,8 +431,12 @@
                 "id": "7A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -314,8 +444,12 @@
                 "id": "7B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -323,8 +457,12 @@
                 "id": "7C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -332,8 +470,12 @@
                 "id": "7D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -341,8 +483,12 @@
                 "id": "7E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -350,8 +496,12 @@
                 "id": "7F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -359,8 +509,12 @@
                 "id": "8A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -368,8 +522,12 @@
                 "id": "8B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -377,8 +535,12 @@
                 "id": "8C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -386,8 +548,12 @@
                 "id": "8D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -395,8 +561,12 @@
                 "id": "8E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -404,8 +574,12 @@
                 "id": "8F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -413,8 +587,12 @@
                 "id": "9A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -422,8 +600,12 @@
                 "id": "9B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -431,8 +613,12 @@
                 "id": "9C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -440,8 +626,12 @@
                 "id": "9D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -449,8 +639,12 @@
                 "id": "9E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -458,8 +652,12 @@
                 "id": "9F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -467,12 +665,15 @@
                 "id": "13A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -480,12 +681,15 @@
                 "id": "13B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -493,12 +697,15 @@
                 "id": "13C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -506,12 +713,15 @@
                 "id": "13D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -519,12 +729,15 @@
                 "id": "13E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -532,12 +745,15 @@
                 "id": "13F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
-                    },
-                    {
-                        "seat_attribute": "Extra Legroom",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            },
+                            {
+                                "name": "Extra Legroom"
+                            }
+                        ]
                     }
                 ]
             },
@@ -545,8 +761,12 @@
                 "id": "14A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -554,8 +774,12 @@
                 "id": "14B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -563,8 +787,12 @@
                 "id": "14C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -572,8 +800,12 @@
                 "id": "14D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -581,8 +813,12 @@
                 "id": "14E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -590,8 +826,12 @@
                 "id": "14F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -599,8 +839,12 @@
                 "id": "15A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -608,8 +852,12 @@
                 "id": "15B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -617,8 +865,12 @@
                 "id": "15C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -626,8 +878,12 @@
                 "id": "15D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -635,8 +891,12 @@
                 "id": "15E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -644,8 +904,12 @@
                 "id": "15F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -653,8 +917,12 @@
                 "id": "16A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -662,8 +930,12 @@
                 "id": "16B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -671,8 +943,12 @@
                 "id": "16C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -680,8 +956,12 @@
                 "id": "16D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -689,8 +969,12 @@
                 "id": "16E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -698,8 +982,12 @@
                 "id": "16F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -707,8 +995,12 @@
                 "id": "17A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -716,8 +1008,12 @@
                 "id": "17B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -725,8 +1021,12 @@
                 "id": "17C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -734,8 +1034,12 @@
                 "id": "17D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -743,8 +1047,12 @@
                 "id": "17E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -752,8 +1060,12 @@
                 "id": "17F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -761,8 +1073,12 @@
                 "id": "18A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -770,8 +1086,12 @@
                 "id": "18B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -779,8 +1099,12 @@
                 "id": "18C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -788,8 +1112,12 @@
                 "id": "18D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -797,8 +1125,12 @@
                 "id": "18E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -806,8 +1138,12 @@
                 "id": "18F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -815,8 +1151,12 @@
                 "id": "19A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -824,8 +1164,12 @@
                 "id": "19B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -833,8 +1177,12 @@
                 "id": "19C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -842,8 +1190,12 @@
                 "id": "19D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -851,8 +1203,12 @@
                 "id": "19E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -860,8 +1216,12 @@
                 "id": "19F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -869,8 +1229,12 @@
                 "id": "20A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -878,8 +1242,12 @@
                 "id": "20B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -887,8 +1255,12 @@
                 "id": "20C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -896,8 +1268,12 @@
                 "id": "20D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -905,8 +1281,12 @@
                 "id": "20E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -914,8 +1294,12 @@
                 "id": "20F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -923,8 +1307,12 @@
                 "id": "21A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -932,8 +1320,12 @@
                 "id": "21B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -941,8 +1333,12 @@
                 "id": "21C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -950,8 +1346,12 @@
                 "id": "21D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -959,8 +1359,12 @@
                 "id": "21E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -968,8 +1372,12 @@
                 "id": "21F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -977,8 +1385,12 @@
                 "id": "22A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -986,8 +1398,12 @@
                 "id": "22B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -995,8 +1411,12 @@
                 "id": "22C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1004,8 +1424,12 @@
                 "id": "22D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1013,8 +1437,12 @@
                 "id": "22E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1022,8 +1450,12 @@
                 "id": "22F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1031,8 +1463,12 @@
                 "id": "23A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1040,8 +1476,12 @@
                 "id": "23B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1049,8 +1489,12 @@
                 "id": "23C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1058,8 +1502,12 @@
                 "id": "23D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1067,8 +1515,12 @@
                 "id": "23E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1076,8 +1528,12 @@
                 "id": "23F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1085,8 +1541,12 @@
                 "id": "24A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1094,8 +1554,12 @@
                 "id": "24B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1103,8 +1567,12 @@
                 "id": "24C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1112,8 +1580,12 @@
                 "id": "24D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1121,8 +1593,12 @@
                 "id": "24E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1130,8 +1606,12 @@
                 "id": "24F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1139,8 +1619,12 @@
                 "id": "25A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1148,8 +1632,12 @@
                 "id": "25B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1157,8 +1645,12 @@
                 "id": "25C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1166,8 +1658,12 @@
                 "id": "25D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1175,8 +1671,12 @@
                 "id": "25E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1184,8 +1684,12 @@
                 "id": "25F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1193,8 +1697,12 @@
                 "id": "26A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1202,8 +1710,12 @@
                 "id": "26B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1211,8 +1723,12 @@
                 "id": "26C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1220,8 +1736,12 @@
                 "id": "26D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1229,8 +1749,12 @@
                 "id": "26E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1238,8 +1762,12 @@
                 "id": "26F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1247,8 +1775,12 @@
                 "id": "27A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1256,8 +1788,12 @@
                 "id": "27B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1265,8 +1801,12 @@
                 "id": "27C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1274,8 +1814,12 @@
                 "id": "27D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1283,8 +1827,12 @@
                 "id": "27E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1292,8 +1840,12 @@
                 "id": "27F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1301,8 +1853,12 @@
                 "id": "28A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1310,8 +1866,12 @@
                 "id": "28B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1319,8 +1879,12 @@
                 "id": "28C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1328,8 +1892,12 @@
                 "id": "28D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1337,8 +1905,12 @@
                 "id": "28E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1346,8 +1918,12 @@
                 "id": "28F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1355,8 +1931,12 @@
                 "id": "29A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1364,8 +1944,12 @@
                 "id": "29B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1373,8 +1957,12 @@
                 "id": "29C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1382,8 +1970,12 @@
                 "id": "29D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1391,8 +1983,12 @@
                 "id": "29E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1400,8 +1996,12 @@
                 "id": "29F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1409,8 +2009,12 @@
                 "id": "30A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1418,8 +2022,12 @@
                 "id": "30B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1427,8 +2035,12 @@
                 "id": "30C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1436,8 +2048,12 @@
                 "id": "30D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1445,8 +2061,12 @@
                 "id": "30E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1454,8 +2074,12 @@
                 "id": "30F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1463,8 +2087,12 @@
                 "id": "31A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1472,8 +2100,12 @@
                 "id": "31B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1481,8 +2113,12 @@
                 "id": "31C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1490,8 +2126,12 @@
                 "id": "31D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1499,8 +2139,12 @@
                 "id": "31E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1508,8 +2152,12 @@
                 "id": "31F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1517,8 +2165,12 @@
                 "id": "32A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1526,8 +2178,12 @@
                 "id": "32B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1535,8 +2191,12 @@
                 "id": "32C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1544,8 +2204,12 @@
                 "id": "32D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1553,8 +2217,12 @@
                 "id": "32E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1562,8 +2230,12 @@
                 "id": "32F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1571,8 +2243,12 @@
                 "id": "33A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1580,8 +2256,12 @@
                 "id": "33B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1589,8 +2269,12 @@
                 "id": "33C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1598,8 +2282,12 @@
                 "id": "33D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1607,8 +2295,12 @@
                 "id": "33E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1616,8 +2308,12 @@
                 "id": "33F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1625,8 +2321,12 @@
                 "id": "34A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1634,8 +2334,12 @@
                 "id": "34B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1643,8 +2347,12 @@
                 "id": "34C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1652,8 +2360,12 @@
                 "id": "34D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1661,8 +2373,12 @@
                 "id": "34E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1670,8 +2386,12 @@
                 "id": "34F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1679,8 +2399,12 @@
                 "id": "35A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1688,8 +2412,12 @@
                 "id": "35B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1697,8 +2425,12 @@
                 "id": "35C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1706,8 +2438,12 @@
                 "id": "35D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1715,8 +2451,12 @@
                 "id": "35E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1724,8 +2464,12 @@
                 "id": "35F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1733,8 +2477,12 @@
                 "id": "36A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1742,8 +2490,12 @@
                 "id": "36B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1751,8 +2503,12 @@
                 "id": "36C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1760,8 +2516,12 @@
                 "id": "36D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1769,8 +2529,12 @@
                 "id": "36E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1778,8 +2542,12 @@
                 "id": "36F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1787,8 +2555,12 @@
                 "id": "37A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1796,8 +2568,12 @@
                 "id": "37B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1805,8 +2581,12 @@
                 "id": "37C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1814,8 +2594,12 @@
                 "id": "37D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1823,8 +2607,12 @@
                 "id": "37E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1832,8 +2620,12 @@
                 "id": "37F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1841,8 +2633,12 @@
                 "id": "38A",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1850,8 +2646,12 @@
                 "id": "38B",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1859,8 +2659,12 @@
                 "id": "38C",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1868,8 +2672,12 @@
                 "id": "38D",
                 "features": [
                     {
-                        "seat_attribute": "Aisle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Aisle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1877,8 +2685,12 @@
                 "id": "38E",
                 "features": [
                     {
-                        "seat_attribute": "Middle",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Middle"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1886,8 +2698,12 @@
                 "id": "38F",
                 "features": [
                     {
-                        "seat_attribute": "Window",
-                        "language": 9
+                        "language": 9,
+                        "seat_attributes": [
+                            {
+                                "name": "Window"
+                            }
+                        ]
                     }
                 ]
             }
