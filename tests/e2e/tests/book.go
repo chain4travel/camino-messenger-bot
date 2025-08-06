@@ -10,13 +10,10 @@ import (
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
-	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
-	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
-	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
@@ -27,35 +24,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func mintBuyTokenV4(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	supplierPPEventStream events.EventsService_SubscribeClient,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) (tokenID uint64, mintID string, price *typesv4.Price) {
-	searchID, resultID, totalPrice := testAccommodationV4SearchServiceWithTravelPeriod(ctx, t, e, distributorBot, supplierBot) // see test_accommodation_v4.go
-	_, err := supplierPPEventStream.Recv()                                                                                     // skip AccommodationSearchRequest
-	require.NoError(t, err)
-
-	validationID := testValidateV4(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
-	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
-	require.NoError(t, err)
-
-	tokenID, bookingPrice, mintID := testMintV4(ctx, t, e, distributorBot, supplierBot, validationID)
-	_, err = supplierPPEventStream.Recv() // skip MintRequest
-	require.NoError(t, err)
-
-	eventMsg, err := supplierPPEventStream.Recv()
-	require.NoError(t, err)
-	e.DebugPrintProtoMessage(eventMsg)
-	tokenBoughtNotification := &notificationv3.TokenBought{}
-	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
-
-	return tokenID, mintID, bookingPrice
-}
-
 func mintBuyTokenV3(
 	ctx context.Context,
 	t *testing.T,
@@ -63,16 +31,20 @@ func mintBuyTokenV3(
 	supplierPPEventStream events.EventsService_SubscribeClient,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
-) (tokenID uint64, price *typesv3.Price) {
+) (
+	tokenID uint64,
+	mintID string,
+	price *typesv3.Price,
+) {
 	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, e, distributorBot, supplierBot) // see test_accommodation_v3.go
 	_, err := supplierPPEventStream.Recv()                                                                                     // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID := testValidateV2(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
+	validationID := testValidateV3(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
 	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	tokenID, bookingPrice, _ := testMintV3(ctx, t, e, distributorBot, supplierBot, validationID)
+	tokenID, mintID, bookingPrice := testMintV3(ctx, t, e, distributorBot, supplierBot, validationID)
 	_, err = supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -82,37 +54,37 @@ func mintBuyTokenV3(
 	tokenBoughtNotification := &notificationv2.TokenBought{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
 
-	return tokenID, bookingPrice
+	return tokenID, mintID, bookingPrice
 }
 
 // validate
 
-func testValidateV4(
+func testValidateV3(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 	searchID string,
-	resultID uint32,
+	resultID int32,
 	expectedTotalPrice *big.Int,
 ) (validateID string) {
-	req := &bookv4.ValidationRequest{
-		ValidationObject: &bookv4.ValidationObject{
-			SearchIdentifier: &typesv4.SearchIdentifier{
-				SearchId: &typesv4.UUID{Value: searchID},
+	req := &bookv3.ValidationRequest{
+		ValidationObject: &bookv3.ValidationObject{
+			SearchIdentifier: &typesv3.SearchIdentifier{
+				SearchId: &typesv1.UUID{Value: searchID},
 				ResultId: resultID,
 			},
 		},
 	}
-	resp, err := distributorBot.ValidationServiceV4.Validation(
+	resp, err := distributorBot.ValidationServiceV3.Validation(
 		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
 	// Check if the validationObject is correct in the response
@@ -128,7 +100,7 @@ func testValidateV4(
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
 
-	totalPrice := priceBigV4(t, resp.PriceDetail.Price)
+	totalPrice := priceBigV3(t, resp.PriceDetail.Price)
 	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
@@ -189,42 +161,6 @@ func testValidateV2(
 
 // mint
 
-func testMintV4(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-	validationID string,
-) (
-	tokenID uint64,
-	price *typesv4.Price,
-	mintID string,
-) {
-	req := &bookv4.MintRequest{
-		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		ValidationId: &typesv4.UUID{Value: validationID},
-	}
-	resp, err := distributorBot.MintServiceV4.Mint(
-		requestContext(ctx, supplierBot.CMAccountAddress()),
-		req,
-	)
-	require.NoError(t, err)
-	e.DebugPrintRequestResponse(req, resp)
-
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-
-	// Check if the MintId is set
-	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
-	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
-
-	// check if the transaction ids are set and return them for further tests
-	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
-	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
-
-	return resp.BookingTokenId, resp.Price, resp.MintId.Value
-}
-
 func testMintV2(
 	ctx context.Context,
 	t *testing.T,
@@ -234,8 +170,8 @@ func testMintV2(
 	validationID string,
 ) (
 	tokenID uint64,
-	price *typesv2.Price,
 	mintID string,
+	price *typesv2.Price,
 ) {
 	req := &bookv2.MintRequest{
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -258,7 +194,7 @@ func testMintV2(
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.Price, resp.MintId.Value
+	return resp.BookingTokenId, resp.MintId.Value, resp.Price
 }
 
 func testMintV3(
@@ -270,8 +206,8 @@ func testMintV3(
 	validationID string,
 ) (
 	tokenID uint64,
-	price *typesv3.Price,
 	mintID string,
+	price *typesv3.Price,
 ) {
 	req := &bookv3.MintRequest{
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -294,24 +230,10 @@ func testMintV3(
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.Price, resp.MintId.Value
+	return resp.BookingTokenId, resp.MintId.Value, resp.Price
 }
 
 // verify blockchain state
-
-func verifyBookingTokenStateWithPriceV4(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	distributorBot *bot.Bot,
-	tokenID uint64,
-	tokenPrice *typesv4.Price,
-) {
-	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV4(t, tokenPrice))
-	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, int32(tokenPrice.Decimals), price.NativeTokenDecimals)
-	require.NoError(t, err)
-	verifyBookingTokenState(ctx, t, e, distributorBot, tokenID, expectedReservationPrice)
-}
 
 func verifyBookingTokenStateWithPriceV2(
 	ctx context.Context,

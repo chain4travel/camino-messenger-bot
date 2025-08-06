@@ -81,6 +81,7 @@ func GetStore() *Store {
 		instance = &Store{
 			searchResults:     make(map[string]SearchResult),
 			validationResults: make(map[string]ValidationResult),
+			mintResults:       make(map[string]MintResult),
 		}
 		go instance.cleanupExpiredEntries()
 	})

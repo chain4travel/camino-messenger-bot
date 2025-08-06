@@ -154,3 +154,18 @@ func CloneProtoSlice[T proto.Message](source []T) []T {
 func CloneProto[T proto.Message](source T) T {
 	return proto.Clone(source).(T)
 }
+
+func SuccessHeaderV4() *typesv4.ResponseHeader {
+	return &typesv4.ResponseHeader{
+		BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
+		Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
+	}
+}
+
+func AddHeaderErrorV4(header *typesv4.ResponseHeader, message string) {
+	header.Alerts = append(header.Alerts, &typesv4.Alert{
+		Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+		Message: message,
+	})
+	header.Status = typesv4.StatusType_STATUS_TYPE_FAILURE
+}

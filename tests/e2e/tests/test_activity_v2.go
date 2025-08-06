@@ -80,7 +80,7 @@ func (tt *TestActivityV2) Run(t *testing.T) {
 	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		searchID, resultID, totalPrice := testActivityV2SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
 		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
-		tokenID, price, _ := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+		tokenID, _, price := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
 		verifyBookingTokenStateWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
 	})
 }
