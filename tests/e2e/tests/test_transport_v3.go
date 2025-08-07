@@ -52,7 +52,7 @@ func (tt *TestTransportV3) Run(t *testing.T) {
 
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the products
-		productListResponse = tt.testTransportV3ProductListService(ctx, t)
+		productListResponse = testTransportV3ProductListService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
 	})
 	t.Run("Product list with filter", func(t *testing.T) {
 		// Happy path: will return only one property
@@ -79,7 +79,7 @@ func (tt *TestTransportV3) Run(t *testing.T) {
 		tt.testTransportV3SearchServiceTravelDatesWrong(ctx, t)
 	})
 	t.Run("ProductList->Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-		productListResponse := tt.testTransportV3ProductListService(ctx, t)
+		productListResponse := testTransportV3ProductListService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
 		searchID, resultID, totalPrice := testTransportV3SearchServiceWithFilters(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListResponse)
 		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		tokenID, _, price := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
@@ -120,61 +120,6 @@ func (tt *TestTransportV3) prepare(ctx context.Context, t *testing.T) {
 	}()
 
 	wg.Wait()
-}
-
-// Simple product list request which shall return all properties. Checking if all are present
-func (tt *TestTransportV3) testTransportV3ProductListService(ctx context.Context, t *testing.T) *transportv3.TransportProductListResponse {
-	productCodes := []*typesv2.SupplierProductCode{
-		{
-			SupplierCode:   "AB",
-			SupplierNumber: 4567,
-		},
-		{
-			SupplierCode:   "LH",
-			SupplierNumber: 7453,
-		},
-		{
-			SupplierCode:   "DB",
-			SupplierNumber: 5483,
-		},
-	}
-	expectedTotalResults := len(productCodes)
-
-	req := &transportv3.TransportProductListRequest{
-		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-	}
-	resp, err := tt.distributorBot.TransportProductListServiceV3.TransportProductList(
-		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
-		req,
-	)
-	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(req, resp)
-
-	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-
-	// The response should contain all products defined by the pp-mock (defined by productCodes/expectedTotalResults)
-	require.Len(t, resp.Trips, expectedTotalResults, "unexpected number of products in response")
-
-	// iterate over the trips in the result and check if the supplier product code matches the product code definition
-	// note that the order might be different, so we need to check all of them
-	for _, trip := range resp.Trips {
-		found := false
-		for i := range productCodes {
-			if proto.Equal(trip.SupplierCode, productCodes[i]) {
-				found = true
-				break
-			}
-		}
-		require.True(t, found, "unexpected response products")
-	}
-
-	// Verify that the 2nd result has 2 segments and that the departure and arrival locations are set
-	require.Len(t, resp.Trips[1].Segments, 2, "unexpected number of segments in response")
-	require.NotEmpty(t, resp.Trips[1].Segments[0].Departure, "unexpected empty response Trips[1].Segments[0].Info.Departure")
-	require.NotEmpty(t, resp.Trips[1].Segments[1].Arrival, "unexpected empty response Trips[1].Segments[1].Info.Arrival")
-
-	return resp
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
@@ -574,6 +519,67 @@ func (tt *TestTransportV3) testTransportV3SearchServiceWithoutArrivalLocation(
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
+}
+
+// Simple product list request which shall return all properties. Checking if all are present
+func testTransportV3ProductListService(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) *transportv3.TransportProductListResponse {
+	productCodes := []*typesv2.SupplierProductCode{
+		{
+			SupplierCode:   "AB",
+			SupplierNumber: 4567,
+		},
+		{
+			SupplierCode:   "LH",
+			SupplierNumber: 7453,
+		},
+		{
+			SupplierCode:   "DB",
+			SupplierNumber: 5483,
+		},
+	}
+	expectedTotalResults := len(productCodes)
+
+	req := &transportv3.TransportProductListRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	}
+	resp, err := distributorBot.TransportProductListServiceV3.TransportProductList(
+		requestContext(ctx, supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	e.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	// The response should contain all products defined by the pp-mock (defined by productCodes/expectedTotalResults)
+	require.Len(t, resp.Trips, expectedTotalResults, "unexpected number of products in response")
+
+	// iterate over the trips in the result and check if the supplier product code matches the product code definition
+	// note that the order might be different, so we need to check all of them
+	for _, trip := range resp.Trips {
+		found := false
+		for i := range productCodes {
+			if proto.Equal(trip.SupplierCode, productCodes[i]) {
+				found = true
+				break
+			}
+		}
+		require.True(t, found, "unexpected response products")
+	}
+
+	// Verify that the 2nd result has 2 segments and that the departure and arrival locations are set
+	require.Len(t, resp.Trips[1].Segments, 2, "unexpected number of segments in response")
+	require.NotEmpty(t, resp.Trips[1].Segments[0].Departure, "unexpected empty response Trips[1].Segments[0].Info.Departure")
+	require.NotEmpty(t, resp.Trips[1].Segments[1].Arrival, "unexpected empty response Trips[1].Segments[1].Info.Arrival")
+
+	return resp
 }
 
 // Test product search with a valid query. Expect a valid response with results.

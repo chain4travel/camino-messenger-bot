@@ -169,3 +169,10 @@ func AddHeaderErrorV4(header *typesv4.ResponseHeader, message string) {
 	})
 	header.Status = typesv4.StatusType_STATUS_TYPE_FAILURE
 }
+
+func AddHeaderWarningV4(header *typesv4.ResponseHeader, message string) {
+	header.Alerts = append(header.Alerts, &typesv4.Alert{
+		Type:    typesv4.AlertType_ALERT_TYPE_WARNING,
+		Message: message,
+	})
+}
