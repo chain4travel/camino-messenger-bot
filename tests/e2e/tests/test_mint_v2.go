@@ -120,7 +120,7 @@ func (tt *TestMintV2) testMintV2FullWorkflow(ctx context.Context, t *testing.T) 
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	tokenID, mintID := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+	tokenID, mintID, _ := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
