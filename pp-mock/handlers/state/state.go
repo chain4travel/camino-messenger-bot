@@ -124,7 +124,6 @@ func (s *Store) GetValidationResult(validationID string) (ValidationResult, bool
 	return result, exists
 }
 
-// AddMintResult adds a mint result to the store.
 func (s *Store) AddMintResult(mintID string, seatMapIndex int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -162,7 +161,6 @@ func (s *Store) RemoveMintResult(mintID string) {
 	delete(s.mintResults, mintID)
 }
 
-// GetMintResult retrieves a mint result from the store.
 func (s *Store) GetMintResult(mintID string) (MintResult, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
