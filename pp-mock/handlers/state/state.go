@@ -55,7 +55,7 @@ type ValidationResult struct {
 }
 
 type MintResult struct {
-	MintId       string
+	MintID       string
 	SeatMapIndex int
 	CreatedAt    time.Time
 	Bought       bool
@@ -129,7 +129,7 @@ func (s *Store) AddMintResult(mintID string, seatMapIndex int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.mintResults[mintID] = MintResult{
-		MintId:       mintID,
+		MintID:       mintID,
 		SeatMapIndex: seatMapIndex,
 		CreatedAt:    time.Now(),
 	}
@@ -163,10 +163,10 @@ func (s *Store) RemoveMintResult(mintID string) {
 }
 
 // GetMintResult retrieves a mint result from the store.
-func (s *Store) GetMintResult(mintId string) (MintResult, bool) {
+func (s *Store) GetMintResult(mintID string) (MintResult, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	result, exists := s.mintResults[mintId]
+	result, exists := s.mintResults[mintID]
 	return result, exists
 }
 

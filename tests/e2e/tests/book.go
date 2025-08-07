@@ -204,7 +204,6 @@ func testMintV2(
 	validationID string,
 ) (
 	tokenID uint64,
-	mintID string,
 	price *typesv2.Price,
 ) {
 	req := &bookv2.MintRequest{
@@ -228,7 +227,7 @@ func testMintV2(
 	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.MintId.Value, resp.Price
+	return resp.BookingTokenId, resp.Price
 }
 
 func testMintV3(
