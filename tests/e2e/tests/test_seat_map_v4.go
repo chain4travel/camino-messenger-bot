@@ -42,9 +42,6 @@ func (tt *TestSeatMapV4) Setup(e *suite.Environment) {
 	tt.Environment = e
 }
 
-// TODO@ mint tokens with transport; accommodation should result in not found seat map
-// TODO@ maybe also test with activity
-
 func (tt *TestSeatMapV4) Run(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
