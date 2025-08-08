@@ -52,5 +52,342 @@
                 }
             }
         ]
+    },
+    {
+        "id": "Vila-Park-2025-Ozzy",
+        "sections": [
+            {
+                "id": "north-stand",
+                "sections": [
+                    {
+                        "id": "T1",
+                        "seatCount": 800
+                    },
+                    {
+                        "id": "T2",
+                        "seatCount": 800
+                    },
+                    {
+                        "id": "T3",
+                        "seatCount": 800
+                    },
+                    {
+                        "id": "T4",
+                        "seatCount": 550
+                    },
+                    {
+                        "id": "T5",
+                        "seatCount": 550
+                    },
+                    {
+                        "id": "R1",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "R2",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "R3",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "R4",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "R5",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "R6",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "R7",
+                        "seatCount": 100
+                    }
+                ]
+            },
+            {
+                "id": "doug-ellis-stand",
+                "sections": [
+                    {
+                        "id": "P1",
+                        "seatCount": 350
+                    },
+                    {
+                        "id": "P2",
+                        "seatCount": 350
+                    },
+                    {
+                        "id": "P3",
+                        "seatCount": 350
+                    },
+                    {
+                        "id": "P4",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "P5",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "P6",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "P7",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "P8",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "P9",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "P10",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "P11",
+                        "seatCount": 325
+                    },
+                    {
+                        "id": "Q1",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "Q2",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "Q3",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "M1",
+                        "seatCount": 175
+                    },
+                    {
+                        "id": "M2",
+                        "seatCount": 175
+                    },
+                    {
+                        "id": "M3",
+                        "seatCount": 175
+                    },
+                    {
+                        "id": "M4",
+                        "seatCount": 175
+                    },
+                    {
+                        "id": "M5",
+                        "seatCount": 175
+                    }
+                ]
+            },
+            {
+                "id": "holte-end",
+                "sections": [
+                    {
+                        "id": "K1",
+                        "seatCount": 450
+                    },
+                    {
+                        "id": "K2",
+                        "seatCount": 450
+                    },
+                    {
+                        "id": "K3",
+                        "seatCount": 450
+                    },
+                    {
+                        "id": "K4",
+                        "seatCount": 400
+                    },
+                    {
+                        "id": "K5",
+                        "seatCount": 400
+                    },
+                    {
+                        "id": "K6",
+                        "seatCount": 400
+                    },
+                    {
+                        "id": "K7",
+                        "seatCount": 400
+                    },
+                    {
+                        "id": "L1",
+                        "seatCount": 350
+                    },
+                    {
+                        "id": "L2",
+                        "seatCount": 350
+                    },
+                    {
+                        "id": "L3",
+                        "seatCount": 350
+                    },
+                    {
+                        "id": "L4",
+                        "seatCount": 300
+                    },
+                    {
+                        "id": "L5",
+                        "seatCount": 300
+                    },
+                    {
+                        "id": "L6",
+                        "seatCount": 300
+                    },
+                    {
+                        "id": "L7",
+                        "seatCount": 300
+                    },
+                    {
+                        "id": "L8",
+                        "seatCount": 300
+                    }
+                ]
+            },
+            {
+                "id": "trinity-road-stand",
+                "sections": [
+                    {
+                        "id": "A1",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "A2",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "A3",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "A4",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "A5",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "A6",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "A7",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "A8",
+                        "seatCount": 225
+                    },
+                    {
+                        "id": "B1",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "B2",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "B3",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "B4",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "B5",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "B6",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "B7",
+                        "seatCount": 150
+                    },
+                    {
+                        "id": "C1",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C2",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C3",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C4",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C5",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C6",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C7",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C8",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "C9",
+                        "seatCount": 100
+                    },
+                    {
+                        "id": "L9",
+                        "seatCount": 50
+                    },
+                    {
+                        "id": "PB",
+                        "seatCount": 37
+                    },
+                    {
+                        "id": "PL",
+                        "seatCount": 37
+                    },
+                    {
+                        "id": "PR",
+                        "seatCount": 37
+                    },
+                    {
+                        "id": "DC",
+                        "seatCount": 37
+                    },
+                    {
+                        "id": "CC",
+                        "seatCount": 37
+                    }
+                ]
+            },
+            {
+                "id": "golden-circle",
+                "seatCount": 1250
+            },
+            {
+                "id": "standing",
+                "seatCount": 3750
+            }
+        ]
     }
 ]
