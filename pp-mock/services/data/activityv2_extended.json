@@ -2,34 +2,24 @@
 	{
 		"activity": {
 			"context": "Tuk-Tuk Sightseeing Tour",
-			"last_modified": {
-				"seconds": 1710489022,
-				"nanos": 0
-			},
-			"external_session_id": "23456",
-			"product_code": {
+			"lastModified": "2024-03-15T07:50:22Z",
+			"externalSessionId": "23456",
+			"productCode": {
 				"code": "XPTFAOH15O",
 				"number": 31345,
-				"type": 5
+				"type": "PRODUCT_CODE_TYPE_SUPPLIER"
 			},
-			"unit_code": "EESPMI46VY",
-			"service_code": "XO",
+			"unitCode": "EESPMI46VY",
+			"serviceCode": "XO",
 			"bookability": {
-				"type": 1,
-				"confirmation_time": null
+				"type": "BOOKABILITY_TYPE_AVAILABLE"
 			}
 		},
 		"units": [
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741867200,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741870800,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T12:00:00Z",
+					"endDatetime": "2025-03-13T13:00:00Z"
 				},
 				"code": "TK0001H1",
 				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
@@ -37,14 +27,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741861800,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741865400,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T10:30:00Z",
+					"endDatetime": "2025-03-13T11:30:00Z"
 				},
 				"code": "TK0001H0",
 				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
@@ -52,14 +36,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741888200,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741891800,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T17:50:00Z",
+					"endDatetime": "2025-03-13T18:50:00Z"
 				},
 				"code": "TK0001H2",
 				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
@@ -67,14 +45,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741891800,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741895400,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T18:50:00Z",
+					"endDatetime": "2025-03-13T19:50:00Z"
 				},
 				"code": "TK0001H3",
 				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
@@ -82,14 +54,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741861800,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741869000,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T10:30:00Z",
+					"endDatetime": "2025-03-13T12:30:00Z"
 				},
 				"code": "TK0002H0",
 				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
@@ -97,14 +63,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741867200,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741874400,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T12:00:00Z",
+					"endDatetime": "2025-03-13T14:00:00Z"
 				},
 				"code": "TK0002H1",
 				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
@@ -112,14 +72,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741888200,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741895400,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T17:50:00Z",
+					"endDatetime": "2025-03-13T19:50:00Z"
 				},
 				"code": "TK0002H2",
 				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
@@ -127,14 +81,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741891800,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741899000,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T18:50:00Z",
+					"endDatetime": "2025-03-13T20:50:00Z"
 				},
 				"code": "TK0002H3",
 				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
@@ -142,14 +90,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741891800,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741902600,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T18:50:00Z",
+					"endDatetime": "2025-03-13T21:50:00Z"
 				},
 				"code": "TK0003H3",
 				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
@@ -157,14 +99,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741884600,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741895400,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T16:50:00Z",
+					"endDatetime": "2025-03-13T19:50:00Z"
 				},
 				"code": "TK0003H2",
 				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
@@ -172,14 +108,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741867200,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741878000,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T12:00:00Z",
+					"endDatetime": "2025-03-13T15:00:00Z"
 				},
 				"code": "TK0003H1",
 				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
@@ -187,14 +117,8 @@
 			},
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1741861800,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1741872600,
-						"nanos": 0
-					}
+					"startDatetime": "2025-03-13T10:30:00Z",
+					"endDatetime": "2025-03-13T13:30:00Z"
 				},
 				"code": "TK0003H0",
 				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
@@ -220,77 +144,62 @@
 		"zones": [
 			{
 				"code": "ALBUFEIRA_ZONE",
-				"geo_tree": {
-					"country": 26,
+				"geoTree": {
+					"country": "COUNTRY_PT",
 					"region": "Algarve",
-					"city_or_resort": "Albufeira"
+					"cityOrResort": "Albufeira"
 				},
-				"pickup_dropoff_events": [
+				"pickupDropoffEvents": [
 					{
-						"location_code": "AMTSPT0026",
-						"location_name": "AMTSPT0026",
-						"pickup_indicator": true,
-						"other_info": "HOTELENTRANCE",
-						"date_time": {
-							"seconds": 1593590400,
-							"nanos": 0
-						},
+						"locationCode": "AMTSPT0026",
+						"locationName": "AMTSPT0026",
+						"pickupIndicator": true,
+						"otherInfo": "HOTELENTRANCE",
+						"dateTime": "2020-07-01T08:00:00Z",
 						"coordinates": {
 							"latitude": 37.08472,
 							"longitude": -8.31469
 						}
 					},
 					{
-						"location_code": "AMTSPT0034",
-						"location_name": "AMTSPT0034",
-						"pickup_indicator": true,
-						"other_info": "HOTELENTRANCE",
-						"date_time": {
-							"seconds": 1593590400,
-							"nanos": 0
-						},
+						"locationCode": "AMTSPT0034",
+						"locationName": "AMTSPT0034",
+						"pickupIndicator": true,
+						"otherInfo": "HOTELENTRANCE",
+						"dateTime": "2020-07-01T08:00:00Z",
 						"coordinates": {
 							"latitude": 37.09183,
 							"longitude": -8.20825
 						}
 					},
 					{
-						"location_code": "AMTSPT0035",
-						"location_name": "AMTSPT0035",
-						"pickup_indicator": true,
-						"other_info": "HOTELENTRANCE",
-						"date_time": {
-							"seconds": 1593590400,
-							"nanos": 0
-						},
+						"locationCode": "AMTSPT0035",
+						"locationName": "AMTSPT0035",
+						"pickupIndicator": true,
+						"otherInfo": "HOTELENTRANCE",
+						"dateTime": "2020-07-01T08:00:00Z",
 						"coordinates": {
 							"latitude": 37.09033,
 							"longitude": -8.32278
 						}
 					},
 					{
-						"location_code": "AMTSPT0036",
-						"location_name": "AMTSPT0036",
-						"pickup_indicator": true,
-						"other_info": "HOTELENTRANCE",
-						"date_time": {
-							"seconds": 1593590400,
-							"nanos": 0
-						},
+						"locationCode": "AMTSPT0036",
+						"locationName": "AMTSPT0036",
+						"pickupIndicator": true,
+						"otherInfo": "HOTELENTRANCE",
+						"dateTime": "2020-07-01T08:00:00Z",
 						"coordinates": {
 							"latitude": 37.09058,
 							"longitude": -8.24387
 						}
 					},
 					{
-						"location_code": "AMTSPT0037",
-						"location_name": "AMTSPT0037",
-						"pickup_indicator": true,
-						"other_info": "HOTELENTRANCE",
-						"date_time": {
-							"seconds": 1593590400,
-							"nanos": 0
-						},
+						"locationCode": "AMTSPT0037",
+						"locationName": "AMTSPT0037",
+						"pickupIndicator": true,
+						"otherInfo": "HOTELENTRANCE",
+						"dateTime": "2020-07-01T08:00:00Z",
 						"coordinates": {
 							"latitude": 37.08072,
 							"longitude": -8.27882
@@ -301,7 +210,7 @@
 		],
 		"descriptions": [
 			{
-				"language": 9,
+				"language": "LANGUAGE_EN",
 				"descriptions": [
 					{
 						"category": "General",
@@ -314,6 +223,16 @@
 				]
 			}
 		],
+		"location": {
+			"address": {
+				"line1": "Calle Sant Joan 38",
+				"zipCode": "07008"
+			},
+			"coordinates": {
+				"latitude": 39.5519,
+				"longitude": 2.7355
+			}
+		},
 		"features": [
 			{
 				"description": "Difficulty|Easy|",
@@ -387,55 +306,44 @@
 			}
 		],
 		"languages": [
-			9,
-			12,
-			24
+			"LANGUAGE_EN",
+			"LANGUAGE_DE",
+			"LANGUAGE_ES"
 		],
-		"contact_info": {
+		"contactInfo": {
 			"address": [
 				{
-					"line_1": "Calle Sant Joan 38",
-					"line_2": "Quarter La Vileta",
+					"line1": "Calle Sant Joan 38",
+					"line2": "Quarter La Vileta",
 					"district": "Palma",
-					"zip_code": "07008"
+					"zipCode": "07008"
 				}
 			],
 			"phones": [
-				{
-					"phone": [
-						{
-							"type": "telephone",
-							"number": "+3426610 93276"
-						},
-						{
-							"type": "fax",
-							"number": "+342661093174"
-						}
-					]
-				}
+				{}
 			],
 			"emails": [
 				{
 					"address": "bookings@eleabeach.com",
-					"type": 3
+					"type": "EMAIL_TYPE_BOOKING"
 				},
 				{
 					"address": "reception@eleabeach.com",
-					"type": 2
+					"type": "EMAIL_TYPE_RECEPTION"
 				},
 				{
 					"address": "payments@eleabeach.com",
-					"type": 1
+					"type": "EMAIL_TYPE_OTHER"
 				}
 			],
 			"links": [
 				{
-					"type": 2,
+					"type": "LINK_TYPE_WEBSITE",
 					"description": "Booking",
 					"ref": "www.eleabeach.com"
 				},
 				{
-					"type": 3,
+					"type": "LINK_TYPE_CHECKIN",
 					"description": "Check-in",
 					"ref": "checkin.eleabeach.com"
 				}
@@ -446,103 +354,77 @@
 				"file": {
 					"name": "942282.jpg",
 					"url": "http://imageserver.giata.de/HOTELTEST/AESPMI1234/hotel/942282.jpg",
-					"last_modified": {
-						"seconds": 1731398963,
-						"nanos": 0
-					}
+					"lastModified": "2024-11-12T08:09:23Z"
 				},
-				"category": "balcony seats",
 				"width": 600,
-				"height": 450
+				"height": 450,
+				"category": "balcony seats"
 			},
 			{
 				"file": {
 					"name": "942283.jpg",
 					"url": "http://imageserver.giata.de/HOTELTEST/AESPMI1234/hotel/942283.jpg",
-					"last_modified": {
-						"seconds": 1731398963,
-						"nanos": 0
-					}
+					"lastModified": "2024-11-12T08:09:23Z"
 				},
-				"category": "at sea",
 				"width": 600,
-				"height": 450
+				"height": 450,
+				"category": "at sea"
 			}
 		],
-		"location": {
-			"address": {
-				"line_1": "Calle Sant Joan 38",
-				"zip_code": "07008"
-			},
-			"coordinates": {
-				"latitude": 39.5519,
-				"longitude": 2.7355
-			}
+		"supplierUnitCode": "XPTFAOH15O",
+		"categoryCode": "TT",
+		"categoryName": "Trips and Tours",
+		"typeCode": "BP",
+		"typeName": "BaseProduct",
+		"supplierCode": {
+			"supplierCode": "XPTFAOH15O",
+			"supplierNumber": 31345
 		},
-		"supplier_unit_code": "XPTFAOH15O",
-		"supplier_code_name": "Albufeira City Tour by Tuk Tuk",
-		"category_code": "TT",
-		"category_name": "Trips and Tours",
-		"type_code": "BP",
-		"type_name": "BaseProduct",
-		"supplier_code": {
-			"supplier_code": "XPTFAOH15O",
-			"supplier_number": 31345
-		},
-		"duration_range": {
-			"min_duration": {
+		"supplierCodeName": "Albufeira City Tour by Tuk Tuk",
+		"durationRange": {
+			"minDuration": {
 				"minutes": 120
 			},
-			"max_duration": {
+			"maxDuration": {
 				"minutes": 180
 			}
 		},
-		"max_confirmation_duration": {
+		"maxConfirmationDuration": {
 			"minutes": 60
 		},
-		"allow_free_sale": true,
-		"instant_confirmation": true,
-		"instant_delivery": true,
-		"availability_required": true,
-		"availability_type": "START_TIME",
-		"delivery_formats": [
-			3
+		"allowFreeSale": true,
+		"instantConfirmation": true,
+		"instantDelivery": true,
+		"availabilityRequired": true,
+		"availabilityType": "START_TIME",
+		"deliveryFormats": [
+			"DELIVERY_FORMAT_QRCODE"
 		],
-		"delivery_methods": [
-			2
+		"deliveryMethods": [
+			"DELIVERY_METHOD_API"
 		]
 	},
 	{
 		"activity": {
 			"context": "helicopter tour",
-			"last_modified": {
-				"seconds": 1710237630,
-				"nanos": 0
-			},
-			"external_session_id": "3v3s6634hnq20",
-			"product_code": {
+			"lastModified": "2024-03-12T10:00:30Z",
+			"externalSessionId": "3v3s6634hnq20",
+			"productCode": {
 				"code": "ACTIVITY345678",
 				"number": 654,
-				"type": 5
+				"type": "PRODUCT_CODE_TYPE_SUPPLIER"
 			},
-			"unit_code": "EESPMI46VY",
-			"service_code": "XO",
+			"unitCode": "EESPMI46VY",
+			"serviceCode": "XO",
 			"bookability": {
-				"type": 1,
-				"confirmation_time": null
+				"type": "BOOKABILITY_TYPE_AVAILABLE"
 			}
 		},
 		"units": [
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1712818800,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1712829600,
-						"nanos": 0
-					}
+					"startDatetime": "2024-04-11T07:00:00Z",
+					"endDatetime": "2024-04-11T10:00:00Z"
 				},
 				"code": "HELI-PREM",
 				"name": "Premium Helicopter Tour",
@@ -568,7 +450,7 @@
 		],
 		"descriptions": [
 			{
-				"language": 9,
+				"language": "LANGUAGE_EN",
 				"descriptions": [
 					{
 						"category": "General",
@@ -582,16 +464,11 @@
 			}
 		],
 		"location": {
-			"address": {
-				"street_address": "Island Helicopters Base",
-				"postal_code": "07600",
-				"city": "Palma",
-				"country_code": "ES"
-			},
-			"geo_tree": {
-				"country": 13,
+			"address": {},
+			"geoTree": {
+				"country": "COUNTRY_ES",
 				"region": "Mallorca",
-				"city_or_resort": "Palma Airport"
+				"cityOrResort": "Palma Airport"
 			},
 			"coordinates": {
 				"latitude": 39.5519,
@@ -609,70 +486,54 @@
 			}
 		],
 		"languages": [
-			9,
-			12,
-			24,
-			11
+			"LANGUAGE_EN",
+			"LANGUAGE_DE",
+			"LANGUAGE_ES",
+			"LANGUAGE_FR"
 		],
-		"supplier_unit_code": "HELI-TOUR-01",
-		"category_code": "AIR",
-		"category_name": "Air Activity",
-		"type_code": "SCENIC",
-		"type_name": "Scenic Tour",
-		"supplier_code": {
-			"supplier_code": "ISLAND-AIR",
-			"supplier_number": 345678
+		"supplierUnitCode": "HELI-TOUR-01",
+		"categoryCode": "AIR",
+		"categoryName": "Air Activity",
+		"typeCode": "SCENIC",
+		"typeName": "Scenic Tour",
+		"supplierCode": {
+			"supplierCode": "ISLAND-AIR",
+			"supplierNumber": 345678
 		},
-		"supplier_code_name": "Island Air Tours",
-		"duration_range": {
-			"min_duration": {
+		"supplierCodeName": "Island Air Tours",
+		"durationRange": {
+			"minDuration": {
 				"minutes": 45
 			},
-			"max_duration": {
+			"maxDuration": {
 				"minutes": 60
 			}
 		},
-		"max_confirmation_duration": {
-			"seconds": 172800,
-			"nanos": 0
-		},
-		"allow_free_sale": false,
-		"instant_confirmation": false,
-		"instant_delivery": true,
-		"availability_required": true,
-		"availability_type": "START_TIME"
+		"maxConfirmationDuration": {},
+		"instantDelivery": true,
+		"availabilityRequired": true,
+		"availabilityType": "START_TIME"
 	},
 	{
 		"activity": {
 			"context": "island view tour",
-			"last_modified": {
-				"seconds": 1710071700,
-				"nanos": 0
-			},
-			"external_session_id": "8bn3hr4289",
-			"product_code": {
+			"lastModified": "2024-03-10T11:55:00Z",
+			"externalSessionId": "8bn3hr4289",
+			"productCode": {
 				"code": "87456",
-				"number": 0,
-				"type": 1
+				"type": "PRODUCT_CODE_TYPE_GIATA"
 			},
-			"unit_code": "EESPMI46ZX",
-			"service_code": "XO",
+			"unitCode": "EESPMI46ZX",
+			"serviceCode": "XO",
 			"bookability": {
-				"type": 1,
-				"confirmation_time": null
+				"type": "BOOKABILITY_TYPE_AVAILABLE"
 			}
 		},
 		"units": [
 			{
 				"schedule": {
-					"start_datetime": {
-						"seconds": 1712905200,
-						"nanos": 0
-					},
-					"end_datetime": {
-						"seconds": 1712923200,
-						"nanos": 0
-					}
+					"startDatetime": "2024-04-12T07:00:00Z",
+					"endDatetime": "2024-04-12T12:00:00Z"
 				},
 				"code": "BOAT-STD",
 				"name": "Standard Boat Tour",
@@ -698,7 +559,7 @@
 		],
 		"descriptions": [
 			{
-				"language": 9,
+				"language": "LANGUAGE_EN",
 				"descriptions": [
 					{
 						"category": "General",
@@ -712,16 +573,11 @@
 			}
 		],
 		"location": {
-			"address": {
-				"street_address": "Marina Bay Dock 7",
-				"postal_code": "07157",
-				"city": "Port d'Andratx",
-				"country_code": "ES"
-			},
-			"geo_tree": {
-				"country": 13,
+			"address": {},
+			"geoTree": {
+				"country": "COUNTRY_ES",
 				"region": "Mallorca",
-				"city_or_resort": "Port d'Andratx"
+				"cityOrResort": "Port d'Andratx"
 			},
 			"coordinates": {
 				"latitude": 39.5438,
@@ -739,35 +595,32 @@
 			}
 		],
 		"languages": [
-			9,
-			12
+			"LANGUAGE_EN",
+			"LANGUAGE_DE"
 		],
-		"supplier_unit_code": "BOAT-TOUR-01",
-		"category_code": "MAR",
-		"category_name": "Marine Activity",
-		"type_code": "BOAT",
-		"type_name": "Boat Tour",
-		"supplier_code": {
-			"supplier_code": "SEA-EXPLORERS",
-			"supplier_number": 87456
+		"supplierUnitCode": "BOAT-TOUR-01",
+		"categoryCode": "MAR",
+		"categoryName": "Marine Activity",
+		"typeCode": "BOAT",
+		"typeName": "Boat Tour",
+		"supplierCode": {
+			"supplierCode": "SEA-EXPLORERS",
+			"supplierNumber": 87456
 		},
-		"supplier_code_name": "Sea Explorers",
-		"duration_range": {
-			"min_duration": {
+		"supplierCodeName": "Sea Explorers",
+		"durationRange": {
+			"minDuration": {
 				"minutes": 300
 			},
-			"max_duration": {
+			"maxDuration": {
 				"minutes": 360
 			}
 		},
-		"max_confirmation_duration": {
-			"seconds": 43200,
-			"nanos": 0
-		},
-		"allow_free_sale": true,
-		"instant_confirmation": true,
-		"instant_delivery": true,
-		"availability_required": true,
-		"availability_type": "DATE"
+		"maxConfirmationDuration": {},
+		"allowFreeSale": true,
+		"instantConfirmation": true,
+		"instantDelivery": true,
+		"availabilityRequired": true,
+		"availabilityType": "DATE"
 	}
 ]

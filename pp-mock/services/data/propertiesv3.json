@@ -37,8 +37,7 @@
                 "emails": [
                     {
                         "address": "info@sunsetbeachresort.com",
-                        "type": "EMAIL_TYPE_RECEPTION",
-                        "description": "Reception"
+                        "type": "EMAIL_TYPE_RECEPTION"
                     }
                 ],
                 "links": [
@@ -272,8 +271,7 @@
                 "emails": [
                     {
                         "address": "info@alpinelodge.ch",
-                        "type": "EMAIL_TYPE_RECEPTION",
-                        "description": "Reception"
+                        "type": "EMAIL_TYPE_RECEPTION"
                     }
                 ],
                 "links": [
@@ -494,8 +492,7 @@
                 "emails": [
                     {
                         "address": "contact@palmparadise.com",
-                        "type": "EMAIL_TYPE_RECEPTION",
-                        "description": "Reception"
+                        "type": "EMAIL_TYPE_RECEPTION"
                     }
                 ]
             },
@@ -708,8 +705,7 @@
                 "emails": [
                     {
                         "address": "info@citycentralberlin.de",
-                        "type": "EMAIL_TYPE_RECEPTION",
-                        "description": "Reception"
+                        "type": "EMAIL_TYPE_RECEPTION"
                     }
                 ]
             },
@@ -923,8 +919,7 @@
                 "emails": [
                     {
                         "address": "reservations@oceanviewmaui.com",
-                        "type": "EMAIL_TYPE_RECEPTION",
-                        "description": "Reception"
+                        "type": "EMAIL_TYPE_RECEPTION"
                     }
                 ],
                 "links": [

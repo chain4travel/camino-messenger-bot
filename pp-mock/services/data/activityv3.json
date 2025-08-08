@@ -1,59 +1,45 @@
 [
 	{
 		"context": "Tuk-Tuk Sightseeing Tour",
-		"last_modified": {
-			"seconds": 1710489022,
-			"nanos": 0
-		},
-		"external_session_id": "23456",
-		"product_code": {
+		"lastModified": "2024-03-15T07:50:22Z",
+		"externalSessionId": "23456",
+		"productCode": {
 			"code": "TC000000",
-			"number": 0,
-			"type": 5
+			"type": "PRODUCT_CODE_TYPE_SUPPLIER"
 		},
-		"unit_code": "EESPMI46VY",
-		"service_code": "XO",
+		"unitCode": "EESPMI46VY",
+		"serviceCode": "XO",
 		"bookability": {
-			"type": 1,
-			"confirmation_time": null
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
 		}
 	},
 	{
 		"context": "helicopter tour",
-		"last_modified": {
-			"seconds": 1710237630,
-			"nanos": 0
-		},
-		"external_session_id": "3v3s6634hnq20",
-		"product_code": {
+		"lastModified": "2024-03-12T10:00:30Z",
+		"externalSessionId": "3v3s6634hnq20",
+		"productCode": {
 			"code": "ACTIVITY345678",
 			"number": 654,
-			"type": 5
+			"type": "PRODUCT_CODE_TYPE_SUPPLIER"
 		},
-		"unit_code": "EESPMI46VY",
-		"service_code": "XO",
+		"unitCode": "EESPMI46VY",
+		"serviceCode": "XO",
 		"bookability": {
-			"type": 1,
-			"confirmation_time": null
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
 		}
 	},
 	{
 		"context": "island view tour",
-		"last_modified": {
-			"seconds": 1710071700,
-			"nanos": 0
-		},
-		"external_session_id": "8bn3hr4289",
-		"product_code": {
+		"lastModified": "2024-03-10T11:55:00Z",
+		"externalSessionId": "8bn3hr4289",
+		"productCode": {
 			"code": "87456",
-			"number": 0,
-			"type": 1
+			"type": "PRODUCT_CODE_TYPE_GIATA"
 		},
-		"unit_code": "EESPMI46VY",
-		"service_code": "XO",
+		"unitCode": "EESPMI46VY",
+		"serviceCode": "XO",
 		"bookability": {
-			"type": 1,
-			"confirmation_time": null
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
 		}
 	}
 ]

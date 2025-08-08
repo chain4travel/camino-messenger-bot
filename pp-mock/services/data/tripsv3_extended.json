@@ -1,32 +1,41 @@
 [
 	{
-		"supplier_code": {
-			"supplier_code": "AB",
-			"supplier_number": 4567
+		"supplierCode": {
+			"supplierCode": "AB",
+			"supplierNumber": 4567
 		},
 		"price": {
 			"value": "20000",
-			"decimals": 2
+			"decimals": 2,
+			"currency": {
+				"isoCurrency": "ISO_CURRENCY_EUR"
+			}
 		},
 		"segments": [
 			{
 				"info": {
-					"segment_id": "SEG1234",
-					"provider_code": "EW",
-					"product_code": {
+					"segmentId": "SEG1234",
+					"providerCode": "EW",
+					"productCode": {
 						"code": "IATA4589",
-						"type": 3
+						"type": "PRODUCT_CODE_TYPE_IATA"
 					},
 					"departure": {
-						"date_time": {
-							"seconds": 1715775600,
-							"nanos": 0
+						"dateTime": "2024-05-15T12:20:00Z",
+						"location": {
+							"locationCode": {
+								"code": "PMI",
+								"type": "LOCATION_CODE_TYPE_IATA_CODE"
+							}
 						}
 					},
 					"arrival": {
-						"date_time": {
-							"seconds": 1715779200,
-							"nanos": 0
+						"dateTime": "2024-05-15T13:20:00Z",
+						"location": {
+							"locationCode": {
+								"code": "BCN",
+								"type": "LOCATION_CODE_TYPE_IATA_CODE"
+							}
 						}
 					}
 				}
@@ -34,57 +43,72 @@
 		]
 	},
 	{
-		"supplier_code": {
-			"supplier_code": "LH",
-			"supplier_number": 7453
+		"supplierCode": {
+			"supplierCode": "LH",
+			"supplierNumber": 7453
 		},
 		"price": {
 			"value": "75000",
-			"decimals": 2
+			"decimals": 2,
+			"currency": {
+				"isoCurrency": "ISO_CURRENCY_EUR"
+			}
 		},
 		"segments": [
 			{
 				"info": {
-					"segment_id": "SEG5678",
-					"provider_code": "LH",
-					"retailer_code": "BA",
-					"sub_supplier_code": "NS",
-					"product_code": {
+					"segmentId": "SEG5678",
+					"providerCode": "LH",
+					"retailerCode": "BA",
+					"subSupplierCode": "NS",
+					"productCode": {
 						"code": "IATA1234",
-						"type": 3
+						"type": "PRODUCT_CODE_TYPE_IATA"
 					},
 					"departure": {
-						"date_time": {
-							"seconds": 1715782800,
-							"nanos": 0
+						"dateTime": "2024-05-15T14:20:00Z",
+						"location": {
+							"locationCode": {
+								"code": "BCN",
+								"type": "LOCATION_CODE_TYPE_IATA_CODE"
+							}
 						}
 					},
 					"arrival": {
-						"date_time": {
-							"seconds": 1715786400,
-							"nanos": 0
+						"dateTime": "2024-05-15T15:20:00Z",
+						"location": {
+							"locationCode": {
+								"code": "MAD",
+								"type": "LOCATION_CODE_TYPE_IATA_CODE"
+							}
 						}
 					}
 				}
 			},
 			{
 				"info": {
-					"segment_id": "SEG91011",
-					"provider_code": "AF",
-					"product_code": {
+					"segmentId": "SEG91011",
+					"providerCode": "AF",
+					"productCode": {
 						"code": "IATA5678",
-						"type": 3
+						"type": "PRODUCT_CODE_TYPE_IATA"
 					},
 					"departure": {
-						"date_time": {
-							"seconds": 1715790000,
-							"nanos": 0
+						"dateTime": "2024-05-15T16:20:00Z",
+						"location": {
+							"locationCode": {
+								"code": "MAD",
+								"type": "LOCATION_CODE_TYPE_IATA_CODE"
+							}
 						}
 					},
 					"arrival": {
-						"date_time": {
-							"seconds": 1715793600,
-							"nanos": 0
+						"dateTime": "2024-05-15T17:20:00Z",
+						"location": {
+							"locationCode": {
+								"code": "LIS",
+								"type": "LOCATION_CODE_TYPE_IATA_CODE"
+							}
 						}
 					}
 				}
@@ -92,44 +116,41 @@
 		]
 	},
 	{
-		"supplier_code": {
-			"supplier_code": "DB",
-			"supplier_number": 5483
+		"supplierCode": {
+			"supplierCode": "DB",
+			"supplierNumber": 5483
 		},
 		"price": {
 			"value": "30000",
-			"decimals": 2
+			"decimals": 2,
+			"currency": {
+				"isoCurrency": "ISO_CURRENCY_EUR"
+			}
 		},
 		"segments": [
 			{
 				"info": {
-					"segment_id": "SEG8321",
-					"provider_code": "DB",
-					"product_code": {
+					"segmentId": "SEG8321",
+					"providerCode": "DB",
+					"productCode": {
 						"code": "RE3-89875",
-						"type": 5
+						"type": "PRODUCT_CODE_TYPE_SUPPLIER"
 					},
 					"departure": {
-						"date_time": {
-							"seconds": 1742371437,
-							"nanos": 0
-						},
-						"location" : {
-							"location_code" : {
-								"code" : "LAN",
-								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+						"dateTime": "2025-03-19T08:03:57Z",
+						"location": {
+							"locationCode": {
+								"code": "LAN",
+								"type": "LOCATION_CODE_TYPE_3ALPHA_CODE"
 							}
 						}
 					},
 					"arrival": {
-						"date_time": {
-							"seconds": 1742375037,
-							"nanos": 0
-						},
-						"location" : {
-							"location_code" : {
-								"code" : "HAM",
-								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+						"dateTime": "2025-03-19T09:03:57Z",
+						"location": {
+							"locationCode": {
+								"code": "HAM",
+								"type": "LOCATION_CODE_TYPE_3ALPHA_CODE"
 							}
 						}
 					}
@@ -137,42 +158,32 @@
 			},
 			{
 				"info": {
-					"segment_id": "SEG8323",
-					"provider_code": "DB",
-					"product_code": {
+					"segmentId": "SEG8323",
+					"providerCode": "DB",
+					"productCode": {
 						"code": "ICE-757",
-						"type": 5
+						"type": "PRODUCT_CODE_TYPE_SUPPLIER"
 					},
 					"departure": {
-						"date_time": {
-							"seconds": 1742378637,
-							"nanos": 0
-						},
-						"location" : {
-							"location_code" : {
-								"code" : "HAM",
-								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+						"dateTime": "2025-03-19T10:03:57Z",
+						"location": {
+							"locationCode": {
+								"code": "HAM",
+								"type": "LOCATION_CODE_TYPE_3ALPHA_CODE"
 							}
 						}
 					},
 					"arrival": {
-						"date_time": {
-							"seconds": 1742382237,
-							"nanos": 0
-						},
-						"location" : {
-							"location_code" : {
-								"code" : "BER",
-								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+						"dateTime": "2025-03-19T11:03:57Z",
+						"location": {
+							"locationCode": {
+								"code": "BER",
+								"type": "LOCATION_CODE_TYPE_3ALPHA_CODE"
 							}
 						}
 					}
 				}
 			}
-		],
-		"last_modified": {
-			"seconds": 1740000000,
-			"nanos": 0
-		}
+		]
 	}
 ]

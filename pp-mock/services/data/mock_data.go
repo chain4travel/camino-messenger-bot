@@ -16,9 +16,6 @@ import (
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 
 	"buf.build/go/protovalidate"
@@ -26,17 +23,32 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// * Accommodation
+
 //go:embed properties.json
-var propertiesJSON []byte
+var propertiesV1JSON []byte
+
+//go:embed propertiesv2.json
+var propertiesV2JSON []byte
+
+//go:embed propertiesv3.json
+var propertiesV3JSON []byte
+
+// * Transport
 
 //go:embed tripsv1.json
 var tripsV1JSON []byte
+
+//go:embed tripsv2.json
+var tripsV2JSON []byte
 
 //go:embed tripsv3_basic.json
 var tripsV3BasicJSON []byte
 
 //go:embed tripsv3_extended.json
 var tripsV3ExtendedJSON []byte
+
+// * Activity
 
 //go:embed activityv1.json
 var activityV1JSON []byte
@@ -65,10 +77,12 @@ var activityV3ExtendedJSON []byte
 //go:embed activityv3_search.json
 var activitySearchResultV3JSON []byte
 
-//go:embed seatmapv4/seatmapv4.json
+// * SeatMap
+
+//go:embed seatmap/seatmapv4.json
 var seatMapV4JSON []byte
 
-//go:embed seatmapv4/seatmap_availability_v4.json
+//go:embed seatmap/seatmap_availability_v4.json
 var seatMapAvailabilityV4JSON []byte
 
 const (
@@ -101,317 +115,45 @@ var (
 
 	SeatMapV4             []*typesv4.SeatMap          // used by seatMap
 	SeatMapAvailabilityV4 []*typesv4.SeatMapInventory // used by seatMapAvailability
-
 )
 
 func init() {
-	var err error
+	// AccommodationV1
+	PropertiesV1 = mustUnmarshalStrictAndValidate[*accommodationv1.PropertyExtendedInfo](propertiesV1JSON, "error unmarshaling properties v1")
+	// AccommodationV2
+	PropertiesV2 = mustUnmarshalStrictAndValidate[*accommodationv2.PropertyExtendedInfo](propertiesV2JSON, "error unmarshaling properties v2")
+	// AccommodationV3
+	PropertiesV3 = mustUnmarshalStrictAndValidate[*accommodationv3.PropertyExtendedInfo](propertiesV3JSON, "error unmarshaling properties v3")
+	// TransportV1
+	TripsV1 = mustUnmarshalStrictAndValidate[*transportv1.Trip](tripsV1JSON, "error unmarshaling trips v1")
+	// TransportV2
+	TripsV2 = mustUnmarshalStrictAndValidate[*transportv2.Trip](tripsV2JSON, "error unmarshaling trips v2")
+	// TransportV3
+	TripsBasicV3 = mustUnmarshalStrictAndValidate[*transportv3.TripBasic](tripsV3BasicJSON, "error unmarshaling trips basic v3")
+	TripsExtendedV3 = mustUnmarshalStrictAndValidate[*transportv3.TripExtended](tripsV3ExtendedJSON, "error unmarshaling trips extended v3")
+	// ActivityV1
+	ActivityV1 = mustUnmarshalStrictAndValidate[*activityv1.Activity](activityV1JSON, "error unmarshaling activities v1")
+	ActivityExtendedV1 = mustUnmarshalStrictAndValidate[*activityv1.ActivityExtendedInfo](activityExtendedV1JSON, "error unmarshaling activities extended v1")
+	ActivitySearchResultV1 = mustUnmarshalStrictAndValidate[*activityv1.ActivitySearchResult](activitySearchResultV1JSON, "error unmarshaling activities search v1")
+	// ActivityV2
+	ActivityV2 = mustUnmarshalStrictAndValidate[*activityv2.Activity](activityV2JSON, "error unmarshaling activities v2")
+	ActivityExtendedV2 = mustUnmarshalStrictAndValidate[*activityv2.ActivityExtendedInfo](activityExtendedV2JSON, "error unmarshaling activities extended v2")
+	ActivitySearchResultV2 = mustUnmarshalStrictAndValidate[*activityv2.ActivitySearchResult](activitySearchResultV2JSON, "error unmarshaling activities search v2")
+	// ActivityV3
+	ActivityV3 = mustUnmarshalStrictAndValidate[*activityv3.Activity](activityV3JSON, "error unmarshaling activities v3")
+	ActivityExtendedV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivityExtendedInfo](activityV3ExtendedJSON, "error unmarshaling activities extended v3")
+	ActivitySearchResultV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivitySearchResult](activitySearchResultV3JSON, "error unmarshaling activities search v3")
+	// SeatMapV4
+	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
+	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")
+}
 
-	// because protobuf location and price are one-of interface types,
-	// json unmarshaling won't work for them and will result in error
-	// so, as quick workaround, we are setting them manually
-
-	if err := json.Unmarshal(propertiesJSON, &PropertiesV1); err != nil {
-		panic(fmt.Errorf("error unmarshaling properties v1: %w", err))
-	}
-	if err := json.Unmarshal(propertiesJSON, &PropertiesV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling properties v2: %w", err))
-	}
-	if err := json.Unmarshal(propertiesJSON, &PropertiesV3); err != nil {
-		panic(fmt.Errorf("error unmarshaling properties v3: %w", err))
-	}
-	if err := json.Unmarshal(tripsV1JSON, &TripsV1); err != nil {
-		panic(fmt.Errorf("error unmarshaling trips v1: %w", err))
-	}
-	if err := json.Unmarshal(tripsV1JSON, &TripsV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling trips v2: %w", err))
-	}
-	if err := json.Unmarshal(tripsV3BasicJSON, &TripsBasicV3); err != nil {
-		panic(fmt.Errorf("error unmarshaling trips v3 basic: %w", err))
-	}
-	if err := json.Unmarshal(tripsV3ExtendedJSON, &TripsExtendedV3); err != nil {
-		panic(fmt.Errorf("error unmarshaling trips v3 extended: %w", err))
-	}
-	if err := json.Unmarshal(activityV1JSON, &ActivityV1); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities v1: %w", err))
-	}
-	if err := json.Unmarshal(activityExtendedV1JSON, &ActivityExtendedV1); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities extended v1: %w", err))
-	}
-	if err := json.Unmarshal(activitySearchResultV1JSON, &ActivitySearchResultV1); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities search v1: %w", err))
-	}
-	if err := json.Unmarshal(activityV2JSON, &ActivityV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities v2: %w", err))
-	}
-	if err := json.Unmarshal(activityExtendedV2JSON, &ActivityExtendedV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities extended v2: %w", err))
-	}
-	if err := json.Unmarshal(activitySearchResultV2JSON, &ActivitySearchResultV2); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities search v2: %w", err))
-	}
-	if err := json.Unmarshal(activityV3JSON, &ActivityV3); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities v3: %w", err))
-	}
-	if err := json.Unmarshal(activityV3ExtendedJSON, &ActivityExtendedV3); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities extended v3: %w", err))
-	}
-	if err := json.Unmarshal(activitySearchResultV3JSON, &ActivitySearchResultV3); err != nil {
-		panic(fmt.Errorf("error unmarshaling activities search v3: %w", err))
-	}
-	SeatMapV4, err = unmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON)
+func mustUnmarshalStrictAndValidate[T proto.Message](data []byte, panicMsg string) []T {
+	messages, err := unmarshalStrictAndValidate[T](data)
 	if err != nil {
-		panic(fmt.Errorf("error unmarshaling seat map v4: %w", err))
+		panic(fmt.Errorf("%s: %w", panicMsg, err))
 	}
-	SeatMapAvailabilityV4, err = unmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON)
-	if err != nil {
-		panic(fmt.Errorf("error unmarshaling seat map availability v4: %w", err))
-	}
-
-	// TripBasicV3[0,0]
-	TripsBasicV3[0].Segments[0].Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "PMI",
-				Type: 2,
-			},
-		},
-	}
-	TripsBasicV3[0].Segments[0].Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "BCN",
-				Type: 2,
-			},
-		},
-	}
-
-	// TripBasicV3[1,0]
-	TripsBasicV3[1].Segments[0].Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "BCN",
-				Type: 2,
-			},
-		},
-	}
-	TripsBasicV3[1].Segments[0].Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "MAD",
-				Type: 2,
-			},
-		},
-	}
-
-	// TripBasicV3[1,1]
-	TripsBasicV3[1].Segments[1].Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "MAD",
-				Type: 2,
-			},
-		},
-	}
-	TripsBasicV3[1].Segments[1].Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "LIS",
-				Type: 2,
-			},
-		},
-	}
-
-	// TripBasicV3[2,0]
-	TripsBasicV3[2].Segments[0].Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "LAN",
-				Type: 4,
-			},
-		},
-	}
-	TripsBasicV3[2].Segments[0].Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "HAM",
-				Type: 4,
-			},
-		},
-	}
-	// TripBasicV3[2,1]
-	TripsBasicV3[2].Segments[1].Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "HAM",
-				Type: 4,
-			},
-		},
-	}
-	TripsBasicV3[2].Segments[1].Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "BER",
-				Type: 4,
-			},
-		},
-	}
-
-	// TripsExtendedV3[0]
-	TripsExtendedV3[0].Price.Currency = &typesv3.Currency{
-		Currency: &typesv3.Currency_IsoCurrency{
-			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-
-	// TripsExtendedV3[0,0]
-	TripsExtendedV3[0].Segments[0].Info.Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "PMI",
-				Type: 2,
-			},
-		},
-	}
-	TripsExtendedV3[0].Segments[0].Info.Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "BCN",
-				Type: 2,
-			},
-		},
-	}
-
-	// TripsExtendedV3[1]
-	TripsExtendedV3[1].Price.Currency = &typesv3.Currency{
-		Currency: &typesv3.Currency_IsoCurrency{
-			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-
-	// TripsExtendedV3[1,0]
-	TripsExtendedV3[1].Segments[0].Info.Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "BCN",
-				Type: 2,
-			},
-		},
-	}
-	TripsExtendedV3[1].Segments[0].Info.Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "MAD",
-				Type: 2,
-			},
-		},
-	}
-
-	// TripsExtendedV3[1,1]
-	TripsExtendedV3[1].Segments[1].Info.Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "MAD",
-				Type: 2,
-			},
-		},
-	}
-	TripsExtendedV3[1].Segments[1].Info.Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "LIS",
-				Type: 2,
-			},
-		},
-	}
-
-	// TripsExtendedV3[2,0]
-	TripsExtendedV3[2].Segments[0].Info.Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "LAN",
-				Type: 4,
-			},
-		},
-	}
-	TripsExtendedV3[2].Segments[0].Info.Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "HAM",
-				Type: 4,
-			},
-		},
-	}
-
-	// TripsExtendedV3[2,1]
-	TripsExtendedV3[2].Segments[1].Info.Departure.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "HAM",
-				Type: 4,
-			},
-		},
-	}
-	TripsExtendedV3[2].Segments[1].Info.Arrival.Location = &transportv3.TransitEventLocation{
-		Location: &transportv3.TransitEventLocation_LocationCode{
-			LocationCode: &typesv2.LocationCode{
-				Code: "BER",
-				Type: 4,
-			},
-		},
-	}
-	TripsExtendedV3[2].Price.Currency = &typesv3.Currency{
-		Currency: &typesv3.Currency_IsoCurrency{
-			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-
-	// ActivitySearchV1[0]
-	ActivitySearchResultV1[0].Price.Currency = &typesv1.Currency{
-		Currency: &typesv1.Currency_IsoCurrency{
-			IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-	// ActivitySearchV1[1]
-	ActivitySearchResultV1[1].Price.Currency = &typesv1.Currency{
-		Currency: &typesv1.Currency_IsoCurrency{
-			IsoCurrency: typesv1.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-
-	// ActivitySearchV2[0]
-	ActivitySearchResultV2[0].Price.Currency = &typesv2.Currency{
-		Currency: &typesv2.Currency_IsoCurrency{
-			IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-	// ActivitySearchV2[1]
-	ActivitySearchResultV2[1].Price.Currency = &typesv2.Currency{
-		Currency: &typesv2.Currency_IsoCurrency{
-			IsoCurrency: typesv2.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-
-	// ActivitySearchV3[0]
-	ActivitySearchResultV3[0].Price.Currency = &typesv3.Currency{
-		Currency: &typesv3.Currency_IsoCurrency{
-			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-	// ActivitySearchV3[1]
-	ActivitySearchResultV3[1].Price.Currency = &typesv3.Currency{
-		Currency: &typesv3.Currency_IsoCurrency{
-			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_EUR,
-		},
-	}
-	// ActivitySearchV3[2]
-	ActivitySearchResultV3[2].Price.Currency = &typesv3.Currency{
-		Currency: &typesv3.Currency_IsoCurrency{
-			IsoCurrency: typesv3.IsoCurrency_ISO_CURRENCY_USD,
-		},
-	}
-
-	// TODO @evlekht do all data checks like make sure that properties has prop.Property.ContactInfo.Address[0] != nil
+	return messages
 }
 
 func unmarshalStrictAndValidate[T proto.Message](data []byte) ([]T, error) {
@@ -423,9 +165,10 @@ func unmarshalStrictAndValidate[T proto.Message](data []byte) ([]T, error) {
 	}
 
 	var zeroValue T
+	typ := reflect.TypeOf(zeroValue).Elem()
+
 	messages := make([]T, 0, len(raws))
 	for i, raw := range raws {
-		typ := reflect.TypeOf(zeroValue).Elem()
 		msg := reflect.New(typ).Interface().(T)
 		if err := protojson.Unmarshal(raw, msg); err != nil {
 			return nil, fmt.Errorf("item %d: protojson unmarshal failed: %w", i, err)
