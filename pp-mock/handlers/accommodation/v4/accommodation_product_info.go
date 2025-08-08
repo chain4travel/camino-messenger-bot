@@ -1,0 +1,43 @@
+// Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
+// See the file LICENSE for licensing terms.
+
+package v4
+
+import (
+	"context"
+
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
+	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
+)
+
+var _ accommodationv4grpc.AccommodationProductInfoServiceServer = (*accommodationProductInfoV3Server)(nil)
+
+type accommodationProductInfoV3Server struct{}
+
+func NewAccommodationProductInfoServer() accommodationv4grpc.AccommodationProductInfoServiceServer {
+	return &accommodationProductInfoV3Server{}
+}
+
+func (s *accommodationProductInfoV3Server) AccommodationProductInfo(_ context.Context, req *accommodationv4.AccommodationProductInfoRequest) (*accommodationv4.AccommodationProductInfoResponse, error) {
+	filteredProperties := filterExtendedPropertiesBySupplierCodes(mockdata.PropertiesV4, req.SupplierCodes)
+	filteredProperties = filterExtendedPropertiesByLanguage(filteredProperties, req.Languages)
+
+	response := &accommodationv4.AccommodationProductInfoResponse{
+		Header: &typesv4.ResponseHeader{
+			BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		Properties: filteredProperties,
+	}
+
+	if len(filteredProperties) == 0 {
+		response.Header.Alerts = []*typesv4.Alert{{
+			Message: "No properties found that match request",
+			Type:    typesv4.AlertType_ALERT_TYPE_INFO,
+		}}
+	}
+
+	return response, nil
+}

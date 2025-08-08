@@ -10,18 +10,23 @@ import (
 	accommodationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v1"
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
+	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
 	activityv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v1"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
+	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 	transportv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v1"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
+	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
+
+// TODO@ real hash sums for files in json (e.g. accommodation/propertiesv4.json)
 
 // * Accommodation
 
@@ -33,6 +38,9 @@ var propertiesV2JSON []byte
 
 //go:embed accommodation/propertiesv3.json
 var propertiesV3JSON []byte
+
+//go:embed accommodation/propertiesv4.json
+var propertiesV4JSON []byte
 
 // * Transport
 
@@ -47,6 +55,12 @@ var tripsV3BasicJSON []byte
 
 //go:embed transport/tripsv3_extended.json
 var tripsV3ExtendedJSON []byte
+
+//go:embed tripsv4_basic.json
+var tripsV4BasicJSON []byte
+
+//go:embed tripsv4_extended.json
+var tripsV4ExtendedJSON []byte
 
 // * Activity
 
@@ -77,6 +91,15 @@ var activityV3ExtendedJSON []byte
 //go:embed activity/activityv3_search.json
 var activitySearchResultV3JSON []byte
 
+//go:embed activityv4.json
+var activityV4JSON []byte
+
+//go:embed activityv4_extended.json
+var activityExtendedV4JSON []byte
+
+//go:embed activityv4_search.json
+var activitySearchResultV4JSON []byte
+
 // * SeatMap
 
 //go:embed seatmap/seatmapv4.json
@@ -94,12 +117,16 @@ var (
 	PropertiesV1 []*accommodationv1.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV2 []*accommodationv2.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV3 []*accommodationv3.PropertyExtendedInfo // used by product list, info and search
+	PropertiesV4 []*accommodationv4.PropertyExtendedInfo // used by product list, info and search
 
 	TripsV1 []*transportv1.Trip // used by search
 	TripsV2 []*transportv2.Trip // used by search
 
 	TripsBasicV3    []*transportv3.TripBasic    // used by product list
 	TripsExtendedV3 []*transportv3.TripExtended // used by search
+
+	TripsBasicV4    []*transportv4.TripBasic    // used by product list
+	TripsExtendedV4 []*transportv4.TripExtended // used by search
 
 	ActivityV1             []*activityv1.Activity             // used by product list
 	ActivityExtendedV1     []*activityv1.ActivityExtendedInfo // used by product info
@@ -113,6 +140,10 @@ var (
 	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo // used by product info
 	ActivitySearchResultV3 []*activityv3.ActivitySearchResult // used by search
 
+	ActivityV4             []*activityv4.Activity             // used by product list
+	ActivityExtendedV4     []*activityv4.ActivityExtendedInfo // used by product info
+	ActivitySearchResultV4 []*activityv4.ActivitySearchResult // used by search
+
 	SeatMapV4             []*typesv4.SeatMap          // used by seatMap
 	SeatMapAvailabilityV4 []*typesv4.SeatMapInventory // used by seatMapAvailability
 )
@@ -124,6 +155,8 @@ func init() {
 	PropertiesV2 = mustUnmarshalStrictAndValidate[*accommodationv2.PropertyExtendedInfo](propertiesV2JSON, "error unmarshaling properties v2")
 	// AccommodationV3
 	PropertiesV3 = mustUnmarshalStrictAndValidate[*accommodationv3.PropertyExtendedInfo](propertiesV3JSON, "error unmarshaling properties v3")
+	// Accommodation V4
+	PropertiesV4 = mustUnmarshalStrictAndValidate[*accommodationv4.PropertyExtendedInfo](propertiesV4JSON, "error unmarshaling properties v4")
 	// TransportV1
 	TripsV1 = mustUnmarshalStrictAndValidate[*transportv1.Trip](tripsV1JSON, "error unmarshaling trips v1")
 	// TransportV2
@@ -131,6 +164,9 @@ func init() {
 	// TransportV3
 	TripsBasicV3 = mustUnmarshalStrictAndValidate[*transportv3.TripBasic](tripsV3BasicJSON, "error unmarshaling trips basic v3")
 	TripsExtendedV3 = mustUnmarshalStrictAndValidate[*transportv3.TripExtended](tripsV3ExtendedJSON, "error unmarshaling trips extended v3")
+	// TransportV4
+	TripsBasicV4 = mustUnmarshalStrictAndValidate[*transportv4.TripBasic](tripsV4BasicJSON, "error unmarshaling trips basic v4")
+	TripsExtendedV4 = mustUnmarshalStrictAndValidate[*transportv4.TripExtended](tripsV4ExtendedJSON, "error unmarshaling trips extended v4")
 	// ActivityV1
 	ActivityV1 = mustUnmarshalStrictAndValidate[*activityv1.Activity](activityV1JSON, "error unmarshaling activities v1")
 	ActivityExtendedV1 = mustUnmarshalStrictAndValidate[*activityv1.ActivityExtendedInfo](activityExtendedV1JSON, "error unmarshaling activities extended v1")
@@ -143,6 +179,10 @@ func init() {
 	ActivityV3 = mustUnmarshalStrictAndValidate[*activityv3.Activity](activityV3JSON, "error unmarshaling activities v3")
 	ActivityExtendedV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivityExtendedInfo](activityV3ExtendedJSON, "error unmarshaling activities extended v3")
 	ActivitySearchResultV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivitySearchResult](activitySearchResultV3JSON, "error unmarshaling activities search v3")
+	// Activity V4
+	ActivityV4 = mustUnmarshalStrictAndValidate[*activityv4.Activity](activityV4JSON, "error unmarshaling activities v4")
+	ActivityExtendedV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivityExtendedInfo](activityExtendedV4JSON, "error unmarshaling activities extended v4")
+	ActivitySearchResultV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activities search v4")
 	// SeatMapV4
 	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
 	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")

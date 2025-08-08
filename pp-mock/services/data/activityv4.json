@@ -1,0 +1,59 @@
+[
+	{
+		"context": "Tuk-Tuk Sightseeing Tour",
+		"last_modified": {
+			"seconds": 1710489022,
+			"nanos": 0
+		},
+		"external_session_id": "23456",
+		"product_code": {
+			"code": "TC000000",
+			"number": 0,
+			"type": 5
+		},
+		"unit_code": "EESPMI46VY",
+		"service_code": "XO",
+		"bookability": {
+			"type": 1,
+			"confirmation_time": null
+		}
+	},
+	{
+		"context": "helicopter tour",
+		"last_modified": {
+			"seconds": 1710237630,
+			"nanos": 0
+		},
+		"external_session_id": "3v3s6634hnq20",
+		"product_code": {
+			"code": "ACTIVITY345678",
+			"number": 654,
+			"type": 5
+		},
+		"unit_code": "EESPMI46VY",
+		"service_code": "XO",
+		"bookability": {
+			"type": 1,
+			"confirmation_time": null
+		}
+	},
+	{
+		"context": "island view tour",
+		"last_modified": {
+			"seconds": 1710071700,
+			"nanos": 0
+		},
+		"external_session_id": "8bn3hr4289",
+		"product_code": {
+			"code": "87456",
+			"number": 0,
+			"type": 1
+		},
+		"unit_code": "EESPMI46VY",
+		"service_code": "XO",
+		"bookability": {
+			"type": 1,
+			"confirmation_time": null
+		}
+	}
+]

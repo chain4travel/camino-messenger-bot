@@ -1,0 +1,269 @@
+[
+	{
+		"info": {
+			"context": "Tuk-Tuk Sightseeing Tour",
+			"last_modified": {
+				"seconds": 1710489022,
+				"nanos": 0
+			},
+			"external_session_id": "23456",
+			"product_code": {
+				"code": "XPTFAOH15O",
+				"number": 0,
+				"type": 5
+			},
+			"unit_code": "EESPMI46VY",
+			"service_code": "XO",
+			"bookability": {
+				"type": 1,
+				"confirmation_time": null
+			}
+		},
+		"schedule": {
+			"start_datetime": {
+				"seconds": 1710489022,
+				"nanos": 0
+			},
+			"end_datetime": {
+				"seconds": 1710489022,
+				"nanos": 0
+			}
+		},
+		"location": {
+			"geo_tree": {
+				"country": 13,
+				"region": "Mallorca",
+				"city_or_resort": "Palma"
+			}
+		},
+		"pickup_dropoff_events": [
+			{
+				"location_name": "AESPMI43NU",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"date_time": {
+					"seconds": 1743658228,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AESPMI46N2",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"date_time": {
+					"seconds": 1743661828,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AESPMI60NK",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"date_time": {
+					"seconds": 1743665428,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AESPMI6DJG",
+				"pickup_indicator": true,
+				"other_info": "HOTELENTRANCE / HotelEntrance",
+				"date_time": {
+					"seconds": 1743669028,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AMTSES2FSM",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"date_time": {
+					"seconds": 1743672628,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AMTSES2S5S",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"date_time": {
+					"seconds": 1743676228,
+					"nanos": 0
+				}
+			}
+		],
+		"min_participants": 1,
+		"max_participants": 99,
+		"charge_type": 1,
+		"price": {
+			"value": "15000",
+			"decimals": 2,
+			"currency": {
+				"iso_currency": "ISO_CURRENCY_EUR"
+			}
+		}
+	},
+	{
+		"info": {
+			"context": "helicopter tour",
+			"last_modified": {
+				"seconds": 1710237630,
+				"nanos": 0
+			},
+			"external_session_id": "3v3s6634hnq20",
+			"product_code": {
+				"code": "ACTIVITY345678",
+				"number": 654,
+				"type": 5
+			},
+			"unit_code": "EESPMI46VY",
+			"service_code": "XO",
+			"bookability": {
+				"type": 1,
+				"confirmation_time": null
+			}
+		},
+		"schedule": {
+			"start_datetime": {
+				"seconds": 1710489022,
+				"nanos": 0
+			},
+			"end_datetime": {
+				"seconds": 1710489022,
+				"nanos": 0
+			}
+		},
+		"location": {
+			"geo_tree": {
+				"country": 13,
+				"region": "Mallorca",
+				"city_or_resort": "Palma"
+			}
+		},
+		"pickup_dropoff_events": [
+			{
+				"location_name": "AESPMI43NU",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"date_time": {
+					"seconds": 1743658228,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AESPMI46N2",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"date_time": {
+					"seconds": 1743661828,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AESPMI60NK",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"date_time": {
+					"seconds": 1743665428,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AESPMI6DJG",
+				"pickup_indicator": true,
+				"other_info": "HOTELENTRANCE / HotelEntrance",
+				"date_time": {
+					"seconds": 1743669028,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AMTSES2FSM",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"date_time": {
+					"seconds": 1743672628,
+					"nanos": 0
+				}
+			},
+			{
+				"location_name": "AMTSES2S5S",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"date_time": {
+					"seconds": 1743676228,
+					"nanos": 0
+				}
+			}
+		],
+		"min_participants": 1,
+		"max_participants": 99,
+		"charge_type": 1,
+		"price": {
+			"value": "40000",
+			"decimals": 2,
+			"currency": {
+				"iso_currency": "ISO_CURRENCY_EUR"
+			}
+		}
+	},
+	{
+		"info": {
+			"context": "island view tour",
+			"last_modified": {
+				"seconds": 1710071700,
+				"nanos": 0
+			},
+			"external_session_id": "8bn3hr4289",
+			"product_code": {
+				"code": "87456",
+				"number": 0,
+				"type": 1
+			},
+			"unit_code": "EESPMI46ZX",
+			"service_code": "XO",
+			"bookability": {
+				"type": 1,
+				"confirmation_time": null
+			}
+		},
+		"schedule": {
+			"start_datetime": {
+				"seconds": 1710489022,
+				"nanos": 0
+			},
+			"end_datetime": {
+				"seconds": 1710489022,
+				"nanos": 0
+			}
+		},
+		"location": {
+			"geo_tree": {
+				"country": 840,
+				"region": "Florida",
+				"city_or_resort": "Miami"
+			}
+		},
+		"pickup_dropoff_events": [
+			{
+				"location_name": "MIAMI_PORT",
+				"pickup_indicator": true,
+				"other_info": "OTHERS / Miami Port",
+				"date_time": {
+					"seconds": 1743658228,
+					"nanos": 0
+				}
+			}
+		],
+		"min_participants": 2,
+		"max_participants": 12,
+		"charge_type": 1,
+		"price": {
+			"value": "18000",
+			"decimals": 2,
+			"currency": {
+				"iso_currency": "ISO_CURRENCY_USD"
+			}
+		}
+	}
+]

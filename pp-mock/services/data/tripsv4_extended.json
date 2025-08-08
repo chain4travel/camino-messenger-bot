@@ -1,0 +1,178 @@
+[
+	{
+		"supplier_code": {
+			"supplier_code": "AB",
+			"supplier_number": 4567
+		},
+		"price": {
+			"value": "20000",
+			"decimals": 2
+		},
+		"segments": [
+			{
+				"info": {
+					"segment_id": "SEG1234",
+					"provider_code": "EW",
+					"product_code": {
+						"code": "IATA4589",
+						"type": 3
+					},
+					"departure": {
+						"date_time": {
+							"seconds": 1715775600,
+							"nanos": 0
+						}
+					},
+					"arrival": {
+						"date_time": {
+							"seconds": 1715779200,
+							"nanos": 0
+						}
+					}
+				}
+			}
+		]
+	},
+	{
+		"supplier_code": {
+			"supplier_code": "LH",
+			"supplier_number": 7453
+		},
+		"price": {
+			"value": "75000",
+			"decimals": 2
+		},
+		"segments": [
+			{
+				"info": {
+					"segment_id": "SEG5678",
+					"provider_code": "LH",
+					"retailer_code": "BA",
+					"sub_supplier_code": "NS",
+					"product_code": {
+						"code": "IATA1234",
+						"type": 3
+					},
+					"departure": {
+						"date_time": {
+							"seconds": 1715782800,
+							"nanos": 0
+						}
+					},
+					"arrival": {
+						"date_time": {
+							"seconds": 1715786400,
+							"nanos": 0
+						}
+					}
+				}
+			},
+			{
+				"info": {
+					"segment_id": "SEG91011",
+					"provider_code": "AF",
+					"product_code": {
+						"code": "IATA5678",
+						"type": 3
+					},
+					"departure": {
+						"date_time": {
+							"seconds": 1715790000,
+							"nanos": 0
+						}
+					},
+					"arrival": {
+						"date_time": {
+							"seconds": 1715793600,
+							"nanos": 0
+						}
+					}
+				}
+			}
+		]
+	},
+	{
+		"supplier_code": {
+			"supplier_code": "DB",
+			"supplier_number": 5483
+		},
+		"price": {
+			"value": "30000",
+			"decimals": 2
+		},
+		"segments": [
+			{
+				"info": {
+					"segment_id": "SEG8321",
+					"provider_code": "DB",
+					"product_code": {
+						"code": "RE3-89875",
+						"type": 5
+					},
+					"departure": {
+						"date_time": {
+							"seconds": 1742371437,
+							"nanos": 0
+						},
+						"location" : {
+							"location_code" : {
+								"code" : "LAN",
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+							}
+						}
+					},
+					"arrival": {
+						"date_time": {
+							"seconds": 1742375037,
+							"nanos": 0
+						},
+						"location" : {
+							"location_code" : {
+								"code" : "HAM",
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+							}
+						}
+					}
+				}
+			},
+			{
+				"info": {
+					"segment_id": "SEG8323",
+					"provider_code": "DB",
+					"product_code": {
+						"code": "ICE-757",
+						"type": 5
+					},
+					"departure": {
+						"date_time": {
+							"seconds": 1742378637,
+							"nanos": 0
+						},
+						"location" : {
+							"location_code" : {
+								"code" : "HAM",
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+							}
+						}
+					},
+					"arrival": {
+						"date_time": {
+							"seconds": 1742382237,
+							"nanos": 0
+						},
+						"location" : {
+							"location_code" : {
+								"code" : "BER",
+								"code_type" : "LOCATION_CODE_TYPE_3ALPHA_CODE"
+							}
+						}
+					}
+				}
+			}
+		],
+		"last_modified": {
+			"seconds": 1740000000,
+			"nanos": 0
+		}
+	}
+]

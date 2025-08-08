@@ -1,0 +1,773 @@
+[
+	{
+		"activity": {
+			"context": "Tuk-Tuk Sightseeing Tour",
+			"last_modified": {
+				"seconds": 1710489022,
+				"nanos": 0
+			},
+			"external_session_id": "23456",
+			"product_code": {
+				"code": "XPTFAOH15O",
+				"number": 31345,
+				"type": 5
+			},
+			"unit_code": "EESPMI46VY",
+			"service_code": "XO",
+			"bookability": {
+				"type": 1,
+				"confirmation_time": null
+			}
+		},
+		"units": [
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741867200,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741870800,
+						"nanos": 0
+					}
+				},
+				"code": "TK0001H1",
+				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
+				"description": "starts at 11h00"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741861800,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741865400,
+						"nanos": 0
+					}
+				},
+				"code": "TK0001H0",
+				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
+				"description": "starts at 09h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741888200,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741891800,
+						"nanos": 0
+					}
+				},
+				"code": "TK0001H2",
+				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
+				"description": "starts at 16h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741891800,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741895400,
+						"nanos": 0
+					}
+				},
+				"code": "TK0001H3",
+				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
+				"description": "starts at 17h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741861800,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741869000,
+						"nanos": 0
+					}
+				},
+				"code": "TK0002H0",
+				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
+				"description": "starts at 09h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741867200,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741874400,
+						"nanos": 0
+					}
+				},
+				"code": "TK0002H1",
+				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
+				"description": "starts at 11h00"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741888200,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741895400,
+						"nanos": 0
+					}
+				},
+				"code": "TK0002H2",
+				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
+				"description": "starts at 16h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741891800,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741899000,
+						"nanos": 0
+					}
+				},
+				"code": "TK0002H3",
+				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
+				"description": "starts at 17h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741891800,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741902600,
+						"nanos": 0
+					}
+				},
+				"code": "TK0003H3",
+				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
+				"description": "starts at 17h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741884600,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741895400,
+						"nanos": 0
+					}
+				},
+				"code": "TK0003H2",
+				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
+				"description": "starts at 15h30"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741867200,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741878000,
+						"nanos": 0
+					}
+				},
+				"code": "TK0003H1",
+				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
+				"description": "starts at 11h00"
+			},
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1741861800,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1741872600,
+						"nanos": 0
+					}
+				},
+				"code": "TK0003H0",
+				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
+				"description": "starts at 09h30"
+			}
+		],
+		"services": [
+			{
+				"code": "SIGHTSEEING-GUIDE",
+				"name": "Guided Tour",
+				"description": "Expert guide leads the way",
+				"included": [
+					"Professional guide",
+					"Safety equipment",
+					"Basic insurance"
+				],
+				"excluded": [
+					"Food and drinks",
+					"Hotel pickup"
+				]
+			}
+		],
+		"zones": [
+			{
+				"code": "ALBUFEIRA_ZONE",
+				"geo_tree": {
+					"country": 26,
+					"region": "Algarve",
+					"city_or_resort": "Albufeira"
+				},
+				"pickup_dropoff_events": [
+					{
+						"location_code": "AMTSPT0026",
+						"location_name": "AMTSPT0026",
+						"pickup_indicator": true,
+						"other_info": "HOTELENTRANCE",
+						"date_time": {
+							"seconds": 1593590400,
+							"nanos": 0
+						},
+						"coordinates": {
+							"latitude": 37.08472,
+							"longitude": -8.31469
+						}
+					},
+					{
+						"location_code": "AMTSPT0034",
+						"location_name": "AMTSPT0034",
+						"pickup_indicator": true,
+						"other_info": "HOTELENTRANCE",
+						"date_time": {
+							"seconds": 1593590400,
+							"nanos": 0
+						},
+						"coordinates": {
+							"latitude": 37.09183,
+							"longitude": -8.20825
+						}
+					},
+					{
+						"location_code": "AMTSPT0035",
+						"location_name": "AMTSPT0035",
+						"pickup_indicator": true,
+						"other_info": "HOTELENTRANCE",
+						"date_time": {
+							"seconds": 1593590400,
+							"nanos": 0
+						},
+						"coordinates": {
+							"latitude": 37.09033,
+							"longitude": -8.32278
+						}
+					},
+					{
+						"location_code": "AMTSPT0036",
+						"location_name": "AMTSPT0036",
+						"pickup_indicator": true,
+						"other_info": "HOTELENTRANCE",
+						"date_time": {
+							"seconds": 1593590400,
+							"nanos": 0
+						},
+						"coordinates": {
+							"latitude": 37.09058,
+							"longitude": -8.24387
+						}
+					},
+					{
+						"location_code": "AMTSPT0037",
+						"location_name": "AMTSPT0037",
+						"pickup_indicator": true,
+						"other_info": "HOTELENTRANCE",
+						"date_time": {
+							"seconds": 1593590400,
+							"nanos": 0
+						},
+						"coordinates": {
+							"latitude": 37.08072,
+							"longitude": -8.27882
+						}
+					}
+				]
+			}
+		],
+		"descriptions": [
+			{
+				"language": 9,
+				"descriptions": [
+					{
+						"category": "General",
+						"text": "Experience an exciting sightseeing tour through beautiful mountain landscapes"
+					},
+					{
+						"category": "Detailed",
+						"text": "Our sightseeing tour takes you through stunning mountain paths with breathtaking views. Perfect for adventure seekers and nature lovers."
+					}
+				]
+			}
+		],
+		"features": [
+			{
+				"description": "Difficulty|Easy|",
+				"code": "EX_DIFFIC|EX_DIF_1"
+			},
+			{
+				"description": "What`s included|Hotel pickup and drop-off|",
+				"code": "EX_INCL|EX_INCL_HPD"
+			},
+			{
+				"description": "English, Spanish, Russian, Portuguese, Romanian",
+				"code": "Languages:"
+			},
+			{
+				"description": "Key Details|Languages spoken|",
+				"code": "EXCURSION|EX_LANGSPOKEN"
+			},
+			{
+				"description": "Key Details|Mobile Voucher accepted|",
+				"code": "EXCURSION|EX_MVOUCHER"
+			},
+			{
+				"description": "What`s needed|Comfortable Shoes|",
+				"code": "EX_NEEDED|EX_NEEDED_SHOES"
+			},
+			{
+				"description": "What`s needed|Sun protection|",
+				"code": "EX_NEEDED|EX_NEEDED_SUB"
+			},
+			{
+				"description": "What`s not included|Admissions to optional sites|",
+				"code": "EX_NOTINCL|EX_NOTINCL_ADM"
+			},
+			{
+				"description": "What`s not included|Gratuities (optional)|",
+				"code": "EX_NOTINCL|EX_NOTINCL_TIPS"
+			},
+			{
+				"description": "Key Details|Printed Voucher accepted|",
+				"code": "EXCURSION|EX_PVOUCHER"
+			},
+			{
+				"description": "Audience|Anybody|",
+				"code": "EX_TARGET|EX_TARGET_ALL"
+			},
+			{
+				"description": "Theme|Sightseeing|",
+				"code": "EX_THEME|EX_THEME_SIGHTS"
+			},
+			{
+				"description": "We invite you to discover Albufeira  by Tuk Tuk!\nEmbark on our City Tour and explore the vibrant streets and rich history of Albufeira.\nGet ready to capture stunning photos and create lasting memories.",
+				"code": "EN Description"
+			},
+			{
+				"description": "Highlights|Description|",
+				"code": "EX_HIGHL|IS_DESC001"
+			}
+		],
+		"tags": [
+			{
+				"active": true,
+				"id": 111,
+				"name": "Guided Tour",
+				"slug": "guided-tour"
+			},
+			{
+				"active": true,
+				"id": 2,
+				"name": "Entrance Tickets",
+				"slug": "entrance-tickets"
+			}
+		],
+		"languages": [
+			9,
+			12,
+			24
+		],
+		"contact_info": {
+			"address": [
+				{
+					"line_1": "Calle Sant Joan 38",
+					"line_2": "Quarter La Vileta",
+					"district": "Palma",
+					"zip_code": "07008"
+				}
+			],
+			"phones": [
+				{
+					"phone": [
+						{
+							"type": "telephone",
+							"number": "+3426610 93276"
+						},
+						{
+							"type": "fax",
+							"number": "+342661093174"
+						}
+					]
+				}
+			],
+			"emails": [
+				{
+					"address": "bookings@eleabeach.com",
+					"type": 3
+				},
+				{
+					"address": "reception@eleabeach.com",
+					"type": 2
+				},
+				{
+					"address": "payments@eleabeach.com",
+					"type": 1
+				}
+			],
+			"links": [
+				{
+					"type": 2,
+					"description": "Booking",
+					"ref": "www.eleabeach.com"
+				},
+				{
+					"type": 3,
+					"description": "Check-in",
+					"ref": "checkin.eleabeach.com"
+				}
+			]
+		},
+		"images": [
+			{
+				"file": {
+					"name": "942282.jpg",
+					"url": "http://imageserver.giata.de/HOTELTEST/AESPMI1234/hotel/942282.jpg",
+					"last_modified": {
+						"seconds": 1731398963,
+						"nanos": 0
+					}
+				},
+				"category": "balcony seats",
+				"width": 600,
+				"height": 450
+			},
+			{
+				"file": {
+					"name": "942283.jpg",
+					"url": "http://imageserver.giata.de/HOTELTEST/AESPMI1234/hotel/942283.jpg",
+					"last_modified": {
+						"seconds": 1731398963,
+						"nanos": 0
+					}
+				},
+				"category": "at sea",
+				"width": 600,
+				"height": 450
+			}
+		],
+		"location": {
+			"address": {
+				"line_1": "Calle Sant Joan 38",
+				"zip_code": "07008"
+			},
+			"coordinates": {
+				"latitude": 39.5519,
+				"longitude": 2.7355
+			}
+		},
+		"supplier_unit_code": "XPTFAOH15O",
+		"supplier_code_name": "Albufeira City Tour by Tuk Tuk",
+		"category_code": "TT",
+		"category_name": "Trips and Tours",
+		"type_code": "BP",
+		"type_name": "BaseProduct",
+		"supplier_code": {
+			"supplier_code": "XPTFAOH15O",
+			"supplier_number": 31345
+		},
+		"duration_range": {
+			"min_duration": {
+				"minutes": 120
+			},
+			"max_duration": {
+				"minutes": 180
+			}
+		},
+		"max_confirmation_duration": {
+			"minutes": 60
+		},
+		"allow_free_sale": true,
+		"instant_confirmation": true,
+		"instant_delivery": true,
+		"availability_required": true,
+		"availability_type": "START_TIME",
+		"delivery_formats": [
+			3
+		],
+		"delivery_methods": [
+			2
+		]
+	},
+	{
+		"activity": {
+			"context": "helicopter tour",
+			"last_modified": {
+				"seconds": 1710237630,
+				"nanos": 0
+			},
+			"external_session_id": "3v3s6634hnq20",
+			"product_code": {
+				"code": "ACTIVITY345678",
+				"number": 654,
+				"type": 5
+			},
+			"unit_code": "EESPMI46VY",
+			"service_code": "XO",
+			"bookability": {
+				"type": 1,
+				"confirmation_time": null
+			}
+		},
+		"units": [
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1712818800,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1712829600,
+						"nanos": 0
+					}
+				},
+				"code": "HELI-PREM",
+				"name": "Premium Helicopter Tour",
+				"description": "45-minute helicopter tour over the island"
+			}
+		],
+		"services": [
+			{
+				"code": "HELI-BASIC",
+				"name": "Basic Service",
+				"description": "Helicopter tour with basic amenities",
+				"included": [
+					"Professional pilot",
+					"Safety briefing",
+					"Standard insurance"
+				],
+				"excluded": [
+					"Photos",
+					"Extended flight time",
+					"Private tour"
+				]
+			}
+		],
+		"descriptions": [
+			{
+				"language": 9,
+				"descriptions": [
+					{
+						"category": "General",
+						"text": "See the island from above with our spectacular helicopter tour"
+					},
+					{
+						"category": "Detailed",
+						"text": "Experience breathtaking views from the sky as you soar over beaches, mountains, and hidden coves. Our helicopter tours offer a unique perspective of the island."
+					}
+				]
+			}
+		],
+		"location": {
+			"address": {
+				"street_address": "Island Helicopters Base",
+				"postal_code": "07600",
+				"city": "Palma",
+				"country_code": "ES"
+			},
+			"geo_tree": {
+				"country": 13,
+				"region": "Mallorca",
+				"city_or_resort": "Palma Airport"
+			},
+			"coordinates": {
+				"latitude": 39.5519,
+				"longitude": 2.7355
+			}
+		},
+		"features": [
+			{
+				"description": "Panoramic windows for best views",
+				"code": "PANORAMIC"
+			},
+			{
+				"description": "Weather dependent activity",
+				"code": "WEATHER-DEP"
+			}
+		],
+		"languages": [
+			9,
+			12,
+			24,
+			11
+		],
+		"supplier_unit_code": "HELI-TOUR-01",
+		"category_code": "AIR",
+		"category_name": "Air Activity",
+		"type_code": "SCENIC",
+		"type_name": "Scenic Tour",
+		"supplier_code": {
+			"supplier_code": "ISLAND-AIR",
+			"supplier_number": 345678
+		},
+		"supplier_code_name": "Island Air Tours",
+		"duration_range": {
+			"min_duration": {
+				"minutes": 45
+			},
+			"max_duration": {
+				"minutes": 60
+			}
+		},
+		"max_confirmation_duration": {
+			"seconds": 172800,
+			"nanos": 0
+		},
+		"allow_free_sale": false,
+		"instant_confirmation": false,
+		"instant_delivery": true,
+		"availability_required": true,
+		"availability_type": "START_TIME"
+	},
+	{
+		"activity": {
+			"context": "island view tour",
+			"last_modified": {
+				"seconds": 1710071700,
+				"nanos": 0
+			},
+			"external_session_id": "8bn3hr4289",
+			"product_code": {
+				"code": "87456",
+				"number": 0,
+				"type": 1
+			},
+			"unit_code": "EESPMI46ZX",
+			"service_code": "XO",
+			"bookability": {
+				"type": 1,
+				"confirmation_time": null
+			}
+		},
+		"units": [
+			{
+				"schedule": {
+					"start_datetime": {
+						"seconds": 1712905200,
+						"nanos": 0
+					},
+					"end_datetime": {
+						"seconds": 1712923200,
+						"nanos": 0
+					}
+				},
+				"code": "BOAT-STD",
+				"name": "Standard Boat Tour",
+				"description": "5-hour boat tour around the island"
+			}
+		],
+		"services": [
+			{
+				"code": "BOAT-BASIC",
+				"name": "Basic Package",
+				"description": "Standard boat tour service",
+				"included": [
+					"Experienced captain",
+					"Life jackets",
+					"Water"
+				],
+				"excluded": [
+					"Food",
+					"Alcoholic beverages",
+					"Snorkeling equipment"
+				]
+			}
+		],
+		"descriptions": [
+			{
+				"language": 9,
+				"descriptions": [
+					{
+						"category": "General",
+						"text": "Discover the island's beautiful coastline from the sea"
+					},
+					{
+						"category": "Detailed",
+						"text": "Our boat tour takes you around the island's most picturesque coves and beaches. See hidden caves, crystal clear waters, and stunning cliffs from the comfort of our modern boats."
+					}
+				]
+			}
+		],
+		"location": {
+			"address": {
+				"street_address": "Marina Bay Dock 7",
+				"postal_code": "07157",
+				"city": "Port d'Andratx",
+				"country_code": "ES"
+			},
+			"geo_tree": {
+				"country": 13,
+				"region": "Mallorca",
+				"city_or_resort": "Port d'Andratx"
+			},
+			"coordinates": {
+				"latitude": 39.5438,
+				"longitude": 2.3828
+			}
+		},
+		"features": [
+			{
+				"description": "Swimming stops included",
+				"code": "SWIM"
+			},
+			{
+				"description": "Family friendly",
+				"code": "FAMILY"
+			}
+		],
+		"languages": [
+			9,
+			12
+		],
+		"supplier_unit_code": "BOAT-TOUR-01",
+		"category_code": "MAR",
+		"category_name": "Marine Activity",
+		"type_code": "BOAT",
+		"type_name": "Boat Tour",
+		"supplier_code": {
+			"supplier_code": "SEA-EXPLORERS",
+			"supplier_number": 87456
+		},
+		"supplier_code_name": "Sea Explorers",
+		"duration_range": {
+			"min_duration": {
+				"minutes": 300
+			},
+			"max_duration": {
+				"minutes": 360
+			}
+		},
+		"max_confirmation_duration": {
+			"seconds": 43200,
+			"nanos": 0
+		},
+		"allow_free_sale": true,
+		"instant_confirmation": true,
+		"instant_delivery": true,
+		"availability_required": true,
+		"availability_type": "DATE"
+	}
+]

@@ -12,13 +12,18 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/require"
 	grpcMetadata "google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 var Tests = make(map[string]suite.Test)
@@ -36,6 +41,23 @@ func requestContext(ctx context.Context, recipientCMAccount common.Address) cont
 	return grpcMetadata.NewOutgoingContext(ctx, grpcMetadata.Pairs(
 		metadata.KeyRecipientCMAccount, recipientCMAccount.Hex(),
 	))
+}
+
+func priceBigV4(t *testing.T, protoPrice *typesv4.Price) *big.Int {
+	require.NotNil(t, protoPrice)
+	var priceBig *big.Int
+	var err error
+	switch protoPrice.Currency.Currency.(type) {
+	case *typesv4.Currency_IsoCurrency:
+		priceBig, err = price.ToBigInt(protoPrice.Value, int32(protoPrice.Decimals), price.ISODecimals)
+	case *typesv4.Currency_NativeToken:
+		priceBig, err = price.ToBigInt(protoPrice.Value, int32(protoPrice.Decimals), price.NativeTokenDecimals)
+	default:
+		require.FailNow(t, "unexpected currency type in price")
+		return nil
+	}
+	require.NoError(t, err)
+	return priceBig
 }
 
 func priceBigV3(t *testing.T, protoPrice *typesv3.Price) *big.Int {
@@ -89,6 +111,20 @@ func priceBigV1(t *testing.T, protoPrice *typesv1.Price) *big.Int {
 	return priceBig
 }
 
+func getPaymentTokenFromPriceV4(t *testing.T, price *typesv4.Price) common.Address {
+	require.NotNil(t, price, "unexpected nil price")
+	switch currency := price.GetCurrency().GetCurrency().(type) {
+	case *typesv4.Currency_NativeToken:
+		return booking.NativePaymentToken
+	case *typesv4.Currency_IsoCurrency:
+		return booking.ISOPaymentToken
+	case *typesv4.Currency_TokenCurrency:
+		return common.HexToAddress(currency.TokenCurrency.ContractAddress.Address)
+	}
+	require.Fail(t, "unexpected currency type")
+	return common.Address{}
+}
+
 func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {
 	require.NotNil(t, price, "unexpected nil price")
 	switch currency := price.GetCurrency().GetCurrency().(type) {
@@ -112,4 +148,23 @@ func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tFeeCut *big.Int) { /
 	c4tFeeCut = big.NewInt(0).Mul(value, c4tFeeCutNominator)
 	c4tFeeCut.Div(c4tFeeCut, c4tFeeCutDenominator)
 	return big.NewInt(0).Sub(value, c4tFeeCut), c4tFeeCut
+}
+
+func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, actual []T) {
+	protoMarshal := proto.MarshalOptions{Deterministic: true}
+	opts := []cmp.Option{
+		cmpopts.SortSlices(func(x, y T) bool {
+			xb, err := protoMarshal.Marshal(x)
+			require.NoError(t, err)
+			yb, err := protoMarshal.Marshal(y)
+			require.NoError(t, err)
+			return string(xb) < string(yb)
+		}),
+		protocmp.Transform(),
+	}
+	require.Truef(t,
+		cmp.Equal(expected, actual, opts...),
+		"Mismatch (-actual,+expected):\n%s",
+		cmp.Diff(expected, actual, opts...),
+	)
 }
