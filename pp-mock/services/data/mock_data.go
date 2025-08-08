@@ -25,56 +25,56 @@ import (
 
 // * Accommodation
 
-//go:embed properties.json
+//go:embed accommodation/propertiesv1.json
 var propertiesV1JSON []byte
 
-//go:embed propertiesv2.json
+//go:embed accommodation/propertiesv2.json
 var propertiesV2JSON []byte
 
-//go:embed propertiesv3.json
+//go:embed accommodation/propertiesv3.json
 var propertiesV3JSON []byte
 
 // * Transport
 
-//go:embed tripsv1.json
+//go:embed transport/tripsv1.json
 var tripsV1JSON []byte
 
-//go:embed tripsv2.json
+//go:embed transport/tripsv2.json
 var tripsV2JSON []byte
 
-//go:embed tripsv3_basic.json
+//go:embed transport/tripsv3_basic.json
 var tripsV3BasicJSON []byte
 
-//go:embed tripsv3_extended.json
+//go:embed transport/tripsv3_extended.json
 var tripsV3ExtendedJSON []byte
 
 // * Activity
 
-//go:embed activityv1.json
+//go:embed activity/activityv1.json
 var activityV1JSON []byte
 
-//go:embed activityv1_extended.json
+//go:embed activity/activityv1_extended.json
 var activityExtendedV1JSON []byte
 
-//go:embed activityv1_search.json
+//go:embed activity/activityv1_search.json
 var activitySearchResultV1JSON []byte
 
-//go:embed activityv2.json
+//go:embed activity/activityv2.json
 var activityV2JSON []byte
 
-//go:embed activityv2_extended.json
+//go:embed activity/activityv2_extended.json
 var activityExtendedV2JSON []byte
 
-//go:embed activityv2_search.json
+//go:embed activity/activityv2_search.json
 var activitySearchResultV2JSON []byte
 
-//go:embed activityv3.json
+//go:embed activity/activityv3.json
 var activityV3JSON []byte
 
-//go:embed activityv3_extended.json
+//go:embed activity/activityv3_extended.json
 var activityV3ExtendedJSON []byte
 
-//go:embed activityv3_search.json
+//go:embed activity/activityv3_search.json
 var activitySearchResultV3JSON []byte
 
 // * SeatMap
