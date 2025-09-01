@@ -18,6 +18,7 @@ import (
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/erc1967proxy"
+	"github.com/chain4travel/camino-messenger-contracts/go/contracts/nullusd"
 	"github.com/chain4travel/caminogoeth-compat/caminoethvm/contracts"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -77,6 +78,8 @@ type Client struct {
 	ethChainID                  *big.Int
 	bookingTokenContractAddress common.Address
 	cmAccountManager            *cmaccountmanager.Cmaccountmanager
+	cmAccountManagerAddress     common.Address
+	nullUSD                     *nullusd.Nullusd
 	BookingToken                *bookingtoken.Bookingtoken
 	adminContract               *contracts.CaminoAdmin
 }
@@ -94,14 +97,22 @@ func (c *Client) BookingTokenContractAddress() common.Address {
 }
 
 func (c *Client) CreateCMAccount(ctx context.Context, owner *ecdsa.PrivateKey) (common.Address, *cmaccount.Cmaccount, error) {
-	amt, err := c.cmAccountManager.GetPrefundAmount(&bind.CallOpts{Context: ctx})
+	prefundAmount, err := c.cmAccountManager.GetPrefundAmount(&bind.CallOpts{Context: ctx})
 	if err != nil {
 		return common.Address{}, nil, fmt.Errorf("failed to get cm account creation prefund amount: %w", err)
 	}
 
-	transactor, err := c.transactor(ctx, c.adminKey, amt)
+	transactor, err := c.transactor(ctx, c.adminKey, common.Big0)
 	if err != nil {
 		return common.Address{}, nil, fmt.Errorf("failed to create transactor: %w", err)
+	}
+
+	approveTx, err := c.nullUSD.Approve(transactor, c.cmAccountManagerAddress, prefundAmount)
+	if err != nil {
+		return common.Address{}, nil, fmt.Errorf("failed to issue nullUSD.Approve tx: %w", err)
+	}
+	if _, err = c.waitTxSucceed(ctx, approveTx); err != nil {
+		return common.Address{}, nil, fmt.Errorf("failed to wait for nullUSD.Approve tx to succeed: %w", err)
 	}
 
 	ownerAddr := crypto.PubkeyToAddress(owner.PublicKey)
@@ -369,7 +380,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to pack cmAccountManager.initialize data: %w", err)
 	}
 
-	// block 1 (deploy BookingToken impl, CM Account Manager impl, BookingTokenOperator)
+	// block 1 (deploy BookingToken impl, CM Account Manager impl, BookingTokenOperator, nullUSD)
 
 	bookingTokenImplAddress, bookingTokenImplTx, _, err := bookingtoken.DeployBookingtoken(transactor, c.ethClient)
 	if err != nil {
@@ -383,6 +394,10 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to deploy bookingTokenOperator contract: %w", err)
 	}
+	nullUSDAddress, nullUSDTx, _, err := nullusd.DeployNullusd(transactor, c.ethClient)
+	if err != nil {
+		return fmt.Errorf("failed to deploy nullUSD contract: %w", err)
+	}
 
 	if _, err := c.waitTxSucceed(ctx, bookingTokenImplTx); err != nil {
 		return fmt.Errorf("failed to wait for bookingToken implementation deployment tx to succeed: %w", err)
@@ -392,6 +407,9 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 	}
 	if _, err := c.waitTxSucceed(ctx, bookingTokenOperatorTx); err != nil {
 		return fmt.Errorf("failed to wait for bookingTokenOperator deployment tx to succeed: %w", err)
+	}
+	if _, err := c.waitTxSucceed(ctx, nullUSDTx); err != nil {
+		return fmt.Errorf("failed to wait for nullUSD deployment tx to succeed: %w", err)
 	}
 
 	// prepare cmAccount implementation bytecode with linked Booking Token Operator contract
@@ -407,7 +425,14 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		strings.ToLower(bookingTokenOperatorAddress.String()[2:]),
 	)
 
-	// block 2 (deploy CM Account Manager proxy, deploy CM Account implementation)
+	// create nullUSD bindings
+
+	c.nullUSD, err = nullusd.NewNullusd(nullUSDAddress, c.ethClient)
+	if err != nil {
+		return fmt.Errorf("failed to create nullUSD binding: %w", err)
+	}
+
+	// block 2 (deploy CM Account Manager proxy, CM Account implementation)
 
 	cmAccountManagerProxyAddress, cmAccountManagerProxyTx, _, err := erc1967proxy.DeployErc1967proxy(
 		transactor,
@@ -437,6 +462,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create cmAccountManager binding: %w", err)
 	}
+	c.cmAccountManagerAddress = cmAccountManagerProxyAddress
 
 	// prepare Booking Token proxy initialization data
 
@@ -454,16 +480,26 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to pack bookingToken.initialize data: %w", err)
 	}
 
-	// block 3 (deploy Booking Token proxy and grant cmAccountManager role for registering services)
+	// block 3 (deploy Booking Token proxy, grant cmAccountManager roles for registering services and setting serviceFeeToken)
 
 	serviceRegistryAdminRole, err := c.cmAccountManager.SERVICEREGISTRYADMINROLE(&bind.CallOpts{Context: ctx})
 	if err != nil {
 		return fmt.Errorf("failed to get role: %w", err)
 	}
 
-	grantRoleTx, err := c.cmAccountManager.GrantRole(transactor, serviceRegistryAdminRole, adminAddress)
+	grantServiceRegistryAdminRoleTx, err := c.cmAccountManager.GrantRole(transactor, serviceRegistryAdminRole, adminAddress)
 	if err != nil {
-		return fmt.Errorf("failed to issue cmAccountManager.GrantRole tx: %w", err)
+		return fmt.Errorf("failed to issue cmAccountManager.GrantRole (serviceRegistryAdminRole): %w", err)
+	}
+
+	serviceFeeTokenAdminRole, err := c.cmAccountManager.SERVICEFEETOKENADMINROLE(&bind.CallOpts{Context: ctx})
+	if err != nil {
+		return fmt.Errorf("failed to get role: %w", err)
+	}
+
+	grantServiceFeeTokenAdminRoleTx, err := c.cmAccountManager.GrantRole(transactor, serviceFeeTokenAdminRole, adminAddress)
+	if err != nil {
+		return fmt.Errorf("failed to issue cmAccountManager.GrantRole (serviceFeeTokenAdminRole): %w", err)
 	}
 
 	bookingTokenProxyAddress, bookingTokenProxyTx, _, err := erc1967proxy.DeployErc1967proxy(
@@ -476,10 +512,12 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to deploy bookingToken proxy contract: %w", err)
 	}
 
-	if _, err := c.waitTxSucceed(ctx, grantRoleTx); err != nil {
-		return fmt.Errorf("failed to wait for cmAccountManager.GrantRole tx to succeed: %w", err)
+	if _, err := c.waitTxSucceed(ctx, grantServiceRegistryAdminRoleTx); err != nil {
+		return fmt.Errorf("failed to wait for cmAccountManager.GrantRole (serviceRegistryAdminRole) tx to succeed: %w", err)
 	}
-
+	if _, err := c.waitTxSucceed(ctx, grantServiceFeeTokenAdminRoleTx); err != nil {
+		return fmt.Errorf("failed to wait for cmAccountManager.GrantRole (serviceFeeTokenAdminRole) tx to succeed: %w", err)
+	}
 	if _, err := c.waitTxSucceed(ctx, bookingTokenProxyTx); err != nil {
 		return fmt.Errorf("failed to wait for bookingToken proxy deployment tx to succeed: %w", err)
 	}
@@ -491,7 +529,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to create bookingToken binding: %w", err)
 	}
 
-	// block 4 (ReinitializeV2 Booking Token, link contracts)
+	// block 4 (ReinitializeV2 Booking Token, link contracts, set service fee token in cmAccountManager)
 
 	setBookingTokenAddressTx, err := c.cmAccountManager.SetBookingTokenAddress(
 		transactor,
@@ -519,7 +557,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to get role: %w", err)
 	}
 
-	grantRoleTx, err = c.BookingToken.GrantRole(transactor, minExpirationTimestampDiffRole, adminAddress)
+	grantRoleTx, err := c.BookingToken.GrantRole(transactor, minExpirationTimestampDiffRole, adminAddress)
 	if err != nil {
 		return fmt.Errorf("failed to issue BookingToken.GrantRole tx: %w", err)
 	}
@@ -533,6 +571,11 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to issue bookingToken.SetMinExpirationTimestampDiff tx: %w", err)
 	}
 
+	setServiceFeeTokenTx, err := c.cmAccountManager.SetServiceFeeToken(transactor, nullUSDAddress)
+	if err != nil {
+		return fmt.Errorf("failed to issue cmAccountManager.SetServiceFeeToken tx: %w", err)
+	}
+
 	if _, err := c.waitTxSucceed(ctx, setBookingTokenAddressTx); err != nil {
 		return fmt.Errorf("failed to wait for cmAccountManager.SetBookingTokenAddress tx to succeed: %w", err)
 	}
@@ -544,6 +587,9 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 	}
 	if _, err := c.waitTxSucceed(ctx, updateExpirationTx); err != nil {
 		return fmt.Errorf("failed to wait for bookingToken.SetMinExpirationTimestampDiff tx to succeed: %w", err)
+	}
+	if _, err := c.waitTxSucceed(ctx, setServiceFeeTokenTx); err != nil {
+		return fmt.Errorf("failed to wait for cmAccountManager.SetServiceFeeToken tx to succeed: %w", err)
 	}
 
 	c.bookingTokenContractAddress = bookingTokenProxyAddress
