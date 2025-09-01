@@ -116,6 +116,9 @@ func VerifyCheque(previousCheque, newCheque *SignedCheque, timestamp, minDuratio
 		return errors.New("cheque FromCMAccount and ToCMAccount are the same")
 	case previousCheque == nil:
 		return nil
+	case previousCheque.PaymentToken != newCheque.PaymentToken:
+		return fmt.Errorf("mismatched payment token: previous %s vs new %s",
+			previousCheque.PaymentToken, newCheque.PaymentToken)
 	case previousCheque.Amount.Cmp(newCheque.Amount) > 0: // previous.Amount > new.Amount
 		return fmt.Errorf("new cheque amount (%s) < (%s) previous cheque amount: %w",
 			newCheque.Amount, previousCheque.Amount, ErrChequeAmountLessThanPrevious)
