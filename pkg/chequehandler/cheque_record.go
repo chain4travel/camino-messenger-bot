@@ -65,6 +65,7 @@ func ChequeRecordFromCheque(chequeRecordID common.Hash, cheque *cheques.SignedCh
 				Amount:        cheque.Amount,
 				CreatedAt:     cheque.CreatedAt,
 				ExpiresAt:     cheque.ExpiresAt,
+				PaymentToken:  cheque.PaymentToken,
 			},
 			Signature: cheque.Signature,
 		},
@@ -77,5 +78,6 @@ func ChequeRecordID(cheque *cheques.Cheque) common.Hash {
 		cheque.FromCMAccount.Bytes(),
 		cheque.ToCMAccount.Bytes(),
 		cheque.ToBot.Bytes(),
+		cheque.PaymentToken.Bytes(),
 	)
 }

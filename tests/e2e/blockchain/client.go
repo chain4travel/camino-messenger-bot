@@ -565,11 +565,11 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	grantRoleTx, err := c.BookingToken.GrantRole(transactor, minExpirationTimestampDiffRole, adminAddress)
 	if err != nil {
-		return fmt.Errorf("failed to issue BookingToken.GrantRole tx: %w", err)
+		return fmt.Errorf("failed to issue BookingToken.GrantRole (minExpirationTimestampDiffRole) tx: %w", err)
 	}
 
 	if _, err := c.waitTxSucceed(ctx, grantRoleTx); err != nil {
-		return fmt.Errorf("failed to wait for cmAccountManager.GrantRole tx to succeed: %w", err)
+		return fmt.Errorf("failed to wait for BookingToken.GrantRole (minExpirationTimestampDiffRole) tx to succeed: %w", err)
 	}
 
 	updateExpirationTx, err := c.BookingToken.SetMinExpirationTimestampDiff(transactor, big.NewInt(e2eCommon.MinBuyableUntilInContract))
