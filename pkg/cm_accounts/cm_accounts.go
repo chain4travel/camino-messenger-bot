@@ -68,6 +68,7 @@ type Service interface {
 		cmAccountAddress common.Address,
 		fromBot common.Address,
 		toBot common.Address,
+		paymentToken common.Address,
 	) (counter *big.Int, amount *big.Int, err error)
 
 	MintBookingToken(
@@ -100,6 +101,8 @@ type Service interface {
 	) (*types.Receipt, error)
 
 	IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error)
+
+	GetServiceFeeToken(ctx context.Context, cmAccountAddress common.Address) (common.Address, error)
 
 	CMAccount(common.Address) (*cmaccount.Cmaccount, error)
 
@@ -191,6 +194,7 @@ func (s *service) CashInCheque(
 		cheque.Amount,
 		cheque.CreatedAt,
 		cheque.ExpiresAt,
+		cheque.PaymentToken,
 		cheque.Signature,
 	)
 	if err != nil {
@@ -217,6 +221,7 @@ func (s *service) VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque
 		cheque.Amount,
 		cheque.CreatedAt,
 		cheque.ExpiresAt,
+		cheque.PaymentToken,
 		cheque.Signature,
 	)
 	if err != nil && err.Error() == "execution reverted" {
@@ -270,6 +275,7 @@ func (s *service) GetLastCashIn(
 	cmAccountAddress common.Address,
 	fromBot common.Address,
 	toBot common.Address,
+	paymentToken common.Address,
 ) (counter *big.Int, amount *big.Int, err error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
@@ -280,6 +286,7 @@ func (s *service) GetLastCashIn(
 		&bind.CallOpts{Context: ctx},
 		fromBot,
 		toBot,
+		paymentToken,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
@@ -410,6 +417,26 @@ func (s *service) RecordExpiration(
 	}
 
 	return receipt, nil
+}
+
+func (s *service) GetServiceFeeToken(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
+	cmAccount, err := s.CMAccount(cmAccountAddress)
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to fetch CM account: %w", err)
+	}
+	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{Context: ctx})
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to fetch CM account Manager Address: %w", err)
+	}
+	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, s.ethClient)
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to get Manager: %w", err)
+	}
+	paymentToken, err := manager.GetServiceFeeToken(&bind.CallOpts{Context: ctx})
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to get ServiceFeeToken: %w", err)
+	}
+	return paymentToken, nil
 }
 
 func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {

@@ -212,6 +212,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 
 	chequeHandler, err := chequehandler.NewChequeHandler(
+		ctx,
 		logger,
 		evmClient,
 		cfg.BotKey,

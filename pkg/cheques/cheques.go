@@ -34,6 +34,7 @@ type Cheque struct {
 	Amount        *big.Int       `json:"amount"`
 	CreatedAt     *big.Int       `json:"createdAt"`
 	ExpiresAt     *big.Int       `json:"expiresAt"`
+	PaymentToken  common.Address `json:"paymentToken"`
 }
 
 type signedChequeJSON struct {
@@ -49,6 +50,7 @@ type chequeJSON struct {
 	Amount        string `json:"amount"`
 	CreatedAt     uint64 `json:"createdAt"`
 	ExpiresAt     uint64 `json:"expiresAt"`
+	PaymentToken  string `json:"paymentToken"`
 }
 
 func (sc *SignedCheque) MarshalJSON() ([]byte, error) {
@@ -61,6 +63,7 @@ func (sc *SignedCheque) MarshalJSON() ([]byte, error) {
 			Amount:        hexutil.EncodeBig(sc.Cheque.Amount),
 			CreatedAt:     sc.Cheque.CreatedAt.Uint64(),
 			ExpiresAt:     sc.Cheque.ExpiresAt.Uint64(),
+			PaymentToken:  sc.Cheque.PaymentToken.Hex(),
 		},
 		Signature: hex.EncodeToString(sc.Signature),
 	})
@@ -95,6 +98,7 @@ func (sc *SignedCheque) UnmarshalJSON(data []byte) error {
 	sc.Cheque.ToBot = common.HexToAddress(raw.Cheque.ToBot)
 	sc.Cheque.CreatedAt = big.NewInt(0).SetUint64(raw.Cheque.CreatedAt)
 	sc.Cheque.ExpiresAt = big.NewInt(0).SetUint64(raw.Cheque.ExpiresAt)
+	sc.Cheque.PaymentToken = common.HexToAddress(raw.Cheque.PaymentToken)
 
 	return nil
 }

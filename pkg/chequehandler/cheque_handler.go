@@ -83,6 +83,7 @@ type ChequeHandler interface {
 }
 
 func NewChequeHandler(
+	ctx context.Context,
 	logger *zap.SugaredLogger,
 	ethClient TxReceiptGetter,
 	botKey *ecdsa.PrivateKey,
@@ -99,6 +100,11 @@ func NewChequeHandler(
 		return nil, fmt.Errorf("failed to create signer: %w", err)
 	}
 
+	paymentToken, err := cmAccounts.GetServiceFeeToken(ctx, cmAccountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get service fee token: %w", err)
+	}
+
 	return &evmChequeHandler{
 		txReceiptGetter:                  ethClient,
 		cmAccountAddress:                 cmAccountAddress,
@@ -112,6 +118,7 @@ func NewChequeHandler(
 		minChequeDurationUntilExpiration: minChequeDurationUntilExpiration,
 		chequeExpirationTime:             chequeExpirationTime,
 		cashInTxIssueTimeout:             cashInTxIssueTimeout,
+		paymentToken:                     paymentToken,
 	}, nil
 }
 
@@ -129,6 +136,7 @@ type evmChequeHandler struct {
 	minChequeDurationUntilExpiration *big.Int
 	chequeExpirationTime             *big.Int
 	cashInTxIssueTimeout             time.Duration
+	paymentToken                     common.Address
 }
 
 func (ch *evmChequeHandler) IssueCheque(
@@ -153,6 +161,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		Amount:        big.NewInt(0).Set(amount),
 		CreatedAt:     now,
 		ExpiresAt:     big.NewInt(0).Add(now, ch.chequeExpirationTime),
+		PaymentToken:  ch.paymentToken,
 	}
 
 	chequeRecordID := ChequeRecordID(newCheque)
@@ -178,7 +187,7 @@ func (ch *evmChequeHandler) IssueCheque(
 		ch.logger.Errorf("failed to verify cheque with smart contract: %v", err)
 		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
 	} else if !isChequeValid {
-		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot)
+		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot, newCheque.PaymentToken)
 		if err != nil {
 			ch.logger.Errorf("failed to get last cash in: %v", err)
 			return nil, fmt.Errorf("failed to get last cash in: %w", err)

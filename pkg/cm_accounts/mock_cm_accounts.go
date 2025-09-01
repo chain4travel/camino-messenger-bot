@@ -152,9 +152,9 @@ func (mr *MockServiceMockRecorder) GetFirstChequeOperator(arg0, arg1 any) *gomoc
 }
 
 // GetLastCashIn mocks base method.
-func (m *MockService) GetLastCashIn(arg0 context.Context, arg1, arg2, arg3 common.Address) (*big.Int, *big.Int, error) {
+func (m *MockService) GetLastCashIn(arg0 context.Context, arg1, arg2, arg3, arg4 common.Address) (*big.Int, *big.Int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLastCashIn", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "GetLastCashIn", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*big.Int)
 	ret1, _ := ret[1].(*big.Int)
 	ret2, _ := ret[2].(error)
@@ -162,9 +162,9 @@ func (m *MockService) GetLastCashIn(arg0 context.Context, arg1, arg2, arg3 commo
 }
 
 // GetLastCashIn indicates an expected call of GetLastCashIn.
-func (mr *MockServiceMockRecorder) GetLastCashIn(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetLastCashIn(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastCashIn", reflect.TypeOf((*MockService)(nil).GetLastCashIn), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastCashIn", reflect.TypeOf((*MockService)(nil).GetLastCashIn), arg0, arg1, arg2, arg3, arg4)
 }
 
 // GetServiceFee mocks base method.
@@ -180,6 +180,21 @@ func (m *MockService) GetServiceFee(arg0 context.Context, arg1 common.Address, a
 func (mr *MockServiceMockRecorder) GetServiceFee(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceFee", reflect.TypeOf((*MockService)(nil).GetServiceFee), arg0, arg1, arg2)
+}
+
+// GetServiceFeeToken mocks base method.
+func (m *MockService) GetServiceFeeToken(arg0 context.Context, arg1 common.Address) (common.Address, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetServiceFeeToken", arg0, arg1)
+	ret0, _ := ret[0].(common.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetServiceFeeToken indicates an expected call of GetServiceFeeToken.
+func (mr *MockServiceMockRecorder) GetServiceFeeToken(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceFeeToken", reflect.TypeOf((*MockService)(nil).GetServiceFeeToken), arg0, arg1)
 }
 
 // InitiateCancellationProposal mocks base method.
