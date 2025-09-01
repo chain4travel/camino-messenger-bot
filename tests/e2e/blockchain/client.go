@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	e2ecommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
+	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenoperator"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
@@ -31,7 +31,8 @@ import (
 const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolint:gosec // this is not credentials.
 
 var (
-	kycAdminRole = big.NewInt(0b100)
+	kycAdminRole                = big.NewInt(0b100)
+	cmAccountNativeTokenPrefund = big.NewInt(0).Mul(e2eCommon.CAM, big.NewInt(100))
 
 	ErrorAddServiceTxFailed = errors.New("failed to issue AddService tx")
 )
@@ -113,6 +114,11 @@ func (c *Client) CreateCMAccount(ctx context.Context, owner *ecdsa.PrivateKey) (
 	}
 	if _, err = c.waitTxSucceed(ctx, approveTx); err != nil {
 		return common.Address{}, nil, fmt.Errorf("failed to wait for nullUSD.Approve tx to succeed: %w", err)
+	}
+
+	transactor, err = c.transactor(ctx, c.adminKey, cmAccountNativeTokenPrefund)
+	if err != nil {
+		return common.Address{}, nil, fmt.Errorf("failed to create transactor: %w", err)
 	}
 
 	ownerAddr := crypto.PubkeyToAddress(owner.PublicKey)
@@ -566,7 +572,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to wait for cmAccountManager.GrantRole tx to succeed: %w", err)
 	}
 
-	updateExpirationTx, err := c.BookingToken.SetMinExpirationTimestampDiff(transactor, big.NewInt(e2ecommon.MinBuyableUntilInContract))
+	updateExpirationTx, err := c.BookingToken.SetMinExpirationTimestampDiff(transactor, big.NewInt(e2eCommon.MinBuyableUntilInContract))
 	if err != nil {
 		return fmt.Errorf("failed to issue bookingToken.SetMinExpirationTimestampDiff tx: %w", err)
 	}
