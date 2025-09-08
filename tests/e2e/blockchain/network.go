@@ -207,7 +207,7 @@ func UseExistingNetwork(
 ) (*Network, error) {
 	logger.Info("Connecting to existing network...")
 
-	client, err := newClient(ctx, nodeURI, nil, adminKey.ToECDSA())
+	client, err := newClient(ctx, logger, nodeURI, nil, adminKey.ToECDSA())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create node client: %w", err)
 	}
@@ -306,7 +306,7 @@ func (n *Network) startNewNode(
 		return nil, nil, fmt.Errorf("failed to wait for node (%d) to be bootstrapped: %w", cmd.Process.Pid, err)
 	}
 
-	client, err := newClient(ctx, node.nodeURI, n.prefundedKeys, n.evmAdminKey)
+	client, err := newClient(ctx, n.logger, node.nodeURI, n.prefundedKeys, n.evmAdminKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create node client: %w", err)
 	}

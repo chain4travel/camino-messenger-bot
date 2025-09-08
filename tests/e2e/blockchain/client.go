@@ -25,6 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"go.uber.org/zap"
 )
 
 const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolint:gosec // this is not credentials.
@@ -37,6 +38,7 @@ var (
 
 func newClient(
 	ctx context.Context,
+	logger *zap.SugaredLogger,
 	nodeURI string,
 	prefundedKeys []*ecdsa.PrivateKey,
 	adminKey *ecdsa.PrivateKey,
@@ -58,6 +60,7 @@ func newClient(
 	}
 
 	return &Client{
+		logger:        logger,
 		nodeURI:       nodeURI,
 		chainRPCURL:   chainRPCURL,
 		ethClient:     ethClient,
@@ -69,6 +72,7 @@ func newClient(
 }
 
 type Client struct {
+	logger                      *zap.SugaredLogger
 	prefundedKeys               []*ecdsa.PrivateKey
 	adminKey                    *ecdsa.PrivateKey
 	nodeURI                     string
@@ -547,6 +551,9 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 	}
 
 	c.bookingTokenContractAddress = bookingTokenProxyAddress
+
+	c.logger.Infof("CM Account Manager deployed at: %s", cmAccountManagerProxyAddress)
+	c.logger.Infof("Booking Token proxy deployed at: %s", bookingTokenProxyAddress)
 
 	return nil
 }
