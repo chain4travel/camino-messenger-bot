@@ -19,13 +19,12 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:           "camino-messenger-bot",
-	Short:         "starts camino messenger bot",
-	Version:       version.FullVersion,
-	SuggestFor:    []string{"camino-messenger", "camino-messenger-bot", "camino-bot", "cmb"},
-	RunE:          rootFunc,
-	SilenceErrors: true,
-	SilenceUsage:  true,
+	Use:          "camino-messenger-bot",
+	Short:        "starts camino messenger bot",
+	Version:      version.FullVersion,
+	SuggestFor:   []string{"camino-messenger", "camino-messenger-bot", "camino-bot", "cmb"},
+	RunE:         rootFunc,
+	SilenceUsage: true,
 }
 
 func rootFunc(cmd *cobra.Command, _ []string) error {
