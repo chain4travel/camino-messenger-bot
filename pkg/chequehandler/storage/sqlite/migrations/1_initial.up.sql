@@ -7,6 +7,7 @@ CREATE TABLE cheque_records (
     amount             VARBINARY(16)  NOT NULL,
     created_at         VARBINARY(16)  NOT NULL,
     expires_at         VARBINARY(16)  NOT NULL,
+    payment_token      VARBINARY(20)  NOT NULL,
     signature          VARBINARY(64)  NOT NULL,
     tx_id              VARBINARY(32),
     status             TINYINT

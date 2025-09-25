@@ -34,6 +34,7 @@ type chequeRecord struct {
 	Amount         []byte                        `db:"amount"`
 	CreatedAt      []byte                        `db:"created_at"`
 	ExpiresAt      []byte                        `db:"expires_at"`
+	PaymentToken   common.Address                `db:"payment_token"`
 	Signature      []byte                        `db:"signature"`
 	TxID           *common.Hash                  `db:"tx_id"`
 	Status         *chequehandler.ChequeTxStatus `db:"status"`
@@ -200,6 +201,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 			amount,
 			created_at,
 			expires_at,
+			payment_token,
 			signature,
 			tx_id,
 			status
@@ -212,6 +214,7 @@ func (s *storage) prepareChequeRecordsStmts(ctx context.Context) error {
 			:amount,
 			:created_at,
 			:expires_at,
+			:payment_token,
 			:signature,
 			:tx_id,
 			:status
@@ -256,6 +259,7 @@ func modelFromChequeRecord(chequeRecord *chequeRecord) *chequehandler.ChequeReco
 				Amount:        big.NewInt(0).SetBytes(chequeRecord.Amount),
 				CreatedAt:     big.NewInt(0).SetBytes(chequeRecord.CreatedAt),
 				ExpiresAt:     big.NewInt(0).SetBytes(chequeRecord.ExpiresAt),
+				PaymentToken:  chequeRecord.PaymentToken,
 			},
 			Signature: chequeRecord.Signature,
 		},
@@ -285,6 +289,7 @@ func chequeRecordFromModel(model *chequehandler.ChequeRecord) *chequeRecord {
 		Amount:         model.Amount.Bytes(),
 		CreatedAt:      model.CreatedAt.Bytes(),
 		ExpiresAt:      model.ExpiresAt.Bytes(),
+		PaymentToken:   model.PaymentToken,
 		Signature:      model.Signature,
 		TxID:           txID,
 		Status:         status,

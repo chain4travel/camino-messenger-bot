@@ -43,6 +43,7 @@ var (
 			{Name: "amount", Type: "uint256"},
 			{Name: "createdAt", Type: "uint256"},
 			{Name: "expiresAt", Type: "uint256"},
+			{Name: "paymentToken", Type: "address"},
 		},
 	}
 )
@@ -144,6 +145,7 @@ func (cs *signer) getFinalHash(cheque *Cheque) ([]byte, error) {
 		"amount":        cheque.Amount,
 		"createdAt":     cheque.CreatedAt,
 		"expiresAt":     cheque.ExpiresAt,
+		"paymentToken":  cheque.PaymentToken.Hex(),
 	}
 
 	data := &apitypes.TypedData{
