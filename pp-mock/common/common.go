@@ -107,15 +107,6 @@ func AreTravelDatesValidV4(departureDate, arrivalDate *typesv4.Date) bool {
 	return !DateV4ToTime(departureDate).After(DateV4ToTime(arrivalDate))
 }
 
-// GetTravellerIDsV1 extracts traveller IDs from []*typesv1.BasicTraveller
-func GetTravellerIDsV1(travellers []*typesv1.BasicTraveller) []int32 {
-	ids := make([]int32, len(travellers))
-	for i, traveller := range travellers {
-		ids[i] = traveller.TravellerId
-	}
-	return ids
-}
-
 // GetTravellerIDsV2 extracts traveller IDs from []*typesv2.BasicTraveller
 func GetTravellerIDsV2(travellers []*typesv2.BasicTraveller) []int32 {
 	ids := make([]int32, len(travellers))
