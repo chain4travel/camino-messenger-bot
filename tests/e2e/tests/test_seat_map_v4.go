@@ -211,7 +211,7 @@ func (tt *TestSeatMapV4) testSeatMapV4BadID(ctx context.Context, t *testing.T) {
 func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t *testing.T) {
 	req := &seatmapv4.SeatMapRequest{
 		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		MapId:     mockdata.SeatMapV4[0].Id.Id, // TODO@ seatmap request probably should same setMapID message instead of just string
+		MapId:     mockdata.SeatMapV4[0].Id.Id,
 		Languages: []typesv1.Language{typesv1.Language_LANGUAGE_AA},
 	}
 	resp, err := tt.distributorBot.SeatMapServiceV4.SeatMap(
