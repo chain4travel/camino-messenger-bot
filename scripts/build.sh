@@ -29,7 +29,7 @@ done
 # Dockerfile
 # README.md
 # go.mod
-go_version_minimum="1.23"
+go_version_minimum="1.24"
 
 go_version() {
     go version | sed -nE -e 's/[^0-9.]+([0-9.]+).+/\1/p'

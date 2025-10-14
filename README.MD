@@ -175,7 +175,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 ## Build
 
 Use the provided build script to build the application. This will create a binary in the `./build` directory.
-Minimum required go version is 1.23
+Minimum required go version is 1.24
 
 ```bash
 ./scripts/build.sh

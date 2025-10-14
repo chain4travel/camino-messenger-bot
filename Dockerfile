@@ -1,4 +1,4 @@
-FROM golang:1.23.9-alpine AS build-stage
+FROM golang:1.24.9-alpine AS build-stage
 RUN apk update && apk upgrade && apk add build-base
 
 WORKDIR /camino-messenger-bot
