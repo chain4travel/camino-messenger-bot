@@ -15,13 +15,10 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
-	accommodation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v1"
 	accommodation_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v2"
 	accommodation_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v3"
-	activity_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v1"
 	activity_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v2"
 	activity_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v3"
-	book_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v1"
 	book_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v2"
 	book_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v3"
 	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/cancellation/v1"
@@ -29,19 +26,15 @@ import (
 	notification_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v2"
 	ping_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/ping/v1"
 	seat_map_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/seat_map/v4"
-	transport_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v1"
 	transport_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v2"
 	transport_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/metadata"
 	events_pb "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v1/accommodationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v1/activityv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v1/bookv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
@@ -49,7 +42,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v4/seat_mapv4grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v1/transportv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	"buf.build/go/protovalidate"
@@ -91,11 +83,6 @@ func Run() error {
 	)
 
 	events_pb.RegisterEventsServiceServer(grpcServer, eventServer)
-
-	// Accommodation V1
-	accommodationv1grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v1.NewAccommodationSearchServer())
-	accommodationv1grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v1.NewAccommodationProductInfoServer())
-	accommodationv1grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v1.NewAccommodationProductListServer())
 	// Accommodation V2
 	accommodationv2grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v2.NewAccommodationSearchServer())
 	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v2.NewAccommodationProductInfoServer())
@@ -105,10 +92,6 @@ func Run() error {
 	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v3.NewAccommodationProductInfoServer())
 	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListServer())
 
-	// Activity V1
-	activityv1grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v1.NewActivityProductListServer())
-	activityv1grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v1.NewActivityProductInfoServer())
-	activityv1grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v1.NewActivitySearchServer())
 	// Activity V2
 	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v2.NewActivityProductListServer())
 	activityv2grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v2.NewActivityProductInfoServer())
@@ -118,9 +101,6 @@ func Run() error {
 	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v3.NewActivityProductInfoServer())
 	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v3.NewActivitySearchServer())
 
-	// Book V1
-	bookv1grpc.RegisterMintServiceServer(grpcServer, book_v1.NewMintServiceServer())
-	bookv1grpc.RegisterValidationServiceServer(grpcServer, book_v1.NewValidationServiceServer())
 	// Book V2
 	bookv2grpc.RegisterMintServiceServer(grpcServer, book_v2.NewMintServiceServer())
 	bookv2grpc.RegisterValidationServiceServer(grpcServer, book_v2.NewValidationServiceServer())
@@ -136,8 +116,6 @@ func Run() error {
 	// Notification V2
 	notificationv2grpc.RegisterNotificationServiceServer(grpcServer, notification_v2.NewNotificationServiceServer())
 
-	// Transport V1
-	transportv1grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v1.NewTransportSearchServer())
 	// Transport V2
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v2.NewTransportSearchServer())
 	// Transport V3

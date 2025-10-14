@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
@@ -63,23 +62,6 @@ func priceBigV2(t *testing.T, protoPrice *typesv2.Price) *big.Int {
 	case *typesv2.Currency_IsoCurrency:
 		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.ISODecimals)
 	case *typesv2.Currency_NativeToken:
-		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
-	default:
-		require.FailNow(t, "unexpected currency type in price")
-		return nil
-	}
-	require.NoError(t, err)
-	return priceBig
-}
-
-func priceBigV1(t *testing.T, protoPrice *typesv1.Price) *big.Int {
-	require.NotNil(t, protoPrice)
-	var priceBig *big.Int
-	var err error
-	switch protoPrice.Currency.Currency.(type) {
-	case *typesv1.Currency_IsoCurrency:
-		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.ISODecimals)
-	case *typesv1.Currency_NativeToken:
 		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
 	default:
 		require.FailNow(t, "unexpected currency type in price")

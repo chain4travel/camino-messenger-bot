@@ -7,7 +7,6 @@ import (
 	"context"
 	"time"
 
-	bookv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v1"
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
@@ -90,8 +89,6 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 	responseMsg *types.Message,
 ) {
 	switch response := responseMsg.Content.(type) {
-	case *bookv1.MintResponse: // distributor will post-process a mint request to buy the returned NFT
-		h.processMintResponseV1(ctx, response)
 	case *bookv2.MintResponse: // distributor will post-process a mint request to buy the returned NFT
 		h.processMintResponseV2(ctx, response)
 	case *bookv3.MintResponse: // distributor will post-process a mint request to buy the returned NFT
@@ -107,8 +104,6 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 	responseMsg *types.Message,
 ) {
 	switch response := responseMsg.Content.(type) {
-	case *bookv1.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		h.prepareMintResponseV1(ctx, response, requestMsg.Content.(*bookv1.MintRequest))
 	case *bookv2.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
 		h.prepareMintResponseV2(ctx, response, requestMsg.Content.(*bookv2.MintRequest))
 	case *bookv3.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
@@ -119,8 +114,6 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 // Prepares request by performing any necessary modifications to it
 func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) error {
 	switch request := request.(type) {
-	case *bookv1.MintRequest:
-		request.BuyerAddress = h.cmAccountAddressStr
 	case *bookv2.MintRequest:
 		request.BuyerAddress = h.cmAccountAddressStr
 	case *bookv3.MintRequest:
