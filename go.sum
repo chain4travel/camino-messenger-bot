@@ -1,9 +1,9 @@
-buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20250307204501-0409229c3780.1 h1:+0Q8Y2KM2CHUbjiQvnRkDCkSISo//xNTAOGO6WS8ywA=
-buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20250307204501-0409229c3780.1/go.mod h1:fUl8CEN/6ZAMk6bP8ahBJPUJw7rbp+j4x+wCcYi2IG4=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-a320bf8319a0.2 h1:w3CaqhuA3Wf3WlenrpNDHibNTLk3/vptRFuWIMtC+TU=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-a320bf8319a0.2/go.mod h1:sqcgPugl2yBxwSvqTwwI53akeyzJ2/+3l8WSYiP4FT4=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-a320bf8319a0.1 h1:bql71r3++r+td3lD7i6+tWy/QynIV9ysMIxcsQbMrgo=
-buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-a320bf8319a0.1/go.mod h1:+61X1GL4YGQBZqlI3bFkx8JnEPJD8rma7Tt5LG6Y3zE=
+buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20250912141014-52f32327d4b0.1 h1:31on4W/yPcV4nZHL4+UCiCvLPsMqe/vJcNg8Rci0scc=
+buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20250912141014-52f32327d4b0.1/go.mod h1:fUl8CEN/6ZAMk6bP8ahBJPUJw7rbp+j4x+wCcYi2IG4=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-c7cbed40d46d.2 h1:LijgO5BjzS4UUbShjQoxs0DKnllVoPKzXOOCUEjlJNY=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-c7cbed40d46d.2/go.mod h1:cChSdBfyl9/Qkw6JnPpunJ4w27lK1X4hgSL+btGozrM=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-c7cbed40d46d.1 h1:27EVvgSvTWYAr1h2WEXJzcW7UhhEbLPUvCjKKjriPVI=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-c7cbed40d46d.1/go.mod h1:BFhyviS/uYeSlahPbg4k9tMd/0/KYjm9Fa6oVdMO9yk=
 buf.build/go/protovalidate v1.0.0 h1:IAG1etULddAy93fiBsFVhpj7es5zL53AfB/79CVGtyY=
 buf.build/go/protovalidate v1.0.0/go.mod h1:KQmEUrcQuC99hAw+juzOEAmILScQiKBP1Oc36vvCLW8=
 cel.dev/expr v0.24.0 h1:56OvJKSH3hDGL0ml5uSxZmz3/3Pq4tJ+fb1unVLAFcY=
