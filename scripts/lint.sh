@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-EXPECTED_VERSION="1.60"
+EXPECTED_VERSION="1.64.8"
 
 # Function to check if a command exists
 golangci_lint_installed() {
