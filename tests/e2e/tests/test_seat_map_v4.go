@@ -239,7 +239,7 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
-				require.Empty(t, seat.Attributes.Features, "expected no seat features")
+				require.Empty(t, seat.GetAttributes().Features, "expected no seat features")
 			}
 		})
 	}
@@ -259,6 +259,9 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
+				if seat.Attributes == nil {
+					continue
+				}
 				seat.Attributes.Features = nil
 			}
 		})
@@ -301,7 +304,7 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T) {
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
-				require.Len(t, seat.Attributes.Features, 1, "unexpected number of seat features")
+				require.Len(t, seat.GetAttributes().Features, 1, "unexpected number of seat features")
 				require.Equal(t, expectedLang, seat.Attributes.Features[0].Language, "unexpected language in seat feature")
 				seat.Attributes.Features = nil
 			}
@@ -323,6 +326,9 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T) {
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
+				if seat.Attributes == nil {
+					continue
+				}
 				seat.Attributes.Features = nil
 			}
 		})

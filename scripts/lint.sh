@@ -15,7 +15,6 @@ golangci_lint_installed() {
 }
 
 # Function to install golangci-lint on Ubuntu
-# When the golangci-lint version is updated here, also update it in .github/workflows/ci.yml
 install_golangci_lint() {
 	echo "Installing golangci-lint..."
 	go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v$EXPECTED_VERSION
