@@ -83,7 +83,7 @@ func filterSeatAttributesLocalization(
 	attributes *typesv4.SeatAttributes,
 	langSet map[typesv1.Language]struct{},
 ) *typesv4.SeatAttributes {
-	if len(langSet) == 0 {
+	if len(langSet) == 0 || attributes == nil {
 		return attributes
 	}
 
