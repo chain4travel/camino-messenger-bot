@@ -17,7 +17,7 @@ import (
 
 	cheques "github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
 	cmaccount "github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
-	bind "github.com/ethereum/go-ethereum/accounts/abi/bind"
+	bind "github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	common "github.com/ethereum/go-ethereum/common"
 	types "github.com/ethereum/go-ethereum/core/types"
 	gomock "go.uber.org/mock/gomock"
