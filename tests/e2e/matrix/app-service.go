@@ -14,6 +14,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
 	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
@@ -99,7 +100,7 @@ func StartNewAppService(
 	config := &config.UnparsedConfig{
 		LogLevel: "debug",
 		Matrix: config.MatrixConfig{
-			HTTPPort:    uint64(port),
+			HTTPPort:    conversion.MustInt32ToUInt64(port),
 			AccessToken: hsAccessToken,
 		},
 		ChainRPCURL: networkClient.ChainRPCURL(),

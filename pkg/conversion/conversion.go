@@ -6,6 +6,7 @@ package conversion
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 // Safely converts an int to int32, returning an error if out of range.
@@ -54,4 +55,28 @@ func MustUInt64ToInt64(value uint64) int64 {
 		panic(fmt.Errorf("value out of range for int64: %d", value))
 	}
 	return int64(value) // nolint:gosec
+}
+
+// Safely converts an int64 to uint64, panicking with error if out of range.
+func MustInt64ToUInt64(value int64) uint64 {
+	if value < 0 {
+		panic(fmt.Errorf("value out of range for uint64: %d", value))
+	}
+	return uint64(value) // nolint:gosec
+}
+
+// Safely converts an int64 to uint64, panicking with error if out of range.
+func MustDurationToUInt64(value time.Duration) uint64 {
+	if value < 0 {
+		panic(fmt.Errorf("value out of range for uint64: %d", value))
+	}
+	return uint64(value) // nolint:gosec
+}
+
+// Safely converts an int32 to uint64, panicking with error if out of range.
+func MustInt32ToUInt64(value int32) uint64 {
+	if value < 0 {
+		panic(fmt.Errorf("value out of range for uint64: %d", value))
+	}
+	return uint64(value) // nolint:gosec
 }

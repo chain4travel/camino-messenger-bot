@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
 	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
@@ -201,7 +202,7 @@ func (f *Factory) CreateBot(
 		},
 		RPCServer: config.RPCServerConfig{
 			Enabled:     enableRPCServer,
-			Port:        uint64(port),
+			Port:        conversion.MustInt32ToUInt64(port),
 			Unencrypted: true,
 		},
 		Matrix: config.UnparsedMatrixConfig{Host: f.matrix.Host().String()},

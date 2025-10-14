@@ -22,9 +22,6 @@ import (
 
 // * Accommodation
 
-//go:embed accommodation/propertiesv1.json
-var propertiesV1JSON []byte
-
 //go:embed accommodation/propertiesv2.json
 var propertiesV2JSON []byte
 
@@ -32,9 +29,6 @@ var propertiesV2JSON []byte
 var propertiesV3JSON []byte
 
 // * Transport
-
-//go:embed transport/tripsv1.json
-var tripsV1JSON []byte
 
 //go:embed transport/tripsv2.json
 var tripsV2JSON []byte
@@ -46,15 +40,6 @@ var tripsV3BasicJSON []byte
 var tripsV3ExtendedJSON []byte
 
 // * Activity
-
-//go:embed activity/activityv1.json
-var activityV1JSON []byte
-
-//go:embed activity/activityv1_extended.json
-var activityExtendedV1JSON []byte
-
-//go:embed activity/activityv1_search.json
-var activitySearchResultV1JSON []byte
 
 //go:embed activity/activityv2.json
 var activityV2JSON []byte

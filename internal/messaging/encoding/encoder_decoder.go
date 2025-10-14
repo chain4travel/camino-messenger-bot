@@ -144,7 +144,7 @@ func (e *encoderDecoder) EncodeMessage(
 	publicMetadata, err := json.Marshal(&publicMetadata{
 		RequestID:          msg.RequestID,
 		EncryptedSharedKey: encryptedSharedKey,
-		ExpiresAt:          uint64(time.Now().Add(defaultExpirationTime).Unix()),
+		ExpiresAt:          conversion.MustInt64ToUInt64(time.Now().Add(defaultExpirationTime).Unix()),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal public metadata: %w", err)

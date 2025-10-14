@@ -22,6 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	e2eCommon "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 )
 
@@ -79,7 +80,7 @@ func generateGenesis(
 			PlatformAllocations: []genesis.UnparsedPlatformAllocation{{
 				Amount:            params.MaxValidatorStake,
 				NodeID:            validator.nodeID.String(),
-				ValidatorDuration: uint64(params.MaxStakeDuration / time.Second),
+				ValidatorDuration: conversion.MustDurationToUInt64(params.MaxStakeDuration / time.Second),
 				Memo:              strconv.Itoa(memoCounter),
 			}},
 		}
@@ -128,7 +129,7 @@ func generateGenesis(
 			InitialAdmin:        pAdminAddr,
 			Allocations:         allocations,
 		},
-		StartTime:     uint64(startTime.Unix()),
+		StartTime:     conversion.MustInt64ToUInt64(startTime.Unix()),
 		CChainGenesis: evmGenesis,
 	}
 
@@ -168,7 +169,7 @@ func generateEVMGenesis(
 	evmGenesis := &core.Genesis{
 		Config:       &params.ChainConfig{ChainID: chainID},
 		InitialAdmin: cAdminAddr,
-		Timestamp:    uint64(startTime.Unix()),
+		Timestamp:    conversion.MustInt64ToUInt64(startTime.Unix()),
 		ExtraData:    []byte{0},        // 0x00
 		GasLimit:     100000000,        // 0x5f5e100
 		Difficulty:   big.NewInt(0),    // 0x0
