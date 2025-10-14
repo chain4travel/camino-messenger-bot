@@ -211,7 +211,7 @@ func (tt *TestSeatMapV4) testSeatMapV4BadID(ctx context.Context, t *testing.T) {
 func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t *testing.T) {
 	req := &seatmapv4.SeatMapRequest{
 		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		MapId:     mockdata.SeatMapV4[0].Id,
+		MapId:     mockdata.SeatMapV4[0].Id.Id, // TODO@ seatmap request probably should same setMapID message instead of just string
 		Languages: []typesv1.Language{typesv1.Language_LANGUAGE_AA},
 	}
 	resp, err := tt.distributorBot.SeatMapServiceV4.SeatMap(
@@ -239,7 +239,7 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
-				require.Empty(t, seat.Features, "expected no seat features")
+				require.Empty(t, seat.Attributes.Features, "expected no seat features")
 			}
 		})
 	}
@@ -259,7 +259,7 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
-				seat.Features = nil
+				seat.Attributes.Features = nil
 			}
 		})
 	}
@@ -271,7 +271,7 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T) {
 	expectedLang := typesv1.Language_LANGUAGE_EN
 	req := &seatmapv4.SeatMapRequest{
 		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		MapId:     mockdata.SeatMapV4[0].Id,
+		MapId:     mockdata.SeatMapV4[0].Id.Id,
 		Languages: []typesv1.Language{expectedLang},
 	}
 	resp, err := tt.distributorBot.SeatMapServiceV4.SeatMap(
@@ -301,9 +301,9 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T) {
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
-				require.Len(t, seat.Features, 1, "unexpected number of seat features")
-				require.Equal(t, expectedLang, seat.Features[0].Language, "unexpected language in seat feature")
-				seat.Features = nil
+				require.Len(t, seat.Attributes.Features, 1, "unexpected number of seat features")
+				require.Equal(t, expectedLang, seat.Attributes.Features[0].Language, "unexpected language in seat feature")
+				seat.Attributes.Features = nil
 			}
 		})
 	}
@@ -323,7 +323,7 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T) {
 			}
 
 			for _, seat := range seatList.SeatList.Seats {
-				seat.Features = nil
+				seat.Attributes.Features = nil
 			}
 		})
 	}
