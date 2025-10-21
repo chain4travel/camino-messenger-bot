@@ -17,6 +17,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/events"
 	accommodation_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v2"
 	accommodation_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v3"
+	accommodation_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v4"
 	activity_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v2"
 	activity_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v3"
 	book_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v2"
@@ -34,6 +35,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
@@ -95,6 +97,11 @@ func Run() error {
 	accommodationv3grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v3.NewAccommodationSearchServer())
 	accommodationv3grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v3.NewAccommodationProductInfoServer())
 	accommodationv3grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v3.NewAccommodationProductListServer())
+	// Accommodation V4
+	accommodationv4grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v4.NewAccommodationSearchServer())
+	accommodationv4grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v4.NewAccommodationProductInfoServer())
+	accommodationv4grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v4.NewAccommodationProductListServer())
+	accommodationv4grpc.RegisterAccommodationProductShortListServiceServer(grpcServer, accommodation_v4.NewAccommodationProductShortListServer())
 
 	// Activity V2
 	activityv2grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v2.NewActivityProductListServer())

@@ -96,7 +96,7 @@ func mintBuyAccommodationTokenV3(
 
 // validate
 
-func testValidateV4( //nolint:unused // will be used in following PRs
+func testValidateV4(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
@@ -236,7 +236,7 @@ func testValidateV2(
 
 // mint
 
-func testMintV4( //nolint:unused // will be used in following PRs
+func testMintV4(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
@@ -341,7 +341,7 @@ func testMintV2(
 
 // verify blockchain state
 
-func verifyBookingTokenStateWithPriceV4( //nolint:unused // will be used in following PRs
+func verifyBookingTokenStateWithPriceV4(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,

@@ -1,0 +1,1441 @@
+[
+    {
+        "property": {
+            "lastModified": "2024-03-15T07:50:22Z",
+            "supplierCode": {
+                "code": "HOTEL123456"
+            },
+            "productCodes": [
+                {
+                    "code": "87456",
+                    "type": "PRODUCT_CODE_TYPE_GIATA"
+                }
+            ],
+            "name": "Sunset Beach Resort & Spa",
+            "chain": "Marriott",
+            "categoryRating": "CATEGORY_RATING_4_5",
+            "categoryUnit": "CATEGORY_UNIT_STARS",
+            "contactInfo": {
+                "addresses": [
+                    {
+                        "line1": "Playa del Carmen 123",
+                        "line2": "Second address line",
+                        "district": "Some district or its empty",
+                        "zipCode": "07001",
+                        "geoTree": {
+                            "country": "COUNTRY_ES",
+                            "region": "Balearic Islands",
+                            "cityOrResort": "Mallorca"
+                        },
+                        "type": "ADDRESS_TYPE_PHYSICAL",
+                        "description": "This is some description of this address"
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+34971123456",
+                        "type": "PHONE_TYPE_BOOKING",
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "info@sunsetbeachresort.com",
+                        "type": "EMAIL_TYPE_BOOKING"
+                    }
+                ],
+                "links": [
+                    {
+                        "type": "LINK_TYPE_CHECKIN",
+                        "description": "Official Website",
+                        "ref": "https://www.sunsetbeachresort.com"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 39.5696,
+                "longitude": 2.6502
+            },
+            "status": "PRODUCT_STATUS_ACTIVATED",
+            "airports": [
+                {
+                    "code": "PMI"
+                },
+                {
+                    "code": "BCN"
+                }
+            ]
+        },
+        "images": [
+            {
+                "file": {
+                    "name": "Beach House",
+                    "uri": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "lastModified": "2025-07-29T14:22:17.000000214Z",
+                    "description": "This is some description of this image file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "1048576",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                        "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                    },
+                    "category": "beach"
+                },
+                "width": 600,
+                "height": 750
+            }
+        ],
+        "videos": [
+            {
+                "file": {
+                    "name": "Resort tour",
+                    "uri": "https://example.com/videos/resort-tour.mp4",
+                    "lastModified": "2025-07-29T14:10:32.000000333Z",
+                    "description": "This is some description of this video file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "41943040",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                        "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
+                    },
+                    "category": "hotel"
+                },
+                "codec": "CODEC_H264",
+                "bitrate": 400,
+                "framerate": 24,
+                "width": 1280,
+                "height": 720
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localizedDescriptions": [
+            {
+                "language": "LANGUAGE_EN",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxurious beachfront resort offering spectacular views of the Mediterranean Sea"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Located directly on Mallorca's pristine beach"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_DE",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxuriöses Strandresort mit spektakulärem Blick auf das Mittelmeer"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Direkt am unberührten Strand von Mallorca gelegen"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_IT",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Resort di lusso sulla spiaggia con vista spettacolare sul Mar Mediterraneo"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situato direttamente sulla spiaggia incontaminata di Maiorca"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_FR",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Complexe hôtelier de luxe en bord de mer offrant une vue spectaculaire sur la mer Méditerranée"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situé directement sur la plage immaculée de Majorque"
+                    }
+                ]
+            }
+        ],
+        "paymentType": "MERCHANT",
+        "rooms": [
+            {
+                "supplierCode": "DBL-SEA",
+                "supplierName": "Double Room Sea View",
+                "originalName": "Deluxe Double Sea View",
+                "images": [
+                    {
+                        "file": {
+                            "name": "Beach House",
+                            "uri": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                            "lastModified": "2025-07-29T14:10:32Z",
+                            "description": "This is some description of this image file",
+                            "type": "MIME_TYPE_OTHER",
+                            "size": "1028471",
+                            "checksum": {
+                                "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                                "hashBinary": "1oN8/uvYtX/eUd54y+Qa3w=="
+                            },
+                            "category": "beach"
+                        },
+                        "width": 600,
+                        "height": 750
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": "LANGUAGE_EN",
+                        "descriptions": [
+                            {
+                                "category": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic sea views"
+                            }
+                        ]
+                    }
+                ],
+                "mealPlans": [
+                    {
+                        "code": "MEAL_PLAN_CODE_BB",
+                        "description": "Bed & Breakfast"
+                    },
+                    {
+                        "code": "MEAL_PLAN_CODE_HB",
+                        "description": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": "BED_TYPE_DOUBLE",
+                        "count": 2
+                    }
+                ],
+                "totalOccupancy": {
+                    "minGuests": 1,
+                    "maxGuests": 3,
+                    "occupancyOptions": [
+                        {
+                            "guestType": "TRAVELLER_TYPE_ADULT",
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guestType": "TRAVELLER_TYPE_CHILD",
+                            "max": 1,
+                            "minAge": 2,
+                            "maxAge": 11
+                        }
+                    ]
+                },
+                "services": [
+                    {
+                        "code": "BB",
+                        "description": [
+                            {
+                                "text": "Bed&Breakfast",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI",
+                        "description": [
+                            {
+                                "text": "All Inclusive",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI+",
+                        "description": [
+                            {
+                                "text": "All inclusive with Alcoholic drinks",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "SpaDay",
+                        "description": [
+                            {
+                                "text": "Relaxing day at the Spa from 11h00 to 16h00",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    }
+                ],
+                "amenities": [
+                    {
+                        "type": "AMENITY_TYPE_INTERNET",
+                        "attributes": {
+                            "name": "Free WiFi",
+                            "type": "WIFI"
+                        }
+                    },
+                    {
+                        "type": "AMENITY_TYPE_OTHER",
+                        "attributes": {
+                            "name": "Private Balcony",
+                            "type": "BALCONY"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "lastModified": "2024-03-10T11:55:00Z",
+            "supplierCode": {
+                "code": "HOTEL789012"
+            },
+            "productCodes": [
+                {
+                    "code": "9874326",
+                    "type": "PRODUCT_CODE_TYPE_GIATA"
+                },
+                {
+                    "code": "784365",
+                    "type": "PRODUCT_CODE_TYPE_GIATA"
+                }
+            ],
+            "name": "Alpine Lodge & Spa",
+            "chain": "Hilton",
+            "categoryRating": "CATEGORY_RATING_5_0",
+            "categoryUnit": "CATEGORY_UNIT_STARS",
+            "contactInfo": {
+                "addresses": [
+                    {
+                        "line1": "Dorfstrasse 45",
+                        "district": "Graubünden",
+                        "zipCode": "7050",
+                        "geoTree": {
+                            "country": "COUNTRY_CH",
+                            "region": "Graubünden",
+                            "cityOrResort": "Arosa"
+                        },
+                        "type": "ADDRESS_TYPE_PHYSICAL",
+                        "description": "This is some description of this address"
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+41811234567",
+                        "type": "PHONE_TYPE_BOOKING",
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "info@alpinelodge.ch",
+                        "type": "EMAIL_TYPE_BOOKING"
+                    }
+                ],
+                "links": [
+                    {
+                        "type": "LINK_TYPE_CHECKIN",
+                        "description": "Official Website",
+                        "ref": "https://www.alpinelodge.ch"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 46.0207,
+                "longitude": 7.7491
+            },
+            "status": "PRODUCT_STATUS_ACTIVATED",
+            "airports": [
+                {
+                    "code": "ZRH"
+                },
+                {
+                    "code": "GVA"
+                }
+            ]
+        },
+        "images": [
+            {
+                "file": {
+                    "name": "Beach House",
+                    "uri": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "lastModified": "2025-07-29T14:22:17.000000214Z",
+                    "description": "This is some description of this image file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "1048576",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                        "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                    },
+                    "category": "beach"
+                },
+                "width": 600,
+                "height": 750
+            }
+        ],
+        "videos": [
+            {
+                "file": {
+                    "name": "Resort tour",
+                    "uri": "https://example.com/videos/resort-tour.mp4",
+                    "lastModified": "2025-07-29T14:10:32.000000333Z",
+                    "description": "This is some description of this video file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "41943040",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                        "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
+                    },
+                    "category": "hotel"
+                },
+                "codec": "CODEC_H264",
+                "bitrate": 400,
+                "framerate": 24,
+                "width": 1280,
+                "height": 720
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localizedDescriptions": [
+            {
+                "language": "LANGUAGE_EN",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxurious mountain lodge offering spectacular views of the Swiss Alps"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Located in the heart of the Swiss Alps"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_DE",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxuriöse Berghütte mit spektakulärem Blick auf die Schweizer Alpen"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Im Herzen der Schweizer Alpen gelegen"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_IT",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Lussuoso rifugio di montagna con vista spettacolare sulle Alpi Svizzere"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situato nel cuore delle Alpi Svizzere"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_FR",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Rifugio di montagna di lusso offrendo una vista spectacolare sulle Alpi Svizzere"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situé dans le cœur des Alpes suisses"
+                    }
+                ]
+            }
+        ],
+        "paymentType": "MERCHANT",
+        "rooms": [
+            {
+                "supplierCode": "DBL-MTN",
+                "supplierName": "Double Room Mountain View",
+                "originalName": "Deluxe Double Mountain View",
+                "images": [
+                    {
+                        "file": {
+                            "name": "Mountain View Room",
+                            "uri": "https://example.com/images/room-mountain-view.jpg",
+                            "lastModified": "2025-07-29T14:10:32Z",
+                            "description": "This is some description of this image file",
+                            "type": "MIME_TYPE_OTHER",
+                            "size": "1028471",
+                            "checksum": {
+                                "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                                "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                            },
+                            "category": "IMAGE_TYPE_ROOM"
+                        },
+                        "width": 600,
+                        "height": 750
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": "LANGUAGE_EN",
+                        "descriptions": [
+                            {
+                                "category": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic mountain views"
+                            }
+                        ]
+                    }
+                ],
+                "mealPlans": [
+                    {
+                        "code": "MEAL_PLAN_CODE_BB",
+                        "description": "Bed & Breakfast"
+                    },
+                    {
+                        "code": "MEAL_PLAN_CODE_HB",
+                        "description": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": "BED_TYPE_DOUBLE",
+                        "count": 2
+                    }
+                ],
+                "totalOccupancy": {
+                    "minGuests": 1,
+                    "maxGuests": 3,
+                    "occupancyOptions": [
+                        {
+                            "guestType": "TRAVELLER_TYPE_ADULT",
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guestType": "TRAVELLER_TYPE_CHILD",
+                            "max": 1,
+                            "minAge": 2,
+                            "maxAge": 11
+                        }
+                    ]
+                },
+                "services": [
+                    {
+                        "code": "BB",
+                        "description": [
+                            {
+                                "text": "Bed&Breakfast",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI",
+                        "description": [
+                            {
+                                "text": "All Inclusive",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI+",
+                        "description": [
+                            {
+                                "text": "All inclusive with Alcoholic drinks",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "SpaDay",
+                        "description": [
+                            {
+                                "text": "Relaxing day at the Spa from 11h00 to 16h00",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    }
+                ],
+                "amenities": [
+                    {
+                        "type": "AMENITY_TYPE_INTERNET",
+                        "attributes": {
+                            "name": "Free WiFi",
+                            "type": "WIFI"
+                        }
+                    },
+                    {
+                        "type": "AMENITY_TYPE_OTHER",
+                        "attributes": {
+                            "name": "Private Balcony",
+                            "type": "BALCONY"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "lastModified": "2024-03-12T10:00:30Z",
+            "supplierCode": {
+                "code": "HOTEL345678"
+            },
+            "productCodes": [
+                {
+                    "code": "34679",
+                    "type": "PRODUCT_CODE_TYPE_GIATA"
+                }
+            ],
+            "name": "Palm Paradise Resort",
+            "chain": "Riu Hotels",
+            "categoryRating": "CATEGORY_RATING_4_0",
+            "categoryUnit": "CATEGORY_UNIT_STARS",
+            "contactInfo": {
+                "addresses": [
+                    {
+                        "line1": "Beach Road 78",
+                        "zipCode": "07100",
+                        "geoTree": {
+                            "country": "COUNTRY_FJ",
+                            "region": "Antalya",
+                            "cityOrResort": "Antalya"
+                        },
+                        "type": "ADDRESS_TYPE_PHYSICAL"
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+902424445566",
+                        "type": "PHONE_TYPE_BOOKING",
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "contact@palmparadise.com",
+                        "type": "EMAIL_TYPE_BOOKING"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 36.8969,
+                "longitude": 30.7133
+            },
+            "status": "PRODUCT_STATUS_ACTIVATED",
+            "airports": [
+                {
+                    "code": "AYT"
+                }
+            ]
+        },
+        "images": [
+            {
+                "file": {
+                    "name": "Beach House",
+                    "uri": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "lastModified": "2025-07-29T14:22:17.000000214Z",
+                    "description": "This is some description of this image file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "1048576",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                        "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                    },
+                    "category": "beach"
+                },
+                "width": 600,
+                "height": 750
+            }
+        ],
+        "videos": [
+            {
+                "file": {
+                    "name": "Resort tour",
+                    "uri": "https://example.com/videos/resort-tour.mp4",
+                    "lastModified": "2025-07-29T14:10:32.000000333Z",
+                    "description": "This is some description of this video file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "41943040",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                        "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
+                    },
+                    "category": "hotel"
+                },
+                "codec": "CODEC_H264",
+                "bitrate": 400,
+                "framerate": 24,
+                "width": 1280,
+                "height": 720
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localizedDescriptions": [
+            {
+                "language": "LANGUAGE_EN",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxurious beachfront resort offering spectacular views of the Mediterranean Sea"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Located directly on the pristine beach of Antalya"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_DE",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxuriöses Strandresort mit spektakulärem Blick auf das Mittelmeer"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Direkt am unberührten Strand von Antalya gelegen"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_IT",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Resort di lusso sulla spiaggia con vista spettacolare sul Mar Mediterraneo"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situato direttamente sulla spiaggia incontaminata di Antalya"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_FR",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Complexe hôtelier de luxe en bord de mer offrant une vue spectaculaire sur la mer Méditerranée"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situé directement sur la plage immaculée d'Antalya"
+                    }
+                ]
+            }
+        ],
+        "paymentType": "MERCHANT",
+        "rooms": [
+            {
+                "supplierCode": "DBL-SEA",
+                "supplierName": "Double Room Sea View",
+                "originalName": "Deluxe Double Sea View",
+                "images": [
+                    {
+                        "file": {
+                            "name": "Sea View Room",
+                            "uri": "https://example.com/images/room-sea-view.jpg",
+                            "lastModified": "2025-07-29T14:10:32Z",
+                            "type": "MIME_TYPE_OTHER",
+                            "size": "1028471",
+                            "checksum": {
+                                "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                                "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                            },
+                            "category": "IMAGE_TYPE_ROOM"
+                        },
+                        "width": 600,
+                        "height": 750
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": "LANGUAGE_EN",
+                        "descriptions": [
+                            {
+                                "category": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic sea views"
+                            }
+                        ]
+                    }
+                ],
+                "mealPlans": [
+                    {
+                        "code": "MEAL_PLAN_CODE_BB",
+                        "description": "Bed & Breakfast"
+                    },
+                    {
+                        "code": "MEAL_PLAN_CODE_HB",
+                        "description": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": "BED_TYPE_DOUBLE",
+                        "count": 2
+                    }
+                ],
+                "totalOccupancy": {
+                    "minGuests": 1,
+                    "maxGuests": 3,
+                    "occupancyOptions": [
+                        {
+                            "guestType": "TRAVELLER_TYPE_ADULT",
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guestType": "TRAVELLER_TYPE_CHILD",
+                            "max": 1,
+                            "minAge": 2,
+                            "maxAge": 11
+                        }
+                    ]
+                },
+                "services": [
+                    {
+                        "code": "BB",
+                        "description": [
+                            {
+                                "text": "Bed&Breakfast",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI",
+                        "description": [
+                            {
+                                "text": "All Inclusive",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI+",
+                        "description": [
+                            {
+                                "text": "All inclusive with Alcoholic drinks",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "SpaDay",
+                        "description": [
+                            {
+                                "text": "Relaxing day at the Spa from 11h00 to 16h00",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    }
+                ],
+                "amenities": [
+                    {
+                        "type": "AMENITY_TYPE_INTERNET",
+                        "attributes": {
+                            "name": "Free WiFi",
+                            "type": "WIFI"
+                        }
+                    },
+                    {
+                        "type": "AMENITY_TYPE_OTHER",
+                        "attributes": {
+                            "name": "Private Balcony",
+                            "type": "BALCONY"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "lastModified": "2024-03-15T07:50:22Z",
+            "supplierCode": {
+                "code": "HOTEL901234"
+            },
+            "productCodes": [
+                {
+                    "code": "97364342",
+                    "type": "PRODUCT_CODE_TYPE_GOAL_ID"
+                }
+            ],
+            "name": "City Central Hotel",
+            "chain": "Accor",
+            "categoryRating": "CATEGORY_RATING_3_5",
+            "categoryUnit": "CATEGORY_UNIT_STARS",
+            "contactInfo": {
+                "addresses": [
+                    {
+                        "line1": "Hauptstrasse 100",
+                        "zipCode": "10115",
+                        "geoTree": {
+                            "country": "COUNTRY_DZ",
+                            "region": "Berlin",
+                            "cityOrResort": "Berlin"
+                        },
+                        "type": "ADDRESS_TYPE_PHYSICAL"
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+49309876543",
+                        "type": "PHONE_TYPE_BOOKING",
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "info@citycentralberlin.de",
+                        "type": "EMAIL_TYPE_BOOKING"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 52.52,
+                "longitude": 13.405
+            },
+            "status": "PRODUCT_STATUS_ACTIVATED",
+            "airports": [
+                {
+                    "code": "TXL"
+                },
+                {
+                    "code": "SXF"
+                }
+            ]
+        },
+        "images": [
+            {
+                "file": {
+                    "name": "Beach House",
+                    "uri": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "lastModified": "2025-07-29T14:22:17.000000214Z",
+                    "description": "This is some description of this image file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "1048576",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                        "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                    },
+                    "category": "beach"
+                },
+                "width": 600,
+                "height": 750
+            }
+        ],
+        "videos": [
+            {
+                "file": {
+                    "name": "Resort tour",
+                    "uri": "https://example.com/videos/resort-tour.mp4",
+                    "lastModified": "2025-07-29T14:10:32.000000333Z",
+                    "description": "This is some description of this video file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "41943040",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                        "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
+                    },
+                    "category": "hotel"
+                },
+                "codec": "CODEC_H264",
+                "bitrate": 400,
+                "framerate": 24,
+                "width": 1280,
+                "height": 720
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localizedDescriptions": [
+            {
+                "language": "LANGUAGE_EN",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxurious city hotel offering modern amenities and a relaxing spa"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Located in the heart of Berlin"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_DE",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxuriöses Stadthotel mit modernen Annehmlichkeiten und einem entspannenden Spa"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Im Herzen von Berlin gelegen"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_IT",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Lussuoso hotel in città con servizi moderni e una spa rilassante"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situato nel cuore di Berlino"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_FR",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Hôtel de luxe en ville offrant des services modernes et une spa relaxante"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situé dans le cœur de Berlin"
+                    }
+                ]
+            }
+        ],
+        "paymentType": "MERCHANT",
+        "rooms": [
+            {
+                "supplierCode": "DBL-CIT",
+                "supplierName": "Double Room City View",
+                "originalName": "Deluxe Double City View",
+                "images": [
+                    {
+                        "file": {
+                            "name": "City View Room",
+                            "uri": "https://example.com/images/room-city-view.jpg",
+                            "lastModified": "2025-07-29T14:10:32Z",
+                            "type": "MIME_TYPE_OTHER",
+                            "size": "1028471",
+                            "checksum": {
+                                "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                                "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                            },
+                            "category": "IMAGE_TYPE_ROOM"
+                        },
+                        "width": 600,
+                        "height": 750
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": "LANGUAGE_EN",
+                        "descriptions": [
+                            {
+                                "category": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic city views"
+                            }
+                        ]
+                    }
+                ],
+                "mealPlans": [
+                    {
+                        "code": "MEAL_PLAN_CODE_BB",
+                        "description": "Bed & Breakfast"
+                    },
+                    {
+                        "code": "MEAL_PLAN_CODE_HB",
+                        "description": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": "BED_TYPE_DOUBLE",
+                        "count": 2
+                    }
+                ],
+                "totalOccupancy": {
+                    "minGuests": 1,
+                    "maxGuests": 3,
+                    "occupancyOptions": [
+                        {
+                            "guestType": "TRAVELLER_TYPE_ADULT",
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guestType": "TRAVELLER_TYPE_CHILD",
+                            "max": 1,
+                            "minAge": 2,
+                            "maxAge": 11
+                        }
+                    ]
+                },
+                "services": [
+                    {
+                        "code": "BB",
+                        "description": [
+                            {
+                                "text": "Bed&Breakfast",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI",
+                        "description": [
+                            {
+                                "text": "All Inclusive",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI+",
+                        "description": [
+                            {
+                                "text": "All inclusive with Alcoholic drinks",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "SpaDay",
+                        "description": [
+                            {
+                                "text": "Relaxing day at the Spa from 11h00 to 16h00",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    }
+                ],
+                "amenities": [
+                    {
+                        "type": "AMENITY_TYPE_INTERNET",
+                        "attributes": {
+                            "name": "Free WiFi",
+                            "type": "WIFI"
+                        }
+                    },
+                    {
+                        "type": "AMENITY_TYPE_OTHER",
+                        "attributes": {
+                            "name": "Private Balcony",
+                            "type": "BALCONY"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "property": {
+            "lastModified": "2024-03-15T07:50:52Z",
+            "supplierCode": {
+                "code": "HOTEL567890"
+            },
+            "productCodes": [
+                {
+                    "code": "656753",
+                    "type": "PRODUCT_CODE_TYPE_GIATA"
+                }
+            ],
+            "name": "Ocean View Resort",
+            "chain": "IHG",
+            "categoryRating": "CATEGORY_RATING_5_0",
+            "categoryUnit": "CATEGORY_UNIT_STARS",
+            "contactInfo": {
+                "addresses": [
+                    {
+                        "line1": "2750 Kaanapali Parkway",
+                        "zipCode": "96761",
+                        "geoTree": {
+                            "country": "COUNTRY_US",
+                            "region": "Hawaii",
+                            "cityOrResort": "Maui"
+                        },
+                        "type": "ADDRESS_TYPE_PHYSICAL"
+                    }
+                ],
+                "phones": [
+                    {
+                        "number": "+18081234567",
+                        "type": "PHONE_TYPE_BOOKING",
+                        "description": "Reception"
+                    }
+                ],
+                "emails": [
+                    {
+                        "address": "reservations@oceanviewmaui.com",
+                        "type": "EMAIL_TYPE_BOOKING"
+                    }
+                ],
+                "links": [
+                    {
+                        "type": "LINK_TYPE_CHECKIN",
+                        "description": "Official Website",
+                        "ref": "https://www.oceanviewmaui.com"
+                    }
+                ]
+            },
+            "coordinates": {
+                "latitude": 20.9374,
+                "longitude": -156.6869
+            },
+            "status": "PRODUCT_STATUS_ACTIVATED",
+            "airports": [
+                {
+                    "code": "OGG"
+                },
+                {
+                    "code": "HNL"
+                }
+            ]
+        },
+        "images": [
+            {
+                "file": {
+                    "name": "Beach House",
+                    "uri": "https://images.pexels.com/photos/19879685/pexels-photo-19879685/free-photo-of-palms-in-front-of-modern-house-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    "lastModified": "2025-07-29T14:22:17.000000214Z",
+                    "description": "This is some description of this image file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "1048576",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                        "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                    },
+                    "category": "beach"
+                },
+                "width": 600,
+                "height": 750
+            }
+        ],
+        "videos": [
+            {
+                "file": {
+                    "name": "Resort tour",
+                    "uri": "https://example.com/videos/resort-tour.mp4",
+                    "lastModified": "2025-07-29T14:10:32.000000333Z",
+                    "description": "This is some description of this video file",
+                    "type": "MIME_TYPE_OTHER",
+                    "size": "41943040",
+                    "checksum": {
+                        "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                        "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
+                    },
+                    "category": "hotel"
+                },
+                "codec": "CODEC_H264",
+                "bitrate": 400,
+                "framerate": 24,
+                "width": 1280,
+                "height": 720
+            }
+        ],
+        "classifications": [
+            "BEACH_RESORT",
+            "FAMILY_FRIENDLY",
+            "SPA"
+        ],
+        "localizedDescriptions": [
+            {
+                "language": "LANGUAGE_EN",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxurious beachfront resort offering spectacular views of the Pacific Ocean"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Located directly on Maui's pristine beach"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_DE",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Luxuriöses Strandresort mit spektakulärem Blick auf den Pazifischen Ozean"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Direkt am unberührten Strand von Maui gelegen"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_IT",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Resort di lusso sulla spiaggia con vista spettacolare sull'Oceano Pacifico"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situato direttamente sulla spiaggia incontaminata di Maui"
+                    }
+                ]
+            },
+            {
+                "language": "LANGUAGE_FR",
+                "descriptions": [
+                    {
+                        "category": "GENERAL",
+                        "text": "Complexe hôtelier de luxe en bord de mer offrant une vue spectaculaire sur l'océan Pacifique"
+                    },
+                    {
+                        "category": "LOCATION",
+                        "text": "Situé directement sur la plage immaculée de Maui"
+                    }
+                ]
+            }
+        ],
+        "paymentType": "MERCHANT",
+        "rooms": [
+            {
+                "supplierCode": "DBL-SEA",
+                "supplierName": "Double Room Sea View",
+                "originalName": "Deluxe Double Sea View",
+                "images": [
+                    {
+                        "file": {
+                            "name": "Sea View Room",
+                            "uri": "https://example.com/images/room-sea-view.jpg",
+                            "lastModified": "2025-07-29T14:10:32Z",
+                            "type": "MIME_TYPE_OTHER",
+                            "size": "1028471",
+                            "checksum": {
+                                "hashAlgorithm": "HASH_ALGORITHM_MD5",
+                                "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                            },
+                            "category": "IMAGE_TYPE_ROOM"
+                        },
+                        "width": 600,
+                        "height": 750
+                    }
+                ],
+                "descriptions": [
+                    {
+                        "language": "LANGUAGE_EN",
+                        "descriptions": [
+                            {
+                                "category": "DESCRIPTION_TYPE_ROOM",
+                                "text": "Elegant room with panoramic sea views"
+                            }
+                        ]
+                    }
+                ],
+                "mealPlans": [
+                    {
+                        "code": "MEAL_PLAN_CODE_BB",
+                        "description": "Bed & Breakfast"
+                    },
+                    {
+                        "code": "MEAL_PLAN_CODE_HB",
+                        "description": "Half Board"
+                    }
+                ],
+                "beds": [
+                    {
+                        "type": "BED_TYPE_DOUBLE",
+                        "count": 2
+                    }
+                ],
+                "totalOccupancy": {
+                    "minGuests": 1,
+                    "maxGuests": 3,
+                    "occupancyOptions": [
+                        {
+                            "guestType": "TRAVELLER_TYPE_ADULT",
+                            "min": 1,
+                            "max": 2
+                        },
+                        {
+                            "guestType": "TRAVELLER_TYPE_CHILD",
+                            "max": 1,
+                            "minAge": 2,
+                            "maxAge": 11
+                        }
+                    ]
+                },
+                "services": [
+                    {
+                        "code": "BB",
+                        "description": [
+                            {
+                                "text": "Bed&Breakfast",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI",
+                        "description": [
+                            {
+                                "text": "All Inclusive",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "AI+",
+                        "description": [
+                            {
+                                "text": "All inclusive with Alcoholic drinks",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "SpaDay",
+                        "description": [
+                            {
+                                "text": "Relaxing day at the Spa from 11h00 to 16h00",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ]
+                    }
+                ],
+                "amenities": [
+                    {
+                        "type": "AMENITY_TYPE_INTERNET",
+                        "attributes": {
+                            "name": "Free WiFi",
+                            "type": "WIFI"
+                        }
+                    },
+                    {
+                        "type": "AMENITY_TYPE_OTHER",
+                        "attributes": {
+                            "name": "Private Balcony",
+                            "type": "BALCONY"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]

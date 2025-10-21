@@ -44,19 +44,19 @@ func requestContext(ctx context.Context, recipientCMAccount common.Address) cont
 	))
 }
 
-func priceBigV4(t *testing.T, value string, decimals int32, currency *typesv4.Currency) *big.Int { //nolint:unused // will be used in following PRs
+func priceBigV4(t *testing.T, value string, decimals int32, currency *typesv4.Currency) *big.Int {
 	priceBig, err := price.ToBigInt(value, decimals, currencyDecimalsV4(t, currency))
 	require.NoError(t, err)
 	return priceBig
 }
 
-func protoPriceBigV4(t *testing.T, protoPrice *typesv4.Price) *big.Int { //nolint:unused // will be used in following PRs
+func protoPriceBigV4(t *testing.T, protoPrice *typesv4.Price) *big.Int {
 	priceBig, err := price.ToBigInt(protoPrice.Value, conversion.MustUInt32ToInt32(protoPrice.Decimals), currencyDecimalsV4(t, protoPrice.Currency))
 	require.NoError(t, err)
 	return priceBig
 }
 
-func currencyDecimalsV4(t *testing.T, currency *typesv4.Currency) int32 { //nolint:unused // will be used in following PRs
+func currencyDecimalsV4(t *testing.T, currency *typesv4.Currency) int32 {
 	require.NotNil(t, currency)
 	switch currency.Currency.(type) {
 	case *typesv4.Currency_IsoCurrency:
@@ -102,7 +102,7 @@ func protoPriceBigV2(t *testing.T, protoPrice *typesv2.Price) *big.Int {
 	return priceBig
 }
 
-func getPaymentTokenFromPriceV4(t *testing.T, price *typesv4.Price) common.Address { //nolint:unused // will be used in following PRs
+func getPaymentTokenFromPriceV4(t *testing.T, price *typesv4.Price) common.Address {
 	require.NotNil(t, price, "unexpected nil price")
 	switch currency := price.GetCurrency().GetCurrency().(type) {
 	case *typesv4.Currency_NativeToken:
@@ -141,7 +141,7 @@ func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tFeeCut *big.Int) { /
 	return big.NewInt(0).Sub(value, c4tFeeCut), c4tFeeCut
 }
 
-func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, actual []T) { //nolint:unused // will be used in following PRs
+func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, actual []T) {
 	protoMarshal := proto.MarshalOptions{Deterministic: true}
 	opts := []cmp.Option{
 		cmpopts.SortSlices(func(x, y T) bool {

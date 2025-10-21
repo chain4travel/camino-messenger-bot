@@ -9,6 +9,7 @@ import (
 
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
+	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
@@ -27,6 +28,9 @@ var propertiesV2JSON []byte
 
 //go:embed accommodation/propertiesv3.json
 var propertiesV3JSON []byte
+
+//go:embed accommodation/propertiesv4.json
+var propertiesV4JSON []byte
 
 // * Transport
 
@@ -75,6 +79,7 @@ const (
 var (
 	PropertiesV2 []*accommodationv2.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV3 []*accommodationv3.PropertyExtendedInfo // used by product list, info and search
+	PropertiesV4 []*accommodationv4.PropertyExtendedInfo // used by product list, info and search
 
 	TripsV2 []*transportv2.Trip // used by search
 
@@ -98,6 +103,8 @@ func init() {
 	PropertiesV2 = mustUnmarshalStrictAndValidate[*accommodationv2.PropertyExtendedInfo](propertiesV2JSON, "error unmarshaling properties v2")
 	// AccommodationV3
 	PropertiesV3 = mustUnmarshalStrictAndValidate[*accommodationv3.PropertyExtendedInfo](propertiesV3JSON, "error unmarshaling properties v3")
+	// Accommodation V4
+	PropertiesV4 = mustUnmarshalStrictAndValidate[*accommodationv4.PropertyExtendedInfo](propertiesV4JSON, "error unmarshaling properties v4")
 	// TransportV2
 	TripsV2 = mustUnmarshalStrictAndValidate[*transportv2.Trip](tripsV2JSON, "error unmarshaling trips v2")
 	// TransportV3
