@@ -4,6 +4,7 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"math/big"
 	"testing"
@@ -148,13 +149,13 @@ func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, ac
 			require.NoError(t, err)
 			yb, err := protoMarshal.Marshal(y)
 			require.NoError(t, err)
-			return string(xb) < string(yb)
+			return bytes.Compare(xb, yb) < 0
 		}),
 		protocmp.Transform(),
 	}
 	require.Truef(t,
 		cmp.Equal(expected, actual, opts...),
-		"Mismatch (-actual,+expected):\n%s",
+		"Mismatch (-expected,+actual):\n%s",
 		cmp.Diff(expected, actual, opts...),
 	)
 }
