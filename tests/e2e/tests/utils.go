@@ -55,7 +55,7 @@ func protoPriceBigV4(t *testing.T, protoPrice *typesv4.Price) *big.Int { //nolin
 	return priceBig
 }
 
-func currencyDecimalsV4(t *testing.T, currency *typesv4.Currency) int32 {
+func currencyDecimalsV4(t *testing.T, currency *typesv4.Currency) int32 { //nolint:unused // will be used in following PRs
 	require.NotNil(t, currency)
 	switch currency.Currency.(type) {
 	case *typesv4.Currency_IsoCurrency:
