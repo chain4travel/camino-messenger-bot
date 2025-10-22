@@ -153,6 +153,14 @@ func SuccessHeaderV4() *typesv4.ResponseHeader {
 	}
 }
 
+func ErrorHeaderV4(message string) *typesv4.ResponseHeader {
+	return &typesv4.ResponseHeader{
+		BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
+		Status:     typesv4.StatusType_STATUS_TYPE_FAILURE,
+		Alerts:     []*typesv4.Alert{{Message: message, Type: typesv4.AlertType_ALERT_TYPE_ERROR}},
+	}
+}
+
 func AddHeaderErrorV4(header *typesv4.ResponseHeader, message string) {
 	header.Alerts = append(header.Alerts, &typesv4.Alert{
 		Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
@@ -166,4 +174,23 @@ func AddHeaderWarningV4(header *typesv4.ResponseHeader, message string) {
 		Type:    typesv4.AlertType_ALERT_TYPE_WARNING,
 		Message: message,
 	})
+}
+
+func AddHeaderInfoV4(header *typesv4.ResponseHeader, message string) {
+	header.Alerts = append(header.Alerts, &typesv4.Alert{
+		Type:    typesv4.AlertType_ALERT_TYPE_INFO,
+		Message: message,
+	})
+}
+
+func ProtoSlicesEqual[T proto.Message](a, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if !proto.Equal(a[i], b[i]) {
+			return false
+		}
+	}
+	return true
 }
