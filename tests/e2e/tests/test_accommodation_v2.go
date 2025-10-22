@@ -400,11 +400,11 @@ func testAccommodationV2SearchServiceWithTravelPeriod(
 	require.Equal(t, resp.Results[1].Units[0].SupplierCode.SupplierCode, "HOTEL345678", "unexpected response Results[1].Units[0].SupplierCode.SupplierCode")
 
 	// Check if the price per night is set correctly
-	pricePerNight := priceBigV2(t, resp.Results[1].Units[0].PriceDetail.Price)
+	pricePerNight := protoPriceBigV2(t, resp.Results[1].Units[0].PriceDetail.Price)
 	require.True(t, pricePerNight.Cmp(common.DefaultPricePerNightNativeTokenBig) == 0, "unexpected price per night: got %s, expected %s", pricePerNight.String(), common.DefaultPricePerNightNativeTokenBig.String())
 
 	// Extract the total price from the response
-	totalPrice = priceBigV2(t, resp.Results[1].TotalPriceDetail.Price)
+	totalPrice = protoPriceBigV2(t, resp.Results[1].TotalPriceDetail.Price)
 
 	// Check if this adds up with the total price of the unit
 	expectedTotalPrice := big.NewInt(0).Mul(common.DefaultPricePerNightNativeTokenBig, big.NewInt(nights))

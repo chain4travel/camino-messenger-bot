@@ -405,7 +405,7 @@ func testActivityV3SearchServiceWithTravelPeriod(
 	expectedActivity := activitySearchV3WithProductCode(t, mockdata.ActivitySearchResultV3, req.SearchParametersActivity.ProductCodes[0].Code)
 	require.True(t, proto.Equal(resp.Results[0], expectedActivity), "activity fields does not match expected mock data activity, but their product codes match (%s)", req.SearchParametersActivity.ProductCodes[0].Code)
 
-	return resp.Metadata.SearchId.Value, resultID, priceBigV3(t, resp.Results[0].Price)
+	return resp.Metadata.SearchId.Value, resultID, protoPriceBigV3(t, resp.Results[0].Price)
 }
 
 func activityV3WithProductCode(

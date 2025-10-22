@@ -692,7 +692,7 @@ func testTransportV3SearchServiceWithFilters(
 	require.True(t, proto.Equal(arrivalLocationCode, resp.Results[0].TravellingTrips[0].Segments[1].Info.Arrival.Location.GetLocationCode()), "unexpected arrival location code")
 
 	// Extract the price from the response
-	totalPrice = priceBigV3(t, resp.Results[0].TotalPrice.Price)
+	totalPrice = protoPriceBigV3(t, resp.Results[0].TotalPrice.Price)
 	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price: got %s, expected %s", totalPrice.String(), expectedTotalPrice.String())
 
 	// Now extract all the values needed for the validate step which comes next
