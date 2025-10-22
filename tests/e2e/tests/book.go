@@ -134,7 +134,7 @@ func testValidateV3(
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
 
-	totalPrice := priceBigV3(t, resp.PriceDetail.Price)
+	totalPrice := protoPriceBigV3(t, resp.PriceDetail.Price)
 	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
@@ -184,7 +184,7 @@ func testValidateV2(
 	require.NotEmpty(t, resp.PriceDetail.Price, "unexpected empty response PriceDetail.Price")
 	require.NotEmpty(t, resp.PriceDetail.Price.Value, "unexpected empty response PriceDetail.Price.Value")
 
-	totalPrice := priceBigV2(t, resp.PriceDetail.Price)
+	totalPrice := protoPriceBigV2(t, resp.PriceDetail.Price)
 	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price")
 
 	// Last check if the validationID is set and if yes extract it and pass it back for the mint step
@@ -195,7 +195,7 @@ func testValidateV2(
 
 // mint
 
-func testMintV2(
+func testMintV3(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
@@ -205,13 +205,13 @@ func testMintV2(
 ) (
 	tokenID uint64,
 	mintID string,
-	price *typesv2.Price,
+	price *typesv3.Price,
 ) {
-	req := &bookv2.MintRequest{
+	req := &bookv3.MintRequest{
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		ValidationId: &typesv1.UUID{Value: validationID},
 	}
-	resp, err := distributorBot.MintServiceV2.Mint(
+	resp, err := distributorBot.MintServiceV3.Mint(
 		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
@@ -231,7 +231,7 @@ func testMintV2(
 	return resp.BookingTokenId, resp.MintId.Value, resp.Price
 }
 
-func testMintV3(
+func testMintV2(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
@@ -241,13 +241,13 @@ func testMintV3(
 ) (
 	tokenID uint64,
 	mintID string,
-	price *typesv3.Price,
+	price *typesv2.Price,
 ) {
-	req := &bookv3.MintRequest{
+	req := &bookv2.MintRequest{
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		ValidationId: &typesv1.UUID{Value: validationID},
 	}
-	resp, err := distributorBot.MintServiceV3.Mint(
+	resp, err := distributorBot.MintServiceV2.Mint(
 		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
