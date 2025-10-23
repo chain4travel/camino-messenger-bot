@@ -9,7 +9,9 @@ import (
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
+	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 
@@ -93,6 +95,8 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 		h.processMintResponseV2(ctx, response)
 	case *bookv3.MintResponse: // distributor will post-process a mint request to buy the returned NFT
 		h.processMintResponseV3(ctx, response)
+	case *bookv4.MintResponse: // distributor will post-process a mint request to buy the returned NFT
+		h.processMintResponseV4(ctx, response)
 	}
 }
 
@@ -108,6 +112,8 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 		h.prepareMintResponseV2(ctx, response, requestMsg.Content.(*bookv2.MintRequest))
 	case *bookv3.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
 		h.prepareMintResponseV3(ctx, response, requestMsg.Content.(*bookv3.MintRequest))
+	case *bookv4.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
+		h.prepareMintResponseV4(ctx, response, requestMsg.Content.(*bookv4.MintRequest))
 	}
 }
 
@@ -118,6 +124,10 @@ func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) e
 		request.BuyerAddress = h.cmAccountAddressStr
 	case *bookv3.MintRequest:
 		request.BuyerAddress = &typesv3.EVMAddress{
+			Address: h.cmAccountAddressStr,
+		}
+	case *bookv4.MintRequest:
+		request.BuyerAddress = &typesv4.EVMAddress{
 			Address: h.cmAccountAddressStr,
 		}
 	}

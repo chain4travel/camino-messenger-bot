@@ -104,7 +104,7 @@ func testValidateV4(
 	supplierBot *bot.Bot,
 	searchID string,
 	resultID uint32,
-	expectedTotalPrice *big.Int,
+	expectedTotalPrice *typesv4.Price,
 ) (validateID string) {
 	req := &bookv4.ValidationRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
@@ -128,8 +128,7 @@ func testValidateV4(
 	require.Equal(t, searchID, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected searchID in response")
 	require.Equal(t, resultID, resp.ValidationObject.SearchIdentifier.ResultId, "unexpected resultID in response")
 
-	totalPrice := protoPriceBigV4(t, resp.TotalPrice.Value)
-	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price")
+	require.True(t, proto.Equal(expectedTotalPrice, resp.TotalPrice.Value), "unexpected response TotalPrice: got %+v, want %+v", resp.TotalPrice.Value, expectedTotalPrice)
 
 	return resp.ValidationId.Value
 }
@@ -243,14 +242,21 @@ func testMintV4(
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
 	validationID string,
+	expectedPrice *typesv4.Price,
 ) (
 	tokenID uint64,
 	mintID string,
 	price *typesv4.Price,
 ) {
 	req := &bookv4.MintRequest{
-		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		ValidationId: &typesv4.UUID{Value: validationID},
+		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		ValidationId:  &typesv4.UUID{Value: validationID},
+		ExpectedPrice: expectedPrice,
+		Travellers: []*typesv4.ExtensiveTraveller{{
+			FirstNames: []string{"FirstName"},
+			Surnames:   []string{"Surname"},
+			Gender:     typesv4.GenderType_GENDER_TYPE_UNSPECIFIED,
+		}},
 	}
 	resp, err := distributorBot.MintServiceV4.Mint(
 		requestContext(ctx, supplierBot.CMAccountAddress()),
@@ -259,7 +265,7 @@ func testMintV4(
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 
 	require.NotEmpty(t, resp.GetMintTransactionId().Hash, "unexpected empty response MintTransactionId")
 	require.NotEmpty(t, resp.GetBuyTransactionId().Hash, "unexpected empty response BuyTransactionId")

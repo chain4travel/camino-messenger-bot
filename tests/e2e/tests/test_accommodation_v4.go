@@ -5,7 +5,7 @@ package tests
 
 import (
 	"context"
-	"math/big"
+	"fmt"
 	"testing"
 	"time"
 
@@ -70,7 +70,7 @@ func (tt *TestAccommodationV4) Run(t *testing.T) {
 	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		searchID, resultID, totalPrice := testAccommodationV4SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
-		tokenID, _, price := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+		tokenID, _, price := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
 		verifyBookingTokenStateWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
 	})
 }
@@ -187,8 +187,6 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductListService(ctx context
 
 	require.Len(t, resp.Properties, 1, "unexpected number of properties in response")
 
-	require.NotEmpty(t, resp.Properties[0].SupplierCode, "unexpected empty response properties[0].SupplierCode")
-	require.NotEmpty(t, resp.Properties[0].SupplierCode.Code, "unexpected empty response properties[0].SupplierCode.Code")
 	require.Equal(t, hotelCode, resp.Properties[0].SupplierCode.Code, "unexpected response properties[0].SupplierCode.Code")
 }
 
@@ -282,19 +280,19 @@ func testAccommodationV4SearchServiceWithTravelPeriod(
 ) (
 	searchID string,
 	resultID uint32,
-	totalPrice *big.Int,
+	totalPrice *typesv4.Price,
 ) {
 	const hotelCode1 = "HOTEL345678"
 	const hotelCode2 = "HOTEL789012"
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
-	durationBig := big.NewInt(int64(nights))
+	currency := &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}}
 
 	req := &accommodationv4.AccommodationSearchRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		SearchParameters: &typesv4.SearchParameters{
-			Currency: &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}},
+			Currency: currency,
 			Language: typesv1.Language_LANGUAGE_EN,
 		},
 		Queries: []*accommodationv4.AccommodationSearchQuery{{
@@ -335,18 +333,17 @@ func testAccommodationV4SearchServiceWithTravelPeriod(
 
 	require.Len(t, resp.Results[1].Units, 1, "unexpected empty response Results[1].Units")
 
-	unitPriceBig := protoPriceBigV4(t, resp.Results[1].Units[0].PriceDetail.Price)
-	expectedUnitPrice := priceBigV4(t, common.DefaultPricePerNightStr, 0, req.SearchParameters.Currency)
-	expectedUnitPrice.Mul(expectedUnitPrice, durationBig)
+	expectedPrice := &typesv4.Price{
+		Value:    fmt.Sprintf("%d", common.DefaultPricePerNight*nights),
+		Decimals: 0,
+		Currency: currency,
+	}
+	require.True(t, proto.Equal(expectedPrice, resp.Results[1].Units[0].PriceDetail.Price), "unexpected response Results[1].Units[0].PriceDetail.Price: got %+v, want %+v", resp.Results[1].Units[0].PriceDetail.Price, expectedPrice)
 
-	require.True(t, unitPriceBig.Cmp(expectedUnitPrice) == 0, "unexpected price per night: got %s, expected %s", unitPriceBig.String(), expectedUnitPrice.String())
-
-	totalPrice = protoPriceBigV4(t, resp.Results[1].TotalPrice.Value)
 	// just one unit, total price is the same as unit price
-	require.True(t, totalPrice.Cmp(unitPriceBig) == 0, "unexpected total price: got %s, expected %s", totalPrice.String(), unitPriceBig.String())
+	require.True(t, proto.Equal(expectedPrice, resp.Results[1].TotalPrice.Value), "unexpected response Results[1].TotalPrice.Value: got %+v, want %+v", resp.Results[1].TotalPrice.Value, expectedPrice)
 
-	require.NotEmpty(t, resp.GetSearchId().Value, "unexpected empty response Metadata.SearchId.Value")
-	require.NotEmpty(t, resp.Results[1].ResultId, "unexpected empty response Results[1].ResultId")
+	require.NotZero(t, resp.Results[1].ResultId, "unexpected empty response Results[1].ResultId")
 
-	return resp.SearchId.Value, resp.Results[1].ResultId, totalPrice
+	return resp.SearchId.Value, resp.Results[1].ResultId, expectedPrice
 }

@@ -46,7 +46,8 @@ func (s *mintServiceV4Server) Mint(_ context.Context, req *bookv4.MintRequest) (
 				Currency: &typesv4.Currency_NativeToken{},
 			},
 		},
-		Cancellable: true,
+		Cancellable:     true,
+		BookingTokenUri: "https://example.com/",
 	}
 
 	mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
