@@ -86,7 +86,7 @@ func filterExtendedPropertiesByGeoTreeLocation(
 	return filtered
 }
 
-// Filters properties based on supplier codes. Will not modify original slice or its elements.
+// Filters properties based on languages. Will not modify original slice or its elements.
 func filterExtendedPropertiesByLanguage(
 	properties []*accommodationv4.PropertyExtendedInfo,
 	languages []typesv1.Language,
