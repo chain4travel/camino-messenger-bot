@@ -10,11 +10,14 @@ import (
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
+	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
@@ -92,6 +95,44 @@ func mintBuyAccommodationTokenV3(
 }
 
 // validate
+
+func testValidateV4( //nolint:unused // will be used in following PRs
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	searchID string,
+	resultID uint32,
+	expectedTotalPrice *big.Int,
+) (validateID string) {
+	req := &bookv4.ValidationRequest{
+		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		ValidationObject: &bookv4.ValidationObject{
+			SearchIdentifier: &typesv4.SearchIdentifier{
+				SearchId: &typesv4.UUID{Value: searchID},
+				ResultId: resultID,
+			},
+		},
+	}
+	resp, err := distributorBot.ValidationServiceV4.Validation(
+		requestContext(ctx, supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	e.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	require.Equal(t, searchID, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected searchID in response")
+	require.Equal(t, resultID, resp.ValidationObject.SearchIdentifier.ResultId, "unexpected resultID in response")
+
+	totalPrice := protoPriceBigV4(t, resp.TotalPrice.Value)
+	require.True(t, totalPrice.Cmp(expectedTotalPrice) == 0, "unexpected total price")
+
+	return resp.ValidationId.Value
+}
 
 func testValidateV3(
 	ctx context.Context,
@@ -195,6 +236,37 @@ func testValidateV2(
 
 // mint
 
+func testMintV4( //nolint:unused // will be used in following PRs
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	validationID string,
+) (
+	tokenID uint64,
+	mintID string,
+	price *typesv4.Price,
+) {
+	req := &bookv4.MintRequest{
+		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		ValidationId: &typesv4.UUID{Value: validationID},
+	}
+	resp, err := distributorBot.MintServiceV4.Mint(
+		requestContext(ctx, supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	e.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+
+	require.NotEmpty(t, resp.GetMintTransactionId().Hash, "unexpected empty response MintTransactionId")
+	require.NotEmpty(t, resp.GetBuyTransactionId().Hash, "unexpected empty response BuyTransactionId")
+
+	return resp.BookingTokenId, resp.MintId.Value, resp.Price
+}
+
 func testMintV3(
 	ctx context.Context,
 	t *testing.T,
@@ -268,6 +340,20 @@ func testMintV2(
 }
 
 // verify blockchain state
+
+func verifyBookingTokenStateWithPriceV4( //nolint:unused // will be used in following PRs
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	tokenID uint64,
+	tokenPrice *typesv4.Price,
+) {
+	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV4(t, tokenPrice))
+	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, conversion.MustUInt32ToInt32(tokenPrice.Decimals), price.NativeTokenDecimals)
+	require.NoError(t, err)
+	verifyBookingTokenState(ctx, t, e, distributorBot, tokenID, expectedReservationPrice)
+}
 
 func verifyBookingTokenStateWithPriceV2(
 	ctx context.Context,
