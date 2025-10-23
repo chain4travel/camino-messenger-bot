@@ -102,7 +102,7 @@ func filterExtendedPropertiesByLanguage(
 		for _, descSet := range property.LocalizedDescriptions {
 			for _, reqLang := range languages {
 				if descSet.Language == reqLang {
-					filteredDescriptions = append(filteredDescriptions, descSet)
+					filteredDescriptions = append(filteredDescriptions, common.CloneProto(descSet))
 					break
 				}
 			}
