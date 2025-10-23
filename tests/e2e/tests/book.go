@@ -266,9 +266,10 @@ func testMintV4(
 	e.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Len(t, resp.Header.Alerts, 1, "expected one info alert in response header")
 
-	require.NotEmpty(t, resp.GetMintTransactionId().Hash, "unexpected empty response MintTransactionId")
-	require.NotEmpty(t, resp.GetBuyTransactionId().Hash, "unexpected empty response BuyTransactionId")
+	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
+	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
 	return resp.BookingTokenId, resp.MintId.Value, resp.Price
 }

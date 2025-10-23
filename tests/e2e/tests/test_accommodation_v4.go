@@ -88,7 +88,7 @@ func (tt *TestAccommodationV4) prepare(ctx context.Context, t *testing.T) {
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+	tt.supplierBot = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
 			{Name: botGenerated.AccommodationProductShortListServiceV4, Fee: 100},
 			{Name: botGenerated.AccommodationProductListServiceV4, Fee: 110},
@@ -268,6 +268,7 @@ func (tt *TestAccommodationV4) testAccommodationV4SearchServiceTravelPeriodOutOf
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
+	require.NotEmpty(t, resp.Header.Alerts, "expected response alerts but got none")
 }
 
 // Test search with a valid travel period. Expect valid search results.

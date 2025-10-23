@@ -74,7 +74,7 @@
                     "lastModified": "2025-07-29T14:22:17.000000214Z",
                     "description": "This is some description of this image file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "1048576",
+                    "size": 1048576,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
                         "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -93,7 +93,7 @@
                     "lastModified": "2025-07-29T14:10:32.000000333Z",
                     "description": "This is some description of this video file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "41943040",
+                    "size": 41943040,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_MD5",
                         "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
@@ -180,7 +180,7 @@
                             "lastModified": "2025-07-29T14:10:32Z",
                             "description": "This is some description of this image file",
                             "type": "MIME_TYPE_OTHER",
-                            "size": "1028471",
+                            "size": 1028471,
                             "checksum": {
                                 "hashAlgorithm": "HASH_ALGORITHM_MD5",
                                 "hashBinary": "1oN8/uvYtX/eUd54y+Qa3w=="
@@ -370,7 +370,7 @@
                     "lastModified": "2025-07-29T14:22:17.000000214Z",
                     "description": "This is some description of this image file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "1048576",
+                    "size": 1048576,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
                         "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -389,7 +389,7 @@
                     "lastModified": "2025-07-29T14:10:32.000000333Z",
                     "description": "This is some description of this video file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "41943040",
+                    "size": 41943040,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_MD5",
                         "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
@@ -453,7 +453,7 @@
                 "descriptions": [
                     {
                         "category": "GENERAL",
-                        "text": "Rifugio di montagna di lusso offrendo una vista spectacolare sulle Alpi Svizzere"
+                        "text": "Refuge de montagne luxueux avec vue spectaculaire sur les Alpes suisses"
                     },
                     {
                         "category": "LOCATION",
@@ -476,7 +476,7 @@
                             "lastModified": "2025-07-29T14:10:32Z",
                             "description": "This is some description of this image file",
                             "type": "MIME_TYPE_OTHER",
-                            "size": "1028471",
+                            "size": 1028471,
                             "checksum": {
                                 "hashAlgorithm": "HASH_ALGORITHM_MD5",
                                 "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -610,7 +610,7 @@
                         "line1": "Beach Road 78",
                         "zipCode": "07100",
                         "geoTree": {
-                            "country": "COUNTRY_FJ",
+                            "country": "COUNTRY_TR",
                             "region": "Antalya",
                             "cityOrResort": "Antalya"
                         },
@@ -650,7 +650,7 @@
                     "lastModified": "2025-07-29T14:22:17.000000214Z",
                     "description": "This is some description of this image file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "1048576",
+                    "size": 1048576,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
                         "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -669,7 +669,7 @@
                     "lastModified": "2025-07-29T14:10:32.000000333Z",
                     "description": "This is some description of this video file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "41943040",
+                    "size": 41943040,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_MD5",
                         "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
@@ -755,7 +755,7 @@
                             "uri": "https://example.com/images/room-sea-view.jpg",
                             "lastModified": "2025-07-29T14:10:32Z",
                             "type": "MIME_TYPE_OTHER",
-                            "size": "1028471",
+                            "size": 1028471,
                             "checksum": {
                                 "hashAlgorithm": "HASH_ALGORITHM_MD5",
                                 "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -889,7 +889,7 @@
                         "line1": "Hauptstrasse 100",
                         "zipCode": "10115",
                         "geoTree": {
-                            "country": "COUNTRY_DZ",
+                            "country": "COUNTRY_DE",
                             "region": "Berlin",
                             "cityOrResort": "Berlin"
                         },
@@ -932,7 +932,7 @@
                     "lastModified": "2025-07-29T14:22:17.000000214Z",
                     "description": "This is some description of this image file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "1048576",
+                    "size": 1048576,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
                         "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -951,7 +951,7 @@
                     "lastModified": "2025-07-29T14:10:32.000000333Z",
                     "description": "This is some description of this video file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "41943040",
+                    "size": 41943040,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_MD5",
                         "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
@@ -1037,7 +1037,7 @@
                             "uri": "https://example.com/images/room-city-view.jpg",
                             "lastModified": "2025-07-29T14:10:32Z",
                             "type": "MIME_TYPE_OTHER",
-                            "size": "1028471",
+                            "size": 1028471,
                             "checksum": {
                                 "hashAlgorithm": "HASH_ALGORITHM_MD5",
                                 "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -1221,7 +1221,7 @@
                     "lastModified": "2025-07-29T14:22:17.000000214Z",
                     "description": "This is some description of this image file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "1048576",
+                    "size": 1048576,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
                         "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
@@ -1240,7 +1240,7 @@
                     "lastModified": "2025-07-29T14:10:32.000000333Z",
                     "description": "This is some description of this video file",
                     "type": "MIME_TYPE_OTHER",
-                    "size": "41943040",
+                    "size": 41943040,
                     "checksum": {
                         "hashAlgorithm": "HASH_ALGORITHM_MD5",
                         "hashBinary": "XUFAKrxLKna5cZ2REBfFkg=="
@@ -1326,7 +1326,7 @@
                             "uri": "https://example.com/images/room-sea-view.jpg",
                             "lastModified": "2025-07-29T14:10:32Z",
                             "type": "MIME_TYPE_OTHER",
-                            "size": "1028471",
+                            "size": 1028471,
                             "checksum": {
                                 "hashAlgorithm": "HASH_ALGORITHM_MD5",
                                 "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
