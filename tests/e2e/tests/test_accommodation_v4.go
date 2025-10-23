@@ -133,7 +133,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListService(ctx co
 
 // Product list request with a modification filter set. It should only return one fitting result.
 func (tt *TestAccommodationV4) testAccommodationV4ProductShortListServiceWithFilter(ctx context.Context, t *testing.T) {
-	var modifiedAfter = time.Unix(1710489050, 0)
+	modifiedAfter := time.Unix(1710489050, 0)
 
 	var expected []*accommodationv4.PropertyShortListItem
 	for _, prop := range mockdata.PropertiesV4 {
