@@ -258,8 +258,8 @@ func (tt *TestAccommodationV4) testAccommodationV4SearchServiceTravelPeriodOutOf
 				StartDate: common.TimeToDateV4(startDate),
 				EndDate:   common.TimeToDateV4(endDate),
 			},
-			Travellers: []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
-			UnitType:   accommodationv4.UnitType_UNIT_TYPE_ROOM,
+			Travellers:   []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
+			PropertyType: accommodationv4.PropertyType_PROPERTY_TYPE_HOTEL,
 		}},
 	}
 	resp, err := tt.distributorBot.AccommodationSearchServiceV4.AccommodationSearch(
@@ -308,8 +308,8 @@ func testAccommodationV4SearchServiceWithTravelPeriod(
 				StartDate: common.TimeToDateV4(startDate),
 				EndDate:   common.TimeToDateV4(endDate),
 			},
-			Travellers: []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
-			UnitType:   accommodationv4.UnitType_UNIT_TYPE_ROOM,
+			Travellers:   []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
+			PropertyType: accommodationv4.PropertyType_PROPERTY_TYPE_HOTEL,
 		}},
 	}
 	resp, err := distributorBot.AccommodationSearchServiceV4.AccommodationSearch(
