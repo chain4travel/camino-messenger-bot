@@ -124,10 +124,6 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 						Code: "DS",
 						Type: typesv4.RatePlanType_RATE_PLAN_TYPE_REGULAR,
 					},
-					RateRule: &typesv4.RateRule{
-						Code: "DS",
-						Type: typesv4.RateRuleType_RATE_RULE_TYPE_NON_REFUNDABLE,
-					},
 					RemainingUnits: 100,                           // hardcoded default value
 					PropertyCode:   prop.Property.ProductCodes[0], // TODO evlekht@ use whole array, when cmp will be updated, so unit will use array as well
 					SupplierCode:   prop.Property.SupplierCode,
