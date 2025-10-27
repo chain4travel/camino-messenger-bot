@@ -79,7 +79,6 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 			for _, room := range prop.Rooms {
 				unitPriceValue := common.DefaultPricePerNight * duration // we use the same value for different currencies, because it's mock and its fine if it will be different prices
 				units = append(units, &accommodationv4.Unit{
-					Type:             accommodationv4.UnitType(prop.Property.CategoryUnit),
 					SupplierRoomCode: room.SupplierCode,
 					SupplierRoomName: room.SupplierName,
 					OriginalRoomName: room.OriginalName,
