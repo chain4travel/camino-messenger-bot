@@ -145,7 +145,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListServiceWithFil
 			})
 		}
 	}
-	require.Less(t, len(expected), len(mockdata.PropertiesV4), "test setup error: no properties modified before the given timestamp")
+	require.Less(t, len(expected), len(mockdata.PropertiesV4), "test setup error: no properties modified after the given timestamp")
 
 	req := &accommodationv4.AccommodationProductShortListRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
@@ -332,7 +332,7 @@ func testAccommodationV4SearchServiceWithTravelPeriod(
 	}
 
 	for i, result := range resp.Results {
-		require.Equal(t, uint32(conversion.MustIntToUInt32(i)), result.ResultId, "unexpected response Results[%d].ResultId", i)
+		require.Equal(t, conversion.MustIntToUInt32(i), result.ResultId, "unexpected response Results[%d].ResultId", i)
 	}
 
 	// We expect 2 results - let's check for the 2nd one
