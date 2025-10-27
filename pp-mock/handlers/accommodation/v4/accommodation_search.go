@@ -6,7 +6,6 @@ package v4
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
@@ -54,7 +53,7 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 	}
 
 	searchResults := []*accommodationv4.AccommodationSearchResult{}
-	resultIDnum := uint32(1)
+	resultIDnum := uint32(0)
 	validationPrices := []*state.UnifiedPrice{}
 
 	// loop request queries
@@ -150,15 +149,15 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 				Units: units,
 				CancelPolicy: &typesv4.CancelPolicy{
 					Refundable:           true,
-					FreeCancellationUpto: timestamppb.New(startDateTime.Add(-7*24*time.Hour - 1)),
+					FreeCancellationUpto: timestamppb.New(startDateTime.Add(-common.FreeCancellationDuration - 1)),
 					CancelPenalties: []*typesv4.CancelPenalty{
 						{
 							DatetimeRange: &typesv4.DateTimeRange{
-								Start: timestamppb.New(startDateTime.Add(-7 * 24 * time.Hour)),
+								Start: timestamppb.New(startDateTime.Add(-common.FreeCancellationDuration)),
 								End:   timestamppb.New(startDateTime.Add(-1)),
 							},
 							Value: &typesv4.Price{
-								Value:    fmt.Sprintf("%d", totalPriceValue/10),
+								Value:    fmt.Sprintf("%d", totalPriceValue/10), // 10% penalty
 								Decimals: searchPrice.Decimals,
 								Currency: searchPrice.Currency,
 							},

@@ -20,6 +20,7 @@ const (
 	DefaultPricePerNightStr            = "10533"
 	DefaultPricePerNightDecimals       = 2
 	BookingTokenPriceValue             = "1"
+	FreeCancellationDuration           = 7 * 24 * time.Hour
 )
 
 var (

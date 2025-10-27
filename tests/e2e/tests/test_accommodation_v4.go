@@ -330,6 +330,10 @@ func testAccommodationV4SearchServiceWithTravelPeriod(
 		require.Equal(t, hotelCode2, resp.Results[1].Units[0].SupplierCode.Code)
 	}
 
+	for i, result := range resp.Results {
+		require.Equal(t, uint32(i), result.ResultId, "unexpected response Results[%d].ResultId", i)
+	}
+
 	// We expect 2 results - let's check for the 2nd one
 
 	require.Len(t, resp.Results[1].Units, 1, "unexpected empty response Results[1].Units")
@@ -343,8 +347,6 @@ func testAccommodationV4SearchServiceWithTravelPeriod(
 
 	// just one unit, total price is the same as unit price
 	require.True(t, proto.Equal(expectedPrice, resp.Results[1].TotalPrice.Value), "unexpected response Results[1].TotalPrice.Value: got %+v, want %+v", resp.Results[1].TotalPrice.Value, expectedPrice)
-
-	require.NotZero(t, resp.Results[1].ResultId, "unexpected empty response Results[1].ResultId")
 
 	return resp.SearchId.Value, resp.Results[1].ResultId, expectedPrice
 }

@@ -10,6 +10,7 @@ import (
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	"github.com/google/uuid"
@@ -24,12 +25,6 @@ func NewValidationServiceServer() bookv4grpc.ValidationServiceServer {
 }
 
 func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.ValidationRequest) (*bookv4.ValidationResponse, error) {
-	if req.ValidationObject.SearchIdentifier.ResultId == 0 {
-		return &bookv4.ValidationResponse{
-			Header: common.ErrorHeaderV4("Invalid validation request: result int cannot be zero"),
-		}, nil
-	}
-
 	// Look-up the store if we actually have a search storedSearchData for the given search identifier
 	// If we don't have a storedSearchData, return an error
 	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchIdentifier.SearchId.Value)
@@ -39,14 +34,13 @@ func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.Va
 		}, nil
 	}
 
-	resultIndex := int(req.ValidationObject.SearchIdentifier.ResultId - 1)
-	if resultIndex < 0 || resultIndex >= len(storedSearchData.Data.Prices) {
+	if req.ValidationObject.SearchIdentifier.ResultId >= conversion.MustIntToUInt32(len(storedSearchData.Data.Prices)) {
 		return &bookv4.ValidationResponse{
 			Header: common.ErrorHeaderV4("Invalid validation request: resultId out of range"),
 		}, nil
 	}
 
-	unifiedValidationPrice := storedSearchData.Data.Prices[resultIndex]
+	unifiedValidationPrice := storedSearchData.Data.Prices[req.ValidationObject.SearchIdentifier.ResultId]
 
 	resp := &bookv4.ValidationResponse{
 		Header:           common.SuccessHeaderV4(),

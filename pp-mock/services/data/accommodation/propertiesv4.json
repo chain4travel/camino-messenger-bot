@@ -237,33 +237,6 @@
                 },
                 "services": [
                     {
-                        "code": "BB",
-                        "description": [
-                            {
-                                "text": "Bed&Breakfast",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI",
-                        "description": [
-                            {
-                                "text": "All Inclusive",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI+",
-                        "description": [
-                            {
-                                "text": "All inclusive with Alcoholic drinks",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
                         "code": "SpaDay",
                         "description": [
                             {
@@ -533,33 +506,6 @@
                 },
                 "services": [
                     {
-                        "code": "BB",
-                        "description": [
-                            {
-                                "text": "Bed&Breakfast",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI",
-                        "description": [
-                            {
-                                "text": "All Inclusive",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI+",
-                        "description": [
-                            {
-                                "text": "All inclusive with Alcoholic drinks",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
                         "code": "SpaDay",
                         "description": [
                             {
@@ -811,33 +757,6 @@
                     ]
                 },
                 "services": [
-                    {
-                        "code": "BB",
-                        "description": [
-                            {
-                                "text": "Bed&Breakfast",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI",
-                        "description": [
-                            {
-                                "text": "All Inclusive",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI+",
-                        "description": [
-                            {
-                                "text": "All inclusive with Alcoholic drinks",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
                     {
                         "code": "SpaDay",
                         "description": [
@@ -1093,33 +1012,6 @@
                     ]
                 },
                 "services": [
-                    {
-                        "code": "BB",
-                        "description": [
-                            {
-                                "text": "Bed&Breakfast",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI",
-                        "description": [
-                            {
-                                "text": "All Inclusive",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI+",
-                        "description": [
-                            {
-                                "text": "All inclusive with Alcoholic drinks",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
                     {
                         "code": "SpaDay",
                         "description": [
@@ -1382,33 +1274,6 @@
                     ]
                 },
                 "services": [
-                    {
-                        "code": "BB",
-                        "description": [
-                            {
-                                "text": "Bed&Breakfast",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI",
-                        "description": [
-                            {
-                                "text": "All Inclusive",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "AI+",
-                        "description": [
-                            {
-                                "text": "All inclusive with Alcoholic drinks",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ]
-                    },
                     {
                         "code": "SpaDay",
                         "description": [
