@@ -13,6 +13,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
@@ -331,7 +332,7 @@ func testAccommodationV4SearchServiceWithTravelPeriod(
 	}
 
 	for i, result := range resp.Results {
-		require.Equal(t, uint32(i), result.ResultId, "unexpected response Results[%d].ResultId", i)
+		require.Equal(t, uint32(conversion.MustIntToUInt32(i)), result.ResultId, "unexpected response Results[%d].ResultId", i)
 	}
 
 	// We expect 2 results - let's check for the 2nd one
