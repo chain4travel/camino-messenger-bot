@@ -3145,5 +3145,468 @@
                 }
             }
         ]
+    },
+    {
+        "id": {
+            "id": "villa-park-ozzy-2025"
+        },
+        "sections": [
+            {
+                "id": "north_stand",
+                "names": [
+                    {
+                        "text": "North Stand",
+                        "language": "LANGUAGE_EN"
+                    }
+                ],
+                "seatCount": 150,
+                "image": {
+                    "file": {
+                        "name": "view-north-stand.jpg",
+                        "uri": "https://example.com/view-north-stand.jpg",
+                        "lastModified": "2025-07-29T14:22:17.000000214Z",
+                        "description": "This is some description of this image file",
+                        "type": "MIME_TYPE_OTHER",
+                        "size": 1048576,
+                        "checksum": {
+                            "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                            "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                        }
+                    },
+                    "width": 600,
+                    "height": 750
+                },
+                "attributes": {
+                    "descriptions": [
+                        {
+                            "language": "LANGUAGE_EN",
+                            "descriptions": [
+                                {
+                                    "category": "GENERAL",
+                                    "text": "Behind stage."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "sections": [ // TODO@ section with seatCount and subsections - is that ok?
+                    {
+                        "id": "T1",
+                        "names": [
+                            {
+                                "text": "Block T1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "T1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                },
+                                {
+                                    "id": "T1-02",
+                                    "vector": {
+                                        "label": "Row 1, Seat 2"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "T2",
+                        "names": [
+                            {
+                                "text": "Block T2",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "T2-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "R1",
+                        "names": [
+                            {
+                                "text": "Block R1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seat_count": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "R1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "doug_ellis_stand",
+                "names": [
+                    {
+                        "text": "Doug Ellis Stand",
+                        "language": "LANGUAGE_EN"
+                    }
+                ],
+                "seatCount": 150,
+                "image": {
+                    "file": {
+                        "name": "view-doug-ellis.jpg",
+                        "uri": "https://example.com/view-doug-ellis.jpg",
+                        "lastModified": "2025-07-29T14:22:17.000000214Z",
+                        "description": "This is some description of this image file",
+                        "type": "MIME_TYPE_OTHER",
+                        "size": 1048576,
+                        "checksum": {
+                            "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                            "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                        }
+                    },
+                    "width": 600,
+                    "height": 750
+                },
+                "attributes": {
+                    "descriptions": [
+                        {
+                            "language": "LANGUAGE_EN",
+                            "descriptions": [
+                                {
+                                    "category": "GENERAL",
+                                    "text": "Side."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "sections": [ // TODO@ section with seatCount and subsections - is that ok?
+                    {
+                        "id": "P1",
+                        "names": [
+                            {
+                                "text": "Block P1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "P1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "Q1",
+                        "names": [
+                            {
+                                "text": "Block Q1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "Q1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "M1",
+                        "names": [
+                            {
+                                "text": "Block M1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "M1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "trinity_road_stand",
+                "names": [
+                    {
+                        "text": "Trinity Road Stand",
+                        "language": "LANGUAGE_EN"
+                    }
+                ],
+                "seatCount": 150,
+                "image": {
+                    "file": {
+                        "name": "view-trinity.jpg",
+                        "uri": "https://example.com/view-trinity.jpg",
+                        "lastModified": "2025-07-29T14:22:17.000000214Z",
+                        "description": "This is some description of this image file",
+                        "type": "MIME_TYPE_OTHER",
+                        "size": 1048576,
+                        "checksum": {
+                            "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                            "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                        }
+                    },
+                    "width": 600,
+                    "height": 750
+                },
+                "attributes": {
+                    "descriptions": [
+                        {
+                            "language": "LANGUAGE_EN",
+                            "descriptions": [
+                                {
+                                    "category": "GENERAL",
+                                    "text": "Side."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "sections": [ // TODO@ section with seatCount and subsections - is that ok?
+                    {
+                        "id": "A1",
+                        "names": [
+                            {
+                                "text": "Block A1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "A1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "B1",
+                        "names": [
+                            {
+                                "text": "Block B1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "B1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "C1",
+                        "names": [
+                            {
+                                "text": "Block C1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "C1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "holte_end",
+                "names": [
+                    {
+                        "text": "Holte End",
+                        "language": "LANGUAGE_EN"
+                    }
+                ],
+                "seatCount": 150,
+                "image": {
+                    "file": {
+                        "name": "view-holte.jpg",
+                        "uri": "https://example.com/view-holte.jpg",
+                        "lastModified": "2025-07-29T14:22:17.000000214Z",
+                        "description": "This is some description of this image file",
+                        "type": "MIME_TYPE_OTHER",
+                        "size": 1048576,
+                        "checksum": {
+                            "hashAlgorithm": "HASH_ALGORITHM_SHA_256",
+                            "hashBinary": "bnLVBOLMLNM8NXCaJnVudDqhCsY="
+                        }
+                    },
+                    "width": 600,
+                    "height": 750
+                },
+                "attributes": {
+                    "descriptions": [
+                        {
+                            "language": "LANGUAGE_EN",
+                            "descriptions": [
+                                {
+                                    "category": "GENERAL",
+                                    "text": "End."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "sections": [ // TODO@ section with seatCount and subsections - is that ok?
+                    {
+                        "id": "K1",
+                        "names": [
+                            {
+                                "text": "Block K1",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "K1-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "K2",
+                        "names": [
+                            {
+                                "text": "Block K2",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "K2-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "K3",
+                        "names": [
+                            {
+                                "text": "Block K3",
+                                "language": "LANGUAGE_EN"
+                            }
+                        ],
+                        "seatCount": 50, // TODO@ this or seatList, can't be both!
+                        "seatList": {
+                            "seats": [
+                                {
+                                    "id": "K3-01",
+                                    "vector": {
+                                        "label": "Row 1, Seat 1"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "golden_circle",
+                "names": [
+                    {
+                        "text": "Golden Circle",
+                        "language": "LANGUAGE_EN"
+                    }
+                ],
+                "seatCount": 600,
+                "attributes": {
+                    "descriptions": [
+                        {
+                            "language": "LANGUAGE_EN",
+                            "descriptions": [
+                                {
+                                    "category": "GENERAL",
+                                    "text": "VIP front."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "standing_area",
+                "names": [
+                    {
+                        "text": "Standing Area",
+                        "language": "LANGUAGE_EN"
+                    }
+                ],
+                "seatCount": 3000,
+                "attributes": {
+                    "descriptions": [
+                        {
+                            "language": "LANGUAGE_EN",
+                            "descriptions": [
+                                {
+                                    "category": "GENERAL",
+                                    "text": "General Admission central."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
     }
 ]
