@@ -3203,14 +3203,18 @@
                             "seats": [
                                 {
                                     "id": "T1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 },
                                 {
                                     "id": "T1-02",
-                                    "vector": {
-                                        "label": "Row 1, Seat 2"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 2"
+                                        }
                                     }
                                 }
                             ]
@@ -3229,8 +3233,10 @@
                             "seats": [
                                 {
                                     "id": "T2-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3249,8 +3255,10 @@
                             "seats": [
                                 {
                                     "id": "R1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3310,8 +3318,10 @@
                             "seats": [
                                 {
                                     "id": "P1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3330,8 +3340,10 @@
                             "seats": [
                                 {
                                     "id": "Q1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3350,8 +3362,10 @@
                             "seats": [
                                 {
                                     "id": "M1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3411,8 +3425,10 @@
                             "seats": [
                                 {
                                     "id": "A1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3431,8 +3447,10 @@
                             "seats": [
                                 {
                                     "id": "B1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3451,8 +3469,10 @@
                             "seats": [
                                 {
                                     "id": "C1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3512,8 +3532,10 @@
                             "seats": [
                                 {
                                     "id": "K1-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3532,8 +3554,10 @@
                             "seats": [
                                 {
                                     "id": "K2-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
@@ -3552,8 +3576,10 @@
                             "seats": [
                                 {
                                     "id": "K3-01",
-                                    "vector": {
-                                        "label": "Row 1, Seat 1"
+                                    "location": {
+                                        "vector": {
+                                            "label": "Row 1, Seat 1"
+                                        }
                                     }
                                 }
                             ]
