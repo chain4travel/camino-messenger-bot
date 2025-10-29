@@ -70,9 +70,9 @@ func filterSeatMapSectionLocalization(
 		}
 	}
 
-	for i, s := range section.Sections {
+	for i, s := range section.GetSubsections().GetSections() {
 		missingChildLocalization := false
-		section.Sections[i], missingChildLocalization = filterSeatMapSectionLocalization(s, langSet)
+		section.GetSubsections().Sections[i], missingChildLocalization = filterSeatMapSectionLocalization(s, langSet)
 		missingLocalization = missingLocalization || missingChildLocalization
 	}
 
