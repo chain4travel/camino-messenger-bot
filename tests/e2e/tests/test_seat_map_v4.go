@@ -78,10 +78,10 @@ func (tt *TestSeatMapV4) Run(t *testing.T) {
 		tt.testSeatMapV4WithoutLocalization(ctx, t)
 	})
 	t.Run("SeatMap for transport", func(t *testing.T) {
-		tt.testSeatMapV4Transport(ctx, t)
+		tt.testSeatMapV4(ctx, t, mockdata.SeatMapV4[0])
 	})
 	t.Run("SeatMap for activity", func(t *testing.T) {
-		tt.testSeatMapV4Activity(ctx, t)
+		tt.testSeatMapV4(ctx, t, mockdata.SeatMapV4[1])
 	})
 }
 
@@ -288,11 +288,11 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 	require.True(t, proto.Equal(expectedSeatMap, resp.SeatMap), "unexpected seat map data in response")
 }
 
-func (tt *TestSeatMapV4) testSeatMapV4Transport(ctx context.Context, t *testing.T) {
+func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T, expectedSeatMap *typesv4.SeatMap) {
 	expectedLang := typesv1.Language_LANGUAGE_EN
 	req := &seatmapv4.SeatMapRequest{
 		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		MapId:     mockdata.SeatMapV4[0].Id.Id,
+		MapId:     expectedSeatMap.Id.Id,
 		Languages: []typesv1.Language{expectedLang},
 	}
 	resp, err := tt.distributorBot.SeatMapServiceV4.SeatMap(
@@ -307,104 +307,122 @@ func (tt *TestSeatMapV4) testSeatMapV4Transport(ctx context.Context, t *testing.
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	// Check seatMap description and section names/descriptions language
-	// Also set all localized strings to nil for easier comparison
+	// Compare seatMap with expectedSeatMap
 
-	for _, section := range resp.SeatMap.Sections {
-		traverseSection(section, func(s *typesv4.Section) {
-			require.Len(t, s.Names, 1, "unexpected number of section names")
-			require.Equal(t, expectedLang, s.Names[0].Language, "unexpected language in section name")
-			s.Names = nil
+	expectedSeatMap = common.CloneProto(expectedSeatMap)
 
-			seatList, ok := s.SeatInfo.(*typesv4.Section_SeatList)
-			if !ok {
-				return
-			}
-
-			for _, seat := range seatList.SeatList.Seats {
-				require.Len(t, seat.GetAttributes().Features, 1, "unexpected number of seat features")
-				require.Equal(t, expectedLang, seat.Attributes.Features[0].Language, "unexpected language in seat feature")
-				seat.Attributes.Features = nil
-			}
-		})
-	}
-
-	// Check seatMap
-
-	expectedSeatMap := common.CloneProto(mockdata.SeatMapV4[0])
-
-	// Set all localized strings to nil for easier comparison
+	// Order sections by their traversal order
+	orderedSections := []*typesv4.Section{}
 	for _, section := range expectedSeatMap.Sections {
 		traverseSection(section, func(s *typesv4.Section) {
-			s.Names = nil
-
-			seatList, ok := s.SeatInfo.(*typesv4.Section_SeatList)
-			if !ok {
-				return
-			}
-
-			for _, seat := range seatList.SeatList.Seats {
-				if seat.Attributes == nil {
-					continue
-				}
-				seat.Attributes.Features = nil
-			}
+			orderedSections = append(orderedSections, s)
 		})
 	}
 
-	require.True(t, proto.Equal(expectedSeatMap, resp.SeatMap), "unexpected seat map data in response")
-}
+	// Check seatMap localized strings and strip it and expected seatMap of localized strings for easier comparison
 
-func (tt *TestSeatMapV4) testSeatMapV4Activity(ctx context.Context, t *testing.T) {
-	expectedLang := typesv1.Language_LANGUAGE_EN
-	req := &seatmapv4.SeatMapRequest{
-		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		MapId:     mockdata.SeatMapV4[1].Id.Id,
-		Languages: []typesv1.Language{expectedLang},
+	checkAndStripAttributes := func(expectedAttributes, attributes *typesv4.SeatAttributes, expectedLang typesv1.Language) {
+		require.NotNil(t, attributes)
+
+		// features
+		var expectedFeature *typesv4.LocalizedSeatAttributeSet
+		for _, feature := range expectedAttributes.Features {
+			if feature.Language == expectedLang {
+				expectedFeature = feature
+				break
+			}
+		}
+		expectedAttributes.Features = nil
+
+		if expectedFeature != nil {
+			require.Len(t, attributes.Features, 1)
+			require.True(t, proto.Equal(expectedFeature, attributes.Features[0]), "unexpected seat map feature")
+			attributes.Features = nil
+		} else {
+			require.Nil(t, attributes.Features)
+		}
+
+		// descriptions
+		var expectedDescription *typesv4.LocalizedDescriptionSet
+		for _, description := range expectedAttributes.Descriptions {
+			if description.Language == expectedLang {
+				expectedDescription = description
+				break
+			}
+		}
+		expectedAttributes.Descriptions = nil
+
+		if expectedDescription != nil {
+			require.Len(t, attributes.Descriptions, 1)
+			require.True(t, proto.Equal(expectedDescription, attributes.Descriptions[0]), "unexpected seat map description")
+			attributes.Descriptions = nil
+		} else {
+			require.Nil(t, attributes.Descriptions)
+		}
+
+		// restrictions
+		var expectedRestriction *typesv4.LocalizedSeatAttributeSet
+		for _, restriction := range expectedAttributes.Restrictions {
+			if restriction.Language == expectedLang {
+				expectedRestriction = restriction
+				break
+			}
+		}
+		expectedAttributes.Restrictions = nil
+
+		if expectedRestriction != nil {
+			require.Len(t, attributes.Restrictions, 1)
+			require.True(t, proto.Equal(expectedRestriction, attributes.Restrictions[0]), "unexpected seat map restriction")
+			attributes.Restrictions = nil
+		} else {
+			require.Nil(t, attributes.Restrictions)
+		}
 	}
-	resp, err := tt.distributorBot.SeatMapServiceV4.SeatMap(
-		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
-		req,
-	)
-	require.NoError(t, err)
-	tt.DebugPrintRequestResponse(req, resp)
 
-	// Check response header
-
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-
-	// Check seatMap description and section names/descriptions language
-	// Also set all localized strings to nil for easier comparison
-
+	sectionIndex := 0
 	for _, section := range resp.SeatMap.Sections {
-		traverseSection(section, func(s *typesv4.Section) {
-			require.Len(t, s.Names, 1, "unexpected number of section names")
-			require.Equal(t, expectedLang, s.Names[0].Language, "unexpected language in section name")
-			s.Names = nil
+		traverseSection(section, func(traversedSection *typesv4.Section) {
+			expectedSection := orderedSections[sectionIndex]
+			sectionIndex++
 
-			if section.Attributes != nil {
-				if len(section.Attributes.Descriptions) == 1 {
-					require.Equal(t, expectedLang, section.Attributes.Descriptions[0].Language, "unexpected language in section description")
-					section.Attributes.Descriptions = nil
+			// check name
+			var expectedName *typesv4.LocalizedString
+			for _, name := range expectedSection.Names {
+				if name.Language == expectedLang {
+					expectedName = name
+					break
+				}
+			}
+			expectedSection.Names = nil
+
+			require.Len(t, traversedSection.Names, 1, "unexpected number of section names")
+			require.True(t, proto.Equal(expectedName, traversedSection.Names[0]), "unexpected section name")
+			traversedSection.Names = nil
+
+			// check attributes
+			if expectedSection.Attributes == nil {
+				require.Nil(t, traversedSection.Attributes)
+			} else {
+				checkAndStripAttributes(expectedSection.Attributes, traversedSection.Attributes, expectedLang)
+			}
+
+			// check seats' attributes
+			expectedSeatList, expectSeatList := expectedSection.SeatInfo.(*typesv4.Section_SeatList)
+			seatList, hasSeatList := traversedSection.SeatInfo.(*typesv4.Section_SeatList)
+
+			require.Equal(t, expectSeatList, hasSeatList)
+			if !expectSeatList {
+				return
+			}
+
+			for i, traversedSeat := range seatList.SeatList.Seats {
+				expectedSeat := expectedSeatList.SeatList.Seats[i]
+
+				if expectedSeat.Attributes == nil {
+					require.Nil(t, traversedSeat.Attributes)
 				} else {
-					require.Empty(t, section.Attributes.Descriptions, "unexpected section descriptions")
+					checkAndStripAttributes(expectedSeat.Attributes, traversedSeat.Attributes, expectedLang)
 				}
-			}
-		})
-	}
-
-	// Check seatMap
-
-	expectedSeatMap := common.CloneProto(mockdata.SeatMapV4[0])
-
-	// Set all localized strings to nil for easier comparison
-	for _, section := range expectedSeatMap.Sections {
-		traverseSection(section, func(s *typesv4.Section) {
-			s.Names = nil
-
-			if section.Attributes != nil {
-				section.Attributes.Descriptions = nil
 			}
 		})
 	}

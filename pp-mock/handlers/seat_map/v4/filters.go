@@ -32,7 +32,7 @@ func filterSeatMapLocalization(
 
 	filteredMap := common.CloneProto(seatMap)
 
-	filteredMap.Attributes = filterSeatAttributesLocalization(filteredMap.Attributes, langSet)
+	filterAttributesLocalization(filteredMap.Attributes, langSet)
 	missingLocalization := false
 
 	for i, section := range filteredMap.Sections {
@@ -62,11 +62,11 @@ func filterSeatMapSectionLocalization(
 
 	missingLocalization := len(originalSectionNames) != 0 && len(section.Names) == 0
 
-	section.Attributes = filterSeatAttributesLocalization(section.Attributes, langSet)
+	filterAttributesLocalization(section.Attributes, langSet)
 
 	if seatList, ok := section.SeatInfo.(*typesv4.Section_SeatList); ok {
 		for _, seat := range seatList.SeatList.Seats {
-			seat.Attributes = filterSeatAttributesLocalization(seat.Attributes, langSet)
+			filterAttributesLocalization(seat.Attributes, langSet)
 		}
 	}
 
@@ -79,12 +79,12 @@ func filterSeatMapSectionLocalization(
 	return section, missingLocalization
 }
 
-func filterSeatAttributesLocalization(
+func filterAttributesLocalization(
 	attributes *typesv4.SeatAttributes,
 	langSet map[typesv1.Language]struct{},
-) *typesv4.SeatAttributes {
+) {
 	if len(langSet) == 0 || attributes == nil {
-		return attributes
+		return
 	}
 
 	originalDescriptions := attributes.Descriptions
@@ -110,6 +110,4 @@ func filterSeatAttributesLocalization(
 			attributes.Restrictions = append(attributes.Restrictions, restriction)
 		}
 	}
-
-	return attributes
 }

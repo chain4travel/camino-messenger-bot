@@ -39,9 +39,12 @@ func mintBuyTransportTokenV3(
 	mintID string,
 	price *typesv3.Price,
 ) {
-	productListResp := testTransportV3ProductListService(ctx, t, e, distributorBot, supplierBot)                                       // see test_transport_v3.go
+	productListResp := testTransportV3ProductListService(ctx, t, e, distributorBot, supplierBot) // see test_transport_v3.go
+	_, err := supplierPPEventStream.Recv()                                                       // skip TransportProductListRequest
+	require.NoError(t, err)
+
 	searchID, resultID, totalPrice := testTransportV3SearchServiceWithFilters(ctx, t, e, distributorBot, supplierBot, productListResp) // see test_transport_v3.go
-	_, err := supplierPPEventStream.Recv()                                                                                             // skip TransportSearchRequest
+	_, err = supplierPPEventStream.Recv()                                                                                              // skip TransportSearchRequest
 	require.NoError(t, err)
 
 	validationID := testValidateV3(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
