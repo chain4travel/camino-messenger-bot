@@ -3159,6 +3159,59 @@
                         "language": "LANGUAGE_EN"
                     }
                 ],
+                "subsections": {
+                    "sections": [
+                        {
+                            "id": "T1",
+                            "names": [
+                                {
+                                    "text": "Block T1",
+                                    "language": "LANGUAGE_EN"
+                                }
+                            ],
+                            "seatList": {
+                                "seats": [
+                                    {
+                                        "id": "T1-01",
+                                        "location": {
+                                            "vector": {
+                                                "label": "Row 1, Seat 1"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "id": "T1-02",
+                                        "location": {
+                                            "vector": {
+                                                "label": "Row 1, Seat 2"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": "T2",
+                            "names": [
+                                {
+                                    "text": "Block T2",
+                                    "language": "LANGUAGE_EN"
+                                }
+                            ],
+                            "seatCount": 50
+                        },
+                        {
+                            "id": "R1",
+                            "names": [
+                                {
+                                    "text": "Block R1",
+                                    "language": "LANGUAGE_EN"
+                                }
+                            ],
+                            "seatCount": 50
+                        }
+                    ]
+                },
                 "image": {
                     "file": {
                         "name": "view-north-stand.jpg",
@@ -3187,58 +3240,7 @@
                             ]
                         }
                     ]
-                },
-                "sections": [
-                    {
-                        "id": "T1",
-                        "names": [
-                            {
-                                "text": "Block T1",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ],
-                        "seatList": {
-                            "seats": [
-                                {
-                                    "id": "T1-01",
-                                    "location": {
-                                        "vector": {
-                                            "label": "Row 1, Seat 1"
-                                        }
-                                    }
-                                },
-                                {
-                                    "id": "T1-02",
-                                    "location": {
-                                        "vector": {
-                                            "label": "Row 1, Seat 2"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "id": "T2",
-                        "names": [
-                            {
-                                "text": "Block T2",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ],
-                        "seatCount": 50
-                    },
-                    {
-                        "id": "R1",
-                        "names": [
-                            {
-                                "text": "Block R1",
-                                "language": "LANGUAGE_EN"
-                            }
-                        ],
-                        "seat_count": 50
-                    }
-                ]
+                }
             },
             {
                 "id": "standing_area",

@@ -341,7 +341,9 @@ func traverseSection(section *typesv4.Section, f func(*typesv4.Section)) {
 	if f != nil {
 		f(section)
 	}
-	for _, section := range section.Sections {
-		traverseSection(section, f)
+	if subSections, ok := section.SeatInfo.(*typesv4.Section_Subsections); ok {
+		for _, section := range subSections.Subsections.Sections {
+			traverseSection(section, f)
+		}
 	}
 }
