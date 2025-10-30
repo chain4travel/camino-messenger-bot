@@ -5,7 +5,6 @@ package v3
 
 import (
 	"context"
-	"fmt"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
@@ -26,7 +25,6 @@ func NewActivitySearchServer() activityv3grpc.ActivitySearchServiceServer {
 }
 
 func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activityv3.ActivitySearchRequest) (*activityv3.ActivitySearchResponse, error) {
-	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
 	// check if SearchParametersGeneric is nil or if Currency is nil
 	if req.SearchParametersGeneric == nil || req.SearchParametersGeneric.Currency == nil {
 		return &activityv3.ActivitySearchResponse{

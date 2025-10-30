@@ -26,8 +26,6 @@ func NewAccommodationSearchServer() accommodationv4grpc.AccommodationSearchServi
 }
 
 func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req *accommodationv4.AccommodationSearchRequest) (*accommodationv4.AccommodationSearchResponse, error) {
-	fmt.Printf("Search params: %+v\n", req.SearchParameters)
-
 	resp := &accommodationv4.AccommodationSearchResponse{
 		SearchId: &typesv4.UUID{Value: uuid.New().String()},
 	}

@@ -27,7 +27,6 @@ func NewAccommodationSearchServer() accommodationv2grpc.AccommodationSearchServi
 }
 
 func (s *accommodationSearchV2Server) AccommodationSearch(_ context.Context, req *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
-	fmt.Printf("Search generic params: %+v\n", req.SearchParametersGeneric)
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv2.AccommodationSearchResponse{

@@ -69,7 +69,7 @@ func (tt *TestAccommodationV4) Run(t *testing.T) {
 		tt.testAccommodationV4SearchServiceTravelPeriodOutOfBounds(ctx, t)
 	})
 	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-		searchID, resultID, totalPrice := testAccommodationV4SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
+		searchID, resultID, totalPrice := testAccommodationV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		tokenID, _, price := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
 		verifyBookingTokenStateWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
@@ -273,7 +273,7 @@ func (tt *TestAccommodationV4) testAccommodationV4SearchServiceTravelPeriodOutOf
 }
 
 // Test search with a valid travel period. Expect valid search results.
-func testAccommodationV4SearchServiceWithTravelPeriod(
+func testAccommodationV4SearchService(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
