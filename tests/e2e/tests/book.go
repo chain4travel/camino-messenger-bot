@@ -281,7 +281,7 @@ func testMintV4(
 	expectedPrice *typesv4.Price,
 ) (
 	tokenID uint64,
-	mintID string,
+	mintID string, //nolint:unparam // will be used in seatmap/cancellation tests
 	price *typesv4.Price,
 ) {
 	req := &bookv4.MintRequest{
