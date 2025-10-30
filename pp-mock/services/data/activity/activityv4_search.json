@@ -1,0 +1,184 @@
+[
+	{
+		"info": {
+			"supplierCode": {
+				"code": "XPTFAOH15O",
+				"number": 0
+			},
+			"unitCode": "EESPMI46VY",
+			"serviceCode": "XO"
+		},
+		"schedule": {
+			"start": "2024-03-15T07:50:22Z",
+			"end": "2024-03-15T07:50:22Z"
+		},
+		"location": {
+			"geoTree": {
+				"country": "COUNTRY_ES",
+				"region": "Mallorca",
+				"cityOrResort": "Palma"
+			}
+		},
+		"pickupDropoffEvents": [
+			{
+				"locationCode": "AESPMI43NU",
+				"locationName": "AESPMI43NU",
+				"otherInfo": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"dateTime": "2025-04-03T05:30:28Z"
+			},
+			{
+				"locationCode": "AESPMI46N2",
+				"locationName": "AESPMI46N2",
+				"otherInfo": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"dateTime": "2025-04-03T06:30:28Z"
+			},
+			{
+				"locationCode": "AESPMI60NK",
+				"locationName": "AESPMI60NK",
+				"otherInfo": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"dateTime": "2025-04-03T07:30:28Z"
+			},
+			{
+				"locationCode": "AESPMI6DJG",
+				"locationName": "AESPMI6DJG",
+				"otherInfo": "HOTELENTRANCE / HotelEntrance",
+				"dateTime": "2025-04-03T08:30:28Z"
+			},
+			{
+				"locationCode": "AMTSES2FSM",
+				"locationName": "AMTSES2FSM",
+				"otherInfo": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"dateTime": "2025-04-03T09:30:28Z"
+			},
+			{
+				"locationCode": "AMTSES2S5S",
+				"locationName": "AMTSES2S5S",
+				"otherInfo": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"dateTime": "2025-04-03T10:30:28Z"
+			}
+		],
+		"totalPrice": {
+			"value": {
+				"value": "15000",
+				"decimals": 2,
+				"currency": {
+					"iso_currency": "ISO_CURRENCY_EUR"
+				}
+			}
+		},
+		"bookability": {
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
+		}
+	},
+	{
+		"info": {
+			"supplierCode": {
+				"code": "ACTIVITY345678",
+				"number": 654
+			},
+			"unitCode": "EESPMI46VY",
+			"serviceCode": "XO"
+		},
+		"schedule": {
+			"start": "2024-03-15T07:50:22Z",
+			"end": "2024-03-15T07:50:22Z"
+		},
+		"location": {
+			"geoTree": {
+				"country": "COUNTRY_ES",
+				"region": "Mallorca",
+				"cityOrResort": "Palma"
+			}
+		},
+		"pickupDropoffEvents": [
+			{
+				"locationCode": "AESPMI43NU",
+				"locationName": "AESPMI43NU",
+				"otherInfo": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"dateTime": "2025-04-03T05:30:28Z"
+			},
+			{
+				"locationCode": "AESPMI46N2",
+				"locationName": "AESPMI46N2",
+				"otherInfo": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"dateTime": "2025-04-03T06:30:28Z"
+			},
+			{
+				"locationCode": "AESPMI60NK",
+				"locationName": "AESPMI60NK",
+				"otherInfo": "OTHERS / Parking Varadero(bus stop css nº50)",
+				"dateTime": "2025-04-03T07:30:28Z"
+			},
+			{
+				"locationCode": "AESPMI6DJG",
+				"locationName": "AESPMI6DJG",
+				"otherInfo": "HOTELENTRANCE / HotelEntrance",
+				"dateTime": "2025-04-03T08:30:28Z"
+			},
+			{
+				"locationCode": "AMTSES2FSM",
+				"locationName": "AMTSES2FSM",
+				"otherInfo": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"dateTime": "2025-04-03T09:30:28Z"
+			},
+			{
+				"locationCode": "AMTSES2S5S",
+				"locationName": "AMTSES2S5S",
+				"otherInfo": "OTHERS / TAXI STOP Camp de Mar (Avda de Sa Platja)",
+				"dateTime": "2025-04-03T10:30:28Z"
+			}
+		],
+		"totalPrice": {
+			"value": {
+				"value": "40000",
+				"decimals": 2,
+				"currency": {
+					"iso_currency": "ISO_CURRENCY_EUR"
+				}
+			}
+		},
+		"bookability": {
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
+		}
+	},
+	{
+		"info": {
+			"supplierCode": {
+				"code": "SEA-EXPLORERS",
+				"number": 87456
+			},
+			"unitCode": "EESPMI46ZX",
+			"serviceCode": "XO"
+		},
+		"schedule": {
+			"start": "2024-03-15T07:50:22Z",
+			"end": "2024-03-15T07:50:22Z"
+		},
+		"location": {
+			"geoTree": {
+				"country": "COUNTRY_US",
+				"region": "Florida",
+				"cityOrResort": "Miami"
+			}
+		},
+		"pickupDropoffEvents": [
+			{
+				"locationCode": "MIAMI_PORT",
+				"otherInfo": "OTHERS / Miami Port",
+				"dateTime": "2025-04-03T05:30:28Z"
+			}
+		],
+		"totalPrice": {
+			"value": {
+				"value": "18000",
+				"decimals": 2,
+				"currency": {
+					"iso_currency": "ISO_CURRENCY_USD"
+				}
+			}
+		},
+		"bookability": {
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
+		}
+	}
+]

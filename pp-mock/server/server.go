@@ -20,6 +20,7 @@ import (
 	accommodation_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/accommodation/v4"
 	activity_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v2"
 	activity_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v3"
+	activity_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/activity/v4"
 	book_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v2"
 	book_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v3"
 	book_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v4"
@@ -38,6 +39,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v4/activityv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v4/bookv4grpc"
@@ -111,6 +113,10 @@ func Run() error {
 	activityv3grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v3.NewActivityProductListServer())
 	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v3.NewActivityProductInfoServer())
 	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v3.NewActivitySearchServer())
+	// Activity V4
+	activityv4grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v4.NewActivityProductListServer())
+	activityv4grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v4.NewActivityProductInfoServer())
+	activityv4grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v4.NewActivitySearchServer())
 
 	// Book V2
 	bookv2grpc.RegisterMintServiceServer(grpcServer, book_v2.NewMintServiceServer())

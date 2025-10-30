@@ -11,6 +11,7 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/localization"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -97,17 +98,7 @@ func filterExtendedPropertiesByLanguage(
 
 	filtered := []*accommodationv4.PropertyExtendedInfo{}
 	for _, property := range properties {
-		filteredDescriptions := []*typesv4.LocalizedDescriptionSet{}
-
-		for _, descSet := range property.LocalizedDescriptions {
-			for _, reqLang := range languages {
-				if descSet.Language == reqLang {
-					filteredDescriptions = append(filteredDescriptions, common.CloneProto(descSet))
-					break
-				}
-			}
-		}
-
+		filteredDescriptions := localization.FilterDescriptionsV4(property.LocalizedDescriptions, languages)
 		if len(filteredDescriptions) > 0 {
 			clonedProperty := common.CloneProto(property)
 			clonedProperty.LocalizedDescriptions = filteredDescriptions
