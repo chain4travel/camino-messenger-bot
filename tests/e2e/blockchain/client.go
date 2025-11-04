@@ -33,7 +33,8 @@ const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolin
 
 var (
 	kycAdminRole                = big.NewInt(0b100)
-	cmAccountNativeTokenPrefund = big.NewInt(0).Mul(e2eCommon.CAM, big.NewInt(100))
+	cmAccountNativeTokenPrefund = big.NewInt(0)
+	// cmAccountNativeTokenPrefund = big.NewInt(0).Mul(e2eCommon.CAM, big.NewInt(100))
 
 	ErrorAddServiceTxFailed = errors.New("failed to issue AddService tx")
 )
