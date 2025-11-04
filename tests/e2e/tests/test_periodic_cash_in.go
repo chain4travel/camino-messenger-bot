@@ -28,7 +28,9 @@ import (
 var _ suite.Test = (*TestCashIn)(nil)
 
 func init() {
-	Tests["PeriodicCashIn"] = &TestCashIn{}
+	// Test is deactivated temporarily, because it uses pre-erc20 ASB that depends on pre-erc20 CMB.
+	// In order to update ASB, we need to merge ASB first. After that we can re-activate this test.
+	// Tests["PeriodicCashIn"] = &TestCashIn{}
 }
 
 type TestCashIn struct {
