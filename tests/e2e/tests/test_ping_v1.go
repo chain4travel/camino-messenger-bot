@@ -6,7 +6,6 @@ package tests
 import (
 	"context"
 	"fmt"
-	"sync"
 	"testing"
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
@@ -51,26 +50,14 @@ func (tt *TestPingV1) Run(t *testing.T) {
 func (tt *TestPingV1) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
 
-	wg := sync.WaitGroup{}
-
 	// bot with partnerPlugin and without rpc server (supplier)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
-		tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
-		)
-	}()
+	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+	)
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
-	}()
-
-	wg.Wait()
+	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 }
 
 func (tt *TestPingV1) testPingV1Service(ctx context.Context, t *testing.T) {

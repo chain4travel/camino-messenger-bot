@@ -6,7 +6,6 @@ package tests
 import (
 	"context"
 	"math/big"
-	"sync"
 	"testing"
 	"time"
 
@@ -77,38 +76,26 @@ func (tt *TestCancellationV1) prepare(ctx context.Context, t *testing.T) {
 		botGenerated.CheckCancellationServiceV1,
 	))
 
-	wg := sync.WaitGroup{}
+	var err error
 
 	// supplier bot
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
-		tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-			bot.WithServices([]bot.CMService{
-				{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
-				{Name: botGenerated.ValidationServiceV3, Fee: 130},
-				{Name: botGenerated.MintServiceV3, Fee: 140},
-				{Name: botGenerated.CheckCancellationServiceV1, Fee: 150},
-			}),
-		)
-		var err error
-		tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)
-		require.NoError(t, err)
-	}()
+	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+		bot.WithServices([]bot.CMService{
+			{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
+			{Name: botGenerated.ValidationServiceV3, Fee: 130},
+			{Name: botGenerated.MintServiceV3, Fee: 140},
+			{Name: botGenerated.CheckCancellationServiceV1, Fee: 150},
+		}),
+	)
+	tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)
+	require.NoError(t, err)
 
 	// distributor bot
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		tt.distributorPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
-		tt.distributorBot = tt.CreateBot(ctx, t, true, tt.distributorPartnerPlugin)
-		var err error
-		tt.distributorPPEventStream, err = tt.distributorPartnerPlugin.SubscribeForEvents(ctx)
-		require.NoError(t, err)
-	}()
-
-	wg.Wait()
+	tt.distributorPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	tt.distributorBot = tt.CreateBot(ctx, t, true, tt.distributorPartnerPlugin)
+	tt.distributorPPEventStream, err = tt.distributorPartnerPlugin.SubscribeForEvents(ctx)
+	require.NoError(t, err)
 }
 
 func (tt *TestCancellationV1) testCancellationV1DistributorInitiatesBasic(ctx context.Context, t *testing.T) {

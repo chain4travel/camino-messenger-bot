@@ -5,7 +5,6 @@ package tests
 
 import (
 	"context"
-	"sync"
 	"testing"
 
 	seatmapv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v4"
@@ -96,37 +95,25 @@ func (tt *TestSeatMapV4) prepare(ctx context.Context, t *testing.T) {
 		botGenerated.SeatMapAvailabilityServiceV4,
 	))
 
-	wg := sync.WaitGroup{}
-
 	// bot with partnerPlugin and without rpc server (supplier)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
-		tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-			bot.WithServices([]bot.CMService{
-				{Name: botGenerated.TransportProductListServiceV3, Fee: 100},
-				{Name: botGenerated.TransportSearchServiceV3, Fee: 110},
-				{Name: botGenerated.ActivitySearchServiceV3, Fee: 120},
-				{Name: botGenerated.ValidationServiceV3, Fee: 130},
-				{Name: botGenerated.MintServiceV3, Fee: 140},
-				{Name: botGenerated.SeatMapServiceV4, Fee: 150},
-				{Name: botGenerated.SeatMapAvailabilityServiceV4, Fee: 160},
-			}),
-		)
-		var err error
-		tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)
-		require.NoError(t, err)
-	}()
+	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+		bot.WithServices([]bot.CMService{
+			{Name: botGenerated.TransportProductListServiceV3, Fee: 100},
+			{Name: botGenerated.TransportSearchServiceV3, Fee: 110},
+			{Name: botGenerated.ActivitySearchServiceV3, Fee: 120},
+			{Name: botGenerated.ValidationServiceV3, Fee: 130},
+			{Name: botGenerated.MintServiceV3, Fee: 140},
+			{Name: botGenerated.SeatMapServiceV4, Fee: 150},
+			{Name: botGenerated.SeatMapAvailabilityServiceV4, Fee: 160},
+		}),
+	)
+	var err error
+	tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)
+	require.NoError(t, err)
 
 	// bot without partnerPlugin and with rpc server (distributor)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
-	}()
-
-	wg.Wait()
+	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 }
 
 func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithSearchID(ctx context.Context, t *testing.T, searchID string, expectedSeatMapInventory *typesv4.SeatMapInventory) {
