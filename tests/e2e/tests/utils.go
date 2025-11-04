@@ -159,3 +159,56 @@ func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, ac
 		cmp.Diff(expected, actual, opts...),
 	)
 }
+
+func requireAlwaysNoError(ctx context.Context, t *testing.T, timeout, interval time.Duration, message string, check func() error) {
+	t.Run(message, func(t *testing.T) {
+		t.Parallel()
+
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+
+		for {
+			select {
+			case <-ticker.C:
+				require.NoError(t, check(), message, "requireAlwaysTrue: condition failed")
+			case <-ctx.Done():
+				require.NoError(t, check(), message, "requireAlwaysTrue: condition failed after timeout/cancellation")
+				return
+			}
+		}
+	})
+}
+
+func requireEventuallyTrue(ctx context.Context, t *testing.T, timeout, interval time.Duration, message string, check func(t *testing.T) bool) (done chan struct{}) {
+	done = make(chan struct{})
+	t.Run(message, func(t *testing.T) {
+		t.Parallel()
+
+		defer close(done)
+
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+
+		for {
+			select {
+			case <-ticker.C:
+				if check(t) {
+					return
+				}
+			case <-ctx.Done():
+				if check(t) {
+					return
+				}
+				require.FailNow(t, message, "requireEventuallyTrue: condition not met after timeout/cancellation")
+			}
+		}
+	})
+
+	return done
+}
