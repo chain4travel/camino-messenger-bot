@@ -33,8 +33,7 @@ const bookingTokenOperatorLibName = "12bd2f62b73a470fe0f6e02c33045f3191" //nolin
 
 var (
 	kycAdminRole                = big.NewInt(0b100)
-	cmAccountNativeTokenPrefund = big.NewInt(0)
-	// cmAccountNativeTokenPrefund = big.NewInt(0).Mul(e2eCommon.CAM, big.NewInt(100))
+	cmAccountNativeTokenPrefund = big.NewInt(0).Mul(e2eCommon.CAM, big.NewInt(100))
 
 	ErrorAddServiceTxFailed = errors.New("failed to issue AddService tx")
 )
@@ -74,6 +73,9 @@ func newClient(
 }
 
 type Client struct {
+	NullUSD      *nullusd.Nullusd
+	BookingToken *bookingtoken.Bookingtoken
+
 	prefundedKeys               []*ecdsa.PrivateKey
 	adminKey                    *ecdsa.PrivateKey
 	nodeURI                     string
@@ -83,8 +85,6 @@ type Client struct {
 	bookingTokenContractAddress common.Address
 	cmAccountManager            *cmaccountmanager.Cmaccountmanager
 	cmAccountManagerAddress     common.Address
-	nullUSD                     *nullusd.Nullusd
-	BookingToken                *bookingtoken.Bookingtoken
 	adminContract               *contracts.CaminoAdmin
 
 	nonces      map[common.Address]uint64
@@ -118,7 +118,7 @@ func (c *Client) CreateCMAccount(ctx context.Context, owner *ecdsa.PrivateKey) (
 		return common.Address{}, nil, fmt.Errorf("failed to create transactor: %w", err)
 	}
 
-	approveTx, err := c.nullUSD.Approve(transactor, c.cmAccountManagerAddress, prefundAmount)
+	approveTx, err := c.NullUSD.Approve(transactor, c.cmAccountManagerAddress, prefundAmount)
 	if err != nil {
 		return common.Address{}, nil, fmt.Errorf("failed to issue nullUSD.Approve tx: %w", err)
 	}
@@ -453,7 +453,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// create nullUSD bindings
 
-	c.nullUSD, err = nullusd.NewNullusd(nullUSDAddress, c.ethClient)
+	c.NullUSD, err = nullusd.NewNullusd(nullUSDAddress, c.ethClient)
 	if err != nil {
 		return fmt.Errorf("failed to create nullUSD binding: %w", err)
 	}
