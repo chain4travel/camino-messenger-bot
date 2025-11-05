@@ -36,7 +36,7 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 
 	filteredActivities := filterSearchResultActivitiesBySupplierCodes(mockdata.ActivitySearchResultV4, req.SearchParametersActivity.SupplierCodes)
 	filteredActivities = filterSearchResultActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.ServiceCodes)
-	filteredActivities = filterSearchResultByCurrency(filteredActivities, req.SearchParameters.Currency)
+	filteredActivities = filterSearchResultActivitiesByCurrency(filteredActivities, req.SearchParameters.Currency)
 
 	resultIDnum := uint32(0)
 	validationPrices := []*state.UnifiedPrice{}

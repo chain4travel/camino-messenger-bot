@@ -134,18 +134,17 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListService(ctx co
 
 // Product list request with a modification filter set. It should only return one fitting result.
 func (tt *TestAccommodationV4) testAccommodationV4ProductShortListServiceWithFilter(ctx context.Context, t *testing.T) {
-	modifiedAfter := time.Unix(1710489050, 0)
-
+	modifiedAfter := time.Unix(1710547200, 0)
 	var expected []*accommodationv4.PropertyShortListItem
 	for _, prop := range mockdata.PropertiesV4 {
-		if !prop.Property.LastModified.AsTime().Before(modifiedAfter) {
+		if !prop.Property.LastModified.AsTime().After(modifiedAfter) {
 			expected = append(expected, &accommodationv4.PropertyShortListItem{
 				SupplierCode: prop.Property.SupplierCode,
 				Status:       prop.Property.Status,
 			})
 		}
 	}
-	require.Less(t, len(expected), len(mockdata.PropertiesV4), "test setup error: no properties modified after the given timestamp")
+	require.Len(t, expected, 1, "test setup error: expected exactly one property to match the modifiedAfter filter")
 
 	req := &accommodationv4.AccommodationProductShortListRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},

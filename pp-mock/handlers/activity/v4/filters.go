@@ -108,7 +108,7 @@ func filterSearchResultActivitiesByServiceCodes(
 	return filtered
 }
 
-func filterSearchResultByCurrency(activities []*activityv4.ActivitySearchResult, currency *typesv4.Currency) []*activityv4.ActivitySearchResult {
+func filterSearchResultActivitiesByCurrency(activities []*activityv4.ActivitySearchResult, currency *typesv4.Currency) []*activityv4.ActivitySearchResult {
 	filtered := []*activityv4.ActivitySearchResult{}
 	for _, activity := range activities {
 		if proto.Equal(activity.TotalPrice.Value.Currency, currency) {

@@ -99,12 +99,8 @@ func AreTravelDatesValidV1(departureDate, arrivalDate *typesv1.Date) bool {
 	return !DateV1ToTime(departureDate).After(DateV1ToTime(arrivalDate))
 }
 
+// Fail if departure is after arrival
 func AreTravelDatesValidV4(departureDate, arrivalDate *typesv4.Date) bool {
-	if departureDate == nil || arrivalDate == nil {
-		return false
-	}
-
-	// Fail if departure is after arrival
 	return !DateV4ToTime(departureDate).After(DateV4ToTime(arrivalDate))
 }
 

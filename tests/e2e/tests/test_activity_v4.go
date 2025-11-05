@@ -125,10 +125,10 @@ func (tt *TestActivityv4) testActivityv4ProductListService(ctx context.Context, 
 
 // Product list request with a modification filter set. It should only return one fitting result.
 func (tt *TestActivityv4) testActivityv4ProductListServiceWithFilter(ctx context.Context, t *testing.T) {
-	const modifiedAfterSecs int64 = 1710237631
+	modifiedAfter := time.Unix(1710237631, 0)
 	expectedSupplierCodes := []*typesv4.SupplierProductCode{}
 	for _, activity := range mockdata.ActivityExtendedV4 {
-		if activity.LastModified.AsTime().Unix() > modifiedAfterSecs {
+		if activity.LastModified.AsTime().After(modifiedAfter) {
 			expectedSupplierCodes = append(expectedSupplierCodes, activity.SupplierCode)
 		}
 	}
@@ -136,7 +136,7 @@ func (tt *TestActivityv4) testActivityv4ProductListServiceWithFilter(ctx context
 
 	req := &activityv4.ActivityProductListRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		ModifiedAfter: &timestamppb.Timestamp{Seconds: modifiedAfterSecs},
+		ModifiedAfter: timestamppb.New(modifiedAfter),
 	}
 	resp, err := tt.distributorBot.ActivityProductListServiceV4.ActivityProductList(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
