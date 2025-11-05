@@ -1,8 +1,28 @@
 [
 	{
-		"supplierCode": {
-			"code": "XPTFAOH15O",
-			"number": 31345
+		"activity": {
+			"supplierCode": {
+				"code": "XPTFAOH15O",
+				"number": 31345
+			},
+			"location": {
+				"address": {
+					"geoTree": {
+						"country": "COUNTRY_PT",
+						"region": "Algarve",
+						"cityOrResort": "Albufeira"
+					},
+					"type": "ADDRESS_TYPE_OTHER",
+					"line1": "Calle Sant Joan 38",
+					"zipCode": "07008"
+				},
+				"coordinates": {
+					"latitude": 39.5519,
+					"longitude": 2.7355
+				}
+			},
+			"status": "PRODUCT_STATUS_ACTIVATED",
+			"lastModified": "2024-03-15T07:50:22Z"
 		},
 		"units": [
 			{
@@ -11,8 +31,23 @@
 					"end": "2025-03-13T13:00:00Z"
 				},
 				"code": "TK0001H1",
-				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
-				"description": "starts at 11h00"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (1 hour)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 11h00"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -20,8 +55,23 @@
 					"end": "2025-03-13T11:30:00Z"
 				},
 				"code": "TK0001H0",
-				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
-				"description": "starts at 09h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (1 hour)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 09h30"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -29,8 +79,23 @@
 					"end": "2025-03-13T18:50:00Z"
 				},
 				"code": "TK0001H2",
-				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
-				"description": "starts at 16h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (1 hour)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 16h30"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -38,8 +103,23 @@
 					"end": "2025-03-13T19:50:00Z"
 				},
 				"code": "TK0001H3",
-				"name": "Tuk-Tuk Sightseeing Tour (1 hour)",
-				"description": "starts at 17h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (1 hour)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 17h30"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -47,8 +127,23 @@
 					"end": "2025-03-13T12:30:00Z"
 				},
 				"code": "TK0002H0",
-				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
-				"description": "starts at 09h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (2 hours)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 09h30"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -56,8 +151,23 @@
 					"end": "2025-03-13T14:00:00Z"
 				},
 				"code": "TK0002H1",
-				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
-				"description": "starts at 11h00"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (2 hours)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 11h00"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -65,8 +175,23 @@
 					"end": "2025-03-13T19:50:00Z"
 				},
 				"code": "TK0002H2",
-				"name": "Tuk-Tuk Sightseeing Tour (2 hours)",
-				"description": "starts at 16h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (2 hours)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 16h30"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -74,8 +199,23 @@
 					"end": "2025-03-13T21:50:00Z"
 				},
 				"code": "TK0003H3",
-				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
-				"description": "starts at 17h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (3 hours)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 17h30"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -83,8 +223,23 @@
 					"end": "2025-03-13T19:50:00Z"
 				},
 				"code": "TK0003H2",
-				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
-				"description": "starts at 15h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (3 hours)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 15h30"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -92,8 +247,23 @@
 					"end": "2025-03-13T15:00:00Z"
 				},
 				"code": "TK0003H1",
-				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
-				"description": "starts at 11h00"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (3 hours)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 11h00"
+							}
+						]
+					}
+				]
 			},
 			{
 				"schedule": {
@@ -101,23 +271,49 @@
 					"end": "2025-03-13T13:30:00Z"
 				},
 				"code": "TK0003H0",
-				"name": "Tuk-Tuk Sightseeing Tour (3 hours)",
-				"description": "starts at 09h30"
+				"names": [
+					{
+						"text": "Tuk-Tuk Sightseeing Tour (3 hours)",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Starts at 09h30"
+							}
+						]
+					}
+				]
 			}
 		],
 		"services": [
 			{
 				"code": "SIGHTSEEING-GUIDE",
-				"name": "Guided Tour",
-				"description": "Expert guide leads the way",
+				"names": [
+					{
+						"text": "Guided Tour",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Expert guide leads the way"
+							}
+						]
+					}
+				],
 				"included": [
 					"Professional guide",
 					"Safety equipment",
 					"Basic insurance"
-				],
-				"excluded": [
-					"Food and drinks",
-					"Hotel pickup"
 				]
 			}
 		],
@@ -198,22 +394,6 @@
 				]
 			}
 		],
-		"location": {
-			"address": {
-				"geoTree": {
-					"country": "COUNTRY_PT",
-					"region": "Algarve",
-					"cityOrResort": "Albufeira"
-				},
-				"type": "ADDRESS_TYPE_OTHER",
-				"line1": "Calle Sant Joan 38",
-				"zipCode": "07008"
-			},
-			"coordinates": {
-				"latitude": 39.5519,
-				"longitude": 2.7355
-			}
-		},
 		"features": [
 			{
 				"code": "EX_DIFFIC|EX_DIF_1",
@@ -364,10 +544,9 @@
 				"height": 450
 			}
 		],
-		"categoryCode": "TT",
+		"category": "ACTIVITY_CATEGORY_TOUR",
 		"categoryName": "Trips and Tours",
-		"typeCode": "BP",
-		"typeName": "BaseProduct",
+		"type": "ACTIVITY_TYPE_GUIDED_TOUR",
 		"durationRange": {
 			"min": {
 				"minutes": 120
@@ -383,9 +562,8 @@
 		"instantDelivery": true,
 		"instantConfirmation": true,
 		"availabilityRequired": true,
-		"availabilityType": "START_TIME",
+		"availabilityType": "ACTIVITY_AVAILABILITY_TYPE_START_TIME",
 		"context": "Tuk-Tuk Sightseeing Tour",
-		"lastModified": "2024-03-15T07:50:22Z",
 		"deliveryTypes": [
 			{
 				"format": "DELIVERY_FORMAT_QRCODE",
@@ -394,9 +572,29 @@
 		]
 	},
 	{
-		"supplierCode": {
-			"code": "ACTIVITY345678",
-			"number": 654
+		"activity": {
+			"supplierCode": {
+				"code": "ACTIVITY345678",
+				"number": 654
+			},
+			"location": {
+				"address": {
+					"geoTree": {
+						"country": "COUNTRY_ES",
+						"region": "Mallorca",
+						"cityOrResort": "Palma"
+					},
+					"type": "ADDRESS_TYPE_OTHER",
+					"line1": "Island Helicopters Base",
+					"zipCode": "07600"
+				},
+				"coordinates": {
+					"latitude": 39.5519,
+					"longitude": 2.7355
+				}
+			},
+			"status": "PRODUCT_STATUS_ACTIVATED",
+			"lastModified": "2024-03-12T10:00:30Z"
 		},
 		"units": [
 			{
@@ -405,24 +603,49 @@
 					"end": "2024-04-11T10:00:00Z"
 				},
 				"code": "HELI-PREM",
-				"name": "Premium Helicopter Tour",
-				"description": "45-minute helicopter tour over the island"
+				"names": [
+					{
+						"text": "Premium Helicopter Tour",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "45-minute helicopter tour over the island"
+							}
+						]
+					}
+				]
 			}
 		],
 		"services": [
 			{
 				"code": "HELI-BASIC",
-				"name": "Basic Service",
-				"description": "Helicopter tour with basic amenities",
+				"names": [
+					{
+						"text": "Basic Service",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Helicopter tour with basic amenities"
+							}
+						]
+					}
+				],
 				"included": [
 					"Professional pilot",
 					"Safety briefing",
 					"Standard insurance"
-				],
-				"excluded": [
-					"Photos",
-					"Extended flight time",
-					"Private tour"
 				]
 			}
 		],
@@ -441,22 +664,6 @@
 				]
 			}
 		],
-		"location": {
-			"address": {
-				"geoTree": {
-					"country": "COUNTRY_ES",
-					"region": "Mallorca",
-					"cityOrResort": "Palma"
-				},
-				"type": "ADDRESS_TYPE_OTHER",
-				"line1": "Island Helicopters Base",
-				"zipCode": "07600"
-			},
-			"coordinates": {
-				"latitude": 39.5519,
-				"longitude": 2.7355
-			}
-		},
 		"features": [
 			{
 				"code": "PANORAMIC",
@@ -473,9 +680,9 @@
 			"LANGUAGE_ES",
 			"LANGUAGE_FR"
 		],
-		"categoryCode": "AIR",
+		"category": "ACTIVITY_CATEGORY_UNSPECIFIED",
 		"categoryName": "Air Activity",
-		"typeCode": "SCENIC",
+		"type": "ACTIVITY_TYPE_UNSPECIFIED",
 		"typeName": "Scenic Tour",
 		"durationRange": {
 			"min": {
@@ -492,14 +699,33 @@
 		"instantDelivery": true,
 		"instantConfirmation": false,
 		"availabilityRequired": true,
-		"availabilityType": "START_TIME",
-		"context": "helicopter tour",
-		"lastModified": "2024-03-12T10:00:30Z"
+		"availabilityType": "ACTIVITY_AVAILABILITY_TYPE_START_TIME",
+		"context": "helicopter tour"
 	},
 	{
-		"supplierCode": {
-			"code": "SEA-EXPLORERS",
-			"number": 87456
+		"activity": {
+			"supplierCode": {
+				"code": "SEA-EXPLORERS",
+				"number": 87456
+			},
+			"location": {
+				"address": {
+					"geoTree": {
+						"country": "COUNTRY_ES",
+						"region": "Mallorca",
+						"cityOrResort": "Port d'Andratx"
+					},
+					"type": "ADDRESS_TYPE_OTHER",
+					"line1": "Marina Bay Dock 7",
+					"zipCode": "07157"
+				},
+				"coordinates": {
+					"latitude": 39.5438,
+					"longitude": 2.3828
+				}
+			},
+			"status": "PRODUCT_STATUS_ACTIVATED",
+			"lastModified": "2024-03-10T11:55:00Z"
 		},
 		"units": [
 			{
@@ -508,24 +734,49 @@
 					"end": "2024-04-12T12:00:00Z"
 				},
 				"code": "BOAT-STD",
-				"name": "Standard Boat Tour",
-				"description": "5-hour boat tour around the island"
+				"names": [
+					{
+						"text": "Standard Boat Tour",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "5-hour boat tour around the island"
+							}
+						]
+					}
+				]
 			}
 		],
 		"services": [
 			{
 				"code": "BOAT-BASIC",
-				"name": "Basic Package",
-				"description": "Standard boat tour service",
+				"names": [
+					{
+						"text": "Basic Package",
+						"language": "LANGUAGE_EN"
+					}
+				],
+				"descriptions": [
+					{
+						"language": "LANGUAGE_EN",
+						"descriptions": [
+							{
+								"category": "GENERAL",
+								"text": "Standard boat tour service"
+							}
+						]
+					}
+				],
 				"included": [
 					"Experienced captain",
 					"Life jackets",
 					"Water"
-				],
-				"excluded": [
-					"Food",
-					"Alcoholic beverages",
-					"Snorkeling equipment"
 				]
 			}
 		],
@@ -544,22 +795,6 @@
 				]
 			}
 		],
-		"location": {
-			"address": {
-				"geoTree": {
-					"country": "COUNTRY_ES",
-					"region": "Mallorca",
-					"cityOrResort": "Port d'Andratx"
-				},
-				"type": "ADDRESS_TYPE_OTHER",
-				"line1": "Marina Bay Dock 7",
-				"zipCode": "07157"
-			},
-			"coordinates": {
-				"latitude": 39.5438,
-				"longitude": 2.3828
-			}
-		},
 		"features": [
 			{
 				"code": "SWIM",
@@ -574,9 +809,9 @@
 			"LANGUAGE_EN",
 			"LANGUAGE_DE"
 		],
-		"categoryCode": "MAR",
+		"category": "ACTIVITY_CATEGORY_CRUISE",
 		"categoryName": "Marine Activity",
-		"typeCode": "BOAT",
+		"type": "ACTIVITY_TYPE_BOAT_TOUR",
 		"typeName": "Boat Tour",
 		"durationRange": {
 			"min": {
@@ -593,8 +828,7 @@
 		"instantDelivery": true,
 		"instantConfirmation": true,
 		"availabilityRequired": true,
-		"availabilityType": "DATE",
-		"context": "island view tour",
-		"lastModified": "2024-03-10T11:55:00Z"
+		"availabilityType": "ACTIVITY_AVAILABILITY_TYPE_OPEN_DATE",
+		"context": "island view tour"
 	}
 ]

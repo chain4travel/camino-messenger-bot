@@ -22,8 +22,7 @@ func NewActivityProductInfoServer() activityv4grpc.ActivityProductInfoServiceSer
 }
 
 func (s *activityProductInfoV4Server) ActivityProductInfo(_ context.Context, req *activityv4.ActivityProductInfoRequest) (*activityv4.ActivityProductInfoResponse, error) {
-	filteredActivities := filterBySupplierCodes(mockdata.ActivityExtendedV4, req.SupplierCodes)
-	filteredActivities = filterExtendedByModifiedAfter(filteredActivities, req.GetModifiedAfter().AsTime())
+	filteredActivities := filterExtendedBySupplierCodes(mockdata.ActivityExtendedV4, req.SupplierCodes)
 	filteredActivities = filterExtendedByLanguage(filteredActivities, req.Languages)
 
 	response := &activityv4.ActivityProductInfoResponse{

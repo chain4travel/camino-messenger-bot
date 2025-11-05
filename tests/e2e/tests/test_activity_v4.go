@@ -47,13 +47,17 @@ func (tt *TestActivityv4) Run(t *testing.T) {
 
 	tt.prepare(ctx, t)
 
+	t.Run("Product short list", func(t *testing.T) {
+		// Happy path: will just return all the properties
+		tt.testActivityv4ProductShortListService(ctx, t)
+	})
+	t.Run("Product short list with filter", func(t *testing.T) {
+		// Happy path: will return only one property
+		tt.testActivityv4ProductShortListServiceWithFilter(ctx, t)
+	})
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the properties
 		tt.testActivityv4ProductListService(ctx, t)
-	})
-	t.Run("Product list with filter", func(t *testing.T) {
-		// Happy path: will return only one property
-		tt.testActivityv4ProductListServiceWithFilter(ctx, t)
 	})
 	t.Run("Product info", func(t *testing.T) {
 		// Happy path: will return the detailed info of a property
@@ -73,6 +77,7 @@ func (tt *TestActivityv4) Run(t *testing.T) {
 
 func (tt *TestActivityv4) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
+		botGenerated.AccommodationProductShortListServiceV4,
 		botGenerated.ActivityProductListServiceV4,
 		botGenerated.ActivityProductInfoServiceV4,
 		botGenerated.ActivitySearchServiceV4,
@@ -85,11 +90,12 @@ func (tt *TestActivityv4) prepare(ctx context.Context, t *testing.T) {
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.ActivityProductListServiceV4, Fee: 100},
-			{Name: botGenerated.ActivityProductInfoServiceV4, Fee: 110},
-			{Name: botGenerated.ActivitySearchServiceV4, Fee: 120},
-			{Name: botGenerated.ValidationServiceV4, Fee: 130},
-			{Name: botGenerated.MintServiceV4, Fee: 140},
+			{Name: botGenerated.AccommodationProductShortListServiceV4, Fee: 100},
+			{Name: botGenerated.ActivityProductListServiceV4, Fee: 110},
+			{Name: botGenerated.ActivityProductInfoServiceV4, Fee: 120},
+			{Name: botGenerated.ActivitySearchServiceV4, Fee: 130},
+			{Name: botGenerated.ValidationServiceV4, Fee: 140},
+			{Name: botGenerated.MintServiceV4, Fee: 150},
 		}),
 	)
 
@@ -98,12 +104,20 @@ func (tt *TestActivityv4) prepare(ctx context.Context, t *testing.T) {
 }
 
 // Simple product list request which shall return all activities. Checking if all are present
-func (tt *TestActivityv4) testActivityv4ProductListService(ctx context.Context, t *testing.T) {
-	req := &activityv4.ActivityProductListRequest{
+func (tt *TestActivityv4) testActivityv4ProductShortListService(ctx context.Context, t *testing.T) {
+	expectedItems := make([]*activityv4.ActivityShortListItem, 0, len(mockdata.ActivityExtendedV4))
+	for _, activity := range mockdata.ActivityExtendedV4 {
+		expectedItems = append(expectedItems, &activityv4.ActivityShortListItem{
+			SupplierCode: activity.Activity.SupplierCode,
+			Status:       activity.Activity.Status,
+		})
+	}
+
+	req := &activityv4.ActivityProductShortListRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 	}
 
-	resp, err := tt.distributorBot.ActivityProductListServiceV4.ActivityProductList(
+	resp, err := tt.distributorBot.ActivityProductShortListServiceV4.ActivityProductShortList(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
@@ -113,31 +127,49 @@ func (tt *TestActivityv4) testActivityv4ProductListService(ctx context.Context, 
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	require.Len(t, resp.SupplierCodes, len(mockdata.ActivityExtendedV4), "unexpected number of supplier codes in response")
-
-	expectedSupplierCodes := make([]*typesv4.SupplierProductCode, 0, len(mockdata.ActivityExtendedV4))
-	for _, activity := range mockdata.ActivityExtendedV4 {
-		expectedSupplierCodes = append(expectedSupplierCodes, activity.SupplierCode)
-	}
-
-	requireProtoSlicesElementsMatch(t, expectedSupplierCodes, resp.SupplierCodes)
+	requireProtoSlicesElementsMatch(t, expectedItems, resp.ActivityShortListItems)
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
-func (tt *TestActivityv4) testActivityv4ProductListServiceWithFilter(ctx context.Context, t *testing.T) {
+func (tt *TestActivityv4) testActivityv4ProductShortListServiceWithFilter(ctx context.Context, t *testing.T) {
 	modifiedAfter := time.Unix(1710237631, 0)
-	expectedSupplierCodes := []*typesv4.SupplierProductCode{}
+	expectedItems := make([]*activityv4.ActivityShortListItem, 0, len(mockdata.ActivityExtendedV4))
 	for _, activity := range mockdata.ActivityExtendedV4 {
-		if activity.LastModified.AsTime().After(modifiedAfter) {
-			expectedSupplierCodes = append(expectedSupplierCodes, activity.SupplierCode)
+		if activity.Activity.LastModified.AsTime().After(modifiedAfter) {
+			expectedItems = append(expectedItems, &activityv4.ActivityShortListItem{
+				SupplierCode: activity.Activity.SupplierCode,
+				Status:       activity.Activity.Status,
+			})
 		}
 	}
-	require.NotEmpty(t, expectedSupplierCodes)
+	require.NotEmpty(t, expectedItems)
 
-	req := &activityv4.ActivityProductListRequest{
+	req := &activityv4.ActivityProductShortListRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		ModifiedAfter: timestamppb.New(modifiedAfter),
 	}
+	resp, err := tt.distributorBot.ActivityProductShortListServiceV4.ActivityProductShortList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	requireProtoSlicesElementsMatch(t, expectedItems, resp.ActivityShortListItems)
+}
+
+// Simple product list request which shall return all activities. Checking if all are present
+func (tt *TestActivityv4) testActivityv4ProductListService(ctx context.Context, t *testing.T) {
+	expectedItems := []*activityv4.ActivityInfo{mockdata.ActivityExtendedV4[1].Activity}
+
+	req := &activityv4.ActivityProductListRequest{
+		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		SupplierCodes: []*typesv4.SupplierProductCode{expectedItems[0].SupplierCode},
+	}
+
 	resp, err := tt.distributorBot.ActivityProductListServiceV4.ActivityProductList(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
@@ -148,7 +180,7 @@ func (tt *TestActivityv4) testActivityv4ProductListServiceWithFilter(ctx context
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	requireProtoSlicesElementsMatch(t, expectedSupplierCodes, resp.SupplierCodes)
+	requireProtoSlicesElementsMatch(t, expectedItems, resp.Activities)
 }
 
 // Get detailed activity information for a specific supplier code.
@@ -277,7 +309,7 @@ func activityExtendedV4WithSupplierCode(
 	supplierCode *typesv4.SupplierProductCode,
 ) *activityv4.ActivityExtendedInfo {
 	for _, activity := range activities {
-		if proto.Equal(activity.GetSupplierCode(), supplierCode) {
+		if proto.Equal(activity.Activity.GetSupplierCode(), supplierCode) {
 			return activity
 		}
 	}
@@ -291,7 +323,7 @@ func activitySearchV4WithSupplierCode(
 	supplierCode *typesv4.SupplierProductCode,
 ) *activityv4.ActivitySearchResult {
 	for _, activity := range activities {
-		if proto.Equal(activity.GetInfo().SupplierCode, supplierCode) {
+		if proto.Equal(activity.SupplierCode, supplierCode) {
 			return activity
 		}
 	}
