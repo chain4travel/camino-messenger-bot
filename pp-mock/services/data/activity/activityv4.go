@@ -4,6 +4,7 @@
 package activity
 
 import (
+	"fmt"
 	"slices"
 
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
@@ -11,6 +12,14 @@ import (
 )
 
 func Verify(extended []*activityv4.ActivityExtendedInfo, searchResults []*activityv4.ActivitySearchResult) {
+	expectedCount := 0
+	for _, activity := range extended {
+		expectedCount += len(activity.Units) * len(activity.Services)
+	}
+	if len(searchResults) != expectedCount {
+		panic(fmt.Errorf("mock data error: expected %d search results but got %d", expectedCount, len(searchResults)))
+	}
+
 	i := 0
 	for _, activity := range extended {
 		for _, unit := range activity.Units {
