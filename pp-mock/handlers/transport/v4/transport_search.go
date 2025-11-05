@@ -56,11 +56,11 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 		}
 	}
 
-	decimals := price.NativeTokenDecimals
+	currencyDecimals := price.NativeTokenDecimals
 	switch req.SearchParameters.Currency.Currency.(type) {
 	case *typesv4.Currency_NativeToken:
 	case *typesv4.Currency_IsoCurrency:
-		decimals = price.ISODecimals
+		currencyDecimals = price.ISODecimals
 	default:
 		resp.Header = common.ErrorHeaderV4("not supported currency type; only NativeToken and ISOCurrency are supported")
 		return resp, nil
@@ -96,7 +96,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 			tripPriceBig, err := price.ToBigInt(
 				trip.Extended.Price.Value,
 				conversion.MustUInt32ToInt32(trip.Extended.Price.Decimals),
-				decimals,
+				currencyDecimals,
 			)
 			if err != nil {
 				resp.Header = common.ErrorHeaderV4("Failed to convert tripSegment price to big int")
@@ -108,7 +108,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 
 		searchPrice := &typesv4.Price{
 			Value:    totalPriceBig.String(),
-			Decimals: 0, // we always return 0 decimals so we won't need to deal with different currencies decimals in mock
+			Decimals: uint32(currencyDecimals),
 			Currency: common.CloneProto(req.SearchParameters.Currency),
 		}
 

@@ -13,6 +13,7 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
@@ -220,7 +221,7 @@ func testTransportV4SearchService(
 
 	expectedTotalPrice := &typesv4.Price{
 		Value:    "750000000",
-		Decimals: 0,
+		Decimals: uint32(price.ISODecimals),
 		Currency: &typesv4.Currency{
 			Currency: &typesv4.Currency_IsoCurrency{IsoCurrency: typesv4.IsoCurrency_ISO_CURRENCY_EUR},
 		},
