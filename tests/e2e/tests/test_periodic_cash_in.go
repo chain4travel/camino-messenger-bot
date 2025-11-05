@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"sync"
 	"testing"
 	"time"
 
@@ -20,7 +19,8 @@ import (
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common" //nolint:depguard // we don't user assert's assertions, we use assert.CollectT type as needed in require pkg
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/assert" //nolint:depguard // we don't user assert's assertions, we use assert.CollectT type as needed in require pkg
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -135,32 +135,13 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testi
 	expectedSupplierBalanceNullUSD := big.NewInt(0).Add(initialSupplierBalanceNullUSD, supplierCashedIn)
 	expectedASBBalanceNullUSD := big.NewInt(0).Add(initialASBBalanceNullUSD, asbCashedIn)
 
-	tt.Logger.Debugf("Expected distributor CM account nullUSD (erc-20 service fee token) balance: %s", expectedDistributorBalanceNullUSD.String())
-	tt.Logger.Debugf("Expected supplier CM account nullUSD (erc-20 service fee token) balance: %s", expectedSupplierBalanceNullUSD.String())
-	tt.Logger.Debugf("Expected ASB CM account nullUSD (erc-20 service fee token) balance: %s", expectedASBBalanceNullUSD.String())
-
 	cashInTimeout := time.Duration(tt.cashInPeriodSeconds) * time.Second * 3 // ASB and supplier cash-in every 10s, triple that
-	nativeBalanceCheckCtx, nativeBalanceCheckCancel := context.WithCancel(ctx)
-	wg := &sync.WaitGroup{}
 
-	// require.EventuallyWithTf()
-
-	checkNativeBalanceNeverChanges := func(
-		message string,
-		expectedBalance *big.Int,
-		address common.Address,
-	) {
-		requireAlwaysNoError(nativeBalanceCheckCtx, t, cashInTimeout, time.Second, message, func() error {
-			actualBalance, err := tt.CaminoNetwork.Client.BalanceOf(ctx, address)
-			if err != nil {
-				return fmt.Errorf("error getting %s balance: %w", message, err)
-			}
-			tt.Logger.Infof("%s balance: %s", message, actualBalance.String())
-			if actualBalance.Cmp(expectedBalance) != 0 {
-				return fmt.Errorf("unexpected %s balance: %s, expected: %s", message, actualBalance.String(), expectedBalance.String())
-			}
-			return nil
-		})
+	checkNativeBalance := func(expectedBalance *big.Int, address common.Address) {
+		t.Helper()
+		actualBalance, err := tt.CaminoNetwork.Client.BalanceOf(ctx, address)
+		require.NoError(t, err)
+		require.True(t, actualBalance.Cmp(expectedBalance) == 0)
 	}
 
 	checkNullUSDBalanceEventually := func(
@@ -168,29 +149,22 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testi
 		expectedBalance *big.Int,
 		address common.Address,
 	) {
-		doneCh := requireEventuallyTrue(ctx, t, cashInTimeout, time.Second, message, func(t *testing.T) bool {
-			actualBalance, err := tt.CaminoNetwork.Client.NullUSD.BalanceOf(&bind.CallOpts{Context: ctx}, address)
-			require.NoError(t, err, "error getting %s balance: %w", message, err)
-			tt.Logger.Infof("%s balance: %s", message, actualBalance.String())
-			return actualBalance.Cmp(expectedBalance) == 0
-		})
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			<-doneCh
-		}()
+		t.Helper()
+		var actualBalance *big.Int
+		require.EventuallyWithTf(t, func(t *assert.CollectT) {
+			actualBalance, err = tt.CaminoNetwork.Client.NullUSD.BalanceOf(&bind.CallOpts{Context: ctx}, address)
+			require.NoError(t, err)
+			require.True(t, actualBalance.Cmp(expectedBalance) == 0)
+		}, cashInTimeout, time.Second,
+			"%s balance did not change by expected amount before timeout: expected %s, actual %s", message, expectedBalance.String(), actualBalance.String(),
+		)
 	}
-
-	checkNativeBalanceNeverChanges("distributor CM account CAM", initialDistributorBalance, tt.distributorBot.CMAccountAddress())
-	checkNativeBalanceNeverChanges("supplier CM account CAM", initialSupplierBalance, tt.supplierBot.CMAccountAddress())
-	checkNativeBalanceNeverChanges("network fee receiver (ASB) CM account CAM", initialASBBalance, tt.ASB.NetworkFeeRecipientCMAccountAddress())
 
 	checkNullUSDBalanceEventually("distributor CM account (erc-20 service fee token)", expectedDistributorBalanceNullUSD, tt.distributorBot.CMAccountAddress())
 	checkNullUSDBalanceEventually("supplier CM account (erc-20 service fee token)", expectedSupplierBalanceNullUSD, tt.supplierBot.CMAccountAddress())
 	checkNullUSDBalanceEventually("network fee receiver (ASB) CM account (erc-20 service fee token)", expectedASBBalanceNullUSD, tt.ASB.NetworkFeeRecipientCMAccountAddress())
 
-	go func() {
-		wg.Wait()
-		nativeBalanceCheckCancel()
-	}()
+	checkNativeBalance(initialDistributorBalance, tt.distributorBot.CMAccountAddress())
+	checkNativeBalance(initialSupplierBalance, tt.supplierBot.CMAccountAddress())
+	checkNativeBalance(initialASBBalance, tt.ASB.NetworkFeeRecipientCMAccountAddress())
 }
