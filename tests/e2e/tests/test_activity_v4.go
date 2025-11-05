@@ -77,7 +77,7 @@ func (tt *TestActivityv4) Run(t *testing.T) {
 
 func (tt *TestActivityv4) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
-		botGenerated.AccommodationProductShortListServiceV4,
+		botGenerated.ActivityProductShortListServiceV4,
 		botGenerated.ActivityProductListServiceV4,
 		botGenerated.ActivityProductInfoServiceV4,
 		botGenerated.ActivitySearchServiceV4,
@@ -90,7 +90,7 @@ func (tt *TestActivityv4) prepare(ctx context.Context, t *testing.T) {
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationProductShortListServiceV4, Fee: 100},
+			{Name: botGenerated.ActivityProductShortListServiceV4, Fee: 100},
 			{Name: botGenerated.ActivityProductListServiceV4, Fee: 110},
 			{Name: botGenerated.ActivityProductInfoServiceV4, Fee: 120},
 			{Name: botGenerated.ActivitySearchServiceV4, Fee: 130},
