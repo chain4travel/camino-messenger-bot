@@ -143,6 +143,8 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testi
 	nativeBalanceCheckCtx, nativeBalanceCheckCancel := context.WithCancel(ctx)
 	wg := &sync.WaitGroup{}
 
+	// require.EventuallyWithTf()
+
 	checkNativeBalanceNeverChanges := func(
 		message string,
 		expectedBalance *big.Int,
