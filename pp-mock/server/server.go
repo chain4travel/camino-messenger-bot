@@ -119,6 +119,7 @@ func Run() error {
 	activityv4grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v4.NewActivityProductListServer())
 	activityv4grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v4.NewActivityProductInfoServer())
 	activityv4grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v4.NewActivitySearchServer())
+	activityv4grpc.RegisterActivityProductShortListServiceServer(grpcServer, activity_v4.NewActivityProductShortListServer())
 
 	// Book V2
 	bookv2grpc.RegisterMintServiceServer(grpcServer, book_v2.NewMintServiceServer())

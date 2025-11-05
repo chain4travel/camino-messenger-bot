@@ -118,10 +118,13 @@ func filterSearchResultActivitiesByCurrency(activities []*activityv4.ActivitySea
 	return filtered
 }
 
-func extendedToSupplierProductCodes(activities []*activityv4.ActivityExtendedInfo) []*typesv4.SupplierProductCode {
-	supplierProductCodes := make([]*typesv4.SupplierProductCode, 0, len(activities))
+func extendedToShortListItem(activities []*activityv4.ActivityExtendedInfo) []*activityv4.ActivityShortListItem {
+	shortListItems := make([]*activityv4.ActivityShortListItem, 0, len(activities))
 	for _, activity := range activities {
-		supplierProductCodes = append(supplierProductCodes, activity.SupplierCode)
+		shortListItems = append(shortListItems, &activityv4.ActivityShortListItem{
+			SupplierCode: activity.Activity.SupplierCode,
+			Status:       activity.Activity.Status,
+		})
 	}
-	return supplierProductCodes
+	return shortListItems
 }

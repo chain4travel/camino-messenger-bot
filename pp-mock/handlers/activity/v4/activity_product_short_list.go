@@ -15,18 +15,18 @@ import (
 
 var _ activityv4grpc.ActivityProductListServiceServer = (*activityProductShortListV4Server)(nil)
 
-type activityProductShortListV4Server struct{}
+type activityProductListV4Server struct{}
 
-func NewActivityProductListServer() activityv4grpc.ActivityProductListServiceServer {
+func NewActivityProductShortListServer() activityv4grpc.ActivityProductShortListServiceServer {
 	return &activityProductShortListV4Server{}
 }
 
-func (s *activityProductShortListV4Server) ActivityProductList(_ context.Context, req *activityv4.ActivityProductListRequest) (*activityv4.ActivityProductListResponse, error) {
-	filteredActivities := filterBySupplierCodes(mockdata.ActivityExtendedV4, req.SupplierCodes)
+func (s *activityProductShortListV4Server) ActivityProductShortList(_ context.Context, req *activityv4.ActivityProductShortListRequest) (*activityv4.ActivityProductShortListResponse, error) {
+	filteredActivities := filterExtendedByModifiedAfter(mockdata.ActivityExtendedV4, req.GetModifiedAfter().AsTime())
 
-	response := &activityv4.ActivityProductListResponse{
-		Header:     common.SuccessHeaderV4(),
-		Activities: extendedToActivityInfo(filteredActivities),
+	response := &activityv4.ActivityProductShortListResponse{
+		Header:                 common.SuccessHeaderV4(),
+		ActivityShortListItems: extendedToShortListItem(filteredActivities),
 	}
 
 	if len(filteredActivities) == 0 {
