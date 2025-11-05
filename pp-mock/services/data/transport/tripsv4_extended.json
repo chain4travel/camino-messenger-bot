@@ -1,0 +1,62 @@
+[
+	{
+		"supplierCode": {
+			"code": "AB",
+			"number": 4567
+		},
+		"price": {
+			"value": "20000",
+			"decimals": 2,
+			"currency": {
+				"isoCurrency": "ISO_CURRENCY_EUR"
+			}
+		},
+		"segments": [
+			{
+				"id": "SEG1234"
+			}
+		]
+	},
+	{
+		"supplierCode": {
+			"code": "LH",
+			"number": 7453
+		},
+		"price": {
+			"value": "75000",
+			"decimals": 2,
+			"currency": {
+				"isoCurrency": "ISO_CURRENCY_EUR"
+			}
+		},
+		"segments": [
+			{
+				"id": "SEG5678"
+			},
+			{
+				"id": "SEG91011"
+			}
+		]
+	},
+	{
+		"supplierCode": {
+			"code": "DB",
+			"number": 5483
+		},
+		"price": {
+			"value": "30000",
+			"decimals": 2,
+			"currency": {
+				"isoCurrency": "ISO_CURRENCY_EUR"
+			}
+		},
+		"segments": [
+			{
+				"id": "SEG8321"
+			},
+			{
+				"id": "SEG8323"
+			}
+		]
+	}
+]

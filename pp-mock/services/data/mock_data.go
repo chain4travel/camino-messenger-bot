@@ -15,7 +15,9 @@ import (
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
+	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data/transport"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -43,6 +45,12 @@ var tripsV3BasicJSON []byte
 
 //go:embed transport/tripsv3_extended.json
 var tripsV3ExtendedJSON []byte
+
+//go:embed transport/tripsv4_basic.json
+var tripsV4BasicJSON []byte
+
+//go:embed transport/tripsv4_extended.json
+var tripsV4ExtendedJSON []byte
 
 // * Activity
 
@@ -93,6 +101,10 @@ var (
 	TripsBasicV3    []*transportv3.TripBasic    // used by product list
 	TripsExtendedV3 []*transportv3.TripExtended // used by search
 
+	TripsBasicV4    []*transportv4.TripBasic    // used by product list
+	TripsExtendedV4 []*transportv4.TripExtended // used by search
+	TripsV4         []*transport.TripV4         // basic+extended, used by search
+
 	ActivityV2             []*activityv2.Activity             // used by product list
 	ActivityExtendedV2     []*activityv2.ActivityExtendedInfo // used by product info
 	ActivitySearchResultV2 []*activityv2.ActivitySearchResult // used by search
@@ -120,6 +132,9 @@ func init() {
 	// TransportV3
 	TripsBasicV3 = mustUnmarshalStrictAndValidate[*transportv3.TripBasic](tripsV3BasicJSON, "error unmarshaling trips basic v3")
 	TripsExtendedV3 = mustUnmarshalStrictAndValidate[*transportv3.TripExtended](tripsV3ExtendedJSON, "error unmarshaling trips extended v3")
+	// TransportV4
+	TripsBasicV4 = mustUnmarshalStrictAndValidate[*transportv4.TripBasic](tripsV4BasicJSON, "error unmarshaling trips basic v4")
+	TripsExtendedV4 = mustUnmarshalStrictAndValidate[*transportv4.TripExtended](tripsV4ExtendedJSON, "error unmarshaling trips extended v4")
 	// ActivityV2
 	ActivityV2 = mustUnmarshalStrictAndValidate[*activityv2.Activity](activityV2JSON, "error unmarshaling activities v2")
 	ActivityExtendedV2 = mustUnmarshalStrictAndValidate[*activityv2.ActivityExtendedInfo](activityExtendedV2JSON, "error unmarshaling activities extended v2")
@@ -134,6 +149,21 @@ func init() {
 	// SeatMapV4
 	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
 	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")
+
+	if len(TripsBasicV4) != len(TripsExtendedV4) {
+		panic(fmt.Errorf("mock data error: number of transport v4 basic trips (%d) does not match number of extended trips (%d)", len(TripsBasicV4), len(TripsExtendedV4)))
+	}
+	for i, tripBasic := range TripsBasicV4 {
+		trip := &transport.TripV4{
+			Basic:    tripBasic,
+			Extended: TripsExtendedV4[i],
+		}
+		if err := trip.Verify(); err != nil {
+			panic(fmt.Errorf("mock data error: trip basic/extended at index %d are invalid: %w", i, err))
+		}
+		TripsV4 = append(TripsV4, trip)
+	}
+	// TODO@ checks that will connect different mock data together (e.g. basic+extended or that transport trips referenced in seat maps exist)
 }
 
 func mustUnmarshalStrictAndValidate[T proto.Message](data []byte, panicMsg string) []T {

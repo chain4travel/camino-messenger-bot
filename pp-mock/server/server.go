@@ -31,6 +31,7 @@ import (
 	seat_map_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/seat_map/v4"
 	transport_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v2"
 	transport_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v3"
+	transport_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/transport/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/metadata"
 	events_pb "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 
@@ -50,6 +51,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v4/seat_mapv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
 	"buf.build/go/protovalidate"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
@@ -141,6 +143,9 @@ func Run() error {
 	// Transport V3
 	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, transport_v3.NewTransportProductListServer())
 	transportv3grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v3.NewTransportSearchServer())
+	// Transport V4
+	transportv4grpc.RegisterTransportProductListServiceServer(grpcServer, transport_v4.NewTransportProductListServer())
+	transportv4grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v4.NewTransportSearchServer())
 
 	// SeatMap V4
 	seat_mapv4grpc.RegisterSeatMapServiceServer(grpcServer, seat_map_v4.NewSeatMapServer())
