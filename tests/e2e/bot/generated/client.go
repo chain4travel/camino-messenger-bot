@@ -49,6 +49,7 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		ActivityProductInfoServiceV4:           activityv4grpc.NewActivityProductInfoServiceClient(connection),
 		ActivityProductListServiceV4:           activityv4grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV4:                activityv4grpc.NewActivitySearchServiceClient(connection),
+		ActivityProductShortListServiceV4:      activityv4grpc.NewActivityProductShortListServiceClient(connection),
 		MintServiceV2:                          bookv2grpc.NewMintServiceClient(connection),
 		ValidationServiceV2:                    bookv2grpc.NewValidationServiceClient(connection),
 		MintServiceV3:                          bookv3grpc.NewMintServiceClient(connection),
@@ -98,6 +99,7 @@ type Client struct {
 	ActivityProductInfoServiceV4           activityv4grpc.ActivityProductInfoServiceClient
 	ActivityProductListServiceV4           activityv4grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV4                activityv4grpc.ActivitySearchServiceClient
+	ActivityProductShortListServiceV4      activityv4grpc.ActivityProductShortListServiceClient
 	MintServiceV2                          bookv2grpc.MintServiceClient
 	ValidationServiceV2                    bookv2grpc.ValidationServiceClient
 	MintServiceV3                          bookv3grpc.MintServiceClient

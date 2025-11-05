@@ -27,6 +27,7 @@ func RegisterServerServices(grpcServer *grpc.Server, reqHandler rpc.RequestHandl
 	registerActivityProductInfoServiceV4Server(grpcServer, reqHandler)
 	registerActivityProductListServiceV4Server(grpcServer, reqHandler)
 	registerActivitySearchServiceV4Server(grpcServer, reqHandler)
+	registerActivityProductShortListServiceV4Server(grpcServer, reqHandler)
 	registerMintServiceV2Server(grpcServer, reqHandler)
 	registerValidationServiceV2Server(grpcServer, reqHandler)
 	registerMintServiceV3Server(grpcServer, reqHandler)

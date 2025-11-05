@@ -87,6 +87,10 @@ func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]st
 		services[ActivitySearchServiceV4Request] = rpc.NewService(NewActivitySearchServiceV4(rpcConn), ActivitySearchServiceV4)
 		delete(serviceNames, ActivitySearchServiceV4)
 	}
+	if _, ok := serviceNames[ActivityProductShortListServiceV4]; ok {
+		services[ActivityProductShortListServiceV4Request] = rpc.NewService(NewActivityProductShortListServiceV4(rpcConn), ActivityProductShortListServiceV4)
+		delete(serviceNames, ActivityProductShortListServiceV4)
+	}
 	if _, ok := serviceNames[MintServiceV2]; ok {
 		services[MintServiceV2Request] = rpc.NewService(NewMintServiceV2(rpcConn), MintServiceV2)
 		delete(serviceNames, MintServiceV2)

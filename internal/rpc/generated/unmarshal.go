@@ -108,6 +108,10 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 		*destination = &activityv4.ActivitySearchRequest{}
 	case ActivitySearchServiceV4Response:
 		*destination = &activityv4.ActivitySearchResponse{}
+	case ActivityProductShortListServiceV4Request:
+		*destination = &activityv4.ActivityProductShortListRequest{}
+	case ActivityProductShortListServiceV4Response:
+		*destination = &activityv4.ActivityProductShortListResponse{}
 	case MintServiceV2Request:
 		*destination = &bookv2.MintRequest{}
 	case MintServiceV2Response:
