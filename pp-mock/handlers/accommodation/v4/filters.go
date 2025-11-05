@@ -134,14 +134,14 @@ func filterPropertiesBySupplierCodes(
 	return filtered
 }
 
-// Returns properties that have been modified not before [lastModified].
+// Returns properties that have been modified after modifiedAfter
 func filterShortItemsByModifierAfter(
 	properties []*accommodationv4.PropertyExtendedInfo,
 	modifiedAfter time.Time,
 ) []*accommodationv4.PropertyShortListItem {
 	filtered := []*accommodationv4.PropertyShortListItem{}
 	for _, property := range properties {
-		if !property.Property.LastModified.AsTime().Before(modifiedAfter) {
+		if property.Property.LastModified.AsTime().After(modifiedAfter) {
 			filtered = append(filtered, &accommodationv4.PropertyShortListItem{
 				SupplierCode: property.Property.SupplierCode,
 				Status:       property.Property.Status,

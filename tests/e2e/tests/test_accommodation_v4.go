@@ -137,7 +137,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListServiceWithFil
 	modifiedAfter := time.Unix(1710547200, 0)
 	var expected []*accommodationv4.PropertyShortListItem
 	for _, prop := range mockdata.PropertiesV4 {
-		if !prop.Property.LastModified.AsTime().After(modifiedAfter) {
+		if prop.Property.LastModified.AsTime().After(modifiedAfter) {
 			expected = append(expected, &accommodationv4.PropertyShortListItem{
 				SupplierCode: prop.Property.SupplierCode,
 				Status:       prop.Property.Status,

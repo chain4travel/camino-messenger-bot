@@ -34,13 +34,13 @@ func filterBySupplierCodes(
 	return filtered
 }
 
-func filterExtendedByLastModified(
+func filterExtendedByModifiedAfter(
 	activities []*activityv4.ActivityExtendedInfo,
-	lastModified time.Time,
+	modifiedAfter time.Time,
 ) []*activityv4.ActivityExtendedInfo {
 	filtered := []*activityv4.ActivityExtendedInfo{}
 	for _, activity := range activities {
-		if !activity.LastModified.AsTime().Before(lastModified) {
+		if activity.LastModified.AsTime().After(modifiedAfter) {
 			filtered = append(filtered, common.CloneProto(activity))
 		}
 	}
