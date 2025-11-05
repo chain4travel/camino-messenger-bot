@@ -10,6 +10,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
@@ -121,6 +122,10 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 			},
 			Bookability: &typesv4.Bookability{
 				Type: typesv4.BookabilityType_BOOKABILITY_TYPE_AVAILABLE,
+			},
+			Validity: &typesv4.DateTimeRange{ // TODO@ remove when will become optional in cmp
+				Start: &timestamppb.Timestamp{},
+				End:   &timestamppb.Timestamp{},
 			},
 			CancelPolicy: &typesv4.CancelPolicy{},
 		})
