@@ -13,9 +13,9 @@ import (
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 )
 
-var _ activityv4grpc.ActivityProductListServiceServer = (*activityProductShortListV4Server)(nil)
+var _ activityv4grpc.ActivityProductShortListServiceServer = (*activityProductShortListV4Server)(nil)
 
-type activityProductListV4Server struct{}
+type activityProductShortListV4Server struct{}
 
 func NewActivityProductShortListServer() activityv4grpc.ActivityProductShortListServiceServer {
 	return &activityProductShortListV4Server{}

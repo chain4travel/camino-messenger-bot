@@ -13,15 +13,15 @@ import (
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 )
 
-var _ activityv4grpc.ActivityProductListServiceServer = (*activityProductShortListV4Server)(nil)
+var _ activityv4grpc.ActivityProductListServiceServer = (*activityProductListV4Server)(nil)
 
-type activityProductShortListV4Server struct{}
+type activityProductListV4Server struct{}
 
 func NewActivityProductListServer() activityv4grpc.ActivityProductListServiceServer {
-	return &activityProductShortListV4Server{}
+	return &activityProductListV4Server{}
 }
 
-func (s *activityProductShortListV4Server) ActivityProductList(_ context.Context, req *activityv4.ActivityProductListRequest) (*activityv4.ActivityProductListResponse, error) {
+func (s *activityProductListV4Server) ActivityProductList(_ context.Context, req *activityv4.ActivityProductListRequest) (*activityv4.ActivityProductListResponse, error) {
 	filteredActivities := filterExtendedBySupplierCodes(mockdata.ActivityExtendedV4, req.SupplierCodes)
 
 	response := &activityv4.ActivityProductListResponse{

@@ -185,10 +185,7 @@ func (tt *TestActivityv4) testActivityv4ProductListService(ctx context.Context, 
 
 // Get detailed activity information for a specific supplier code.
 func (tt *TestActivityv4) testActivityv4ProductInfoService(ctx context.Context, t *testing.T) {
-	expectedSupplierCode := &typesv4.SupplierProductCode{
-		Code:   "XPTFAOH15O",
-		Number: 31345,
-	}
+	expectedSupplierCode := &typesv4.SupplierProductCode{Code: "XPTFAOH15O"}
 	req := &activityv4.ActivityProductInfoRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		SupplierCodes: []*typesv4.SupplierProductCode{expectedSupplierCode},
@@ -258,6 +255,10 @@ func testActivityv4SearchService(
 	const nights = 12                           // 12 nights
 	startDate := time.Now().Add(time.Hour * 24) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+	expectedSearchResults := []*activityv4.ActivitySearchResult{
+		mockdata.ActivitySearchResultV4[0],
+		mockdata.ActivitySearchResultV4[1],
+	}
 
 	req := &activityv4.ActivitySearchRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
@@ -292,15 +293,15 @@ func testActivityv4SearchService(
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	require.Len(t, resp.Results, 1, "unexpected number of results in response")
-	require.Equal(t, resp.Results[0].ResultId, uint32(0), "unexpected ResultId in response")
-	resultID = resp.Results[0].ResultId
-	resp.Results[0].ResultId = 0 // Reset ResultId for comparison with mock data
+	// check resultIDs and reset them for clean comparison with mock data
+	for i, result := range resp.Results {
+		require.Equal(t, uint32(i), result.ResultId, "unexpected ResultId in response") //nolint:gosec
+		result.ResultId = 0
+	}
 
-	expectedActivity := activitySearchV4WithSupplierCode(t, mockdata.ActivitySearchResultV4, req.SearchParametersActivity.SupplierCodes[0])
-	require.True(t, proto.Equal(resp.Results[0], expectedActivity), "activity fields does not match expected mock data activity, but their supplier codes match (%s)", req.SearchParametersActivity.SupplierCodes[0].Code)
+	requireProtoSlicesElementsMatch(t, expectedSearchResults, resp.Results)
 
-	return resp.SearchId.Value, resultID, resp.Results[0].TotalPrice.Value
+	return resp.SearchId.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value
 }
 
 func activityExtendedV4WithSupplierCode(
@@ -310,20 +311,6 @@ func activityExtendedV4WithSupplierCode(
 ) *activityv4.ActivityExtendedInfo {
 	for _, activity := range activities {
 		if proto.Equal(activity.Activity.GetSupplierCode(), supplierCode) {
-			return activity
-		}
-	}
-	require.FailNow(t, "activity with supplier code not found", "supplier code: %s", supplierCode)
-	return nil
-}
-
-func activitySearchV4WithSupplierCode(
-	t *testing.T,
-	activities []*activityv4.ActivitySearchResult,
-	supplierCode *typesv4.SupplierProductCode,
-) *activityv4.ActivitySearchResult {
-	for _, activity := range activities {
-		if proto.Equal(activity.SupplierCode, supplierCode) {
 			return activity
 		}
 	}
