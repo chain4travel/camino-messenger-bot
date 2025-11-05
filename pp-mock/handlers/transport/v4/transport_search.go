@@ -108,7 +108,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 
 		searchPrice := &typesv4.Price{
 			Value:    totalPriceBig.String(),
-			Decimals: uint32(currencyDecimals),
+			Decimals: conversion.MustInt32ToUInt32(currencyDecimals),
 			Currency: common.CloneProto(req.SearchParameters.Currency),
 		}
 
