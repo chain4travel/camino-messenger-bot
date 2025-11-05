@@ -115,7 +115,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 			ResultId:        resultID,
 			QueryId:         query.QueryId,
 			TravellerIds:    common.GetTravellerIDsV4(query.Travellers),
-			TravellingTrips: transport.Extended(filteredTrips),
+			TravellingTrips: transport.ExtendedV4(filteredTrips),
 			TotalPrice: &typesv4.TotalPrice{
 				Value: searchPrice,
 			},

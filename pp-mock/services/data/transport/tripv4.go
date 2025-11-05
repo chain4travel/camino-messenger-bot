@@ -38,7 +38,25 @@ func (t *TripV4) Verify() error {
 	return nil
 }
 
-func Clone(trips []*TripV4) []*TripV4 {
+func VerifyAndGetTrips(basic []*transportv4.TripBasic, extended []*transportv4.TripExtended) []*TripV4 {
+	if len(basic) != len(extended) {
+		panic(fmt.Errorf("mock data error: number of transport v4 basic trips (%d) does not match number of extended trips (%d)", len(basic), len(extended)))
+	}
+	trips := make([]*TripV4, 0, len(basic))
+	for i, tripBasic := range basic {
+		trip := &TripV4{
+			Basic:    tripBasic,
+			Extended: extended[i],
+		}
+		if err := trip.Verify(); err != nil {
+			panic(fmt.Errorf("mock data error: trip basic/extended at index %d are invalid: %w", i, err))
+		}
+		trips = append(trips, trip)
+	}
+	return trips
+}
+
+func CloneV4(trips []*TripV4) []*TripV4 {
 	cloned := make([]*TripV4, len(trips))
 	for i, trip := range trips {
 		cloned[i] = trip.Clone()
@@ -46,7 +64,7 @@ func Clone(trips []*TripV4) []*TripV4 {
 	return cloned
 }
 
-func Basic(trips []*TripV4) []*transportv4.TripBasic {
+func BasicV4(trips []*TripV4) []*transportv4.TripBasic {
 	basic := make([]*transportv4.TripBasic, len(trips))
 	for i, trip := range trips {
 		basic[i] = common.CloneProto(trip.Basic)
@@ -54,7 +72,7 @@ func Basic(trips []*TripV4) []*transportv4.TripBasic {
 	return basic
 }
 
-func Extended(trips []*TripV4) []*transportv4.TripExtended {
+func ExtendedV4(trips []*TripV4) []*transportv4.TripExtended {
 	extended := make([]*transportv4.TripExtended, len(trips))
 	for i, trip := range trips {
 		extended[i] = common.CloneProto(trip.Extended)

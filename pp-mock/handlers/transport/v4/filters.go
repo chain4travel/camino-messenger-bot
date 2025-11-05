@@ -28,7 +28,7 @@ func filterTripsBasicByModifiedAfter(
 
 func filterTripsBySupplierCodes(trips []*transport.TripV4, supplierCodes []*typesv4.SupplierProductCode) []*transport.TripV4 {
 	if len(supplierCodes) == 0 {
-		return transport.Clone(trips)
+		return transport.CloneV4(trips)
 	}
 
 	filtered := []*transport.TripV4{}
@@ -45,7 +45,7 @@ func filterTripsBySupplierCodes(trips []*transport.TripV4, supplierCodes []*type
 
 func filterTripsByMaxSegments(trips []*transport.TripV4, maxSegments uint32) []*transport.TripV4 {
 	if maxSegments == 0 {
-		return transport.Clone(trips)
+		return transport.CloneV4(trips)
 	}
 
 	filtered := []*transport.TripV4{}

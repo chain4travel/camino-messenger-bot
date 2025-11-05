@@ -4,8 +4,31 @@
 			"code": "XPTFAOH15O",
 			"number": 0
 		},
-		"unitCode": "EESPMI46VY",
-		"serviceCode": "XO",
+		"unitCode": "TK0001H1",
+		"serviceCode": "SIGHTSEEING-GUIDE",
+		"zoneCodes": [
+			"ALBUFEIRA_ZONE"
+		],
+		"totalPrice": {
+			"value": {
+				"value": "15000",
+				"decimals": 2,
+				"currency": {
+					"iso_currency": "ISO_CURRENCY_EUR"
+				}
+			}
+		},
+		"bookability": {
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
+		}
+	},
+	{
+		"supplierCode": {
+			"code": "XPTFAOH15O",
+			"number": 0
+		},
+		"unitCode": "TK0003H0",
+		"serviceCode": "SIGHTSEEING-GUIDE",
 		"zoneCodes": [
 			"ALBUFEIRA_ZONE"
 		],
@@ -27,8 +50,8 @@
 			"code": "ACTIVITY345678",
 			"number": 654
 		},
-		"unitCode": "EESPMI46VY",
-		"serviceCode": "XO",
+		"unitCode": "HELI-PREM",
+		"serviceCode": "HELI-BASIC",
 		"totalPrice": {
 			"value": {
 				"value": "40000",
@@ -47,8 +70,8 @@
 			"code": "SEA-EXPLORERS",
 			"number": 87456
 		},
-		"unitCode": "EESPMI46ZX",
-		"serviceCode": "XO",
+		"unitCode": "BOAT-STD",
+		"serviceCode": "BOAT-BASIC",
 		"totalPrice": {
 			"value": {
 				"value": "18000",
