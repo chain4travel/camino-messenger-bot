@@ -23,18 +23,11 @@ const (
 	FreeCancellationDuration           = 7 * 24 * time.Hour
 )
 
-var (
-	DefaultPricePerNightNativeTokenBig *big.Int
-	DefaultPricePerNightISOBig         *big.Int
-)
+var DefaultPricePerNightNativeTokenBig *big.Int
 
 func init() {
 	var err error
 	DefaultPricePerNightNativeTokenBig, err = price.ToBigInt(DefaultPricePerNightStr, DefaultPricePerNightDecimals, price.NativeTokenDecimals)
-	if err != nil {
-		panic("failed to convert default price per night to big.Int: " + err.Error())
-	}
-	DefaultPricePerNightISOBig, err = price.ToBigInt(DefaultPricePerNightStr, DefaultPricePerNightDecimals, price.ISODecimals)
 	if err != nil {
 		panic("failed to convert default price per night to big.Int: " + err.Error())
 	}

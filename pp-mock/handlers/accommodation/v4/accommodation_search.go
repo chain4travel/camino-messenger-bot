@@ -102,12 +102,12 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 						},
 						ChargeType: typesv4.ChargeType_CHARGE_TYPE_PER_UNIT,
 					},
-					Services: []*typesv4.ServiceFact{{
+					Services: []*typesv4.ServiceFact{{ // temporary placeholder
 						Code: "MOCK",
 						PriceDetail: &typesv4.PriceDetail{
 							Price: &typesv4.Price{
-								Value:    "100",                                            // temporary placeholder
-								Decimals: 0,                                                // we always return 0 decimals so we won't need to deal with different currencies decimals in mock
+								Value:    "100",
+								Decimals: 0,
 								Currency: common.CloneProto(req.SearchParameters.Currency), // TODO evlekht@ is it possible that service will have currency different from room price currency?
 							},
 							ChargeType:  typesv4.ChargeType_CHARGE_TYPE_PER_PERSON,
