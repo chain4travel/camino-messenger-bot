@@ -21,6 +21,18 @@ func filterSeatMapByID(
 	return nil
 }
 
+func filterSeatMapAvailabilityByID(
+	seatMaps []*typesv4.SeatMapInventory,
+	mapID string,
+) *typesv4.SeatMapInventory {
+	for _, seatMap := range seatMaps {
+		if seatMap.Id == mapID {
+			return common.CloneProto(seatMap)
+		}
+	}
+	return nil
+}
+
 func filterSeatMapLocalization(
 	seatMap *typesv4.SeatMap,
 	languages []typesv1.Language,

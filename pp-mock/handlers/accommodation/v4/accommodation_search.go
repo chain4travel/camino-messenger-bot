@@ -190,7 +190,6 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: resp.String(),
-			SeatMapIndex: -1,
 		})
 	}
 

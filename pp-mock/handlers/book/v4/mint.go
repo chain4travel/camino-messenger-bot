@@ -53,7 +53,7 @@ func (s *mintServiceV4Server) Mint(_ context.Context, req *bookv4.MintRequest) (
 	mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
 	common.AddHeaderInfoV4(response.Header, mintResponseInfoMessage)
 
-	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapIndex)
+	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
 
 	return &response, nil
 }

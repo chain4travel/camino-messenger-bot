@@ -28,7 +28,7 @@ type UnifiedPrice struct {
 type SearchData struct {
 	NumResults   int
 	NumTravelers int
-	SeatMapIndex int
+	SeatMapID    string
 	Prices       []*UnifiedPrice // Validation price for the search results
 	JSONRequest  string          // Mainly for debugging purposes
 	JSONResponse string          // Mainly for debugging purposes
@@ -55,10 +55,10 @@ type ValidationResult struct {
 }
 
 type MintResult struct {
-	MintID       string
-	SeatMapIndex int
-	CreatedAt    time.Time
-	Bought       bool
+	MintID    string
+	SeatMapID string
+	CreatedAt time.Time
+	Bought    bool
 }
 
 // Store holds the in-memory state.
@@ -124,13 +124,13 @@ func (s *Store) GetValidationResult(validationID string) (ValidationResult, bool
 	return result, exists
 }
 
-func (s *Store) AddMintResult(mintID string, seatMapIndex int) {
+func (s *Store) AddMintResult(mintID string, seatMapID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.mintResults[mintID] = MintResult{
-		MintID:       mintID,
-		SeatMapIndex: seatMapIndex,
-		CreatedAt:    time.Now(),
+		MintID:    mintID,
+		SeatMapID: seatMapID,
+		CreatedAt: time.Now(),
 	}
 }
 

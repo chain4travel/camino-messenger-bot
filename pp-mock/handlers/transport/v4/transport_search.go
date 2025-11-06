@@ -46,9 +46,16 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 		}
 	}
 
-	// check that all travel dates are valid (departure before arrival)
+	// check that all travel dates are valid (departure before arrival) and query IDs are unique
+	uniqueQueryIDs := make(map[uint32]struct{})
 	for _, query := range req.Queries {
 		for _, queryTrip := range query.Trips {
+			if _, exists := uniqueQueryIDs[query.QueryId]; exists {
+				resp.Header = common.ErrorHeaderV4("Unsupported: Duplicate QueryId found in queries")
+				return resp, nil
+			}
+			uniqueQueryIDs[query.QueryId] = struct{}{}
+
 			if !common.AreTravelDatesValidV4(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
 				resp.Header = common.ErrorHeaderV4("Invalid travel dates: departure must be before arrival")
 				return resp, nil
@@ -147,7 +154,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: resp.String(),
-			SeatMapIndex: mockdata.SeatMapTransportIndex,
+			SeatMapID:    resp.Results[0].TravellingTrips[0].Segments[0].SeatMapId.GetId(),
 		})
 	}
 

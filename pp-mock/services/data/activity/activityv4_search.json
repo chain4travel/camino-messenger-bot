@@ -96,7 +96,7 @@
 				"value": "18000",
 				"decimals": 2,
 				"currency": {
-					"iso_currency": "ISO_CURRENCY_USD"
+					"iso_currency": "ISO_CURRENCY_EUR"
 				}
 			}
 		},

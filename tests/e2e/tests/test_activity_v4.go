@@ -252,8 +252,8 @@ func testActivityV4SearchService(
 	resultID uint32,
 	totalPrice *typesv4.Price,
 ) {
-	const nights = 12                           // 12 nights
-	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	const nights = 12
+	startDate := time.Now().Add(time.Hour * 24)
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 	expectedSearchResults := []*activityv4.ActivitySearchResult{
 		mockdata.ActivitySearchResultV4[0],

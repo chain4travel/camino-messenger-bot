@@ -6,8 +6,11 @@ package tests
 import (
 	"context"
 	"testing"
+	"time"
 
+	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 	seatmapv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v4"
+	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
@@ -53,34 +56,28 @@ func (tt *TestSeatMapV4) Run(t *testing.T) {
 	t.Run("SeatMapAvailability with non-existing mintID", func(t *testing.T) {
 		tt.testSeatMapAvailabilityV4WithBadMintID(ctx, t)
 	})
-	t.Run("Transport List->Search->SeatMapAvailability with searchID", func(t *testing.T) {
-		productListResp := testTransportV4ProductListService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)            // see test_transport_v4.go
-		searchID, _, _ := testTransportV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListResp) // see test_transport_v4.go
-		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, mockdata.SeatMapAvailabilityV4[0])
-	})
-	t.Run("TransportSearch->Validate->Mint->SeatMapAvailability with mintID", func(t *testing.T) {
-		_, mintID, _ := mintBuyTransportTokenV4(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
-		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, mockdata.SeatMapAvailabilityV4[0])
-	})
-	t.Run("ActivitySearch->SeatMapAvailability with searchID", func(t *testing.T) {
-		searchID, _, _ := testActivityV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_activity_v4.go
-		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, mockdata.SeatMapAvailabilityV4[1])
-	})
-	t.Run("ActivitySearch->Validate->Mint->SeatMapAvailability with mintID", func(t *testing.T) {
-		_, mintID, _ := mintBuyActivityTokenV4(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
-		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, mockdata.SeatMapAvailabilityV4[1])
-	})
 	t.Run("SeatMap non-existing seatMap id", func(t *testing.T) {
 		tt.testSeatMapV4BadID(ctx, t)
 	})
 	t.Run("SeatMap without requested language", func(t *testing.T) {
 		tt.testSeatMapV4WithoutLocalization(ctx, t)
 	})
-	t.Run("SeatMap for transport", func(t *testing.T) {
-		tt.testSeatMapV4(ctx, t, mockdata.SeatMapV4[0])
+	t.Run("Transport List->Search->SeatMap,SeatMapAvailability(searchID)->Validate->Mint->SeatMapAvailability(mintID)", func(t *testing.T) {
+		trip := tt.transportV4ProductListGetTripWithSeatMap(ctx, t)
+		searchID, resultID, totalPrice, seatMapID := tt.transportV4SearchWithSupplierCode(ctx, t, trip)
+		tt.testSeatMapV4(ctx, t, seatMapID)
+		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, seatMapID)
+		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+		_, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
+		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, seatMapID)
 	})
-	t.Run("SeatMap for activity", func(t *testing.T) {
-		tt.testSeatMapV4(ctx, t, mockdata.SeatMapV4[1])
+	t.Run("Activity Search->SeatMap,SeatMapAvailability(searchID)->Validate->Mint->SeatMapAvailability(mintID)", func(t *testing.T) {
+		searchID, resultID, totalPrice, seatMapID := tt.activityV4SearchGetActivityWithSeatMap(ctx, t)
+		tt.testSeatMapV4(ctx, t, seatMapID)
+		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, seatMapID)
+		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+		_, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
+		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, seatMapID)
 	})
 }
 
@@ -116,7 +113,16 @@ func (tt *TestSeatMapV4) prepare(ctx context.Context, t *testing.T) {
 	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 }
 
-func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithSearchID(ctx context.Context, t *testing.T, searchID string, expectedSeatMapInventory *typesv4.SeatMapInventory) {
+func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithSearchID(ctx context.Context, t *testing.T, searchID string, expectedSeatMapInventoryID *typesv4.SeatMapID) {
+	var expectedSeatMapInventory *typesv4.SeatMapInventory
+	for _, seatMapInventory := range mockdata.SeatMapAvailabilityV4 {
+		if seatMapInventory.Id == expectedSeatMapInventoryID.Id {
+			expectedSeatMapInventory = common.CloneProto(seatMapInventory)
+			break
+		}
+	}
+	require.NotNil(t, expectedSeatMapInventory, "no expected seat map inventory data found for id %s", expectedSeatMapInventoryID.Id)
+
 	req := &seatmapv4.SeatMapAvailabilityRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		Identifier: &seatmapv4.SeatMapAvailabilityRequest_SearchIdentifier{
@@ -160,8 +166,17 @@ func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithMintID(
 	ctx context.Context,
 	t *testing.T,
 	mintID string,
-	expectedSeatMapInventory *typesv4.SeatMapInventory,
+	expectedSeatMapInventoryID *typesv4.SeatMapID,
 ) {
+	var expectedSeatMapInventory *typesv4.SeatMapInventory
+	for _, seatMapInventory := range mockdata.SeatMapAvailabilityV4 {
+		if seatMapInventory.Id == expectedSeatMapInventoryID.Id {
+			expectedSeatMapInventory = common.CloneProto(seatMapInventory)
+			break
+		}
+	}
+	require.NotNil(t, expectedSeatMapInventory, "no expected seat map inventory data found for id %s", expectedSeatMapInventoryID.Id)
+
 	req := &seatmapv4.SeatMapAvailabilityRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		Identifier: &seatmapv4.SeatMapAvailabilityRequest_MintId{
@@ -275,11 +290,20 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 	require.True(t, proto.Equal(expectedSeatMap, resp.SeatMap), "unexpected seat map data in response")
 }
 
-func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T, expectedSeatMap *typesv4.SeatMap) {
+func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T, seatMapID *typesv4.SeatMapID) {
+	var expectedSeatMap *typesv4.SeatMap
+	for _, seatMap := range mockdata.SeatMapV4 {
+		if proto.Equal(seatMap.Id, seatMapID) {
+			expectedSeatMap = common.CloneProto(seatMap)
+			break
+		}
+	}
+	require.NotNil(t, expectedSeatMap, "no expected seat map data found for id %s", seatMapID.Id)
+
 	expectedLang := typesv1.Language_LANGUAGE_EN
 	req := &seatmapv4.SeatMapRequest{
 		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		MapId:     expectedSeatMap.Id.Id,
+		MapId:     seatMapID.Id,
 		Languages: []typesv1.Language{expectedLang},
 	}
 	resp, err := tt.distributorBot.SeatMapServiceV4.SeatMap(
@@ -295,8 +319,6 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T, expect
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
 	// Compare seatMap with expectedSeatMap
-
-	expectedSeatMap = common.CloneProto(expectedSeatMap)
 
 	// Order sections by their traversal order
 	orderedSections := []*typesv4.Section{}
@@ -415,6 +437,180 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T, expect
 	}
 
 	require.True(t, proto.Equal(expectedSeatMap, resp.SeatMap), "unexpected seat map data in response")
+}
+
+func (tt *TestSeatMapV4) transportV4ProductListGetTripWithSeatMap(
+	ctx context.Context,
+	t *testing.T,
+) *transportv4.TripBasic {
+	req := &transportv4.TransportProductListRequest{
+		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+	}
+	resp, err := tt.distributorBot.TransportProductListServiceV4.TransportProductList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	for _, trip := range resp.Trips {
+		if len(trip.Segments[0].SeatMapIds) > 0 {
+			return trip
+		}
+	}
+
+	require.FailNow(t, "no trip with seat map found in product list response")
+	return nil
+}
+
+func (tt *TestSeatMapV4) transportV4SearchWithSupplierCode(
+	ctx context.Context,
+	t *testing.T,
+	trip *transportv4.TripBasic,
+) (
+	searchID string,
+	resultID uint32,
+	totalPrice *typesv4.Price,
+	seatMapID *typesv4.SeatMapID,
+) {
+	firstSegmentDeparture := trip.Segments[0].Departure
+	departureTime := firstSegmentDeparture.DateTime.AsTime()
+	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
+
+	lastSegmentArrival := trip.Segments[len(trip.Segments)-1].Arrival
+	arrivalTime := lastSegmentArrival.DateTime.AsTime()
+	arrivalLocationCode := lastSegmentArrival.Location.GetLocationCode()
+
+	req := &transportv4.TransportSearchRequest{
+		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		SearchParameters: &typesv4.SearchParameters{
+			Currency: &typesv4.Currency{
+				Currency: &typesv4.Currency_IsoCurrency{IsoCurrency: typesv4.IsoCurrency_ISO_CURRENCY_EUR},
+			},
+			Language: typesv1.Language_LANGUAGE_EN,
+		},
+		Queries: []*transportv4.TransportSearchQuery{{
+			Travellers: []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
+			Trips: []*transportv4.QueryTrip{{
+				SearchParametersTransport: &transportv4.TransportSearchParameters{
+					TripSupplierCodes: []*typesv4.SupplierProductCode{trip.SupplierCode},
+				},
+				Departure: &transportv4.QueryTransitEvent{
+					Date: common.TimeToDateV4(departureTime),
+					Location: &transportv4.QueryTransitEventLocation{
+						Location: &transportv4.QueryTransitEventLocation_LocationCodes{
+							LocationCodes: &typesv4.LocationCodes{
+								Codes: []*typesv4.LocationCode{departureLocationCode},
+							},
+						},
+					},
+				},
+				Arrival: &transportv4.QueryTransitEvent{
+					Date: common.TimeToDateV4(arrivalTime),
+					Location: &transportv4.QueryTransitEventLocation{
+						Location: &transportv4.QueryTransitEventLocation_LocationCodes{
+							LocationCodes: &typesv4.LocationCodes{
+								Codes: []*typesv4.LocationCode{arrivalLocationCode},
+							},
+						},
+					},
+				},
+			}},
+		}},
+	}
+	resp, err := tt.distributorBot.TransportSearchServiceV4.TransportSearch(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	require.NotNil(t, resp.Results[0].TravellingTrips[0].Segments[0].SeatMapId)
+
+	return resp.SearchId.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value, resp.Results[0].TravellingTrips[0].Segments[0].SeatMapId
+}
+
+func (tt *TestSeatMapV4) activityV4SearchGetActivityWithSeatMap(
+	ctx context.Context,
+	t *testing.T,
+) (
+	searchID string,
+	resultID uint32,
+	totalPrice *typesv4.Price,
+	seatMapID *typesv4.SeatMapID,
+) {
+	const nights = 12
+	startDate := time.Now().Add(time.Hour * 24)
+	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+
+	req := &activityv4.ActivitySearchRequest{
+		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		SearchParameters: &typesv4.SearchParameters{
+			Currency: &typesv4.Currency{
+				Currency: &typesv4.Currency_IsoCurrency{IsoCurrency: typesv4.IsoCurrency_ISO_CURRENCY_EUR},
+			},
+			Language: typesv1.Language_LANGUAGE_EN,
+		},
+		TravelPeriod: &typesv4.TravelPeriod{
+			StartDate: common.TimeToDateV4(startDate),
+			EndDate:   common.TimeToDateV4(endDate),
+		},
+		Travellers: []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
+	}
+
+	resp, err := tt.distributorBot.ActivitySearchServiceV4.ActivitySearch(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	var supplierCode *typesv4.SupplierProductCode
+	for _, result := range resp.Results {
+		if result.SeatMapId != nil {
+			supplierCode = result.SupplierCode
+			break
+		}
+	}
+
+	// we need to make 2nd search request with only 1 expected result, as pp-mock writes 1st result seatMapID to state for response searchID
+	req = &activityv4.ActivitySearchRequest{
+		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		SearchParameters: &typesv4.SearchParameters{
+			Currency: &typesv4.Currency{
+				Currency: &typesv4.Currency_IsoCurrency{IsoCurrency: typesv4.IsoCurrency_ISO_CURRENCY_EUR},
+			},
+			Language: typesv1.Language_LANGUAGE_EN,
+		},
+		SearchParametersActivity: &activityv4.ActivitySearchParameters{
+			SupplierCodes: []*typesv4.SupplierProductCode{supplierCode},
+		},
+		TravelPeriod: &typesv4.TravelPeriod{
+			StartDate: common.TimeToDateV4(startDate),
+			EndDate:   common.TimeToDateV4(endDate),
+		},
+		Travellers: []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
+	}
+
+	resp, err = tt.distributorBot.ActivitySearchServiceV4.ActivitySearch(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+
+	return resp.SearchId.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value, resp.Results[0].SeatMapId
 }
 
 func traverseSection(section *typesv4.Section, f func(*typesv4.Section)) {

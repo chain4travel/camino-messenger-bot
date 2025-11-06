@@ -34,8 +34,8 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 		return resp, nil
 	}
 
-	filteredActivities := filterSearchResultActivitiesBySupplierCodes(mockdata.ActivitySearchResultV4, req.SearchParametersActivity.SupplierCodes)
-	filteredActivities = filterSearchResultActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.ServiceCodes)
+	filteredActivities := filterSearchResultActivitiesBySupplierCodes(mockdata.ActivitySearchResultV4, req.SearchParametersActivity.GetSupplierCodes())
+	filteredActivities = filterSearchResultActivitiesByServiceCodes(filteredActivities, req.SearchParametersActivity.GetServiceCodes())
 	filteredActivities = filterSearchResultActivitiesByCurrency(filteredActivities, req.SearchParameters.Currency)
 
 	resultIDnum := uint32(0)
@@ -60,7 +60,7 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: resp.String(),
-			SeatMapIndex: mockdata.SeatMapActivityIndex,
+			SeatMapID:    resp.Results[0].SeatMapId.GetId(),
 		})
 	}
 

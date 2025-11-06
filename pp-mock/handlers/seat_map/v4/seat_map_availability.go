@@ -22,27 +22,27 @@ func NewSeatMapAvailabilityServer() seat_mapv4grpc.SeatMapAvailabilityServiceSer
 }
 
 func (s *seatMapAvailabilityV4Server) SeatMapAvailability(_ context.Context, req *seat_mapv4.SeatMapAvailabilityRequest) (*seat_mapv4.SeatMapAvailabilityResponse, error) {
-	seatMapIndex := -1
+	seatMapID := ""
 	switch identifier := req.Identifier.(type) {
 	case *seat_mapv4.SeatMapAvailabilityRequest_SearchIdentifier:
 		storedMintData, found := state.GetStore().GetSearchResult(identifier.SearchIdentifier.SearchId.Value)
 		if found {
-			seatMapIndex = storedMintData.Data.SeatMapIndex
+			seatMapID = storedMintData.Data.SeatMapID
 		}
 	case *seat_mapv4.SeatMapAvailabilityRequest_MintId:
 		storedMintData, found := state.GetStore().GetMintResult(identifier.MintId.Value)
 		if found {
-			seatMapIndex = storedMintData.SeatMapIndex
+			seatMapID = storedMintData.SeatMapID
 		}
 	}
 
 	resp := &seat_mapv4.SeatMapAvailabilityResponse{Header: common.SuccessHeaderV4()}
 
-	if seatMapIndex == -1 {
+	if seatMapID == "" {
 		common.AddHeaderErrorV4(resp.Header, "Seat map availability not found for given identifier")
 		return resp, nil
 	}
 
-	resp.SeatMap = mockdata.SeatMapAvailabilityV4[seatMapIndex]
+	resp.SeatMap = filterSeatMapAvailabilityByID(mockdata.SeatMapAvailabilityV4, seatMapID)
 	return resp, nil
 }

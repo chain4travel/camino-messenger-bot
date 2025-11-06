@@ -87,11 +87,6 @@ var seatMapV4JSON []byte
 //go:embed seatmap/seatmap_availability_v4.json
 var seatMapAvailabilityV4JSON []byte
 
-const (
-	SeatMapTransportIndex = 0
-	SeatMapActivityIndex  = 1
-)
-
 var (
 	PropertiesV2 []*accommodationv2.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV3 []*accommodationv3.PropertyExtendedInfo // used by product list, info and search

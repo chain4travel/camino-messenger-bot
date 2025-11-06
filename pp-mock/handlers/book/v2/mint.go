@@ -63,7 +63,7 @@ func (s *mintServiceV2Server) Mint(_ context.Context, req *bookv2.MintRequest) (
 		},
 	}
 
-	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapIndex)
+	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
 
 	return &response, nil
 }

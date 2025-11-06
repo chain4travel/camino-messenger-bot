@@ -113,7 +113,6 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: response.String(),
-			SeatMapIndex: mockdata.SeatMapActivityIndex,
 		})
 	}
 
