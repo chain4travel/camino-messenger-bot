@@ -54,7 +54,7 @@ func (tt *TestTransportV4) Run(t *testing.T) {
 		tt.testTransportV4SearchServiceTravelDatesWrong(ctx, t)
 	})
 	t.Run("ProductList->Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-		productListResponse := testTransportV4ProductListService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
+		productListResponse := tt.testTransportV4ProductListService(ctx, t)
 		searchID, resultID, totalPrice := testTransportV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListResponse)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		tokenID, _, price := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
@@ -87,22 +87,16 @@ func (tt *TestTransportV4) prepare(ctx context.Context, t *testing.T) {
 }
 
 // Simple product list request which shall return all properties. Checking if all are present
-func testTransportV4ProductListService(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-) *transportv4.TransportProductListResponse {
+func (tt *TestTransportV4) testTransportV4ProductListService(ctx context.Context, t *testing.T) *transportv4.TransportProductListResponse {
 	req := &transportv4.TransportProductListRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 	}
-	resp, err := distributorBot.TransportProductListServiceV4.TransportProductList(
-		requestContext(ctx, supplierBot.CMAccountAddress()),
+	resp, err := tt.distributorBot.TransportProductListServiceV4.TransportProductList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
 	require.NoError(t, err)
-	e.DebugPrintRequestResponse(req, resp)
+	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
