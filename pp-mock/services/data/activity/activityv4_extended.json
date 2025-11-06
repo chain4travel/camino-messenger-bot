@@ -614,5 +614,37 @@
 		"availabilityRequired": true,
 		"availabilityType": "ACTIVITY_AVAILABILITY_TYPE_OPEN_DATE",
 		"context": "island view tour"
+	},
+	{
+		"activity": {
+			"supplierCode": {
+				"code": "VILA-PARK-2025-OZZY"
+			},
+			"location": {
+				"coordinates": {
+					"latitude": 39.5438,
+					"longitude": 2.3828
+				}
+			},
+			"status": "PRODUCT_STATUS_ACTIVATED",
+			"lastModified": "2025-03-10T11:55:00Z"
+		},
+		"units": [
+			{
+				"code": "OZZY-STD"
+			}
+		],
+		"services": [
+			{
+				"code": "OZZY-BASIC"
+			}
+		],
+		"seatMapIds": [
+			{
+				"id": "Vila-Park-2025-Ozzy"
+			}
+		],
+		"category": "ACTIVITY_CATEGORY_ENTERTAINMENT",
+		"type": "ACTIVITY_TYPE_SHOW"
 	}
 ]

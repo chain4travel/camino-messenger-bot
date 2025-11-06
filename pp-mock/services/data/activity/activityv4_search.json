@@ -84,5 +84,27 @@
 		"bookability": {
 			"type": "BOOKABILITY_TYPE_AVAILABLE"
 		}
+	},
+	{
+		"supplierCode": {
+			"code": "VILA-PARK-2025-OZZY"
+		},
+		"unitCode": "OZZY-STD",
+		"serviceCode": "OZZY-BASIC",
+		"totalPrice": {
+			"value": {
+				"value": "18000",
+				"decimals": 2,
+				"currency": {
+					"iso_currency": "ISO_CURRENCY_USD"
+				}
+			}
+		},
+		"bookability": {
+			"type": "BOOKABILITY_TYPE_AVAILABLE"
+		},
+		"seatMapId": {
+			"id": "Vila-Park-2025-Ozzy"
+		}
 	}
 ]

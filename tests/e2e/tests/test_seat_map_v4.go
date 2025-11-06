@@ -54,20 +54,20 @@ func (tt *TestSeatMapV4) Run(t *testing.T) {
 		tt.testSeatMapAvailabilityV4WithBadMintID(ctx, t)
 	})
 	t.Run("Transport List->Search->SeatMapAvailability with searchID", func(t *testing.T) {
-		productListResp := testTransportV3ProductListService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)                       // see test_transport_v3.go
-		searchID, _, _ := testTransportV3SearchServiceWithFilters(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListResp) // see test_transport_v3.go
+		productListResp := testTransportV4ProductListService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)            // see test_transport_v4.go
+		searchID, _, _ := testTransportV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListResp) // see test_transport_v4.go
 		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, mockdata.SeatMapAvailabilityV4[0])
 	})
 	t.Run("TransportSearch->Validate->Mint->SeatMapAvailability with mintID", func(t *testing.T) {
-		_, mintID, _ := mintBuyTransportTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+		_, mintID, _ := mintBuyTransportTokenV4(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, mockdata.SeatMapAvailabilityV4[0])
 	})
 	t.Run("ActivitySearch->SeatMapAvailability with searchID", func(t *testing.T) {
-		searchID, _, _ := testActivityV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_activity_v3.go
+		searchID, _, _ := testActivityV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_activity_v4.go
 		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, mockdata.SeatMapAvailabilityV4[1])
 	})
 	t.Run("ActivitySearch->Validate->Mint->SeatMapAvailability with mintID", func(t *testing.T) {
-		_, mintID, _ := mintBuyActivityTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+		_, mintID, _ := mintBuyActivityTokenV4(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, mockdata.SeatMapAvailabilityV4[1])
 	})
 	t.Run("SeatMap non-existing seatMap id", func(t *testing.T) {
@@ -86,11 +86,11 @@ func (tt *TestSeatMapV4) Run(t *testing.T) {
 
 func (tt *TestSeatMapV4) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
-		botGenerated.TransportProductListServiceV3,
-		botGenerated.TransportSearchServiceV3,
-		botGenerated.ActivitySearchServiceV3,
-		botGenerated.ValidationServiceV3,
-		botGenerated.MintServiceV3,
+		botGenerated.TransportProductListServiceV4,
+		botGenerated.TransportSearchServiceV4,
+		botGenerated.ActivitySearchServiceV4,
+		botGenerated.ValidationServiceV4,
+		botGenerated.MintServiceV4,
 		botGenerated.SeatMapServiceV4,
 		botGenerated.SeatMapAvailabilityServiceV4,
 	))
@@ -99,11 +99,11 @@ func (tt *TestSeatMapV4) prepare(ctx context.Context, t *testing.T) {
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.TransportProductListServiceV3, Fee: 100},
-			{Name: botGenerated.TransportSearchServiceV3, Fee: 110},
-			{Name: botGenerated.ActivitySearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV3, Fee: 130},
-			{Name: botGenerated.MintServiceV3, Fee: 140},
+			{Name: botGenerated.TransportProductListServiceV4, Fee: 100},
+			{Name: botGenerated.TransportSearchServiceV4, Fee: 110},
+			{Name: botGenerated.ActivitySearchServiceV4, Fee: 120},
+			{Name: botGenerated.ValidationServiceV4, Fee: 130},
+			{Name: botGenerated.MintServiceV4, Fee: 140},
 			{Name: botGenerated.SeatMapServiceV4, Fee: 150},
 			{Name: botGenerated.SeatMapAvailabilityServiceV4, Fee: 160},
 		}),

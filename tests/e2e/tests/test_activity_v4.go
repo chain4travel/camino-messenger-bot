@@ -23,13 +23,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var _ suite.Test = (*TestActivityv4)(nil)
+var _ suite.Test = (*TestActivityV4)(nil)
 
 func init() {
-	Tests["Activityv4"] = &TestActivityv4{}
+	Tests["Activityv4"] = &TestActivityV4{}
 }
 
-type TestActivityv4 struct {
+type TestActivityV4 struct {
 	*suite.Environment
 
 	supplierPartnerPlugin *partnerplugin.PartnerPlugin
@@ -37,11 +37,11 @@ type TestActivityv4 struct {
 	distributorBot        *bot.Bot
 }
 
-func (tt *TestActivityv4) Setup(e *suite.Environment) {
+func (tt *TestActivityV4) Setup(e *suite.Environment) {
 	tt.Environment = e
 }
 
-func (tt *TestActivityv4) Run(t *testing.T) {
+func (tt *TestActivityV4) Run(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
 
@@ -49,33 +49,33 @@ func (tt *TestActivityv4) Run(t *testing.T) {
 
 	t.Run("Product short list", func(t *testing.T) {
 		// Happy path: will just return all the properties
-		tt.testActivityv4ProductShortListService(ctx, t)
+		tt.testActivityV4ProductShortListService(ctx, t)
 	})
 	t.Run("Product short list with filter", func(t *testing.T) {
 		// Happy path: will return only one property
-		tt.testActivityv4ProductShortListServiceWithFilter(ctx, t)
+		tt.testActivityV4ProductShortListServiceWithFilter(ctx, t)
 	})
 	t.Run("Product list", func(t *testing.T) {
 		// Happy path: will just return all the properties
-		tt.testActivityv4ProductListService(ctx, t)
+		tt.testActivityV4ProductListService(ctx, t)
 	})
 	t.Run("Product info", func(t *testing.T) {
 		// Happy path: will return the detailed info of a property
-		tt.testActivityv4ProductInfoService(ctx, t)
+		tt.testActivityV4ProductInfoService(ctx, t)
 	})
 	t.Run("Search with travel period oob", func(t *testing.T) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
-		tt.testActivityv4SearchServiceTravelPeriodOutOfBounds(ctx, t)
+		tt.testActivityV4SearchServiceTravelPeriodOutOfBounds(ctx, t)
 	})
 	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-		searchID, resultID, totalPrice := testActivityv4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
+		searchID, resultID, totalPrice := testActivityV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		tokenID, _, price := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
 		verifyBookingTokenStateWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tokenID, price)
 	})
 }
 
-func (tt *TestActivityv4) prepare(ctx context.Context, t *testing.T) {
+func (tt *TestActivityV4) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.ActivityProductShortListServiceV4,
 		botGenerated.ActivityProductListServiceV4,
@@ -104,7 +104,7 @@ func (tt *TestActivityv4) prepare(ctx context.Context, t *testing.T) {
 }
 
 // Simple product list request which shall return all activities. Checking if all are present
-func (tt *TestActivityv4) testActivityv4ProductShortListService(ctx context.Context, t *testing.T) {
+func (tt *TestActivityV4) testActivityV4ProductShortListService(ctx context.Context, t *testing.T) {
 	expectedItems := make([]*activityv4.ActivityShortListItem, 0, len(mockdata.ActivityExtendedV4))
 	for _, activity := range mockdata.ActivityExtendedV4 {
 		expectedItems = append(expectedItems, &activityv4.ActivityShortListItem{
@@ -131,7 +131,7 @@ func (tt *TestActivityv4) testActivityv4ProductShortListService(ctx context.Cont
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
-func (tt *TestActivityv4) testActivityv4ProductShortListServiceWithFilter(ctx context.Context, t *testing.T) {
+func (tt *TestActivityV4) testActivityV4ProductShortListServiceWithFilter(ctx context.Context, t *testing.T) {
 	modifiedAfter := time.Unix(1710237631, 0)
 	expectedItems := make([]*activityv4.ActivityShortListItem, 0, len(mockdata.ActivityExtendedV4))
 	for _, activity := range mockdata.ActivityExtendedV4 {
@@ -162,7 +162,7 @@ func (tt *TestActivityv4) testActivityv4ProductShortListServiceWithFilter(ctx co
 }
 
 // Simple product list request which shall return all activities. Checking if all are present
-func (tt *TestActivityv4) testActivityv4ProductListService(ctx context.Context, t *testing.T) {
+func (tt *TestActivityV4) testActivityV4ProductListService(ctx context.Context, t *testing.T) {
 	expectedItems := []*activityv4.ActivityInfo{mockdata.ActivityExtendedV4[1].Activity}
 
 	req := &activityv4.ActivityProductListRequest{
@@ -184,7 +184,7 @@ func (tt *TestActivityv4) testActivityv4ProductListService(ctx context.Context, 
 }
 
 // Get detailed activity information for a specific supplier code.
-func (tt *TestActivityv4) testActivityv4ProductInfoService(ctx context.Context, t *testing.T) {
+func (tt *TestActivityV4) testActivityV4ProductInfoService(ctx context.Context, t *testing.T) {
 	expectedSupplierCode := &typesv4.SupplierProductCode{Code: "XPTFAOH15O"}
 	req := &activityv4.ActivityProductInfoRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
@@ -208,7 +208,7 @@ func (tt *TestActivityv4) testActivityv4ProductInfoService(ctx context.Context, 
 	require.True(t, proto.Equal(resp.Activities[0], expectedActivity), "activity fields does not match expected mock data activity, but their supplier codes match (%+v)", expectedSupplierCode)
 }
 
-func (tt *TestActivityv4) testActivityv4SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
+func (tt *TestActivityV4) testActivityV4SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
 	const nights = 12                                 // 12 nights
 	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
@@ -241,7 +241,7 @@ func (tt *TestActivityv4) testActivityv4SearchServiceTravelPeriodOutOfBounds(ctx
 }
 
 // Test search with a valid travel period. Expect valid search results.
-func testActivityv4SearchService(
+func testActivityV4SearchService(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,

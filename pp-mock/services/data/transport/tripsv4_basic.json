@@ -157,5 +157,42 @@
 			}
 		],
 		"lastModified": "2025-02-19T21:20:00Z"
+	},
+	{
+		"supplierCode": {
+			"code": "A320-STD"
+		},
+		"segments": [
+			{
+				"id": "A320-STD-SEG001",
+				"supplierCode": {
+					"code": "A320-STD-001"
+				},
+				"departure": {
+					"dateTime": "2025-03-19T08:03:57Z",
+					"location": {
+						"locationCode": {
+							"code": "LAN",
+							"type": "LOCATION_CODE_TYPE_3ALPHA_CODE"
+						}
+					}
+				},
+				"arrival": {
+					"dateTime": "2025-03-19T09:03:57Z",
+					"location": {
+						"locationCode": {
+							"code": "HAM",
+							"type": "LOCATION_CODE_TYPE_3ALPHA_CODE"
+						}
+					}
+				},
+				"seatMapIds": [
+					{
+						"id": "A320-STD-001"
+					}
+				]
+			}
+		],
+		"lastModified": "2025-02-19T21:20:00Z"
 	}
 ]

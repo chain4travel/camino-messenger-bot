@@ -58,5 +58,25 @@
 				"id": "SEG8323"
 			}
 		]
+	},
+	{
+		"supplierCode": {
+			"code": "A320-STD"
+		},
+		"price": {
+			"value": "30000",
+			"decimals": 2,
+			"currency": {
+				"isoCurrency": "ISO_CURRENCY_EUR"
+			}
+		},
+		"segments": [
+			{
+				"id": "A320-STD-SEG001",
+				"seatMapId": {
+					"id": "A320-STD-001"
+				}
+			}
+		]
 	}
 ]

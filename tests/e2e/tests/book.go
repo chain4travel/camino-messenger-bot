@@ -27,6 +27,76 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+func mintBuyTransportTokenV4(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	supplierPPEventStream events.EventsService_SubscribeClient,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) (
+	tokenID uint64,
+	mintID string,
+	price *typesv4.Price,
+) {
+	productListResp := testTransportV4ProductListService(ctx, t, e, distributorBot, supplierBot) // see test_transport_v4.go
+	_, err := supplierPPEventStream.Recv()                                                       // skip TransportProductListRequest
+	require.NoError(t, err)
+
+	searchID, resultID, totalPrice := testTransportV4SearchService(ctx, t, e, distributorBot, supplierBot, productListResp) // see test_transport_v4.go
+	_, err = supplierPPEventStream.Recv()                                                                                   // skip TransportSearchRequest
+	require.NoError(t, err)
+
+	validationID := testValidateV4(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
+	require.NoError(t, err)
+
+	tokenID, mintID, bookingPrice := testMintV4(ctx, t, e, distributorBot, supplierBot, validationID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip MintRequest
+	require.NoError(t, err)
+
+	eventMsg, err := supplierPPEventStream.Recv()
+	require.NoError(t, err)
+	e.DebugPrintProtoMessage(eventMsg)
+	tokenBoughtNotification := &notificationv2.TokenBought{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
+
+	return tokenID, mintID, bookingPrice
+}
+
+func mintBuyActivityTokenV4(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	supplierPPEventStream events.EventsService_SubscribeClient,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) (
+	tokenID uint64,
+	mintID string,
+	price *typesv4.Price,
+) {
+	searchID, resultID, totalPrice := testActivityV4SearchService(ctx, t, e, distributorBot, supplierBot) // see test_activity_v4.go
+	_, err := supplierPPEventStream.Recv()                                                                // skip ActivitySearchRequest
+	require.NoError(t, err)
+
+	validationID := testValidateV4(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
+	require.NoError(t, err)
+
+	tokenID, mintID, bookingPrice := testMintV4(ctx, t, e, distributorBot, supplierBot, validationID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip MintRequest
+	require.NoError(t, err)
+
+	eventMsg, err := supplierPPEventStream.Recv()
+	require.NoError(t, err)
+	e.DebugPrintProtoMessage(eventMsg)
+	tokenBoughtNotification := &notificationv2.TokenBought{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
+
+	return tokenID, mintID, bookingPrice
+}
+
 func mintBuyTransportTokenV3(
 	ctx context.Context,
 	t *testing.T,
