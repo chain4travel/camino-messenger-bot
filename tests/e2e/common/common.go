@@ -12,7 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const MinBuyableUntilInContract = 1 // seconds -- overrides the bookingtoken default of 1 minute when deployed for the e2e test
+const (
+	MinBuyableUntilInContract = 1 // seconds -- overrides the bookingtoken default of 1 minute when deployed for the e2e test
+	PingMessage               = "ping"
+)
 
 var (
 	X2CRateBig                 = big.NewInt(1_000_000_000)

@@ -15,11 +15,12 @@ import (
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert" //nolint:depguard // we don't user assert's assertions, we use assert.CollectT type as needed in require pkg
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -106,12 +107,11 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testi
 
 	pingFeeBig := big.NewInt(tt.pingFee)
 
-	pingMessage := "ping"
-	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
+	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", common.PingMessage)
 
 	req := &pingv1.PingRequest{
 		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		PingMessage: pingMessage,
+		PingMessage: common.PingMessage,
 		Timestamp:   timestamppb.Now(),
 	}
 	resp, err := tt.distributorBot.PingServiceV1.Ping(
@@ -137,7 +137,7 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testi
 
 	cashInTimeout := time.Duration(tt.cashInPeriodSeconds) * time.Second * 3 // ASB and supplier cash-in every 10s, triple that
 
-	checkNativeBalance := func(expectedBalance *big.Int, address common.Address) {
+	checkNativeBalance := func(expectedBalance *big.Int, address ethCommon.Address) {
 		t.Helper()
 		actualBalance, err := tt.CaminoNetwork.Client.BalanceOf(ctx, address)
 		require.NoError(t, err)
@@ -147,7 +147,7 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV1(ctx context.Context, t *testi
 	checkNullUSDBalanceEventually := func(
 		message string,
 		expectedBalance *big.Int,
-		address common.Address,
+		address ethCommon.Address,
 	) {
 		t.Helper()
 		var actualBalance *big.Int

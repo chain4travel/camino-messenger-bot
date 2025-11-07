@@ -13,13 +13,14 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 	ppmock "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/server"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 
-	"github.com/ethereum/go-ethereum/common"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -161,10 +162,10 @@ func (pp *PartnerPlugin) awaitReady(ctx context.Context) error {
 			Header: &typesv1.RequestHeader{
 				BaseHeader: &typesv1.Header{
 					Version:              &typesv1.Version{},
-					EndUserWalletAddress: common.Address{}.Hex(),
+					EndUserWalletAddress: ethCommon.Address{}.Hex(),
 				},
 			},
-			PingMessage: "ping",
+			PingMessage: common.PingMessage,
 			Timestamp:   timestamppb.Now(),
 		})
 		if err == nil && res.Header.Status == typesv1.StatusType_STATUS_TYPE_SUCCESS {

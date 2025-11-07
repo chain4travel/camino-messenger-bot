@@ -12,6 +12,7 @@ import (
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
+	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
 	"github.com/stretchr/testify/require"
@@ -62,12 +63,11 @@ func (tt *TestPingV2) prepare(ctx context.Context, t *testing.T) {
 }
 
 func (tt *TestPingV2) testPingV2Service(ctx context.Context, t *testing.T) {
-	pingMessage := "ping"
-	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", pingMessage)
+	expectedResponseMessageSubString := fmt.Sprintf("Ping response to [%s] with request ID:", common.PingMessage)
 
 	req := &pingv2.PingRequest{
 		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		Message:   pingMessage,
+		Message:   common.PingMessage,
 		Timestamp: timestamppb.Now(),
 	}
 	resp, err := tt.distributorBot.PingServiceV2.Ping(
