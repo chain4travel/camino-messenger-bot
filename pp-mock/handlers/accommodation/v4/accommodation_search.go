@@ -6,6 +6,7 @@ package v4
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
@@ -28,7 +29,8 @@ func NewAccommodationSearchServer() accommodationv4grpc.AccommodationSearchServi
 func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req *accommodationv4.AccommodationSearchRequest) (*accommodationv4.AccommodationSearchResponse, error) {
 	resp := &accommodationv4.AccommodationSearchResponse{
 		SearchId: &typesv4.ExpiringUUID{
-			Id: &typesv4.UUID{Value: uuid.New().String()},
+			Id:         &typesv4.UUID{Value: uuid.New().String()},
+			Expiration: timestamppb.New(time.Now().Add(time.Hour)),
 		},
 	}
 

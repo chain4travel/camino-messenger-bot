@@ -5,10 +5,12 @@ package v4
 
 import (
 	"context"
+	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v4/bookv4grpc"
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
@@ -45,7 +47,8 @@ func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.Va
 	resp := &bookv4.ValidationResponse{
 		Header: common.SuccessHeaderV4(),
 		ValidationId: &typesv4.ExpiringUUID{
-			Id: &typesv4.UUID{Value: uuid.New().String()},
+			Id:         &typesv4.UUID{Value: uuid.New().String()},
+			Expiration: timestamppb.New(time.Now().Add(time.Hour)),
 		},
 		ValidationObject: req.ValidationObject,
 		TotalPrice: &typesv4.TotalPrice{

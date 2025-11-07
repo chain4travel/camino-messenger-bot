@@ -6,10 +6,12 @@ package v4
 import (
 	"context"
 	"math/big"
+	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
@@ -31,7 +33,8 @@ func NewTransportSearchServer() transportv4grpc.TransportSearchServiceServer {
 func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transportv4.TransportSearchRequest) (*transportv4.TransportSearchResponse, error) {
 	resp := &transportv4.TransportSearchResponse{
 		SearchId: &typesv4.ExpiringUUID{
-			Id: &typesv4.UUID{Value: uuid.New().String()},
+			Id:         &typesv4.UUID{Value: uuid.New().String()},
+			Expiration: timestamppb.New(time.Now().Add(time.Hour)),
 		},
 	}
 
