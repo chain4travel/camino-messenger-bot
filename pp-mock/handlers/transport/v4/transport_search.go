@@ -10,7 +10,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
@@ -31,7 +30,9 @@ func NewTransportSearchServer() transportv4grpc.TransportSearchServiceServer {
 
 func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transportv4.TransportSearchRequest) (*transportv4.TransportSearchResponse, error) {
 	resp := &transportv4.TransportSearchResponse{
-		SearchId: &typesv4.UUID{Value: uuid.New().String()},
+		SearchId: &typesv4.ExpiringUUID{
+			Id: &typesv4.UUID{Value: uuid.New().String()},
+		},
 	}
 
 	// edge-case prevention: check if the traveller definition is identical
@@ -130,10 +131,6 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 			Bookability: &typesv4.Bookability{
 				Type: typesv4.BookabilityType_BOOKABILITY_TYPE_AVAILABLE,
 			},
-			Validity: &typesv4.DateTimeRange{ // TODO@ remove when will become optional in cmp
-				Start: &timestamppb.Timestamp{},
-				End:   &timestamppb.Timestamp{},
-			},
 			CancelPolicy: &typesv4.CancelPolicy{},
 		})
 		resultID++
@@ -148,7 +145,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 	if len(searchResults) == 0 {
 		common.AddHeaderInfoV4(resp.Header, "No results found")
 	} else {
-		state.GetStore().AddSearchResult(resp.SearchId.Value, state.SearchData{
+		state.GetStore().AddSearchResult(resp.SearchId.Id.Value, state.SearchData{
 			NumResults:   len(searchResults),
 			NumTravelers: len(req.Queries[0].Travellers),
 			Prices:       validationPrices,

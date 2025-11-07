@@ -348,5 +348,5 @@ func testAccommodationV4SearchService(
 	// just one unit, total price is the same as unit price
 	require.True(t, proto.Equal(expectedPrice, resp.Results[1].TotalPrice.Value), "unexpected response Results[1].TotalPrice.Value: got %+v, want %+v", resp.Results[1].TotalPrice.Value, expectedPrice)
 
-	return resp.SearchId.Value, resp.Results[1].ResultId, expectedPrice
+	return resp.SearchId.Id.Value, resp.Results[1].ResultId, expectedPrice
 }

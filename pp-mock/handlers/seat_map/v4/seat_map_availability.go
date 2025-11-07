@@ -24,8 +24,8 @@ func NewSeatMapAvailabilityServer() seat_mapv4grpc.SeatMapAvailabilityServiceSer
 func (s *seatMapAvailabilityV4Server) SeatMapAvailability(_ context.Context, req *seat_mapv4.SeatMapAvailabilityRequest) (*seat_mapv4.SeatMapAvailabilityResponse, error) {
 	seatMapID := ""
 	switch identifier := req.Identifier.(type) {
-	case *seat_mapv4.SeatMapAvailabilityRequest_SearchIdentifier:
-		storedMintData, found := state.GetStore().GetSearchResult(identifier.SearchIdentifier.SearchId.Value)
+	case *seat_mapv4.SeatMapAvailabilityRequest_SearchResultIdentifier:
+		storedMintData, found := state.GetStore().GetSearchResult(identifier.SearchResultIdentifier.SearchId.Value)
 		if found {
 			seatMapID = storedMintData.Data.SeatMapID
 		}

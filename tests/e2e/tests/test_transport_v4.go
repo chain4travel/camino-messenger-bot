@@ -296,7 +296,7 @@ func testTransportV4SearchService(
 	require.True(t, proto.Equal(expectedTotalPrice, resp.Results[0].TotalPrice.Value), "unexpected total price: expected %v, got %v", expectedTotalPrice, resp.Results[0].TotalPrice.Value)
 	requireProtoSlicesElementsMatch(t, expectedTrips, resp.Results[0].TravellingTrips)
 
-	return resp.SearchId.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value
+	return resp.SearchId.Id.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value
 }
 
 func tripExtendedWithSupplierCode(trips []*transportv4.TripExtended, supplierCode *typesv4.SupplierProductCode) *transportv4.TripExtended {

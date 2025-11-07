@@ -25,7 +25,7 @@ func (s *notificationServiceV3Server) TokenBoughtNotification(_ context.Context,
 	return &emptypb.Empty{}, nil
 }
 
-func (s *notificationServiceV3Server) TokenExpiredNotification(_ context.Context, req *notificationv3.TokenExpired) (*emptypb.Empty, error) {
+func (s *notificationServiceV3Server) TokenReservationExpiredNotification(_ context.Context, req *notificationv3.TokenReservationExpired) (*emptypb.Empty, error) {
 	state.GetStore().RemoveMintResult(req.MintId.Value)
 	return &emptypb.Empty{}, nil
 }

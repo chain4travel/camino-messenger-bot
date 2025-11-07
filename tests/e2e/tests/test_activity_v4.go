@@ -301,7 +301,7 @@ func testActivityV4SearchService(
 
 	requireProtoSlicesElementsMatch(t, expectedSearchResults, resp.Results)
 
-	return resp.SearchId.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value
+	return resp.SearchId.Id.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value
 }
 
 func activityExtendedV4WithSupplierCode(

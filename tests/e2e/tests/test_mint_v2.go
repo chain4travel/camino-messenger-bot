@@ -159,7 +159,7 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	eventMsg, err := tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
-	tokenExpiredNotification := &notificationv3.TokenExpired{}
+	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
@@ -168,7 +168,7 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	eventMsg, err = tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
-	tokenExpiredNotification = &notificationv3.TokenExpired{}
+	tokenExpiredNotification = &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
 	require.NotNil(t, tokenExpiredNotification.MintId)

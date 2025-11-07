@@ -1,6 +1,8 @@
 [
     {
-        "id": "A320-STD-001",
+        "id": {
+            "id": "A320-STD-001"
+        },
         "sections": [
             {
                 "id": "J-20",
@@ -54,7 +56,9 @@
         ]
     },
     {
-        "id": "Vila-Park-2025-Ozzy",
+        "id": {
+            "id": "Vila-Park-2025-Ozzy"
+        },
         "sections": [
             {
                 "id": "north-stand",

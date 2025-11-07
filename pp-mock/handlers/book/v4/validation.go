@@ -27,31 +27,33 @@ func NewValidationServiceServer() bookv4grpc.ValidationServiceServer {
 func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.ValidationRequest) (*bookv4.ValidationResponse, error) {
 	// Look-up the store if we actually have a search storedSearchData for the given search identifier
 	// If we don't have a storedSearchData, return an error
-	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchIdentifier.SearchId.Value)
+	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchResultIdentifier.SearchId.Value)
 	if !found {
 		return &bookv4.ValidationResponse{
 			Header: common.ErrorHeaderV4("Invalid validation request: searchId not found in state"),
 		}, nil
 	}
 
-	if req.ValidationObject.SearchIdentifier.ResultId >= conversion.MustIntToUInt32(len(storedSearchData.Data.Prices)) {
+	if req.ValidationObject.SearchResultIdentifier.ResultId >= conversion.MustIntToUInt32(len(storedSearchData.Data.Prices)) {
 		return &bookv4.ValidationResponse{
 			Header: common.ErrorHeaderV4("Invalid validation request: resultId out of range"),
 		}, nil
 	}
 
-	unifiedValidationPrice := storedSearchData.Data.Prices[req.ValidationObject.SearchIdentifier.ResultId]
+	unifiedValidationPrice := storedSearchData.Data.Prices[req.ValidationObject.SearchResultIdentifier.ResultId]
 
 	resp := &bookv4.ValidationResponse{
-		Header:           common.SuccessHeaderV4(),
-		ValidationId:     &typesv4.UUID{Value: uuid.New().String()},
+		Header: common.SuccessHeaderV4(),
+		ValidationId: &typesv4.ExpiringUUID{
+			Id: &typesv4.UUID{Value: uuid.New().String()},
+		},
 		ValidationObject: req.ValidationObject,
 		TotalPrice: &typesv4.TotalPrice{
 			Value: unifiedValidationPrice.ToPriceV4(),
 		},
 	}
 
-	state.GetStore().AddValidationResult(resp.ValidationId.Value, state.ValidationData{
+	state.GetStore().AddValidationResult(resp.ValidationId.Id.Value, state.ValidationData{
 		InitialSearchData: storedSearchData.Data,
 		VerifiedPrice:     unifiedValidationPrice,
 		JSONRequest:       req.String(),

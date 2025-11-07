@@ -117,7 +117,7 @@ func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, tokenID *b
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
-	_, err := p.notificationClient.TokenExpiredNotification(ctx, &notificationv3.TokenExpired{
+	_, err := p.notificationClient.TokenReservationExpiredNotification(ctx, &notificationv3.TokenReservationExpired{
 		TokenId: tokenID.Uint64(),
 		MintId:  &typesv4.UUID{Value: mintID},
 	})

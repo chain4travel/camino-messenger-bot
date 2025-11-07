@@ -7,14 +7,15 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
+	"google.golang.org/protobuf/proto"
 )
 
 func filterSeatMapByID(
 	seatMaps []*typesv4.SeatMap,
-	mapID string,
+	mapID *typesv4.SeatMapID,
 ) *typesv4.SeatMap {
 	for _, seatMap := range seatMaps {
-		if seatMap.Id.Id == mapID {
+		if proto.Equal(seatMap.Id, mapID) {
 			return common.CloneProto(seatMap)
 		}
 	}
@@ -26,7 +27,7 @@ func filterSeatMapAvailabilityByID(
 	mapID string,
 ) *typesv4.SeatMapInventory {
 	for _, seatMap := range seatMaps {
-		if seatMap.Id == mapID {
+		if seatMap.Id.Id == mapID {
 			return common.CloneProto(seatMap)
 		}
 	}

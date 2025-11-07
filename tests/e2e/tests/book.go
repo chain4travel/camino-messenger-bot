@@ -75,7 +75,7 @@ func testValidateV4(
 	req := &bookv4.ValidationRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		ValidationObject: &bookv4.ValidationObject{
-			SearchIdentifier: &typesv4.SearchIdentifier{
+			SearchResultIdentifier: &typesv4.SearchResultIdentifier{
 				SearchId: &typesv4.UUID{Value: searchID},
 				ResultId: resultID,
 			},
@@ -91,12 +91,12 @@ func testValidateV4(
 	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 
-	require.Equal(t, searchID, resp.ValidationObject.SearchIdentifier.SearchId.Value, "unexpected searchID in response")
-	require.Equal(t, resultID, resp.ValidationObject.SearchIdentifier.ResultId, "unexpected resultID in response")
+	require.Equal(t, searchID, resp.ValidationObject.SearchResultIdentifier.SearchId.Value, "unexpected searchID in response")
+	require.Equal(t, resultID, resp.ValidationObject.SearchResultIdentifier.ResultId, "unexpected resultID in response")
 
 	require.True(t, proto.Equal(expectedTotalPrice, resp.TotalPrice.Value), "unexpected response TotalPrice: got %+v, want %+v", resp.TotalPrice.Value, expectedTotalPrice)
 
-	return resp.ValidationId.Value
+	return resp.ValidationId.Id.Value
 }
 
 func testValidateV3(

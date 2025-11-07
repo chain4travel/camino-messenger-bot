@@ -25,7 +25,9 @@ func NewActivitySearchServer() activityv4grpc.ActivitySearchServiceServer {
 
 func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activityv4.ActivitySearchRequest) (*activityv4.ActivitySearchResponse, error) {
 	resp := &activityv4.ActivitySearchResponse{
-		SearchId:   &typesv4.UUID{Value: uuid.New().String()},
+		SearchId: &typesv4.ExpiringUUID{
+			Id: &typesv4.UUID{Value: uuid.New().String()},
+		},
 		Travellers: req.Travellers,
 	}
 
@@ -54,7 +56,7 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 	if len(filteredActivities) == 0 {
 		common.AddHeaderInfoV4(resp.Header, "No results found for search")
 	} else {
-		state.GetStore().AddSearchResult(resp.SearchId.Value, state.SearchData{
+		state.GetStore().AddSearchResult(resp.SearchId.Id.Value, state.SearchData{
 			NumResults:   len(filteredActivities),
 			NumTravelers: len(req.Travellers),
 			Prices:       validationPrices,
