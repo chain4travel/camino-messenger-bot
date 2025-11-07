@@ -9,6 +9,7 @@ import (
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
+	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
@@ -112,7 +113,7 @@ func (tt *TestMintV2) testMintV2FullWorkflow(ctx context.Context, t *testing.T) 
 	eventMsg, err := tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
-	tokenBoughtNotification := &notificationv2.TokenBought{}
+	tokenBoughtNotification := &notificationv3.TokenBought{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
 	require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
 	require.NotNil(t, tokenBoughtNotification.MintId)

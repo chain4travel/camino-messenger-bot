@@ -9,10 +9,9 @@ import (
 	"math/big"
 	"time"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
-	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v3/notificationv3grpc"
+	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	grpc_metadata "google.golang.org/grpc/metadata"
@@ -39,10 +38,10 @@ type PartnerPlugin interface {
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
 	TokenExpiredNotification(ctx context.Context, tokenID *big.Int, mintID string) error
 
-	CancellationPendingNotification(ctx context.Context, notification *notificationv2.CancellationPending) error
-	CancellationRejectedNotification(ctx context.Context, notification *notificationv2.CancellationRejected) error
-	CancellationWithdrawnNotification(ctx context.Context, notification *notificationv2.CancellationWithdrawn) error
-	CancellationFinalizedNotification(ctx context.Context, notification *notificationv2.CancellationFinalized) error
+	CancellationPendingNotification(ctx context.Context, notification *notificationv3.CancellationPending) error
+	CancellationRejectedNotification(ctx context.Context, notification *notificationv3.CancellationRejected) error
+	CancellationWithdrawnNotification(ctx context.Context, notification *notificationv3.CancellationWithdrawn) error
+	CancellationFinalizedNotification(ctx context.Context, notification *notificationv3.CancellationFinalized) error
 }
 
 func New(
@@ -52,14 +51,14 @@ func New(
 ) PartnerPlugin {
 	return &partnerPlugin{
 		logger:             logger,
-		notificationClient: notificationv2grpc.NewNotificationServiceClient(rpcClient.ClientConn),
+		notificationClient: notificationv3grpc.NewNotificationServiceClient(rpcClient.ClientConn),
 		responseTimeout:    responseTimeout,
 	}
 }
 
 type partnerPlugin struct {
 	logger             *zap.SugaredLogger
-	notificationClient notificationv2grpc.NotificationServiceClient
+	notificationClient notificationv3grpc.NotificationServiceClient
 	responseTimeout    time.Duration
 }
 
@@ -89,21 +88,21 @@ func (p *partnerPlugin) DoServiceRequest(
 }
 
 func (p *partnerPlugin) TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {
-	return p.tokenBoughtNotification(ctx, &notificationv2.TokenBought{
+	return p.tokenBoughtNotification(ctx, &notificationv3.TokenBought{
 		TokenId: tokenID.Uint64(),
-		MintId:  &typesv1.UUID{Value: mintID},
+		MintId:  &typesv4.UUID{Value: mintID},
 	})
 }
 
 func (p *partnerPlugin) TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error {
-	return p.tokenBoughtNotification(ctx, &notificationv2.TokenBought{
+	return p.tokenBoughtNotification(ctx, &notificationv3.TokenBought{
 		TokenId: tokenID.Uint64(),
-		MintId:  &typesv1.UUID{Value: mintID},
-		TxId:    &typesv3.EVMTransactionID{Hash: buyTxID.Hex()},
+		MintId:  &typesv4.UUID{Value: mintID},
+		TxId:    &typesv4.EVMTransactionID{Hash: buyTxID.Hex()},
 	})
 }
 
-func (p *partnerPlugin) tokenBoughtNotification(ctx context.Context, notification *notificationv2.TokenBought) error {
+func (p *partnerPlugin) tokenBoughtNotification(ctx context.Context, notification *notificationv3.TokenBought) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
@@ -118,9 +117,9 @@ func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, tokenID *b
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
-	_, err := p.notificationClient.TokenExpiredNotification(ctx, &notificationv2.TokenExpired{
+	_, err := p.notificationClient.TokenExpiredNotification(ctx, &notificationv3.TokenExpired{
 		TokenId: tokenID.Uint64(),
-		MintId:  &typesv1.UUID{Value: mintID},
+		MintId:  &typesv4.UUID{Value: mintID},
 	})
 	if err != nil {
 		p.logger.Errorf("failed to send token expired notification: %v", err)
@@ -128,7 +127,7 @@ func (p *partnerPlugin) TokenExpiredNotification(ctx context.Context, tokenID *b
 	return err
 }
 
-func (p *partnerPlugin) CancellationPendingNotification(ctx context.Context, notification *notificationv2.CancellationPending) error {
+func (p *partnerPlugin) CancellationPendingNotification(ctx context.Context, notification *notificationv3.CancellationPending) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
@@ -139,7 +138,7 @@ func (p *partnerPlugin) CancellationPendingNotification(ctx context.Context, not
 	return err
 }
 
-func (p *partnerPlugin) CancellationRejectedNotification(ctx context.Context, notification *notificationv2.CancellationRejected) error {
+func (p *partnerPlugin) CancellationRejectedNotification(ctx context.Context, notification *notificationv3.CancellationRejected) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
@@ -150,7 +149,7 @@ func (p *partnerPlugin) CancellationRejectedNotification(ctx context.Context, no
 	return err
 }
 
-func (p *partnerPlugin) CancellationWithdrawnNotification(ctx context.Context, notification *notificationv2.CancellationWithdrawn) error {
+func (p *partnerPlugin) CancellationWithdrawnNotification(ctx context.Context, notification *notificationv3.CancellationWithdrawn) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
@@ -161,7 +160,7 @@ func (p *partnerPlugin) CancellationWithdrawnNotification(ctx context.Context, n
 	return err
 }
 
-func (p *partnerPlugin) CancellationFinalizedNotification(ctx context.Context, notification *notificationv2.CancellationFinalized) error {
+func (p *partnerPlugin) CancellationFinalizedNotification(ctx context.Context, notification *notificationv3.CancellationFinalized) error {
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 

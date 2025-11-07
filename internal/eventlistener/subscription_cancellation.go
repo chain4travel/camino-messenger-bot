@@ -9,8 +9,8 @@ import (
 	"math/big"
 
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
-	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
-	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
@@ -90,16 +90,16 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 				return err
 			}
 
-			if err := l.partnerPlugin.CancellationPendingNotification(ctx, &notificationv2.CancellationPending{
+			if err := l.partnerPlugin.CancellationPendingNotification(ctx, &notificationv3.CancellationPending{
 				TokenId:            tokenID.Uint64(),
-				InitialProposer:    &typesv3.EVMAddress{Address: cancellation.InitialProposer.Hex()},
-				CurrentProposer:    &typesv3.EVMAddress{Address: cancellation.CurrentProposer.Hex()},
+				InitialProposer:    &typesv4.EVMAddress{Address: cancellation.InitialProposer.Hex()},
+				CurrentProposer:    &typesv4.EVMAddress{Address: cancellation.CurrentProposer.Hex()},
 				RefundAmount:       cancellation.RefundAmount.Uint64(),
 				OwnerAccepted:      cancellation.OwnerAccepted,
 				SupplierAccepted:   cancellation.SupplierAccepted,
 				TimesCountered:     uint64(cancellation.TimesCountered),
 				TimesRejected:      uint64(cancellation.TimesRejected),
-				TxId:               &typesv3.EVMTransactionID{Hash: zeroHashStr},
+				TxId:               &typesv4.EVMTransactionID{Hash: zeroHashStr},
 				CancellationReason: cancellationv1.CancellationReason(reasons.CancellationReason),
 				RejectionReason:    cancellationv1.RejectionReason(reasons.RejectionReason),
 				CounterReason:      cancellationv1.CounterReason(reasons.CounterReason),
@@ -115,10 +115,10 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 				return err
 			}
 
-			if err := l.partnerPlugin.CancellationRejectedNotification(ctx, &notificationv2.CancellationRejected{
+			if err := l.partnerPlugin.CancellationRejectedNotification(ctx, &notificationv3.CancellationRejected{
 				TokenId: tokenID.Uint64(),
 				Reason:  cancellationv1.RejectionReason(reasons.RejectionReason),
-				TxId:    &typesv3.EVMTransactionID{Hash: zeroHashStr},
+				TxId:    &typesv4.EVMTransactionID{Hash: zeroHashStr},
 			}); err != nil {
 				l.logger.Errorf("error sending CancellationRejected notification: %v", err)
 				return err
@@ -130,10 +130,10 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 				return err
 			}
 
-			if err := l.partnerPlugin.CancellationWithdrawnNotification(ctx, &notificationv2.CancellationWithdrawn{
+			if err := l.partnerPlugin.CancellationWithdrawnNotification(ctx, &notificationv3.CancellationWithdrawn{
 				TokenId: tokenID.Uint64(),
 				Reason:  cancellationv1.WithdrawalReason(reasons.WithdrawalReason),
-				TxId:    &typesv3.EVMTransactionID{Hash: zeroHashStr},
+				TxId:    &typesv4.EVMTransactionID{Hash: zeroHashStr},
 			}); err != nil {
 				l.logger.Errorf("error sending CancellationWithdrawn notification: %v", err)
 				return err
@@ -146,9 +146,9 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 			}
 			defer l.storage.Abort(session)
 
-			if err := l.partnerPlugin.CancellationFinalizedNotification(ctx, &notificationv2.CancellationFinalized{
+			if err := l.partnerPlugin.CancellationFinalizedNotification(ctx, &notificationv3.CancellationFinalized{
 				TokenId: tokenID.Uint64(),
-				TxId:    &typesv3.EVMTransactionID{Hash: zeroHashStr},
+				TxId:    &typesv4.EVMTransactionID{Hash: zeroHashStr},
 			}); err != nil {
 				l.logger.Errorf("error sending CancellationFinalized notification: %v", err)
 				return err
@@ -217,16 +217,16 @@ func (l *eventListener) cancellationPendingEventHandler(event *bookingtoken.Book
 		return 0
 	}
 
-	if err := l.partnerPlugin.CancellationPendingNotification(ctx, &notificationv2.CancellationPending{
+	if err := l.partnerPlugin.CancellationPendingNotification(ctx, &notificationv3.CancellationPending{
 		TokenId:            event.TokenId.Uint64(),
-		InitialProposer:    &typesv3.EVMAddress{Address: event.InitialProposer.Hex()},
-		CurrentProposer:    &typesv3.EVMAddress{Address: event.CurrentProposer.Hex()},
+		InitialProposer:    &typesv4.EVMAddress{Address: event.InitialProposer.Hex()},
+		CurrentProposer:    &typesv4.EVMAddress{Address: event.CurrentProposer.Hex()},
 		RefundAmount:       event.RefundAmount.Uint64(),
 		OwnerAccepted:      event.OwnerAccepted,
 		SupplierAccepted:   event.SupplierAccepted,
 		TimesCountered:     uint64(event.TimesCountered),
 		TimesRejected:      uint64(event.TimesRejected),
-		TxId:               &typesv3.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
+		TxId:               &typesv4.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
 		CancellationReason: cancellationv1.CancellationReason(reasons.CancellationReason),
 		RejectionReason:    cancellationv1.RejectionReason(reasons.RejectionReason),
 		CounterReason:      cancellationv1.CounterReason(reasons.CounterReason),
@@ -260,10 +260,10 @@ func (l *eventListener) cancellationRejectedEventHandler(event *bookingtoken.Boo
 		return event.Raw.BlockNumber
 	}
 
-	if err := l.partnerPlugin.CancellationRejectedNotification(ctx, &notificationv2.CancellationRejected{
+	if err := l.partnerPlugin.CancellationRejectedNotification(ctx, &notificationv3.CancellationRejected{
 		TokenId: event.TokenId.Uint64(),
 		Reason:  cancellationv1.RejectionReason(event.RejectionReason),
-		TxId:    &typesv3.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
+		TxId:    &typesv4.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
 	}); err != nil {
 		l.logger.Errorf("error sending CancellationRejected notification: %v", err)
 		return 0
@@ -293,10 +293,10 @@ func (l *eventListener) cancellationWithdrawnEventHandler(event *bookingtoken.Bo
 		return event.Raw.BlockNumber
 	}
 
-	if err := l.partnerPlugin.CancellationWithdrawnNotification(ctx, &notificationv2.CancellationWithdrawn{
+	if err := l.partnerPlugin.CancellationWithdrawnNotification(ctx, &notificationv3.CancellationWithdrawn{
 		TokenId: event.TokenId.Uint64(),
 		Reason:  cancellationv1.WithdrawalReason(event.WithdrawalReason),
-		TxId:    &typesv3.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
+		TxId:    &typesv4.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
 	}); err != nil {
 		l.logger.Errorf("error sending CancellationWithdrawn notification: %v", err)
 		return 0
@@ -326,9 +326,9 @@ func (l *eventListener) cancellationFinalizedEventHandler(event *bookingtoken.Bo
 		return event.Raw.BlockNumber
 	}
 
-	if err := l.partnerPlugin.CancellationFinalizedNotification(ctx, &notificationv2.CancellationFinalized{
+	if err := l.partnerPlugin.CancellationFinalizedNotification(ctx, &notificationv3.CancellationFinalized{
 		TokenId: event.TokenId.Uint64(),
-		TxId:    &typesv3.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
+		TxId:    &typesv4.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
 	}); err != nil {
 		l.logger.Errorf("error sending CancellationFinalized notification: %v", err)
 		return 0

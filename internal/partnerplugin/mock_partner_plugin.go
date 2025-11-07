@@ -14,7 +14,7 @@ import (
 	big "math/big"
 	reflect "reflect"
 
-	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
+	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	common "github.com/ethereum/go-ethereum/common"
@@ -45,7 +45,7 @@ func (m *MockPartnerPlugin) EXPECT() *MockPartnerPluginMockRecorder {
 }
 
 // CancellationFinalizedNotification mocks base method.
-func (m *MockPartnerPlugin) CancellationFinalizedNotification(arg0 context.Context, arg1 *notificationv2.CancellationFinalized) error {
+func (m *MockPartnerPlugin) CancellationFinalizedNotification(arg0 context.Context, arg1 *notificationv3.CancellationFinalized) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CancellationFinalizedNotification", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -59,7 +59,7 @@ func (mr *MockPartnerPluginMockRecorder) CancellationFinalizedNotification(arg0,
 }
 
 // CancellationPendingNotification mocks base method.
-func (m *MockPartnerPlugin) CancellationPendingNotification(arg0 context.Context, arg1 *notificationv2.CancellationPending) error {
+func (m *MockPartnerPlugin) CancellationPendingNotification(arg0 context.Context, arg1 *notificationv3.CancellationPending) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CancellationPendingNotification", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -73,7 +73,7 @@ func (mr *MockPartnerPluginMockRecorder) CancellationPendingNotification(arg0, a
 }
 
 // CancellationRejectedNotification mocks base method.
-func (m *MockPartnerPlugin) CancellationRejectedNotification(arg0 context.Context, arg1 *notificationv2.CancellationRejected) error {
+func (m *MockPartnerPlugin) CancellationRejectedNotification(arg0 context.Context, arg1 *notificationv3.CancellationRejected) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CancellationRejectedNotification", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -87,7 +87,7 @@ func (mr *MockPartnerPluginMockRecorder) CancellationRejectedNotification(arg0, 
 }
 
 // CancellationWithdrawnNotification mocks base method.
-func (m *MockPartnerPlugin) CancellationWithdrawnNotification(arg0 context.Context, arg1 *notificationv2.CancellationWithdrawn) error {
+func (m *MockPartnerPlugin) CancellationWithdrawnNotification(arg0 context.Context, arg1 *notificationv3.CancellationWithdrawn) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CancellationWithdrawnNotification", arg0, arg1)
 	ret0, _ := ret[0].(error)
