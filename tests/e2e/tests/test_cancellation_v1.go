@@ -10,7 +10,7 @@ import (
 	"time"
 
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
-	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
+	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
@@ -563,7 +563,7 @@ func (h *cancellationV1Helper) expectCancellationPendingNotification(
 	eventMsg, err := ppEventsStream.Recv()
 	h.require.NoError(err)
 	h.e.DebugPrintProtoMessage(eventMsg)
-	cancellationPendingNotification := &notificationv2.CancellationPending{}
+	cancellationPendingNotification := &notificationv3.CancellationPending{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationPendingNotification))
 	h.require.Equal(h.tokenID, cancellationPendingNotification.TokenId)
 	h.require.Equal(h.initialProposer.Hex(), cancellationPendingNotification.InitialProposer.Address)
@@ -587,7 +587,7 @@ func (h *cancellationV1Helper) expectCancellationRejectedNotification(
 	eventMsg, err := ppEventsStream.Recv()
 	h.require.NoError(err)
 	h.e.DebugPrintProtoMessage(eventMsg)
-	cancellationRejectedNotification := &notificationv2.CancellationRejected{}
+	cancellationRejectedNotification := &notificationv3.CancellationRejected{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationRejectedNotification))
 	h.require.Equal(h.tokenID, cancellationRejectedNotification.TokenId)
 	h.require.Equal(h.rejectionReason, cancellationRejectedNotification.Reason)
@@ -601,7 +601,7 @@ func (h *cancellationV1Helper) expectCancellationWithdrawnNotification(
 	eventMsg, err := ppEventsStream.Recv()
 	h.require.NoError(err)
 	h.e.DebugPrintProtoMessage(eventMsg)
-	cancellationWithdrawnNotification := &notificationv2.CancellationWithdrawn{}
+	cancellationWithdrawnNotification := &notificationv3.CancellationWithdrawn{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationWithdrawnNotification))
 	h.require.Equal(h.tokenID, cancellationWithdrawnNotification.TokenId)
 	h.require.Equal(h.withdrawalReason, cancellationWithdrawnNotification.Reason)
@@ -615,7 +615,7 @@ func (h *cancellationV1Helper) expectCancellationFinalizedNotification(
 	eventMsg, err := ppEventsStream.Recv()
 	h.require.NoError(err)
 	h.e.DebugPrintProtoMessage(eventMsg)
-	cancellationFinalizedNotification := &notificationv2.CancellationFinalized{}
+	cancellationFinalizedNotification := &notificationv3.CancellationFinalized{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationFinalizedNotification))
 	h.require.Equal(h.tokenID, cancellationFinalizedNotification.TokenId)
 	h.require.Equal(txHash, cancellationFinalizedNotification.TxId.Hash)

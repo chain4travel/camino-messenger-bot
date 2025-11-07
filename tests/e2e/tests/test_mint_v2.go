@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
-	notificationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v2"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
@@ -160,7 +159,7 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	eventMsg, err := tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
-	tokenExpiredNotification := &notificationv2.TokenExpired{}
+	tokenExpiredNotification := &notificationv3.TokenExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
@@ -169,7 +168,7 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	eventMsg, err = tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
-	tokenExpiredNotification = &notificationv2.TokenExpired{}
+	tokenExpiredNotification = &notificationv3.TokenExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
 	require.NotNil(t, tokenExpiredNotification.MintId)
