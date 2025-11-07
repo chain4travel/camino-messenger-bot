@@ -53,7 +53,7 @@ func (tt *TestMintV4) Run(t *testing.T) {
 		}
 	})
 
-	t.Run("Search->Validate->Mint->TokenTimeoutNotification", func(t *testing.T) {
+	t.Run("Search->Validate->Mint->TokenReservationExpiredNotification", func(t *testing.T) {
 		tt.testMintV4TokenExpiredCase(ctx, t)
 	})
 }
@@ -96,15 +96,15 @@ func (tt *TestMintV4) testMintV4FullWorkflow(ctx context.Context, t *testing.T) 
 	// We just receive all the messages from the pp-mock event stream without any
 	// further checks as we're only really interested in the last one.
 
-	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_accommodation_v3.go
-	_, err := tt.supplierPPEventStream.Recv()                                                                                                     // skip AccommodationSearchRequest
+	searchID, resultID, totalPrice := testAccommodationV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_accommodation_v4.go
+	_, err := tt.supplierPPEventStream.Recv()                                                                                     // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+	validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	tokenID, _, mintID := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+	tokenID, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -126,30 +126,30 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	// We just receive all the messages from the pp-mock event stream without any
 	// further checks as we're only really interested in the last one.
 
-	searchID, resultID, totalPrice := testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot) // see test_accommodation_v3.go
-	_, err := tt.supplierPPEventStream.Recv()                                                                                                                 // skip AccommodationSearchRequest
+	searchID, resultID, totalPrice := testAccommodationV4SearchService(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot) // see test_accommodation_v4.go
+	_, err := tt.supplierPPEventStream.Recv()                                                                                                 // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID1 := testValidateV2(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, searchID, resultID, totalPrice)
+	validationID1 := testValidateV4(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, searchID, resultID, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	searchID, resultID, totalPrice = testAccommodationV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot) // see test_accommodation_v3.go
-	_, err = tt.supplierPPEventStream.Recv()                                                                                                                 // skip AccommodationSearchRequest
+	searchID, resultID, totalPrice = testAccommodationV4SearchService(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot) // see test_accommodation_v4.go
+	_, err = tt.supplierPPEventStream.Recv()                                                                                                 // skip AccommodationSearchRequest
 	require.NoError(t, err)
 
-	validationID2 := testValidateV2(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, searchID, resultID, totalPrice)
+	validationID2 := testValidateV4(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, searchID, resultID, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
 	var tokenID1 uint64
 	var mintID1 string
 
-	tokenID1, mintID1 = tt.testMintV4MintV4ExpectedError(ctx, t, validationID1)
+	tokenID1, mintID1 = tt.testMintV4MintV4ExpectedError(ctx, t, validationID1, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
-	tokenID2, mintID2 := tt.testMintV4MintV4ExpectedError(ctx, t, validationID2)
+	tokenID2, mintID2 := tt.testMintV4MintV4ExpectedError(ctx, t, validationID2, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -160,7 +160,7 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	eventMsg, err := tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
-	tokenExpiredNotification := &notificationv3.TokenExpired{}
+	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
@@ -169,7 +169,7 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	eventMsg, err = tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
-	tokenExpiredNotification = &notificationv3.TokenExpired{}
+	tokenExpiredNotification = &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
 	require.NotNil(t, tokenExpiredNotification.MintId)
@@ -180,13 +180,20 @@ func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 	ctx context.Context,
 	t *testing.T,
 	validationID string,
+	expectedPrice *typesv4.Price,
 ) (
 	tokenID uint64,
 	mintID string,
 ) {
 	req := &bookv4.MintRequest{
-		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
-		ValidationId: &typesv4.UUID{Value: validationID},
+		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		ValidationId:  &typesv4.UUID{Value: validationID},
+		ExpectedPrice: expectedPrice,
+		Travellers: []*typesv4.ExtensiveTraveller{{
+			FirstNames: []string{"FirstName"},
+			Surnames:   []string{"Surname"},
+			Gender:     typesv4.GenderType_GENDER_TYPE_UNSPECIFIED,
+		}},
 	}
 	resp, err := tt.distributorBotWithoutFunds.MintServiceV4.Mint(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),

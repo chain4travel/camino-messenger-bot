@@ -100,7 +100,7 @@ func (tt *TestBotSanity) prepareBeforeCMManagerRegisterServices(ctx context.Cont
 func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.PingServiceV1,
-		botGenerated.MintServiceV3,
+		botGenerated.MintServiceV4,
 	))
 
 	// This bot does actually have the CM-Account and prefunding of the owner
@@ -125,7 +125,7 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	// All good here - just a different service used which should then
 	// fail in the later test
 	tt.supplierBotDifferentServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.MintServiceV3, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.MintServiceV4, Fee: 100}}),
 	)
 
 	// bot without partnerPlugin and with rpc server (distributor)
