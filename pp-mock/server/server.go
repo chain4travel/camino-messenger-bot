@@ -25,6 +25,7 @@ import (
 	book_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v3"
 	book_v4 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/book/v4"
 	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/cancellation/v1"
+	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/cancellation/v2"
 	notification_v1 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v1"
 	notification_v2 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v2"
 	notification_v3 "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/notification/v3"
@@ -47,6 +48,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v4/bookv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v3/notificationv3grpc"
@@ -162,6 +164,8 @@ func Run() error {
 
 	// Cancellation V1
 	cancellationv1grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v1.NewCheckCancellationServer())
+	// Cancellation V2
+	cancellationv2grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v2.NewCheckCancellationServer())
 
 	reflection.Register(grpcServer)
 

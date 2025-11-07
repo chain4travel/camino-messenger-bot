@@ -10,9 +10,9 @@ import (
 	"time"
 
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
+	cancellationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v2"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
@@ -25,13 +25,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var _ suite.Test = (*TestCancellationV1)(nil)
+var _ suite.Test = (*TestCancellationV2)(nil)
 
 func init() {
-	Tests["CancellationV1"] = &TestCancellationV1{}
+	Tests["CancellationV2"] = &TestCancellationV2{}
 }
 
-type TestCancellationV1 struct {
+type TestCancellationV2 struct {
 	*suite.Environment
 
 	supplierPartnerPlugin *partnerplugin.PartnerPlugin
@@ -43,68 +43,70 @@ type TestCancellationV1 struct {
 	distributorBot           *bot.Bot
 }
 
-func (tt *TestCancellationV1) Setup(e *suite.Environment) {
+func (tt *TestCancellationV2) Setup(e *suite.Environment) {
 	tt.Environment = e
 }
 
-func (tt *TestCancellationV1) Run(t *testing.T) {
+func (tt *TestCancellationV2) Run(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTestTimeout)
 	defer cancel()
 
 	tt.prepare(ctx, t)
 
-	t.Run("CheckCancellationV1", func(t *testing.T) {
-		tt.testCheckCancellationV1(ctx, t)
+	t.Run("CheckCancellationV2", func(t *testing.T) {
+		tt.testCheckCancellationV2(ctx, t)
 	})
 	t.Run("Distributor initiates, basic flow", func(t *testing.T) {
-		tt.testCancellationV1DistributorInitiatesBasic(ctx, t)
+		tt.testCancellationV2DistributorInitiatesBasic(ctx, t)
 	})
 	t.Run("Distributor initiates", func(t *testing.T) {
-		tt.testCancellationV1DistributorInitiates(ctx, t)
+		tt.testCancellationV2DistributorInitiates(ctx, t)
 	})
 	t.Run("Supplier initiates", func(t *testing.T) {
-		tt.testCancellationV1SupplierInitiates(ctx, t)
+		tt.testCancellationV2SupplierInitiates(ctx, t)
 	})
 }
 
-func (tt *TestCancellationV1) prepare(ctx context.Context, t *testing.T) {
+func (tt *TestCancellationV2) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
-		botGenerated.AccommodationSearchServiceV3,
-		botGenerated.ValidationServiceV3,
-		botGenerated.MintServiceV3,
-		botGenerated.CheckCancellationServiceV1,
+		botGenerated.AccommodationSearchServiceV4,
+		botGenerated.ValidationServiceV4,
+		botGenerated.MintServiceV4,
+		botGenerated.CheckCancellationServiceV2,
 	))
 
-	var err error
-
-	// supplier bot
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+
+	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV3, Fee: 130},
-			{Name: botGenerated.MintServiceV3, Fee: 140},
-			{Name: botGenerated.CheckCancellationServiceV1, Fee: 150},
+			{Name: botGenerated.AccommodationSearchServiceV4, Fee: 120},
+			{Name: botGenerated.ValidationServiceV4, Fee: 130},
+			{Name: botGenerated.MintServiceV4, Fee: 140},
+			{Name: botGenerated.CheckCancellationServiceV2, Fee: 150},
 		}),
 	)
+
+	tt.distributorPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
+
+	// bot without partnerPlugin and with rpc server (distributor)
+	tt.distributorBot = tt.CreateBot(ctx, t, true, tt.distributorPartnerPlugin)
+
+	var err error
 	tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)
 	require.NoError(t, err)
-
-	// distributor bot
-	tt.distributorPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
-	tt.distributorBot = tt.CreateBot(ctx, t, true, tt.distributorPartnerPlugin)
 	tt.distributorPPEventStream, err = tt.distributorPartnerPlugin.SubscribeForEvents(ctx)
 	require.NoError(t, err)
 }
 
-func (tt *TestCancellationV1) testCancellationV1DistributorInitiatesBasic(ctx context.Context, t *testing.T) {
+func (tt *TestCancellationV2) testCancellationV2DistributorInitiatesBasic(ctx context.Context, t *testing.T) {
 	// reasons are selected randomly, just to be unique among requests
 
-	tokenID, _, bookingPrice := mintBuyAccommodationTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+	tokenID, _, bookingPrice := mintBuyAccommodationTokenV4(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 	refundAmount := common.CloneProto(bookingPrice)
 	time.Sleep(2 * time.Second)
 
-	cancellationHelper := newCancellationV1Helper(
+	cancellationHelper := newCancellationV2Helper(
 		ctx,
 		t,
 		tt.Environment,
@@ -128,14 +130,14 @@ func (tt *TestCancellationV1) testCancellationV1DistributorInitiatesBasic(ctx co
 	)
 }
 
-func (tt *TestCancellationV1) testCancellationV1DistributorInitiates(ctx context.Context, t *testing.T) {
+func (tt *TestCancellationV2) testCancellationV2DistributorInitiates(ctx context.Context, t *testing.T) {
 	// reasons are selected randomly, just to be unique among requests
 
-	tokenID, _, bookingPrice := mintBuyAccommodationTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+	tokenID, _, bookingPrice := mintBuyAccommodationTokenV4(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 	refundAmount := common.CloneProto(bookingPrice)
 	time.Sleep(2 * time.Second)
 
-	cancellationHelper := newCancellationV1Helper(
+	cancellationHelper := newCancellationV2Helper(
 		ctx,
 		t,
 		tt.Environment,
@@ -230,15 +232,15 @@ func (tt *TestCancellationV1) testCancellationV1DistributorInitiates(ctx context
 	)
 }
 
-func (tt *TestCancellationV1) testCancellationV1SupplierInitiates(ctx context.Context, t *testing.T) {
+func (tt *TestCancellationV2) testCancellationV2SupplierInitiates(ctx context.Context, t *testing.T) {
 	// reasons are selected randomly, just to be unique among requests
 
 	// making new booking so we can test different flow
-	tokenID, _, bookingPrice := mintBuyAccommodationTokenV3(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
+	tokenID, _, bookingPrice := mintBuyAccommodationTokenV4(ctx, t, tt.Environment, tt.supplierPPEventStream, tt.distributorBot, tt.supplierBot)
 	refundAmount := common.CloneProto(bookingPrice)
 	time.Sleep(2 * time.Second)
 
-	cancellationHelper := newCancellationV1Helper(
+	cancellationHelper := newCancellationV2Helper(
 		ctx,
 		t,
 		tt.Environment,
@@ -282,14 +284,14 @@ func (tt *TestCancellationV1) testCancellationV1SupplierInitiates(ctx context.Co
 	)
 }
 
-func (tt *TestCancellationV1) testCheckCancellationV1(ctx context.Context, t *testing.T) {
+func (tt *TestCancellationV2) testCheckCancellationV2(ctx context.Context, t *testing.T) {
 	reqTime := time.Now()
-	req := &cancellationv1.CheckCancellationRequest{
-		Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	req := &cancellationv2.CheckCancellationRequest{
+		Header:  &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId: 1,
 		Reason:  cancellationv1.CancellationReason_CANCELLATION_REASON_AMENITY_REQUIREMENT_CHANGE,
 	}
-	resp, err := tt.distributorBot.CheckCancellationServiceV1.CheckCancellation(
+	resp, err := tt.distributorBot.CheckCancellationServiceV2.CheckCancellation(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
@@ -298,19 +300,19 @@ func (tt *TestCancellationV1) testCheckCancellationV1(ctx context.Context, t *te
 	require.NoError(t, err)
 
 	tt.DebugPrintRequestResponse(req, resp)
-	require.Equal(t, typesv1.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 	require.Equal(t, req.TokenId, resp.TokenId, "unexpected response TokenID")
 	require.Equal(t, common.BookingTokenPriceValue, resp.RefundAmount.Value, "unexpected response RefundAmount.Value")
 	require.Equal(t, price.NativeTokenDecimals, resp.RefundAmount.Decimals, "unexpected response RefundAmount.Decimals")
-	require.IsType(t, &typesv3.Currency_NativeToken{}, resp.RefundAmount.Currency.Currency, "unexpected response RefundAmount.Currency type")
+	require.IsType(t, &typesv4.Currency_NativeToken{}, resp.RefundAmount.Currency.Currency, "unexpected response RefundAmount.Currency type")
 	require.Equal(t, common.CancellationPolicyID, resp.PolicyIdApplied, "unexpected response PolicyIdApplied")
-	require.Equal(t, cancellationv1.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM, resp.Status, "unexpected response status")
+	require.Equal(t, cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM, resp.Status, "unexpected response status")
 	require.Equal(t, cancellationv1.RejectionReason_REJECTION_REASON_UNSPECIFIED, resp.RejectionReason, "unexpected response RejectionReason")
 	require.WithinRange(t, resp.Timestamp.AsTime(), reqTime, time.Now(), "unexpected response Timestamp, expected it to be within the request time and now")
 }
 
-func newCancellationV1Helper(
+func newCancellationV2Helper(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
@@ -319,8 +321,8 @@ func newCancellationV1Helper(
 	distributorPPEventStream events.EventsService_SubscribeClient,
 	supplierPPEventStream events.EventsService_SubscribeClient,
 	tokenID uint64,
-) *cancellationV1Helper {
-	return &cancellationV1Helper{
+) *cancellationV2Helper {
+	return &cancellationV2Helper{
 		ctx:                      ctx,
 		t:                        t,
 		e:                        e,
@@ -333,7 +335,7 @@ func newCancellationV1Helper(
 	}
 }
 
-type cancellationV1Helper struct {
+type cancellationV2Helper struct {
 	ctx                      context.Context
 	t                        *testing.T
 	e                        *suite.Environment
@@ -356,7 +358,7 @@ type cancellationV1Helper struct {
 	withdrawalReason   cancellationv1.WithdrawalReason
 }
 
-func (h *cancellationV1Helper) getBot(
+func (h *cancellationV2Helper) getBot(
 	supplierOrDistributor SupplierOrDistributor,
 ) *bot.Bot {
 	switch supplierOrDistributor {
@@ -370,18 +372,18 @@ func (h *cancellationV1Helper) getBot(
 	}
 }
 
-func (h *cancellationV1Helper) initiateCancellation(
+func (h *cancellationV2Helper) initiateCancellation(
 	initiator SupplierOrDistributor,
-	refundAmount *typesv3.Price,
+	refundAmount *typesv4.Price,
 	reason cancellationv1.CancellationReason,
 ) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, refundAmount.Decimals, price.NativeTokenDecimals)
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	initiatorBot := h.getBot(initiator)
 
-	initiateCancellationResp, err := initiatorBot.CancellationServiceV1.InitiateCancellation(h.ctx, &cancellationv1.InitiateCancellationRequest{
-		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	initiateCancellationResp, err := initiatorBot.CancellationServiceV2.InitiateCancellation(h.ctx, &cancellationv2.InitiateCancellationRequest{
+		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId:      h.tokenID,
 		RefundAmount: refundAmount,
 		Reason:       reason,
@@ -410,18 +412,18 @@ func (h *cancellationV1Helper) initiateCancellation(
 	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, initiateCancellationResp.TransactionId.Hash)
 }
 
-func (h *cancellationV1Helper) counterCancellation(
+func (h *cancellationV2Helper) counterCancellation(
 	counterer SupplierOrDistributor,
-	refundAmount *typesv3.Price,
+	refundAmount *typesv4.Price,
 	reason cancellationv1.CounterReason,
 ) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, refundAmount.Decimals, price.NativeTokenDecimals)
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	countererBot := h.getBot(counterer)
 
-	counterCancellationResp, err := countererBot.CancellationServiceV1.CounterCancellation(h.ctx, &cancellationv1.CounterCancellationRequest{
-		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	counterCancellationResp, err := countererBot.CancellationServiceV2.CounterCancellation(h.ctx, &cancellationv2.CounterCancellationRequest{
+		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId:      h.tokenID,
 		RefundAmount: refundAmount,
 		Reason:       reason,
@@ -445,17 +447,17 @@ func (h *cancellationV1Helper) counterCancellation(
 	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, counterCancellationResp.TransactionId.Hash)
 }
 
-func (h *cancellationV1Helper) acceptCancellation(
+func (h *cancellationV2Helper) acceptCancellation(
 	accepter SupplierOrDistributor,
-	refundAmount *typesv3.Price,
+	refundAmount *typesv4.Price,
 ) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, refundAmount.Decimals, price.NativeTokenDecimals)
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	accepterBot := h.getBot(accepter)
 
-	acceptCancellationResp, err := accepterBot.CancellationServiceV1.AcceptCancellation(h.ctx, &cancellationv1.AcceptCancellationRequest{
-		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	acceptCancellationResp, err := accepterBot.CancellationServiceV2.AcceptCancellation(h.ctx, &cancellationv2.AcceptCancellationRequest{
+		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId:      h.tokenID,
 		RefundAmount: refundAmount,
 	})
@@ -472,14 +474,14 @@ func (h *cancellationV1Helper) acceptCancellation(
 	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, acceptCancellationResp.TransactionId.Hash)
 }
 
-func (h *cancellationV1Helper) rejectCancellation(
+func (h *cancellationV2Helper) rejectCancellation(
 	rejecter SupplierOrDistributor,
 	reason cancellationv1.RejectionReason,
 ) {
 	rejecterBot := h.getBot(rejecter)
 
-	rejectCancellationResp, err := rejecterBot.CancellationServiceV1.RejectCancellation(h.ctx, &cancellationv1.RejectCancellationRequest{
-		Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	rejectCancellationResp, err := rejecterBot.CancellationServiceV2.RejectCancellation(h.ctx, &cancellationv2.RejectCancellationRequest{
+		Header:  &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId: h.tokenID,
 		Reason:  reason,
 	})
@@ -492,14 +494,14 @@ func (h *cancellationV1Helper) rejectCancellation(
 	h.expectCancellationRejectedNotification(h.supplierPPEventStream, rejectCancellationResp.TransactionId.Hash)
 }
 
-func (h *cancellationV1Helper) withdrawCancellation(
+func (h *cancellationV2Helper) withdrawCancellation(
 	withdrawer SupplierOrDistributor,
 	reason cancellationv1.WithdrawalReason,
 ) {
 	withdrawerBot := h.getBot(withdrawer)
 
-	withdrawCancellationResp, err := withdrawerBot.CancellationServiceV1.WithdrawCancellation(h.ctx, &cancellationv1.WithdrawCancellationRequest{
-		Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	withdrawCancellationResp, err := withdrawerBot.CancellationServiceV2.WithdrawCancellation(h.ctx, &cancellationv2.WithdrawCancellationRequest{
+		Header:  &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId: h.tokenID,
 		Reason:  reason,
 	})
@@ -511,8 +513,8 @@ func (h *cancellationV1Helper) withdrawCancellation(
 	h.expectCancellationWithdrawnNotification(h.supplierPPEventStream, withdrawCancellationResp.TransactionId.Hash)
 }
 
-func (h *cancellationV1Helper) finalizeCancellation(refundAmount *typesv3.Price) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, refundAmount.Decimals, price.NativeTokenDecimals)
+func (h *cancellationV2Helper) finalizeCancellation(refundAmount *typesv4.Price) {
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	supplierBalance, err := h.e.CaminoNetwork.Client.BalanceOf(h.ctx, h.supplierBot.CMAccountAddress())
@@ -523,13 +525,13 @@ func (h *cancellationV1Helper) finalizeCancellation(refundAmount *typesv3.Price)
 	expectedSupplierBalance := big.NewInt(0).Sub(supplierBalance, refundAmountBig)
 	expectedDistributorBalance := big.NewInt(0).Add(distributorBalance, refundAmountBig)
 
-	finalizeCancellationResp, err := h.supplierBot.CancellationServiceV1.FinalizeCancellation(h.ctx, &cancellationv1.FinalizeCancellationRequest{
-		Header:  &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
+	finalizeCancellationResp, err := h.supplierBot.CancellationServiceV2.FinalizeCancellation(h.ctx, &cancellationv2.FinalizeCancellationRequest{
+		Header:  &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId: h.tokenID,
-		RefundAmount: &typesv3.Price{
+		RefundAmount: &typesv4.Price{
 			Value:    refundAmount.Value,
 			Decimals: refundAmount.Decimals,
-			Currency: &typesv3.Currency{Currency: &typesv3.Currency_NativeToken{}},
+			Currency: &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}},
 		},
 	})
 	h.require.NoError(err)
@@ -554,7 +556,7 @@ func (h *cancellationV1Helper) finalizeCancellation(refundAmount *typesv3.Price)
 	)
 }
 
-func (h *cancellationV1Helper) expectCancellationPendingNotification(
+func (h *cancellationV2Helper) expectCancellationPendingNotification(
 	ppEventsStream events.EventsService_SubscribeClient,
 	refundAmount *big.Int,
 	txHash string,
@@ -579,7 +581,7 @@ func (h *cancellationV1Helper) expectCancellationPendingNotification(
 	h.require.Equal(txHash, cancellationPendingNotification.TxId.Hash)
 }
 
-func (h *cancellationV1Helper) expectCancellationRejectedNotification(
+func (h *cancellationV2Helper) expectCancellationRejectedNotification(
 	ppEventsStream events.EventsService_SubscribeClient,
 	txHash string,
 ) {
@@ -593,7 +595,7 @@ func (h *cancellationV1Helper) expectCancellationRejectedNotification(
 	h.require.Equal(txHash, cancellationRejectedNotification.TxId.Hash)
 }
 
-func (h *cancellationV1Helper) expectCancellationWithdrawnNotification(
+func (h *cancellationV2Helper) expectCancellationWithdrawnNotification(
 	ppEventsStream events.EventsService_SubscribeClient,
 	txHash string,
 ) {
@@ -607,7 +609,7 @@ func (h *cancellationV1Helper) expectCancellationWithdrawnNotification(
 	h.require.Equal(txHash, cancellationWithdrawnNotification.TxId.Hash)
 }
 
-func (h *cancellationV1Helper) expectCancellationFinalizedNotification(
+func (h *cancellationV2Helper) expectCancellationFinalizedNotification(
 	ppEventsStream events.EventsService_SubscribeClient,
 	txHash string,
 ) {

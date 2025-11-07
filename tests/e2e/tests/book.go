@@ -27,6 +27,39 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+func mintBuyAccommodationTokenV4(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	supplierPPEventStream events.EventsService_SubscribeClient,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) (
+	tokenID uint64,
+	mintID string,
+	price *typesv4.Price,
+) {
+	searchID, resultID, totalPrice := testAccommodationV4SearchService(ctx, t, e, distributorBot, supplierBot) // see test_accommodation_v4.go
+	_, err := supplierPPEventStream.Recv()                                                                     // skip AccommodationSearchRequest
+	require.NoError(t, err)
+
+	validationID := testValidateV4(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
+	require.NoError(t, err)
+
+	tokenID, mintID, bookingPrice := testMintV4(ctx, t, e, distributorBot, supplierBot, validationID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip MintRequest
+	require.NoError(t, err)
+
+	eventMsg, err := supplierPPEventStream.Recv()
+	require.NoError(t, err)
+	e.DebugPrintProtoMessage(eventMsg)
+	tokenBoughtNotification := &notificationv3.TokenBought{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
+
+	return tokenID, mintID, bookingPrice
+}
+
 func mintBuyAccommodationTokenV3(
 	ctx context.Context,
 	t *testing.T,

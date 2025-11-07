@@ -15,8 +15,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const PolicyID = "pp-mock-full-refund"
-
 var _ cancellationv1grpc.CheckCancellationServiceServer = (*checkCancellationV1Server)(nil)
 
 type checkCancellationV1Server struct{}
@@ -38,7 +36,7 @@ func (s *checkCancellationV1Server) CheckCancellation(_ context.Context, req *ca
 				Currency: &typesv3.Currency_NativeToken{},
 			},
 		},
-		PolicyIdApplied: PolicyID,
+		PolicyIdApplied: common.CancellationPolicyID,
 		Status:          cancellationv1.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM,
 		Timestamp:       timestamppb.Now(),
 	}

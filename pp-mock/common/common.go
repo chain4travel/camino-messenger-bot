@@ -21,6 +21,7 @@ const (
 	DefaultPricePerNightDecimals       = 2
 	BookingTokenPriceValue             = "1"
 	FreeCancellationDuration           = 7 * 24 * time.Hour
+	CancellationPolicyID               = "pp-mock-full-refund"
 )
 
 var DefaultPricePerNightNativeTokenBig *big.Int
