@@ -29,7 +29,7 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 	resp := &activityv4.ActivitySearchResponse{
 		SearchId: &typesv4.ExpiringUUID{
 			Id:         &typesv4.UUID{Value: uuid.New().String()},
-			Expiration: timestamppb.New(time.Now().Add(time.Hour)),
+			Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
 		},
 		Travellers: req.Travellers,
 	}

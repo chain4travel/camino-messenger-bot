@@ -11,7 +11,7 @@ import (
 
 // Constants for entry timeout
 // Must be bigger than config.BuyableUntilDefault
-const entryTimeout = 10 * time.Minute
+const EntryTimeout = 10 * time.Minute
 
 type UnifiedPrice struct {
 	Price                string
@@ -171,21 +171,21 @@ func (s *Store) GetMintResult(mintID string) (MintResult, bool) {
 // cleanupExpiredEntries removes entries that have expired based on the entryTimeout.
 func (s *Store) cleanupExpiredEntries() {
 	for {
-		time.Sleep(entryTimeout)
+		time.Sleep(EntryTimeout)
 		s.mu.Lock()
 		now := time.Now()
 		for id, result := range s.searchResults {
-			if now.Sub(result.CreatedAt) > entryTimeout {
+			if now.Sub(result.CreatedAt) > EntryTimeout {
 				delete(s.searchResults, id)
 			}
 		}
 		for id, result := range s.validationResults {
-			if now.Sub(result.CreatedAt) > entryTimeout {
+			if now.Sub(result.CreatedAt) > EntryTimeout {
 				delete(s.validationResults, id)
 			}
 		}
 		for id, result := range s.mintResults {
-			if now.Sub(result.CreatedAt) > entryTimeout {
+			if now.Sub(result.CreatedAt) > EntryTimeout {
 				delete(s.mintResults, id)
 			}
 		}

@@ -34,7 +34,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 	resp := &transportv4.TransportSearchResponse{
 		SearchId: &typesv4.ExpiringUUID{
 			Id:         &typesv4.UUID{Value: uuid.New().String()},
-			Expiration: timestamppb.New(time.Now().Add(time.Hour)),
+			Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
 		},
 	}
 

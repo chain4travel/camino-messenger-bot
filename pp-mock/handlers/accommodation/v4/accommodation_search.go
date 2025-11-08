@@ -30,7 +30,7 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 	resp := &accommodationv4.AccommodationSearchResponse{
 		SearchId: &typesv4.ExpiringUUID{
 			Id:         &typesv4.UUID{Value: uuid.New().String()},
-			Expiration: timestamppb.New(time.Now().Add(time.Hour)),
+			Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
 		},
 	}
 

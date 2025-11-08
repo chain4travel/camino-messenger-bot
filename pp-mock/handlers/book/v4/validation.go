@@ -48,7 +48,7 @@ func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.Va
 		Header: common.SuccessHeaderV4(),
 		ValidationId: &typesv4.ExpiringUUID{
 			Id:         &typesv4.UUID{Value: uuid.New().String()},
-			Expiration: timestamppb.New(time.Now().Add(time.Hour)),
+			Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
 		},
 		ValidationObject: req.ValidationObject,
 		TotalPrice: &typesv4.TotalPrice{
