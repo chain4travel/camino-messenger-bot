@@ -79,13 +79,14 @@ func NewServer(
 
 	opts = append(opts, grpc.ChainUnaryInterceptor(
 		s.unaryRecoverInterceptor,
-		selector.UnaryServerInterceptor( // for all cancellationv1grpc methods
+		selector.UnaryServerInterceptor( // for all cancellation v1/v2 methods
 			chainUnaryServerInterceptors(
 				s.tracingInterceptor,
 				s.errorHandlingInterceptor,
 			),
 			selector.MatchFunc(func(_ context.Context, callMeta interceptors.CallMeta) bool {
-				return cancellationv1grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
+				return cancellationv1grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service ||
+					cancellationv2grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
 			}),
 		),
 	))
