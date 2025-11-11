@@ -284,7 +284,7 @@ func (p *messageProcessor) SendRequestMessage(
 	select {
 	case responseMsg := <-responseChan:
 		if responseMsg.RequestID == requestMsg.RequestID {
-			p.responseHandler.ProcessResponseMessage(ctx, responseMsg)
+			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
 			return responseMsg, nil
 		} else {
 			err := fmt.Errorf("unexpected response (%s) for request (%s)", responseMsg.RequestID, requestMsg.RequestID)

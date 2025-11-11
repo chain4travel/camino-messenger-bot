@@ -17,8 +17,8 @@ import (
 
 func (h *evmResponseHandler) prepareMintResponseV2(
 	ctx context.Context,
-	response *bookv2.MintResponse,
 	request *bookv2.MintRequest,
+	response *bookv2.MintResponse,
 ) {
 	if response.Header.Status != typesv1.StatusType_STATUS_TYPE_SUCCESS {
 		return

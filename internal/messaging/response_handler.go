@@ -34,7 +34,7 @@ var _ ResponseHandler = (*evmResponseHandler)(nil)
 
 type ResponseHandler interface {
 	// Processes incoming response
-	ProcessResponseMessage(ctx context.Context, responseMsg *types.Message)
+	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
 
 	// Prepares response by performing any necessary modifications to it
 	// It expects the request and response to be of the same service.
@@ -88,6 +88,7 @@ type evmResponseHandler struct {
 // Processes incoming response
 func (h *evmResponseHandler) ProcessResponseMessage(
 	ctx context.Context,
+	requestMsg *types.Message,
 	responseMsg *types.Message,
 ) {
 	switch response := responseMsg.Content.(type) {
@@ -96,7 +97,7 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 	case *bookv3.MintResponse: // distributor will post-process a mint request to buy the returned NFT
 		h.processMintResponseV3(ctx, response)
 	case *bookv4.MintResponse: // distributor will post-process a mint request to buy the returned NFT
-		h.processMintResponseV4(ctx, response)
+		h.processMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
 	}
 }
 
@@ -109,11 +110,11 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 ) {
 	switch response := responseMsg.Content.(type) {
 	case *bookv2.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		h.prepareMintResponseV2(ctx, response, requestMsg.Content.(*bookv2.MintRequest))
+		h.prepareMintResponseV2(ctx, requestMsg.Content.(*bookv2.MintRequest), response)
 	case *bookv3.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		h.prepareMintResponseV3(ctx, response, requestMsg.Content.(*bookv3.MintRequest))
+		h.prepareMintResponseV3(ctx, requestMsg.Content.(*bookv3.MintRequest), response)
 	case *bookv4.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		h.prepareMintResponseV4(ctx, response, requestMsg.Content.(*bookv4.MintRequest))
+		h.prepareMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
 	}
 }
 

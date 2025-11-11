@@ -12,12 +12,13 @@ import (
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/ethereum/go-ethereum/common"
+	"google.golang.org/protobuf/proto"
 )
 
 func (h *evmResponseHandler) prepareMintResponseV4(
 	ctx context.Context,
-	response *bookv4.MintResponse,
 	request *bookv4.MintRequest,
+	response *bookv4.MintResponse,
 ) {
 	if response.Header.Status != typesv4.StatusType_STATUS_TYPE_SUCCESS {
 		return
@@ -80,10 +81,21 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 	}
 }
 
-func (h *evmResponseHandler) processMintResponseV4(ctx context.Context, response *bookv4.MintResponse) {
-	if response.MintTransactionId == nil || response.MintTransactionId.Hash == "" {
+func (h *evmResponseHandler) processMintResponseV4(
+	ctx context.Context,
+	request *bookv4.MintRequest,
+	response *bookv4.MintResponse,
+) {
+	if response.MintTransactionId == nil {
 		h.logger.Error(errMissingMintTxID)
 		h.responseHeaderHandler.AddError(response, errMissingMintTxID.Error())
+		return
+	}
+
+	if !proto.Equal(request.ExpectedPrice, response.Price) {
+		errMessage := "expected price does not match the mint response price"
+		h.logger.Error(errMessage)
+		h.responseHeaderHandler.AddError(response, errMessage)
 		return
 	}
 

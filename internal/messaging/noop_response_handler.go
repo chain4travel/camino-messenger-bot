@@ -14,7 +14,7 @@ var _ ResponseHandler = (*NoopResponseHandler)(nil)
 
 type NoopResponseHandler struct{}
 
-func (NoopResponseHandler) ProcessResponseMessage(context.Context, *types.Message) {}
+func (NoopResponseHandler) ProcessResponseMessage(context.Context, *types.Message, *types.Message) {}
 
 func (NoopResponseHandler) PrepareResponseMessage(context.Context, *types.Message, *types.Message) {}
 
