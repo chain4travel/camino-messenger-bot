@@ -245,7 +245,7 @@ func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 			Gender:     typesv4.GenderType_GENDER_TYPE_UNSPECIFIED,
 		}},
 	}
-	resp, err := tt.distributorBot.MintServiceV4.Mint(
+	resp, err := distributorBot.MintServiceV4.Mint(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
