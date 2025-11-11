@@ -24,10 +24,7 @@ func NewCheckCancellationServer() cancellationv2grpc.CheckCancellationServiceSer
 
 func (s *checkCancellationV2Server) CheckCancellation(_ context.Context, req *cancellationv2.CheckCancellationRequest) (*cancellationv2.CheckCancellationResponse, error) {
 	response := &cancellationv2.CheckCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
-			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:  common.SuccessHeaderV4(),
 		TokenId: req.TokenId,
 		RefundAmount: &typesv4.Price{
 			Value:    common.BookingTokenPriceValue,
