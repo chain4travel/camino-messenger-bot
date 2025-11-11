@@ -11,6 +11,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
 	cancellationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v2"
@@ -65,7 +66,7 @@ func (s *cancellationV2Service) InitiateCancellation(
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 
-	reasonValue, err := uint16FromProtoEnumNumber(request.Reason.Number())
+	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		err := fmt.Errorf("error converting reason to uint16: %w", err)
 		s.logger.Error(err)
@@ -104,7 +105,7 @@ func (s *cancellationV2Service) CounterCancellation(
 		return response, err
 	}
 
-	reasonValue, err := uint16FromProtoEnumNumber(request.Reason.Number())
+	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		err := fmt.Errorf("error converting reason to uint16: %w", err)
 		s.logger.Error(err)
@@ -169,7 +170,7 @@ func (s *cancellationV2Service) RejectCancellation(
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 
-	reasonValue, err := uint16FromProtoEnumNumber(request.Reason.Number())
+	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		err := fmt.Errorf("error converting reason to uint16: %w", err)
 		s.logger.Error(err)
@@ -202,7 +203,7 @@ func (s *cancellationV2Service) WithdrawCancellation(
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 
-	reasonValue, err := uint16FromProtoEnumNumber(request.Reason.Number())
+	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		err := fmt.Errorf("error converting reason to uint16: %w", err)
 		s.logger.Error(err)
