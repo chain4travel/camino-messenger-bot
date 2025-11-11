@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
 	"reflect"
 	"runtime"
 	"testing"
@@ -163,6 +164,13 @@ func (e *Environment) protoMessageToJSON(message proto.Message) string {
 		return ""
 	}
 	return string(jsonData)
+}
+
+func (e *Environment) Balance(ctx context.Context, t *testing.T, bot *bot.Bot) *big.Int {
+	t.Helper()
+	balance, err := e.CaminoNetwork.Client.BalanceOf(ctx, bot.CMAccountAddress())
+	require.NoError(t, err)
+	return balance
 }
 
 // Get printable type information including the package path

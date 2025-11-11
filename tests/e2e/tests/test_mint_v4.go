@@ -54,7 +54,11 @@ func (tt *TestMintV4) Run(t *testing.T) {
 	})
 
 	t.Run("Search->Validate->Mint->TokenReservationExpiredNotification", func(t *testing.T) {
-		tt.testMintV4TokenExpiredCase(ctx, t)
+		tt.testMintV4UnexpectedPrice(ctx, t)
+	})
+
+	t.Run("Search->Validate->Mint with wrong expected price", func(t *testing.T) {
+		tt.testMintV4FullWorkflow(ctx, t)
 	})
 }
 
@@ -104,7 +108,9 @@ func (tt *TestMintV4) testMintV4FullWorkflow(ctx context.Context, t *testing.T) 
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	tokenID, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
+	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
+
+	tokenID, mintID, mintRespPrice := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -119,6 +125,8 @@ func (tt *TestMintV4) testMintV4FullWorkflow(ctx context.Context, t *testing.T) 
 	require.NotNil(t, tokenBoughtNotification.MintId)
 	require.Equal(t, tokenBoughtNotification.MintId.Value, mintID)
 	require.NotEmpty(t, tokenBoughtNotification.TxId)
+
+	verifyBookingTokenStateWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
 }
 
 func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing.T) {
@@ -174,6 +182,31 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID2)
+}
+
+func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.T) {
+	searchID, resultID, expectedPrice := testAccommodationV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot) // see test_accommodation_v4.go
+	_, err := tt.supplierPPEventStream.Recv()                                                                                        // skip AccommodationSearchRequest
+	require.NoError(t, err)
+
+	validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, expectedPrice)
+	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
+	require.NoError(t, err)
+
+	expectedPrice.Decimals += 1 // make the expected price different
+
+	tokenID, mintID := tt.testMintV4MintV4ExpectedError(ctx, t, validationID, expectedPrice)
+	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
+	require.NoError(t, err)
+
+	eventMsg, err := tt.supplierPPEventStream.Recv()
+	require.NoError(t, err)
+	tt.DebugPrintProtoMessage(eventMsg)
+	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
+	require.Equal(t, tokenExpiredNotification.TokenId, tokenID)
+	require.NotNil(t, tokenExpiredNotification.MintId)
+	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID)
 }
 
 func (tt *TestMintV4) testMintV4MintV4ExpectedError(
