@@ -348,44 +348,60 @@ func testMintV2(
 
 // verify blockchain state
 
-func verifyBookingTokenStateWithPriceV4(
+func verifyBookingTokenStateNotBoughtWithPriceV4(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	tokenID uint64,
+	tokenPrice *typesv4.Price,
+	distributorBalanceBefore *big.Int,
+) {
+	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV4(t, tokenPrice))
+	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, conversion.MustUInt32ToInt32(tokenPrice.Decimals), price.NativeTokenDecimals)
+	require.NoError(t, err)
+	verifyBookingTokenStateNotBought(ctx, t, e, distributorBot, supplierBot, tokenID, expectedReservationPrice, distributorBalanceBefore)
+}
+
+func verifyBookingTokenStateBoughtWithPriceV4(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
 	distributorBot *bot.Bot,
 	tokenID uint64,
 	tokenPrice *typesv4.Price,
-	balanceBefore *big.Int,
+	distributorBalanceBefore *big.Int,
 ) {
 	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV4(t, tokenPrice))
 	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, conversion.MustUInt32ToInt32(tokenPrice.Decimals), price.NativeTokenDecimals)
 	require.NoError(t, err)
-	verifyBookingTokenState(ctx, t, e, distributorBot, tokenID, expectedReservationPrice, balanceBefore)
+	verifyBookingTokenStateBought(ctx, t, e, distributorBot, tokenID, expectedReservationPrice, distributorBalanceBefore)
 }
 
-func verifyBookingTokenStateWithPriceV2(
+func verifyBookingTokenStateBoughtWithPriceV2(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
 	distributorBot *bot.Bot,
 	tokenID uint64,
 	tokenPrice *typesv2.Price,
-	balanceBefore *big.Int,
+	distributorBalanceBefore *big.Int,
 ) {
 	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV2(t, tokenPrice))
 	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, tokenPrice.Decimals, price.NativeTokenDecimals)
 	require.NoError(t, err)
-	verifyBookingTokenState(ctx, t, e, distributorBot, tokenID, expectedReservationPrice, balanceBefore)
+	verifyBookingTokenStateBought(ctx, t, e, distributorBot, tokenID, expectedReservationPrice, distributorBalanceBefore)
 }
 
-func verifyBookingTokenState(
+func verifyBookingTokenStateBought(
 	ctx context.Context,
 	t *testing.T,
 	e *suite.Environment,
 	distributorBot *bot.Bot,
 	tokenID uint64,
 	expectedReservationPrice *big.Int,
-	balanceBefore *big.Int,
+	distributorBalanceBefore *big.Int,
 ) {
 	bigTokenID := big.NewInt(0).SetUint64(tokenID)
 	callOpts := &bind.CallOpts{Context: ctx}
@@ -403,6 +419,35 @@ func verifyBookingTokenState(
 	require.NoError(t, err)
 	require.Equal(t, booking.StatusBought, booking.Status(tokenStatus))
 
-	expectedBalanceAfter := big.NewInt(0).Sub(balanceBefore, expectedReservationPrice)
-	require.Equal(t, expectedBalanceAfter, e.Balance(ctx, t, distributorBot), "unexpected balance after minting booking token")
+	expectedBalanceAfter := big.NewInt(0).Sub(distributorBalanceBefore, expectedReservationPrice)
+	require.Equal(t, expectedBalanceAfter, e.Balance(ctx, t, distributorBot), "unexpected balance")
+}
+
+func verifyBookingTokenStateNotBought(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	tokenID uint64,
+	expectedReservationPrice *big.Int,
+	distributorBalanceBefore *big.Int,
+) {
+	bigTokenID := big.NewInt(0).SetUint64(tokenID)
+	callOpts := &bind.CallOpts{Context: ctx}
+
+	reservationPrice, err := e.CaminoNetwork.Client.BookingToken.GetReservationPrice(callOpts, bigTokenID)
+	require.NoError(t, err)
+	require.Equal(t, booking.NativePaymentToken, reservationPrice.PaymentToken)
+	require.Equal(t, expectedReservationPrice, reservationPrice.Price)
+
+	ownerAddr, err := e.CaminoNetwork.Client.BookingToken.OwnerOf(callOpts, bigTokenID)
+	require.NoError(t, err)
+	require.Equal(t, supplierBot.CMAccountAddress(), ownerAddr)
+
+	tokenStatus, err := e.CaminoNetwork.Client.BookingToken.GetBookingStatus(callOpts, bigTokenID)
+	require.NoError(t, err)
+	require.NotEqual(t, booking.StatusBought, booking.Status(tokenStatus))
+
+	require.Equal(t, distributorBalanceBefore, e.Balance(ctx, t, distributorBot), "unexpected balance")
 }

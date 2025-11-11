@@ -129,7 +129,7 @@ func (tt *TestMintV4) testMintV4FullWorkflow(ctx context.Context, t *testing.T) 
 	require.Equal(t, tokenBoughtNotification.MintId.Value, mintID)
 	require.NotEmpty(t, tokenBoughtNotification.TxId)
 
-	verifyBookingTokenStateWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
+	verifyBookingTokenStateBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
 }
 
 func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing.T) {
@@ -155,6 +155,8 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 
 	var tokenID1 uint64
 	var mintID1 string
+
+	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBotWithoutFunds)
 
 	tokenID1, mintID1 = tt.testMintV4MintV4ExpectedError(ctx, t, validationID1, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
@@ -185,6 +187,9 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID2)
+
+	verifyBookingTokenStateNotBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, tokenID1, common.BookingTokenPriceV4, balanceBefore)
+	verifyBookingTokenStateNotBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, tokenID2, common.BookingTokenPriceV4, balanceBefore)
 }
 
 func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.T) {
@@ -195,6 +200,8 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, expectedPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
+
+	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
 
 	// modify expected price to be different from the one returned by pp-mock mint response
 	expectedPrice = common.CloneProto(common.BookingTokenPriceV4)
@@ -214,6 +221,8 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID)
+
+	verifyBookingTokenStateNotBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, tokenID, common.BookingTokenPriceV4, balanceBefore)
 }
 
 func (tt *TestMintV4) testMintV4MintV4ExpectedError(

@@ -83,7 +83,7 @@ func (tt *TestTransportV3) Run(t *testing.T) {
 		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
 		tokenID, _, mintRespPrice := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
-		verifyBookingTokenStateWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
+		verifyBookingTokenStateBoughtWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
 	})
 }
 
