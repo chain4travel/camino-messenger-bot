@@ -5,12 +5,15 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"testing"
 
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
@@ -53,12 +56,12 @@ func (tt *TestMintV4) Run(t *testing.T) {
 		}
 	})
 
-	t.Run("Search->Validate->Mint->TokenReservationExpiredNotification", func(t *testing.T) {
-		tt.testMintV4UnexpectedPrice(ctx, t)
+	t.Run("Search->Validate->Mint(not enough funds to buy)->TokenReservationExpiredNotification", func(t *testing.T) {
+		tt.testMintV4TokenExpiredCase(ctx, t)
 	})
 
-	t.Run("Search->Validate->Mint with wrong expected price", func(t *testing.T) {
-		tt.testMintV4FullWorkflow(ctx, t)
+	t.Run("Search->Validate->Mint(wrong expected price)->TokenReservationExpiredNotification", func(t *testing.T) {
+		tt.testMintV4UnexpectedPrice(ctx, t)
 	})
 }
 
@@ -110,7 +113,7 @@ func (tt *TestMintV4) testMintV4FullWorkflow(ctx context.Context, t *testing.T) 
 
 	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
 
-	tokenID, mintID, mintRespPrice := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
+	tokenID, mintID, mintRespPrice := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, common.BookingTokenPriceV4)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -193,7 +196,11 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	expectedPrice.Decimals += 1 // make the expected price different
+	// modify expected price to be different from the one returned by pp-mock mint response
+	expectedPrice = common.CloneProto(common.BookingTokenPriceV4)
+	value, err := strconv.ParseInt(common.BookingTokenPriceV4.Value, 10, 64)
+	require.NoError(t, err)
+	expectedPrice.Value = fmt.Sprintf("%d", value+10)
 
 	tokenID, mintID := tt.testMintV4MintV4ExpectedError(ctx, t, validationID, expectedPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest

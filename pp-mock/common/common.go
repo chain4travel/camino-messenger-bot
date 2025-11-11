@@ -24,7 +24,30 @@ const (
 	CancellationPolicyID               = "pp-mock-full-refund"
 )
 
-var DefaultPricePerNightNativeTokenBig *big.Int
+var (
+	DefaultPricePerNightNativeTokenBig *big.Int
+
+	BookingTokenPriceV2 = &typesv2.Price{
+		Value: BookingTokenPriceValue,
+		Currency: &typesv2.Currency{
+			Currency: &typesv2.Currency_NativeToken{},
+		},
+	}
+
+	BookingTokenPriceV3 = &typesv3.Price{
+		Value: BookingTokenPriceValue,
+		Currency: &typesv3.Currency{
+			Currency: &typesv3.Currency_NativeToken{},
+		},
+	}
+
+	BookingTokenPriceV4 = &typesv4.Price{
+		Value: BookingTokenPriceValue,
+		Currency: &typesv4.Currency{
+			Currency: &typesv4.Currency_NativeToken{},
+		},
+	}
+)
 
 func init() {
 	var err error

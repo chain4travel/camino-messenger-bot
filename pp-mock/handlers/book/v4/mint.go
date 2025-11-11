@@ -39,13 +39,8 @@ func (s *mintServiceV4Server) Mint(_ context.Context, req *bookv4.MintRequest) (
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),
 		},
-		ValidationId: req.ValidationId,
-		Price: &typesv4.Price{
-			Value: common.BookingTokenPriceValue,
-			Currency: &typesv4.Currency{
-				Currency: &typesv4.Currency_NativeToken{},
-			},
-		},
+		ValidationId:    req.ValidationId,
+		Price:           common.BookingTokenPriceV4,
 		Cancellable:     true,
 		BookingTokenUri: "https://example.com/",
 	}

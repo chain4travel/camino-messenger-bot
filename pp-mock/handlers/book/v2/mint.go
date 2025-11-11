@@ -10,7 +10,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
@@ -55,12 +54,7 @@ func (s *mintServiceV2Server) Mint(_ context.Context, req *bookv2.MintRequest) (
 			Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),
 		},
 		ValidationId: req.ValidationId,
-		Price: &typesv2.Price{
-			Value: common.BookingTokenPriceValue,
-			Currency: &typesv2.Currency{
-				Currency: &typesv2.Currency_NativeToken{},
-			},
-		},
+		Price:        common.BookingTokenPriceV2,
 	}
 
 	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)

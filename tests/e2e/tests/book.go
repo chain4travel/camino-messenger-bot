@@ -19,6 +19,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
 	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/suite"
@@ -47,7 +48,7 @@ func mintBuyAccommodationTokenV4(
 	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	tokenID, mintID, bookingPrice := testMintV4(ctx, t, e, distributorBot, supplierBot, validationID, totalPrice)
+	tokenID, mintID, bookingPrice := testMintV4(ctx, t, e, distributorBot, supplierBot, validationID, common.BookingTokenPriceV4)
 	_, err = supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 

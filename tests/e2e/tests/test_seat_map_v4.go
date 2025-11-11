@@ -68,7 +68,7 @@ func (tt *TestSeatMapV4) Run(t *testing.T) {
 		tt.testSeatMapV4(ctx, t, seatMapID)
 		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, seatMapID)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
-		_, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
+		_, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, common.BookingTokenPriceV4)
 		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, seatMapID)
 	})
 	t.Run("Activity Search->SeatMap,SeatMapAvailability(searchID)->Validate->Mint->SeatMapAvailability(mintID)", func(t *testing.T) {
@@ -76,7 +76,7 @@ func (tt *TestSeatMapV4) Run(t *testing.T) {
 		tt.testSeatMapV4(ctx, t, seatMapID)
 		tt.testSeatMapAvailabilityV4WithSearchID(ctx, t, searchID, seatMapID)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
-		_, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, totalPrice)
+		_, mintID, _ := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, common.BookingTokenPriceV4)
 		tt.testSeatMapAvailabilityV4WithMintID(ctx, t, mintID, seatMapID)
 	})
 }
