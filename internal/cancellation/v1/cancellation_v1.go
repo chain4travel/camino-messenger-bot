@@ -13,24 +13,32 @@ import (
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
-	cancellationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v2"
-	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
+	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 )
 
-var _ cancellationv2grpc.CancellationServiceServer = (*cancellationV2Service)(nil)
+const (
+	cancellationReasonVersion = 1
+	withdrawReasonVersion     = 1
+	rejectReasonVersion       = 1
+	counterReasonVersion      = 1
+)
 
-func NewServiceV2(
+var _ cancellationv1grpc.CancellationServiceServer = (*cancellationV1Service)(nil)
+
+func NewService(
 	logger *zap.SugaredLogger,
 	botKey *ecdsa.PrivateKey,
 	cmAccountAddr ethCommon.Address,
 	cmAccounts cmaccounts.Service,
 	priceHandler common.PriceHandler,
-) cancellationv2grpc.CancellationServiceServer {
-	return &cancellationV2Service{
+) cancellationv1grpc.CancellationServiceServer {
+	return &cancellationV1Service{
 		botKey:        botKey,
 		cmAccountAddr: cmAccountAddr,
 		logger:        logger,
@@ -39,7 +47,7 @@ func NewServiceV2(
 	}
 }
 
-type cancellationV2Service struct {
+type cancellationV1Service struct {
 	botKey        *ecdsa.PrivateKey
 	cmAccountAddr ethCommon.Address
 	logger        *zap.SugaredLogger
@@ -47,17 +55,17 @@ type cancellationV2Service struct {
 	cmAccounts    cmaccounts.Service
 }
 
-func (s *cancellationV2Service) InitiateCancellation(
+func (s *cancellationV1Service) InitiateCancellation(
 	ctx context.Context,
-	request *cancellationv2.InitiateCancellationRequest,
-) (*cancellationv2.InitiateCancellationResponse, error) {
-	response := &cancellationv2.InitiateCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+	request *cancellationv1.InitiateCancellationRequest,
+) (*cancellationv1.InitiateCancellationResponse, error) {
+	response := &cancellationv1.InitiateCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
 		},
 	}
 
-	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
+	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
 		err := fmt.Errorf("error getting price and token: %w", err)
 		s.logger.Error(err)
@@ -80,25 +88,25 @@ func (s *cancellationV2Service) InitiateCancellation(
 		return response, err
 	}
 
-	response.TransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
 	s.logger.Infof("Initiated cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
 	return response, nil
 }
 
-func (s *cancellationV2Service) CounterCancellation(
+func (s *cancellationV1Service) CounterCancellation(
 	ctx context.Context,
-	request *cancellationv2.CounterCancellationRequest,
-) (*cancellationv2.CounterCancellationResponse, error) {
-	response := &cancellationv2.CounterCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+	request *cancellationv1.CounterCancellationRequest,
+) (*cancellationv1.CounterCancellationResponse, error) {
+	response := &cancellationv1.CounterCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
 		},
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
-	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
+	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
 		err := fmt.Errorf("error getting price and token: %w", err)
 		s.logger.Error(err)
@@ -119,25 +127,25 @@ func (s *cancellationV2Service) CounterCancellation(
 		return response, err
 	}
 
-	response.TransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
 	s.logger.Infof("Countered cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
 	return response, nil
 }
 
-func (s *cancellationV2Service) AcceptCancellation(
+func (s *cancellationV1Service) AcceptCancellation(
 	ctx context.Context,
-	request *cancellationv2.AcceptCancellationRequest,
-) (*cancellationv2.AcceptCancellationResponse, error) {
-	response := &cancellationv2.AcceptCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+	request *cancellationv1.AcceptCancellationRequest,
+) (*cancellationv1.AcceptCancellationResponse, error) {
+	response := &cancellationv1.AcceptCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
 		},
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
-	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
+	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
 		err := fmt.Errorf("error getting price and payment token: %w", err)
 		s.logger.Error(err)
@@ -151,20 +159,20 @@ func (s *cancellationV2Service) AcceptCancellation(
 		return response, err
 	}
 
-	response.TransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
 	s.logger.Infof("Accepted cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
 	return response, nil
 }
 
-func (s *cancellationV2Service) RejectCancellation(
+func (s *cancellationV1Service) RejectCancellation(
 	ctx context.Context,
-	request *cancellationv2.RejectCancellationRequest,
-) (*cancellationv2.RejectCancellationResponse, error) {
-	response := &cancellationv2.RejectCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+	request *cancellationv1.RejectCancellationRequest,
+) (*cancellationv1.RejectCancellationResponse, error) {
+	response := &cancellationv1.RejectCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
 		},
 	}
 
@@ -184,20 +192,20 @@ func (s *cancellationV2Service) RejectCancellation(
 		return response, err
 	}
 
-	response.TransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
 	s.logger.Infof("Rejected cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
 	return response, nil
 }
 
-func (s *cancellationV2Service) WithdrawCancellation(
+func (s *cancellationV1Service) WithdrawCancellation(
 	ctx context.Context,
-	request *cancellationv2.WithdrawCancellationRequest,
-) (*cancellationv2.WithdrawCancellationResponse, error) {
-	response := &cancellationv2.WithdrawCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+	request *cancellationv1.WithdrawCancellationRequest,
+) (*cancellationv1.WithdrawCancellationResponse, error) {
+	response := &cancellationv1.WithdrawCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
 		},
 	}
 
@@ -217,24 +225,24 @@ func (s *cancellationV2Service) WithdrawCancellation(
 		return response, err
 	}
 
-	response.TransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
 	s.logger.Infof("Withdrawn cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
 	return response, nil
 }
 
-func (s *cancellationV2Service) FinalizeCancellation(
+func (s *cancellationV1Service) FinalizeCancellation(
 	ctx context.Context,
-	request *cancellationv2.FinalizeCancellationRequest,
-) (*cancellationv2.FinalizeCancellationResponse, error) {
-	response := &cancellationv2.FinalizeCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+	request *cancellationv1.FinalizeCancellationRequest,
+) (*cancellationv1.FinalizeCancellationResponse, error) {
+	response := &cancellationv1.FinalizeCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
 		},
 	}
 
-	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
+	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
 		err := fmt.Errorf("error getting price and token: %w", err)
 		s.logger.Error(err)
@@ -250,7 +258,7 @@ func (s *cancellationV2Service) FinalizeCancellation(
 		return response, err
 	}
 
-	response.TransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
 	s.logger.Infof("Finalized cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 

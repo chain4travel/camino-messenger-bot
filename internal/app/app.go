@@ -21,7 +21,8 @@ import (
 	"maunium.net/go/mautrix/id"
 
 	"github.com/chain4travel/camino-messenger-bot/v11/config"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/cancellation"
+	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v11/internal/cancellation/v1"
+	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v11/internal/cancellation/v2"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener"
 	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener/storage/sqlite"
@@ -292,7 +293,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		messagesEncoderDecoder,
 	)
 
-	cancellationV1Service := cancellation.NewServiceV1(
+	cancellationV1Service := cancellation_v1.NewService(
 		logger,
 		cfg.BotKey,
 		cfg.CMAccountAddress,
@@ -300,7 +301,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		priceHandler,
 	)
 
-	cancellationV2Service := cancellation.NewServiceV2(
+	cancellationV2Service := cancellation_v2.NewService(
 		logger,
 		cfg.BotKey,
 		cfg.CMAccountAddress,
