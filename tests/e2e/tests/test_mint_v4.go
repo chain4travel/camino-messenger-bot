@@ -158,11 +158,11 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 
 	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBotWithoutFunds)
 
-	tokenID1, mintID1 = tt.testMintV4MintV4ExpectedError(ctx, t, validationID1, totalPrice)
+	tokenID1, mintID1 = tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBotWithoutFunds, validationID1, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
-	tokenID2, mintID2 := tt.testMintV4MintV4ExpectedError(ctx, t, validationID2, totalPrice)
+	tokenID2, mintID2 := tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBotWithoutFunds, validationID2, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -209,7 +209,7 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	require.NoError(t, err)
 	expectedPrice.Value = fmt.Sprintf("%d", value+10)
 
-	tokenID, mintID := tt.testMintV4MintV4ExpectedError(ctx, t, validationID, expectedPrice)
+	tokenID, mintID := tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBot, validationID, expectedPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -228,6 +228,7 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 	ctx context.Context,
 	t *testing.T,
+	distributorBot *bot.Bot,
 	validationID string,
 	expectedPrice *typesv4.Price,
 ) (
@@ -244,7 +245,7 @@ func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 			Gender:     typesv4.GenderType_GENDER_TYPE_UNSPECIFIED,
 		}},
 	}
-	resp, err := tt.distributorBotWithoutFunds.MintServiceV4.Mint(
+	resp, err := tt.distributorBot.MintServiceV4.Mint(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
 		req,
 	)
