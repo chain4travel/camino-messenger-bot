@@ -17,6 +17,14 @@ func IntToInt32(value int) (int32, error) {
 	return int32(value), nil // nolint:gosec
 }
 
+// Safely converts an int to uint32, returning an error if out of range.
+func IntToUInt32(value int) (uint32, error) {
+	if value < 0 {
+		return 0, fmt.Errorf("value out of range for uint32: %d", value)
+	}
+	return uint32(value), nil // nolint:gosec
+}
+
 // Safely converts an uint32 to int32, panicking with error if out of range.
 func MustUInt32ToInt32(value uint32) int32 {
 	if value > math.MaxInt32 {

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"go.uber.org/zap"
 )
@@ -40,7 +41,10 @@ var (
 	FullVersion = "Unspecified"
 )
 
-var Version *typesv1.Version
+var (
+	VersionV1 *typesv1.Version
+	VersionV4 *typesv4.Version
+)
 
 func init() {
 	info, _ := debug.ReadBuildInfo()
@@ -111,10 +115,29 @@ func InitProtoVersion(logger *zap.SugaredLogger, allowInvalid bool) error {
 		return fmt.Errorf("invalid version format: %q, patch version %d exceeds int32 limit", AppVersion, appVersionPatch)
 	}
 
-	Version = &typesv1.Version{
+	appVersionMajorUInt32, err := conversion.IntToUInt32(appVersionMajor)
+	if err != nil {
+		return fmt.Errorf("invalid version format: %q, major version %d exceeds int32 limit", AppVersion, appVersionMajor)
+	}
+	appVersionMinorUInt32, err := conversion.IntToUInt32(appVersionMinor)
+	if err != nil {
+		return fmt.Errorf("invalid version format: %q, minor version %d exceeds int32 limit", AppVersion, appVersionMinor)
+	}
+	appVersionPatchUInt32, err := conversion.IntToUInt32(appVersionPatch)
+	if err != nil {
+		return fmt.Errorf("invalid version format: %q, patch version %d exceeds int32 limit", AppVersion, appVersionPatch)
+	}
+
+	VersionV1 = &typesv1.Version{
 		Major: appVersionMajorInt32,
 		Minor: appVersionMinorInt32,
 		Patch: appVersionPatchInt32,
+	}
+
+	VersionV4 = &typesv4.Version{
+		Major: appVersionMajorUInt32,
+		Minor: appVersionMinorUInt32,
+		Patch: appVersionPatchUInt32,
 	}
 	return nil
 }

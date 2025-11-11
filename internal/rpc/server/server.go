@@ -21,6 +21,7 @@ import (
 	"github.com/google/uuid"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
@@ -50,6 +51,7 @@ func NewServer(
 	processor messaging.MessageProcessor,
 	serviceRegistry messaging.ServiceRegistry,
 	cancellationV1Service cancellationv1grpc.CancellationServiceServer,
+	cancellationV2Service cancellationv2grpc.CancellationServiceServer,
 	developerMode bool,
 ) (Server, error) {
 	if !cfg.Enabled {
@@ -91,6 +93,7 @@ func NewServer(
 	s.grpcServer = grpc.NewServer(opts...)
 	generated.RegisterServerServices(s.grpcServer, s)
 	cancellationv1grpc.RegisterCancellationServiceServer(s.grpcServer, cancellationV1Service)
+	cancellationv2grpc.RegisterCancellationServiceServer(s.grpcServer, cancellationV2Service)
 	readiness.RegisterReadinessServiceServer(s.grpcServer, s)
 
 	// Register reflection service on gRPC server in developerMode.

@@ -292,7 +292,15 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		messagesEncoderDecoder,
 	)
 
-	cancellationService := cancellation.NewService(
+	cancellationV1Service := cancellation.NewServiceV1(
+		logger,
+		cfg.BotKey,
+		cfg.CMAccountAddress,
+		cmAccounts,
+		priceHandler,
+	)
+
+	cancellationV2Service := cancellation.NewServiceV2(
 		logger,
 		cfg.BotKey,
 		cfg.CMAccountAddress,
@@ -307,7 +315,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		responseHeaderHandler,
 		messageProcessor,
 		serviceRegistry,
-		cancellationService,
+		cancellationV1Service,
+		cancellationV2Service,
 		cfg.DeveloperMode,
 	)
 	if err != nil {

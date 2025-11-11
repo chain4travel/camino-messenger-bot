@@ -304,7 +304,7 @@ func (tt *TestCancellationV2) testCheckCancellationV2(ctx context.Context, t *te
 	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
 	require.Equal(t, req.TokenId, resp.TokenId, "unexpected response TokenID")
 	require.Equal(t, common.BookingTokenPriceValue, resp.RefundAmount.Value, "unexpected response RefundAmount.Value")
-	require.Equal(t, price.NativeTokenDecimals, resp.RefundAmount.Decimals, "unexpected response RefundAmount.Decimals")
+	require.Equal(t, uint32(price.NativeTokenDecimals), resp.RefundAmount.Decimals, "unexpected response RefundAmount.Decimals")
 	require.IsType(t, &typesv4.Currency_NativeToken{}, resp.RefundAmount.Currency.Currency, "unexpected response RefundAmount.Currency type")
 	require.Equal(t, common.CancellationPolicyID, resp.PolicyIdApplied, "unexpected response PolicyIdApplied")
 	require.Equal(t, cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM, resp.Status, "unexpected response status")
