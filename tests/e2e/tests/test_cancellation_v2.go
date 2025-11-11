@@ -14,6 +14,7 @@ import (
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
@@ -377,7 +378,7 @@ func (h *cancellationV2Helper) initiateCancellation(
 	refundAmount *typesv4.Price,
 	reason cancellationv1.CancellationReason,
 ) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, conversion.MustUInt32ToInt32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	initiatorBot := h.getBot(initiator)
@@ -417,7 +418,7 @@ func (h *cancellationV2Helper) counterCancellation(
 	refundAmount *typesv4.Price,
 	reason cancellationv1.CounterReason,
 ) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, conversion.MustUInt32ToInt32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	countererBot := h.getBot(counterer)
@@ -451,7 +452,7 @@ func (h *cancellationV2Helper) acceptCancellation(
 	accepter SupplierOrDistributor,
 	refundAmount *typesv4.Price,
 ) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, conversion.MustUInt32ToInt32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	accepterBot := h.getBot(accepter)
@@ -514,7 +515,7 @@ func (h *cancellationV2Helper) withdrawCancellation(
 }
 
 func (h *cancellationV2Helper) finalizeCancellation(refundAmount *typesv4.Price) {
-	refundAmountBig, err := price.ToBigInt(refundAmount.Value, int32(refundAmount.Decimals), price.NativeTokenDecimals)
+	refundAmountBig, err := price.ToBigInt(refundAmount.Value, conversion.MustUInt32ToInt32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
 	supplierBalance, err := h.e.CaminoNetwork.Client.BalanceOf(h.ctx, h.supplierBot.CMAccountAddress())
