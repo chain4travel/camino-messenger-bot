@@ -144,6 +144,7 @@ func testValidateV3(
 	expectedTotalPrice *big.Int,
 ) (validateID string) {
 	req := &bookv3.ValidationRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		ValidationObject: &bookv3.ValidationObject{
 			SearchIdentifier: &typesv3.SearchIdentifier{
 				SearchId: &typesv1.UUID{Value: searchID},
@@ -194,6 +195,7 @@ func testValidateV2(
 	expectedTotalPrice *big.Int,
 ) (validateID string) {
 	req := &bookv2.ValidationRequest{
+		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
 		ValidationObject: &bookv2.ValidationObject{
 			SearchIdentifier: &typesv2.SearchIdentifier{
 				SearchId: &typesv1.UUID{Value: searchID},
