@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	infov1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 )
 
 func (s *infov1CountryEntryRequirementsServiceServer) CountryEntryRequirements(ctx context.Context, request *infov1.CountryEntryRequirementsRequest) (*infov1.CountryEntryRequirementsResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV1
 	response, err := s.reqHandler.HandleMessageRequest(ctx, CountryEntryRequirementsServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", CountryEntryRequirementsServiceV1Request, err)

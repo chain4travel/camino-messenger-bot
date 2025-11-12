@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 )
 
 func (s *bookv4MintServiceServer) Mint(ctx context.Context, request *bookv4.MintRequest) (*bookv4.MintResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV4
 	response, err := s.reqHandler.HandleMessageRequest(ctx, MintServiceV4Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", MintServiceV4Request, err)

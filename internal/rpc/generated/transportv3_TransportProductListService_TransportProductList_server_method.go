@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 )
 
 func (s *transportv3TransportProductListServiceServer) TransportProductList(ctx context.Context, request *transportv3.TransportProductListRequest) (*transportv3.TransportProductListResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV1
 	response, err := s.reqHandler.HandleMessageRequest(ctx, TransportProductListServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", TransportProductListServiceV3Request, err)

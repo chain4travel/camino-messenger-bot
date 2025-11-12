@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
 )
 
 func (s *cancellationv1CheckCancellationServiceServer) CheckCancellation(ctx context.Context, request *cancellationv1.CheckCancellationRequest) (*cancellationv1.CheckCancellationResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV1
 	response, err := s.reqHandler.HandleMessageRequest(ctx, CheckCancellationServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", CheckCancellationServiceV1Request, err)

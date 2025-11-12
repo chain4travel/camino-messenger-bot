@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 )
 
 func (s *activityv3ActivitySearchServiceServer) ActivitySearch(ctx context.Context, request *activityv3.ActivitySearchRequest) (*activityv3.ActivitySearchResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV1
 	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ActivitySearchServiceV3Request, err)

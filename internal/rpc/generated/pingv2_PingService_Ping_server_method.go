@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 )
 
 func (s *pingv2PingServiceServer) Ping(ctx context.Context, request *pingv2.PingRequest) (*pingv2.PingResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV4
 	response, err := s.reqHandler.HandleMessageRequest(ctx, PingServiceV2Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", PingServiceV2Request, err)

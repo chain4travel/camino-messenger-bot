@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	seat_mapv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v4"
 )
 
 func (s *seat_mapv4SeatMapAvailabilityServiceServer) SeatMapAvailability(ctx context.Context, request *seat_mapv4.SeatMapAvailabilityRequest) (*seat_mapv4.SeatMapAvailabilityResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV4
 	response, err := s.reqHandler.HandleMessageRequest(ctx, SeatMapAvailabilityServiceV4Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", SeatMapAvailabilityServiceV4Request, err)

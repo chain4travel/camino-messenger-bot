@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 )
 
 func (s *activityv4ActivityProductShortListServiceServer) ActivityProductShortList(ctx context.Context, request *activityv4.ActivityProductShortListRequest) (*activityv4.ActivityProductShortListResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV4
 	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivityProductShortListServiceV4Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ActivityProductShortListServiceV4Request, err)

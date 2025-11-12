@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
 )
 
 func (s *accommodationv4AccommodationProductInfoServiceServer) AccommodationProductInfo(ctx context.Context, request *accommodationv4.AccommodationProductInfoRequest) (*accommodationv4.AccommodationProductInfoResponse, error) {
+	request.Header.BaseHeader.Version = version.VersionV4
 	response, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationProductInfoServiceV4Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", AccommodationProductInfoServiceV4Request, err)
