@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
 
 	"buf.build/go/protovalidate"
