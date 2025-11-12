@@ -19,6 +19,12 @@ func (s *bookv2ValidationServiceServer) Validation(ctx context.Context, request 
 		return nil, fmt.Errorf("request validation failed: %w", err)
 	}
 
+	// we need this check for pre-protovalidate cmp versions
+	// Header.BaseHeader must be present, so version can be set
+	if request.Header.GetBaseHeader() == nil {
+		return nil, rpc.ErrNilResponseHeader
+	}
+
 	request.Header.BaseHeader.Version = version.VersionV1
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV2Request, request)

@@ -22,8 +22,11 @@ func (s PingServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 	if !ok {
 		return nil, PingServiceV1Response, fmt.Errorf("invalid request type")
 	}
+
 	response, err := s.client.Ping(ctx, request, opts...)
-	if response.Header == nil { // header must be present, so errors can be added to it
+
+	// we need those check for pre-protovalidate cmp versions
+	if response.Header == nil { // Header must be present, so errors can be added to it
 		response.Header = &typesv1.ResponseHeader{
 			BaseHeader: &typesv1.Header{},
 		}
@@ -31,12 +34,14 @@ func (s PingServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 			err = rpc.ErrNilResponseHeader
 		}
 	}
-	if response.Header.BaseHeader == nil { // we need this check for pre-protovalidate cmp versions
+	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
 		response.Header.BaseHeader = &typesv1.Header{}
 		if err == nil {
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+
 	response.Header.BaseHeader.Version = version.VersionV1
+
 	return response, PingServiceV1Response, err
 }

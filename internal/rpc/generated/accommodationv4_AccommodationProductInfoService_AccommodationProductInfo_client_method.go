@@ -22,8 +22,11 @@ func (s AccommodationProductInfoServiceV4Client) Call(ctx context.Context, reque
 	if !ok {
 		return nil, AccommodationProductInfoServiceV4Response, fmt.Errorf("invalid request type")
 	}
+
 	response, err := s.client.AccommodationProductInfo(ctx, request, opts...)
-	if response.Header == nil { // header must be present, so errors can be added to it
+
+	// we need those check for pre-protovalidate cmp versions
+	if response.Header == nil { // Header must be present, so errors can be added to it
 		response.Header = &typesv4.ResponseHeader{
 			BaseHeader: &typesv4.Header{},
 		}
@@ -31,12 +34,14 @@ func (s AccommodationProductInfoServiceV4Client) Call(ctx context.Context, reque
 			err = rpc.ErrNilResponseHeader
 		}
 	}
-	if response.Header.BaseHeader == nil { // we need this check for pre-protovalidate cmp versions
+	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
 		response.Header.BaseHeader = &typesv4.Header{}
 		if err == nil {
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+
 	response.Header.BaseHeader.Version = version.VersionV4
+
 	return response, AccommodationProductInfoServiceV4Response, err
 }

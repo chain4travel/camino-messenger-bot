@@ -22,8 +22,11 @@ func (s TransportSearchServiceV4Client) Call(ctx context.Context, requestIntf pr
 	if !ok {
 		return nil, TransportSearchServiceV4Response, fmt.Errorf("invalid request type")
 	}
+
 	response, err := s.client.TransportSearch(ctx, request, opts...)
-	if response.Header == nil { // header must be present, so errors can be added to it
+
+	// we need those check for pre-protovalidate cmp versions
+	if response.Header == nil { // Header must be present, so errors can be added to it
 		response.Header = &typesv4.ResponseHeader{
 			BaseHeader: &typesv4.Header{},
 		}
@@ -31,12 +34,14 @@ func (s TransportSearchServiceV4Client) Call(ctx context.Context, requestIntf pr
 			err = rpc.ErrNilResponseHeader
 		}
 	}
-	if response.Header.BaseHeader == nil { // we need this check for pre-protovalidate cmp versions
+	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
 		response.Header.BaseHeader = &typesv4.Header{}
 		if err == nil {
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+
 	response.Header.BaseHeader.Version = version.VersionV4
+
 	return response, TransportSearchServiceV4Response, err
 }
