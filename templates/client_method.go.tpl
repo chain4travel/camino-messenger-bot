@@ -11,6 +11,7 @@ import (
 	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -22,14 +23,14 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 		return nil, {{SERVICE}}V{{VERSION}}Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
-	if response == nil {
-		response = &{{TYPE_PACKAGE}}.{{RESPONSE}}{}
-	}
-	if response.Header == nil {
-		response.Header = &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{}
+	if response.Header == nil { // header must be present, so errors can be added to it
+		response.Header = &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
+			BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{},
+		}
 		if err == nil {
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	response.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 	return response, {{SERVICE}}V{{VERSION}}Response, err
 }

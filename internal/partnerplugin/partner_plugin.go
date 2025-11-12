@@ -12,6 +12,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v3/notificationv3grpc"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	grpc_metadata "google.golang.org/grpc/metadata"
@@ -82,6 +83,10 @@ func (p *partnerPlugin) DoServiceRequest(
 	)), requestMsg.Content)
 	if err != nil {
 		return responseMsg, fmt.Errorf("error calling partner plugin service: %w", err)
+	}
+
+	if err := protovalidate.Validate(responseMsg.Content); err != nil {
+		return responseMsg, fmt.Errorf("response message content validation failed: %w", err)
 	}
 
 	return responseMsg, nil
