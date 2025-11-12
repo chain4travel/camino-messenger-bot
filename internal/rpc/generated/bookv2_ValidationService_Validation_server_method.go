@@ -7,17 +7,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
+	"buf.build/go/protovalidate"
+
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 )
 
 func (s *bookv2ValidationServiceServer) Validation(ctx context.Context, request *bookv2.ValidationRequest) (*bookv2.ValidationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return nil, fmt.Errorf("request validation failed: %w", err)
+	}
+
+	request.Header.BaseHeader.Version = version.VersionV1
+
 	response, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV2Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ValidationServiceV2Request, err)
 	}
+
 	resp, ok := response.(*bookv2.ValidationResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid response type: expected %s, got %T", ValidationServiceV2Response, response)
 	}
+
 	return resp, nil
 }

@@ -7,17 +7,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
+	"buf.build/go/protovalidate"
+
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
 )
 
 func (s *cancellationv1CheckCancellationServiceServer) CheckCancellation(ctx context.Context, request *cancellationv1.CheckCancellationRequest) (*cancellationv1.CheckCancellationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return nil, fmt.Errorf("request validation failed: %w", err)
+	}
+
+	request.Header.BaseHeader.Version = version.VersionV1
+
 	response, err := s.reqHandler.HandleMessageRequest(ctx, CheckCancellationServiceV1Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", CheckCancellationServiceV1Request, err)
 	}
+
 	resp, ok := response.(*cancellationv1.CheckCancellationResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid response type: expected %s, got %T", CheckCancellationServiceV1Response, response)
 	}
+
 	return resp, nil
 }

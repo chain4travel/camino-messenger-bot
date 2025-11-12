@@ -11,6 +11,7 @@ import (
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -22,14 +23,14 @@ func (s AccommodationSearchServiceV4Client) Call(ctx context.Context, requestInt
 		return nil, AccommodationSearchServiceV4Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.AccommodationSearch(ctx, request, opts...)
-	if response == nil {
-		response = &accommodationv4.AccommodationSearchResponse{}
-	}
-	if response.Header == nil {
-		response.Header = &typesv4.ResponseHeader{}
+	if response.Header == nil { // header must be present, so errors can be added to it
+		response.Header = &typesv4.ResponseHeader{
+			BaseHeader: &typesv4.Header{},
+		}
 		if err == nil {
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	response.Header.BaseHeader.Version = version.VersionV4
 	return response, AccommodationSearchServiceV4Response, err
 }

@@ -11,6 +11,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -22,14 +23,14 @@ func (s MintServiceV2Client) Call(ctx context.Context, requestIntf protoreflect.
 		return nil, MintServiceV2Response, fmt.Errorf("invalid request type")
 	}
 	response, err := s.client.Mint(ctx, request, opts...)
-	if response == nil {
-		response = &bookv2.MintResponse{}
-	}
-	if response.Header == nil {
-		response.Header = &typesv1.ResponseHeader{}
+	if response.Header == nil { // header must be present, so errors can be added to it
+		response.Header = &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{},
+		}
 		if err == nil {
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	response.Header.BaseHeader.Version = version.VersionV1
 	return response, MintServiceV2Response, err
 }

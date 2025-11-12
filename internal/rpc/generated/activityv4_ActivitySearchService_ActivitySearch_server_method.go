@@ -7,17 +7,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
+	"buf.build/go/protovalidate"
+
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 )
 
 func (s *activityv4ActivitySearchServiceServer) ActivitySearch(ctx context.Context, request *activityv4.ActivitySearchRequest) (*activityv4.ActivitySearchResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return nil, fmt.Errorf("request validation failed: %w", err)
+	}
+
+	request.Header.BaseHeader.Version = version.VersionV4
+
 	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchServiceV4Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", ActivitySearchServiceV4Request, err)
 	}
+
 	resp, ok := response.(*activityv4.ActivitySearchResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid response type: expected %s, got %T", ActivitySearchServiceV4Response, response)
 	}
+
 	return resp, nil
 }

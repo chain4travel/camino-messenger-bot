@@ -7,17 +7,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
+	"buf.build/go/protovalidate"
+
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 )
 
 func (s *pingv2PingServiceServer) Ping(ctx context.Context, request *pingv2.PingRequest) (*pingv2.PingResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return nil, fmt.Errorf("request validation failed: %w", err)
+	}
+
+	request.Header.BaseHeader.Version = version.VersionV4
+
 	response, err := s.reqHandler.HandleMessageRequest(ctx, PingServiceV2Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", PingServiceV2Request, err)
 	}
+
 	resp, ok := response.(*pingv2.PingResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid response type: expected %s, got %T", PingServiceV2Response, response)
 	}
+
 	return resp, nil
 }

@@ -7,17 +7,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
+	"buf.build/go/protovalidate"
+
 	seat_mapv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v3"
 )
 
 func (s *seat_mapv3SeatMapAvailabilityServiceServer) SeatMapAvailability(ctx context.Context, request *seat_mapv3.SeatMapAvailabilityRequest) (*seat_mapv3.SeatMapAvailabilityResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return nil, fmt.Errorf("request validation failed: %w", err)
+	}
+
+	request.Header.BaseHeader.Version = version.VersionV1
+
 	response, err := s.reqHandler.HandleMessageRequest(ctx, SeatMapAvailabilityServiceV3Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", SeatMapAvailabilityServiceV3Request, err)
 	}
+
 	resp, ok := response.(*seat_mapv3.SeatMapAvailabilityResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid response type: expected %s, got %T", SeatMapAvailabilityServiceV3Response, response)
 	}
+
 	return resp, nil
 }

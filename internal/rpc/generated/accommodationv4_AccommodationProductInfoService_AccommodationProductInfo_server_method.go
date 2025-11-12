@@ -7,17 +7,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
+	"buf.build/go/protovalidate"
+
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
 )
 
 func (s *accommodationv4AccommodationProductInfoServiceServer) AccommodationProductInfo(ctx context.Context, request *accommodationv4.AccommodationProductInfoRequest) (*accommodationv4.AccommodationProductInfoResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return nil, fmt.Errorf("request validation failed: %w", err)
+	}
+
+	request.Header.BaseHeader.Version = version.VersionV4
+
 	response, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationProductInfoServiceV4Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", AccommodationProductInfoServiceV4Request, err)
 	}
+
 	resp, ok := response.(*accommodationv4.AccommodationProductInfoResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid response type: expected %s, got %T", AccommodationProductInfoServiceV4Response, response)
 	}
+
 	return resp, nil
 }
