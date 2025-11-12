@@ -31,6 +31,12 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	if response.Header.BaseHeader == nil { // we need this check for pre-protovalidate cmp versions
+		response.Header.BaseHeader =  &typesv{{COMMON_TYPES_VERSION}}.Header{}
+		if err == nil {
+			err = rpc.ErrNilResponseHeader
+		}
+	}
 	response.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 	return response, {{SERVICE}}V{{VERSION}}Response, err
 }

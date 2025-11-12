@@ -30,25 +30,13 @@ func (s *transportSearchV2Server) TransportSearch(_ context.Context, req *transp
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &transportv2.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "No queries provided",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("No queries provided"),
 		}, nil
 	}
 
 	if req.SearchParameters.GetCurrency() == nil {
 		return &transportv2.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "SearchParameters.Currency is required",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("SearchParameters.Currency is required"),
 		}, nil
 	}
 
@@ -56,13 +44,7 @@ func (s *transportSearchV2Server) TransportSearch(_ context.Context, req *transp
 		for queryTripIndex, queryTrip := range query.GetTrips() {
 			if queryTrip == nil {
 				return &transportv2.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: fmt.Sprintf("Invalid query[%d].QueryTrips[%d]: can't be nil", queryIndex, queryTripIndex),
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1(fmt.Sprintf("Invalid query[%d].QueryTrips[%d]: can't be nil", queryIndex, queryTripIndex)),
 				}, nil
 			}
 
@@ -71,25 +53,13 @@ func (s *transportSearchV2Server) TransportSearch(_ context.Context, req *transp
 				queryTrip.Departure.LocationCode == nil ||
 				queryTrip.Arrival.LocationCode == nil {
 				return &transportv2.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Invalid trip filter: departure and arrival must be provided",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1("Invalid trip filter: departure and arrival must be provided"),
 				}, nil
 			}
 
 			if queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValidV1(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
 				return &transportv2.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Invalid travel dates: departure must be before arrival",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1("Invalid travel dates: departure must be before arrival"),
 				}, nil
 			}
 
@@ -103,13 +73,7 @@ func (s *transportSearchV2Server) TransportSearch(_ context.Context, req *transp
 			// to pp mock (it would be needed to get erc20 token decimals)
 			if searchParametersTransport.GetMinPrice().GetDecimals() > price.NativeTokenDecimals { // 18 decimals
 				return &transportv2.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: fmt.Sprintf("Invalid min price: decimals must be less than or equal to %d", price.NativeTokenDecimals),
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1(fmt.Sprintf("Invalid min price: decimals must be less than or equal to %d", price.NativeTokenDecimals)),
 				}, nil
 			}
 		}
@@ -143,13 +107,7 @@ func (s *transportSearchV2Server) TransportSearch(_ context.Context, req *transp
 				)
 				if err != nil {
 					return &transportv2.TransportSearchResponse{
-						Header: &typesv1.ResponseHeader{
-							Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-							Alerts: []*typesv1.Alert{{
-								Message: fmt.Sprintf("Failed to convert tripSegment price: %v", err),
-								Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-							}},
-						},
+						Header: common.ErrorHeaderV1(fmt.Sprintf("Failed to convert tripSegment price: %v", err)),
 					}, nil
 				}
 				totalPrice = new(big.Int).Add(totalPrice, price)
@@ -174,9 +132,7 @@ func (s *transportSearchV2Server) TransportSearch(_ context.Context, req *transp
 	}
 
 	response := &transportv2.TransportSearchResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:  common.SuccessHeaderV1(),
 		Results: searchResults,
 	}
 

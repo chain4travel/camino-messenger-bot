@@ -11,6 +11,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
 	"github.com/google/uuid"
 )
@@ -29,13 +30,7 @@ func (s *validationServiceV3Server) Validation(_ context.Context, req *bookv3.Va
 		req.ValidationObject.SearchIdentifier.ResultId == 0 ||
 		req.ValidationObject.SearchIdentifier.SearchId == nil {
 		return &bookv3.ValidationResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Invalid validation request: missing validation object or search identifier",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Invalid validation request: missing validation object or search identifier"),
 		}, nil
 	}
 
@@ -44,26 +39,14 @@ func (s *validationServiceV3Server) Validation(_ context.Context, req *bookv3.Va
 	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchIdentifier.SearchId.Value)
 	if !found {
 		return &bookv3.ValidationResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Invalid validation request: searchId not found in state",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Invalid validation request: searchId not found in state"),
 		}, nil
 	}
 
 	resultIndex := int(req.ValidationObject.SearchIdentifier.ResultId - 1)
 	if resultIndex < 0 || resultIndex >= len(storedSearchData.Data.Prices) {
 		return &bookv3.ValidationResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Invalid validation request: resultId out of range",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Invalid validation request: resultId out of range"),
 		}, nil
 	}
 
@@ -71,9 +54,7 @@ func (s *validationServiceV3Server) Validation(_ context.Context, req *bookv3.Va
 	validationPrice := unifiedValidationPrice.ToPriceV3()
 
 	response := bookv3.ValidationResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:           common.SuccessHeaderV1(),
 		ValidationId:     &typesv1.UUID{Value: uuid.New().String()},
 		ValidationObject: req.ValidationObject,
 		PriceDetail: &typesv3.PriceDetail{

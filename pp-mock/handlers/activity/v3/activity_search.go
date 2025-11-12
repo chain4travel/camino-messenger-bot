@@ -28,51 +28,27 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 	// check if SearchParametersGeneric is nil or if Currency is nil
 	if req.SearchParametersGeneric == nil || req.SearchParametersGeneric.Currency == nil {
 		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Mandatory field SearchParametersGeneric.Currency is missing",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Mandatory field SearchParametersGeneric.Currency is missing"),
 		}, nil
 	}
 
 	// Validate travel period
 	if req.TravelPeriod == nil {
 		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for activities (with limits of start/end values of now() / now() + 60 days)",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Mandatory field TravelPeriod is missing. A travel period is required to search for activities (with limits of start/end values of now() / now() + 60 days)"),
 		}, nil
 	}
 
 	if !common.IsTravelPeriodAllowedV1(req.TravelPeriod) {
 		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date."),
 		}, nil
 	}
 
 	// Validate travellers
 	if len(req.Travellers) == 0 {
 		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Mandatory field Travellers is missing. At least one traveller is required to search for activities.",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Mandatory field Travellers is missing. At least one traveller is required to search for activities."),
 		}, nil
 	}
 
@@ -91,9 +67,7 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 	}
 
 	response := &activityv3.ActivitySearchResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:     common.SuccessHeaderV1(),
 		Results:    filteredActivities,
 		Travellers: req.Travellers,
 	}

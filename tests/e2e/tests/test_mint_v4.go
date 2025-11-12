@@ -238,6 +238,7 @@ func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 	req := &bookv4.MintRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		ValidationId:  &typesv4.UUID{Value: validationID},
+		BuyerAddress:  &typesv4.EVMAddress{Address: "0x0000000000000000000000000000000000000000"},
 		ExpectedPrice: expectedPrice,
 		Travellers: []*typesv4.ExtensiveTraveller{{
 			FirstNames: []string{"FirstName"},

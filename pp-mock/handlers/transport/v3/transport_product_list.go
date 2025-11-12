@@ -9,6 +9,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 )
 
@@ -24,10 +25,8 @@ func (s *transportProductListV3Server) TransportProductList(_ context.Context, r
 	filteredTrips := filterPropertiesByLastModified(mockdata.TripsBasicV3, req.GetModifiedAfter().AsTime())
 
 	response := &transportv3.TransportProductListResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
-		Trips: filteredTrips,
+		Header: common.SuccessHeaderV1(),
+		Trips:  filteredTrips,
 	}
 
 	if len(filteredTrips) == 0 {

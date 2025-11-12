@@ -8,7 +8,6 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
@@ -24,10 +23,8 @@ func NewCheckCancellationServer() cancellationv1grpc.CheckCancellationServiceSer
 }
 
 func (s *checkCancellationV1Server) CheckCancellation(_ context.Context, req *cancellationv1.CheckCancellationRequest) (*cancellationv1.CheckCancellationResponse, error) {
-	response := &cancellationv1.CheckCancellationResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+	return &cancellationv1.CheckCancellationResponse{
+		Header:  common.SuccessHeaderV1(),
 		TokenId: req.TokenId,
 		RefundAmount: &typesv3.Price{
 			Value:    common.BookingTokenPriceValue,
@@ -39,7 +36,5 @@ func (s *checkCancellationV1Server) CheckCancellation(_ context.Context, req *ca
 		PolicyIdApplied: common.CancellationPolicyID,
 		Status:          cancellationv1.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM,
 		Timestamp:       timestamppb.Now(),
-	}
-
-	return response, nil
+	}, nil
 }

@@ -160,6 +160,52 @@ func CloneProto[T proto.Message](source T) T {
 	return proto.Clone(source).(T)
 }
 
+func ProtoSlicesEqual[T proto.Message](a, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if !proto.Equal(a[i], b[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// v1
+
+func SuccessHeaderV1() *typesv1.ResponseHeader {
+	return &typesv1.ResponseHeader{
+		BaseHeader: &typesv1.Header{Version: &typesv1.Version{}},
+		Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+	}
+}
+
+func SuccessHeaderWithInfoV1(message string) *typesv1.ResponseHeader {
+	return &typesv1.ResponseHeader{
+		BaseHeader: &typesv1.Header{Version: &typesv1.Version{}},
+		Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		Alerts:     []*typesv1.Alert{{Message: message, Type: typesv1.AlertType_ALERT_TYPE_INFO}},
+	}
+}
+
+func ErrorHeaderV1(message string) *typesv1.ResponseHeader {
+	return &typesv1.ResponseHeader{
+		BaseHeader: &typesv1.Header{Version: &typesv1.Version{}},
+		Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+		Alerts:     []*typesv1.Alert{{Message: message, Type: typesv1.AlertType_ALERT_TYPE_ERROR}},
+	}
+}
+
+func AddHeaderInfoV1(header *typesv1.ResponseHeader, message string) {
+	header.Alerts = append(header.Alerts, &typesv1.Alert{
+		Type:    typesv1.AlertType_ALERT_TYPE_INFO,
+		Message: message,
+	})
+}
+
+// v4
+
 func SuccessHeaderV4() *typesv4.ResponseHeader {
 	return &typesv4.ResponseHeader{
 		BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
@@ -195,16 +241,4 @@ func AddHeaderInfoV4(header *typesv4.ResponseHeader, message string) {
 		Type:    typesv4.AlertType_ALERT_TYPE_INFO,
 		Message: message,
 	})
-}
-
-func ProtoSlicesEqual[T proto.Message](a, b []T) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if !proto.Equal(a[i], b[i]) {
-			return false
-		}
-	}
-	return true
 }

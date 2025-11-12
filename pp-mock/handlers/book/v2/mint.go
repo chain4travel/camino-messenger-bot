@@ -29,26 +29,14 @@ func (s *mintServiceV2Server) Mint(_ context.Context, req *bookv2.MintRequest) (
 	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
 	if !ok {
 		return &bookv2.MintResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Validation not found in state",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Validation not found in state"),
 		}, nil
 	}
 
 	mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
 
 	response := bookv2.MintResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-			Alerts: []*typesv1.Alert{{
-				Message: mintResponseInfoMessage,
-				Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-			}},
-		},
+		Header: common.SuccessHeaderWithInfoV1(mintResponseInfoMessage),
 		MintId: &typesv1.UUID{Value: uuid.New().String()},
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),

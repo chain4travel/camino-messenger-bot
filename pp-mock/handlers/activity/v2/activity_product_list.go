@@ -9,6 +9,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 )
 
@@ -24,9 +25,7 @@ func (s *activityProductListV2Server) ActivityProductList(_ context.Context, req
 	filteredActivities := filterByLastModified(mockdata.ActivityV2, req.GetModifiedAfter().AsTime())
 
 	response := &activityv2.ActivityProductListResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:     common.SuccessHeaderV1(),
 		Activities: filteredActivities,
 	}
 

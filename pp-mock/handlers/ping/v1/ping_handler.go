@@ -9,7 +9,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/metadata"
 )
 
@@ -24,9 +24,7 @@ func NewPingServiceServer() pingv1grpc.PingServiceServer {
 func (s *pingServiceV1Server) Ping(ctx context.Context, req *pingv1.PingRequest) (*pingv1.PingResponse, error) {
 	md := metadata.FromContext(ctx)
 	return &pingv1.PingResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:      common.SuccessHeaderV1(),
 		PingMessage: fmt.Sprintf("Ping response to [%s] with request ID: %s", req.PingMessage, md.RequestID),
 	}, nil
 }

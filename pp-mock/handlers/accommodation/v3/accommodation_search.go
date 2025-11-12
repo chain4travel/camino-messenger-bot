@@ -31,26 +31,14 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &accommodationv3.AccommodationSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "No queries provided",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("No queries provided"),
 		}, nil
 	}
 
 	// check if SearchParametersGeneric is nil or if Currency is nil
 	if req.SearchParametersGeneric == nil || req.SearchParametersGeneric.Currency == nil {
 		return &accommodationv3.AccommodationSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "Mandatory field SearchParametersGeneric.Currency is missing",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("Mandatory field SearchParametersGeneric.Currency is missing"),
 		}, nil
 	}
 
@@ -58,25 +46,13 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 	for _, query := range req.Queries {
 		if query.TravelPeriod == nil {
 			return &accommodationv3.AccommodationSearchResponse{
-				Header: &typesv1.ResponseHeader{
-					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-					Alerts: []*typesv1.Alert{{
-						Message: "Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)",
-						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-					}},
-				},
+				Header: common.ErrorHeaderV1("Mandatory field TravelPeriod is missing. A travel period is required to search for accommodations (with limits of start/end values of now() / now() + 60 days)"),
 			}, nil
 		}
 
 		if !common.IsTravelPeriodAllowedV1(query.TravelPeriod) {
 			return &accommodationv3.AccommodationSearchResponse{
-				Header: &typesv1.ResponseHeader{
-					Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-					Alerts: []*typesv1.Alert{{
-						Message: "Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.",
-						Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-					}},
-				},
+				Header: common.ErrorHeaderV1("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date."),
 			}, nil
 		}
 	}
@@ -84,13 +60,7 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 	// edge-case prevention: check if the traveller definition is identical
 	// in all queries. If not return an "unsupported" error.
 	unsupportedResp := &accommodationv3.AccommodationSearchResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-			Alerts: []*typesv1.Alert{{
-				Message: "Unsupported: Traveller definitions must be identical in all queries",
-				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-			}},
-		},
+		Header: common.ErrorHeaderV1("Unsupported: Traveller definitions must be identical in all queries"),
 	}
 	for queryIndex, query := range req.Queries {
 		for queryIndex2, query2 := range req.Queries {
@@ -191,9 +161,7 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 	}
 
 	response := &accommodationv3.AccommodationSearchResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:  common.SuccessHeaderV1(),
 		Results: searchResults,
 	}
 

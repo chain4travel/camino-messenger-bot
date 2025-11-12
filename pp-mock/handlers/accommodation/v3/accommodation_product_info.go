@@ -9,6 +9,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
 )
 
@@ -25,9 +26,7 @@ func (s *accommodationProductInfoV3Server) AccommodationProductInfo(_ context.Co
 	filteredProperties = filterExtendedPropertiesByLanguage(filteredProperties, req.Languages)
 
 	response := &accommodationv3.AccommodationProductInfoResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:     common.SuccessHeaderV1(),
 		Properties: filteredProperties,
 	}
 

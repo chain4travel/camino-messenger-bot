@@ -33,38 +33,20 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 	// if there is no query, return no results
 	if len(req.Queries) == 0 {
 		return &transportv3.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "No queries provided",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("No queries provided"),
 		}, nil
 	}
 
 	if req.SearchParameters.GetCurrency() == nil {
 		return &transportv3.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "SearchParameters.Currency is required",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header: common.ErrorHeaderV1("SearchParameters.Currency is required"),
 		}, nil
 	}
 
 	// edge-case prevention: check if the traveller definition is identical
 	// in all queries. If not return an "unsupported" error.
 	unsupportedResp := &transportv3.TransportSearchResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-			Alerts: []*typesv1.Alert{{
-				Message: "Unsupported: Traveller definitions must be identical in all queries",
-				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-			}},
-		},
+		Header: common.ErrorHeaderV1("Unsupported: Traveller definitions must be identical in all queries"),
 	}
 	for queryIndex, query := range req.Queries {
 		for queryIndex2, query2 := range req.Queries {
@@ -91,53 +73,23 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 			switch {
 			case queryTrip == nil:
 				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: fmt.Sprintf("Invalid query[%d].QueryTrips[%d]: can't be nil", queryIndex, queryTripIndex),
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1(fmt.Sprintf("Invalid query[%d].QueryTrips[%d]: can't be nil", queryIndex, queryTripIndex)),
 				}, nil
 			case queryTrip.Departure == nil || queryTrip.Arrival == nil:
 				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Invalid trip filter: departure and arrival must be provided",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1("Invalid trip filter: departure and arrival must be provided"),
 				}, nil
 			case queryTrip.Departure.Date == nil:
 				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Invalid trip filter: departure date must be provided",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1("Invalid trip filter: departure date must be provided"),
 				}, nil
 			case !queryTrip.Departure.Location.HasLocationCodes() || !queryTrip.Arrival.Location.HasLocationCodes():
 				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Unsupported trip filter: departure and arrival must provide location codes",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1("Unsupported trip filter: departure and arrival must provide location codes"),
 				}, nil
 			case queryTrip.Arrival != nil && queryTrip.Arrival.Date != nil && !common.AreTravelDatesValidV1(queryTrip.Departure.Date, queryTrip.Arrival.Date):
 				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: "Invalid travel dates: departure must be before arrival",
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1("Invalid travel dates: departure must be before arrival"),
 				}, nil
 			}
 		}
@@ -154,13 +106,7 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 		decimals = price.ISODecimals
 	default:
 		return &transportv3.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: "not supported currency type; only NativeToken and IsoCurrency are supported",
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
+			Header:  common.ErrorHeaderV1("not supported currency type; only NativeToken and IsoCurrency are supported"),
 			Results: searchResults,
 		}, nil
 	}
@@ -168,13 +114,7 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 	tripsFilteredByCurrency := filterTripsByCurrency(mockdata.TripsExtendedV3, req.SearchParameters.Currency)
 	if len(tripsFilteredByCurrency) == 0 {
 		return &transportv3.TransportSearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("No trips found for currency %s", req.SearchParameters.Currency.String()),
-					Type:    typesv1.AlertType_ALERT_TYPE_INFO,
-				}},
-			},
+			Header:  common.SuccessHeaderWithInfoV1(fmt.Sprintf("No trips found for currency %s", req.SearchParameters.Currency.String())),
 			Results: searchResults,
 		}, nil
 	}
@@ -210,13 +150,7 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 			)
 			if err != nil {
 				return &transportv3.TransportSearchResponse{
-					Header: &typesv1.ResponseHeader{
-						Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-						Alerts: []*typesv1.Alert{{
-							Message: fmt.Sprintf("Failed to convert tripSegment price: %v", err),
-							Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-						}},
-					},
+					Header: common.ErrorHeaderV1(fmt.Sprintf("Failed to convert tripSegment price: %v", err)),
 				}, nil
 			}
 			totalPrice = new(big.Int).Add(totalPrice, priceBig)
@@ -244,9 +178,7 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 	}
 
 	response := &transportv3.TransportSearchResponse{
-		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_SUCCESS,
-		},
+		Header:  common.SuccessHeaderV1(),
 		Results: searchResults,
 	}
 
