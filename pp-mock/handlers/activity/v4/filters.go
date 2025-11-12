@@ -9,8 +9,8 @@ import (
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/localization"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/localization"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"

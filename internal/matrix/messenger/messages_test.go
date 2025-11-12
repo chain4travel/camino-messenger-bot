@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/matrix"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"

@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/matrix"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix/event"

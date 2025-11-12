@@ -1,4 +1,4 @@
-module github.com/chain4travel/camino-messenger-bot/v11
+module github.com/chain4travel/camino-messenger-bot/v12
 
 go 1.24.9
 

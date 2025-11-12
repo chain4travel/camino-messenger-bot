@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/scheduler"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/scheduler"
 	"github.com/jmoiron/sqlx"
 )
 

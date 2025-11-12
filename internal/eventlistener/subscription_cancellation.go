@@ -11,7 +11,7 @@ import (
 	cancellationv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v1"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 )
 

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
 	"maunium.net/go/mautrix/event"
 )
 

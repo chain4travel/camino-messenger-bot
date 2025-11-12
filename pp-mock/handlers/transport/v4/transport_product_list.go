@@ -8,8 +8,8 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	mockdata "github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
+	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
 )
 
 var _ transportv4grpc.TransportProductListServiceServer = (*transportProductListV4Server)(nil)

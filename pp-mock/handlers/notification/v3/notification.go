@@ -8,7 +8,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v3/notificationv3grpc"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/handlers/state"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 

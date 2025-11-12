@@ -8,8 +8,8 @@ import (
 
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/config"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/v12/config"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/utils/tls"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

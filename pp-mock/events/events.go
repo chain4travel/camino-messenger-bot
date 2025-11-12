@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/proto/pb/events"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/proto/pb/events"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"

@@ -6,7 +6,7 @@ package messenger
 import (
 	"context"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/matrix"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 )

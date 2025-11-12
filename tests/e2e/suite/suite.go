@@ -16,13 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/bot"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/matrix"
-	partnerplugin "github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/partner_plugin"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/runner"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/blockchain"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/bot"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/common"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/matrix"
+	partnerplugin "github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/resources"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/runner"
 )
 
 const (

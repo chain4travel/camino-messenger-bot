@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
 )
 
 type keyType string // private type to avoid collisions

@@ -17,10 +17,10 @@ import (
 	"go.uber.org/zap"
 	grpc_metadata "google.golang.org/grpc/metadata"
 
-	types "github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
-	rpc "github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc/client"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/metadata"
+	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	rpc "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
 )
 
 var _ PartnerPlugin = (*partnerPlugin)(nil)

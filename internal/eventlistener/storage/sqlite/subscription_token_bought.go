@@ -11,8 +11,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/eventlistener"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/database/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
 	"github.com/jmoiron/sqlx"
 )
 

@@ -17,8 +17,8 @@ import (
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data/activity"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/services/data/transport"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/activity"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/transport"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/encoding/protojson"

@@ -9,8 +9,8 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v2/pingv2grpc"
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

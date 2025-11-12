@@ -9,8 +9,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/messenger"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/matrix"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/matrix/messenger"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/matrix"
 	"go.uber.org/zap"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"

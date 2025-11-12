@@ -5,7 +5,7 @@ package state
 
 import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
 )
 
 func (p *UnifiedPrice) ExtractCurrencyV2() *typesv2.Currency {

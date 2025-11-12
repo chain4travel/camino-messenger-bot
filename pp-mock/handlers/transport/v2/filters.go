@@ -6,7 +6,7 @@ package v2
 import (
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
-	"github.com/chain4travel/camino-messenger-bot/v11/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	"google.golang.org/protobuf/proto"
 )
 

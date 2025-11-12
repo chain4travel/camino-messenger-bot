@@ -10,7 +10,7 @@ import (
 	"math/big"
 	"strings"
 
-	cmaccounts "github.com/chain4travel/camino-messenger-bot/v11/pkg/cm_accounts"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"

@@ -20,10 +20,10 @@ import (
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/crypto/cryptohelper"
 
-	matrixClient "github.com/chain4travel/camino-messenger-bot/v11/internal/matrix/client"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/blockchain"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/process"
-	"github.com/chain4travel/camino-messenger-bot/v11/tests/e2e/resources"
+	matrixClient "github.com/chain4travel/camino-messenger-bot/v12/internal/matrix/client"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/blockchain"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/resources"
 )
 
 const matrixRequestTickerInterval = 1000 * time.Millisecond

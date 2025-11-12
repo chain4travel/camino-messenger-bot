@@ -11,10 +11,10 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/conversion"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/erc20"
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/erc20"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
 	"github.com/ethereum/go-ethereum/common"
 )
 

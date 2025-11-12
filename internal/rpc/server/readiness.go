@@ -6,7 +6,7 @@ package server
 import (
 	"context"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/proto/pb/readiness"
+	"github.com/chain4travel/camino-messenger-bot/v12/proto/pb/readiness"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 

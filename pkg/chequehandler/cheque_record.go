@@ -6,7 +6,7 @@ package chequehandler
 import (
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/v11/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
