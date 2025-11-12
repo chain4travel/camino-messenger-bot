@@ -31,6 +31,12 @@ func (s CountryEntryRequirementsServiceV2Client) Call(ctx context.Context, reque
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	if response.Header.BaseHeader == nil { // we need this check for pre-protovalidate cmp versions
+		response.Header.BaseHeader = &typesv1.Header{}
+		if err == nil {
+			err = rpc.ErrNilResponseHeader
+		}
+	}
 	response.Header.BaseHeader.Version = version.VersionV1
 	return response, CountryEntryRequirementsServiceV2Response, err
 }

@@ -31,6 +31,12 @@ func (s SeatMapServiceV4Client) Call(ctx context.Context, requestIntf protorefle
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	if response.Header.BaseHeader == nil { // we need this check for pre-protovalidate cmp versions
+		response.Header.BaseHeader = &typesv4.Header{}
+		if err == nil {
+			err = rpc.ErrNilResponseHeader
+		}
+	}
 	response.Header.BaseHeader.Version = version.VersionV4
 	return response, SeatMapServiceV4Response, err
 }

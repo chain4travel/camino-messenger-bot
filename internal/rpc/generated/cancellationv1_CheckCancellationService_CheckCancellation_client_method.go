@@ -31,6 +31,12 @@ func (s CheckCancellationServiceV1Client) Call(ctx context.Context, requestIntf 
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	if response.Header.BaseHeader == nil { // we need this check for pre-protovalidate cmp versions
+		response.Header.BaseHeader = &typesv1.Header{}
+		if err == nil {
+			err = rpc.ErrNilResponseHeader
+		}
+	}
 	response.Header.BaseHeader.Version = version.VersionV1
 	return response, CheckCancellationServiceV1Response, err
 }
