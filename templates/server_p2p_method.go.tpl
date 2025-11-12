@@ -6,11 +6,14 @@ package generated
 import (
 	"context"
 	"fmt"
+	
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
 
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
 )
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
+	request.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 	response, err := s.reqHandler.HandleMessageRequest(ctx, {{SERVICE}}V{{VERSION}}Request, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process %s request: %w", {{SERVICE}}V{{VERSION}}Request, err)

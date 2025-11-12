@@ -11,6 +11,8 @@ import (
 	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v11/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v11/internal/version"
+
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -31,5 +33,6 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+	response.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 	return response, {{SERVICE}}V{{VERSION}}Response, err
 }
