@@ -12,6 +12,7 @@ import (
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/proto/pb/events"
@@ -124,6 +125,7 @@ func (tt *TestMintV4) testMintV4FullWorkflow(ctx context.Context, t *testing.T) 
 	tt.DebugPrintProtoMessage(eventMsg)
 	tokenBoughtNotification := &notificationv3.TokenBought{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
+	require.NoError(t, protovalidate.Validate(tokenBoughtNotification))
 	require.Equal(t, tokenBoughtNotification.TokenId, tokenID)
 	require.NotNil(t, tokenBoughtNotification.MintId)
 	require.Equal(t, tokenBoughtNotification.MintId.Value, mintID)
@@ -175,6 +177,7 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	tt.DebugPrintProtoMessage(eventMsg)
 	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
+	require.NoError(t, protovalidate.Validate(tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID1)
@@ -184,6 +187,7 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	tt.DebugPrintProtoMessage(eventMsg)
 	tokenExpiredNotification = &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
+	require.NoError(t, protovalidate.Validate(tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID2)
@@ -218,6 +222,7 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	tt.DebugPrintProtoMessage(eventMsg)
 	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
+	require.NoError(t, protovalidate.Validate(tokenExpiredNotification))
 	require.Equal(t, tokenExpiredNotification.TokenId, tokenID)
 	require.NotNil(t, tokenExpiredNotification.MintId)
 	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID)

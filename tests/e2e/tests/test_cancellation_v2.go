@@ -13,6 +13,7 @@ import (
 	cancellationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v2"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
@@ -301,16 +302,28 @@ func (tt *TestCancellationV2) testCheckCancellationV2(ctx context.Context, t *te
 	require.NoError(t, err)
 
 	tt.DebugPrintRequestResponse(req, resp)
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-	require.Equal(t, req.TokenId, resp.TokenId, "unexpected response TokenID")
-	require.Equal(t, common.BookingTokenPriceValue, resp.RefundAmount.Value, "unexpected response RefundAmount.Value")
-	require.Equal(t, uint32(price.NativeTokenDecimals), resp.RefundAmount.Decimals, "unexpected response RefundAmount.Decimals")
-	require.IsType(t, &typesv4.Currency_NativeToken{}, resp.RefundAmount.Currency.Currency, "unexpected response RefundAmount.Currency type")
-	require.Equal(t, common.CancellationPolicyID, resp.PolicyIdApplied, "unexpected response PolicyIdApplied")
-	require.Equal(t, cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM, resp.Status, "unexpected response status")
-	require.Equal(t, cancellationv1.RejectionReason_REJECTION_REASON_UNSPECIFIED, resp.RejectionReason, "unexpected response RejectionReason")
+
+	require.NoError(t, protovalidate.Validate(resp))
+
 	require.WithinRange(t, resp.Timestamp.AsTime(), reqTime, time.Now(), "unexpected response Timestamp, expected it to be within the request time and now")
+	resp.Timestamp = nil
+	resp.Header.BaseHeader.Version = nil
+
+	requireProtoEqual(t, &cancellationv2.CheckCancellationResponse{
+		Header: &typesv4.ResponseHeader{
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
+			BaseHeader: &typesv4.Header{},
+		},
+		TokenId: req.TokenId,
+		RefundAmount: &typesv4.Price{
+			Value:    common.BookingTokenPriceValue,
+			Decimals: uint32(price.NativeTokenDecimals),
+			Currency: &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}},
+		},
+		PolicyIdApplied: common.CancellationPolicyID,
+		Status:          cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM,
+		RejectionReason: cancellationv1.RejectionReason_REJECTION_REASON_UNSPECIFIED,
+	}, resp)
 }
 
 func newCancellationV2Helper(
@@ -390,6 +403,9 @@ func (h *cancellationV2Helper) initiateCancellation(
 		Reason:       reason,
 	})
 	h.require.NoError(err)
+	h.require.NoError(protovalidate.Validate(initiateCancellationResp))
+
+	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, initiateCancellationResp.Header.Status)
 
 	if h.initialProposer.Cmp(ethCommon.Address{}) == 0 {
 		h.initialProposer = initiatorBot.CMAccountAddress()
@@ -430,6 +446,9 @@ func (h *cancellationV2Helper) counterCancellation(
 		Reason:       reason,
 	})
 	h.require.NoError(err)
+	h.require.NoError(protovalidate.Validate(counterCancellationResp))
+
+	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, counterCancellationResp.Header.Status)
 
 	h.currentProposer = countererBot.CMAccountAddress()
 	h.counterReason = reason
@@ -463,6 +482,9 @@ func (h *cancellationV2Helper) acceptCancellation(
 		RefundAmount: refundAmount,
 	})
 	h.require.NoError(err)
+	h.require.NoError(protovalidate.Validate(acceptCancellationResp))
+
+	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, acceptCancellationResp.Header.Status)
 
 	switch accepter {
 	case Supplier:
@@ -487,6 +509,9 @@ func (h *cancellationV2Helper) rejectCancellation(
 		Reason:  reason,
 	})
 	h.require.NoError(err)
+	h.require.NoError(protovalidate.Validate(rejectCancellationResp))
+
+	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, rejectCancellationResp.Header.Status)
 
 	h.timesRejected++
 	h.rejectionReason = reason
@@ -507,6 +532,9 @@ func (h *cancellationV2Helper) withdrawCancellation(
 		Reason:  reason,
 	})
 	h.require.NoError(err)
+	h.require.NoError(protovalidate.Validate(withdrawCancellationResp))
+
+	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, withdrawCancellationResp.Header.Status)
 
 	h.withdrawalReason = reason
 
@@ -518,10 +546,8 @@ func (h *cancellationV2Helper) finalizeCancellation(refundAmount *typesv4.Price)
 	refundAmountBig, err := price.ToBigInt(refundAmount.Value, conversion.MustUInt32ToInt32(refundAmount.Decimals), price.NativeTokenDecimals)
 	h.require.NoError(err)
 
-	supplierBalance, err := h.e.CaminoNetwork.Client.BalanceOf(h.ctx, h.supplierBot.CMAccountAddress())
-	h.require.NoError(err)
-	distributorBalance, err := h.e.CaminoNetwork.Client.BalanceOf(h.ctx, h.distributorBot.CMAccountAddress())
-	h.require.NoError(err)
+	supplierBalance := h.e.Balance(h.ctx, h.t, h.supplierBot)
+	distributorBalance := h.e.Balance(h.ctx, h.t, h.distributorBot)
 
 	expectedSupplierBalance := big.NewInt(0).Sub(supplierBalance, refundAmountBig)
 	expectedDistributorBalance := big.NewInt(0).Add(distributorBalance, refundAmountBig)
@@ -536,22 +562,21 @@ func (h *cancellationV2Helper) finalizeCancellation(refundAmount *typesv4.Price)
 		},
 	})
 	h.require.NoError(err)
+	h.require.NoError(protovalidate.Validate(finalizeCancellationResp))
+
+	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, finalizeCancellationResp.Header.Status)
 
 	h.expectCancellationFinalizedNotification(h.supplierPPEventStream, finalizeCancellationResp.TransactionId.Hash)
 	h.expectCancellationFinalizedNotification(h.distributorPPEventStream, finalizeCancellationResp.TransactionId.Hash)
 
-	supplierBalanceAfter, err := h.e.CaminoNetwork.Client.BalanceOf(h.ctx, h.supplierBot.CMAccountAddress())
-	h.require.NoError(err)
-	distributorBalanceAfter, err := h.e.CaminoNetwork.Client.BalanceOf(h.ctx, h.distributorBot.CMAccountAddress())
-	h.require.NoError(err)
+	supplierBalanceAfter := h.e.Balance(h.ctx, h.t, h.supplierBot)
+	distributorBalanceAfter := h.e.Balance(h.ctx, h.t, h.distributorBot)
 
-	h.require.Truef(
-		supplierBalanceAfter.Cmp(expectedSupplierBalance) == 0,
+	h.require.Equalf(expectedSupplierBalance, supplierBalanceAfter,
 		"unexpected supplier balance after cancellation: expected %s, actual %s",
 		expectedSupplierBalance.String(), supplierBalanceAfter.String(),
 	)
-	h.require.Truef(
-		distributorBalanceAfter.Cmp(expectedDistributorBalance) == 0,
+	h.require.Equalf(expectedDistributorBalance, distributorBalanceAfter,
 		"unexpected distributor balance after cancellation: expected %s, actual %s",
 		expectedDistributorBalance.String(), distributorBalanceAfter.String(),
 	)
@@ -567,19 +592,22 @@ func (h *cancellationV2Helper) expectCancellationPendingNotification(
 	h.e.DebugPrintProtoMessage(eventMsg)
 	cancellationPendingNotification := &notificationv3.CancellationPending{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationPendingNotification))
-	h.require.Equal(h.tokenID, cancellationPendingNotification.TokenId)
-	h.require.Equal(h.initialProposer.Hex(), cancellationPendingNotification.InitialProposer.Address)
-	h.require.Equal(h.currentProposer.Hex(), cancellationPendingNotification.CurrentProposer.Address)
-	h.require.Equal(refundAmount.Uint64(), cancellationPendingNotification.RefundAmount)
-	h.require.Equal(h.timesCountered, cancellationPendingNotification.TimesCountered)
-	h.require.Equal(h.timesRejected, cancellationPendingNotification.TimesRejected)
-	h.require.Equal(h.cancellationReason, cancellationPendingNotification.CancellationReason)
-	h.require.Equal(h.rejectionReason, cancellationPendingNotification.RejectionReason)
-	h.require.Equal(h.counterReason, cancellationPendingNotification.CounterReason)
-	h.require.Equal(h.withdrawalReason, cancellationPendingNotification.WithdrawalReason)
-	h.require.Equal(h.ownerAccepted, cancellationPendingNotification.OwnerAccepted)
-	h.require.Equal(h.supplierAccepted, cancellationPendingNotification.SupplierAccepted)
-	h.require.Equal(txHash, cancellationPendingNotification.TxId.Hash)
+	h.require.NoError(protovalidate.Validate(cancellationPendingNotification))
+	requireProtoEqual(h.t, &notificationv3.CancellationPending{
+		TokenId:            h.tokenID,
+		InitialProposer:    &typesv4.EVMAddress{Address: h.initialProposer.Hex()},
+		CurrentProposer:    &typesv4.EVMAddress{Address: h.currentProposer.Hex()},
+		RefundAmount:       refundAmount.Uint64(),
+		TimesCountered:     h.timesCountered,
+		TimesRejected:      h.timesRejected,
+		OwnerAccepted:      h.ownerAccepted,
+		SupplierAccepted:   h.supplierAccepted,
+		CancellationReason: h.cancellationReason,
+		RejectionReason:    h.rejectionReason,
+		CounterReason:      h.counterReason,
+		WithdrawalReason:   h.withdrawalReason,
+		TxId:               &typesv4.EVMTransactionID{Hash: txHash},
+	}, cancellationPendingNotification)
 }
 
 func (h *cancellationV2Helper) expectCancellationRejectedNotification(
@@ -591,9 +619,12 @@ func (h *cancellationV2Helper) expectCancellationRejectedNotification(
 	h.e.DebugPrintProtoMessage(eventMsg)
 	cancellationRejectedNotification := &notificationv3.CancellationRejected{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationRejectedNotification))
-	h.require.Equal(h.tokenID, cancellationRejectedNotification.TokenId)
-	h.require.Equal(h.rejectionReason, cancellationRejectedNotification.Reason)
-	h.require.Equal(txHash, cancellationRejectedNotification.TxId.Hash)
+	h.require.NoError(protovalidate.Validate(cancellationRejectedNotification))
+	requireProtoEqual(h.t, &notificationv3.CancellationRejected{
+		TokenId: h.tokenID,
+		Reason:  h.rejectionReason,
+		TxId:    &typesv4.EVMTransactionID{Hash: txHash},
+	}, cancellationRejectedNotification)
 }
 
 func (h *cancellationV2Helper) expectCancellationWithdrawnNotification(
@@ -605,9 +636,12 @@ func (h *cancellationV2Helper) expectCancellationWithdrawnNotification(
 	h.e.DebugPrintProtoMessage(eventMsg)
 	cancellationWithdrawnNotification := &notificationv3.CancellationWithdrawn{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationWithdrawnNotification))
-	h.require.Equal(h.tokenID, cancellationWithdrawnNotification.TokenId)
-	h.require.Equal(h.withdrawalReason, cancellationWithdrawnNotification.Reason)
-	h.require.Equal(txHash, cancellationWithdrawnNotification.TxId.Hash)
+	h.require.NoError(protovalidate.Validate(cancellationWithdrawnNotification))
+	requireProtoEqual(h.t, &notificationv3.CancellationWithdrawn{
+		TokenId: h.tokenID,
+		Reason:  h.withdrawalReason,
+		TxId:    &typesv4.EVMTransactionID{Hash: txHash},
+	}, cancellationWithdrawnNotification)
 }
 
 func (h *cancellationV2Helper) expectCancellationFinalizedNotification(
@@ -619,6 +653,9 @@ func (h *cancellationV2Helper) expectCancellationFinalizedNotification(
 	h.e.DebugPrintProtoMessage(eventMsg)
 	cancellationFinalizedNotification := &notificationv3.CancellationFinalized{}
 	h.require.NoError(proto.Unmarshal(eventMsg.Data, cancellationFinalizedNotification))
-	h.require.Equal(h.tokenID, cancellationFinalizedNotification.TokenId)
-	h.require.Equal(txHash, cancellationFinalizedNotification.TxId.Hash)
+	h.require.NoError(protovalidate.Validate(cancellationFinalizedNotification))
+	requireProtoEqual(h.t, &notificationv3.CancellationFinalized{
+		TokenId: h.tokenID,
+		TxId:    &typesv4.EVMTransactionID{Hash: txHash},
+	}, cancellationFinalizedNotification)
 }

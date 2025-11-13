@@ -60,6 +60,7 @@ func (s *cancellationV2Service) InitiateCancellation(
 ) (*cancellationv2.InitiateCancellationResponse, error) {
 	response := &cancellationv2.InitiateCancellationResponse{
 		Header: &typesv4.ResponseHeader{
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
 			BaseHeader: &typesv4.Header{Version: version.VersionV4},
 		},
 	}
@@ -100,6 +101,7 @@ func (s *cancellationV2Service) CounterCancellation(
 ) (*cancellationv2.CounterCancellationResponse, error) {
 	response := &cancellationv2.CounterCancellationResponse{
 		Header: &typesv4.ResponseHeader{
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
 			BaseHeader: &typesv4.Header{Version: version.VersionV4},
 		},
 	}
@@ -139,6 +141,7 @@ func (s *cancellationV2Service) AcceptCancellation(
 ) (*cancellationv2.AcceptCancellationResponse, error) {
 	response := &cancellationv2.AcceptCancellationResponse{
 		Header: &typesv4.ResponseHeader{
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
 			BaseHeader: &typesv4.Header{Version: version.VersionV4},
 		},
 	}
@@ -171,6 +174,7 @@ func (s *cancellationV2Service) RejectCancellation(
 ) (*cancellationv2.RejectCancellationResponse, error) {
 	response := &cancellationv2.RejectCancellationResponse{
 		Header: &typesv4.ResponseHeader{
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
 			BaseHeader: &typesv4.Header{Version: version.VersionV4},
 		},
 	}
@@ -204,6 +208,7 @@ func (s *cancellationV2Service) WithdrawCancellation(
 ) (*cancellationv2.WithdrawCancellationResponse, error) {
 	response := &cancellationv2.WithdrawCancellationResponse{
 		Header: &typesv4.ResponseHeader{
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
 			BaseHeader: &typesv4.Header{Version: version.VersionV4},
 		},
 	}
@@ -237,6 +242,7 @@ func (s *cancellationV2Service) FinalizeCancellation(
 ) (*cancellationv2.FinalizeCancellationResponse, error) {
 	response := &cancellationv2.FinalizeCancellationResponse{
 		Header: &typesv4.ResponseHeader{
+			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
 			BaseHeader: &typesv4.Header{Version: version.VersionV4},
 		},
 	}

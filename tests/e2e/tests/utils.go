@@ -135,13 +135,14 @@ var (
 	c4tFeeCutDenominator = big.NewInt(100)
 )
 
-func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tFeeCut *big.Int) { //nolint:unparam // c4tFeeCut is needed for logic clarity at least
+func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tFeeCut *big.Int) {
 	c4tFeeCut = big.NewInt(0).Mul(value, c4tFeeCutNominator)
 	c4tFeeCut.Div(c4tFeeCut, c4tFeeCutDenominator)
 	return big.NewInt(0).Sub(value, c4tFeeCut), c4tFeeCut
 }
 
-func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, actual []T) { //nolint:unused // will be used in following PRs
+func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, actual []T) {
+	t.Helper()
 	protoMarshal := proto.MarshalOptions{Deterministic: true}
 	opts := []cmp.Option{
 		cmpopts.SortSlices(func(x, y T) bool {
@@ -157,5 +158,14 @@ func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, ac
 		cmp.Equal(expected, actual, opts...),
 		"Mismatch (-expected,+actual):\n%s",
 		cmp.Diff(expected, actual, opts...),
+	)
+}
+
+func requireProtoEqual[T proto.Message](t *testing.T, expected, actual T) {
+	t.Helper()
+	require.Truef(t,
+		proto.Equal(expected, actual),
+		"Mismatch (-expected,+actual):\n%s",
+		cmp.Diff(expected, actual, protocmp.Transform()),
 	)
 }
