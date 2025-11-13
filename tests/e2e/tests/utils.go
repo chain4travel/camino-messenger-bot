@@ -135,7 +135,7 @@ var (
 	c4tFeeCutDenominator = big.NewInt(100)
 )
 
-func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tFeeCut *big.Int) {
+func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tFeeCut *big.Int) { //nolint:unparam // c4tFeeCut is needed for logic clarity at least
 	c4tFeeCut = big.NewInt(0).Mul(value, c4tFeeCutNominator)
 	c4tFeeCut.Div(c4tFeeCut, c4tFeeCutDenominator)
 	return big.NewInt(0).Sub(value, c4tFeeCut), c4tFeeCut
