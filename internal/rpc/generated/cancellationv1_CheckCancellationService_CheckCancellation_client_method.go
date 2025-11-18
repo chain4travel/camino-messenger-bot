@@ -25,6 +25,17 @@ func (s CheckCancellationServiceV1Client) Call(ctx context.Context, requestIntf 
 
 	response, err := s.client.CheckCancellation(ctx, request, opts...)
 
+	if response == nil { // can be nil in case of error
+		response = &cancellationv1.CheckCancellationResponse{
+			Header: &typesv1.ResponseHeader{
+				BaseHeader: &typesv1.Header{},
+			},
+		}
+		if err == nil { // should never happen
+			err = rpc.ErrNilResponseHeader
+		}
+	}
+
 	// we need those check for pre-protovalidate cmp versions
 	if response.Header == nil { // Header must be present, so errors can be added to it
 		response.Header = &typesv1.ResponseHeader{
@@ -34,6 +45,7 @@ func (s CheckCancellationServiceV1Client) Call(ctx context.Context, requestIntf 
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+
 	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
 		response.Header.BaseHeader = &typesv1.Header{}
 		if err == nil {

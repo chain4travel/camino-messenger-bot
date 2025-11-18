@@ -25,6 +25,17 @@ func (s ValidationServiceV2Client) Call(ctx context.Context, requestIntf protore
 
 	response, err := s.client.Validation(ctx, request, opts...)
 
+	if response == nil { // can be nil in case of error
+		response = &bookv2.ValidationResponse{
+			Header: &typesv1.ResponseHeader{
+				BaseHeader: &typesv1.Header{},
+			},
+		}
+		if err == nil { // should never happen
+			err = rpc.ErrNilResponseHeader
+		}
+	}
+
 	// we need those check for pre-protovalidate cmp versions
 	if response.Header == nil { // Header must be present, so errors can be added to it
 		response.Header = &typesv1.ResponseHeader{
@@ -34,6 +45,7 @@ func (s ValidationServiceV2Client) Call(ctx context.Context, requestIntf protore
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+
 	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
 		response.Header.BaseHeader = &typesv1.Header{}
 		if err == nil {

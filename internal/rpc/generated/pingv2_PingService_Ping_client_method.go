@@ -25,6 +25,17 @@ func (s PingServiceV2Client) Call(ctx context.Context, requestIntf protoreflect.
 
 	response, err := s.client.Ping(ctx, request, opts...)
 
+	if response == nil { // can be nil in case of error
+		response = &pingv2.PingResponse{
+			Header: &typesv4.ResponseHeader{
+				BaseHeader: &typesv4.Header{},
+			},
+		}
+		if err == nil { // should never happen
+			err = rpc.ErrNilResponseHeader
+		}
+	}
+
 	// we need those check for pre-protovalidate cmp versions
 	if response.Header == nil { // Header must be present, so errors can be added to it
 		response.Header = &typesv4.ResponseHeader{
@@ -34,6 +45,7 @@ func (s PingServiceV2Client) Call(ctx context.Context, requestIntf protoreflect.
 			err = rpc.ErrNilResponseHeader
 		}
 	}
+
 	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
 		response.Header.BaseHeader = &typesv4.Header{}
 		if err == nil {
