@@ -63,6 +63,21 @@ func (mr *MockServiceMockRecorder) Call(ctx, request any, opts ...any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockService)(nil).Call), varargs...)
 }
 
+// ErrorResponseAndType mocks base method.
+func (m *MockService) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ErrorResponseAndType", errorMessage)
+	ret0, _ := ret[0].(protoreflect.ProtoMessage)
+	ret1, _ := ret[1].(types.MessageType)
+	return ret0, ret1
+}
+
+// ErrorResponseAndType indicates an expected call of ErrorResponseAndType.
+func (mr *MockServiceMockRecorder) ErrorResponseAndType(errorMessage any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ErrorResponseAndType", reflect.TypeOf((*MockService)(nil).ErrorResponseAndType), errorMessage)
+}
+
 // Name mocks base method.
 func (m *MockService) Name() string {
 	m.ctrl.T.Helper()
