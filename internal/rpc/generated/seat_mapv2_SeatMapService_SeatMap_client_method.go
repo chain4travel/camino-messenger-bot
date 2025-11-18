@@ -18,42 +18,39 @@ import (
 )
 
 func (s SeatMapServiceV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+	messageType := SeatMapServiceV2Response
+
 	request, ok := requestIntf.(*seat_mapv2.SeatMapRequest)
 	if !ok {
-		return nil, SeatMapServiceV2Response, fmt.Errorf("invalid request type")
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", SeatMapServiceV2Request, request)), messageType, nil
 	}
 
 	response, err := s.client.SeatMap(ctx, request, opts...)
 
-	if response == nil { // can be nil in case of error
-		response = &seat_mapv2.SeatMapResponse{
-			Header: &typesv1.ResponseHeader{
-				BaseHeader: &typesv1.Header{},
-			},
-		}
-		if err == nil { // should never happen
-			err = rpc.ErrNilResponseHeader
-		}
-	}
-
-	// we need those check for pre-protovalidate cmp versions
-	if response.Header == nil { // Header must be present, so errors can be added to it
-		response.Header = &typesv1.ResponseHeader{
-			BaseHeader: &typesv1.Header{},
-		}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
-	}
-
-	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
-		response.Header.BaseHeader = &typesv1.Header{}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
+	switch {
+	case err != nil:
+		return s.errorResponse(err.Error()), messageType, nil
+	case response.GetHeader().GetBaseHeader() == nil:
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType, nil
 	}
 
 	response.Header.BaseHeader.Version = version.VersionV1
 
-	return response, SeatMapServiceV2Response, err
+	return response, messageType, err
+}
+
+func (s *SeatMapServiceV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	return s.errorResponse(errorMessage), SeatMapServiceV2Response
+}
+
+func (s *SeatMapServiceV2Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
+	return &seat_mapv2.SeatMapResponse{
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

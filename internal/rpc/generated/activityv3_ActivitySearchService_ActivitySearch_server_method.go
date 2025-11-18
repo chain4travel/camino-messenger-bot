@@ -18,58 +18,38 @@ import (
 
 func (s *activityv3ActivitySearchServiceServer) ActivitySearch(ctx context.Context, request *activityv3.ActivitySearchRequest) (*activityv3.ActivitySearchResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("request validation failed: %v", err),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: rpc.ErrNilResponseHeader.Error(),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchServiceV3Request, request)
 	if err != nil {
-		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: err.Error(),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(err.Error()), nil
 	}
 
 	resp, ok := response.(*activityv3.ActivitySearchResponse)
 	if !ok {
-		return &activityv3.ActivitySearchResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("invalid response type: expected %s, got %T", ActivitySearchServiceV3Response, response),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivitySearchServiceV3Response, response)), nil
 	}
 
 	return resp, nil
+}
+
+func (s *activityv3ActivitySearchServiceServer) errorResponse(errorMessage string) *activityv3.ActivitySearchResponse {
+	return &activityv3.ActivitySearchResponse{
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

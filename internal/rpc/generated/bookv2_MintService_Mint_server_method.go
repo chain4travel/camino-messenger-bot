@@ -18,58 +18,38 @@ import (
 
 func (s *bookv2MintServiceServer) Mint(ctx context.Context, request *bookv2.MintRequest) (*bookv2.MintResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return &bookv2.MintResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("request validation failed: %v", err),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return &bookv2.MintResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: rpc.ErrNilResponseHeader.Error(),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, MintServiceV2Request, request)
 	if err != nil {
-		return &bookv2.MintResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: err.Error(),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(err.Error()), nil
 	}
 
 	resp, ok := response.(*bookv2.MintResponse)
 	if !ok {
-		return &bookv2.MintResponse{
-			Header: &typesv1.ResponseHeader{
-				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv1.Alert{{
-					Message: fmt.Sprintf("invalid response type: expected %s, got %T", MintServiceV2Response, response),
-					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", MintServiceV2Response, response)), nil
 	}
 
 	return resp, nil
+}
+
+func (s *bookv2MintServiceServer) errorResponse(errorMessage string) *bookv2.MintResponse {
+	return &bookv2.MintResponse{
+		Header: &typesv1.ResponseHeader{
+			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

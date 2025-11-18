@@ -18,42 +18,39 @@ import (
 )
 
 func (s AccommodationProductShortListServiceV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+	messageType := AccommodationProductShortListServiceV4Response
+
 	request, ok := requestIntf.(*accommodationv4.AccommodationProductShortListRequest)
 	if !ok {
-		return nil, AccommodationProductShortListServiceV4Response, fmt.Errorf("invalid request type")
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", AccommodationProductShortListServiceV4Request, request)), messageType, nil
 	}
 
 	response, err := s.client.AccommodationProductShortList(ctx, request, opts...)
 
-	if response == nil { // can be nil in case of error
-		response = &accommodationv4.AccommodationProductShortListResponse{
-			Header: &typesv4.ResponseHeader{
-				BaseHeader: &typesv4.Header{},
-			},
-		}
-		if err == nil { // should never happen
-			err = rpc.ErrNilResponseHeader
-		}
-	}
-
-	// we need those check for pre-protovalidate cmp versions
-	if response.Header == nil { // Header must be present, so errors can be added to it
-		response.Header = &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{},
-		}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
-	}
-
-	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
-		response.Header.BaseHeader = &typesv4.Header{}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
+	switch {
+	case err != nil:
+		return s.errorResponse(err.Error()), messageType, nil
+	case response.GetHeader().GetBaseHeader() == nil:
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType, nil
 	}
 
 	response.Header.BaseHeader.Version = version.VersionV4
 
-	return response, AccommodationProductShortListServiceV4Response, err
+	return response, messageType, err
+}
+
+func (s *AccommodationProductShortListServiceV4Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	return s.errorResponse(errorMessage), AccommodationProductShortListServiceV4Response
+}
+
+func (s *AccommodationProductShortListServiceV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
+	return &accommodationv4.AccommodationProductShortListResponse{
+		Header: &typesv4.ResponseHeader{
+			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv4.Alert{{
+				Message: errorMessage,
+				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

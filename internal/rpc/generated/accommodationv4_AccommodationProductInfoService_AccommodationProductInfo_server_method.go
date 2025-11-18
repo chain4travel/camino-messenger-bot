@@ -18,58 +18,38 @@ import (
 
 func (s *accommodationv4AccommodationProductInfoServiceServer) AccommodationProductInfo(ctx context.Context, request *accommodationv4.AccommodationProductInfoRequest) (*accommodationv4.AccommodationProductInfoResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return &accommodationv4.AccommodationProductInfoResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: fmt.Sprintf("request validation failed: %v", err),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return &accommodationv4.AccommodationProductInfoResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: rpc.ErrNilResponseHeader.Error(),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationProductInfoServiceV4Request, request)
 	if err != nil {
-		return &accommodationv4.AccommodationProductInfoResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: err.Error(),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(err.Error()), nil
 	}
 
 	resp, ok := response.(*accommodationv4.AccommodationProductInfoResponse)
 	if !ok {
-		return &accommodationv4.AccommodationProductInfoResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationProductInfoServiceV4Response, response),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationProductInfoServiceV4Response, response)), nil
 	}
 
 	return resp, nil
+}
+
+func (s *accommodationv4AccommodationProductInfoServiceServer) errorResponse(errorMessage string) *accommodationv4.AccommodationProductInfoResponse {
+	return &accommodationv4.AccommodationProductInfoResponse{
+		Header: &typesv4.ResponseHeader{
+			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv4.Alert{{
+				Message: errorMessage,
+				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

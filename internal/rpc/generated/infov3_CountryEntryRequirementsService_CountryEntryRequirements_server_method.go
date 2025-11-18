@@ -18,58 +18,38 @@ import (
 
 func (s *infov3CountryEntryRequirementsServiceServer) CountryEntryRequirements(ctx context.Context, request *infov3.CountryEntryRequirementsRequest) (*infov3.CountryEntryRequirementsResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return &infov3.CountryEntryRequirementsResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: fmt.Sprintf("request validation failed: %v", err),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return &infov3.CountryEntryRequirementsResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: rpc.ErrNilResponseHeader.Error(),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, CountryEntryRequirementsServiceV3Request, request)
 	if err != nil {
-		return &infov3.CountryEntryRequirementsResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: err.Error(),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(err.Error()), nil
 	}
 
 	resp, ok := response.(*infov3.CountryEntryRequirementsResponse)
 	if !ok {
-		return &infov3.CountryEntryRequirementsResponse{
-			Header: &typesv4.ResponseHeader{
-				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
-				Alerts: []*typesv4.Alert{{
-					Message: fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV3Response, response),
-					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-				}},
-			},
-		}, nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV3Response, response)), nil
 	}
 
 	return resp, nil
+}
+
+func (s *infov3CountryEntryRequirementsServiceServer) errorResponse(errorMessage string) *infov3.CountryEntryRequirementsResponse {
+	return &infov3.CountryEntryRequirementsResponse{
+		Header: &typesv4.ResponseHeader{
+			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv4.Alert{{
+				Message: errorMessage,
+				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

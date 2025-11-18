@@ -18,42 +18,39 @@ import (
 )
 
 func (s TransportProductListServiceV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+	messageType := TransportProductListServiceV4Response
+
 	request, ok := requestIntf.(*transportv4.TransportProductListRequest)
 	if !ok {
-		return nil, TransportProductListServiceV4Response, fmt.Errorf("invalid request type")
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", TransportProductListServiceV4Request, request)), messageType, nil
 	}
 
 	response, err := s.client.TransportProductList(ctx, request, opts...)
 
-	if response == nil { // can be nil in case of error
-		response = &transportv4.TransportProductListResponse{
-			Header: &typesv4.ResponseHeader{
-				BaseHeader: &typesv4.Header{},
-			},
-		}
-		if err == nil { // should never happen
-			err = rpc.ErrNilResponseHeader
-		}
-	}
-
-	// we need those check for pre-protovalidate cmp versions
-	if response.Header == nil { // Header must be present, so errors can be added to it
-		response.Header = &typesv4.ResponseHeader{
-			BaseHeader: &typesv4.Header{},
-		}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
-	}
-
-	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
-		response.Header.BaseHeader = &typesv4.Header{}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
+	switch {
+	case err != nil:
+		return s.errorResponse(err.Error()), messageType, nil
+	case response.GetHeader().GetBaseHeader() == nil:
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType, nil
 	}
 
 	response.Header.BaseHeader.Version = version.VersionV4
 
-	return response, TransportProductListServiceV4Response, err
+	return response, messageType, err
+}
+
+func (s *TransportProductListServiceV4Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	return s.errorResponse(errorMessage), TransportProductListServiceV4Response
+}
+
+func (s *TransportProductListServiceV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
+	return &transportv4.TransportProductListResponse{
+		Header: &typesv4.ResponseHeader{
+			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv4.Alert{{
+				Message: errorMessage,
+				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }
