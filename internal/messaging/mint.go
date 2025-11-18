@@ -41,15 +41,9 @@ type hotelJSON struct {
 
 // Generates a token data URI from a MintResponse object. Returns jsonPlain and a
 // data URI with base64 encoded json data.
-//
-// TODO: @havan: We need decide what data needs to be in the tokenURI JSON and add
-// those fields to the MintResponse. These will be shown in the UI of wallets,
-// explorers etc.
 func createTokenURIforMintResponse(mintID, bookingReference string) (string, string, error) {
-	// TODO: What should we use for a token name? This will be shown in the UI of wallets, explorers etc.
 	name := "CM Booking Token"
 
-	// TODO: What should we use for a token description? This will be shown in the UI of wallets, explorers etc.
 	description := "This NFT represents the booking with the specified attributes."
 
 	// Dummy data

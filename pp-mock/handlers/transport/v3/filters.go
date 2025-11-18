@@ -65,7 +65,7 @@ func filterTripsByDates(
 	filtered := []*transportv3.TripExtended{}
 	queryDepartureDate := common.DateV1ToTime(query.Departure.Date)
 
-	// TODO @Noctunus - All assumptions that the fields are present.
+	// All assumptions that the fields are present.
 	// This needs to be validated. Ideally with protovalidate on the unmashalled mockdata.
 	for _, trip := range trips {
 		if len(trip.Segments) == 0 {
@@ -100,7 +100,7 @@ func filterTripsByLocations(
 	query *transportv3.QueryTrip,
 ) []*transportv3.TripExtended {
 	filtered := []*transportv3.TripExtended{}
-	// TODO @Noctunus - All assumptions that the fields are present.
+	// All assumptions that the fields are present.
 	// This needs to be validated. Ideally with protovalidate on the unmashalled mockdata.
 	for _, trip := range trips {
 		if len(trip.Segments) == 0 {

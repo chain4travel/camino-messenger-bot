@@ -175,7 +175,6 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 		return nil, fmt.Errorf("error marshalling timestamps: %w", err)
 	}
 
-	// TODO @nikos set specific errors according to https://grpc.github.io/grpc/core/md_doc_statuscodes.html ?
 	return responseMsg.Content, grpc.SendHeader(ctx, grpcMetadata.Pairs(
 		metadata.KeyRequestID, responseMsg.RequestID,
 		metadata.KeyTimestamps, timestampsStr,
