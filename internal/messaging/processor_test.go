@@ -46,7 +46,7 @@ func defaultMessageProcessorArgs(c *gomock.Controller) messageProcessorArgs {
 	return messageProcessorArgs{
 		messenger:             NewMockMessenger(c),
 		serviceRegistry:       NewMockServiceRegistry(c),
-		responseHandler:       NoopResponseHandler{},
+		responseHandler:       NewMockResponseHandler(c),
 		partnerPlugin:         partnerplugin.NewMockPartnerPlugin(c),
 		chequeHandler:         chequehandler.NewMockChequeHandler(c),
 		cmAccounts:            cmaccounts.NewMockService(c),
@@ -136,7 +136,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				rpcService.EXPECT().Name().Return(serviceName)
 				pArgs.serviceRegistry.EXPECT().GetService(a.msg.Type).Return(rpcService, true)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
-				pArgs.chequeHandler.EXPECT().VerifyCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
+				pArgs.chequeHandler.EXPECT().VerifyAndStoreCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
 				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(&responseMessage, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, &responseMessage, nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
@@ -160,7 +160,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				rpcService.EXPECT().Name().Return(serviceName)
 				pArgs.serviceRegistry.EXPECT().GetService(a.msg.Type).Return(rpcService, true)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
-				pArgs.chequeHandler.EXPECT().VerifyCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
+				pArgs.chequeHandler.EXPECT().VerifyAndStoreCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
 				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.msg, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(&responseMessage, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, &responseMessage, nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
@@ -398,6 +398,7 @@ func TestStart(t *testing.T) {
 	messenger := NewMockMessenger(c)
 	responseHeaderHandler := common.NewMockResponseHeaderHandler(c)
 	encoderDecoder := NewMockEncoderDecoder(c)
+	responseHandler := NewMockResponseHandler(c)
 
 	senderBot := ethCommon.Address{1}
 	senderCMAccount := ethCommon.Address{2}
@@ -469,7 +470,7 @@ func TestStart(t *testing.T) {
 	encoderDecoder.EXPECT().DecodeAndVerifyMessage(ctx, &encodedRequestMsg.Message, encodedRequestMsg.SenderBotAddress).Return(requestMsg, serviceFeeCheque, sharedKey, nil)
 	serviceRegistry.EXPECT().GetService(requestMsg.Type).Return(rpcService, true)
 	cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
-	chequeHandler.EXPECT().VerifyCheque(m.Context, serviceFeeCheque, senderBot, serviceFee).Return(nil)
+	chequeHandler.EXPECT().VerifyAndStoreCheque(m.Context, serviceFeeCheque, senderBot, serviceFee).Return(nil)
 	partnerPlugin.EXPECT().DoServiceRequest(m.Context, requestMsg, rpcService, serviceFeeCheque.FromCMAccount, serviceFeeCheque.ToCMAccount).Return(&responseMessage, nil)
 	encoderDecoder.EXPECT().EncodeMessage(m.Context, &responseMessage, nil, senderBot, sharedKey).Return(encodedRespMsg, nil)
 	chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
@@ -494,7 +495,7 @@ func TestStart(t *testing.T) {
 		networkFeeBot,
 		networkFeeCMAccount,
 		serviceRegistry,
-		NoopResponseHandler{},
+		responseHandler,
 		partnerPlugin,
 		chequeHandler,
 		cmAccounts,

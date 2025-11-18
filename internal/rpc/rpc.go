@@ -20,6 +20,7 @@ type RequestHandler interface {
 
 type Client interface {
 	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error)
+	ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType)
 }
 
 type ServiceRegistry interface {
@@ -36,18 +37,14 @@ type Service interface {
 
 func NewService(client Client, name string) Service {
 	return &service{
-		client: client,
+		Client: client,
 		name:   name,
 	}
 }
 
 type service struct {
-	client Client
-	name   string
-}
-
-func (s *service) Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
-	return s.client.Call(ctx, request, opts...)
+	Client
+	name string
 }
 
 func (s *service) Name() string {

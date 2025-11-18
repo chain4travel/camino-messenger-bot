@@ -5,17 +5,16 @@ package partnerplugin
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v3/notificationv3grpc"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"buf.build/go/protovalidate"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	grpc_metadata "google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
 	rpc "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
@@ -30,11 +29,10 @@ type PartnerPlugin interface {
 	DoServiceRequest(
 		ctx context.Context,
 		requestMsg *types.Message,
-		responseMsg *types.Message,
 		serviceClient rpc.Client,
 		fromCMAccount common.Address,
 		toCMAccount common.Address,
-	) error
+	) (protoreflect.ProtoMessage, types.MessageType, error)
 
 	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
@@ -67,26 +65,15 @@ type partnerPlugin struct {
 func (p *partnerPlugin) DoServiceRequest(
 	ctx context.Context,
 	requestMsg *types.Message,
-	responseMsg *types.Message,
 	serviceClient rpc.Client,
 	fromCMAccount common.Address,
 	toCMAccount common.Address,
-) error {
-	var err error
-	responseMsg.Content, responseMsg.Type, err = serviceClient.Call(grpc_metadata.NewOutgoingContext(ctx, grpc_metadata.Pairs(
+) (protoreflect.ProtoMessage, types.MessageType, error) {
+	return serviceClient.Call(grpc_metadata.NewOutgoingContext(ctx, grpc_metadata.Pairs(
 		metadata.KeyRequestID, requestMsg.RequestID,
 		metadata.KeyRecipientCMAccount, toCMAccount.Hex(),
 		metadata.KeySenderCMAccount, fromCMAccount.Hex(),
 	)), requestMsg.Content)
-	if err != nil {
-		return fmt.Errorf("error calling partner plugin service: %w", err)
-	}
-
-	if err := protovalidate.Validate(responseMsg.Content); err != nil {
-		return fmt.Errorf("response message content validation failed: %w", err)
-	}
-
-	return nil
 }
 
 func (p *partnerPlugin) TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {

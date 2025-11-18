@@ -3,6 +3,7 @@ github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin=PartnerP
 github.com/chain4travel/camino-messenger-bot/v12/internal/messaging=Messenger=internal/messaging/mock_messenger.go
 github.com/chain4travel/camino-messenger-bot/v12/internal/messaging=EncoderDecoder=internal/messaging/mock_encoder_decoder.go
 github.com/chain4travel/camino-messenger-bot/v12/internal/messaging=ServiceRegistry=internal/messaging/mock_service_registry.go
+github.com/chain4travel/camino-messenger-bot/v12/internal/messaging=ResponseHandler=internal/messaging/mock_response_handler.go
 github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encoding=Storage=internal/messaging/encoding/mock_storage.go
 github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts=Service=pkg/cm_accounts/mock_cm_accounts.go=cmaccounts
 github.com/chain4travel/camino-messenger-bot/v12/pkg/scheduler=Storage=pkg/scheduler/mock_storage.go

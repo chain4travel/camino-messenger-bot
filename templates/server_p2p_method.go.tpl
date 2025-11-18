@@ -12,31 +12,44 @@ import (
 
 	"buf.build/go/protovalidate"
 
+	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
 )
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return nil, fmt.Errorf("request validation failed: %w", err)
+		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return nil, rpc.ErrNilResponseHeader
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, {{SERVICE}}V{{VERSION}}Request, request)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process %s request: %w", {{SERVICE}}V{{VERSION}}Request, err)
+		return s.errorResponse(err.Error()), nil
 	}
 
 	resp, ok := response.(*{{TYPE_PACKAGE}}.{{RESPONSE}})
 	if !ok {
-		return nil, fmt.Errorf("invalid response type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Response, response)
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Response, response)), nil
 	}
 
 	return resp, nil
+}
+
+func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) errorResponse(errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {
+	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
+		Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
+			Status: typesv{{COMMON_TYPES_VERSION}}.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv{{COMMON_TYPES_VERSION}}.Alert{{
+				Message: errorMessage,
+				Type:    typesv{{COMMON_TYPES_VERSION}}.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

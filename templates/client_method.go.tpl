@@ -18,42 +18,39 @@ import (
 )
 
 func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+	messageType := {{SERVICE}}V{{VERSION}}Response
+
 	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}})
 	if !ok {
-		return nil, {{SERVICE}}V{{VERSION}}Response, fmt.Errorf("invalid request type")
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Request, request)), messageType, nil
 	}
 	
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
-
-	if response == nil { // can be nil in case of error
-		response = &{{TYPE_PACKAGE}}.{{RESPONSE}}{
-			Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
-				BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{},
-			},
-		}
-		if err == nil { // should never happen
-			err = rpc.ErrNilResponseHeader
-		}
-	}
-
-	// we need those check for pre-protovalidate cmp versions
-	if response.Header == nil { // Header must be present, so errors can be added to it
-		response.Header = &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
-			BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{},
-		}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
-	}
 	
-	if response.Header.BaseHeader == nil { // BaseHeader must be present, so version can be set
-		response.Header.BaseHeader =  &typesv{{COMMON_TYPES_VERSION}}.Header{}
-		if err == nil {
-			err = rpc.ErrNilResponseHeader
-		}
+	switch {
+		case err != nil:
+			return s.errorResponse(err.Error()), messageType, nil
+		case response.GetHeader().GetBaseHeader() == nil:
+			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType, nil
 	}
 
 	response.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 
-	return response, {{SERVICE}}V{{VERSION}}Response, err
+	return response, messageType, err
+}
+
+func (s *{{SERVICE}}V{{VERSION}}Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	return s.errorResponse(errorMessage), {{SERVICE}}V{{VERSION}}Response
+}
+
+func (s *{{SERVICE}}V{{VERSION}}Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
+	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
+		Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
+			Status: typesv{{COMMON_TYPES_VERSION}}.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv{{COMMON_TYPES_VERSION}}.Alert{{
+				Message: errorMessage,
+				Type:    typesv{{COMMON_TYPES_VERSION}}.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }

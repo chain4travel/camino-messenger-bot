@@ -284,7 +284,10 @@ func (p *messageProcessor) SendRequestMessage(
 	select {
 	case responseMsg := <-responseChan:
 		if responseMsg.RequestID == requestMsg.RequestID {
-			// TODO@ validate response content
+			if err := protovalidate.Validate(responseMsg.Content); err != nil {
+				return nil, fmt.Errorf("response validation failed: %w", err)
+			}
+
 			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
 			return responseMsg, nil
 		} else {
@@ -320,15 +323,9 @@ func (p *messageProcessor) respond(
 		return err
 	}
 
-	responseMsg := &types.Message{
-		RequestID:  requestMsg.RequestID,
-		Timestamps: requestMsg.Timestamps,
-	}
-
-	p.validateAndRespond(
+	responseMsg := p.validateAndRespond(
 		ctx,
 		requestMsg,
-		responseMsg,
 		service,
 		serviceFeeCheque.FromCMAccount,
 		serviceFeeCheque.ToCMAccount,
@@ -354,32 +351,40 @@ func (p *messageProcessor) respond(
 func (p *messageProcessor) validateAndRespond(
 	ctx context.Context,
 	requestMsg *types.Message,
-	responseMsg *types.Message,
 	serviceClient rpc.Client,
 	fromCMAccount ethCommon.Address,
 	toCMAccount ethCommon.Address,
-) {
-	if err := protovalidate.Validate(requestMsg.Content); err != nil {
-		responseMsg.Content = nil // TODO@ get empty response
+) *types.Message {
+	responseMsg := &types.Message{
+		RequestID:  requestMsg.RequestID,
+		Timestamps: requestMsg.Timestamps,
+	}
+
+	err := protovalidate.Validate(requestMsg.Content)
+	if err != nil {
 		errMessage := fmt.Sprintf("request message validation failed: %v", err)
+		responseMsg.Content, responseMsg.Type = serviceClient.ErrorResponseAndType(errMessage)
 		p.logger.Errorf(errMessage)
-		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
-		return
+		return responseMsg
 	}
 
 	p.logger.Infof("CMAccount %s is calling partner-plugin of the CMAccount %s", fromCMAccount, toCMAccount)
 
 	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToPP)
 
-	if err := p.partnerPlugin.DoServiceRequest(
+	responseMsg.Content, responseMsg.Type, err = p.partnerPlugin.DoServiceRequest(
 		ctx,
 		requestMsg,
-		responseMsg,
 		serviceClient,
 		fromCMAccount,
 		toCMAccount,
-	); err != nil {
+	)
+	if err != nil {
 		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
+		p.logger.Errorf(errMessage)
+		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
+	} else if err := protovalidate.Validate(responseMsg.Content); err != nil {
+		errMessage := fmt.Sprintf("response message content validation failed: %v", err)
 		p.logger.Errorf(errMessage)
 		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
 	}
@@ -388,6 +393,8 @@ func (p *messageProcessor) validateAndRespond(
 
 	// is is expected, that PrepareResponseMessage will correctly process failure responses
 	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
+
+	return responseMsg
 }
 
 func (p *messageProcessor) forwardToHandler(msg *types.Message) error {

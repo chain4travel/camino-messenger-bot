@@ -85,16 +85,16 @@ func (mr *MockChequeHandlerMockRecorder) IssueCheque(arg0, arg1, arg2, arg3 any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueCheque", reflect.TypeOf((*MockChequeHandler)(nil).IssueCheque), arg0, arg1, arg2, arg3)
 }
 
-// VerifyCheque mocks base method.
-func (m *MockChequeHandler) VerifyCheque(arg0 context.Context, arg1 *cheques.SignedCheque, arg2 common.Address, arg3 *big.Int) error {
+// VerifyAndStoreCheque mocks base method.
+func (m *MockChequeHandler) VerifyAndStoreCheque(arg0 context.Context, arg1 *cheques.SignedCheque, arg2 common.Address, arg3 *big.Int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyCheque", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "VerifyAndStoreCheque", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// VerifyCheque indicates an expected call of VerifyCheque.
-func (mr *MockChequeHandlerMockRecorder) VerifyCheque(arg0, arg1, arg2, arg3 any) *gomock.Call {
+// VerifyAndStoreCheque indicates an expected call of VerifyAndStoreCheque.
+func (mr *MockChequeHandlerMockRecorder) VerifyAndStoreCheque(arg0, arg1, arg2, arg3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyCheque", reflect.TypeOf((*MockChequeHandler)(nil).VerifyCheque), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyAndStoreCheque", reflect.TypeOf((*MockChequeHandler)(nil).VerifyAndStoreCheque), arg0, arg1, arg2, arg3)
 }
