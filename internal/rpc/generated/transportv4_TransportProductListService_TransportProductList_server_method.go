@@ -13,29 +13,62 @@ import (
 	"buf.build/go/protovalidate"
 
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 )
 
 func (s *transportv4TransportProductListServiceServer) TransportProductList(ctx context.Context, request *transportv4.TransportProductListRequest) (*transportv4.TransportProductListResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return nil, fmt.Errorf("request validation failed: %w", err)
+		return &transportv4.TransportProductListResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: fmt.Sprintf("request validation failed: %v", err),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return nil, rpc.ErrNilResponseHeader
+		return &transportv4.TransportProductListResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: rpc.ErrNilResponseHeader.Error(),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, TransportProductListServiceV4Request, request)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process %s request: %w", TransportProductListServiceV4Request, err)
+		return &transportv4.TransportProductListResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: err.Error(),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	resp, ok := response.(*transportv4.TransportProductListResponse)
 	if !ok {
-		return nil, fmt.Errorf("invalid response type: expected %s, got %T", TransportProductListServiceV4Response, response)
+		return &transportv4.TransportProductListResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: fmt.Sprintf("invalid response type: expected %s, got %T", TransportProductListServiceV4Response, response),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	return resp, nil

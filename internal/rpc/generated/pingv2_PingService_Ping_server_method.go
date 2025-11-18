@@ -13,29 +13,62 @@ import (
 	"buf.build/go/protovalidate"
 
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 )
 
 func (s *pingv2PingServiceServer) Ping(ctx context.Context, request *pingv2.PingRequest) (*pingv2.PingResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return nil, fmt.Errorf("request validation failed: %w", err)
+		return &pingv2.PingResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: fmt.Sprintf("request validation failed: %v", err),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return nil, rpc.ErrNilResponseHeader
+		return &pingv2.PingResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: rpc.ErrNilResponseHeader.Error(),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, PingServiceV2Request, request)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process %s request: %w", PingServiceV2Request, err)
+		return &pingv2.PingResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: err.Error(),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	resp, ok := response.(*pingv2.PingResponse)
 	if !ok {
-		return nil, fmt.Errorf("invalid response type: expected %s, got %T", PingServiceV2Response, response)
+		return &pingv2.PingResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: fmt.Sprintf("invalid response type: expected %s, got %T", PingServiceV2Response, response),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	return resp, nil

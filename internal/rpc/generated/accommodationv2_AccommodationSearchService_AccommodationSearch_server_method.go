@@ -13,29 +13,62 @@ import (
 	"buf.build/go/protovalidate"
 
 	accommodationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v2"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 )
 
 func (s *accommodationv2AccommodationSearchServiceServer) AccommodationSearch(ctx context.Context, request *accommodationv2.AccommodationSearchRequest) (*accommodationv2.AccommodationSearchResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return nil, fmt.Errorf("request validation failed: %w", err)
+		return &accommodationv2.AccommodationSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("request validation failed: %v", err),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return nil, rpc.ErrNilResponseHeader
+		return &accommodationv2.AccommodationSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: rpc.ErrNilResponseHeader.Error(),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationSearchServiceV2Request, request)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process %s request: %w", AccommodationSearchServiceV2Request, err)
+		return &accommodationv2.AccommodationSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: err.Error(),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	resp, ok := response.(*accommodationv2.AccommodationSearchResponse)
 	if !ok {
-		return nil, fmt.Errorf("invalid response type: expected %s, got %T", AccommodationSearchServiceV2Response, response)
+		return &accommodationv2.AccommodationSearchResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationSearchServiceV2Response, response),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	return resp, nil

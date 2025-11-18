@@ -13,29 +13,62 @@ import (
 	"buf.build/go/protovalidate"
 
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 )
 
 func (s *bookv3MintServiceServer) Mint(ctx context.Context, request *bookv3.MintRequest) (*bookv3.MintResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return nil, fmt.Errorf("request validation failed: %w", err)
+		return &bookv3.MintResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("request validation failed: %v", err),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return nil, rpc.ErrNilResponseHeader
+		return &bookv3.MintResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: rpc.ErrNilResponseHeader.Error(),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, MintServiceV3Request, request)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process %s request: %w", MintServiceV3Request, err)
+		return &bookv3.MintResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: err.Error(),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	resp, ok := response.(*bookv3.MintResponse)
 	if !ok {
-		return nil, fmt.Errorf("invalid response type: expected %s, got %T", MintServiceV3Response, response)
+		return &bookv3.MintResponse{
+			Header: &typesv1.ResponseHeader{
+				Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv1.Alert{{
+					Message: fmt.Sprintf("invalid response type: expected %s, got %T", MintServiceV3Response, response),
+					Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	return resp, nil

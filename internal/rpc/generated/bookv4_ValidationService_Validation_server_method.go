@@ -13,29 +13,62 @@ import (
 	"buf.build/go/protovalidate"
 
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 )
 
 func (s *bookv4ValidationServiceServer) Validation(ctx context.Context, request *bookv4.ValidationRequest) (*bookv4.ValidationResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return nil, fmt.Errorf("request validation failed: %w", err)
+		return &bookv4.ValidationResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: fmt.Sprintf("request validation failed: %v", err),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	// we need this check for pre-protovalidate cmp versions
 	// Header.BaseHeader must be present, so version can be set
 	if request.Header.GetBaseHeader() == nil {
-		return nil, rpc.ErrNilResponseHeader
+		return &bookv4.ValidationResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: rpc.ErrNilResponseHeader.Error(),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	response, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV4Request, request)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process %s request: %w", ValidationServiceV4Request, err)
+		return &bookv4.ValidationResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: err.Error(),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	resp, ok := response.(*bookv4.ValidationResponse)
 	if !ok {
-		return nil, fmt.Errorf("invalid response type: expected %s, got %T", ValidationServiceV4Response, response)
+		return &bookv4.ValidationResponse{
+			Header: &typesv4.ResponseHeader{
+				Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+				Alerts: []*typesv4.Alert{{
+					Message: fmt.Sprintf("invalid response type: expected %s, got %T", ValidationServiceV4Response, response),
+					Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+				}},
+			},
+		}, nil
 	}
 
 	return resp, nil
