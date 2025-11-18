@@ -30,10 +30,11 @@ type PartnerPlugin interface {
 	DoServiceRequest(
 		ctx context.Context,
 		requestMsg *types.Message,
+		responseMsg *types.Message,
 		serviceClient rpc.Client,
 		fromCMAccount common.Address,
 		toCMAccount common.Address,
-	) (*types.Message, error)
+	) error
 
 	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
@@ -66,15 +67,11 @@ type partnerPlugin struct {
 func (p *partnerPlugin) DoServiceRequest(
 	ctx context.Context,
 	requestMsg *types.Message,
+	responseMsg *types.Message,
 	serviceClient rpc.Client,
 	fromCMAccount common.Address,
 	toCMAccount common.Address,
-) (*types.Message, error) {
-	responseMsg := &types.Message{
-		RequestID:  requestMsg.RequestID,
-		Timestamps: requestMsg.Timestamps,
-	}
-
+) error {
 	var err error
 	responseMsg.Content, responseMsg.Type, err = serviceClient.Call(grpc_metadata.NewOutgoingContext(ctx, grpc_metadata.Pairs(
 		metadata.KeyRequestID, requestMsg.RequestID,
@@ -82,14 +79,14 @@ func (p *partnerPlugin) DoServiceRequest(
 		metadata.KeySenderCMAccount, fromCMAccount.Hex(),
 	)), requestMsg.Content)
 	if err != nil {
-		return responseMsg, fmt.Errorf("error calling partner plugin service: %w", err)
+		return fmt.Errorf("error calling partner plugin service: %w", err)
 	}
 
 	if err := protovalidate.Validate(responseMsg.Content); err != nil {
-		return responseMsg, fmt.Errorf("response message content validation failed: %w", err)
+		return fmt.Errorf("response message content validation failed: %w", err)
 	}
 
-	return responseMsg, nil
+	return nil
 }
 
 func (p *partnerPlugin) TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error {

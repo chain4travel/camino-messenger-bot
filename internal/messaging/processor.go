@@ -11,11 +11,13 @@ import (
 	"sync"
 	"time"
 
+	"buf.build/go/protovalidate"
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
@@ -284,6 +286,7 @@ func (p *messageProcessor) SendRequestMessage(
 	select {
 	case responseMsg := <-responseChan:
 		if responseMsg.RequestID == requestMsg.RequestID {
+			// TODO@ validate response content
 			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
 			return responseMsg, nil
 		} else {
@@ -315,31 +318,23 @@ func (p *messageProcessor) respond(
 		return err
 	}
 
-	if err := p.chequeHandler.VerifyCheque(ctx, serviceFeeCheque, senderBotAddress, serviceFee); err != nil {
+	if err := p.chequeHandler.VerifyAndStoreCheque(ctx, serviceFeeCheque, senderBotAddress, serviceFee); err != nil {
 		return err
 	}
 
-	p.logger.Infof("CMAccount %s is calling partner-plugin of the CMAccount %s", serviceFeeCheque.FromCMAccount, serviceFeeCheque.ToCMAccount)
+	responseMsg := &types.Message{
+		RequestID:  requestMsg.RequestID,
+		Timestamps: requestMsg.Timestamps,
+	}
 
-	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToPP)
-
-	responseMsg, err := p.partnerPlugin.DoServiceRequest(
+	p.validateAndRespond(
 		ctx,
 		requestMsg,
+		responseMsg,
 		service,
 		serviceFeeCheque.FromCMAccount,
 		serviceFeeCheque.ToCMAccount,
 	)
-	if err != nil {
-		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
-		p.logger.Errorf(errMessage)
-		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
-	}
-
-	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageReceivedFromPP)
-
-	// is is expected, that PrepareResponseMessage will correctly process failure responses
-	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
 
 	p.logger.Infof("Supplier: Bot %s responding to BOT %s", p.botAddress, senderBotAddress)
 
@@ -356,6 +351,45 @@ func (p *messageProcessor) respond(
 	}
 
 	return p.messenger.SendMessage(ctx, encodedResponseMessage, senderBotAddress, networkFeeCheque)
+}
+
+func (p *messageProcessor) validateAndRespond(
+	ctx context.Context,
+	requestMsg *types.Message,
+	responseMsg *types.Message,
+	serviceClient rpc.Client,
+	fromCMAccount ethCommon.Address,
+	toCMAccount ethCommon.Address,
+) {
+	if err := protovalidate.Validate(requestMsg.Content); err != nil {
+		responseMsg.Content = nil // TODO@ get empty response
+		errMessage := fmt.Sprintf("request message validation failed: %v", err)
+		p.logger.Errorf(errMessage)
+		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
+		return
+	}
+
+	p.logger.Infof("CMAccount %s is calling partner-plugin of the CMAccount %s", fromCMAccount, toCMAccount)
+
+	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToPP)
+
+	if err := p.partnerPlugin.DoServiceRequest(
+		ctx,
+		requestMsg,
+		responseMsg,
+		serviceClient,
+		fromCMAccount,
+		toCMAccount,
+	); err != nil {
+		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
+		p.logger.Errorf(errMessage)
+		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
+	}
+
+	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageReceivedFromPP)
+
+	// is is expected, that PrepareResponseMessage will correctly process failure responses
+	p.responseHandler.PrepareResponseMessage(ctx, requestMsg, responseMsg)
 }
 
 func (p *messageProcessor) forwardToHandler(msg *types.Message) error {

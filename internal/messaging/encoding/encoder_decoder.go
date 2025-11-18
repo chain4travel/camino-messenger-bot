@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"time"
 
-	"buf.build/go/protovalidate"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
@@ -221,10 +220,6 @@ func (e *encoderDecoder) DecodeAndVerifyMessage(
 
 	if err := e.setBotPubKey(ctx, senderBotAddress, senderPubKey); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to store sender public key: %w", err)
-	}
-
-	if err := protovalidate.Validate(msg.Content); err != nil {
-		return nil, nil, nil, fmt.Errorf("message content validation failed: %w", err)
 	}
 
 	if msg.Timestamps == nil {

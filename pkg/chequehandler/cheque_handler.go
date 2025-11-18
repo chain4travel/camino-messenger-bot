@@ -74,7 +74,7 @@ type ChequeHandler interface {
 
 	CheckCashInStatus(ctx context.Context) error
 
-	VerifyCheque(
+	VerifyAndStoreCheque(
 		ctx context.Context,
 		cheque *cheques.SignedCheque,
 		sender common.Address,
@@ -223,7 +223,7 @@ func (ch *evmChequeHandler) IssueCheque(
 	return signedCheque, nil
 }
 
-func (ch *evmChequeHandler) VerifyCheque(
+func (ch *evmChequeHandler) VerifyAndStoreCheque(
 	ctx context.Context,
 	cheque *cheques.SignedCheque,
 	fromBot common.Address,
