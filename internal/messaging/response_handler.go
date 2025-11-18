@@ -41,7 +41,7 @@ type ResponseHandler interface {
 	PrepareResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
 
 	// Prepares request by performing any necessary modifications to it
-	PrepareRequest(request protoreflect.ProtoMessage) error
+	PrepareRequest(request protoreflect.ProtoMessage)
 }
 
 func NewResponseHandler(
@@ -119,18 +119,13 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 }
 
 // Prepares request by performing any necessary modifications to it
-func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) error {
+func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) {
 	switch request := request.(type) {
 	case *bookv2.MintRequest:
 		request.BuyerAddress = h.cmAccountAddressStr
 	case *bookv3.MintRequest:
-		request.BuyerAddress = &typesv3.EVMAddress{
-			Address: h.cmAccountAddressStr,
-		}
+		request.BuyerAddress = &typesv3.EVMAddress{Address: h.cmAccountAddressStr}
 	case *bookv4.MintRequest:
-		request.BuyerAddress = &typesv4.EVMAddress{
-			Address: h.cmAccountAddressStr,
-		}
+		request.BuyerAddress = &typesv4.EVMAddress{Address: h.cmAccountAddressStr}
 	}
-	return nil
 }

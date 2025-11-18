@@ -239,9 +239,7 @@ func (p *messageProcessor) SendRequestMessage(
 		return nil, err
 	}
 
-	if err := p.responseHandler.PrepareRequest(requestMsg.Content); err != nil {
-		return nil, err
-	}
+	p.responseHandler.PrepareRequest(requestMsg.Content)
 
 	serviceFeeCheque, err := p.chequeHandler.IssueCheque(
 		ctx,

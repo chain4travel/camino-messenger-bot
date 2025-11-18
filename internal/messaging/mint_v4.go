@@ -24,14 +24,6 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 		return
 	}
 
-	if !common.IsHexAddress(request.BuyerAddress.Address) {
-		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress.Address)
-		h.logger.Error(errMsg)
-		h.responseHeaderHandler.AddError(response, errMsg)
-		return
-	}
-	buyerAddress := common.HexToAddress(request.BuyerAddress.Address)
-
 	h.logger.Debugf("Token URI: %s", response.BookingTokenUri)
 
 	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
@@ -52,7 +44,7 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 
 	receipt, tokenID, err := h.bookingService.MintBookingToken(
 		ctx,
-		buyerAddress,
+		common.HexToAddress(request.BuyerAddress.Address),
 		response.BookingTokenUri,
 		big.NewInt(response.BuyableUntil.Seconds),
 		price,
@@ -76,9 +68,7 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 
 	response.Header.Status = typesv4.StatusType_STATUS_TYPE_SUCCESS
 	response.BookingTokenId = tokenID.Uint64()
-	response.MintTransactionId = &typesv4.EVMTransactionID{
-		Hash: txID,
-	}
+	response.MintTransactionId = &typesv4.EVMTransactionID{Hash: txID}
 }
 
 func (h *evmResponseHandler) processMintResponseV4(
@@ -116,9 +106,7 @@ func (h *evmResponseHandler) processMintResponseV4(
 		return
 	}
 
-	response.BuyTransactionId = &typesv4.EVMTransactionID{
-		Hash: receipt.TxHash.Hex(),
-	}
+	response.BuyTransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
 	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId.Hash, response.MintTransactionId.Hash)
 
