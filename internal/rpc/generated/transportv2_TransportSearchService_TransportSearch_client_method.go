@@ -22,7 +22,7 @@ func (s TransportSearchServiceV2Client) Call(ctx context.Context, requestIntf pr
 
 	request, ok := requestIntf.(*transportv2.TransportSearchRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", TransportSearchServiceV2Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", TransportSearchServiceV2Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.TransportSearch(ctx, request, opts...)

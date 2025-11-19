@@ -22,7 +22,7 @@ func (s ValidationServiceV2Client) Call(ctx context.Context, requestIntf protore
 
 	request, ok := requestIntf.(*bookv2.ValidationRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ValidationServiceV2Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ValidationServiceV2Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.Validation(ctx, request, opts...)

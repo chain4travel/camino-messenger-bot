@@ -22,7 +22,7 @@ func (s PingServiceV1Client) Call(ctx context.Context, requestIntf protoreflect.
 
 	request, ok := requestIntf.(*pingv1.PingRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", PingServiceV1Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", PingServiceV1Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.Ping(ctx, request, opts...)

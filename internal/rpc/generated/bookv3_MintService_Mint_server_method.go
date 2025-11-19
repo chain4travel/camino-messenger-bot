@@ -29,17 +29,17 @@ func (s *bookv3MintServiceServer) Mint(ctx context.Context, request *bookv3.Mint
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, MintServiceV3Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, MintServiceV3Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*bookv3.MintResponse)
+	response, ok := responseIntf.(*bookv3.MintResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", MintServiceV3Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *bookv3MintServiceServer) errorResponse(errorMessage string) *bookv3.MintResponse {

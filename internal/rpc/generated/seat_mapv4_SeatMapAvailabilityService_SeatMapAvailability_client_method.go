@@ -22,7 +22,7 @@ func (s SeatMapAvailabilityServiceV4Client) Call(ctx context.Context, requestInt
 
 	request, ok := requestIntf.(*seat_mapv4.SeatMapAvailabilityRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", SeatMapAvailabilityServiceV4Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", SeatMapAvailabilityServiceV4Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.SeatMapAvailability(ctx, request, opts...)

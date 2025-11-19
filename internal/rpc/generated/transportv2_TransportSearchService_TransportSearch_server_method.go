@@ -29,17 +29,17 @@ func (s *transportv2TransportSearchServiceServer) TransportSearch(ctx context.Co
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, TransportSearchServiceV2Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, TransportSearchServiceV2Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*transportv2.TransportSearchResponse)
+	response, ok := responseIntf.(*transportv2.TransportSearchResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportSearchServiceV2Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *transportv2TransportSearchServiceServer) errorResponse(errorMessage string) *transportv2.TransportSearchResponse {

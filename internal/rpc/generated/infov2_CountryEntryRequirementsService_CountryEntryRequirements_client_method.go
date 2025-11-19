@@ -22,7 +22,7 @@ func (s CountryEntryRequirementsServiceV2Client) Call(ctx context.Context, reque
 
 	request, ok := requestIntf.(*infov2.CountryEntryRequirementsRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CountryEntryRequirementsServiceV2Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CountryEntryRequirementsServiceV2Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.CountryEntryRequirements(ctx, request, opts...)

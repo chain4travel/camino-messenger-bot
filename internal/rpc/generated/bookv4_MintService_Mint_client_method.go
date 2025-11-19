@@ -22,7 +22,7 @@ func (s MintServiceV4Client) Call(ctx context.Context, requestIntf protoreflect.
 
 	request, ok := requestIntf.(*bookv4.MintRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", MintServiceV4Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", MintServiceV4Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.Mint(ctx, request, opts...)

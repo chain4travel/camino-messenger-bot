@@ -22,7 +22,7 @@ func (s ActivitySearchServiceV2Client) Call(ctx context.Context, requestIntf pro
 
 	request, ok := requestIntf.(*activityv2.ActivitySearchRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ActivitySearchServiceV2Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ActivitySearchServiceV2Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.ActivitySearch(ctx, request, opts...)

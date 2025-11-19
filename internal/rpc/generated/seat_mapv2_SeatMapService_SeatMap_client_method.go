@@ -22,7 +22,7 @@ func (s SeatMapServiceV2Client) Call(ctx context.Context, requestIntf protorefle
 
 	request, ok := requestIntf.(*seat_mapv2.SeatMapRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", SeatMapServiceV2Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", SeatMapServiceV2Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.SeatMap(ctx, request, opts...)

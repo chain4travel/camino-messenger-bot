@@ -29,17 +29,17 @@ func (s *transportv4TransportProductListServiceServer) TransportProductList(ctx 
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, TransportProductListServiceV4Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, TransportProductListServiceV4Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*transportv4.TransportProductListResponse)
+	response, ok := responseIntf.(*transportv4.TransportProductListResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportProductListServiceV4Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *transportv4TransportProductListServiceServer) errorResponse(errorMessage string) *transportv4.TransportProductListResponse {

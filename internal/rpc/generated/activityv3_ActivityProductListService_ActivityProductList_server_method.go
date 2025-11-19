@@ -29,17 +29,17 @@ func (s *activityv3ActivityProductListServiceServer) ActivityProductList(ctx con
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivityProductListServiceV3Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ActivityProductListServiceV3Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*activityv3.ActivityProductListResponse)
+	response, ok := responseIntf.(*activityv3.ActivityProductListResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivityProductListServiceV3Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *activityv3ActivityProductListServiceServer) errorResponse(errorMessage string) *activityv3.ActivityProductListResponse {

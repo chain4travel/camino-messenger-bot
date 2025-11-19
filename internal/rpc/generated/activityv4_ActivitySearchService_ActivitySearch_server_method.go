@@ -29,17 +29,17 @@ func (s *activityv4ActivitySearchServiceServer) ActivitySearch(ctx context.Conte
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchServiceV4Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchServiceV4Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*activityv4.ActivitySearchResponse)
+	response, ok := responseIntf.(*activityv4.ActivitySearchResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivitySearchServiceV4Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *activityv4ActivitySearchServiceServer) errorResponse(errorMessage string) *activityv4.ActivitySearchResponse {

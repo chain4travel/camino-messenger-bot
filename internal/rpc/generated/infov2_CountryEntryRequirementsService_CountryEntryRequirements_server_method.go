@@ -29,17 +29,17 @@ func (s *infov2CountryEntryRequirementsServiceServer) CountryEntryRequirements(c
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, CountryEntryRequirementsServiceV2Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, CountryEntryRequirementsServiceV2Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*infov2.CountryEntryRequirementsResponse)
+	response, ok := responseIntf.(*infov2.CountryEntryRequirementsResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV2Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *infov2CountryEntryRequirementsServiceServer) errorResponse(errorMessage string) *infov2.CountryEntryRequirementsResponse {

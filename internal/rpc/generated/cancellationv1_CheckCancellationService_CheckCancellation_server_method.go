@@ -29,17 +29,17 @@ func (s *cancellationv1CheckCancellationServiceServer) CheckCancellation(ctx con
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, CheckCancellationServiceV1Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, CheckCancellationServiceV1Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*cancellationv1.CheckCancellationResponse)
+	response, ok := responseIntf.(*cancellationv1.CheckCancellationResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CheckCancellationServiceV1Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *cancellationv1CheckCancellationServiceServer) errorResponse(errorMessage string) *cancellationv1.CheckCancellationResponse {

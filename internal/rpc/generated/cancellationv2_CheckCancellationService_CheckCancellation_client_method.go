@@ -22,7 +22,7 @@ func (s CheckCancellationServiceV2Client) Call(ctx context.Context, requestIntf 
 
 	request, ok := requestIntf.(*cancellationv2.CheckCancellationRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CheckCancellationServiceV2Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CheckCancellationServiceV2Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.CheckCancellation(ctx, request, opts...)

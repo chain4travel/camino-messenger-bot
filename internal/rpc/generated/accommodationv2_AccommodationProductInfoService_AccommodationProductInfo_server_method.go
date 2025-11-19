@@ -29,17 +29,17 @@ func (s *accommodationv2AccommodationProductInfoServiceServer) AccommodationProd
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationProductInfoServiceV2Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationProductInfoServiceV2Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*accommodationv2.AccommodationProductInfoResponse)
+	response, ok := responseIntf.(*accommodationv2.AccommodationProductInfoResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationProductInfoServiceV2Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *accommodationv2AccommodationProductInfoServiceServer) errorResponse(errorMessage string) *accommodationv2.AccommodationProductInfoResponse {

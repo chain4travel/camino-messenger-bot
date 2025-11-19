@@ -29,17 +29,17 @@ func (s *bookv3ValidationServiceServer) Validation(ctx context.Context, request 
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV3Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV3Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*bookv3.ValidationResponse)
+	response, ok := responseIntf.(*bookv3.ValidationResponse)
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ValidationServiceV3Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *bookv3ValidationServiceServer) errorResponse(errorMessage string) *bookv3.ValidationResponse {

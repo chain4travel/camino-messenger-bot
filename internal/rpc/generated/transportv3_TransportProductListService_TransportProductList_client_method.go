@@ -22,7 +22,7 @@ func (s TransportProductListServiceV3Client) Call(ctx context.Context, requestIn
 
 	request, ok := requestIntf.(*transportv3.TransportProductListRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", TransportProductListServiceV3Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", TransportProductListServiceV3Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.TransportProductList(ctx, request, opts...)

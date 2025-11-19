@@ -22,7 +22,7 @@ func (s AccommodationProductInfoServiceV2Client) Call(ctx context.Context, reque
 
 	request, ok := requestIntf.(*accommodationv2.AccommodationProductInfoRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", AccommodationProductInfoServiceV2Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", AccommodationProductInfoServiceV2Request, requestIntf)), messageType, nil
 	}
 
 	response, err := s.client.AccommodationProductInfo(ctx, request, opts...)
