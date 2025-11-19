@@ -110,7 +110,7 @@ func getPaymentTokenFromPriceV4(t *testing.T, price *typesv4.Price) common.Addre
 	case *typesv4.Currency_IsoCurrency:
 		return booking.ISOPaymentToken
 	case *typesv4.Currency_TokenCurrency:
-		return common.HexToAddress(currency.TokenCurrency.ContractAddress.Address)
+		return common.HexToAddress(currency.TokenCurrency.Address)
 	}
 	require.Fail(t, "unexpected currency type")
 	return common.Address{}

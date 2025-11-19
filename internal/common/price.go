@@ -175,7 +175,7 @@ func (p *priceHandler) GetPriceAndTokenV4(
 	case *typesv4.Currency_NativeToken:
 		priceBigInt, err = price.ToBigInt(priceV4.Value, conversion.MustUInt32ToInt32(priceV4.Decimals), price.NativeTokenDecimals)
 	case *typesv4.Currency_TokenCurrency:
-		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress.Address)
+		contractAddress := common.HexToAddress(currency.TokenCurrency.Address)
 		// if contract address is invalid in any way, Decimals() will return an error
 		tokenDecimals, decErr := p.erc20.Decimals(ctx, contractAddress)
 		if decErr != nil {

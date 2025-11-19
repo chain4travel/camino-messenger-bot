@@ -22,10 +22,8 @@ func (p *UnifiedPrice) ExtractCurrencyV4() *typesv4.Currency {
 	case p.TokenContractAddress != "":
 		return &typesv4.Currency{
 			Currency: &typesv4.Currency_TokenCurrency{
-				TokenCurrency: &typesv4.TokenCurrency{
-					ContractAddress: &typesv4.EVMAddress{
-						Address: p.TokenContractAddress,
-					},
+				TokenCurrency: &typesv4.EVMAddress{
+					Address: p.TokenContractAddress,
 				},
 			},
 		}
@@ -53,7 +51,7 @@ func PriceV4ToUnifiedPrice(price *typesv4.Price) *UnifiedPrice {
 	case *typesv4.Currency_IsoCurrency:
 		out.IsoCurrencyEnum = int32(currency.IsoCurrency)
 	case *typesv4.Currency_TokenCurrency:
-		out.TokenContractAddress = currency.TokenCurrency.ContractAddress.Address
+		out.TokenContractAddress = currency.TokenCurrency.Address
 	}
 	return out
 }

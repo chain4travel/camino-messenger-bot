@@ -45,7 +45,6 @@ func filterSeatMapLocalization(
 
 	filteredMap := common.CloneProto(seatMap)
 
-	filterAttributesLocalization(filteredMap.Attributes, langSet)
 	missingLocalization := false
 
 	for i, section := range filteredMap.Sections {
@@ -75,14 +74,6 @@ func filterSeatMapSectionLocalization(
 
 	missingLocalization := len(originalSectionNames) != 0 && len(section.Names) == 0
 
-	filterAttributesLocalization(section.Attributes, langSet)
-
-	if seatList, ok := section.SeatInfo.(*typesv4.Section_SeatList); ok {
-		for _, seat := range seatList.SeatList.Seats {
-			filterAttributesLocalization(seat.Attributes, langSet)
-		}
-	}
-
 	for i, s := range section.GetSubsections().GetSections() {
 		missingChildLocalization := false
 		section.GetSubsections().Sections[i], missingChildLocalization = filterSeatMapSectionLocalization(s, langSet)
@@ -90,37 +81,4 @@ func filterSeatMapSectionLocalization(
 	}
 
 	return section, missingLocalization
-}
-
-func filterAttributesLocalization(
-	attributes *typesv4.SeatAttributes,
-	langSet map[typesv1.Language]struct{},
-) {
-	if len(langSet) == 0 || attributes == nil {
-		return
-	}
-
-	originalDescriptions := attributes.Descriptions
-	attributes.Descriptions = nil
-	for _, desc := range originalDescriptions {
-		if _, ok := langSet[desc.Language]; ok {
-			attributes.Descriptions = append(attributes.Descriptions, desc)
-		}
-	}
-
-	originalFeatures := attributes.Features
-	attributes.Features = nil
-	for _, feature := range originalFeatures {
-		if _, ok := langSet[feature.Language]; ok {
-			attributes.Features = append(attributes.Features, feature)
-		}
-	}
-
-	originalRestrictions := attributes.Restrictions
-	attributes.Restrictions = nil
-	for _, restriction := range originalRestrictions {
-		if _, ok := langSet[restriction.Language]; ok {
-			attributes.Restrictions = append(attributes.Restrictions, restriction)
-		}
-	}
 }
