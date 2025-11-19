@@ -29,17 +29,17 @@ func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, requ
 
 	request.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 
-	response, err := s.reqHandler.HandleMessageRequest(ctx, {{SERVICE}}V{{VERSION}}Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, {{SERVICE}}V{{VERSION}}Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
-	resp, ok := response.(*{{TYPE_PACKAGE}}.{{RESPONSE}})
+	response, ok := responseIntf.(*{{TYPE_PACKAGE}}.{{RESPONSE}})
 	if !ok {
 		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Response, response)), nil
 	}
 
-	return resp, nil
+	return response, nil
 }
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) errorResponse(errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {

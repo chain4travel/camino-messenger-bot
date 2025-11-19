@@ -22,7 +22,7 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 
 	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}})
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Request, request)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Request, requestIntf)), messageType, nil
 	}
 	
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
