@@ -26,7 +26,7 @@ import (
 	book_v4 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/book/v4"
 	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/cancellation/v1"
 	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/cancellation/v2"
-	country_entry_requirements_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/info/v3"
+	info_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/info/v3"
 	notification_v1 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v1"
 	notification_v2 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v2"
 	notification_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v3"
@@ -170,7 +170,7 @@ func Run() error {
 	cancellationv2grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v2.NewCheckCancellationServer())
 
 	// Info V3
-	infov3grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, country_entry_requirements_v3.NewCountryEntryRequirementsServiceServer())
+	infov3grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, info_v3.NewCountryEntryRequirementsServiceServer())
 
 	reflection.Register(grpcServer)
 

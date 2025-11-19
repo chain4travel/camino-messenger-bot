@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package v2
+package v3
 
 import (
 	"context"
@@ -21,7 +21,7 @@ func NewCountryEntryRequirementsServiceServer() infov3grpc.CountryEntryRequireme
 	return &countryEntryRequirementsServiceV3Server{}
 }
 
-func (s *countryEntryRequirementsServiceV3Server) CountryEntryRequirements(_ context.Context, req *infov3.CountryEntryRequirementsRequest) (*infov3.CountryEntryRequirementsResponse, error) {
+func (s *countryEntryRequirementsServiceV3Server) CountryEntryRequirements(_ context.Context, _ *infov3.CountryEntryRequirementsRequest) (*infov3.CountryEntryRequirementsResponse, error) {
 	return &infov3.CountryEntryRequirementsResponse{
 		Header:     common.SuccessHeaderV4(),
 		ResponseId: &typesv4.UUID{Value: uuid.NewString()},
