@@ -12,7 +12,6 @@ import (
 
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/proto"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/common"
@@ -140,16 +139,14 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
 				pArgs.chequeHandler.EXPECT().VerifyAndStoreCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
 				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.requestMessage, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(responseMessage.Content, responseMessage.Type, nil)
-				pArgs.responseHandler.EXPECT().PrepareResponseMessage(m.Context, a.requestMessage, gomock.Cond(func(resp protoreflect.ProtoMessage) bool {
-					// assert.Equal()
-					return proto.Equal(responseMessage.Content, resp)
-				}))
-				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, responseMessage, nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
+				pArgs.responseHandler.EXPECT().PrepareResponseMessage(m.Context, a.requestMessage, equalExceptTimestamps(responseMessage))
+				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, respNetworkFeeCheque).Return(testErr)
 			},
 			args: args{
 				requestMessage: &types.Message{
+					RequestID:  requestID,
 					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
@@ -168,13 +165,14 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
 				pArgs.chequeHandler.EXPECT().VerifyAndStoreCheque(m.Context, a.serviceFeeCheque, a.senderBotAddress, serviceFee).Return(nil)
 				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.requestMessage, rpcService, a.serviceFeeCheque.FromCMAccount, a.serviceFeeCheque.ToCMAccount).Return(responseMessage.Content, responseMessage.Type, nil)
-				pArgs.responseHandler.EXPECT().PrepareResponseMessage(m.Context, a.requestMessage, responseMessage)
-				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, responseMessage, nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
+				pArgs.responseHandler.EXPECT().PrepareResponseMessage(m.Context, a.requestMessage, equalExceptTimestamps(responseMessage))
+				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), nil, a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, respNetworkFeeCheque).Return(nil)
 			},
 			args: args{
 				requestMessage: &types.Message{
+					RequestID:  requestID,
 					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
@@ -293,6 +291,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
+				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, serviceFeeCheque, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(networkFeeCheque, nil)
@@ -312,6 +311,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
+				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, serviceFeeCheque, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(networkFeeCheque, nil)
@@ -331,10 +331,12 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
+				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, serviceFeeCheque, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(networkFeeCheque, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, networkFeeCheque).Return(nil)
+				pArgs.responseHandler.EXPECT().ProcessResponseMessage(m.Context, a.msg, responseMessage)
 			},
 			args: args{
 				msg: &types.Message{
@@ -462,7 +464,7 @@ func TestStart(t *testing.T) {
 
 	serviceFee := big.NewInt(1)
 	respNetworkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
-	responseMessage := types.Message{
+	responseMessage := &types.Message{
 		Type:       generated.PingServiceV1Response,
 		RequestID:  requestMsg.RequestID,
 		Timestamps: metadata.Timestamps{},
@@ -478,8 +480,9 @@ func TestStart(t *testing.T) {
 	serviceRegistry.EXPECT().GetService(requestMsg.Type).Return(rpcService, true)
 	cmAccounts.EXPECT().GetServiceFee(m.Context, ownCMAccount, serviceName).Return(serviceFee, nil)
 	chequeHandler.EXPECT().VerifyAndStoreCheque(m.Context, serviceFeeCheque, senderBot, serviceFee).Return(nil)
+	responseHandler.EXPECT().PrepareResponseMessage(m.Context, requestMsg, equalExceptTimestamps(responseMessage))
 	partnerPlugin.EXPECT().DoServiceRequest(m.Context, requestMsg, rpcService, serviceFeeCheque.FromCMAccount, serviceFeeCheque.ToCMAccount).Return(responseMessage.Content, responseMessage.Type, nil)
-	encoderDecoder.EXPECT().EncodeMessage(m.Context, &responseMessage, nil, senderBot, sharedKey).Return(encodedRespMsg, nil)
+	encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), nil, senderBot, sharedKey).Return(encodedRespMsg, nil)
 	chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(respNetworkFeeCheque, nil)
 	messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBot, respNetworkFeeCheque).Return(nil)
 
@@ -512,4 +515,12 @@ func TestStart(t *testing.T) {
 	).Start(ctx)
 
 	time.Sleep(1 * time.Second)
+}
+
+func equalExceptTimestamps(expectedMessage *types.Message) gomock.Matcher {
+	return gomock.Cond(func(actualMessage *types.Message) bool {
+		return expectedMessage.RequestID == actualMessage.RequestID &&
+			expectedMessage.Type == actualMessage.Type &&
+			proto.Equal(expectedMessage.Content, actualMessage.Content)
+	})
 }
