@@ -19,15 +19,10 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                    },
+                                    {
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -37,12 +32,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -52,12 +42,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -67,15 +52,10 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                    },
+                                    {
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -85,12 +65,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -100,12 +75,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -115,12 +85,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -130,12 +95,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -158,42 +118,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "3B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "3B"
                         },
                         {
                             "id": "3C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -203,42 +141,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "3E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "3E"
                         },
                         {
                             "id": "3F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -248,42 +164,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "4B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "4B"
                         },
                         {
                             "id": "4C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -293,42 +187,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "4E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "4E"
                         },
                         {
                             "id": "4F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -338,42 +210,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "5B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "5B"
                         },
                         {
                             "id": "5C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -383,42 +233,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "5E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "5E"
                         },
                         {
                             "id": "5F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -428,42 +256,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "6B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "6B"
                         },
                         {
                             "id": "6C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -473,42 +279,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "6E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "6E"
                         },
                         {
                             "id": "6F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -518,42 +302,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "7B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "7B"
                         },
                         {
                             "id": "7C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -563,42 +325,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "7E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "7E"
                         },
                         {
                             "id": "7F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -608,42 +348,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "8B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "8B"
                         },
                         {
                             "id": "8C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -653,42 +371,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "8E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "8E"
                         },
                         {
                             "id": "8F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -698,42 +394,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "9B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "9B"
                         },
                         {
                             "id": "9C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -743,42 +417,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "9E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "9E"
                         },
                         {
                             "id": "9F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -788,15 +440,10 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                    },
+                                    {
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -806,15 +453,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -824,15 +463,10 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                    },
+                                    {
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -842,15 +476,10 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                    },
+                                    {
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -860,15 +489,7 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -878,15 +499,10 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            },
-                                            {
-                                                "name": "Extra Legroom"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                    },
+                                    {
+                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
                                     }
                                 ]
                             }
@@ -896,42 +512,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "14B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "14B"
                         },
                         {
                             "id": "14C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -941,42 +535,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "14E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "14E"
                         },
                         {
                             "id": "14F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -986,42 +558,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "15B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "15B"
                         },
                         {
                             "id": "15C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1031,42 +581,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "15E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "15E"
                         },
                         {
                             "id": "15F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1076,42 +604,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "16B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "16B"
                         },
                         {
                             "id": "16C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1121,42 +627,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "16E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "16E"
                         },
                         {
                             "id": "16F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1166,42 +650,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "17B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "17B"
                         },
                         {
                             "id": "17C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1211,42 +673,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "17E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "17E"
                         },
                         {
                             "id": "17F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1256,42 +696,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "18B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "18B"
                         },
                         {
                             "id": "18C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1301,42 +719,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "18E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "18E"
                         },
                         {
                             "id": "18F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1346,42 +742,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "19B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "19B"
                         },
                         {
                             "id": "19C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1391,42 +765,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "19E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "19E"
                         },
                         {
                             "id": "19F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1436,42 +788,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "20B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "20B"
                         },
                         {
                             "id": "20C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1481,42 +811,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "20E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "20E"
                         },
                         {
                             "id": "20F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1526,42 +834,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "21B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "21B"
                         },
                         {
                             "id": "21C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1571,42 +857,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "21E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "21E"
                         },
                         {
                             "id": "21F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1616,42 +880,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "22B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "22B"
                         },
                         {
                             "id": "22C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1661,42 +903,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "22E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "22E"
                         },
                         {
                             "id": "22F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1706,42 +926,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "23B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "23B"
                         },
                         {
                             "id": "23C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1751,42 +949,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "23E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "23E"
                         },
                         {
                             "id": "23F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1796,42 +972,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "24B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "24B"
                         },
                         {
                             "id": "24C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1841,42 +995,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "24E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "24E"
                         },
                         {
                             "id": "24F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1886,42 +1018,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "25B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "25B"
                         },
                         {
                             "id": "25C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -1931,42 +1041,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "25E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "25E"
                         },
                         {
                             "id": "25F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -1976,42 +1064,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "26B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "26B"
                         },
                         {
                             "id": "26C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2021,42 +1087,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "26E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "26E"
                         },
                         {
                             "id": "26F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2066,42 +1110,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "27B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "27B"
                         },
                         {
                             "id": "27C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2111,42 +1133,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "27E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "27E"
                         },
                         {
                             "id": "27F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2156,42 +1156,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "28B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "28B"
                         },
                         {
                             "id": "28C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2201,42 +1179,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "28E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "28E"
                         },
                         {
                             "id": "28F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2246,42 +1202,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "29B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "29B"
                         },
                         {
                             "id": "29C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2291,42 +1225,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "29E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "29E"
                         },
                         {
                             "id": "29F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2336,42 +1248,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "30B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "30B"
                         },
                         {
                             "id": "30C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2381,42 +1271,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "30E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "30E"
                         },
                         {
                             "id": "30F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2426,42 +1294,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "31B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "31B"
                         },
                         {
                             "id": "31C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2471,42 +1317,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "31E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "31E"
                         },
                         {
                             "id": "31F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2516,42 +1340,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "32B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "32B"
                         },
                         {
                             "id": "32C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2561,42 +1363,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "32E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "32E"
                         },
                         {
                             "id": "32F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2606,42 +1386,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "33B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "33B"
                         },
                         {
                             "id": "33C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2651,42 +1409,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "33E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "33E"
                         },
                         {
                             "id": "33F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2696,42 +1432,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "34B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "34B"
                         },
                         {
                             "id": "34C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2741,42 +1455,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "34E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "34E"
                         },
                         {
                             "id": "34F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2786,42 +1478,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "35B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "35B"
                         },
                         {
                             "id": "35C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2831,42 +1501,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "35E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "35E"
                         },
                         {
                             "id": "35F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2876,42 +1524,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "36B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "36B"
                         },
                         {
                             "id": "36C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -2921,42 +1547,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "36E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "36E"
                         },
                         {
                             "id": "36F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -2966,42 +1570,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "37B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "37B"
                         },
                         {
                             "id": "37C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -3011,42 +1593,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "37E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "37E"
                         },
                         {
                             "id": "37F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -3056,42 +1616,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "38B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "38B"
                         },
                         {
                             "id": "38C",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
@@ -3101,42 +1639,20 @@
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Aisle"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
                                     }
                                 ]
                             }
                         },
                         {
-                            "id": "38E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Middle"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                            "id": "38E"
                         },
                         {
                             "id": "38F",
                             "attributes": {
                                 "features": [
                                     {
-                                        "language": "LANGUAGE_EN",
-                                        "seatAttributes": [
-                                            {
-                                                "name": "Window"
-                                            }
-                                        ]
+                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
                                     }
                                 ]
                             }
@@ -3227,19 +1743,6 @@
                     },
                     "width": 600,
                     "height": 750
-                },
-                "attributes": {
-                    "descriptions": [
-                        {
-                            "language": "LANGUAGE_EN",
-                            "descriptions": [
-                                {
-                                    "category": "GENERAL",
-                                    "text": "Behind stage."
-                                }
-                            ]
-                        }
-                    ]
                 }
             },
             {
@@ -3250,20 +1753,7 @@
                         "language": "LANGUAGE_EN"
                     }
                 ],
-                "seatCount": 3000,
-                "attributes": {
-                    "descriptions": [
-                        {
-                            "language": "LANGUAGE_EN",
-                            "descriptions": [
-                                {
-                                    "category": "GENERAL",
-                                    "text": "General Admission central."
-                                }
-                            ]
-                        }
-                    ]
-                }
+                "seatCount": 3000
             }
         ]
     }

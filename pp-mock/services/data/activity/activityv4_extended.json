@@ -178,74 +178,6 @@
 				]
 			}
 		],
-		"features": [
-			{
-				"code": "EX_DIFFIC|EX_DIF_1",
-				"description": "Difficulty|Easy|"
-			},
-			{
-				"code": "EX_INCL|EX_INCL_HPD",
-				"description": "What`s included|Hotel pickup and drop-off|"
-			},
-			{
-				"code": "Languages:",
-				"description": "English, Spanish, Russian, Portuguese, Romanian"
-			},
-			{
-				"code": "EXCURSION|EX_LANGSPOKEN",
-				"description": "Key Details|Languages spoken|"
-			},
-			{
-				"code": "EXCURSION|EX_MVOUCHER",
-				"description": "Key Details|Mobile Voucher accepted|"
-			},
-			{
-				"code": "EX_NEEDED|EX_NEEDED_SHOES",
-				"description": "What`s needed|Comfortable Shoes|"
-			},
-			{
-				"code": "EX_NEEDED|EX_NEEDED_SUB",
-				"description": "What`s needed|Sun protection|"
-			},
-			{
-				"code": "EX_NOTINCL|EX_NOTINCL_ADM",
-				"description": "What`s not included|Admissions to optional sites|"
-			},
-			{
-				"code": "EX_NOTINCL|EX_NOTINCL_TIPS",
-				"description": "What`s not included|Gratuities (optional)|"
-			},
-			{
-				"code": "EXCURSION|EX_PVOUCHER",
-				"description": "Key Details|Printed Voucher accepted|"
-			},
-			{
-				"code": "EX_TARGET|EX_TARGET_ALL",
-				"description": "Audience|Anybody|"
-			},
-			{
-				"code": "EX_THEME|EX_THEME_SIGHTS",
-				"description": "Theme|Sightseeing|"
-			},
-			{
-				"code": "EN Description",
-				"description": "We invite you to discover Albufeira  by Tuk Tuk!\nEmbark on our City Tour and explore the vibrant streets and rich history of Albufeira.\nGet ready to capture stunning photos and create lasting memories."
-			},
-			{
-				"code": "EX_HIGHL|IS_DESC001",
-				"description": "Highlights|Description|"
-			}
-		],
-		"tags": [
-			{
-				"code": "111",
-				"description": "Guided Tour"
-			},
-			{
-				"code": "2",
-				"description": "Entrance Tickets"
-			}
-		],
 		"spokenLanguages": [
 			"LANGUAGE_EN",
 			"LANGUAGE_DE",
@@ -328,8 +260,7 @@
 				"height": 450
 			}
 		],
-		"category": "ACTIVITY_CATEGORY_TOUR",
-		"categoryName": "Trips and Tours",
+		"categoryName": "Trips and Tours", // TODO@
 		"type": "ACTIVITY_TYPE_GUIDED_TOUR",
 		"durationRange": {
 			"min": {
@@ -448,7 +379,7 @@
 				]
 			}
 		],
-		"features": [
+		"attributes": [
 			{
 				"code": "PANORAMIC",
 				"description": "Panoramic windows for best views"
@@ -464,8 +395,7 @@
 			"LANGUAGE_ES",
 			"LANGUAGE_FR"
 		],
-		"category": "ACTIVITY_CATEGORY_UNSPECIFIED",
-		"categoryName": "Air Activity",
+		"categoryName": "Air Activity", // TODO@
 		"type": "ACTIVITY_TYPE_UNSPECIFIED",
 		"typeName": "Scenic Tour",
 		"durationRange": {
@@ -579,7 +509,7 @@
 				]
 			}
 		],
-		"features": [
+		"attributes": [
 			{
 				"code": "SWIM",
 				"description": "Swimming stops included"
@@ -593,8 +523,7 @@
 			"LANGUAGE_EN",
 			"LANGUAGE_DE"
 		],
-		"category": "ACTIVITY_CATEGORY_CRUISE",
-		"categoryName": "Marine Activity",
+		"categoryName": "Marine Activity", // TODO@
 		"type": "ACTIVITY_TYPE_BOAT_TOUR",
 		"typeName": "Boat Tour",
 		"durationRange": {
@@ -644,7 +573,6 @@
 				"id": "Vila-Park-2025-Ozzy"
 			}
 		],
-		"category": "ACTIVITY_CATEGORY_ENTERTAINMENT",
-		"type": "ACTIVITY_TYPE_SHOW"
+		"type": "ACTIVITY_TYPE_CONCERT"
 	}
 ]

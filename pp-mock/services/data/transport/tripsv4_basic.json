@@ -7,6 +7,7 @@
 		"segments": [
 			{
 				"id": "SEG1234",
+				"transportType": "TRANSPORT_TYPE_FLIGHT",
 				"operatorCode": "EW",
 				"productCode": {
 					"code": "IATA4589",
@@ -42,6 +43,7 @@
 		"segments": [
 			{
 				"id": "SEG5678",
+				"transportType": "TRANSPORT_TYPE_FLIGHT",
 				"operatorCode": "LH",
 				"retailerCode": "BA",
 				"subSupplierCode": "NS",
@@ -70,6 +72,7 @@
 			},
 			{
 				"id": "SEG91011",
+				"transportType": "TRANSPORT_TYPE_FLIGHT",
 				"operatorCode": "AF",
 				"productCode": {
 					"code": "IATA5678",
@@ -105,6 +108,7 @@
 		"segments": [
 			{
 				"id": "SEG8321",
+				"transportType": "TRANSPORT_TYPE_TRAIN",
 				"operatorCode": "DB",
 				"retailerCode": "BA",
 				"subSupplierCode": "NS",
@@ -132,6 +136,7 @@
 			},
 			{
 				"id": "SEG8323",
+				"transportType": "TRANSPORT_TYPE_TRAIN",
 				"operatorCode": "ICE",
 				"supplierCode": {
 					"code": "ICE-757"
@@ -165,6 +170,7 @@
 		"segments": [
 			{
 				"id": "A320-STD-SEG001",
+				"transportType": "TRANSPORT_TYPE_TRAIN",
 				"supplierCode": {
 					"code": "A320-STD-001"
 				},
