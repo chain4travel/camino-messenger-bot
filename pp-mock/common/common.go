@@ -101,8 +101,13 @@ func IsTravelPeriodAllowedV1(travelPeriod *typesv1.TravelPeriod) bool {
 
 // only period between now + 60 days is allowed for bookings
 func IsTravelPeriodAllowedV4(travelPeriod *typesv4.TravelPeriod) bool {
-	startDate := time.Now()
-	endDate := time.Now().Add(time.Hour * 24 * 60) // 60 days from now
+	return IsTravelPeriodAllowedV4WithTime(time.Now(), travelPeriod)
+}
+
+// only period between now + 60 days is allowed for bookings
+func IsTravelPeriodAllowedV4WithTime(now time.Time, travelPeriod *typesv4.TravelPeriod) bool {
+	startDate := now
+	endDate := now.Add(time.Hour * 24 * 60) // 60 days from now
 
 	return DateV4ToTime(travelPeriod.StartDate).After(startDate) && DateV4ToTime(travelPeriod.EndDate).Before(endDate) && DateV4ToTime(travelPeriod.StartDate).Before(DateV4ToTime(travelPeriod.EndDate))
 }

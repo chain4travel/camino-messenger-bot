@@ -134,7 +134,6 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 			Bookability: &typesv4.Bookability{
 				Type: typesv4.BookabilityType_BOOKABILITY_TYPE_AVAILABLE,
 			},
-			CancelPolicy: &typesv4.CancelPolicy{},
 		})
 		resultID++
 
