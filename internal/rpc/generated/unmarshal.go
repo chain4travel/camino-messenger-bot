@@ -17,6 +17,9 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v3"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v1"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v2"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v2"
@@ -156,6 +159,42 @@ func UnmarshalContent(src []byte, msgType message.Type, destination *protoreflec
 		*destination = &infov3.CountryEntryRequirementsRequest{}
 	case CountryEntryRequirementsServiceV3Response:
 		*destination = &infov3.CountryEntryRequirementsResponse{}
+	case InsuranceProductInfoServiceV1Request:
+		*destination = &insurancev1.InsuranceProductInfoRequest{}
+	case InsuranceProductInfoServiceV1Response:
+		*destination = &insurancev1.InsuranceProductInfoResponse{}
+	case InsuranceProductListServiceV1Request:
+		*destination = &insurancev1.InsuranceProductListRequest{}
+	case InsuranceProductListServiceV1Response:
+		*destination = &insurancev1.InsuranceProductListResponse{}
+	case InsuranceSearchServiceV1Request:
+		*destination = &insurancev1.InsuranceSearchRequest{}
+	case InsuranceSearchServiceV1Response:
+		*destination = &insurancev1.InsuranceSearchResponse{}
+	case InsuranceProductInfoServiceV2Request:
+		*destination = &insurancev2.InsuranceProductInfoRequest{}
+	case InsuranceProductInfoServiceV2Response:
+		*destination = &insurancev2.InsuranceProductInfoResponse{}
+	case InsuranceProductListServiceV2Request:
+		*destination = &insurancev2.InsuranceProductListRequest{}
+	case InsuranceProductListServiceV2Response:
+		*destination = &insurancev2.InsuranceProductListResponse{}
+	case InsuranceSearchServiceV2Request:
+		*destination = &insurancev2.InsuranceSearchRequest{}
+	case InsuranceSearchServiceV2Response:
+		*destination = &insurancev2.InsuranceSearchResponse{}
+	case InsuranceProductInfoServiceV3Request:
+		*destination = &insurancev3.InsuranceProductInfoRequest{}
+	case InsuranceProductInfoServiceV3Response:
+		*destination = &insurancev3.InsuranceProductInfoResponse{}
+	case InsuranceProductListServiceV3Request:
+		*destination = &insurancev3.InsuranceProductListRequest{}
+	case InsuranceProductListServiceV3Response:
+		*destination = &insurancev3.InsuranceProductListResponse{}
+	case InsuranceSearchServiceV3Request:
+		*destination = &insurancev3.InsuranceSearchRequest{}
+	case InsuranceSearchServiceV3Response:
+		*destination = &insurancev3.InsuranceSearchResponse{}
 	case PingServiceV1Request:
 		*destination = &pingv1.PingRequest{}
 	case PingServiceV1Response:

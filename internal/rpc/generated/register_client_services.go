@@ -135,6 +135,42 @@ func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]st
 		services[CountryEntryRequirementsServiceV3Request] = rpc.NewService(NewCountryEntryRequirementsServiceV3Client(rpcConn), CountryEntryRequirementsServiceV3)
 		delete(serviceNames, CountryEntryRequirementsServiceV3)
 	}
+	if _, ok := serviceNames[InsuranceProductInfoServiceV1]; ok {
+		services[InsuranceProductInfoServiceV1Request] = rpc.NewService(NewInsuranceProductInfoServiceV1(rpcConn), InsuranceProductInfoServiceV1)
+		delete(serviceNames, InsuranceProductInfoServiceV1)
+	}
+	if _, ok := serviceNames[InsuranceProductListServiceV1]; ok {
+		services[InsuranceProductListServiceV1Request] = rpc.NewService(NewInsuranceProductListServiceV1(rpcConn), InsuranceProductListServiceV1)
+		delete(serviceNames, InsuranceProductListServiceV1)
+	}
+	if _, ok := serviceNames[InsuranceSearchServiceV1]; ok {
+		services[InsuranceSearchServiceV1Request] = rpc.NewService(NewInsuranceSearchServiceV1(rpcConn), InsuranceSearchServiceV1)
+		delete(serviceNames, InsuranceSearchServiceV1)
+	}
+	if _, ok := serviceNames[InsuranceProductInfoServiceV2]; ok {
+		services[InsuranceProductInfoServiceV2Request] = rpc.NewService(NewInsuranceProductInfoServiceV2(rpcConn), InsuranceProductInfoServiceV2)
+		delete(serviceNames, InsuranceProductInfoServiceV2)
+	}
+	if _, ok := serviceNames[InsuranceProductListServiceV2]; ok {
+		services[InsuranceProductListServiceV2Request] = rpc.NewService(NewInsuranceProductListServiceV2(rpcConn), InsuranceProductListServiceV2)
+		delete(serviceNames, InsuranceProductListServiceV2)
+	}
+	if _, ok := serviceNames[InsuranceSearchServiceV2]; ok {
+		services[InsuranceSearchServiceV2Request] = rpc.NewService(NewInsuranceSearchServiceV2(rpcConn), InsuranceSearchServiceV2)
+		delete(serviceNames, InsuranceSearchServiceV2)
+	}
+	if _, ok := serviceNames[InsuranceProductInfoServiceV3]; ok {
+		services[InsuranceProductInfoServiceV3Request] = rpc.NewService(NewInsuranceProductInfoServiceV3(rpcConn), InsuranceProductInfoServiceV3)
+		delete(serviceNames, InsuranceProductInfoServiceV3)
+	}
+	if _, ok := serviceNames[InsuranceProductListServiceV3]; ok {
+		services[InsuranceProductListServiceV3Request] = rpc.NewService(NewInsuranceProductListServiceV3(rpcConn), InsuranceProductListServiceV3)
+		delete(serviceNames, InsuranceProductListServiceV3)
+	}
+	if _, ok := serviceNames[InsuranceSearchServiceV3]; ok {
+		services[InsuranceSearchServiceV3Request] = rpc.NewService(NewInsuranceSearchServiceV3(rpcConn), InsuranceSearchServiceV3)
+		delete(serviceNames, InsuranceSearchServiceV3)
+	}
 	if _, ok := serviceNames[PingServiceV1]; ok {
 		services[PingServiceV1Request] = rpc.NewService(NewPingServiceV1Client(rpcConn), PingServiceV1)
 		delete(serviceNames, PingServiceV1)

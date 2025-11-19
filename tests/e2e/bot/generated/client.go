@@ -17,6 +17,9 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v3/infov3grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v1/insurancev1grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v2/insurancev2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v3/insurancev3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v2/pingv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
@@ -63,6 +66,15 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		CountryEntryRequirementsServiceV1:      infov1grpc.NewCountryEntryRequirementsServiceClient(connection),
 		CountryEntryRequirementsServiceV2:      infov2grpc.NewCountryEntryRequirementsServiceClient(connection),
 		CountryEntryRequirementsServiceV3:      infov3grpc.NewCountryEntryRequirementsServiceClient(connection),
+		InsuranceProductInfoServiceV1:          insurancev1grpc.NewInsuranceProductInfoServiceClient(connection),
+		InsuranceProductListServiceV1:          insurancev1grpc.NewInsuranceProductListServiceClient(connection),
+		InsuranceSearchServiceV1:               insurancev1grpc.NewInsuranceSearchServiceClient(connection),
+		InsuranceProductInfoServiceV2:          insurancev2grpc.NewInsuranceProductInfoServiceClient(connection),
+		InsuranceProductListServiceV2:          insurancev2grpc.NewInsuranceProductListServiceClient(connection),
+		InsuranceSearchServiceV2:               insurancev2grpc.NewInsuranceSearchServiceClient(connection),
+		InsuranceProductInfoServiceV3:          insurancev3grpc.NewInsuranceProductInfoServiceClient(connection),
+		InsuranceProductListServiceV3:          insurancev3grpc.NewInsuranceProductListServiceClient(connection),
+		InsuranceSearchServiceV3:               insurancev3grpc.NewInsuranceSearchServiceClient(connection),
 		PingServiceV1:                          pingv1grpc.NewPingServiceClient(connection),
 		PingServiceV2:                          pingv2grpc.NewPingServiceClient(connection),
 		SeatMapAvailabilityServiceV2:           seat_mapv2grpc.NewSeatMapAvailabilityServiceClient(connection),
@@ -113,6 +125,15 @@ type Client struct {
 	CountryEntryRequirementsServiceV1      infov1grpc.CountryEntryRequirementsServiceClient
 	CountryEntryRequirementsServiceV2      infov2grpc.CountryEntryRequirementsServiceClient
 	CountryEntryRequirementsServiceV3      infov3grpc.CountryEntryRequirementsServiceClient
+	InsuranceProductInfoServiceV1          insurancev1grpc.InsuranceProductInfoServiceClient
+	InsuranceProductListServiceV1          insurancev1grpc.InsuranceProductListServiceClient
+	InsuranceSearchServiceV1               insurancev1grpc.InsuranceSearchServiceClient
+	InsuranceProductInfoServiceV2          insurancev2grpc.InsuranceProductInfoServiceClient
+	InsuranceProductListServiceV2          insurancev2grpc.InsuranceProductListServiceClient
+	InsuranceSearchServiceV2               insurancev2grpc.InsuranceSearchServiceClient
+	InsuranceProductInfoServiceV3          insurancev3grpc.InsuranceProductInfoServiceClient
+	InsuranceProductListServiceV3          insurancev3grpc.InsuranceProductListServiceClient
+	InsuranceSearchServiceV3               insurancev3grpc.InsuranceSearchServiceClient
 	PingServiceV1                          pingv1grpc.PingServiceClient
 	PingServiceV2                          pingv2grpc.PingServiceClient
 	SeatMapAvailabilityServiceV2           seat_mapv2grpc.SeatMapAvailabilityServiceClient
