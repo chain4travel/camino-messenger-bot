@@ -26,6 +26,7 @@ import (
 	book_v4 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/book/v4"
 	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/cancellation/v1"
 	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/cancellation/v2"
+	insurance_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/insurance/v3"
 	notification_v1 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v1"
 	notification_v2 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v2"
 	notification_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v3"
@@ -49,6 +50,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v4/bookv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/insurance/v3/insurancev3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v3/notificationv3grpc"
@@ -166,6 +168,11 @@ func Run() error {
 	cancellationv1grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v1.NewCheckCancellationServer())
 	// Cancellation V2
 	cancellationv2grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v2.NewCheckCancellationServer())
+
+	// Insurance V3
+	insurancev3grpc.RegisterInsuranceProductListServiceServer(grpcServer, insurance_v3.NewInsuranceProductListServiceServer())
+	insurancev3grpc.RegisterInsuranceProductInfoServiceServer(grpcServer, insurance_v3.NewInsuranceProductInfoServiceServer())
+	insurancev3grpc.RegisterInsuranceSearchServiceServer(grpcServer, insurance_v3.NewInsuranceSearchServiceServer())
 
 	reflection.Register(grpcServer)
 
