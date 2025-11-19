@@ -45,6 +45,7 @@ func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, requ
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) errorResponse(errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {
 	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
 		Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
+			BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
 			Status: typesv{{COMMON_TYPES_VERSION}}.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv{{COMMON_TYPES_VERSION}}.Alert{{
 				Message: errorMessage,

@@ -46,6 +46,7 @@ func (s *{{SERVICE}}V{{VERSION}}Client) ErrorResponseAndType(errorMessage string
 func (s *{{SERVICE}}V{{VERSION}}Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
 	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
 		Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
+			BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
 			Status: typesv{{COMMON_TYPES_VERSION}}.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv{{COMMON_TYPES_VERSION}}.Alert{{
 				Message: errorMessage,
