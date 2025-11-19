@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/blockchain"
@@ -52,7 +52,7 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 		// as the CM-Account-Manager services are not registered yet and the
 		// factory tries to register a service which is not available
 		err := tt.CreateBotWithError(ctx, false, tt.supplierPartnerPlugin,
-			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
 		)
 		require.ErrorContains(t, err, blockchain.ErrorAddServiceTxFailed.Error())
 	})
@@ -63,25 +63,25 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 		// This should fail already when the bot starts up as there is no
 		// CM-Account to use - we check that accordingly with the return value
 		tt.CreateBotAwaitError(ctx, t, false, tt.supplierPartnerPlugin, "exit status 1", 5*time.Second,
-			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
 			bot.WithSkips(&bot.Skip{CMAccountCreation: true}),
 		)
 	})
 	t.Run("Supplier bot: unregistered / no services", func(t *testing.T) {
-		err := testBotSanitySendCommonRequest(ctx, "unregistered / no services", tt.distributorBot, tt.supplierBotUnregisteredNoServices)
-		require.ErrorContains(t, err, cmaccounts.ErrorNoChequeOperators.Error())
+		alertMessage := testBotSanitySendCommonRequest(ctx, t, "unregistered / no services", tt.distributorBot, tt.supplierBotUnregisteredNoServices)
+		require.Contains(t, alertMessage, cmaccounts.ErrorNoChequeOperators.Error())
 	})
 	t.Run("Supplier bot: unregistered / with services", func(t *testing.T) {
-		err := testBotSanitySendCommonRequest(ctx, "unregistered / with services", tt.distributorBot, tt.supplierBotUnregistered)
-		require.ErrorContains(t, err, cmaccounts.ErrorNoChequeOperators.Error())
+		alertMessage := testBotSanitySendCommonRequest(ctx, t, "unregistered / with services", tt.distributorBot, tt.supplierBotUnregistered)
+		require.Contains(t, alertMessage, cmaccounts.ErrorNoChequeOperators.Error())
 	})
 	t.Run("Supplier bot: registered / no services", func(t *testing.T) {
-		err := testBotSanitySendCommonRequest(ctx, "registered / no services", tt.distributorBot, tt.supplierBotNoServices)
-		require.ErrorContains(t, err, cmaccounts.ErrorUnableToObtainServiceFee.Error())
+		alertMessage := testBotSanitySendCommonRequest(ctx, t, "registered / no services", tt.distributorBot, tt.supplierBotNoServices)
+		require.Contains(t, alertMessage, cmaccounts.ErrorUnableToObtainServiceFee.Error())
 	})
 	t.Run("Supplier bot: registered / different services", func(t *testing.T) {
-		err := testBotSanitySendCommonRequest(ctx, "registered / different services", tt.distributorBot, tt.supplierBotDifferentServices)
-		require.ErrorContains(t, err, cmaccounts.ErrorUnableToObtainServiceFee.Error())
+		alertMessage := testBotSanitySendCommonRequest(ctx, t, "registered / different services", tt.distributorBot, tt.supplierBotDifferentServices)
+		require.Contains(t, alertMessage, cmaccounts.ErrorUnableToObtainServiceFee.Error())
 	})
 }
 
@@ -92,14 +92,14 @@ func (tt *TestBotSanity) prepareBeforeCMManagerRegisterServices(ctx context.Cont
 	// But the CM-Account is created - therefore the creation in the context
 	// of the test should work but later when trying to use the bot it should fail
 	tt.supplierBotUnregisteredNoServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
 		bot.WithSkips(&bot.Skip{PrefundOwner: true}),
 	)
 }
 
 func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
-		botGenerated.PingServiceV1,
+		botGenerated.PingServiceV2,
 		botGenerated.MintServiceV4,
 	))
 
@@ -108,7 +108,7 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	// With that the distributor bot should not be able to find the supplier bot
 	// and fail with an error in a later test
 	tt.supplierBotUnregistered = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
 		bot.WithSkips(&bot.Skip{BotRegistration: true}),
 	)
 
@@ -118,7 +118,7 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	// inside of the logs. We can later use this bot to check if the distributor
 	// bot acts correctly by rejecting this supplier bot as the required service is missing
 	tt.supplierBotNoServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
 		bot.WithSkips(&bot.Skip{ServiceRegistration: true}),
 	)
 
@@ -132,15 +132,19 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 }
 
-func testBotSanitySendCommonRequest(ctx context.Context, pingMessage string, distributorBot *bot.Bot, supplierBot *bot.Bot) error {
-	req := &pingv1.PingRequest{
-		Header:      &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
-		PingMessage: pingMessage,
-		Timestamp:   timestamppb.Now(),
+func testBotSanitySendCommonRequest(ctx context.Context, t *testing.T, pingMessage string, distributorBot *bot.Bot, supplierBot *bot.Bot) string {
+	req := &pingv2.PingRequest{
+		Header:    &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		Message:   pingMessage,
+		Timestamp: timestamppb.Now(),
 	}
-	_, err := distributorBot.PingServiceV1.Ping(
+	resp, err := distributorBot.PingServiceV2.Ping(
 		requestContext(ctx, supplierBot.CMAccountAddress()),
 		req,
 	)
-	return err
+	require.NoError(t, err)
+	require.Equal(t, typesv4.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status)
+	require.Len(t, resp.Header.Alerts, 1)
+	require.Equal(t, typesv4.AlertType_ALERT_TYPE_ERROR, resp.Header.Alerts[0].Type)
+	return resp.Header.Alerts[0].Message
 }
