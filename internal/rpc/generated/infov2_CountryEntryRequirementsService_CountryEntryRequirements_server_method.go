@@ -45,7 +45,8 @@ func (s *infov2CountryEntryRequirementsServiceServer) CountryEntryRequirements(c
 func (s *infov2CountryEntryRequirementsServiceServer) errorResponse(errorMessage string) *infov2.CountryEntryRequirementsResponse {
 	return &infov2.CountryEntryRequirementsResponse{
 		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv1.Alert{{
 				Message: errorMessage,
 				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,

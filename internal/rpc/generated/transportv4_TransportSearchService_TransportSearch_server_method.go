@@ -45,7 +45,8 @@ func (s *transportv4TransportSearchServiceServer) TransportSearch(ctx context.Co
 func (s *transportv4TransportSearchServiceServer) errorResponse(errorMessage string) *transportv4.TransportSearchResponse {
 	return &transportv4.TransportSearchResponse{
 		Header: &typesv4.ResponseHeader{
-			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+			Status:     typesv4.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv4.Alert{{
 				Message: errorMessage,
 				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,

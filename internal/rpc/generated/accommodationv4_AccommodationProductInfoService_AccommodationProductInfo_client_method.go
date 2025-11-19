@@ -46,7 +46,8 @@ func (s *AccommodationProductInfoServiceV4Client) ErrorResponseAndType(errorMess
 func (s *AccommodationProductInfoServiceV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
 	return &accommodationv4.AccommodationProductInfoResponse{
 		Header: &typesv4.ResponseHeader{
-			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+			Status:     typesv4.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv4.Alert{{
 				Message: errorMessage,
 				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,

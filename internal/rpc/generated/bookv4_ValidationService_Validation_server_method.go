@@ -45,7 +45,8 @@ func (s *bookv4ValidationServiceServer) Validation(ctx context.Context, request 
 func (s *bookv4ValidationServiceServer) errorResponse(errorMessage string) *bookv4.ValidationResponse {
 	return &bookv4.ValidationResponse{
 		Header: &typesv4.ResponseHeader{
-			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+			Status:     typesv4.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv4.Alert{{
 				Message: errorMessage,
 				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,

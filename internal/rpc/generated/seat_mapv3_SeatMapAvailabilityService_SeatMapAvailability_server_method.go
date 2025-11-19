@@ -45,7 +45,8 @@ func (s *seat_mapv3SeatMapAvailabilityServiceServer) SeatMapAvailability(ctx con
 func (s *seat_mapv3SeatMapAvailabilityServiceServer) errorResponse(errorMessage string) *seat_mapv3.SeatMapAvailabilityResponse {
 	return &seat_mapv3.SeatMapAvailabilityResponse{
 		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv1.Alert{{
 				Message: errorMessage,
 				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,

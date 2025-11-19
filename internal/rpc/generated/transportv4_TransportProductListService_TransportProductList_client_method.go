@@ -46,7 +46,8 @@ func (s *TransportProductListServiceV4Client) ErrorResponseAndType(errorMessage 
 func (s *TransportProductListServiceV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
 	return &transportv4.TransportProductListResponse{
 		Header: &typesv4.ResponseHeader{
-			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+			Status:     typesv4.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv4.Alert{{
 				Message: errorMessage,
 				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,

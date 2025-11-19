@@ -45,7 +45,8 @@ func (s *transportv3TransportProductListServiceServer) TransportProductList(ctx 
 func (s *transportv3TransportProductListServiceServer) errorResponse(errorMessage string) *transportv3.TransportProductListResponse {
 	return &transportv3.TransportProductListResponse{
 		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv1.Alert{{
 				Message: errorMessage,
 				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,

@@ -46,7 +46,8 @@ func (s *ValidationServiceV2Client) ErrorResponseAndType(errorMessage string) (p
 func (s *ValidationServiceV2Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
 	return &bookv2.ValidationResponse{
 		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv1.Alert{{
 				Message: errorMessage,
 				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,

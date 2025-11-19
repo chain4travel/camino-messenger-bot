@@ -45,7 +45,8 @@ func (s *activityv4ActivityProductListServiceServer) ActivityProductList(ctx con
 func (s *activityv4ActivityProductListServiceServer) errorResponse(errorMessage string) *activityv4.ActivityProductListResponse {
 	return &activityv4.ActivityProductListResponse{
 		Header: &typesv4.ResponseHeader{
-			Status: typesv4.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv4.Header{Version: version.VersionV4},
+			Status:     typesv4.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv4.Alert{{
 				Message: errorMessage,
 				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,

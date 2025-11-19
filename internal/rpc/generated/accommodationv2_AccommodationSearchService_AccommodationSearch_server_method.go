@@ -45,7 +45,8 @@ func (s *accommodationv2AccommodationSearchServiceServer) AccommodationSearch(ct
 func (s *accommodationv2AccommodationSearchServiceServer) errorResponse(errorMessage string) *accommodationv2.AccommodationSearchResponse {
 	return &accommodationv2.AccommodationSearchResponse{
 		Header: &typesv1.ResponseHeader{
-			Status: typesv1.StatusType_STATUS_TYPE_FAILURE,
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
 			Alerts: []*typesv1.Alert{{
 				Message: errorMessage,
 				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
