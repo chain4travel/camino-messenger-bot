@@ -79,7 +79,7 @@ function generate_with_templates() {
 				EMPTY_IMPORT='"google.golang.org/protobuf/types/known/emptypb"'
 				TYPE_PACKAGE="emptypb"
 			fi
-			METHOD_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_client_method.go"
+			METHOD_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_client_method.go"
 			## This is added to fix shellcheck issue SC2086
 			method_params=()
 			eval "method_params+=( $METHOD_PARAM_REPLACE )"
@@ -112,7 +112,7 @@ function generate_with_templates() {
 				EMPTY_IMPORT='"google.golang.org/protobuf/types/known/emptypb"'
 				TYPE_PACKAGE="emptypb"
 			fi
-			METHOD_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_${METHOD}_server_method.go"
+			METHOD_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server_method.go"
 
 			## This is added to fix shellcheck issue SC2086
 			method_params=()
@@ -372,6 +372,7 @@ while read -r file ; do
 
 	FQPN=$(grep -P 'FullMethodName' "$file" | grep -oP 'cmp\.services\.[^/]+' | head -n1) # only 1 - it may contain more
 	SERVICE=${FQPN##*.}
+	SERVICE=${SERVICE%Service}
 	PACKAGE=$(grep -oP '^package \S+$' "$file" | cut -d" " -f2)
 	TYPE=${PACKAGE%*grpc}
 	VERSION=$(echo "$FQPN" | grep -oP "\.v[0-9]+\." | cut -d"." -f2 )
@@ -387,7 +388,7 @@ while read -r file ; do
 		exit 1
 	fi
 
-	COMMON_TYPES_VERSION=$(grep -oP '(?<=Header \*v)\d+(?=\.ResponseHeader)' "$pb_file" | tail -n 1)
+	COMMON_TYPES_VERSION=$(grep -oP '(?<=Header \*v)\d+(?=\.(?:Success)?ResponseHeader)' "$pb_file" | tail -n 1)
 
 	echo "🔑 FQPN      : $FQPN"
 	echo "⚙️ Service   : $SERVICE"

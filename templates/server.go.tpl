@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-var _ {{GRPC_PACKAGE}}.{{SERVICE}}Server = (*{{TYPE_PACKAGE}}{{SERVICE}}Server)(nil)
+var _ {{GRPC_PACKAGE}}.{{SERVICE}}ServiceServer = (*{{TYPE_PACKAGE}}{{SERVICE}}Server)(nil)
 
 type {{TYPE_PACKAGE}}{{SERVICE}}Server struct {
 	reqHandler rpc.RequestHandler
 }
 
 func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
-	{{GRPC_PACKAGE}}.Register{{SERVICE}}Server(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Server{reqHandler})
+	{{GRPC_PACKAGE}}.Register{{SERVICE}}ServiceServer(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Server{reqHandler})
 }

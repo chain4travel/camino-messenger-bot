@@ -44,13 +44,13 @@ func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, requ
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) errorResponse(errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {
 	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
-		Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
-			BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
-			Status: typesv{{COMMON_TYPES_VERSION}}.StatusType_STATUS_TYPE_FAILURE,
-			Alerts: []*typesv{{COMMON_TYPES_VERSION}}.Alert{{
-				Message: errorMessage,
-				Type:    typesv{{COMMON_TYPES_VERSION}}.AlertType_ALERT_TYPE_ERROR,
-			}},
+		Response: &{{TYPE_PACKAGE}}.{{RESPONSE}}_ErrorResponse{
+			ErrorResponse: &{{TYPE_PACKAGE}}.{{SERVICE}}ErrorResponse{
+				Header: &typesv{{COMMON_TYPES_VERSION}}.ErrorResponseHeader{
+					BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
+					Errors:     []*typesv{{COMMON_TYPES_VERSION}}.Error{{Message: errorMessage}},
+				},
+			},
 		},
 	}
 }
