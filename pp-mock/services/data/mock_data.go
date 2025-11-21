@@ -17,6 +17,7 @@ import (
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/activity"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/transport"
 
 	"buf.build/go/protovalidate"
@@ -121,7 +122,7 @@ func init() {
 	// AccommodationV3
 	PropertiesV3 = mustUnmarshalStrictAndValidate[*accommodationv3.PropertyExtendedInfo](propertiesV3JSON, "error unmarshaling properties v3")
 	// Accommodation V4
-	// PropertiesV4 = mustUnmarshalStrictAndValidate[*accommodationv4.PropertyExtendedInfo](propertiesV4JSON, "error unmarshaling properties v4")
+	PropertiesV4 = mustUnmarshalStrictAndValidate[*accommodationv4.PropertyExtendedInfo](propertiesV4JSON, "error unmarshaling properties v4")
 	// TransportV2
 	TripsV2 = mustUnmarshalStrictAndValidate[*transportv2.Trip](tripsV2JSON, "error unmarshaling trips v2")
 	// TransportV3
@@ -140,9 +141,9 @@ func init() {
 	ActivityExtendedV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivityExtendedInfo](activityV3ExtendedJSON, "error unmarshaling activities extended v3")
 	ActivitySearchResultV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivitySearchResult](activitySearchResultV3JSON, "error unmarshaling activities search v3")
 	// Activity V4
-	// ActivityExtendedV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivityExtendedInfo](activityExtendedV4JSON, "error unmarshaling activities extended v4")
-	// ActivitySearchResultV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activities search v4")
-	// activity.Verify(ActivityExtendedV4, ActivitySearchResultV4)
+	ActivityExtendedV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivityExtendedInfo](activityExtendedV4JSON, "error unmarshaling activities extended v4")
+	ActivitySearchResultV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activities search v4")
+	activity.Verify(ActivityExtendedV4, ActivitySearchResultV4)
 	// SeatMapV4
 	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
 	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")

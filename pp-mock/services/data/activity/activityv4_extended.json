@@ -260,7 +260,6 @@
 				"height": 450
 			}
 		],
-		"categoryName": "Trips and Tours", // TODO@
 		"type": "ACTIVITY_TYPE_GUIDED_TOUR",
 		"durationRange": {
 			"min": {
@@ -379,25 +378,13 @@
 				]
 			}
 		],
-		"attributes": [
-			{
-				"code": "PANORAMIC",
-				"description": "Panoramic windows for best views"
-			},
-			{
-				"code": "WEATHER-DEP",
-				"description": "Weather dependent activity"
-			}
-		],
 		"spokenLanguages": [
 			"LANGUAGE_EN",
 			"LANGUAGE_DE",
 			"LANGUAGE_ES",
 			"LANGUAGE_FR"
 		],
-		"categoryName": "Air Activity", // TODO@
 		"type": "ACTIVITY_TYPE_UNSPECIFIED",
-		"typeName": "Scenic Tour",
 		"durationRange": {
 			"min": {
 				"minutes": 45
@@ -509,23 +496,11 @@
 				]
 			}
 		],
-		"attributes": [
-			{
-				"code": "SWIM",
-				"description": "Swimming stops included"
-			},
-			{
-				"code": "FAMILY",
-				"description": "Family friendly"
-			}
-		],
 		"spokenLanguages": [
 			"LANGUAGE_EN",
 			"LANGUAGE_DE"
 		],
-		"categoryName": "Marine Activity", // TODO@
 		"type": "ACTIVITY_TYPE_BOAT_TOUR",
-		"typeName": "Boat Tour",
 		"durationRange": {
 			"min": {
 				"minutes": 300

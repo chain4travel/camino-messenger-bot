@@ -263,14 +263,14 @@
                 ],
                 "attributes": [
                     {
-                        "type": "AMENITY_TYPE_INTERNET"
-                            // "name": "Free WiFi",
-                    },
-                    {
-                        "type": "AMENITY_TYPE_OTHER"
-                            // "name": "Private Balcony",
+                        "type": "ROOM_ATTRIBUTE_TYPE_BALCONY"
                     }
                 ]
+            }
+        ],
+        "attributes": [
+            {
+                "type": "PROPERTY_ATTRIBUTE_TYPE_WIFI"
             }
         ]
     },
@@ -541,14 +541,14 @@
                 ],
                 "attributes": [
                     {
-                        "type": "AMENITY_TYPE_INTERNET"
-                            // "name": "Free WiFi",
-                    },
-                    {
-                        "type": "AMENITY_TYPE_OTHER"
-                            // "name": "Private Balcony",
+                        "type": "ROOM_ATTRIBUTE_TYPE_BALCONY"
                     }
                 ]
+            }
+        ],
+        "attributes": [
+            {
+                "type": "PROPERTY_ATTRIBUTE_TYPE_WIFI"
             }
         ]
     },
@@ -792,14 +792,14 @@
                 ],
                 "attributes": [
                     {
-                        "type": "AMENITY_TYPE_INTERNET"
-                            // "name": "Free WiFi",
-                    },
-                    {
-                        "type": "AMENITY_TYPE_OTHER"
-                            // "name": "Private Balcony",
+                        "type": "ROOM_ATTRIBUTE_TYPE_BALCONY"
                     }
                 ]
+            }
+        ],
+        "attributes": [
+            {
+                "type": "PROPERTY_ATTRIBUTE_TYPE_WIFI"
             }
         ]
     },
@@ -1056,14 +1056,14 @@
                 ],
                 "attributes": [
                     {
-                        "type": "AMENITY_TYPE_INTERNET"
-                            // "name": "Free WiFi",
-                    },
-                    {
-                        "type": "AMENITY_TYPE_OTHER"
-                            // "name": "Private Balcony",
+                        "type": "ROOM_ATTRIBUTE_TYPE_BALCONY"
                     }
                 ]
+            }
+        ],
+        "attributes": [
+            {
+                "type": "PROPERTY_ATTRIBUTE_TYPE_WIFI"
             }
         ]
     },
@@ -1327,14 +1327,14 @@
                 ],
                 "attributes": [
                     {
-                        "type": "AMENITY_TYPE_INTERNET"
-                            // "name": "Free WiFi",
-                    },
-                    {
-                        "type": "AMENITY_TYPE_OTHER"
-                            // "name": "Private Balcony",
+                        "type": "ROOM_ATTRIBUTE_TYPE_BALCONY"
                     }
                 ]
+            }
+        ],
+        "attributes": [
+            {
+                "type": "PROPERTY_ATTRIBUTE_TYPE_WIFI"
             }
         ]
     }

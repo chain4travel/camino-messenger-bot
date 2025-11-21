@@ -16,89 +16,73 @@
                     "seats": [
                         {
                             "id": "1A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    },
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                },
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "1C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "1D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "1F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    },
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                },
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "2A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "2C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "2D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "2F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         }
                     ]
                 }
@@ -115,1547 +99,1279 @@
                     "seats": [
                         {
                             "id": "3A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "3B"
                         },
                         {
                             "id": "3C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "3D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "3E"
                         },
                         {
                             "id": "3F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "4A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "4B"
                         },
                         {
                             "id": "4C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "4D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "4E"
                         },
                         {
                             "id": "4F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "5A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "5B"
                         },
                         {
                             "id": "5C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "5D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "5E"
                         },
                         {
                             "id": "5F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "6A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "6B"
                         },
                         {
                             "id": "6C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "6D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "6E"
                         },
                         {
                             "id": "6F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "7A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "7B"
                         },
                         {
                             "id": "7C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "7D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "7E"
                         },
                         {
                             "id": "7F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "8A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "8B"
                         },
                         {
                             "id": "8C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "8D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "8E"
                         },
                         {
                             "id": "8F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "9A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "9B"
                         },
                         {
                             "id": "9C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "9D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "9E"
                         },
                         {
                             "id": "9F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "13A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    },
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                },
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "13B",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "13C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    },
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                },
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "13D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    },
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                },
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "13E",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "13F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    },
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                },
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_EXTRA_LEGROOM"
+                                }
+                            ]
                         },
                         {
                             "id": "14A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "14B"
                         },
                         {
                             "id": "14C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "14D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "14E"
                         },
                         {
                             "id": "14F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "15A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "15B"
                         },
                         {
                             "id": "15C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "15D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "15E"
                         },
                         {
                             "id": "15F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "16A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "16B"
                         },
                         {
                             "id": "16C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "16D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "16E"
                         },
                         {
                             "id": "16F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "17A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "17B"
                         },
                         {
                             "id": "17C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "17D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "17E"
                         },
                         {
                             "id": "17F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "18A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "18B"
                         },
                         {
                             "id": "18C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "18D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "18E"
                         },
                         {
                             "id": "18F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "19A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "19B"
                         },
                         {
                             "id": "19C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "19D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "19E"
                         },
                         {
                             "id": "19F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "20A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "20B"
                         },
                         {
                             "id": "20C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "20D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "20E"
                         },
                         {
                             "id": "20F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "21A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "21B"
                         },
                         {
                             "id": "21C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "21D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "21E"
                         },
                         {
                             "id": "21F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "22A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "22B"
                         },
                         {
                             "id": "22C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "22D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "22E"
                         },
                         {
                             "id": "22F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "23A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "23B"
                         },
                         {
                             "id": "23C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "23D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "23E"
                         },
                         {
                             "id": "23F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "24A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "24B"
                         },
                         {
                             "id": "24C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "24D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "24E"
                         },
                         {
                             "id": "24F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "25A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "25B"
                         },
                         {
                             "id": "25C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "25D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "25E"
                         },
                         {
                             "id": "25F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "26A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "26B"
                         },
                         {
                             "id": "26C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "26D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "26E"
                         },
                         {
                             "id": "26F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "27A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "27B"
                         },
                         {
                             "id": "27C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "27D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "27E"
                         },
                         {
                             "id": "27F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "28A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "28B"
                         },
                         {
                             "id": "28C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "28D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "28E"
                         },
                         {
                             "id": "28F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "29A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "29B"
                         },
                         {
                             "id": "29C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "29D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "29E"
                         },
                         {
                             "id": "29F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "30A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "30B"
                         },
                         {
                             "id": "30C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "30D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "30E"
                         },
                         {
                             "id": "30F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "31A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "31B"
                         },
                         {
                             "id": "31C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "31D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "31E"
                         },
                         {
                             "id": "31F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "32A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "32B"
                         },
                         {
                             "id": "32C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "32D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "32E"
                         },
                         {
                             "id": "32F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "33A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "33B"
                         },
                         {
                             "id": "33C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "33D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "33E"
                         },
                         {
                             "id": "33F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "34A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "34B"
                         },
                         {
                             "id": "34C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "34D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "34E"
                         },
                         {
                             "id": "34F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "35A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "35B"
                         },
                         {
                             "id": "35C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "35D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "35E"
                         },
                         {
                             "id": "35F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "36A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "36B"
                         },
                         {
                             "id": "36C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "36D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "36E"
                         },
                         {
                             "id": "36F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "37A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "37B"
                         },
                         {
                             "id": "37C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "37D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "37E"
                         },
                         {
                             "id": "37F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "38A",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "38B"
                         },
                         {
                             "id": "38C",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "38D",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_AISLE_SEAT"
+                                }
+                            ]
                         },
                         {
                             "id": "38E"
                         },
                         {
                             "id": "38F",
-                            "attributes": {
-                                "features": [
-                                    {
-                                        "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
-                                    }
-                                ]
-                            }
+                            "attributes": [
+                                {
+                                    "type": "SEAT_ATTRIBUTE_TYPE_WINDOW_SEAT"
+                                }
+                            ]
                         }
                     ]
                 }
