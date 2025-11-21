@@ -23,19 +23,30 @@ func NewSeatMapServer() seat_mapv4grpc.SeatMapServiceServer {
 func (s *seatMapV4Server) SeatMap(_ context.Context, req *seat_mapv4.SeatMapRequest) (*seat_mapv4.SeatMapResponse, error) {
 	seatMap := filterSeatMapByID(mockdata.SeatMapV4, req.MapId)
 
-	resp := &seat_mapv4.SeatMapResponse{Header: common.SuccessHeaderV4()}
-
 	if seatMap == nil {
-		common.AddHeaderErrorV4(resp.Header, "Seat map not found")
-		return resp, nil
+		return &seat_mapv4.SeatMapResponse{
+			Response: &seat_mapv4.SeatMapResponse_ErrorResponse{
+				ErrorResponse: &seat_mapv4.SeatMapErrorResponse{
+					Header: common.ErrorHeaderV4("Seat map not found"),
+				},
+			},
+		}, nil
 	}
 
 	seatMap, missingLocalization := filterSeatMapLocalization(seatMap, req.Languages)
 
-	if missingLocalization {
-		common.AddHeaderWarningV4(resp.Header, "Seat map is missing localized string for requested languages")
+	resp := &seat_mapv4.SeatMapResponse{
+		Response: &seat_mapv4.SeatMapResponse_SuccessResponse{
+			SuccessResponse: &seat_mapv4.SeatMapSuccessResponse{
+				Header:  common.SuccessHeaderV4(),
+				SeatMap: seatMap,
+			},
+		},
 	}
 
-	resp.SeatMap = seatMap
+	if missingLocalization {
+		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, "Seat map is missing localized string for requested languages")
+	}
+
 	return resp, nil
 }

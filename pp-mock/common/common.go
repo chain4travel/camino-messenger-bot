@@ -211,39 +211,19 @@ func AddHeaderInfoV1(header *typesv1.ResponseHeader, message string) {
 
 // v4
 
-func SuccessHeaderV4() *typesv4.ResponseHeader {
-	return &typesv4.ResponseHeader{
+func SuccessHeaderV4() *typesv4.SuccessResponseHeader {
+	return &typesv4.SuccessResponseHeader{
 		BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
-		Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
 	}
 }
 
-func ErrorHeaderV4(message string) *typesv4.ResponseHeader {
-	return &typesv4.ResponseHeader{
+func ErrorHeaderV4(message string) *typesv4.ErrorResponseHeader {
+	return &typesv4.ErrorResponseHeader{
 		BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
-		Status:     typesv4.StatusType_STATUS_TYPE_FAILURE,
-		Alerts:     []*typesv4.Alert{{Message: message, Type: typesv4.AlertType_ALERT_TYPE_ERROR}},
+		Errors:     []*typesv4.Error{{Message: message}},
 	}
 }
 
-func AddHeaderErrorV4(header *typesv4.ResponseHeader, message string) {
-	header.Alerts = append(header.Alerts, &typesv4.Alert{
-		Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-		Message: message,
-	})
-	header.Status = typesv4.StatusType_STATUS_TYPE_FAILURE
-}
-
-func AddHeaderWarningV4(header *typesv4.ResponseHeader, message string) {
-	header.Alerts = append(header.Alerts, &typesv4.Alert{
-		Type:    typesv4.AlertType_ALERT_TYPE_WARNING,
-		Message: message,
-	})
-}
-
-func AddHeaderInfoV4(header *typesv4.ResponseHeader, message string) {
-	header.Alerts = append(header.Alerts, &typesv4.Alert{
-		Type:    typesv4.AlertType_ALERT_TYPE_INFO,
-		Message: message,
-	})
+func AddHeaderAlertV4(header *typesv4.SuccessResponseHeader, message string) {
+	header.Alerts = append(header.Alerts, &typesv4.Alert{Message: message})
 }

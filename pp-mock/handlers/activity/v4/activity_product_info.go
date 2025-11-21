@@ -26,12 +26,16 @@ func (s *activityProductInfoV4Server) ActivityProductInfo(_ context.Context, req
 	filteredActivities = filterExtendedByLanguage(filteredActivities, req.Languages)
 
 	response := &activityv4.ActivityProductInfoResponse{
-		Header:     common.SuccessHeaderV4(),
-		Activities: filteredActivities,
+		Response: &activityv4.ActivityProductInfoResponse_SuccessResponse{
+			SuccessResponse: &activityv4.ActivityProductInfoSuccessResponse{
+				Header:     common.SuccessHeaderV4(),
+				Activities: filteredActivities,
+			},
+		},
 	}
 
 	if len(filteredActivities) == 0 {
-		common.AddHeaderInfoV4(response.Header, "No activities found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No activities found that match request")
 	}
 
 	return response, nil

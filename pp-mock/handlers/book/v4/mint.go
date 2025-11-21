@@ -29,26 +29,34 @@ func (s *mintServiceV4Server) Mint(_ context.Context, req *bookv4.MintRequest) (
 	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
 	if !ok {
 		return &bookv4.MintResponse{
-			Header: common.ErrorHeaderV4("Validation not found in state"),
+			Response: &bookv4.MintResponse_ErrorResponse{
+				ErrorResponse: &bookv4.MintErrorResponse{
+					Header: common.ErrorHeaderV4("Validation not found in state"),
+				},
+			},
 		}, nil
 	}
 
 	response := bookv4.MintResponse{
-		Header: common.SuccessHeaderV4(),
-		MintId: &typesv4.UUID{Value: uuid.New().String()},
-		BuyableUntil: &timestamppb.Timestamp{
-			Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),
+		Response: &bookv4.MintResponse_SuccessResponse{
+			SuccessResponse: &bookv4.MintSuccessResponse{
+				Header: common.SuccessHeaderV4(),
+				MintId: &typesv4.UUID{Value: uuid.New().String()},
+				BuyableUntil: &timestamppb.Timestamp{
+					Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),
+				},
+				ValidationId:    req.ValidationId,
+				Price:           common.BookingTokenPriceV4,
+				Cancellable:     true,
+				BookingTokenUri: "https://example.com/",
+			},
 		},
-		ValidationId:    req.ValidationId,
-		Price:           common.BookingTokenPriceV4,
-		Cancellable:     true,
-		BookingTokenUri: "https://example.com/",
 	}
 
 	mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
-	common.AddHeaderInfoV4(response.Header, mintResponseInfoMessage)
+	common.AddHeaderAlertV4(response.GetSuccessResponse().Header, mintResponseInfoMessage)
 
-	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
+	state.GetStore().AddMintResult(response.GetSuccessResponse().MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
 
 	return &response, nil
 }

@@ -36,13 +36,24 @@ func (s *seatMapAvailabilityV4Server) SeatMapAvailability(_ context.Context, req
 		}
 	}
 
-	resp := &seat_mapv4.SeatMapAvailabilityResponse{Header: common.SuccessHeaderV4()}
+	seatMapAvailability := filterSeatMapAvailabilityByID(mockdata.SeatMapAvailabilityV4, seatMapID)
 
-	if seatMapID == "" {
-		common.AddHeaderErrorV4(resp.Header, "Seat map availability not found for given identifier")
-		return resp, nil
+	if seatMapAvailability == nil {
+		return &seat_mapv4.SeatMapAvailabilityResponse{
+			Response: &seat_mapv4.SeatMapAvailabilityResponse_ErrorResponse{
+				ErrorResponse: &seat_mapv4.SeatMapAvailabilityErrorResponse{
+					Header: common.ErrorHeaderV4("Seat map availability not found for given identifier"),
+				},
+			},
+		}, nil
 	}
 
-	resp.SeatMap = filterSeatMapAvailabilityByID(mockdata.SeatMapAvailabilityV4, seatMapID)
-	return resp, nil
+	return &seat_mapv4.SeatMapAvailabilityResponse{
+		Response: &seat_mapv4.SeatMapAvailabilityResponse_SuccessResponse{
+			SuccessResponse: &seat_mapv4.SeatMapAvailabilitySuccessResponse{
+				Header:  common.SuccessHeaderV4(),
+				SeatMap: seatMapAvailability,
+			},
+		},
+	}, nil
 }

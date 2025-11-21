@@ -24,12 +24,16 @@ func (s *transportProductListV4Server) TransportProductList(_ context.Context, r
 	filteredTrips := filterTripsBasicByModifiedAfter(mockdata.TripsBasicV4, req.GetModifiedAfter().AsTime())
 
 	response := &transportv4.TransportProductListResponse{
-		Header: common.SuccessHeaderV4(),
-		Trips:  filteredTrips,
+		Response: &transportv4.TransportProductListResponse_SuccessResponse{
+			SuccessResponse: &transportv4.TransportProductListSuccessResponse{
+				Header: common.SuccessHeaderV4(),
+				Trips:  filteredTrips,
+			},
+		},
 	}
 
 	if len(filteredTrips) == 0 {
-		common.AddHeaderInfoV4(response.Header, "No trips found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No trips found that match request")
 	}
 
 	return response, nil

@@ -25,8 +25,12 @@ func NewPingServiceServer() pingv2grpc.PingServiceServer {
 func (s *pingServiceV2Server) Ping(ctx context.Context, req *pingv2.PingRequest) (*pingv2.PingResponse, error) {
 	md := metadata.FromContext(ctx)
 	return &pingv2.PingResponse{
-		Header:    common.SuccessHeaderV4(),
-		Timestamp: timestamppb.Now(),
-		Message:   fmt.Sprintf("Ping response to [%s] with request ID: %s", req.Message, md.RequestID),
+		Response: &pingv2.PingResponse_SuccessResponse{
+			SuccessResponse: &pingv2.PingSuccessResponse{
+				Header:    common.SuccessHeaderV4(),
+				Timestamp: timestamppb.Now(),
+				Message:   fmt.Sprintf("Ping response to [%s] with request ID: %s", req.Message, md.RequestID),
+			},
+		},
 	}, nil
 }

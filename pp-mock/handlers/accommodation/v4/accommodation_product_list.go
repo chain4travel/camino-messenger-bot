@@ -24,12 +24,16 @@ func (s *accommodationProductListV4Server) AccommodationProductList(_ context.Co
 	filteredProperties := filterPropertiesBySupplierCodes(mockdata.PropertiesV4, req.SupplierCodes)
 
 	response := &accommodationv4.AccommodationProductListResponse{
-		Header:     common.SuccessHeaderV4(),
-		Properties: filteredProperties,
+		Response: &accommodationv4.AccommodationProductListResponse_SuccessResponse{
+			SuccessResponse: &accommodationv4.AccommodationProductListSuccessResponse{
+				Header:     common.SuccessHeaderV4(),
+				Properties: filteredProperties,
+			},
+		},
 	}
 
 	if len(filteredProperties) == 0 {
-		common.AddHeaderInfoV4(response.Header, "No properties found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No properties found that match request")
 	}
 
 	return response, nil

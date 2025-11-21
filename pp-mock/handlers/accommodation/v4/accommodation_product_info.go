@@ -25,12 +25,16 @@ func (s *accommodationProductInfoV4Server) AccommodationProductInfo(_ context.Co
 	filteredProperties = filterExtendedPropertiesByLanguage(filteredProperties, req.Languages)
 
 	response := &accommodationv4.AccommodationProductInfoResponse{
-		Header:     common.SuccessHeaderV4(),
-		Properties: filteredProperties,
+		Response: &accommodationv4.AccommodationProductInfoResponse_SuccessResponse{
+			SuccessResponse: &accommodationv4.AccommodationProductInfoSuccessResponse{
+				Header:     common.SuccessHeaderV4(),
+				Properties: filteredProperties,
+			},
+		},
 	}
 
 	if len(filteredProperties) == 0 {
-		common.AddHeaderInfoV4(response.Header, "No properties found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No properties found that match request")
 	}
 
 	return response, nil

@@ -29,16 +29,14 @@ func NewAccommodationSearchServer() accommodationv4grpc.AccommodationSearchServi
 func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req *accommodationv4.AccommodationSearchRequest) (*accommodationv4.AccommodationSearchResponse, error) {
 	now := time.Now()
 
-	resp := &accommodationv4.AccommodationSearchResponse{
-		SearchId: &typesv4.ExpiringUUID{
-			Id:         &typesv4.UUID{Value: uuid.New().String()},
-			Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
-		},
-	}
-
 	if !common.IsTravelPeriodAllowedV4WithTime(now, req.TravelPeriod) {
-		resp.Header = common.ErrorHeaderV4("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.")
-		return resp, nil
+		return &accommodationv4.AccommodationSearchResponse{
+			Response: &accommodationv4.AccommodationSearchResponse_ErrorResponse{
+				ErrorResponse: &accommodationv4.AccommodationSearchErrorResponse{
+					Header: common.ErrorHeaderV4("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date."),
+				},
+			},
+		}, nil
 	}
 
 	searchResults := []*accommodationv4.AccommodationSearchResult{}
@@ -172,13 +170,23 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 		}
 	}
 
-	resp.Header = common.SuccessHeaderV4()
-	resp.Results = searchResults
+	resp := &accommodationv4.AccommodationSearchResponse{
+		Response: &accommodationv4.AccommodationSearchResponse_SuccessResponse{
+			SuccessResponse: &accommodationv4.AccommodationSearchSuccessResponse{
+				Header: common.SuccessHeaderV4(),
+				SearchId: &typesv4.ExpiringUUID{
+					Id:         &typesv4.UUID{Value: uuid.New().String()},
+					Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
+				},
+				Results: searchResults,
+			},
+		},
+	}
 
 	if len(searchResults) == 0 {
-		common.AddHeaderInfoV4(resp.Header, "No results found")
+		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, "No results found")
 	} else {
-		state.GetStore().AddSearchResult(resp.SearchId.Id.Value, state.SearchData{
+		state.GetStore().AddSearchResult(resp.GetSuccessResponse().SearchId.Id.Value, state.SearchData{
 			NumResults:   len(searchResults),
 			NumTravelers: len(req.Travellers),
 			Prices:       validationPrices,

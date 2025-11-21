@@ -24,12 +24,16 @@ func (s *accommodationProductShortListV4Server) AccommodationProductShortList(_ 
 	filteredProperties := filterShortItemsByModifierAfter(mockdata.PropertiesV4, req.ModifiedAfter.AsTime())
 
 	response := &accommodationv4.AccommodationProductShortListResponse{
-		Header:                 common.SuccessHeaderV4(),
-		PropertyShortListItems: filteredProperties,
+		Response: &accommodationv4.AccommodationProductShortListResponse_SuccessResponse{
+			SuccessResponse: &accommodationv4.AccommodationProductShortListSuccessResponse{
+				Header:                 common.SuccessHeaderV4(),
+				PropertyShortListItems: filteredProperties,
+			},
+		},
 	}
 
 	if len(filteredProperties) == 0 {
-		common.AddHeaderInfoV4(response.Header, "No properties found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No properties found that match request")
 	}
 
 	return response, nil

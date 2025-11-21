@@ -25,12 +25,16 @@ func (s *activityProductShortListV4Server) ActivityProductShortList(_ context.Co
 	filteredActivities := filterExtendedByModifiedAfter(mockdata.ActivityExtendedV4, req.GetModifiedAfter().AsTime())
 
 	response := &activityv4.ActivityProductShortListResponse{
-		Header:                 common.SuccessHeaderV4(),
-		ActivityShortListItems: extendedToShortListItem(filteredActivities),
+		Response: &activityv4.ActivityProductShortListResponse_SuccessResponse{
+			SuccessResponse: &activityv4.ActivityProductShortListSuccessResponse{
+				Header:                 common.SuccessHeaderV4(),
+				ActivityShortListItems: extendedToShortListItem(filteredActivities),
+			},
+		},
 	}
 
 	if len(filteredActivities) == 0 {
-		common.AddHeaderInfoV4(response.Header, "No activities found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No activities found that match request")
 	}
 
 	return response, nil

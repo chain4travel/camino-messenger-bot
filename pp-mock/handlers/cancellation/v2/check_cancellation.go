@@ -24,17 +24,21 @@ func NewCheckCancellationServer() cancellationv2grpc.CheckCancellationServiceSer
 
 func (s *checkCancellationV2Server) CheckCancellation(_ context.Context, req *cancellationv2.CheckCancellationRequest) (*cancellationv2.CheckCancellationResponse, error) {
 	return &cancellationv2.CheckCancellationResponse{
-		Header:  common.SuccessHeaderV4(),
-		TokenId: req.TokenId,
-		RefundAmount: &typesv4.Price{
-			Value:    common.BookingTokenPriceValue,
-			Decimals: uint32(price.NativeTokenDecimals),
-			Currency: &typesv4.Currency{
-				Currency: &typesv4.Currency_NativeToken{},
+		Response: &cancellationv2.CheckCancellationResponse_SuccessResponse{
+			SuccessResponse: &cancellationv2.CheckCancellationSuccessResponse{
+				Header:  common.SuccessHeaderV4(),
+				TokenId: req.TokenId,
+				RefundAmount: &typesv4.Price{
+					Value:    common.BookingTokenPriceValue,
+					Decimals: uint32(price.NativeTokenDecimals),
+					Currency: &typesv4.Currency{
+						Currency: &typesv4.Currency_NativeToken{},
+					},
+				},
+				PolicyIdApplied: common.CancellationPolicyID,
+				Status:          cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM,
+				Timestamp:       timestamppb.Now(),
 			},
 		},
-		PolicyIdApplied: common.CancellationPolicyID,
-		Status:          cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM,
-		Timestamp:       timestamppb.Now(),
 	}, nil
 }

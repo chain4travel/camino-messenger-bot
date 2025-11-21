@@ -26,17 +26,14 @@ func NewActivitySearchServer() activityv4grpc.ActivitySearchServiceServer {
 }
 
 func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activityv4.ActivitySearchRequest) (*activityv4.ActivitySearchResponse, error) {
-	resp := &activityv4.ActivitySearchResponse{
-		SearchId: &typesv4.ExpiringUUID{
-			Id:         &typesv4.UUID{Value: uuid.New().String()},
-			Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
-		},
-		Travellers: req.Travellers,
-	}
-
 	if !common.IsTravelPeriodAllowedV4(req.TravelPeriod) {
-		resp.Header = common.ErrorHeaderV4("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date.")
-		return resp, nil
+		return &activityv4.ActivitySearchResponse{
+			Response: &activityv4.ActivitySearchResponse_ErrorResponse{
+				ErrorResponse: &activityv4.ActivitySearchErrorResponse{
+					Header: common.ErrorHeaderV4("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date."),
+				},
+			},
+		}, nil
 	}
 
 	filteredActivities := filterSearchResultActivitiesBySupplierCodes(mockdata.ActivitySearchResultV4, req.SearchParametersActivity.GetSupplierCodes())
@@ -52,20 +49,30 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 		validationPrices = append(validationPrices, validationPrice)
 		resultIDnum++
 	}
-
-	resp.Header = common.SuccessHeaderV4()
-	resp.Results = filteredActivities
+	resp := &activityv4.ActivitySearchResponse{
+		Response: &activityv4.ActivitySearchResponse_SuccessResponse{
+			SuccessResponse: &activityv4.ActivitySearchSuccessResponse{
+				Header: common.SuccessHeaderV4(),
+				SearchId: &typesv4.ExpiringUUID{
+					Id:         &typesv4.UUID{Value: uuid.New().String()},
+					Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
+				},
+				Travellers: req.Travellers,
+				Results:    filteredActivities,
+			},
+		},
+	}
 
 	if len(filteredActivities) == 0 {
-		common.AddHeaderInfoV4(resp.Header, "No results found for search")
+		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, "No results found for search")
 	} else {
-		state.GetStore().AddSearchResult(resp.SearchId.Id.Value, state.SearchData{
+		state.GetStore().AddSearchResult(resp.GetSuccessResponse().SearchId.Id.Value, state.SearchData{
 			NumResults:   len(filteredActivities),
 			NumTravelers: len(req.Travellers),
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: resp.String(),
-			SeatMapID:    resp.Results[0].SeatMapId.GetId(),
+			SeatMapID:    resp.GetSuccessResponse().Results[0].SeatMapId.GetId(),
 		})
 	}
 
