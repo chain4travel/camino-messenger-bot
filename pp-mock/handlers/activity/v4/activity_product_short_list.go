@@ -11,6 +11,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v4/activityv4grpc"
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 )
 
 var _ activityv4grpc.ActivityProductShortListServiceServer = (*activityProductShortListV4Server)(nil)
@@ -34,7 +35,7 @@ func (s *activityProductShortListV4Server) ActivityProductShortList(_ context.Co
 	}
 
 	if len(filteredActivities) == 0 {
-		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No activities found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_NO_CONTENT, "No activities found that match request")
 	}
 
 	return response, nil

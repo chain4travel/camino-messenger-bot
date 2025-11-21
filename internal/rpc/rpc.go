@@ -19,7 +19,7 @@ type RequestHandler interface {
 }
 
 type Client interface {
-	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error)
+	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType)
 	ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType)
 }
 

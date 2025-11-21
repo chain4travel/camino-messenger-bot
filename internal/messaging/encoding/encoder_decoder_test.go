@@ -92,7 +92,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 	}
 
 	requestMessage := &types.Message{
-		Type: generated.PingServiceV1Request,
+		Type: generated.PingV1Request,
 		Content: &pingv1.PingRequest{
 			PingMessage: "ping",
 			Timestamp:   timestamppb.Now(),
@@ -102,7 +102,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 	}
 
 	responseMessage := &types.Message{
-		Type: generated.PingServiceV1Response,
+		Type: generated.PingV1Response,
 		Content: &pingv1.PingResponse{
 			PingMessage: "pong",
 			Timestamp:   timestamppb.Now(),

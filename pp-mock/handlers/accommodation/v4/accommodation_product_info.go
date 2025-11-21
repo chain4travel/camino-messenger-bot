@@ -8,6 +8,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
 )
@@ -34,7 +35,7 @@ func (s *accommodationProductInfoV4Server) AccommodationProductInfo(_ context.Co
 	}
 
 	if len(filteredProperties) == 0 {
-		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, "No properties found that match request")
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_NO_CONTENT, "No properties found that match request")
 	}
 
 	return response, nil

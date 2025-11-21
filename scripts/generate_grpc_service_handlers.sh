@@ -1,12 +1,7 @@
 #!/bin/bash
 
 BUF_SDK_BASE="buf.build/gen/go/chain4travel/camino-messenger-protocol"
-TEMPLATES_DIR="templates"
-CLIENT_TEMPLATE="${TEMPLATES_DIR}/client.go.tpl"
-CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
-SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
-SERVER_P2P_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_p2p_method.go.tpl"
-
+TEMPLATES_DIR_BASE="templates"
 P2P_OUTPATH="internal/rpc/generated"
 LOCAL_OUTPATH="internal/rpc/generated"
 E2E_GEN_OUTPATH="tests/e2e/bot/generated"
@@ -369,6 +364,17 @@ while read -r file ; do
 
 	ON_CHAIN=${TAGS_LINE#*on-chain:}
 	ON_CHAIN=${ON_CHAIN%%[[:space:]]*}
+
+    STRUCTURE=1
+    if [[ $TAGS_LINE =~ structure:([0-9]+) ]]; then
+        STRUCTURE="${BASH_REMATCH[1]}"
+    fi
+    TEMPLATES_DIR="${TEMPLATES_DIR_BASE}/v${STRUCTURE}"
+
+    CLIENT_TEMPLATE="${TEMPLATES_DIR}/client.go.tpl"
+    CLIENT_METHOD_TEMPLATE="${TEMPLATES_DIR}/client_method.go.tpl"
+    SERVER_TEMPLATE="${TEMPLATES_DIR}/server.go.tpl"
+    SERVER_P2P_METHOD_TEMPLATE="${TEMPLATES_DIR}/server_p2p_method.go.tpl"
 
 	FQPN=$(grep -P 'FullMethodName' "$file" | grep -oP 'cmp\.services\.[^/]+' | head -n1) # only 1 - it may contain more
 	SERVICE=${FQPN##*.}

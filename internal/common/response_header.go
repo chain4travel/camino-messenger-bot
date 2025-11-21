@@ -26,6 +26,7 @@ func NewResponseHeaderHandler(logger *zap.SugaredLogger) ResponseHeaderHandler {
 	}
 }
 
+// TODO@ will not work for v4, v4 has different structure
 func (h *responseHeaderHandler) AddError(response protoreflect.ProtoMessage, errMessage string) {
 	headerFieldDescriptor := response.ProtoReflect().Descriptor().Fields().ByName("header")
 	headerReflectValue := response.ProtoReflect().Get(headerFieldDescriptor)

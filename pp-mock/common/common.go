@@ -224,6 +224,6 @@ func ErrorHeaderV4(message string) *typesv4.ErrorResponseHeader {
 	}
 }
 
-func AddHeaderAlertV4(header *typesv4.SuccessResponseHeader, message string) {
-	header.Alerts = append(header.Alerts, &typesv4.Alert{Message: message})
+func AddHeaderAlertV4(header *typesv4.SuccessResponseHeader, code typesv4.AlertCode, message string) {
+	header.Alerts = append(header.Alerts, &typesv4.Alert{Code: code, Message: message})
 }

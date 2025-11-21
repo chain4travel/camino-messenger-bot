@@ -360,8 +360,7 @@ func (p *messageProcessor) validateAndRespond(
 		Timestamps: requestMsg.Timestamps,
 	}
 
-	err := protovalidate.Validate(requestMsg.Content)
-	if err != nil {
+	if err := protovalidate.Validate(requestMsg.Content); err != nil {
 		errMessage := fmt.Sprintf("request message validation failed: %v", err)
 		responseMsg.Content, responseMsg.Type = serviceClient.ErrorResponseAndType(errMessage)
 		p.logger.Errorf(errMessage)
@@ -372,22 +371,13 @@ func (p *messageProcessor) validateAndRespond(
 
 	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToPP)
 
-	responseMsg.Content, responseMsg.Type, err = p.partnerPlugin.DoServiceRequest(
+	responseMsg.Content, responseMsg.Type = p.partnerPlugin.DoServiceRequest(
 		ctx,
 		requestMsg,
 		serviceClient,
 		fromCMAccount,
 		toCMAccount,
 	)
-	if err != nil {
-		errMessage := fmt.Sprintf("error calling partner plugin service: %v", err)
-		p.logger.Errorf(errMessage)
-		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
-	} else if err := protovalidate.Validate(responseMsg.Content); err != nil {
-		errMessage := fmt.Sprintf("response message content validation failed: %v", err)
-		p.logger.Errorf(errMessage)
-		p.responseHeaderHandler.AddError(responseMsg.Content, errMessage)
-	}
 
 	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageReceivedFromPP)
 

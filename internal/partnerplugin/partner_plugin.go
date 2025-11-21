@@ -32,7 +32,7 @@ type PartnerPlugin interface {
 		serviceClient rpc.Client,
 		fromCMAccount common.Address,
 		toCMAccount common.Address,
-	) (protoreflect.ProtoMessage, types.MessageType, error)
+	) (protoreflect.ProtoMessage, types.MessageType)
 
 	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
@@ -68,7 +68,7 @@ func (p *partnerPlugin) DoServiceRequest(
 	serviceClient rpc.Client,
 	fromCMAccount common.Address,
 	toCMAccount common.Address,
-) (protoreflect.ProtoMessage, types.MessageType, error) {
+) (protoreflect.ProtoMessage, types.MessageType) {
 	return serviceClient.Call(grpc_metadata.NewOutgoingContext(ctx, grpc_metadata.Pairs(
 		metadata.KeyRequestID, requestMsg.RequestID,
 		metadata.KeyRecipientCMAccount, toCMAccount.Hex(),

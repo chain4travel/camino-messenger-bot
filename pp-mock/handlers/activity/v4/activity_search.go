@@ -64,7 +64,7 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 	}
 
 	if len(filteredActivities) == 0 {
-		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, "No results found for search")
+		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_NO_CONTENT, "No results found for search")
 	} else {
 		state.GetStore().AddSearchResult(resp.GetSuccessResponse().SearchId.Id.Value, state.SearchData{
 			NumResults:   len(filteredActivities),

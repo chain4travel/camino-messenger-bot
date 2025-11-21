@@ -20,21 +20,22 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 	request *bookv4.MintRequest,
 	response *bookv4.MintResponse,
 ) {
-	if response.Header.Status != typesv4.StatusType_STATUS_TYPE_SUCCESS {
+	successResp := response.GetSuccessResponse()
+	if successResp == nil {
 		return
 	}
 
-	h.logger.Debugf("Token URI: %s", response.BookingTokenUri)
+	h.logger.Debugf("Token URI: %s", successResp.BookingTokenUri)
 
-	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
+	buyableUntil, err := h.verifyAndFixBuyableUntil(successResp.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
 		h.responseHeaderHandler.AddError(response, err.Error())
 		return
 	}
-	response.BuyableUntil = buyableUntil
+	successResp.BuyableUntil = buyableUntil
 
-	price, paymentToken, isoCurrency, err := h.priceHandler.GetPriceAndTokenV4(ctx, response.Price)
+	price, paymentToken, isoCurrency, err := h.priceHandler.GetPriceAndTokenV4(ctx, successResp.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
@@ -45,12 +46,12 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 	receipt, tokenID, err := h.bookingService.MintBookingToken(
 		ctx,
 		common.HexToAddress(request.BuyerAddress.Address),
-		response.BookingTokenUri,
-		big.NewInt(response.BuyableUntil.Seconds),
+		successResp.BookingTokenUri,
+		big.NewInt(successResp.BuyableUntil.Seconds),
 		price,
 		paymentToken,
 		isoCurrency,
-		response.Cancellable,
+		successResp.Cancellable,
 	)
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
@@ -62,13 +63,12 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 
 	h.logger.Infof("NFT minted with txID: %s", txID)
 
-	h.subscribeForTokenBoughtEvent(ctx, tokenID, response.MintId.Value, buyableUntil)
+	h.subscribeForTokenBoughtEvent(ctx, tokenID, successResp.MintId.Value, buyableUntil)
 
 	// TODO @evlekht pp will not know if we failed to mint or setup notification
 
-	response.Header.Status = typesv4.StatusType_STATUS_TYPE_SUCCESS
-	response.BookingTokenId = tokenID.Uint64()
-	response.MintTransactionId = &typesv4.EVMTransactionID{Hash: txID}
+	successResp.BookingTokenId = tokenID.Uint64()
+	successResp.MintTransactionId = &typesv4.EVMTransactionID{Hash: txID}
 }
 
 func (h *evmResponseHandler) processMintResponseV4(
@@ -76,21 +76,26 @@ func (h *evmResponseHandler) processMintResponseV4(
 	request *bookv4.MintRequest,
 	response *bookv4.MintResponse,
 ) {
-	if response.MintTransactionId == nil {
+	successResp := response.GetSuccessResponse()
+	if successResp == nil {
+		return
+	}
+
+	if successResp.MintTransactionId == nil {
 		h.logger.Error(errMissingMintTxID)
 		h.responseHeaderHandler.AddError(response, errMissingMintTxID.Error())
 		return
 	}
 
-	if !proto.Equal(request.ExpectedPrice, response.Price) {
+	if !proto.Equal(request.ExpectedPrice, successResp.Price) {
 		errMessage := "expected price does not match the mint response price"
 		h.logger.Error(errMessage)
 		h.responseHeaderHandler.AddError(response, errMessage)
 		return
 	}
 
-	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
-	price, paymentToken, _, err := h.priceHandler.GetPriceAndTokenV4(ctx, response.Price)
+	tokenID := new(big.Int).SetUint64(successResp.BookingTokenId)
+	price, paymentToken, _, err := h.priceHandler.GetPriceAndTokenV4(ctx, successResp.Price)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
@@ -106,16 +111,16 @@ func (h *evmResponseHandler) processMintResponseV4(
 		return
 	}
 
-	response.BuyTransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	successResp.BuyTransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}
 
-	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId.Hash, response.MintTransactionId.Hash)
+	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", successResp.BuyTransactionId.Hash, successResp.MintTransactionId.Hash)
 
-	if response.Cancellable {
+	if successResp.Cancellable {
 		if err := h.eventListener.SubscribeCancellationEvents(ctx, tokenID); err != nil {
-			err := fmt.Errorf("error subscribing for cancellation events as distributor (tokenID: %d, mintID: %s): %w", tokenID.Int64(), response.MintId.Value, err)
+			err := fmt.Errorf("error subscribing for cancellation events as distributor (tokenID: %d, mintID: %s): %w", tokenID.Int64(), successResp.MintId.Value, err)
 			h.logger.Error(err)
-			response.Header.Alerts = append(response.Header.Alerts, &typesv4.Alert{
-				Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
+			successResp.Header.Alerts = append(successResp.Header.Alerts, &typesv4.Alert{
+				Code:    typesv4.AlertCode_ALERT_CODE_INFORMATIONAL, // TODO@ // TODO@ code in pp mock
 				Message: err.Error(),
 			})
 		}

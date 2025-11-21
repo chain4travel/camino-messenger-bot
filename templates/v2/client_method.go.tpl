@@ -17,34 +17,38 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
 	messageType := {{SERVICE}}V{{VERSION}}Response
 
 	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}})
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Request, requestIntf)), messageType, nil
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Request, requestIntf)), messageType
 	}
 	
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
 	if err != nil {
-		return s.errorResponse(err.Error()), messageType, nil
+		return s.errorResponse(err.Error()), messageType
 	}
 
 	if response.HasErrorResponse() {
 		innerResp := response.GetErrorResponse()
 		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType, nil
+			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
 		}
 		innerResp.Header.BaseHeader.Version = version.VersionV4
 	} else {
 		innerResp := response.GetSuccessResponse()
 		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType, nil
+			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
 		}
 		innerResp.Header.BaseHeader.Version = version.VersionV4
 	}
 
-	return response, messageType, err
+	if err := protovalidate.Validate(response); err != nil {
+		return s.errorResponse(fmt.Sprintf("response validation failed: %v", err)), messageType
+	}
+
+	return response, messageType
 }
 
 func (s *{{SERVICE}}V{{VERSION}}Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {

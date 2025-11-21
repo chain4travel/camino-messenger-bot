@@ -143,7 +143,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 	}
 
 	if len(searchResults) == 0 {
-		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, "No results found")
+		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_NO_CONTENT, "No results found")
 	} else {
 		state.GetStore().AddSearchResult(resp.GetSuccessResponse().SearchId.Id.Value, state.SearchData{
 			NumResults:   len(searchResults),

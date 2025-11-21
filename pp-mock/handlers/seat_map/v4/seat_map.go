@@ -8,6 +8,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v4/seat_mapv4grpc"
 	seat_mapv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v4"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
 )
@@ -45,7 +46,7 @@ func (s *seatMapV4Server) SeatMap(_ context.Context, req *seat_mapv4.SeatMapRequ
 	}
 
 	if missingLocalization {
-		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, "Seat map is missing localized string for requested languages")
+		common.AddHeaderAlertV4(resp.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_INFORMATIONAL, "Seat map is missing localized string for requested languages")
 	}
 
 	return resp, nil
