@@ -91,13 +91,14 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 	requestMsg *types.Message,
 	responseMsg *types.Message,
 ) {
+	// distributor will post-process a mint request to buy the returned NFT
 	switch response := responseMsg.Content.(type) {
-	case *bookv2.MintResponse: // distributor will post-process a mint request to buy the returned NFT
+	case *bookv2.MintResponse:
 		h.processMintResponseV2(ctx, response)
-	case *bookv3.MintResponse: // distributor will post-process a mint request to buy the returned NFT
+	case *bookv3.MintResponse:
 		h.processMintResponseV3(ctx, response)
-	case *bookv4.MintResponse: // distributor will post-process a mint request to buy the returned NFT
-		h.processMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
+	case *bookv4.MintResponse:
+		responseMsg.Content = h.processMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
 	}
 }
 
@@ -108,13 +109,14 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 	requestMsg *types.Message,
 	responseMsg *types.Message,
 ) {
+	// supplier will act upon receiving a mint response by minting an NFT
 	switch response := responseMsg.Content.(type) {
-	case *bookv2.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
+	case *bookv2.MintResponse:
 		h.prepareMintResponseV2(ctx, requestMsg.Content.(*bookv2.MintRequest), response)
-	case *bookv3.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
+	case *bookv3.MintResponse:
 		h.prepareMintResponseV3(ctx, requestMsg.Content.(*bookv3.MintRequest), response)
-	case *bookv4.MintResponse: // supplier will act upon receiving a mint response by minting an NFT
-		h.prepareMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
+	case *bookv4.MintResponse:
+		responseMsg.Content = h.prepareMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
 	}
 }
 

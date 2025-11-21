@@ -13,7 +13,7 @@ import (
 var _ ResponseHeaderHandler = (*responseHeaderHandler)(nil)
 
 type ResponseHeaderHandler interface {
-	AddError(response protoreflect.ProtoMessage, errMessage string)
+	AddErrorV1(header *typesv1.ResponseHeader, errMessage string)
 }
 
 type responseHeaderHandler struct {
@@ -39,6 +39,10 @@ func (h *responseHeaderHandler) AddError(response protoreflect.ProtoMessage, err
 	default:
 		h.logger.Errorf("failed add error to response header: %v", errMessage)
 	}
+}
+
+func (h *responseHeaderHandler) AddErrorV1(header *typesv1.ResponseHeader, errMessage string) {
+	addErrorToResponseHeaderV1(header, errMessage)
 }
 
 func addErrorToResponseHeaderV1(header *typesv1.ResponseHeader, errMessage string) {
