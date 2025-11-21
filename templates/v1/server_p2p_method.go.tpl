@@ -10,20 +10,12 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
-	"buf.build/go/protovalidate"
-
 	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
 )
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
-	if err := protovalidate.Validate(request); err != nil {
-		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
-	}
-
-	// we need this check for pre-protovalidate cmp versions
-	// Header.BaseHeader must be present, so version can be set
-	if request.Header.GetBaseHeader() == nil {
+	if request.GetHeader().GetBaseHeader() == nil {
 		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), nil
 	}
 
@@ -44,13 +36,13 @@ func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, requ
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) errorResponse(errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {
 	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
-		Response: &{{TYPE_PACKAGE}}.{{RESPONSE}}_ErrorResponse{
-			ErrorResponse: &{{TYPE_PACKAGE}}.{{SERVICE}}ErrorResponse{
-				Header: &typesv{{COMMON_TYPES_VERSION}}.ErrorResponseHeader{
-					BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
-					Errors:     []*typesv{{COMMON_TYPES_VERSION}}.Error{{Message: errorMessage}},
-				},
-			},
+		Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
+			BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
+			Status: typesv{{COMMON_TYPES_VERSION}}.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv{{COMMON_TYPES_VERSION}}.Alert{{
+				Message: errorMessage,
+				Type:    typesv{{COMMON_TYPES_VERSION}}.AlertType_ALERT_TYPE_ERROR,
+			}},
 		},
 	}
 }

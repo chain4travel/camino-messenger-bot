@@ -7,24 +7,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
-
-	"buf.build/go/protovalidate"
 
 	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
+
+	"buf.build/go/protovalidate"
 )
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
 	if err := protovalidate.Validate(request); err != nil {
 		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
-	}
-
-	// we need this check for pre-protovalidate cmp versions
-	// Header.BaseHeader must be present, so version can be set
-	if request.Header.GetBaseHeader() == nil {
-		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}

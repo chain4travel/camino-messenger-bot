@@ -26,27 +26,14 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 	}
 	
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
-	if err != nil {
+	switch {
+	case err != nil:
 		return s.errorResponse(err.Error()), messageType
+	case response.GetHeader().GetBaseHeader() == nil:
+		return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
 	}
 
-	if response.HasErrorResponse() {
-		innerResp := response.GetErrorResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
-	} else {
-		innerResp := response.GetSuccessResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
-	}
-
-	if err := protovalidate.Validate(response); err != nil {
-		return s.errorResponse(fmt.Sprintf("response validation failed: %v", err)), messageType
-	}
+	response.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 
 	return response, messageType
 }
@@ -57,13 +44,13 @@ func (s *{{SERVICE}}V{{VERSION}}Client) ErrorResponseAndType(errorMessage string
 
 func (s *{{SERVICE}}V{{VERSION}}Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
 	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
-		Response: &{{TYPE_PACKAGE}}.{{RESPONSE}}_ErrorResponse{
-			ErrorResponse: &{{TYPE_PACKAGE}}.{{SERVICE}}ErrorResponse{
-				Header: &typesv{{COMMON_TYPES_VERSION}}.ErrorResponseHeader{
-					BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
-					Errors:     []*typesv{{COMMON_TYPES_VERSION}}.Error{{Message: errorMessage}},
-				},
-			},
+		Header: &typesv{{COMMON_TYPES_VERSION}}.ResponseHeader{
+			BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
+			Status: typesv{{COMMON_TYPES_VERSION}}.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv{{COMMON_TYPES_VERSION}}.Alert{{
+				Message: errorMessage,
+				Type:    typesv{{COMMON_TYPES_VERSION}}.AlertType_ALERT_TYPE_ERROR,
+			}},
 		},
 	}
 }
