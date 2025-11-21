@@ -56,7 +56,7 @@ function generate_with_templates() {
 		# Generate client
 		CLIENT_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_client.go"
 		echo "🔨 Generating client: $CLIENT_GEN_FILE"
-		cp $CLIENT_TEMPLATE "$CLIENT_GEN_FILE"
+		cp "$CLIENT_TEMPLATE" "$CLIENT_GEN_FILE"
 
 		sed -i "${replace_params[@]}" "$CLIENT_GEN_FILE"
 		sed -i -e "s#{{TEMPLATE}}#$CLIENT_TEMPLATE#g" "$CLIENT_GEN_FILE"
@@ -80,7 +80,7 @@ function generate_with_templates() {
 			eval "method_params+=( $METHOD_PARAM_REPLACE )"
 
 			echo "🔨 Generating client method: $METHOD_GEN_FILE"
-			cp $CLIENT_METHOD_TEMPLATE "$METHOD_GEN_FILE"
+			cp "$CLIENT_METHOD_TEMPLATE" "$METHOD_GEN_FILE"
 			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
 			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
 			sed -i -e "s#{{TEMPLATE}}#$CLIENT_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"
@@ -89,7 +89,7 @@ function generate_with_templates() {
 		# Generate server
 		SERVER_GEN_FILE="${P2P_OUTPATH}/${TYPE_PACKAGE}_${SERVICE}_server.go"
 		echo "🔨 Generating server: $SERVER_GEN_FILE"
-		cp $SERVER_TEMPLATE "$SERVER_GEN_FILE"
+		cp "$SERVER_TEMPLATE" "$SERVER_GEN_FILE"
 		sed -i "${replace_params[@]}" "$SERVER_GEN_FILE"
 		sed -i -e "s#{{TEMPLATE}}#$SERVER_TEMPLATE#g" "$SERVER_GEN_FILE"
 
@@ -114,7 +114,7 @@ function generate_with_templates() {
 			eval "method_params+=( $METHOD_PARAM_REPLACE )"
 
 			echo "🔨 Generating server method: $METHOD_GEN_FILE"
-			cp $SERVER_P2P_METHOD_TEMPLATE "$METHOD_GEN_FILE"
+			cp "$SERVER_P2P_METHOD_TEMPLATE" "$METHOD_GEN_FILE"
 			sed -i "${replace_params[@]}" "$METHOD_GEN_FILE"
 			sed -i "${method_params[@]}" "$METHOD_GEN_FILE"
 			sed -i -e "s#{{TEMPLATE}}#$SERVER_P2P_METHOD_TEMPLATE#g" "$METHOD_GEN_FILE"

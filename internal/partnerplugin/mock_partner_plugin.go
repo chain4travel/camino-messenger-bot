@@ -102,13 +102,12 @@ func (mr *MockPartnerPluginMockRecorder) CancellationWithdrawnNotification(arg0,
 }
 
 // DoServiceRequest mocks base method.
-func (m *MockPartnerPlugin) DoServiceRequest(arg0 context.Context, arg1 *types.Message, arg2 rpc.Client, arg3, arg4 common.Address) (protoreflect.ProtoMessage, types.MessageType, error) {
+func (m *MockPartnerPlugin) DoServiceRequest(arg0 context.Context, arg1 *types.Message, arg2 rpc.Client, arg3, arg4 common.Address) (protoreflect.ProtoMessage, types.MessageType) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DoServiceRequest", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(protoreflect.ProtoMessage)
 	ret1, _ := ret[1].(types.MessageType)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	return ret0, ret1
 }
 
 // DoServiceRequest indicates an expected call of DoServiceRequest.

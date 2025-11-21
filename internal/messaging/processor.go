@@ -13,7 +13,6 @@ import (
 
 	"buf.build/go/protovalidate"
 	"github.com/chain4travel/camino-matrix-app-service/config"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
@@ -79,7 +78,6 @@ func NewMessageProcessor(
 	partnerPlugin partnerplugin.PartnerPlugin,
 	chequeHandler chequehandler.ChequeHandler,
 	cmAccounts cmaccounts.Service,
-	responseHeaderHandler common.ResponseHeaderHandler,
 	maxAllowedServiceFee *big.Int,
 	messageEncoder EncoderDecoder,
 ) MessageProcessor {
@@ -97,7 +95,6 @@ func NewMessageProcessor(
 		cmAccountAddress:                    cmAccountAddress,
 		networkFeeRecipientBotAddress:       networkFeeRecipientBotAddress,
 		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
-		responseHeaderHandler:               responseHeaderHandler,
 		maxAllowedServiceFee:                maxAllowedServiceFee,
 		encoderDecoder:                      messageEncoder,
 	}
@@ -111,17 +108,16 @@ type messageProcessor struct {
 	networkFeeRecipientCMAccountAddress ethCommon.Address
 	maxAllowedServiceFee                *big.Int
 
-	messenger             Messenger
-	logger                *zap.SugaredLogger
-	responseChannelsLock  sync.RWMutex
-	responseChannels      map[string]chan *types.Message
-	serviceRegistry       ServiceRegistry
-	responseHandler       ResponseHandler
-	partnerPlugin         partnerplugin.PartnerPlugin
-	chequeHandler         chequehandler.ChequeHandler
-	cmAccounts            cmaccounts.Service
-	responseHeaderHandler common.ResponseHeaderHandler
-	encoderDecoder        EncoderDecoder
+	messenger            Messenger
+	logger               *zap.SugaredLogger
+	responseChannelsLock sync.RWMutex
+	responseChannels     map[string]chan *types.Message
+	serviceRegistry      ServiceRegistry
+	responseHandler      ResponseHandler
+	partnerPlugin        partnerplugin.PartnerPlugin
+	chequeHandler        chequehandler.ChequeHandler
+	cmAccounts           cmaccounts.Service
+	encoderDecoder       EncoderDecoder
 }
 
 func (p *messageProcessor) Start(ctx context.Context) {

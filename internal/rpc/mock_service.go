@@ -43,7 +43,7 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Call mocks base method.
-func (m *MockService) Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType, error) {
+func (m *MockService) Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, request}
 	for _, a := range opts {
@@ -52,8 +52,7 @@ func (m *MockService) Call(ctx context.Context, request protoreflect.ProtoMessag
 	ret := m.ctrl.Call(m, "Call", varargs...)
 	ret0, _ := ret[0].(protoreflect.ProtoMessage)
 	ret1, _ := ret[1].(types.MessageType)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	return ret0, ret1
 }
 
 // Call indicates an expected call of Call.

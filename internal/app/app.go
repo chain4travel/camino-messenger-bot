@@ -170,14 +170,11 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	// messaging components
 
-	responseHeaderHandler := common.NewResponseHeaderHandler(logger)
-
 	responseHandler, err := messaging.NewResponseHandler(
 		logger,
 		cfg.CMAccountAddress,
 		eventListener,
 		bookingService,
-		responseHeaderHandler,
 		priceHandler,
 		cfg.E2ETestMode,
 	)
@@ -288,7 +285,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		partnerPlugin,
 		chequeHandler,
 		cmAccounts,
-		responseHeaderHandler,
 		cfg.MaxAllowedServiceFee,
 		messagesEncoderDecoder,
 	)
@@ -313,7 +309,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	rpcServer, err := server.NewServer(
 		cfg.RPCServer,
 		logger,
-		responseHeaderHandler,
 		messageProcessor,
 		serviceRegistry,
 		cancellationV1Service,
