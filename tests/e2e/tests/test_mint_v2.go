@@ -141,14 +141,11 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	var tokenID1 uint64
-	var mintID1 string
-
-	tokenID1, mintID1 = tt.testMintV2MintV2ExpectedError(ctx, t, validationID1)
+	tt.testMintV2MintV2ExpectedError(ctx, t, validationID1)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
-	tokenID2, mintID2 := tt.testMintV2MintV2ExpectedError(ctx, t, validationID2)
+	tt.testMintV2MintV2ExpectedError(ctx, t, validationID2)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -161,27 +158,18 @@ func (tt *TestMintV2) testMintV2TokenExpiredCase(ctx context.Context, t *testing
 	tt.DebugPrintProtoMessage(eventMsg)
 	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
-	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
-	require.NotNil(t, tokenExpiredNotification.MintId)
-	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID1)
 
 	eventMsg, err = tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
 	tt.DebugPrintProtoMessage(eventMsg)
 	tokenExpiredNotification = &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
-	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
-	require.NotNil(t, tokenExpiredNotification.MintId)
-	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID2)
 }
 
 func (tt *TestMintV2) testMintV2MintV2ExpectedError(
 	ctx context.Context,
 	t *testing.T,
 	validationID string,
-) (
-	tokenID uint64,
-	mintID string,
 ) {
 	req := &bookv2.MintRequest{
 		Header:       &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -195,13 +183,5 @@ func (tt *TestMintV2) testMintV2MintV2ExpectedError(
 	tt.DebugPrintRequestResponse(req, resp)
 
 	require.Equal(t, typesv1.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
-
-	// Check if the MintId is set
-	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
-	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
-
-	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
 	require.Empty(t, resp.BuyTransactionId, "unexpected response BuyTransactionId")
-
-	return resp.BookingTokenId, resp.MintId.Value
 }

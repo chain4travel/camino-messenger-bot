@@ -11,6 +11,7 @@ import (
 
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/proto"
 )
@@ -119,6 +120,7 @@ func mintErrResponseV4(code typesv4.ErrorCode, errMessage string) *bookv4.MintRe
 		Response: &bookv4.MintResponse_ErrorResponse{
 			ErrorResponse: &bookv4.MintErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
+					BaseHeader: &typesv4.Header{Version: version.VersionV4},
 					Errors: []*typesv4.Error{{
 						Code:    code,
 						Message: errMessage,
