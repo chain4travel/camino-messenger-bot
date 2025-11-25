@@ -272,9 +272,8 @@ func (tt *TestAccommodationV2) testAccommodationV2SearchServiceWithoutTravelPeri
 func (tt *TestAccommodationV2) testAccommodationV2SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
 	const hotelCode = "HOTEL345678"
 
-	const nights = 12                                 // 12 nights
-	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
-	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 1) // outside of allowed travel period
+	endDate := startDate.Add(time.Hour * 24)
 
 	req := &accommodationv2.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -306,9 +305,9 @@ func (tt *TestAccommodationV2) testAccommodationV2SearchServiceTravelPeriodOutOf
 func (tt *TestAccommodationV2) testAccommodationV2SearchServiceTravelPeriodReversed(ctx context.Context, t *testing.T) {
 	const hotelCode = "HOTEL345678"
 
-	const nights = 12                                                // 12 nights
-	endDate := time.Now().Add(time.Hour * 24)                        // tomorrow
-	startDate := endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
+	const nights = 12                                              // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset) // tomorrow
+	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &accommodationv2.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -322,8 +321,8 @@ func (tt *TestAccommodationV2) testAccommodationV2SearchServiceTravelPeriodRever
 				},
 			},
 			TravelPeriod: &typesv1.TravelPeriod{
-				StartDate: common.TimeToDateV1(startDate),
-				EndDate:   common.TimeToDateV1(endDate),
+				StartDate: common.TimeToDateV1(endDate),   // End date used as start
+				EndDate:   common.TimeToDateV1(startDate), // Start date used as end
 			},
 		}},
 	}
@@ -348,8 +347,8 @@ func testAccommodationV2SearchServiceWithTravelPeriod(
 	resultID int32,
 	totalPrice *big.Int,
 ) {
-	const nights = 12                           // 12 nights
-	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	const nights = 12                                              // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &accommodationv2.AccommodationSearchRequest{

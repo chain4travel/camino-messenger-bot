@@ -214,8 +214,8 @@ func (tt *TestActivityV4) testActivityV4ProductInfoService(ctx context.Context, 
 }
 
 func (tt *TestActivityV4) testActivityV4SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
-	const nights = 12                                 // 12 nights
-	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
+	const nights = 12                                                                                   // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 1) // outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &activityv4.ActivitySearchRequest{

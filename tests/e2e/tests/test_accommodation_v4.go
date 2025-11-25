@@ -241,8 +241,8 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductInfoService(ctx context
 func (tt *TestAccommodationV4) testAccommodationV4SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
 	const hotelCode = "HOTEL345678"
 
-	const nights = 12                                 // 12 nights
-	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
+	const nights = 12                                                                                   // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 1) // outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &accommodationv4.AccommodationSearchRequest{
@@ -287,8 +287,8 @@ func testAccommodationV4SearchService(
 ) {
 	const hotelCode1 = "HOTEL345678"
 	const hotelCode2 = "HOTEL789012"
-	const nights = 12                           // 12 nights
-	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	const nights = 12                                              // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 	currency := &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}}
 

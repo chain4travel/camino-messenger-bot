@@ -274,9 +274,8 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceWithoutTravelPeri
 func (tt *TestAccommodationV3) testAccommodationV3SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
 	const hotelCode = "HOTEL345678"
 
-	const nights = 12                                 // 12 nights
-	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
-	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 1) // outside of allowed travel period
+	endDate := startDate.Add(time.Hour * 24)
 
 	req := &accommodationv3.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -308,9 +307,9 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceTravelPeriodOutOf
 func (tt *TestAccommodationV3) testAccommodationV3SearchServiceTravelPeriodReversed(ctx context.Context, t *testing.T) {
 	const hotelCode = "HOTEL345678"
 
-	const nights = 12                                                // 12 nights
-	endDate := time.Now().Add(time.Hour * 24)                        // tomorrow
-	startDate := endDate.Add(time.Hour * 24 * time.Duration(nights)) // start date after end date
+	const nights = 12                                              // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset) // tomorrow
+	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &accommodationv3.AccommodationSearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -324,8 +323,8 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceTravelPeriodRever
 				},
 			},
 			TravelPeriod: &typesv1.TravelPeriod{
-				StartDate: common.TimeToDateV1(startDate),
-				EndDate:   common.TimeToDateV1(endDate),
+				StartDate: common.TimeToDateV1(endDate),   // End date used as start
+				EndDate:   common.TimeToDateV1(startDate), // Start date used as end
 			},
 		}},
 	}

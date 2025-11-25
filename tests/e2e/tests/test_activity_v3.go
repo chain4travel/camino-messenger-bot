@@ -269,9 +269,8 @@ func (tt *TestActivityV3) testActivityV3SearchServiceWithoutTravelPeriod(ctx con
 }
 
 func (tt *TestActivityV3) testActivityV3SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
-	const nights = 12                                 // 12 nights
-	startDate := time.Now().Add(time.Hour * 24 * 100) // in 100 days, outside of allowed travel period
-	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 1) // outside of allowed travel period
+	endDate := startDate.Add(time.Hour * 24)
 
 	req := &activityv3.ActivitySearchRequest{
 		Header: &typesv1.RequestHeader{BaseHeader: &typesv1.Header{}},
@@ -300,8 +299,8 @@ func (tt *TestActivityV3) testActivityV3SearchServiceTravelPeriodOutOfBounds(ctx
 }
 
 func (tt *TestActivityV3) testActivityV3SearchServiceTravelPeriodReversed(ctx context.Context, t *testing.T) {
-	const nights = 12                           // 12 nights
-	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	const nights = 12                                              // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &activityv3.ActivitySearchRequest{
@@ -343,8 +342,8 @@ func testActivityV3SearchServiceWithTravelPeriod(
 	resultID int32,
 	totalPrice *big.Int,
 ) {
-	const nights = 12                           // 12 nights
-	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	const nights = 12                                              // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &activityv3.ActivitySearchRequest{
