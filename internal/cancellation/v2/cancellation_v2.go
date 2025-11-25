@@ -16,6 +16,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
 	cancellationv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
@@ -58,6 +59,10 @@ func (s *cancellationV2Service) InitiateCancellation(
 	ctx context.Context,
 	request *cancellationv2.InitiateCancellationRequest,
 ) (*cancellationv2.InitiateCancellationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return initiateCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
+	}
+
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and token: %v", err)
@@ -101,6 +106,10 @@ func (s *cancellationV2Service) CounterCancellation(
 	ctx context.Context,
 	request *cancellationv2.CounterCancellationRequest,
 ) (*cancellationv2.CounterCancellationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return counterCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
+	}
+
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and token: %v", err)
@@ -144,6 +153,10 @@ func (s *cancellationV2Service) AcceptCancellation(
 	ctx context.Context,
 	request *cancellationv2.AcceptCancellationRequest,
 ) (*cancellationv2.AcceptCancellationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return acceptCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
+	}
+
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
 	if err != nil {
@@ -179,6 +192,10 @@ func (s *cancellationV2Service) RejectCancellation(
 	ctx context.Context,
 	request *cancellationv2.RejectCancellationRequest,
 ) (*cancellationv2.RejectCancellationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return rejectCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
+	}
+
 	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		errMessage := fmt.Sprintf("error converting reason to uint16: %v", err)
@@ -215,6 +232,10 @@ func (s *cancellationV2Service) WithdrawCancellation(
 	ctx context.Context,
 	request *cancellationv2.WithdrawCancellationRequest,
 ) (*cancellationv2.WithdrawCancellationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return withdrawCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
+	}
+
 	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		errMessage := fmt.Sprintf("error converting reason to uint16: %v", err)
@@ -251,6 +272,10 @@ func (s *cancellationV2Service) FinalizeCancellation(
 	ctx context.Context,
 	request *cancellationv2.FinalizeCancellationRequest,
 ) (*cancellationv2.FinalizeCancellationResponse, error) {
+	if err := protovalidate.Validate(request); err != nil {
+		return finalizeCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
+	}
+
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV4(ctx, request.RefundAmount)
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and token: %v", err)

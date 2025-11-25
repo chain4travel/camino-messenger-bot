@@ -12,6 +12,7 @@ import (
 
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/bot"
@@ -121,6 +122,7 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")

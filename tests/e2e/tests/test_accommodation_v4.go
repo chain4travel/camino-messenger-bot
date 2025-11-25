@@ -12,6 +12,7 @@ import (
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
@@ -116,6 +117,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListService(ctx co
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -157,6 +159,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListServiceWithFil
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -183,6 +186,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductListService(ctx context
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -220,6 +224,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductInfoService(ctx context
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -269,6 +274,7 @@ func (tt *TestAccommodationV4) testAccommodationV4SearchServiceTravelPeriodOutOf
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }
@@ -317,6 +323,7 @@ func testAccommodationV4SearchService(
 	)
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")

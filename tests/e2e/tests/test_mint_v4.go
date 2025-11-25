@@ -241,6 +241,7 @@ func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }

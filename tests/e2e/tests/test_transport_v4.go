@@ -12,6 +12,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
@@ -98,6 +99,7 @@ func (tt *TestTransportV4) testTransportV4ProductListService(ctx context.Context
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -129,6 +131,7 @@ func (tt *TestTransportV4) testTransportV4ProductListServiceWithFilter(ctx conte
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -192,6 +195,7 @@ func (tt *TestTransportV4) testTransportV4SearchServiceTravelDatesWrong(ctx cont
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -293,6 +297,7 @@ func testTransportV4SearchService(
 	)
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")

@@ -10,6 +10,7 @@ import (
 
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/blockchain"
@@ -143,6 +144,7 @@ func testBotSanitySendCommonRequest(ctx context.Context, t *testing.T, pingMessa
 		req,
 	)
 	require.NoError(t, err)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	errResp := resp.GetErrorResponse()
 	require.NotNil(t, errResp, "expected error response")

@@ -13,6 +13,7 @@ import (
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/proto/pb/events"
@@ -137,6 +138,7 @@ func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithSearchID(ctx context.Conte
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -159,6 +161,7 @@ func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithBadSearchID(ctx context.Co
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }
@@ -190,6 +193,7 @@ func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithMintID(
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -210,6 +214,7 @@ func (tt *TestSeatMapV4) testSeatMapAvailabilityV4WithBadMintID(ctx context.Cont
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }
@@ -226,6 +231,7 @@ func (tt *TestSeatMapV4) testSeatMapV4BadID(ctx context.Context, t *testing.T) {
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }
@@ -242,6 +248,7 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	// Check response header
 
@@ -293,6 +300,7 @@ func (tt *TestSeatMapV4) testSeatMapV4(ctx context.Context, t *testing.T, seatMa
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	// Check response header
 
@@ -349,6 +357,7 @@ func (tt *TestSeatMapV4) transportV4ProductListGetTripWithSeatMap(
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -425,6 +434,7 @@ func (tt *TestSeatMapV4) transportV4SearchWithSupplierCode(
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -468,6 +478,7 @@ func (tt *TestSeatMapV4) activityV4SearchGetActivityWithSeatMap(
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -506,6 +517,7 @@ func (tt *TestSeatMapV4) activityV4SearchGetActivityWithSeatMap(
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp = resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")

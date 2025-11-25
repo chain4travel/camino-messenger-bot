@@ -12,6 +12,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
@@ -124,6 +125,7 @@ func (tt *TestActivityV4) testActivityV4ProductShortListService(ctx context.Cont
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -156,6 +158,7 @@ func (tt *TestActivityV4) testActivityV4ProductShortListServiceWithFilter(ctx co
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -179,6 +182,7 @@ func (tt *TestActivityV4) testActivityV4ProductListService(ctx context.Context, 
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -201,6 +205,7 @@ func (tt *TestActivityV4) testActivityV4ProductInfoService(ctx context.Context, 
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
@@ -241,6 +246,7 @@ func (tt *TestActivityV4) testActivityV4SearchServiceTravelPeriodOutOfBounds(ctx
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	resp.HasErrorResponse()
 
@@ -296,6 +302,7 @@ func testActivityV4SearchService(
 	)
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
 
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")

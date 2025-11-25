@@ -10,6 +10,7 @@ import (
 
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/bot"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/common"
@@ -77,6 +78,8 @@ func (tt *TestPingV2) testPingV2Service(ctx context.Context, t *testing.T) {
 
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
+
 	successResp := resp.GetSuccessResponse()
 	require.NotNil(t, successResp, "unexpected response status")
 	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
