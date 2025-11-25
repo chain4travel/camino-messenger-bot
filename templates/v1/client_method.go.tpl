@@ -38,7 +38,7 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 	return response, messageType
 }
 
-func (s *{{SERVICE}}V{{VERSION}}Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *{{SERVICE}}V{{VERSION}}Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), {{SERVICE}}ServiceV{{VERSION}}Response
 }
 

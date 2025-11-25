@@ -281,7 +281,7 @@ func (p *messageProcessor) SendRequestMessage(
 	case responseMsg := <-responseChan:
 		if responseMsg.RequestID == requestMsg.RequestID {
 			if err := protovalidate.Validate(responseMsg.Content); err != nil {
-				return nil, fmt.Errorf("response validation failed: %w", err)
+				return nil, fmt.Errorf("response validation failed: %w: %v", rpc.ErrInvalidProto, err)
 			}
 
 			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
@@ -358,7 +358,7 @@ func (p *messageProcessor) validateAndRespond(
 
 	if err := protovalidate.Validate(requestMsg.Content); err != nil {
 		errMessage := fmt.Sprintf("request message validation failed: %v", err)
-		responseMsg.Content, responseMsg.Type = serviceClient.ErrorResponseAndType(errMessage)
+		responseMsg.Content, responseMsg.Type = serviceClient.InvalidProtoErrResponseAndType(errMessage)
 		p.logger.Errorf(errMessage)
 		return responseMsg
 	}

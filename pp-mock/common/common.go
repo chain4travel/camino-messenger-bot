@@ -220,7 +220,10 @@ func SuccessHeaderV4() *typesv4.SuccessResponseHeader {
 func ErrorHeaderV4(message string) *typesv4.ErrorResponseHeader {
 	return &typesv4.ErrorResponseHeader{
 		BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
-		Errors:     []*typesv4.Error{{Message: message}},
+		Errors: []*typesv4.Error{{
+			Code:    typesv4.ErrorCode_ERROR_CODE_INTERNAL,
+			Message: message,
+		}},
 	}
 }
 

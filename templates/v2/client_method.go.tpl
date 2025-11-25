@@ -5,6 +5,7 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
@@ -23,46 +24,44 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 
 	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}})
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}ServiceV{{VERSION}}Request, requestIntf)), messageType
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}ServiceV{{VERSION}}Request, requestIntf)), messageType
 	}
 	
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
-	if err != nil {
-		return s.errorResponse(err.Error()), messageType
-	}
-
-	if response.HasErrorResponse() {
-		innerResp := response.GetErrorResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
-	} else {
-		innerResp := response.GetSuccessResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), messageType
+	case err != nil:
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), messageType
 	}
 
 	if err := protovalidate.Validate(response); err != nil {
-		return s.errorResponse(fmt.Sprintf("response validation failed: %v", err)), messageType
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("response validation failed: %v", err)), messageType
+	}
+
+	if errResp := response.GetErrorResponse(); errResp != nil {
+		errResp.Header.BaseHeader.Version = version.VersionV4
+	} else {
+		response.GetSuccessResponse().Header.BaseHeader.Version = version.VersionV4
 	}
 
 	return response, messageType
 }
 
-func (s *{{SERVICE}}V{{VERSION}}Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), {{SERVICE}}ServiceV{{VERSION}}Response
+func (s *{{SERVICE}}V{{VERSION}}Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INVALID_PROTO, errorMessage), {{SERVICE}}ServiceV{{VERSION}}Response
 }
 
-func (s *{{SERVICE}}V{{VERSION}}Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
+func (s *{{SERVICE}}V{{VERSION}}Client) errorResponse(code typesv{{COMMON_TYPES_VERSION}}.ErrorCode, errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {
 	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
 		Response: &{{TYPE_PACKAGE}}.{{RESPONSE}}_ErrorResponse{
 			ErrorResponse: &{{TYPE_PACKAGE}}.{{SERVICE}}ErrorResponse{
 				Header: &typesv{{COMMON_TYPES_VERSION}}.ErrorResponseHeader{
 					BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
-					Errors:     []*typesv{{COMMON_TYPES_VERSION}}.Error{{Message: errorMessage}},
+					Errors: []*typesv{{COMMON_TYPES_VERSION}}.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
