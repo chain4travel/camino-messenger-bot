@@ -62,14 +62,14 @@ func (s *cancellationV2Service) InitiateCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and token: %v", err)
 		s.logger.Error(errMessage)
-		return initiateCancellationErrResponse(errMessage), nil
+		return initiateCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		errMessage := fmt.Sprintf("error converting reason to uint16: %v", err)
 		s.logger.Error(errMessage)
-		return initiateCancellationErrResponse(errMessage), nil
+		return initiateCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
@@ -78,7 +78,7 @@ func (s *cancellationV2Service) InitiateCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error initiating cancellation proposal: %v", err)
 		s.logger.Error(errMessage)
-		return initiateCancellationErrResponse(errMessage), nil
+		return initiateCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, errMessage), nil
 	}
 
 	response := &cancellationv2.InitiateCancellationResponse{
@@ -105,14 +105,14 @@ func (s *cancellationV2Service) CounterCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and token: %v", err)
 		s.logger.Error(errMessage)
-		return counterCancellationErrResponse(errMessage), nil
+		return counterCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		errMessage := fmt.Sprintf("error converting reason to uint16: %v", err)
 		s.logger.Error(errMessage)
-		return counterCancellationErrResponse(errMessage), nil
+		return counterCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
@@ -121,7 +121,7 @@ func (s *cancellationV2Service) CounterCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error countering cancellation proposal: %v", err)
 		s.logger.Error(errMessage)
-		return counterCancellationErrResponse(errMessage), nil
+		return counterCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, errMessage), nil
 	}
 
 	response := &cancellationv2.CounterCancellationResponse{
@@ -149,14 +149,14 @@ func (s *cancellationV2Service) AcceptCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and token: %v", err)
 		s.logger.Error(errMessage)
-		return acceptCancellationErrResponse(errMessage), nil
+		return acceptCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	receipt, err := s.cmAccounts.AcceptCancellationProposal(ctx, s.botKey, s.cmAccountAddr, tokenID, refundAmount)
 	if err != nil {
 		errMessage := fmt.Sprintf("error accepting cancellation proposal: %v", err)
 		s.logger.Error(errMessage)
-		return acceptCancellationErrResponse(errMessage), nil
+		return acceptCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, errMessage), nil
 	}
 
 	response := &cancellationv2.AcceptCancellationResponse{
@@ -183,7 +183,7 @@ func (s *cancellationV2Service) RejectCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error converting reason to uint16: %v", err)
 		s.logger.Error(errMessage)
-		return rejectCancellationErrResponse(errMessage), nil
+		return rejectCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
@@ -192,7 +192,7 @@ func (s *cancellationV2Service) RejectCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error rejecting cancellation proposal: %v", err)
 		s.logger.Error(errMessage)
-		return rejectCancellationErrResponse(errMessage), nil
+		return rejectCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, errMessage), nil
 	}
 
 	response := &cancellationv2.RejectCancellationResponse{
@@ -219,7 +219,7 @@ func (s *cancellationV2Service) WithdrawCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error converting reason to uint16: %v", err)
 		s.logger.Error(errMessage)
-		return withdrawCancellationErrResponse(errMessage), nil
+		return withdrawCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
@@ -228,7 +228,7 @@ func (s *cancellationV2Service) WithdrawCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error withdrawing cancellation proposal: %v", err)
 		s.logger.Error(errMessage)
-		return withdrawCancellationErrResponse(errMessage), nil
+		return withdrawCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, errMessage), nil
 	}
 
 	response := &cancellationv2.WithdrawCancellationResponse{
@@ -255,7 +255,7 @@ func (s *cancellationV2Service) FinalizeCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and token: %v", err)
 		s.logger.Error(errMessage)
-		return finalizeCancellationErrResponse(errMessage), nil
+		return finalizeCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, errMessage), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
@@ -264,7 +264,7 @@ func (s *cancellationV2Service) FinalizeCancellation(
 	if err != nil {
 		errMessage := fmt.Sprintf("error finalizing cancellation proposal: %v", err)
 		s.logger.Error(errMessage)
-		return finalizeCancellationErrResponse(errMessage), nil
+		return finalizeCancellationErrResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, errMessage), nil
 	}
 
 	response := &cancellationv2.FinalizeCancellationResponse{
@@ -283,78 +283,96 @@ func (s *cancellationV2Service) FinalizeCancellation(
 	return response, nil
 }
 
-func initiateCancellationErrResponse(errorMessage string) *cancellationv2.InitiateCancellationResponse {
+func initiateCancellationErrResponse(code typesv4.ErrorCode, errorMessage string) *cancellationv2.InitiateCancellationResponse {
 	return &cancellationv2.InitiateCancellationResponse{
 		Response: &cancellationv2.InitiateCancellationResponse_ErrorResponse{
 			ErrorResponse: &cancellationv2.InitiateCancellationErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
 	}
 }
 
-func counterCancellationErrResponse(errorMessage string) *cancellationv2.CounterCancellationResponse {
+func counterCancellationErrResponse(code typesv4.ErrorCode, errorMessage string) *cancellationv2.CounterCancellationResponse {
 	return &cancellationv2.CounterCancellationResponse{
 		Response: &cancellationv2.CounterCancellationResponse_ErrorResponse{
 			ErrorResponse: &cancellationv2.CounterCancellationErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
 	}
 }
 
-func acceptCancellationErrResponse(errorMessage string) *cancellationv2.AcceptCancellationResponse {
+func acceptCancellationErrResponse(code typesv4.ErrorCode, errorMessage string) *cancellationv2.AcceptCancellationResponse {
 	return &cancellationv2.AcceptCancellationResponse{
 		Response: &cancellationv2.AcceptCancellationResponse_ErrorResponse{
 			ErrorResponse: &cancellationv2.AcceptCancellationErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
 	}
 }
 
-func rejectCancellationErrResponse(errorMessage string) *cancellationv2.RejectCancellationResponse {
+func rejectCancellationErrResponse(code typesv4.ErrorCode, errorMessage string) *cancellationv2.RejectCancellationResponse {
 	return &cancellationv2.RejectCancellationResponse{
 		Response: &cancellationv2.RejectCancellationResponse_ErrorResponse{
 			ErrorResponse: &cancellationv2.RejectCancellationErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
 	}
 }
 
-func withdrawCancellationErrResponse(errorMessage string) *cancellationv2.WithdrawCancellationResponse {
+func withdrawCancellationErrResponse(code typesv4.ErrorCode, errorMessage string) *cancellationv2.WithdrawCancellationResponse {
 	return &cancellationv2.WithdrawCancellationResponse{
 		Response: &cancellationv2.WithdrawCancellationResponse_ErrorResponse{
 			ErrorResponse: &cancellationv2.WithdrawCancellationErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
 	}
 }
 
-func finalizeCancellationErrResponse(errorMessage string) *cancellationv2.FinalizeCancellationResponse {
+func finalizeCancellationErrResponse(code typesv4.ErrorCode, errorMessage string) *cancellationv2.FinalizeCancellationResponse {
 	return &cancellationv2.FinalizeCancellationResponse{
 		Response: &cancellationv2.FinalizeCancellationResponse_ErrorResponse{
 			ErrorResponse: &cancellationv2.FinalizeCancellationErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
