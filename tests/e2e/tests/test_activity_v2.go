@@ -268,7 +268,7 @@ func (tt *TestActivityV2) testActivityV2SearchServiceWithoutTravelPeriod(ctx con
 }
 
 func (tt *TestActivityV2) testActivityV2SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
-	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 1) // outside of allowed travel period
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 24*time.Hour) // outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24)
 
 	req := &activityv2.ActivitySearchRequest{

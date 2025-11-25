@@ -274,7 +274,7 @@ func (tt *TestAccommodationV3) testAccommodationV3SearchServiceWithoutTravelPeri
 func (tt *TestAccommodationV3) testAccommodationV3SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
 	const hotelCode = "HOTEL345678"
 
-	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 1) // outside of allowed travel period
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset + common.TravelPeriodMaxDuration + 24*time.Hour) // outside of allowed travel period
 	endDate := startDate.Add(time.Hour * 24)
 
 	req := &accommodationv3.AccommodationSearchRequest{

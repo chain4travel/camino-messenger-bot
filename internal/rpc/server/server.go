@@ -191,7 +191,8 @@ func (s *server) getRecipientAddress(ctx context.Context) (ethCommon.Address, er
 func (s *server) unaryRecoverInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response any, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			recipientCMAccountAddress, err := s.getRecipientAddress(ctx)
+			var recipientCMAccountAddress ethCommon.Address
+			recipientCMAccountAddress, err = s.getRecipientAddress(ctx)
 			if err != nil {
 				s.logger.Errorf("failed to get recipient cm account address from request context: %v", err)
 			}

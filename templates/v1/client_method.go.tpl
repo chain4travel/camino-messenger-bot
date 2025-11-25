@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *{{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
 	messageType := {{SERVICE}}ServiceV{{VERSION}}Response
 
 	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}})

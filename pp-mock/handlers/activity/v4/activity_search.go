@@ -17,15 +17,15 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var _ activityv4grpc.ActivitySearchServiceServer = (*activitySearchV3Server)(nil)
+var _ activityv4grpc.ActivitySearchServiceServer = (*activitySearchV4Server)(nil)
 
-type activitySearchV3Server struct{}
+type activitySearchV4Server struct{}
 
 func NewActivitySearchServer() activityv4grpc.ActivitySearchServiceServer {
-	return &activitySearchV3Server{}
+	return &activitySearchV4Server{}
 }
 
-func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activityv4.ActivitySearchRequest) (*activityv4.ActivitySearchResponse, error) {
+func (s *activitySearchV4Server) ActivitySearch(_ context.Context, req *activityv4.ActivitySearchRequest) (*activityv4.ActivitySearchResponse, error) {
 	if !common.IsTravelPeriodAllowedV4(req.TravelPeriod) {
 		return &activityv4.ActivitySearchResponse{
 			Response: &activityv4.ActivitySearchResponse_ErrorResponse{

@@ -29,7 +29,7 @@ func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, requ
 
 	response, ok := responseIntf.(*{{TYPE_PACKAGE}}.{{RESPONSE}})
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", {{SERVICE}}ServiceV{{VERSION}}Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", {{SERVICE}}ServiceV{{VERSION}}Response, responseIntf)), nil
 	}
 
 	return response, nil
