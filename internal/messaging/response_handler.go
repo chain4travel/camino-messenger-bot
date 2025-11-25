@@ -10,7 +10,6 @@ import (
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
-	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 
@@ -92,9 +91,9 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 	// distributor will post-process a mint request to buy the returned NFT
 	switch response := responseMsg.Content.(type) {
 	case *bookv2.MintResponse:
-		h.processMintResponseV2(ctx, response)
+		responseMsg.Content = h.processMintResponseV2(ctx, response)
 	case *bookv3.MintResponse:
-		h.processMintResponseV3(ctx, response)
+		responseMsg.Content = h.processMintResponseV3(ctx, response)
 	case *bookv4.MintResponse:
 		responseMsg.Content = h.processMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
 	}
@@ -110,9 +109,9 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 	// supplier will act upon receiving a mint response by minting an NFT
 	switch response := responseMsg.Content.(type) {
 	case *bookv2.MintResponse:
-		h.prepareMintResponseV2(ctx, requestMsg.Content.(*bookv2.MintRequest), response)
+		responseMsg.Content = h.prepareMintResponseV2(ctx, requestMsg.Content.(*bookv2.MintRequest), response)
 	case *bookv3.MintResponse:
-		h.prepareMintResponseV3(ctx, requestMsg.Content.(*bookv3.MintRequest), response)
+		responseMsg.Content = h.prepareMintResponseV3(ctx, requestMsg.Content.(*bookv3.MintRequest), response)
 	case *bookv4.MintResponse:
 		responseMsg.Content = h.prepareMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
 	}
@@ -128,12 +127,4 @@ func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) {
 	case *bookv4.MintRequest:
 		request.BuyerAddress = &typesv4.EVMAddress{Address: h.cmAccountAddressStr}
 	}
-}
-
-func (h *evmResponseHandler) addErrorV1(header *typesv1.ResponseHeader, errMessage string) {
-	header.Status = typesv1.StatusType_STATUS_TYPE_FAILURE
-	header.Alerts = append(header.Alerts, &typesv1.Alert{
-		Message: errMessage,
-		Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-	})
 }

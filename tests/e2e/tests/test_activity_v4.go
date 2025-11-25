@@ -248,8 +248,6 @@ func (tt *TestActivityV4) testActivityV4SearchServiceTravelPeriodOutOfBounds(ctx
 	tt.DebugPrintRequestResponse(req, resp)
 	require.NoError(t, protovalidate.Validate(resp))
 
-	resp.HasErrorResponse()
-
 	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }
 

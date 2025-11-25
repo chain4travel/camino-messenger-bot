@@ -12,6 +12,7 @@ import (
 	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -19,16 +20,15 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	ctx context.Context,
 	request *bookv2.MintRequest,
 	response *bookv2.MintResponse,
-) {
+) *bookv2.MintResponse {
 	if response.Header.Status != typesv1.StatusType_STATUS_TYPE_SUCCESS {
-		return
+		return response
 	}
 
 	if !common.IsHexAddress(request.BuyerAddress) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
 		h.logger.Error(errMsg)
-		h.addErrorV1(response.Header, errMsg)
-		return
+		return mintErrResponseV2(errMsg)
 	}
 	buyerAddress := common.HexToAddress(request.BuyerAddress)
 
@@ -40,8 +40,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 		if err != nil {
 			errMsg := fmt.Sprintf("Failed to mint token: failed to generate tokenURI:  %s", err)
 			h.logger.Error(errMsg)
-			h.addErrorV1(response.Header, errMsg)
-			return
+			return mintErrResponseV2(errMsg)
 		}
 		h.logger.Debugf("Token URI JSON: %s", jsonPlain)
 		response.BookingTokenUri = tokenURI
@@ -51,8 +50,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
 		h.logger.Error(err)
-		h.addErrorV1(response.Header, err.Error())
-		return
+		return mintErrResponseV2(err.Error())
 	}
 	response.BuyableUntil = buyableUntil
 
@@ -60,8 +58,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
-		h.addErrorV1(response.Header, errMessage)
-		return
+		return mintErrResponseV2(errMessage)
 	}
 
 	receipt, tokenID, err := h.bookingService.MintBookingToken(
@@ -77,8 +74,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	if err != nil {
 		errMessage := fmt.Sprintf("error minting NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.addErrorV1(response.Header, errMessage)
-		return
+		return mintErrResponseV2(errMessage)
 	}
 	txID := receipt.TxHash.Hex()
 
@@ -91,13 +87,21 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 	response.Header.Status = typesv1.StatusType_STATUS_TYPE_SUCCESS
 	response.BookingTokenId = tokenID.Uint64()
 	response.MintTransactionId = txID
+
+	return response
 }
 
-func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response *bookv2.MintResponse) {
+func (h *evmResponseHandler) processMintResponseV2(
+	ctx context.Context,
+	response *bookv2.MintResponse,
+) *bookv2.MintResponse {
+	if response.Header.Status == typesv1.StatusType_STATUS_TYPE_FAILURE {
+		return response
+	}
+
 	if response.MintTransactionId == "" {
 		h.logger.Error(errMissingMintTxID)
-		h.addErrorV1(response.Header, errMissingMintTxID.Error())
-		return
+		return mintErrResponseV2(errMissingMintTxID.Error())
 	}
 
 	tokenID := new(big.Int).SetUint64(response.BookingTokenId)
@@ -106,18 +110,31 @@ func (h *evmResponseHandler) processMintResponseV2(ctx context.Context, response
 	if err != nil {
 		errMessage := fmt.Sprintf("error getting price and payment token: %v", err)
 		h.logger.Errorf(errMessage)
-		h.addErrorV1(response.Header, errMessage)
-		return
+		return mintErrResponseV2(errMessage)
 	}
 
 	receipt, err := h.bookingService.BuyBookingToken(ctx, tokenID, price, paymentToken)
 	if err != nil {
 		errMessage := fmt.Sprintf("error buying NFT: %v", err)
 		h.logger.Errorf(errMessage)
-		h.addErrorV1(response.Header, errMessage)
-		return
+		return mintErrResponseV2(errMessage)
 	}
 
 	response.BuyTransactionId = receipt.TxHash.Hex()
 	h.logger.Infof("Bought NFT: buy-tx %s, mint-tx %s", response.BuyTransactionId, response.MintTransactionId)
+
+	return response
+}
+
+func mintErrResponseV2(errMessage string) *bookv2.MintResponse {
+	return &bookv2.MintResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }
