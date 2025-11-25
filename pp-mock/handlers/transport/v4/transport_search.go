@@ -6,12 +6,10 @@ package v4
 import (
 	"context"
 	"math/big"
-	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
@@ -19,7 +17,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/transport"
-	"github.com/google/uuid"
 )
 
 var _ transportv4grpc.TransportSearchServiceServer = (*transportSearchV4Server)(nil)
@@ -132,12 +129,9 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 	resp := &transportv4.TransportSearchResponse{
 		Response: &transportv4.TransportSearchResponse_SuccessResponse{
 			SuccessResponse: &transportv4.TransportSearchSuccessResponse{
-				Header: common.SuccessHeaderV4(),
-				SearchId: &typesv4.ExpiringUUID{
-					Id:         &typesv4.UUID{Value: uuid.New().String()},
-					Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
-				},
-				Results: searchResults,
+				Header:   common.SuccessHeaderV4(),
+				SearchId: common.NewExpiringUUID(),
+				Results:  searchResults,
 			},
 		},
 	}

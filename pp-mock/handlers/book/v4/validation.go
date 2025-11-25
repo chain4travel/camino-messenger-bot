@@ -5,17 +5,14 @@ package v4
 
 import (
 	"context"
-	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v4/bookv4grpc"
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
-	"github.com/google/uuid"
 )
 
 var _ bookv4grpc.ValidationServiceServer = (*validationServiceV4Server)(nil)
@@ -43,11 +40,8 @@ func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.Va
 	resp := &bookv4.ValidationResponse{
 		Response: &bookv4.ValidationResponse_SuccessResponse{
 			SuccessResponse: &bookv4.ValidationSuccessResponse{
-				Header: common.SuccessHeaderV4(),
-				ValidationId: &typesv4.ExpiringUUID{
-					Id:         &typesv4.UUID{Value: uuid.New().String()},
-					Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
-				},
+				Header:           common.SuccessHeaderV4(),
+				ValidationId:     common.NewExpiringUUID(),
 				ValidationObject: req.ValidationObject,
 				TotalPrice: &typesv4.TotalPrice{
 					Value: unifiedValidationPrice.ToPriceV4(),

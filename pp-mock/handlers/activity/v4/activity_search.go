@@ -5,7 +5,6 @@ package v4
 
 import (
 	"context"
-	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v4/activityv4grpc"
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
@@ -13,8 +12,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
-	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ activityv4grpc.ActivitySearchServiceServer = (*activitySearchV4Server)(nil)
@@ -52,11 +49,8 @@ func (s *activitySearchV4Server) ActivitySearch(_ context.Context, req *activity
 	resp := &activityv4.ActivitySearchResponse{
 		Response: &activityv4.ActivitySearchResponse_SuccessResponse{
 			SuccessResponse: &activityv4.ActivitySearchSuccessResponse{
-				Header: common.SuccessHeaderV4(),
-				SearchId: &typesv4.ExpiringUUID{
-					Id:         &typesv4.UUID{Value: uuid.New().String()},
-					Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
-				},
+				Header:     common.SuccessHeaderV4(),
+				SearchId:   common.NewExpiringUUID(),
 				Travellers: req.Travellers,
 				Results:    filteredActivities,
 			},

@@ -14,7 +14,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
-	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -181,11 +180,8 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 	resp := &accommodationv4.AccommodationSearchResponse{
 		Response: &accommodationv4.AccommodationSearchResponse_SuccessResponse{
 			SuccessResponse: &accommodationv4.AccommodationSearchSuccessResponse{
-				Header: common.SuccessHeaderV4(),
-				SearchId: &typesv4.ExpiringUUID{
-					Id:         &typesv4.UUID{Value: uuid.New().String()},
-					Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
-				},
+				Header:     common.SuccessHeaderV4(),
+				SearchId:   common.NewExpiringUUIDWithTime(now),
 				Results:    searchResults,
 				Travellers: req.Travellers,
 			},

@@ -12,7 +12,10 @@ import (
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -231,4 +234,15 @@ func ErrorHeaderV4(message string) *typesv4.ErrorResponseHeader {
 
 func AddHeaderAlertV4(header *typesv4.SuccessResponseHeader, code typesv4.AlertCode, message string) {
 	header.Alerts = append(header.Alerts, &typesv4.Alert{Code: code, Message: message})
+}
+
+func NewExpiringUUID() *typesv4.ExpiringUUID {
+	return NewExpiringUUIDWithTime(time.Now())
+}
+
+func NewExpiringUUIDWithTime(now time.Time) *typesv4.ExpiringUUID {
+	return &typesv4.ExpiringUUID{
+		Id:         &typesv4.UUID{Value: uuid.New().String()},
+		Expiration: timestamppb.New(now.Add(state.EntryTimeout)),
+	}
 }
