@@ -122,15 +122,16 @@ func testValidateV4(
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	require.Equal(t, searchID, resp.ValidationObject.SearchResultIdentifier.SearchId.Value, "unexpected searchID in response")
-	require.Equal(t, resultID, resp.ValidationObject.SearchResultIdentifier.ResultId, "unexpected resultID in response")
+	require.Equal(t, searchID, successResp.ValidationObject.SearchResultIdentifier.SearchId.Value, "unexpected searchID in response")
+	require.Equal(t, resultID, successResp.ValidationObject.SearchResultIdentifier.ResultId, "unexpected resultID in response")
 
-	require.True(t, proto.Equal(expectedTotalPrice, resp.TotalPrice.Value), "unexpected response TotalPrice: got %+v, want %+v", resp.TotalPrice.Value, expectedTotalPrice)
+	require.True(t, proto.Equal(expectedTotalPrice, successResp.TotalPrice.Value), "unexpected response TotalPrice: got %+v, want %+v", successResp.TotalPrice.Value, expectedTotalPrice)
 
-	return resp.ValidationId.Id.Value
+	return successResp.ValidationId.Id.Value
 }
 
 func testValidateV3(
@@ -268,13 +269,14 @@ func testMintV4(
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Len(t, resp.Header.Alerts, 1, "expected one info alert in response header")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Len(t, successResp.Header.Alerts, 1, "expected one alert in response header")
 
-	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
-	require.NotEmpty(t, resp.BuyTransactionId, "unexpected empty response BuyTransactionId")
+	require.NotEmpty(t, successResp.MintTransactionId, "unexpected empty response MintTransactionId")
+	require.NotEmpty(t, successResp.BuyTransactionId, "unexpected empty response BuyTransactionId")
 
-	return resp.BookingTokenId, resp.MintId.Value, resp.Price
+	return successResp.BookingTokenId, successResp.MintId.Value, successResp.Price
 }
 
 func testMintV3(
@@ -351,22 +353,6 @@ func testMintV2(
 
 // verify blockchain state
 
-func verifyBookingTokenStateNotBoughtWithPriceV4(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-	tokenID uint64,
-	tokenPrice *typesv4.Price,
-	distributorBalanceBefore *big.Int,
-) {
-	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV4(t, tokenPrice))
-	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, conversion.MustUInt32ToInt32(tokenPrice.Decimals), price.NativeTokenDecimals)
-	require.NoError(t, err)
-	verifyBookingTokenStateNotBought(ctx, t, e, distributorBot, supplierBot, tokenID, expectedReservationPrice, distributorBalanceBefore)
-}
-
 func verifyBookingTokenStateBoughtWithPriceV4(
 	ctx context.Context,
 	t *testing.T,
@@ -424,33 +410,4 @@ func verifyBookingTokenStateBought(
 
 	expectedBalanceAfter := big.NewInt(0).Sub(distributorBalanceBefore, expectedReservationPrice)
 	require.Equal(t, expectedBalanceAfter, e.Balance(ctx, t, distributorBot), "unexpected balance")
-}
-
-func verifyBookingTokenStateNotBought(
-	ctx context.Context,
-	t *testing.T,
-	e *suite.Environment,
-	distributorBot *bot.Bot,
-	supplierBot *bot.Bot,
-	tokenID uint64,
-	expectedReservationPrice *big.Int,
-	distributorBalanceBefore *big.Int,
-) {
-	bigTokenID := big.NewInt(0).SetUint64(tokenID)
-	callOpts := &bind.CallOpts{Context: ctx}
-
-	reservationPrice, err := e.CaminoNetwork.Client.BookingToken.GetReservationPrice(callOpts, bigTokenID)
-	require.NoError(t, err)
-	require.Equal(t, booking.NativePaymentToken, reservationPrice.PaymentToken)
-	require.Equal(t, expectedReservationPrice, reservationPrice.Price)
-
-	ownerAddr, err := e.CaminoNetwork.Client.BookingToken.OwnerOf(callOpts, bigTokenID)
-	require.NoError(t, err)
-	require.Equal(t, supplierBot.CMAccountAddress(), ownerAddr)
-
-	tokenStatus, err := e.CaminoNetwork.Client.BookingToken.GetBookingStatus(callOpts, bigTokenID)
-	require.NoError(t, err)
-	require.NotEqual(t, booking.StatusBought, booking.Status(tokenStatus))
-
-	require.Equal(t, distributorBalanceBefore, e.Balance(ctx, t, distributorBot), "unexpected balance")
 }

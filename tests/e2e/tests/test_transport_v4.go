@@ -54,8 +54,8 @@ func (tt *TestTransportV4) Run(t *testing.T) {
 		tt.testTransportV4SearchServiceTravelDatesWrong(ctx, t)
 	})
 	t.Run("ProductList->Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
-		productListResponse := tt.testTransportV4ProductListService(ctx, t)
-		searchID, resultID, totalPrice := testTransportV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListResponse)
+		productListSuccessResponse := tt.testTransportV4ProductListService(ctx, t)
+		searchID, resultID, totalPrice := testTransportV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListSuccessResponse)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
 		tokenID, _, mintRespPrice := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, common.BookingTokenPriceV4)
@@ -88,7 +88,7 @@ func (tt *TestTransportV4) prepare(ctx context.Context, t *testing.T) {
 }
 
 // Simple product list request which shall return all properties. Checking if all are present
-func (tt *TestTransportV4) testTransportV4ProductListService(ctx context.Context, t *testing.T) *transportv4.TransportProductListResponse {
+func (tt *TestTransportV4) testTransportV4ProductListService(ctx context.Context, t *testing.T) *transportv4.TransportProductListSuccessResponse {
 	req := &transportv4.TransportProductListRequest{
 		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 	}
@@ -99,12 +99,13 @@ func (tt *TestTransportV4) testTransportV4ProductListService(ctx context.Context
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	requireProtoSlicesElementsMatch(t, mockdata.TripsBasicV4, resp.Trips)
+	requireProtoSlicesElementsMatch(t, mockdata.TripsBasicV4, successResp.Trips)
 
-	return resp
+	return successResp
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
@@ -129,10 +130,11 @@ func (tt *TestTransportV4) testTransportV4ProductListServiceWithFilter(ctx conte
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	requireProtoSlicesElementsMatch(t, expectedTrips, resp.Trips)
+	requireProtoSlicesElementsMatch(t, expectedTrips, successResp.Trips)
 }
 
 // Test transport search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned.
@@ -191,8 +193,10 @@ func (tt *TestTransportV4) testTransportV4SearchServiceTravelDatesWrong(ctx cont
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Results, "expected no results in response")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Len(t, successResp.Header.Alerts, 1, "expected one alert in response header")
+	require.Empty(t, successResp.Results, "expected no results in response")
 }
 
 // Test product search with a valid query. Expect a valid response with results.
@@ -202,22 +206,22 @@ func testTransportV4SearchService(
 	e *suite.Environment,
 	distributorBot *bot.Bot,
 	supplierBot *bot.Bot,
-	productListResponse *transportv4.TransportProductListResponse,
+	productListSuccessResponse *transportv4.TransportProductListSuccessResponse,
 ) (
 	searchID string,
 	resultID uint32,
 	totalPrice *typesv4.Price,
 ) {
-	firstSegmentDeparture := productListResponse.Trips[1].Segments[0].Departure
+	firstSegmentDeparture := productListSuccessResponse.Trips[1].Segments[0].Departure
 	departureTime := firstSegmentDeparture.DateTime.AsTime()
 	departureLocationCode := firstSegmentDeparture.Location.GetLocationCode()
 
-	lastSegmentArrival := productListResponse.Trips[1].Segments[1].Arrival // expecting 2 segments
+	lastSegmentArrival := productListSuccessResponse.Trips[1].Segments[1].Arrival // expecting 2 segments
 	arrivalTime := lastSegmentArrival.DateTime.AsTime()
 	arrivalLocationCode := lastSegmentArrival.Location.GetLocationCode()
 
 	expectedTrips := []*transportv4.TripExtended{
-		tripExtendedWithSupplierCode(mockdata.TripsExtendedV4, productListResponse.Trips[1].SupplierCode),
+		tripExtendedWithSupplierCode(mockdata.TripsExtendedV4, productListSuccessResponse.Trips[1].SupplierCode),
 	}
 
 	expectedTotalPrice := &typesv4.Price{
@@ -290,14 +294,15 @@ func testTransportV4SearchService(
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	require.Len(t, resp.Results, 1, "unexpected number of results in response")
-	require.True(t, proto.Equal(expectedTotalPrice, resp.Results[0].TotalPrice.Value), "unexpected total price: expected %v, got %v", expectedTotalPrice, resp.Results[0].TotalPrice.Value)
-	requireProtoSlicesElementsMatch(t, expectedTrips, resp.Results[0].TravellingTrips)
+	require.Len(t, successResp.Results, 1, "unexpected number of results in response")
+	require.True(t, proto.Equal(expectedTotalPrice, successResp.Results[0].TotalPrice.Value), "unexpected total price: expected %v, got %v", expectedTotalPrice, successResp.Results[0].TotalPrice.Value)
+	requireProtoSlicesElementsMatch(t, expectedTrips, successResp.Results[0].TravellingTrips)
 
-	return resp.SearchId.Id.Value, resp.Results[0].ResultId, resp.Results[0].TotalPrice.Value
+	return successResp.SearchId.Id.Value, successResp.Results[0].ResultId, successResp.Results[0].TotalPrice.Value
 }
 
 func tripExtendedWithSupplierCode(trips []*transportv4.TripExtended, supplierCode *typesv4.SupplierProductCode) *transportv4.TripExtended {

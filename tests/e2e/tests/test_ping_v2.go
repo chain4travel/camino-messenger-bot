@@ -77,7 +77,8 @@ func (tt *TestPingV2) testPingV2Service(ctx context.Context, t *testing.T) {
 
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-	require.Contains(t, resp.Message, expectedResponseMessageSubString, "unexpected response message")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
+	require.Contains(t, successResp.Message, expectedResponseMessageSubString, "unexpected response message")
 }

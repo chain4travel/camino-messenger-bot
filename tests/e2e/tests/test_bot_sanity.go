@@ -143,8 +143,9 @@ func testBotSanitySendCommonRequest(ctx context.Context, t *testing.T, pingMessa
 		req,
 	)
 	require.NoError(t, err)
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status)
-	require.Len(t, resp.Header.Alerts, 1)
-	require.Equal(t, typesv4.AlertType_ALERT_TYPE_ERROR, resp.Header.Alerts[0].Type)
-	return resp.Header.Alerts[0].Message
+
+	errResp := resp.GetErrorResponse()
+	require.NotNil(t, errResp, "expected error response")
+	require.Len(t, errResp.Header.Errors, 1, "expected one alert in response header")
+	return errResp.Header.Errors[0].Message
 }

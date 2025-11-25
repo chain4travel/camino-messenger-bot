@@ -14,7 +14,6 @@ import (
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/suite"
@@ -42,30 +41,6 @@ func requestContext(ctx context.Context, recipientCMAccount common.Address) cont
 	return grpcMetadata.NewOutgoingContext(ctx, grpcMetadata.Pairs(
 		metadata.KeyRecipientCMAccount, recipientCMAccount.Hex(),
 	))
-}
-
-func priceBigV4(t *testing.T, value string, decimals int32, currency *typesv4.Currency) *big.Int { //nolint:unused // will be used in following PRs
-	priceBig, err := price.ToBigInt(value, decimals, currencyDecimalsV4(t, currency))
-	require.NoError(t, err)
-	return priceBig
-}
-
-func protoPriceBigV4(t *testing.T, protoPrice *typesv4.Price) *big.Int { //nolint:unused // will be used in following PRs
-	priceBig, err := price.ToBigInt(protoPrice.Value, conversion.MustUInt32ToInt32(protoPrice.Decimals), currencyDecimalsV4(t, protoPrice.Currency))
-	require.NoError(t, err)
-	return priceBig
-}
-
-func currencyDecimalsV4(t *testing.T, currency *typesv4.Currency) int32 { //nolint:unused // will be used in following PRs
-	require.NotNil(t, currency)
-	switch currency.Currency.(type) {
-	case *typesv4.Currency_IsoCurrency:
-		return price.ISODecimals
-	case *typesv4.Currency_NativeToken:
-		return price.NativeTokenDecimals
-	}
-	require.FailNow(t, "unexpected currency type in price")
-	return 0
 }
 
 func protoPriceBigV3(t *testing.T, protoPrice *typesv3.Price) *big.Int {

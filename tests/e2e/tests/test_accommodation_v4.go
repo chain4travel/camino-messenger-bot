@@ -117,10 +117,10 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListService(ctx co
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
-
-	require.Len(t, resp.PropertyShortListItems, len(mockdata.PropertiesV4), "unexpected number of properties in response")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
+	require.Len(t, successResp.PropertyShortListItems, len(mockdata.PropertiesV4), "unexpected number of properties in response")
 
 	expected := make([]*accommodationv4.PropertyShortListItem, 0, len(mockdata.PropertiesV4))
 	for _, prop := range mockdata.PropertiesV4 {
@@ -130,7 +130,7 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListService(ctx co
 		})
 	}
 
-	requireProtoSlicesElementsMatch(t, expected, resp.PropertyShortListItems)
+	requireProtoSlicesElementsMatch(t, expected, successResp.PropertyShortListItems)
 }
 
 // Product list request with a modification filter set. It should only return one fitting result.
@@ -158,12 +158,13 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductShortListServiceWithFil
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	require.Len(t, resp.PropertyShortListItems, len(expected), "unexpected number of properties in response")
+	require.Len(t, successResp.PropertyShortListItems, len(expected), "unexpected number of properties in response")
 
-	requireProtoSlicesElementsMatch(t, expected, resp.PropertyShortListItems)
+	requireProtoSlicesElementsMatch(t, expected, successResp.PropertyShortListItems)
 }
 
 // Product list request with a filter set. It should only return one fitting result.
@@ -183,12 +184,13 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductListService(ctx context
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	require.Len(t, resp.Properties, 1, "unexpected number of properties in response")
+	require.Len(t, successResp.Properties, 1, "unexpected number of properties in response")
 
-	require.Equal(t, hotelCode, resp.Properties[0].SupplierCode.Code, "unexpected response properties[0].SupplierCode.Code")
+	require.Equal(t, hotelCode, successResp.Properties[0].SupplierCode.Code, "unexpected response properties[0].SupplierCode.Code")
 }
 
 // Get detailed accommodation information for a specific hotel code (supplier code).
@@ -219,19 +221,20 @@ func (tt *TestAccommodationV4) testAccommodationV4ProductInfoService(ctx context
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	require.Len(t, resp.Properties, 1, "unexpected number of properties in response")
+	require.Len(t, successResp.Properties, 1, "unexpected number of properties in response")
 
-	require.Len(t, resp.Properties[0].LocalizedDescriptions, 1, "unexpected number of localized descriptions in response")
-	require.Equal(t, language, resp.Properties[0].LocalizedDescriptions[0].Language, "unexpected language in section name")
-	resp.Properties[0].LocalizedDescriptions = nil
+	require.Len(t, successResp.Properties[0].LocalizedDescriptions, 1, "unexpected number of localized descriptions in response")
+	require.Equal(t, language, successResp.Properties[0].LocalizedDescriptions[0].Language, "unexpected language in section name")
+	successResp.Properties[0].LocalizedDescriptions = nil
 
 	expectedProperty = common.CloneProto(expectedProperty)
 	expectedProperty.LocalizedDescriptions = nil
 
-	require.True(t, proto.Equal(resp.Properties[0], expectedProperty), "unexpected response property")
+	require.True(t, proto.Equal(successResp.Properties[0], expectedProperty), "unexpected response property")
 }
 
 // Test search with wrong travel periods given: travel period outside of allowed constraints. Expect errors to be returned.
@@ -248,19 +251,17 @@ func (tt *TestAccommodationV4) testAccommodationV4SearchServiceTravelPeriodOutOf
 			Currency: &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}},
 			Language: typesv1.Language_LANGUAGE_EN,
 		},
-		Queries: []*accommodationv4.AccommodationSearchQuery{{
-			SearchParametersAccommodation: &accommodationv4.AccommodationSearchParameters{
-				SupplierCodes: []*typesv4.SupplierProductCode{
-					{Code: hotelCode},
-				},
+		SearchParametersAccommodation: &accommodationv4.AccommodationSearchParameters{
+			SupplierCodes: []*typesv4.SupplierProductCode{
+				{Code: hotelCode},
 			},
-			TravelPeriod: &typesv4.TravelPeriod{
-				StartDate: common.TimeToDateV4(startDate),
-				EndDate:   common.TimeToDateV4(endDate),
-			},
-			Travellers:   []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
-			PropertyType: accommodationv4.PropertyType_PROPERTY_TYPE_HOTEL,
-		}},
+		},
+		TravelPeriod: &typesv4.TravelPeriod{
+			StartDate: common.TimeToDateV4(startDate),
+			EndDate:   common.TimeToDateV4(endDate),
+		},
+		Travellers:   []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
+		PropertyType: accommodationv4.PropertyType_PROPERTY_TYPE_HOTEL,
 	}
 	resp, err := tt.distributorBot.AccommodationSearchServiceV4.AccommodationSearch(
 		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
@@ -268,8 +269,8 @@ func (tt *TestAccommodationV4) testAccommodationV4SearchServiceTravelPeriodOutOf
 	)
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
-	require.NotEmpty(t, resp.Header.Alerts, "expected response alerts but got none")
+
+	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }
 
 // Test search with a valid travel period. Expect valid search results.
@@ -297,20 +298,18 @@ func testAccommodationV4SearchService(
 			Currency: currency,
 			Language: typesv1.Language_LANGUAGE_EN,
 		},
-		Queries: []*accommodationv4.AccommodationSearchQuery{{
-			SearchParametersAccommodation: &accommodationv4.AccommodationSearchParameters{
-				SupplierCodes: []*typesv4.SupplierProductCode{
-					{Code: hotelCode1},
-					{Code: hotelCode2},
-				},
+		SearchParametersAccommodation: &accommodationv4.AccommodationSearchParameters{
+			SupplierCodes: []*typesv4.SupplierProductCode{
+				{Code: hotelCode1},
+				{Code: hotelCode2},
 			},
-			TravelPeriod: &typesv4.TravelPeriod{
-				StartDate: common.TimeToDateV4(startDate),
-				EndDate:   common.TimeToDateV4(endDate),
-			},
-			Travellers:   []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
-			PropertyType: accommodationv4.PropertyType_PROPERTY_TYPE_HOTEL,
-		}},
+		},
+		TravelPeriod: &typesv4.TravelPeriod{
+			StartDate: common.TimeToDateV4(startDate),
+			EndDate:   common.TimeToDateV4(endDate),
+		},
+		Travellers:   []*typesv4.BasicTraveller{{Type: typesv4.TravellerType_TRAVELLER_TYPE_ADULT}},
+		PropertyType: accommodationv4.PropertyType_PROPERTY_TYPE_HOTEL,
 	}
 	resp, err := distributorBot.AccommodationSearchServiceV4.AccommodationSearch(
 		requestContext(ctx, supplierBot.CMAccountAddress()),
@@ -319,35 +318,34 @@ func testAccommodationV4SearchService(
 	require.NoError(t, err)
 	e.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 
-	require.Len(t, resp.Results, 2, "unexpected number of results in response")
+	require.Len(t, successResp.Results, 2, "unexpected number of results in response")
 
-	if resp.Results[1].Units[0].SupplierCode.Code == hotelCode1 {
-		require.Equal(t, hotelCode2, resp.Results[0].Units[0].SupplierCode.Code)
+	if successResp.Results[1].Unit.SupplierCode.Code == hotelCode1 {
+		require.Equal(t, hotelCode2, successResp.Results[0].Unit.SupplierCode.Code)
 	} else {
-		require.Equal(t, hotelCode1, resp.Results[0].Units[0].SupplierCode.Code)
-		require.Equal(t, hotelCode2, resp.Results[1].Units[0].SupplierCode.Code)
+		require.Equal(t, hotelCode1, successResp.Results[0].Unit.SupplierCode.Code)
+		require.Equal(t, hotelCode2, successResp.Results[1].Unit.SupplierCode.Code)
 	}
 
-	for i, result := range resp.Results {
+	for i, result := range successResp.Results {
 		require.Equal(t, conversion.MustIntToUInt32(i), result.ResultId, "unexpected response Results[%d].ResultId", i)
 	}
 
 	// We expect 2 results - let's check for the 2nd one
-
-	require.Len(t, resp.Results[1].Units, 1, "unexpected empty response Results[1].Units")
 
 	expectedPrice := &typesv4.Price{
 		Value:    fmt.Sprintf("%d", common.DefaultPricePerNight*nights),
 		Decimals: 0,
 		Currency: currency,
 	}
-	require.True(t, proto.Equal(expectedPrice, resp.Results[1].Units[0].PriceDetail.Price), "unexpected response Results[1].Units[0].PriceDetail.Price: got %+v, want %+v", resp.Results[1].Units[0].PriceDetail.Price, expectedPrice)
+	require.True(t, proto.Equal(expectedPrice, successResp.Results[1].Unit.PriceDetail.Price), "unexpected response Results[1].Unit.PriceDetail.Price: got %+v, want %+v", successResp.Results[1].Unit.PriceDetail.Price, expectedPrice)
 
 	// just one unit, total price is the same as unit price
-	require.True(t, proto.Equal(expectedPrice, resp.Results[1].TotalPrice.Value), "unexpected response Results[1].TotalPrice.Value: got %+v, want %+v", resp.Results[1].TotalPrice.Value, expectedPrice)
+	require.True(t, proto.Equal(expectedPrice, successResp.Results[1].TotalPrice.Value), "unexpected response Results[1].TotalPrice.Value: got %+v, want %+v", successResp.Results[1].TotalPrice.Value, expectedPrice)
 
-	return resp.SearchId.Id.Value, resp.Results[1].ResultId, expectedPrice
+	return successResp.SearchId.Id.Value, successResp.Results[1].ResultId, expectedPrice
 }

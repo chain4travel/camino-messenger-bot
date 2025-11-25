@@ -155,16 +155,13 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	var tokenID1 uint64
-	var mintID1 string
-
 	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBotWithoutFunds)
 
-	tokenID1, mintID1 = tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBotWithoutFunds, validationID1, totalPrice)
+	tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBotWithoutFunds, validationID1, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
-	tokenID2, mintID2 := tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBotWithoutFunds, validationID2, totalPrice)
+	tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBotWithoutFunds, validationID2, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -178,9 +175,6 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.NoError(t, protovalidate.Validate(tokenExpiredNotification))
-	require.Equal(t, tokenExpiredNotification.TokenId, tokenID1)
-	require.NotNil(t, tokenExpiredNotification.MintId)
-	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID1)
 
 	eventMsg, err = tt.supplierPPEventStream.Recv()
 	require.NoError(t, err)
@@ -188,12 +182,8 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	tokenExpiredNotification = &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.NoError(t, protovalidate.Validate(tokenExpiredNotification))
-	require.Equal(t, tokenExpiredNotification.TokenId, tokenID2)
-	require.NotNil(t, tokenExpiredNotification.MintId)
-	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID2)
 
-	verifyBookingTokenStateNotBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, tokenID1, common.BookingTokenPriceV4, balanceBefore)
-	verifyBookingTokenStateNotBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBotWithoutFunds, tt.supplierBot, tokenID2, common.BookingTokenPriceV4, balanceBefore)
+	require.Equal(t, balanceBefore, tt.Balance(ctx, t, tt.distributorBot), "unexpected balance")
 }
 
 func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.T) {
@@ -213,7 +203,7 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	require.NoError(t, err)
 	expectedPrice.Value = fmt.Sprintf("%d", value+10)
 
-	tokenID, mintID := tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBot, validationID, expectedPrice)
+	tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBot, validationID, expectedPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
 	require.NoError(t, err)
 
@@ -223,11 +213,8 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	tokenExpiredNotification := &notificationv3.TokenReservationExpired{}
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.NoError(t, protovalidate.Validate(tokenExpiredNotification))
-	require.Equal(t, tokenExpiredNotification.TokenId, tokenID)
-	require.NotNil(t, tokenExpiredNotification.MintId)
-	require.Equal(t, tokenExpiredNotification.MintId.Value, mintID)
 
-	verifyBookingTokenStateNotBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, tokenID, common.BookingTokenPriceV4, balanceBefore)
+	require.Equal(t, balanceBefore, tt.Balance(ctx, t, tt.distributorBot), "unexpected balance")
 }
 
 func (tt *TestMintV4) testMintV4MintV4ExpectedError(
@@ -236,9 +223,6 @@ func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 	distributorBot *bot.Bot,
 	validationID string,
 	expectedPrice *typesv4.Price,
-) (
-	tokenID uint64,
-	mintID string,
 ) {
 	req := &bookv4.MintRequest{
 		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
@@ -258,14 +242,5 @@ func (tt *TestMintV4) testMintV4MintV4ExpectedError(
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
 
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_FAILURE, resp.Header.Status, "unexpected response status")
-
-	// Check if the MintId is set
-	require.NotEmpty(t, resp.MintId, "unexpected empty response MintId")
-	require.NotEmpty(t, resp.MintId.Value, "unexpected empty response MintId.Value")
-
-	require.NotEmpty(t, resp.MintTransactionId, "unexpected empty response MintTransactionId")
-	require.Empty(t, resp.BuyTransactionId, "unexpected response BuyTransactionId")
-
-	return resp.BookingTokenId, resp.MintId.Value
+	require.True(t, resp.HasErrorResponse(), "unexpected response status")
 }

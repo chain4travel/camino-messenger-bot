@@ -305,24 +305,30 @@ func (tt *TestCancellationV2) testCheckCancellationV2(ctx context.Context, t *te
 
 	require.NoError(t, protovalidate.Validate(resp))
 
-	require.WithinRange(t, resp.Timestamp.AsTime(), reqTime, time.Now(), "unexpected response Timestamp, expected it to be within the request time and now")
-	resp.Timestamp = nil
-	resp.Header.BaseHeader.Version = nil
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+
+	require.WithinRange(t, successResp.Timestamp.AsTime(), reqTime, time.Now(), "unexpected response Timestamp, expected it to be within the request time and now")
+	successResp.Timestamp = nil
+	successResp.Header.BaseHeader.Version = nil
 
 	requireProtoEqual(t, &cancellationv2.CheckCancellationResponse{
-		Header: &typesv4.ResponseHeader{
-			Status:     typesv4.StatusType_STATUS_TYPE_SUCCESS,
-			BaseHeader: &typesv4.Header{},
+		Response: &cancellationv2.CheckCancellationResponse_SuccessResponse{
+			SuccessResponse: &cancellationv2.CheckCancellationSuccessResponse{
+				Header: &typesv4.SuccessResponseHeader{
+					BaseHeader: &typesv4.Header{},
+				},
+				TokenId: req.TokenId,
+				RefundAmount: &typesv4.Price{
+					Value:    common.BookingTokenPriceValue,
+					Decimals: uint32(price.NativeTokenDecimals),
+					Currency: &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}},
+				},
+				PolicyIdApplied: common.CancellationPolicyID,
+				Status:          cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM,
+				RejectionReason: cancellationv1.RejectionReason_REJECTION_REASON_UNSPECIFIED,
+			},
 		},
-		TokenId: req.TokenId,
-		RefundAmount: &typesv4.Price{
-			Value:    common.BookingTokenPriceValue,
-			Decimals: uint32(price.NativeTokenDecimals),
-			Currency: &typesv4.Currency{Currency: &typesv4.Currency_NativeToken{}},
-		},
-		PolicyIdApplied: common.CancellationPolicyID,
-		Status:          cancellationv2.CancellationCheckStatus_CANCELLATION_CHECK_STATUS_CONFIRM,
-		RejectionReason: cancellationv1.RejectionReason_REJECTION_REASON_UNSPECIFIED,
 	}, resp)
 }
 
@@ -396,16 +402,17 @@ func (h *cancellationV2Helper) initiateCancellation(
 
 	initiatorBot := h.getBot(initiator)
 
-	initiateCancellationResp, err := initiatorBot.CancellationServiceV2.InitiateCancellation(h.ctx, &cancellationv2.InitiateCancellationRequest{
+	resp, err := initiatorBot.CancellationServiceV2.InitiateCancellation(h.ctx, &cancellationv2.InitiateCancellationRequest{
 		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId:      h.tokenID,
 		RefundAmount: refundAmount,
 		Reason:       reason,
 	})
 	h.require.NoError(err)
-	h.require.NoError(protovalidate.Validate(initiateCancellationResp))
+	h.require.NoError(protovalidate.Validate(resp))
 
-	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, initiateCancellationResp.Header.Status)
+	successResp := resp.GetSuccessResponse()
+	h.require.NotNil(successResp, "unexpected response status")
 
 	if h.initialProposer.Cmp(ethCommon.Address{}) == 0 {
 		h.initialProposer = initiatorBot.CMAccountAddress()
@@ -425,8 +432,8 @@ func (h *cancellationV2Helper) initiateCancellation(
 		h.supplierAccepted = false
 	}
 
-	h.expectCancellationPendingNotification(h.distributorPPEventStream, refundAmountBig, initiateCancellationResp.TransactionId.Hash)
-	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, initiateCancellationResp.TransactionId.Hash)
+	h.expectCancellationPendingNotification(h.distributorPPEventStream, refundAmountBig, successResp.TransactionId.Hash)
+	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, successResp.TransactionId.Hash)
 }
 
 func (h *cancellationV2Helper) counterCancellation(
@@ -439,16 +446,17 @@ func (h *cancellationV2Helper) counterCancellation(
 
 	countererBot := h.getBot(counterer)
 
-	counterCancellationResp, err := countererBot.CancellationServiceV2.CounterCancellation(h.ctx, &cancellationv2.CounterCancellationRequest{
+	resp, err := countererBot.CancellationServiceV2.CounterCancellation(h.ctx, &cancellationv2.CounterCancellationRequest{
 		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId:      h.tokenID,
 		RefundAmount: refundAmount,
 		Reason:       reason,
 	})
 	h.require.NoError(err)
-	h.require.NoError(protovalidate.Validate(counterCancellationResp))
+	h.require.NoError(protovalidate.Validate(resp))
 
-	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, counterCancellationResp.Header.Status)
+	successResp := resp.GetSuccessResponse()
+	h.require.NotNil(successResp, "unexpected response status")
 
 	h.currentProposer = countererBot.CMAccountAddress()
 	h.counterReason = reason
@@ -463,8 +471,8 @@ func (h *cancellationV2Helper) counterCancellation(
 		h.supplierAccepted = false
 	}
 
-	h.expectCancellationPendingNotification(h.distributorPPEventStream, refundAmountBig, counterCancellationResp.TransactionId.Hash)
-	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, counterCancellationResp.TransactionId.Hash)
+	h.expectCancellationPendingNotification(h.distributorPPEventStream, refundAmountBig, successResp.TransactionId.Hash)
+	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, successResp.TransactionId.Hash)
 }
 
 func (h *cancellationV2Helper) acceptCancellation(
@@ -476,15 +484,16 @@ func (h *cancellationV2Helper) acceptCancellation(
 
 	accepterBot := h.getBot(accepter)
 
-	acceptCancellationResp, err := accepterBot.CancellationServiceV2.AcceptCancellation(h.ctx, &cancellationv2.AcceptCancellationRequest{
+	resp, err := accepterBot.CancellationServiceV2.AcceptCancellation(h.ctx, &cancellationv2.AcceptCancellationRequest{
 		Header:       &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId:      h.tokenID,
 		RefundAmount: refundAmount,
 	})
 	h.require.NoError(err)
-	h.require.NoError(protovalidate.Validate(acceptCancellationResp))
+	h.require.NoError(protovalidate.Validate(resp))
 
-	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, acceptCancellationResp.Header.Status)
+	successResp := resp.GetSuccessResponse()
+	h.require.NotNil(successResp, "unexpected response status")
 
 	switch accepter {
 	case Supplier:
@@ -493,8 +502,8 @@ func (h *cancellationV2Helper) acceptCancellation(
 		h.ownerAccepted = true
 	}
 
-	h.expectCancellationPendingNotification(h.distributorPPEventStream, refundAmountBig, acceptCancellationResp.TransactionId.Hash)
-	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, acceptCancellationResp.TransactionId.Hash)
+	h.expectCancellationPendingNotification(h.distributorPPEventStream, refundAmountBig, successResp.TransactionId.Hash)
+	h.expectCancellationPendingNotification(h.supplierPPEventStream, refundAmountBig, successResp.TransactionId.Hash)
 }
 
 func (h *cancellationV2Helper) rejectCancellation(
@@ -503,21 +512,22 @@ func (h *cancellationV2Helper) rejectCancellation(
 ) {
 	rejecterBot := h.getBot(rejecter)
 
-	rejectCancellationResp, err := rejecterBot.CancellationServiceV2.RejectCancellation(h.ctx, &cancellationv2.RejectCancellationRequest{
+	resp, err := rejecterBot.CancellationServiceV2.RejectCancellation(h.ctx, &cancellationv2.RejectCancellationRequest{
 		Header:  &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId: h.tokenID,
 		Reason:  reason,
 	})
 	h.require.NoError(err)
-	h.require.NoError(protovalidate.Validate(rejectCancellationResp))
+	h.require.NoError(protovalidate.Validate(resp))
 
-	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, rejectCancellationResp.Header.Status)
+	successResp := resp.GetSuccessResponse()
+	h.require.NotNil(successResp, "unexpected response status")
 
 	h.timesRejected++
 	h.rejectionReason = reason
 
-	h.expectCancellationRejectedNotification(h.distributorPPEventStream, rejectCancellationResp.TransactionId.Hash)
-	h.expectCancellationRejectedNotification(h.supplierPPEventStream, rejectCancellationResp.TransactionId.Hash)
+	h.expectCancellationRejectedNotification(h.distributorPPEventStream, successResp.TransactionId.Hash)
+	h.expectCancellationRejectedNotification(h.supplierPPEventStream, successResp.TransactionId.Hash)
 }
 
 func (h *cancellationV2Helper) withdrawCancellation(
@@ -526,20 +536,21 @@ func (h *cancellationV2Helper) withdrawCancellation(
 ) {
 	withdrawerBot := h.getBot(withdrawer)
 
-	withdrawCancellationResp, err := withdrawerBot.CancellationServiceV2.WithdrawCancellation(h.ctx, &cancellationv2.WithdrawCancellationRequest{
+	resp, err := withdrawerBot.CancellationServiceV2.WithdrawCancellation(h.ctx, &cancellationv2.WithdrawCancellationRequest{
 		Header:  &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId: h.tokenID,
 		Reason:  reason,
 	})
 	h.require.NoError(err)
-	h.require.NoError(protovalidate.Validate(withdrawCancellationResp))
+	h.require.NoError(protovalidate.Validate(resp))
 
-	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, withdrawCancellationResp.Header.Status)
+	successResp := resp.GetSuccessResponse()
+	h.require.NotNil(successResp, "unexpected response status")
 
 	h.withdrawalReason = reason
 
-	h.expectCancellationWithdrawnNotification(h.distributorPPEventStream, withdrawCancellationResp.TransactionId.Hash)
-	h.expectCancellationWithdrawnNotification(h.supplierPPEventStream, withdrawCancellationResp.TransactionId.Hash)
+	h.expectCancellationWithdrawnNotification(h.distributorPPEventStream, successResp.TransactionId.Hash)
+	h.expectCancellationWithdrawnNotification(h.supplierPPEventStream, successResp.TransactionId.Hash)
 }
 
 func (h *cancellationV2Helper) finalizeCancellation(refundAmount *typesv4.Price) {
@@ -552,7 +563,7 @@ func (h *cancellationV2Helper) finalizeCancellation(refundAmount *typesv4.Price)
 	expectedSupplierBalance := big.NewInt(0).Sub(supplierBalance, refundAmountBig)
 	expectedDistributorBalance := big.NewInt(0).Add(distributorBalance, refundAmountBig)
 
-	finalizeCancellationResp, err := h.supplierBot.CancellationServiceV2.FinalizeCancellation(h.ctx, &cancellationv2.FinalizeCancellationRequest{
+	resp, err := h.supplierBot.CancellationServiceV2.FinalizeCancellation(h.ctx, &cancellationv2.FinalizeCancellationRequest{
 		Header:  &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
 		TokenId: h.tokenID,
 		RefundAmount: &typesv4.Price{
@@ -562,12 +573,13 @@ func (h *cancellationV2Helper) finalizeCancellation(refundAmount *typesv4.Price)
 		},
 	})
 	h.require.NoError(err)
-	h.require.NoError(protovalidate.Validate(finalizeCancellationResp))
+	h.require.NoError(protovalidate.Validate(resp))
 
-	h.require.Equal(typesv4.StatusType_STATUS_TYPE_SUCCESS, finalizeCancellationResp.Header.Status)
+	successResp := resp.GetSuccessResponse()
+	h.require.NotNil(successResp, "unexpected response status")
 
-	h.expectCancellationFinalizedNotification(h.supplierPPEventStream, finalizeCancellationResp.TransactionId.Hash)
-	h.expectCancellationFinalizedNotification(h.distributorPPEventStream, finalizeCancellationResp.TransactionId.Hash)
+	h.expectCancellationFinalizedNotification(h.supplierPPEventStream, successResp.TransactionId.Hash)
+	h.expectCancellationFinalizedNotification(h.distributorPPEventStream, successResp.TransactionId.Hash)
 
 	supplierBalanceAfter := h.e.Balance(h.ctx, h.t, h.supplierBot)
 	distributorBalanceAfter := h.e.Balance(h.ctx, h.t, h.distributorBot)
