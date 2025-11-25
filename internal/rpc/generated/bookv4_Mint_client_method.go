@@ -31,6 +31,10 @@ func (s MintV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMe
 	switch {
 	case errors.Is(err, rpc.ErrInvalidProto):
 		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), messageType
+	case errors.Is(err, rpc.ErrBlockchain):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, err.Error()), messageType
+	case errors.Is(err, rpc.ErrBusinessProcess):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, err.Error()), messageType
 	case err != nil:
 		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), messageType
 	}
