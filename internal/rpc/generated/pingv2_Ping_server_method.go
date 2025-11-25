@@ -5,8 +5,10 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
@@ -17,31 +19,41 @@ import (
 
 func (s *pingv2PingServer) Ping(ctx context.Context, request *pingv2.PingRequest) (*pingv2.PingResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, PingServiceV2Request, request)
-	if err != nil {
-		return s.errorResponse(err.Error()), nil
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), nil
+	case errors.Is(err, rpc.ErrBlockchain):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, err.Error()), nil
+	case errors.Is(err, rpc.ErrBusinessProcess):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, err.Error()), nil
+	case err != nil:
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*pingv2.PingResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", PingServiceV2Response, responseIntf)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid response type: expected %s, got %T", PingServiceV2Response, responseIntf)), nil
 	}
 
 	return response, nil
 }
 
-func (s *pingv2PingServer) errorResponse(errorMessage string) *pingv2.PingResponse {
+func (s *pingv2PingServer) errorResponse(code typesv4.ErrorCode, errorMessage string) *pingv2.PingResponse {
 	return &pingv2.PingResponse{
 		Response: &pingv2.PingResponse_ErrorResponse{
 			ErrorResponse: &pingv2.PingErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},

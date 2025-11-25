@@ -5,8 +5,10 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
@@ -17,31 +19,41 @@ import (
 
 func (s *bookv4ValidationServer) Validation(ctx context.Context, request *bookv4.ValidationRequest) (*bookv4.ValidationResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV4Request, request)
-	if err != nil {
-		return s.errorResponse(err.Error()), nil
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), nil
+	case errors.Is(err, rpc.ErrBlockchain):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, err.Error()), nil
+	case errors.Is(err, rpc.ErrBusinessProcess):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, err.Error()), nil
+	case err != nil:
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*bookv4.ValidationResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ValidationServiceV4Response, responseIntf)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid response type: expected %s, got %T", ValidationServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil
 }
 
-func (s *bookv4ValidationServer) errorResponse(errorMessage string) *bookv4.ValidationResponse {
+func (s *bookv4ValidationServer) errorResponse(code typesv4.ErrorCode, errorMessage string) *bookv4.ValidationResponse {
 	return &bookv4.ValidationResponse{
 		Response: &bookv4.ValidationResponse_ErrorResponse{
 			ErrorResponse: &bookv4.ValidationErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},

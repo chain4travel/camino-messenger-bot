@@ -5,8 +5,10 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
@@ -17,31 +19,41 @@ import (
 
 func (s *accommodationv4AccommodationSearchServer) AccommodationSearch(ctx context.Context, request *accommodationv4.AccommodationSearchRequest) (*accommodationv4.AccommodationSearchResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationSearchServiceV4Request, request)
-	if err != nil {
-		return s.errorResponse(err.Error()), nil
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), nil
+	case errors.Is(err, rpc.ErrBlockchain):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, err.Error()), nil
+	case errors.Is(err, rpc.ErrBusinessProcess):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, err.Error()), nil
+	case err != nil:
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*accommodationv4.AccommodationSearchResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationSearchServiceV4Response, responseIntf)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationSearchServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil
 }
 
-func (s *accommodationv4AccommodationSearchServer) errorResponse(errorMessage string) *accommodationv4.AccommodationSearchResponse {
+func (s *accommodationv4AccommodationSearchServer) errorResponse(code typesv4.ErrorCode, errorMessage string) *accommodationv4.AccommodationSearchResponse {
 	return &accommodationv4.AccommodationSearchResponse{
 		Response: &accommodationv4.AccommodationSearchResponse_ErrorResponse{
 			ErrorResponse: &accommodationv4.AccommodationSearchErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},

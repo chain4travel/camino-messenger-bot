@@ -5,8 +5,10 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
 	seat_mapv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v4"
@@ -17,31 +19,41 @@ import (
 
 func (s *seat_mapv4SeatMapAvailabilityServer) SeatMapAvailability(ctx context.Context, request *seat_mapv4.SeatMapAvailabilityRequest) (*seat_mapv4.SeatMapAvailabilityResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, SeatMapAvailabilityServiceV4Request, request)
-	if err != nil {
-		return s.errorResponse(err.Error()), nil
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), nil
+	case errors.Is(err, rpc.ErrBlockchain):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, err.Error()), nil
+	case errors.Is(err, rpc.ErrBusinessProcess):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, err.Error()), nil
+	case err != nil:
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*seat_mapv4.SeatMapAvailabilityResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", SeatMapAvailabilityServiceV4Response, responseIntf)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid response type: expected %s, got %T", SeatMapAvailabilityServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil
 }
 
-func (s *seat_mapv4SeatMapAvailabilityServer) errorResponse(errorMessage string) *seat_mapv4.SeatMapAvailabilityResponse {
+func (s *seat_mapv4SeatMapAvailabilityServer) errorResponse(code typesv4.ErrorCode, errorMessage string) *seat_mapv4.SeatMapAvailabilityResponse {
 	return &seat_mapv4.SeatMapAvailabilityResponse{
 		Response: &seat_mapv4.SeatMapAvailabilityResponse_ErrorResponse{
 			ErrorResponse: &seat_mapv4.SeatMapAvailabilityErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},

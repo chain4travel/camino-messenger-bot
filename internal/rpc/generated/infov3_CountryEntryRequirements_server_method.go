@@ -5,8 +5,10 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
 	infov3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/info/v3"
@@ -17,31 +19,41 @@ import (
 
 func (s *infov3CountryEntryRequirementsServer) CountryEntryRequirements(ctx context.Context, request *infov3.CountryEntryRequirementsRequest) (*infov3.CountryEntryRequirementsResponse, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
 	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, CountryEntryRequirementsServiceV3Request, request)
-	if err != nil {
-		return s.errorResponse(err.Error()), nil
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), nil
+	case errors.Is(err, rpc.ErrBlockchain):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, err.Error()), nil
+	case errors.Is(err, rpc.ErrBusinessProcess):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, err.Error()), nil
+	case err != nil:
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*infov3.CountryEntryRequirementsResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV3Response, responseIntf)), nil
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV3Response, responseIntf)), nil
 	}
 
 	return response, nil
 }
 
-func (s *infov3CountryEntryRequirementsServer) errorResponse(errorMessage string) *infov3.CountryEntryRequirementsResponse {
+func (s *infov3CountryEntryRequirementsServer) errorResponse(code typesv4.ErrorCode, errorMessage string) *infov3.CountryEntryRequirementsResponse {
 	return &infov3.CountryEntryRequirementsResponse{
 		Response: &infov3.CountryEntryRequirementsResponse_ErrorResponse{
 			ErrorResponse: &infov3.CountryEntryRequirementsErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
