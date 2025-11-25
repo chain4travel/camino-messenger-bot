@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	ActivityProductInfoV2                           = "cmp.services.activity.v2.ActivityProductInfoService"
-	ActivityProductInfoV2Request  types.MessageType = types.MessageType(ActivityProductInfoV2 + ".Request")
-	ActivityProductInfoV2Response types.MessageType = types.MessageType(ActivityProductInfoV2 + ".Response")
+	ActivityProductInfoServiceV2                           = "cmp.services.activity.v2.ActivityProductInfoService"
+	ActivityProductInfoServiceV2Request  types.MessageType = types.MessageType(ActivityProductInfoServiceV2 + ".Request")
+	ActivityProductInfoServiceV2Response types.MessageType = types.MessageType(ActivityProductInfoServiceV2 + ".Response")
 )
 
 var _ rpc.Client = (*ActivityProductInfoV2Client)(nil)
 
-func NewActivityProductInfoV2(grpcCon *grpc.ClientConn) *ActivityProductInfoV2Client {
+func NewActivityProductInfoServiceV2Client(grpcCon *grpc.ClientConn) *ActivityProductInfoV2Client {
 	client := activityv2grpc.NewActivityProductInfoServiceClient(grpcCon)
 	return &ActivityProductInfoV2Client{client: client}
 }

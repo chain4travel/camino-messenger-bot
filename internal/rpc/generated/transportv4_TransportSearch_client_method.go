@@ -19,11 +19,11 @@ import (
 )
 
 func (s TransportSearchV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := TransportSearchV4Response
+	messageType := TransportSearchServiceV4Response
 
 	request, ok := requestIntf.(*transportv4.TransportSearchRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", TransportSearchV4Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", TransportSearchServiceV4Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.TransportSearch(ctx, request, opts...)
@@ -53,7 +53,7 @@ func (s TransportSearchV4Client) Call(ctx context.Context, requestIntf protorefl
 }
 
 func (s *TransportSearchV4Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), TransportSearchV4Response
+	return s.errorResponse(errorMessage), TransportSearchServiceV4Response
 }
 
 func (s *TransportSearchV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

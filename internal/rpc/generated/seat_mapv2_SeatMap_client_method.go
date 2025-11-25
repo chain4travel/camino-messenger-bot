@@ -18,11 +18,11 @@ import (
 )
 
 func (s SeatMapV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := SeatMapV2Response
+	messageType := SeatMapServiceV2Response
 
 	request, ok := requestIntf.(*seat_mapv2.SeatMapRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", SeatMapV2Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", SeatMapServiceV2Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.SeatMap(ctx, request, opts...)
@@ -39,7 +39,7 @@ func (s SeatMapV2Client) Call(ctx context.Context, requestIntf protoreflect.Prot
 }
 
 func (s *SeatMapV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), SeatMapV2Response
+	return s.errorResponse(errorMessage), SeatMapServiceV2Response
 }
 
 func (s *SeatMapV2Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

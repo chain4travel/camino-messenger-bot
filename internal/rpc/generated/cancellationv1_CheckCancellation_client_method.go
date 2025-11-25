@@ -18,11 +18,11 @@ import (
 )
 
 func (s CheckCancellationV1Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := CheckCancellationV1Response
+	messageType := CheckCancellationServiceV1Response
 
 	request, ok := requestIntf.(*cancellationv1.CheckCancellationRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CheckCancellationV1Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CheckCancellationServiceV1Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.CheckCancellation(ctx, request, opts...)
@@ -39,7 +39,7 @@ func (s CheckCancellationV1Client) Call(ctx context.Context, requestIntf protore
 }
 
 func (s *CheckCancellationV1Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), CheckCancellationV1Response
+	return s.errorResponse(errorMessage), CheckCancellationServiceV1Response
 }
 
 func (s *CheckCancellationV1Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

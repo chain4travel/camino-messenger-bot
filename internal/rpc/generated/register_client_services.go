@@ -8,184 +8,184 @@ import (
 	"google.golang.org/grpc"
 )
 
-func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {
+func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {
 	services := make(map[types.MessageType]rpc.Service, len(serviceNames))
 
-	if _, ok := serviceNames[AccommodationProductInfoV2]; ok {
-		services[AccommodationProductInfoV2Request] = rpc.NewService(NewAccommodationProductInfoV2(rpcConn), AccommodationProductInfoV2)
-		delete(serviceNames, AccommodationProductInfoV2)
+	if _, ok := serviceNames[AccommodationProductInfoServiceV2]; ok {
+		services[AccommodationProductInfoServiceV2Request] = rpc.NewService(NewAccommodationProductInfoServiceV2Client(rpcConn), AccommodationProductInfoServiceV2)
+		delete(serviceNames, AccommodationProductInfoServiceV2)
 	}
-	if _, ok := serviceNames[AccommodationProductListV2]; ok {
-		services[AccommodationProductListV2Request] = rpc.NewService(NewAccommodationProductListV2(rpcConn), AccommodationProductListV2)
-		delete(serviceNames, AccommodationProductListV2)
+	if _, ok := serviceNames[AccommodationProductListServiceV2]; ok {
+		services[AccommodationProductListServiceV2Request] = rpc.NewService(NewAccommodationProductListServiceV2Client(rpcConn), AccommodationProductListServiceV2)
+		delete(serviceNames, AccommodationProductListServiceV2)
 	}
-	if _, ok := serviceNames[AccommodationSearchV2]; ok {
-		services[AccommodationSearchV2Request] = rpc.NewService(NewAccommodationSearchV2(rpcConn), AccommodationSearchV2)
-		delete(serviceNames, AccommodationSearchV2)
+	if _, ok := serviceNames[AccommodationSearchServiceV2]; ok {
+		services[AccommodationSearchServiceV2Request] = rpc.NewService(NewAccommodationSearchServiceV2Client(rpcConn), AccommodationSearchServiceV2)
+		delete(serviceNames, AccommodationSearchServiceV2)
 	}
-	if _, ok := serviceNames[AccommodationProductInfoV3]; ok {
-		services[AccommodationProductInfoV3Request] = rpc.NewService(NewAccommodationProductInfoV3(rpcConn), AccommodationProductInfoV3)
-		delete(serviceNames, AccommodationProductInfoV3)
+	if _, ok := serviceNames[AccommodationProductInfoServiceV3]; ok {
+		services[AccommodationProductInfoServiceV3Request] = rpc.NewService(NewAccommodationProductInfoServiceV3Client(rpcConn), AccommodationProductInfoServiceV3)
+		delete(serviceNames, AccommodationProductInfoServiceV3)
 	}
-	if _, ok := serviceNames[AccommodationProductListV3]; ok {
-		services[AccommodationProductListV3Request] = rpc.NewService(NewAccommodationProductListV3(rpcConn), AccommodationProductListV3)
-		delete(serviceNames, AccommodationProductListV3)
+	if _, ok := serviceNames[AccommodationProductListServiceV3]; ok {
+		services[AccommodationProductListServiceV3Request] = rpc.NewService(NewAccommodationProductListServiceV3Client(rpcConn), AccommodationProductListServiceV3)
+		delete(serviceNames, AccommodationProductListServiceV3)
 	}
-	if _, ok := serviceNames[AccommodationSearchV3]; ok {
-		services[AccommodationSearchV3Request] = rpc.NewService(NewAccommodationSearchV3(rpcConn), AccommodationSearchV3)
-		delete(serviceNames, AccommodationSearchV3)
+	if _, ok := serviceNames[AccommodationSearchServiceV3]; ok {
+		services[AccommodationSearchServiceV3Request] = rpc.NewService(NewAccommodationSearchServiceV3Client(rpcConn), AccommodationSearchServiceV3)
+		delete(serviceNames, AccommodationSearchServiceV3)
 	}
-	if _, ok := serviceNames[AccommodationProductInfoV4]; ok {
-		services[AccommodationProductInfoV4Request] = rpc.NewService(NewAccommodationProductInfoV4(rpcConn), AccommodationProductInfoV4)
-		delete(serviceNames, AccommodationProductInfoV4)
+	if _, ok := serviceNames[AccommodationProductInfoServiceV4]; ok {
+		services[AccommodationProductInfoServiceV4Request] = rpc.NewService(NewAccommodationProductInfoServiceV4Client(rpcConn), AccommodationProductInfoServiceV4)
+		delete(serviceNames, AccommodationProductInfoServiceV4)
 	}
-	if _, ok := serviceNames[AccommodationProductListV4]; ok {
-		services[AccommodationProductListV4Request] = rpc.NewService(NewAccommodationProductListV4(rpcConn), AccommodationProductListV4)
-		delete(serviceNames, AccommodationProductListV4)
+	if _, ok := serviceNames[AccommodationProductListServiceV4]; ok {
+		services[AccommodationProductListServiceV4Request] = rpc.NewService(NewAccommodationProductListServiceV4Client(rpcConn), AccommodationProductListServiceV4)
+		delete(serviceNames, AccommodationProductListServiceV4)
 	}
-	if _, ok := serviceNames[AccommodationSearchV4]; ok {
-		services[AccommodationSearchV4Request] = rpc.NewService(NewAccommodationSearchV4(rpcConn), AccommodationSearchV4)
-		delete(serviceNames, AccommodationSearchV4)
+	if _, ok := serviceNames[AccommodationSearchServiceV4]; ok {
+		services[AccommodationSearchServiceV4Request] = rpc.NewService(NewAccommodationSearchServiceV4Client(rpcConn), AccommodationSearchServiceV4)
+		delete(serviceNames, AccommodationSearchServiceV4)
 	}
-	if _, ok := serviceNames[AccommodationProductShortListV4]; ok {
-		services[AccommodationProductShortListV4Request] = rpc.NewService(NewAccommodationProductShortListV4(rpcConn), AccommodationProductShortListV4)
-		delete(serviceNames, AccommodationProductShortListV4)
+	if _, ok := serviceNames[AccommodationProductShortListServiceV4]; ok {
+		services[AccommodationProductShortListServiceV4Request] = rpc.NewService(NewAccommodationProductShortListServiceV4Client(rpcConn), AccommodationProductShortListServiceV4)
+		delete(serviceNames, AccommodationProductShortListServiceV4)
 	}
-	if _, ok := serviceNames[ActivityProductInfoV2]; ok {
-		services[ActivityProductInfoV2Request] = rpc.NewService(NewActivityProductInfoV2(rpcConn), ActivityProductInfoV2)
-		delete(serviceNames, ActivityProductInfoV2)
+	if _, ok := serviceNames[ActivityProductInfoServiceV2]; ok {
+		services[ActivityProductInfoServiceV2Request] = rpc.NewService(NewActivityProductInfoServiceV2Client(rpcConn), ActivityProductInfoServiceV2)
+		delete(serviceNames, ActivityProductInfoServiceV2)
 	}
-	if _, ok := serviceNames[ActivityProductListV2]; ok {
-		services[ActivityProductListV2Request] = rpc.NewService(NewActivityProductListV2(rpcConn), ActivityProductListV2)
-		delete(serviceNames, ActivityProductListV2)
+	if _, ok := serviceNames[ActivityProductListServiceV2]; ok {
+		services[ActivityProductListServiceV2Request] = rpc.NewService(NewActivityProductListServiceV2Client(rpcConn), ActivityProductListServiceV2)
+		delete(serviceNames, ActivityProductListServiceV2)
 	}
-	if _, ok := serviceNames[ActivitySearchV2]; ok {
-		services[ActivitySearchV2Request] = rpc.NewService(NewActivitySearchV2(rpcConn), ActivitySearchV2)
-		delete(serviceNames, ActivitySearchV2)
+	if _, ok := serviceNames[ActivitySearchServiceV2]; ok {
+		services[ActivitySearchServiceV2Request] = rpc.NewService(NewActivitySearchServiceV2Client(rpcConn), ActivitySearchServiceV2)
+		delete(serviceNames, ActivitySearchServiceV2)
 	}
-	if _, ok := serviceNames[ActivityProductInfoV3]; ok {
-		services[ActivityProductInfoV3Request] = rpc.NewService(NewActivityProductInfoV3(rpcConn), ActivityProductInfoV3)
-		delete(serviceNames, ActivityProductInfoV3)
+	if _, ok := serviceNames[ActivityProductInfoServiceV3]; ok {
+		services[ActivityProductInfoServiceV3Request] = rpc.NewService(NewActivityProductInfoServiceV3Client(rpcConn), ActivityProductInfoServiceV3)
+		delete(serviceNames, ActivityProductInfoServiceV3)
 	}
-	if _, ok := serviceNames[ActivityProductListV3]; ok {
-		services[ActivityProductListV3Request] = rpc.NewService(NewActivityProductListV3(rpcConn), ActivityProductListV3)
-		delete(serviceNames, ActivityProductListV3)
+	if _, ok := serviceNames[ActivityProductListServiceV3]; ok {
+		services[ActivityProductListServiceV3Request] = rpc.NewService(NewActivityProductListServiceV3Client(rpcConn), ActivityProductListServiceV3)
+		delete(serviceNames, ActivityProductListServiceV3)
 	}
-	if _, ok := serviceNames[ActivitySearchV3]; ok {
-		services[ActivitySearchV3Request] = rpc.NewService(NewActivitySearchV3(rpcConn), ActivitySearchV3)
-		delete(serviceNames, ActivitySearchV3)
+	if _, ok := serviceNames[ActivitySearchServiceV3]; ok {
+		services[ActivitySearchServiceV3Request] = rpc.NewService(NewActivitySearchServiceV3Client(rpcConn), ActivitySearchServiceV3)
+		delete(serviceNames, ActivitySearchServiceV3)
 	}
-	if _, ok := serviceNames[ActivityProductInfoV4]; ok {
-		services[ActivityProductInfoV4Request] = rpc.NewService(NewActivityProductInfoV4(rpcConn), ActivityProductInfoV4)
-		delete(serviceNames, ActivityProductInfoV4)
+	if _, ok := serviceNames[ActivityProductInfoServiceV4]; ok {
+		services[ActivityProductInfoServiceV4Request] = rpc.NewService(NewActivityProductInfoServiceV4Client(rpcConn), ActivityProductInfoServiceV4)
+		delete(serviceNames, ActivityProductInfoServiceV4)
 	}
-	if _, ok := serviceNames[ActivityProductListV4]; ok {
-		services[ActivityProductListV4Request] = rpc.NewService(NewActivityProductListV4(rpcConn), ActivityProductListV4)
-		delete(serviceNames, ActivityProductListV4)
+	if _, ok := serviceNames[ActivityProductListServiceV4]; ok {
+		services[ActivityProductListServiceV4Request] = rpc.NewService(NewActivityProductListServiceV4Client(rpcConn), ActivityProductListServiceV4)
+		delete(serviceNames, ActivityProductListServiceV4)
 	}
-	if _, ok := serviceNames[ActivitySearchV4]; ok {
-		services[ActivitySearchV4Request] = rpc.NewService(NewActivitySearchV4(rpcConn), ActivitySearchV4)
-		delete(serviceNames, ActivitySearchV4)
+	if _, ok := serviceNames[ActivitySearchServiceV4]; ok {
+		services[ActivitySearchServiceV4Request] = rpc.NewService(NewActivitySearchServiceV4Client(rpcConn), ActivitySearchServiceV4)
+		delete(serviceNames, ActivitySearchServiceV4)
 	}
-	if _, ok := serviceNames[ActivityProductShortListV4]; ok {
-		services[ActivityProductShortListV4Request] = rpc.NewService(NewActivityProductShortListV4(rpcConn), ActivityProductShortListV4)
-		delete(serviceNames, ActivityProductShortListV4)
+	if _, ok := serviceNames[ActivityProductShortListServiceV4]; ok {
+		services[ActivityProductShortListServiceV4Request] = rpc.NewService(NewActivityProductShortListServiceV4Client(rpcConn), ActivityProductShortListServiceV4)
+		delete(serviceNames, ActivityProductShortListServiceV4)
 	}
-	if _, ok := serviceNames[MintV2]; ok {
-		services[MintV2Request] = rpc.NewService(NewMintV2(rpcConn), MintV2)
-		delete(serviceNames, MintV2)
+	if _, ok := serviceNames[MintServiceV2]; ok {
+		services[MintServiceV2Request] = rpc.NewService(NewMintServiceV2Client(rpcConn), MintServiceV2)
+		delete(serviceNames, MintServiceV2)
 	}
-	if _, ok := serviceNames[ValidationV2]; ok {
-		services[ValidationV2Request] = rpc.NewService(NewValidationV2(rpcConn), ValidationV2)
-		delete(serviceNames, ValidationV2)
+	if _, ok := serviceNames[ValidationServiceV2]; ok {
+		services[ValidationServiceV2Request] = rpc.NewService(NewValidationServiceV2Client(rpcConn), ValidationServiceV2)
+		delete(serviceNames, ValidationServiceV2)
 	}
-	if _, ok := serviceNames[MintV3]; ok {
-		services[MintV3Request] = rpc.NewService(NewMintV3(rpcConn), MintV3)
-		delete(serviceNames, MintV3)
+	if _, ok := serviceNames[MintServiceV3]; ok {
+		services[MintServiceV3Request] = rpc.NewService(NewMintServiceV3Client(rpcConn), MintServiceV3)
+		delete(serviceNames, MintServiceV3)
 	}
-	if _, ok := serviceNames[ValidationV3]; ok {
-		services[ValidationV3Request] = rpc.NewService(NewValidationV3(rpcConn), ValidationV3)
-		delete(serviceNames, ValidationV3)
+	if _, ok := serviceNames[ValidationServiceV3]; ok {
+		services[ValidationServiceV3Request] = rpc.NewService(NewValidationServiceV3Client(rpcConn), ValidationServiceV3)
+		delete(serviceNames, ValidationServiceV3)
 	}
-	if _, ok := serviceNames[MintV4]; ok {
-		services[MintV4Request] = rpc.NewService(NewMintV4(rpcConn), MintV4)
-		delete(serviceNames, MintV4)
+	if _, ok := serviceNames[MintServiceV4]; ok {
+		services[MintServiceV4Request] = rpc.NewService(NewMintServiceV4Client(rpcConn), MintServiceV4)
+		delete(serviceNames, MintServiceV4)
 	}
-	if _, ok := serviceNames[ValidationV4]; ok {
-		services[ValidationV4Request] = rpc.NewService(NewValidationV4(rpcConn), ValidationV4)
-		delete(serviceNames, ValidationV4)
+	if _, ok := serviceNames[ValidationServiceV4]; ok {
+		services[ValidationServiceV4Request] = rpc.NewService(NewValidationServiceV4Client(rpcConn), ValidationServiceV4)
+		delete(serviceNames, ValidationServiceV4)
 	}
-	if _, ok := serviceNames[CheckCancellationV1]; ok {
-		services[CheckCancellationV1Request] = rpc.NewService(NewCheckCancellationV1(rpcConn), CheckCancellationV1)
-		delete(serviceNames, CheckCancellationV1)
+	if _, ok := serviceNames[CheckCancellationServiceV1]; ok {
+		services[CheckCancellationServiceV1Request] = rpc.NewService(NewCheckCancellationServiceV1Client(rpcConn), CheckCancellationServiceV1)
+		delete(serviceNames, CheckCancellationServiceV1)
 	}
-	if _, ok := serviceNames[CheckCancellationV2]; ok {
-		services[CheckCancellationV2Request] = rpc.NewService(NewCheckCancellationV2(rpcConn), CheckCancellationV2)
-		delete(serviceNames, CheckCancellationV2)
+	if _, ok := serviceNames[CheckCancellationServiceV2]; ok {
+		services[CheckCancellationServiceV2Request] = rpc.NewService(NewCheckCancellationServiceV2Client(rpcConn), CheckCancellationServiceV2)
+		delete(serviceNames, CheckCancellationServiceV2)
 	}
-	if _, ok := serviceNames[CountryEntryRequirementsV1]; ok {
-		services[CountryEntryRequirementsV1Request] = rpc.NewService(NewCountryEntryRequirementsV1(rpcConn), CountryEntryRequirementsV1)
-		delete(serviceNames, CountryEntryRequirementsV1)
+	if _, ok := serviceNames[CountryEntryRequirementsServiceV1]; ok {
+		services[CountryEntryRequirementsServiceV1Request] = rpc.NewService(NewCountryEntryRequirementsServiceV1Client(rpcConn), CountryEntryRequirementsServiceV1)
+		delete(serviceNames, CountryEntryRequirementsServiceV1)
 	}
-	if _, ok := serviceNames[CountryEntryRequirementsV2]; ok {
-		services[CountryEntryRequirementsV2Request] = rpc.NewService(NewCountryEntryRequirementsV2(rpcConn), CountryEntryRequirementsV2)
-		delete(serviceNames, CountryEntryRequirementsV2)
+	if _, ok := serviceNames[CountryEntryRequirementsServiceV2]; ok {
+		services[CountryEntryRequirementsServiceV2Request] = rpc.NewService(NewCountryEntryRequirementsServiceV2Client(rpcConn), CountryEntryRequirementsServiceV2)
+		delete(serviceNames, CountryEntryRequirementsServiceV2)
 	}
-	if _, ok := serviceNames[CountryEntryRequirementsV3]; ok {
-		services[CountryEntryRequirementsV3Request] = rpc.NewService(NewCountryEntryRequirementsV3(rpcConn), CountryEntryRequirementsV3)
-		delete(serviceNames, CountryEntryRequirementsV3)
+	if _, ok := serviceNames[CountryEntryRequirementsServiceV3]; ok {
+		services[CountryEntryRequirementsServiceV3Request] = rpc.NewService(NewCountryEntryRequirementsServiceV3Client(rpcConn), CountryEntryRequirementsServiceV3)
+		delete(serviceNames, CountryEntryRequirementsServiceV3)
 	}
-	if _, ok := serviceNames[PingV1]; ok {
-		services[PingV1Request] = rpc.NewService(NewPingV1(rpcConn), PingV1)
-		delete(serviceNames, PingV1)
+	if _, ok := serviceNames[PingServiceV1]; ok {
+		services[PingServiceV1Request] = rpc.NewService(NewPingServiceV1Client(rpcConn), PingServiceV1)
+		delete(serviceNames, PingServiceV1)
 	}
-	if _, ok := serviceNames[PingV2]; ok {
-		services[PingV2Request] = rpc.NewService(NewPingV2(rpcConn), PingV2)
-		delete(serviceNames, PingV2)
+	if _, ok := serviceNames[PingServiceV2]; ok {
+		services[PingServiceV2Request] = rpc.NewService(NewPingServiceV2Client(rpcConn), PingServiceV2)
+		delete(serviceNames, PingServiceV2)
 	}
-	if _, ok := serviceNames[SeatMapAvailabilityV2]; ok {
-		services[SeatMapAvailabilityV2Request] = rpc.NewService(NewSeatMapAvailabilityV2(rpcConn), SeatMapAvailabilityV2)
-		delete(serviceNames, SeatMapAvailabilityV2)
+	if _, ok := serviceNames[SeatMapAvailabilityServiceV2]; ok {
+		services[SeatMapAvailabilityServiceV2Request] = rpc.NewService(NewSeatMapAvailabilityServiceV2Client(rpcConn), SeatMapAvailabilityServiceV2)
+		delete(serviceNames, SeatMapAvailabilityServiceV2)
 	}
-	if _, ok := serviceNames[SeatMapV2]; ok {
-		services[SeatMapV2Request] = rpc.NewService(NewSeatMapV2(rpcConn), SeatMapV2)
-		delete(serviceNames, SeatMapV2)
+	if _, ok := serviceNames[SeatMapServiceV2]; ok {
+		services[SeatMapServiceV2Request] = rpc.NewService(NewSeatMapServiceV2Client(rpcConn), SeatMapServiceV2)
+		delete(serviceNames, SeatMapServiceV2)
 	}
-	if _, ok := serviceNames[SeatMapAvailabilityV3]; ok {
-		services[SeatMapAvailabilityV3Request] = rpc.NewService(NewSeatMapAvailabilityV3(rpcConn), SeatMapAvailabilityV3)
-		delete(serviceNames, SeatMapAvailabilityV3)
+	if _, ok := serviceNames[SeatMapAvailabilityServiceV3]; ok {
+		services[SeatMapAvailabilityServiceV3Request] = rpc.NewService(NewSeatMapAvailabilityServiceV3Client(rpcConn), SeatMapAvailabilityServiceV3)
+		delete(serviceNames, SeatMapAvailabilityServiceV3)
 	}
-	if _, ok := serviceNames[SeatMapV3]; ok {
-		services[SeatMapV3Request] = rpc.NewService(NewSeatMapV3(rpcConn), SeatMapV3)
-		delete(serviceNames, SeatMapV3)
+	if _, ok := serviceNames[SeatMapServiceV3]; ok {
+		services[SeatMapServiceV3Request] = rpc.NewService(NewSeatMapServiceV3Client(rpcConn), SeatMapServiceV3)
+		delete(serviceNames, SeatMapServiceV3)
 	}
-	if _, ok := serviceNames[SeatMapAvailabilityV4]; ok {
-		services[SeatMapAvailabilityV4Request] = rpc.NewService(NewSeatMapAvailabilityV4(rpcConn), SeatMapAvailabilityV4)
-		delete(serviceNames, SeatMapAvailabilityV4)
+	if _, ok := serviceNames[SeatMapAvailabilityServiceV4]; ok {
+		services[SeatMapAvailabilityServiceV4Request] = rpc.NewService(NewSeatMapAvailabilityServiceV4Client(rpcConn), SeatMapAvailabilityServiceV4)
+		delete(serviceNames, SeatMapAvailabilityServiceV4)
 	}
-	if _, ok := serviceNames[SeatMapV4]; ok {
-		services[SeatMapV4Request] = rpc.NewService(NewSeatMapV4(rpcConn), SeatMapV4)
-		delete(serviceNames, SeatMapV4)
+	if _, ok := serviceNames[SeatMapServiceV4]; ok {
+		services[SeatMapServiceV4Request] = rpc.NewService(NewSeatMapServiceV4Client(rpcConn), SeatMapServiceV4)
+		delete(serviceNames, SeatMapServiceV4)
 	}
-	if _, ok := serviceNames[TransportSearchV2]; ok {
-		services[TransportSearchV2Request] = rpc.NewService(NewTransportSearchV2(rpcConn), TransportSearchV2)
-		delete(serviceNames, TransportSearchV2)
+	if _, ok := serviceNames[TransportSearchServiceV2]; ok {
+		services[TransportSearchServiceV2Request] = rpc.NewService(NewTransportSearchServiceV2Client(rpcConn), TransportSearchServiceV2)
+		delete(serviceNames, TransportSearchServiceV2)
 	}
-	if _, ok := serviceNames[TransportProductListV3]; ok {
-		services[TransportProductListV3Request] = rpc.NewService(NewTransportProductListV3(rpcConn), TransportProductListV3)
-		delete(serviceNames, TransportProductListV3)
+	if _, ok := serviceNames[TransportProductListServiceV3]; ok {
+		services[TransportProductListServiceV3Request] = rpc.NewService(NewTransportProductListServiceV3Client(rpcConn), TransportProductListServiceV3)
+		delete(serviceNames, TransportProductListServiceV3)
 	}
-	if _, ok := serviceNames[TransportSearchV3]; ok {
-		services[TransportSearchV3Request] = rpc.NewService(NewTransportSearchV3(rpcConn), TransportSearchV3)
-		delete(serviceNames, TransportSearchV3)
+	if _, ok := serviceNames[TransportSearchServiceV3]; ok {
+		services[TransportSearchServiceV3Request] = rpc.NewService(NewTransportSearchServiceV3Client(rpcConn), TransportSearchServiceV3)
+		delete(serviceNames, TransportSearchServiceV3)
 	}
-	if _, ok := serviceNames[TransportProductListV4]; ok {
-		services[TransportProductListV4Request] = rpc.NewService(NewTransportProductListV4(rpcConn), TransportProductListV4)
-		delete(serviceNames, TransportProductListV4)
+	if _, ok := serviceNames[TransportProductListServiceV4]; ok {
+		services[TransportProductListServiceV4Request] = rpc.NewService(NewTransportProductListServiceV4Client(rpcConn), TransportProductListServiceV4)
+		delete(serviceNames, TransportProductListServiceV4)
 	}
-	if _, ok := serviceNames[TransportSearchV4]; ok {
-		services[TransportSearchV4Request] = rpc.NewService(NewTransportSearchV4(rpcConn), TransportSearchV4)
-		delete(serviceNames, TransportSearchV4)
+	if _, ok := serviceNames[TransportSearchServiceV4]; ok {
+		services[TransportSearchServiceV4Request] = rpc.NewService(NewTransportSearchServiceV4Client(rpcConn), TransportSearchServiceV4)
+		delete(serviceNames, TransportSearchServiceV4)
 	}
 	return services
 }

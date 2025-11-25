@@ -17,6 +17,6 @@ type seat_mapv4SeatMapServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerSeatMapV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerSeatMapServiceV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	seat_mapv4grpc.RegisterSeatMapServiceServer(grpcServer, &seat_mapv4SeatMapServer{reqHandler})
 }

@@ -17,6 +17,6 @@ type cancellationv2CheckCancellationServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerCheckCancellationV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerCheckCancellationServiceV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	cancellationv2grpc.RegisterCheckCancellationServiceServer(grpcServer, &cancellationv2CheckCancellationServer{reqHandler})
 }

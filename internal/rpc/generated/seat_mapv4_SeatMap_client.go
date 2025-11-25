@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	SeatMapV4                           = "cmp.services.seat_map.v4.SeatMapService"
-	SeatMapV4Request  types.MessageType = types.MessageType(SeatMapV4 + ".Request")
-	SeatMapV4Response types.MessageType = types.MessageType(SeatMapV4 + ".Response")
+	SeatMapServiceV4                           = "cmp.services.seat_map.v4.SeatMapService"
+	SeatMapServiceV4Request  types.MessageType = types.MessageType(SeatMapServiceV4 + ".Request")
+	SeatMapServiceV4Response types.MessageType = types.MessageType(SeatMapServiceV4 + ".Response")
 )
 
 var _ rpc.Client = (*SeatMapV4Client)(nil)
 
-func NewSeatMapV4(grpcCon *grpc.ClientConn) *SeatMapV4Client {
+func NewSeatMapServiceV4Client(grpcCon *grpc.ClientConn) *SeatMapV4Client {
 	client := seat_mapv4grpc.NewSeatMapServiceClient(grpcCon)
 	return &SeatMapV4Client{client: client}
 }

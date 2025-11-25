@@ -19,11 +19,11 @@ import (
 )
 
 func (s CountryEntryRequirementsV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := CountryEntryRequirementsV3Response
+	messageType := CountryEntryRequirementsServiceV3Response
 
 	request, ok := requestIntf.(*infov3.CountryEntryRequirementsRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CountryEntryRequirementsV3Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", CountryEntryRequirementsServiceV3Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.CountryEntryRequirements(ctx, request, opts...)
@@ -53,7 +53,7 @@ func (s CountryEntryRequirementsV3Client) Call(ctx context.Context, requestIntf 
 }
 
 func (s *CountryEntryRequirementsV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), CountryEntryRequirementsV3Response
+	return s.errorResponse(errorMessage), CountryEntryRequirementsServiceV3Response
 }
 
 func (s *CountryEntryRequirementsV3Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

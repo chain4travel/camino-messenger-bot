@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	MintV2                           = "cmp.services.book.v2.MintService"
-	MintV2Request  types.MessageType = types.MessageType(MintV2 + ".Request")
-	MintV2Response types.MessageType = types.MessageType(MintV2 + ".Response")
+	MintServiceV2                           = "cmp.services.book.v2.MintService"
+	MintServiceV2Request  types.MessageType = types.MessageType(MintServiceV2 + ".Request")
+	MintServiceV2Response types.MessageType = types.MessageType(MintServiceV2 + ".Response")
 )
 
 var _ rpc.Client = (*MintV2Client)(nil)
 
-func NewMintV2(grpcCon *grpc.ClientConn) *MintV2Client {
+func NewMintServiceV2Client(grpcCon *grpc.ClientConn) *MintV2Client {
 	client := bookv2grpc.NewMintServiceClient(grpcCon)
 	return &MintV2Client{client: client}
 }

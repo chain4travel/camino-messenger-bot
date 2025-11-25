@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	ActivitySearchV4                           = "cmp.services.activity.v4.ActivitySearchService"
-	ActivitySearchV4Request  types.MessageType = types.MessageType(ActivitySearchV4 + ".Request")
-	ActivitySearchV4Response types.MessageType = types.MessageType(ActivitySearchV4 + ".Response")
+	ActivitySearchServiceV4                           = "cmp.services.activity.v4.ActivitySearchService"
+	ActivitySearchServiceV4Request  types.MessageType = types.MessageType(ActivitySearchServiceV4 + ".Request")
+	ActivitySearchServiceV4Response types.MessageType = types.MessageType(ActivitySearchServiceV4 + ".Response")
 )
 
 var _ rpc.Client = (*ActivitySearchV4Client)(nil)
 
-func NewActivitySearchV4(grpcCon *grpc.ClientConn) *ActivitySearchV4Client {
+func NewActivitySearchServiceV4Client(grpcCon *grpc.ClientConn) *ActivitySearchV4Client {
 	client := activityv4grpc.NewActivitySearchServiceClient(grpcCon)
 	return &ActivitySearchV4Client{client: client}
 }

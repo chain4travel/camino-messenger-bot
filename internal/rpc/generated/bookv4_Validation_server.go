@@ -17,6 +17,6 @@ type bookv4ValidationServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerValidationV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerValidationServiceV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	bookv4grpc.RegisterValidationServiceServer(grpcServer, &bookv4ValidationServer{reqHandler})
 }

@@ -22,14 +22,14 @@ func (s *pingv2PingServer) Ping(ctx context.Context, request *pingv2.PingRequest
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, PingV2Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, PingServiceV2Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*pingv2.PingResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", PingV2Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", PingServiceV2Response, response)), nil
 	}
 
 	return response, nil

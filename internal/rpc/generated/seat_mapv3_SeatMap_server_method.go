@@ -21,14 +21,14 @@ func (s *seat_mapv3SeatMapServer) SeatMap(ctx context.Context, request *seat_map
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, SeatMapV3Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, SeatMapServiceV3Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*seat_mapv3.SeatMapResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", SeatMapV3Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", SeatMapServiceV3Response, response)), nil
 	}
 
 	return response, nil

@@ -22,14 +22,14 @@ func (s *activityv4ActivityProductShortListServer) ActivityProductShortList(ctx 
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ActivityProductShortListV4Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ActivityProductShortListServiceV4Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*activityv4.ActivityProductShortListResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivityProductShortListV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivityProductShortListServiceV4Response, response)), nil
 	}
 
 	return response, nil

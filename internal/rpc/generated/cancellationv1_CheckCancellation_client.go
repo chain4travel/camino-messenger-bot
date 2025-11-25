@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	CheckCancellationV1                           = "cmp.services.cancellation.v1.CheckCancellationService"
-	CheckCancellationV1Request  types.MessageType = types.MessageType(CheckCancellationV1 + ".Request")
-	CheckCancellationV1Response types.MessageType = types.MessageType(CheckCancellationV1 + ".Response")
+	CheckCancellationServiceV1                           = "cmp.services.cancellation.v1.CheckCancellationService"
+	CheckCancellationServiceV1Request  types.MessageType = types.MessageType(CheckCancellationServiceV1 + ".Request")
+	CheckCancellationServiceV1Response types.MessageType = types.MessageType(CheckCancellationServiceV1 + ".Response")
 )
 
 var _ rpc.Client = (*CheckCancellationV1Client)(nil)
 
-func NewCheckCancellationV1(grpcCon *grpc.ClientConn) *CheckCancellationV1Client {
+func NewCheckCancellationServiceV1Client(grpcCon *grpc.ClientConn) *CheckCancellationV1Client {
 	client := cancellationv1grpc.NewCheckCancellationServiceClient(grpcCon)
 	return &CheckCancellationV1Client{client: client}
 }

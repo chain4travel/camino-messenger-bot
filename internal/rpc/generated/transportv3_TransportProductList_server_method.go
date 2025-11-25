@@ -21,14 +21,14 @@ func (s *transportv3TransportProductListServer) TransportProductList(ctx context
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, TransportProductListV3Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, TransportProductListServiceV3Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*transportv3.TransportProductListResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportProductListV3Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportProductListServiceV3Response, response)), nil
 	}
 
 	return response, nil

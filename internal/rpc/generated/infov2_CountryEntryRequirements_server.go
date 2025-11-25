@@ -16,6 +16,6 @@ type infov2CountryEntryRequirementsServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerCountryEntryRequirementsV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerCountryEntryRequirementsServiceV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	infov2grpc.RegisterCountryEntryRequirementsServiceServer(grpcServer, &infov2CountryEntryRequirementsServer{reqHandler})
 }

@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	PingV2                           = "cmp.services.ping.v2.PingService"
-	PingV2Request  types.MessageType = types.MessageType(PingV2 + ".Request")
-	PingV2Response types.MessageType = types.MessageType(PingV2 + ".Response")
+	PingServiceV2                           = "cmp.services.ping.v2.PingService"
+	PingServiceV2Request  types.MessageType = types.MessageType(PingServiceV2 + ".Request")
+	PingServiceV2Response types.MessageType = types.MessageType(PingServiceV2 + ".Response")
 )
 
 var _ rpc.Client = (*PingV2Client)(nil)
 
-func NewPingV2(grpcCon *grpc.ClientConn) *PingV2Client {
+func NewPingServiceV2Client(grpcCon *grpc.ClientConn) *PingV2Client {
 	client := pingv2grpc.NewPingServiceClient(grpcCon)
 	return &PingV2Client{client: client}
 }

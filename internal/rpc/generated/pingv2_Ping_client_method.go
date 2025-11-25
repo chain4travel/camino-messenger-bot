@@ -19,11 +19,11 @@ import (
 )
 
 func (s PingV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := PingV2Response
+	messageType := PingServiceV2Response
 
 	request, ok := requestIntf.(*pingv2.PingRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", PingV2Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", PingServiceV2Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.Ping(ctx, request, opts...)
@@ -53,7 +53,7 @@ func (s PingV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMe
 }
 
 func (s *PingV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), PingV2Response
+	return s.errorResponse(errorMessage), PingServiceV2Response
 }
 
 func (s *PingV2Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

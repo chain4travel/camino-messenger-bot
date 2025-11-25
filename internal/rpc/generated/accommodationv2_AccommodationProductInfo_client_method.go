@@ -18,11 +18,11 @@ import (
 )
 
 func (s AccommodationProductInfoV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := AccommodationProductInfoV2Response
+	messageType := AccommodationProductInfoServiceV2Response
 
 	request, ok := requestIntf.(*accommodationv2.AccommodationProductInfoRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", AccommodationProductInfoV2Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", AccommodationProductInfoServiceV2Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.AccommodationProductInfo(ctx, request, opts...)
@@ -39,7 +39,7 @@ func (s AccommodationProductInfoV2Client) Call(ctx context.Context, requestIntf 
 }
 
 func (s *AccommodationProductInfoV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), AccommodationProductInfoV2Response
+	return s.errorResponse(errorMessage), AccommodationProductInfoServiceV2Response
 }
 
 func (s *AccommodationProductInfoV2Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

@@ -16,6 +16,6 @@ type accommodationv2AccommodationProductInfoServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerAccommodationProductInfoV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerAccommodationProductInfoServiceV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	accommodationv2grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, &accommodationv2AccommodationProductInfoServer{reqHandler})
 }

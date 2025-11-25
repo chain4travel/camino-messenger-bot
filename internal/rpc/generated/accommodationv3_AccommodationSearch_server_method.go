@@ -21,14 +21,14 @@ func (s *accommodationv3AccommodationSearchServer) AccommodationSearch(ctx conte
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationSearchV3Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, AccommodationSearchServiceV3Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*accommodationv3.AccommodationSearchResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationSearchV3Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationSearchServiceV3Response, response)), nil
 	}
 
 	return response, nil

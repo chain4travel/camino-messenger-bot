@@ -16,6 +16,6 @@ type transportv3TransportProductListServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerTransportProductListV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerTransportProductListServiceV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	transportv3grpc.RegisterTransportProductListServiceServer(grpcServer, &transportv3TransportProductListServer{reqHandler})
 }

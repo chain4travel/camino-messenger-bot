@@ -16,6 +16,6 @@ type transportv2TransportSearchServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerTransportSearchV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerTransportSearchServiceV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	transportv2grpc.RegisterTransportSearchServiceServer(grpcServer, &transportv2TransportSearchServer{reqHandler})
 }

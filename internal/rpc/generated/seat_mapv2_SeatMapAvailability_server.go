@@ -16,6 +16,6 @@ type seat_mapv2SeatMapAvailabilityServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerSeatMapAvailabilityV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerSeatMapAvailabilityServiceV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	seat_mapv2grpc.RegisterSeatMapAvailabilityServiceServer(grpcServer, &seat_mapv2SeatMapAvailabilityServer{reqHandler})
 }

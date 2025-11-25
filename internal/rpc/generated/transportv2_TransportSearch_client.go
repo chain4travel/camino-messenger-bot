@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	TransportSearchV2                           = "cmp.services.transport.v2.TransportSearchService"
-	TransportSearchV2Request  types.MessageType = types.MessageType(TransportSearchV2 + ".Request")
-	TransportSearchV2Response types.MessageType = types.MessageType(TransportSearchV2 + ".Response")
+	TransportSearchServiceV2                           = "cmp.services.transport.v2.TransportSearchService"
+	TransportSearchServiceV2Request  types.MessageType = types.MessageType(TransportSearchServiceV2 + ".Request")
+	TransportSearchServiceV2Response types.MessageType = types.MessageType(TransportSearchServiceV2 + ".Response")
 )
 
 var _ rpc.Client = (*TransportSearchV2Client)(nil)
 
-func NewTransportSearchV2(grpcCon *grpc.ClientConn) *TransportSearchV2Client {
+func NewTransportSearchServiceV2Client(grpcCon *grpc.ClientConn) *TransportSearchV2Client {
 	client := transportv2grpc.NewTransportSearchServiceClient(grpcCon)
 	return &TransportSearchV2Client{client: client}
 }

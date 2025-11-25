@@ -16,6 +16,6 @@ type activityv2ActivitySearchServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerActivitySearchV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerActivitySearchServiceV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	activityv2grpc.RegisterActivitySearchServiceServer(grpcServer, &activityv2ActivitySearchServer{reqHandler})
 }

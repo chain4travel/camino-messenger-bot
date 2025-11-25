@@ -16,6 +16,6 @@ type activityv3ActivityProductInfoServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerActivityProductInfoV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerActivityProductInfoServiceV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	activityv3grpc.RegisterActivityProductInfoServiceServer(grpcServer, &activityv3ActivityProductInfoServer{reqHandler})
 }

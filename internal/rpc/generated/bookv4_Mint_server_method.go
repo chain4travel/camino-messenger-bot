@@ -22,14 +22,14 @@ func (s *bookv4MintServer) Mint(ctx context.Context, request *bookv4.MintRequest
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, MintV4Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, MintServiceV4Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*bookv4.MintResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", MintV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", MintServiceV4Response, response)), nil
 	}
 
 	return response, nil

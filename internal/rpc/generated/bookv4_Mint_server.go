@@ -17,6 +17,6 @@ type bookv4MintServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerMintV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerMintServiceV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	bookv4grpc.RegisterMintServiceServer(grpcServer, &bookv4MintServer{reqHandler})
 }

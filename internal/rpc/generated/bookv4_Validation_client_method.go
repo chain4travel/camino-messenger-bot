@@ -19,11 +19,11 @@ import (
 )
 
 func (s ValidationV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := ValidationV4Response
+	messageType := ValidationServiceV4Response
 
 	request, ok := requestIntf.(*bookv4.ValidationRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ValidationV4Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ValidationServiceV4Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.Validation(ctx, request, opts...)
@@ -53,7 +53,7 @@ func (s ValidationV4Client) Call(ctx context.Context, requestIntf protoreflect.P
 }
 
 func (s *ValidationV4Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), ValidationV4Response
+	return s.errorResponse(errorMessage), ValidationServiceV4Response
 }
 
 func (s *ValidationV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

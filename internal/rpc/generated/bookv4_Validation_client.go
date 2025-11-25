@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	ValidationV4                           = "cmp.services.book.v4.ValidationService"
-	ValidationV4Request  types.MessageType = types.MessageType(ValidationV4 + ".Request")
-	ValidationV4Response types.MessageType = types.MessageType(ValidationV4 + ".Response")
+	ValidationServiceV4                           = "cmp.services.book.v4.ValidationService"
+	ValidationServiceV4Request  types.MessageType = types.MessageType(ValidationServiceV4 + ".Request")
+	ValidationServiceV4Response types.MessageType = types.MessageType(ValidationServiceV4 + ".Response")
 )
 
 var _ rpc.Client = (*ValidationV4Client)(nil)
 
-func NewValidationV4(grpcCon *grpc.ClientConn) *ValidationV4Client {
+func NewValidationServiceV4Client(grpcCon *grpc.ClientConn) *ValidationV4Client {
 	client := bookv4grpc.NewValidationServiceClient(grpcCon)
 	return &ValidationV4Client{client: client}
 }

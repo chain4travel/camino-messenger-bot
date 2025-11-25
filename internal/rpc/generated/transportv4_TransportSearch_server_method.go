@@ -22,14 +22,14 @@ func (s *transportv4TransportSearchServer) TransportSearch(ctx context.Context, 
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, TransportSearchV4Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, TransportSearchServiceV4Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*transportv4.TransportSearchResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportSearchV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportSearchServiceV4Response, response)), nil
 	}
 
 	return response, nil

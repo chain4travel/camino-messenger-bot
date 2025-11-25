@@ -16,6 +16,6 @@ type activityv3ActivitySearchServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerActivitySearchV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerActivitySearchServiceV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	activityv3grpc.RegisterActivitySearchServiceServer(grpcServer, &activityv3ActivitySearchServer{reqHandler})
 }

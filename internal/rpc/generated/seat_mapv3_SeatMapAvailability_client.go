@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	SeatMapAvailabilityV3                           = "cmp.services.seat_map.v3.SeatMapAvailabilityService"
-	SeatMapAvailabilityV3Request  types.MessageType = types.MessageType(SeatMapAvailabilityV3 + ".Request")
-	SeatMapAvailabilityV3Response types.MessageType = types.MessageType(SeatMapAvailabilityV3 + ".Response")
+	SeatMapAvailabilityServiceV3                           = "cmp.services.seat_map.v3.SeatMapAvailabilityService"
+	SeatMapAvailabilityServiceV3Request  types.MessageType = types.MessageType(SeatMapAvailabilityServiceV3 + ".Request")
+	SeatMapAvailabilityServiceV3Response types.MessageType = types.MessageType(SeatMapAvailabilityServiceV3 + ".Response")
 )
 
 var _ rpc.Client = (*SeatMapAvailabilityV3Client)(nil)
 
-func NewSeatMapAvailabilityV3(grpcCon *grpc.ClientConn) *SeatMapAvailabilityV3Client {
+func NewSeatMapAvailabilityServiceV3Client(grpcCon *grpc.ClientConn) *SeatMapAvailabilityV3Client {
 	client := seat_mapv3grpc.NewSeatMapAvailabilityServiceClient(grpcCon)
 	return &SeatMapAvailabilityV3Client{client: client}
 }

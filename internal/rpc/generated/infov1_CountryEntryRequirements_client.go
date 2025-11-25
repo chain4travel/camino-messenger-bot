@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	CountryEntryRequirementsV1                           = "cmp.services.info.v1.CountryEntryRequirementsService"
-	CountryEntryRequirementsV1Request  types.MessageType = types.MessageType(CountryEntryRequirementsV1 + ".Request")
-	CountryEntryRequirementsV1Response types.MessageType = types.MessageType(CountryEntryRequirementsV1 + ".Response")
+	CountryEntryRequirementsServiceV1                           = "cmp.services.info.v1.CountryEntryRequirementsService"
+	CountryEntryRequirementsServiceV1Request  types.MessageType = types.MessageType(CountryEntryRequirementsServiceV1 + ".Request")
+	CountryEntryRequirementsServiceV1Response types.MessageType = types.MessageType(CountryEntryRequirementsServiceV1 + ".Response")
 )
 
 var _ rpc.Client = (*CountryEntryRequirementsV1Client)(nil)
 
-func NewCountryEntryRequirementsV1(grpcCon *grpc.ClientConn) *CountryEntryRequirementsV1Client {
+func NewCountryEntryRequirementsServiceV1Client(grpcCon *grpc.ClientConn) *CountryEntryRequirementsV1Client {
 	client := infov1grpc.NewCountryEntryRequirementsServiceClient(grpcCon)
 	return &CountryEntryRequirementsV1Client{client: client}
 }

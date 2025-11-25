@@ -16,6 +16,6 @@ type bookv3MintServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerMintV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerMintServiceV3Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	bookv3grpc.RegisterMintServiceServer(grpcServer, &bookv3MintServer{reqHandler})
 }

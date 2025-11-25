@@ -17,6 +17,6 @@ type activityv4ActivityProductShortListServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerActivityProductShortListV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerActivityProductShortListServiceV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	activityv4grpc.RegisterActivityProductShortListServiceServer(grpcServer, &activityv4ActivityProductShortListServer{reqHandler})
 }

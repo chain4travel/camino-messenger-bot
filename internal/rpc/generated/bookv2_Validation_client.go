@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	ValidationV2                           = "cmp.services.book.v2.ValidationService"
-	ValidationV2Request  types.MessageType = types.MessageType(ValidationV2 + ".Request")
-	ValidationV2Response types.MessageType = types.MessageType(ValidationV2 + ".Response")
+	ValidationServiceV2                           = "cmp.services.book.v2.ValidationService"
+	ValidationServiceV2Request  types.MessageType = types.MessageType(ValidationServiceV2 + ".Request")
+	ValidationServiceV2Response types.MessageType = types.MessageType(ValidationServiceV2 + ".Response")
 )
 
 var _ rpc.Client = (*ValidationV2Client)(nil)
 
-func NewValidationV2(grpcCon *grpc.ClientConn) *ValidationV2Client {
+func NewValidationServiceV2Client(grpcCon *grpc.ClientConn) *ValidationV2Client {
 	client := bookv2grpc.NewValidationServiceClient(grpcCon)
 	return &ValidationV2Client{client: client}
 }

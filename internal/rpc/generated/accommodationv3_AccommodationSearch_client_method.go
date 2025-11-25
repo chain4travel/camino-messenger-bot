@@ -18,11 +18,11 @@ import (
 )
 
 func (s AccommodationSearchV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := AccommodationSearchV3Response
+	messageType := AccommodationSearchServiceV3Response
 
 	request, ok := requestIntf.(*accommodationv3.AccommodationSearchRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", AccommodationSearchV3Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", AccommodationSearchServiceV3Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.AccommodationSearch(ctx, request, opts...)
@@ -39,7 +39,7 @@ func (s AccommodationSearchV3Client) Call(ctx context.Context, requestIntf proto
 }
 
 func (s *AccommodationSearchV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), AccommodationSearchV3Response
+	return s.errorResponse(errorMessage), AccommodationSearchServiceV3Response
 }
 
 func (s *AccommodationSearchV3Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

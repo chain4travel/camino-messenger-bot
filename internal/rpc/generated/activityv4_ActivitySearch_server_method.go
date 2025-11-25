@@ -22,14 +22,14 @@ func (s *activityv4ActivitySearchServer) ActivitySearch(ctx context.Context, req
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchV4Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ActivitySearchServiceV4Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*activityv4.ActivitySearchResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivitySearchV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivitySearchServiceV4Response, response)), nil
 	}
 
 	return response, nil

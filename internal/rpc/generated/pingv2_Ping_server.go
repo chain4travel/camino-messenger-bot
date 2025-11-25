@@ -17,6 +17,6 @@ type pingv2PingServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerPingV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerPingServiceV2Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	pingv2grpc.RegisterPingServiceServer(grpcServer, &pingv2PingServer{reqHandler})
 }

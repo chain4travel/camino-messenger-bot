@@ -17,6 +17,6 @@ type accommodationv4AccommodationProductShortListServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerAccommodationProductShortListV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerAccommodationProductShortListServiceV4Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	accommodationv4grpc.RegisterAccommodationProductShortListServiceServer(grpcServer, &accommodationv4AccommodationProductShortListServer{reqHandler})
 }

@@ -21,14 +21,14 @@ func (s *bookv2ValidationServer) Validation(ctx context.Context, request *bookv2
 
 	request.Header.BaseHeader.Version = version.VersionV1
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ValidationV2Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, ValidationServiceV2Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*bookv2.ValidationResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ValidationV2Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ValidationServiceV2Response, response)), nil
 	}
 
 	return response, nil

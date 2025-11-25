@@ -18,11 +18,11 @@ import (
 )
 
 func (s ActivitySearchV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := ActivitySearchV2Response
+	messageType := ActivitySearchServiceV2Response
 
 	request, ok := requestIntf.(*activityv2.ActivitySearchRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ActivitySearchV2Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ActivitySearchServiceV2Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.ActivitySearch(ctx, request, opts...)
@@ -39,7 +39,7 @@ func (s ActivitySearchV2Client) Call(ctx context.Context, requestIntf protorefle
 }
 
 func (s *ActivitySearchV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), ActivitySearchV2Response
+	return s.errorResponse(errorMessage), ActivitySearchServiceV2Response
 }
 
 func (s *ActivitySearchV2Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	AccommodationProductListV4                           = "cmp.services.accommodation.v4.AccommodationProductListService"
-	AccommodationProductListV4Request  types.MessageType = types.MessageType(AccommodationProductListV4 + ".Request")
-	AccommodationProductListV4Response types.MessageType = types.MessageType(AccommodationProductListV4 + ".Response")
+	AccommodationProductListServiceV4                           = "cmp.services.accommodation.v4.AccommodationProductListService"
+	AccommodationProductListServiceV4Request  types.MessageType = types.MessageType(AccommodationProductListServiceV4 + ".Request")
+	AccommodationProductListServiceV4Response types.MessageType = types.MessageType(AccommodationProductListServiceV4 + ".Response")
 )
 
 var _ rpc.Client = (*AccommodationProductListV4Client)(nil)
 
-func NewAccommodationProductListV4(grpcCon *grpc.ClientConn) *AccommodationProductListV4Client {
+func NewAccommodationProductListServiceV4Client(grpcCon *grpc.ClientConn) *AccommodationProductListV4Client {
 	client := accommodationv4grpc.NewAccommodationProductListServiceClient(grpcCon)
 	return &AccommodationProductListV4Client{client: client}
 }

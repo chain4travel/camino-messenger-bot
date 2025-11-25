@@ -22,14 +22,14 @@ func (s *infov3CountryEntryRequirementsServer) CountryEntryRequirements(ctx cont
 
 	request.Header.BaseHeader.Version = version.VersionV4
 
-	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, CountryEntryRequirementsV3Request, request)
+	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, CountryEntryRequirementsServiceV3Request, request)
 	if err != nil {
 		return s.errorResponse(err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*infov3.CountryEntryRequirementsResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsV3Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV3Response, response)), nil
 	}
 
 	return response, nil

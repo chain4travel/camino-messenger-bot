@@ -19,11 +19,11 @@ import (
 )
 
 func (s ActivityProductShortListV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := ActivityProductShortListV4Response
+	messageType := ActivityProductShortListServiceV4Response
 
 	request, ok := requestIntf.(*activityv4.ActivityProductShortListRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ActivityProductShortListV4Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ActivityProductShortListServiceV4Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.ActivityProductShortList(ctx, request, opts...)
@@ -53,7 +53,7 @@ func (s ActivityProductShortListV4Client) Call(ctx context.Context, requestIntf 
 }
 
 func (s *ActivityProductShortListV4Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), ActivityProductShortListV4Response
+	return s.errorResponse(errorMessage), ActivityProductShortListServiceV4Response
 }
 
 func (s *ActivityProductShortListV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

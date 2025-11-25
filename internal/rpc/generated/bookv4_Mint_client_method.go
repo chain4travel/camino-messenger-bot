@@ -19,11 +19,11 @@ import (
 )
 
 func (s MintV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := MintV4Response
+	messageType := MintServiceV4Response
 
 	request, ok := requestIntf.(*bookv4.MintRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", MintV4Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", MintServiceV4Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.Mint(ctx, request, opts...)
@@ -53,7 +53,7 @@ func (s MintV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMe
 }
 
 func (s *MintV4Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), MintV4Response
+	return s.errorResponse(errorMessage), MintServiceV4Response
 }
 
 func (s *MintV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

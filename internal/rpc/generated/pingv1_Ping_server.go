@@ -16,6 +16,6 @@ type pingv1PingServer struct {
 	reqHandler rpc.RequestHandler
 }
 
-func registerPingV1Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func registerPingServiceV1Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	pingv1grpc.RegisterPingServiceServer(grpcServer, &pingv1PingServer{reqHandler})
 }
