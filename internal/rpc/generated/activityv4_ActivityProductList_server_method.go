@@ -29,7 +29,7 @@ func (s *activityv4ActivityProductListServer) ActivityProductList(ctx context.Co
 
 	response, ok := responseIntf.(*activityv4.ActivityProductListResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivityProductListServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivityProductListServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s SeatMapAvailabilityV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *SeatMapAvailabilityV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
 	messageType := SeatMapAvailabilityServiceV3Response
 
 	request, ok := requestIntf.(*seat_mapv3.SeatMapAvailabilityRequest)

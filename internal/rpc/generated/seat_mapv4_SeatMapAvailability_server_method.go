@@ -29,7 +29,7 @@ func (s *seat_mapv4SeatMapAvailabilityServer) SeatMapAvailability(ctx context.Co
 
 	response, ok := responseIntf.(*seat_mapv4.SeatMapAvailabilityResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", SeatMapAvailabilityServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", SeatMapAvailabilityServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

@@ -29,7 +29,7 @@ func (s *bookv4ValidationServer) Validation(ctx context.Context, request *bookv4
 
 	response, ok := responseIntf.(*bookv4.ValidationResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ValidationServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ValidationServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

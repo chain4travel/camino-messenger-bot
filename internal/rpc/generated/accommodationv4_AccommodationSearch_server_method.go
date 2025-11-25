@@ -29,7 +29,7 @@ func (s *accommodationv4AccommodationSearchServer) AccommodationSearch(ctx conte
 
 	response, ok := responseIntf.(*accommodationv4.AccommodationSearchResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationSearchServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationSearchServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

@@ -29,7 +29,7 @@ func (s *activityv4ActivitySearchServer) ActivitySearch(ctx context.Context, req
 
 	response, ok := responseIntf.(*activityv4.ActivitySearchResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivitySearchServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", ActivitySearchServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

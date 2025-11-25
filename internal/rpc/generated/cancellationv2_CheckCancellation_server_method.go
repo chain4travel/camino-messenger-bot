@@ -29,7 +29,7 @@ func (s *cancellationv2CheckCancellationServer) CheckCancellation(ctx context.Co
 
 	response, ok := responseIntf.(*cancellationv2.CheckCancellationResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CheckCancellationServiceV2Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CheckCancellationServiceV2Response, responseIntf)), nil
 	}
 
 	return response, nil

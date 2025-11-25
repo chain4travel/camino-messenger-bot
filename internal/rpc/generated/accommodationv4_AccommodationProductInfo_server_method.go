@@ -29,7 +29,7 @@ func (s *accommodationv4AccommodationProductInfoServer) AccommodationProductInfo
 
 	response, ok := responseIntf.(*accommodationv4.AccommodationProductInfoResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationProductInfoServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", AccommodationProductInfoServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

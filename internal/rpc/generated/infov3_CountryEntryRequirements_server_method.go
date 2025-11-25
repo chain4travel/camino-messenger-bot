@@ -29,7 +29,7 @@ func (s *infov3CountryEntryRequirementsServer) CountryEntryRequirements(ctx cont
 
 	response, ok := responseIntf.(*infov3.CountryEntryRequirementsResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV3Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", CountryEntryRequirementsServiceV3Response, responseIntf)), nil
 	}
 
 	return response, nil

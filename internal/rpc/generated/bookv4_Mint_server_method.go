@@ -29,7 +29,7 @@ func (s *bookv4MintServer) Mint(ctx context.Context, request *bookv4.MintRequest
 
 	response, ok := responseIntf.(*bookv4.MintResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", MintServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", MintServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

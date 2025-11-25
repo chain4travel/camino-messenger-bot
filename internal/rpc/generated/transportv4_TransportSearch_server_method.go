@@ -29,7 +29,7 @@ func (s *transportv4TransportSearchServer) TransportSearch(ctx context.Context, 
 
 	response, ok := responseIntf.(*transportv4.TransportSearchResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportSearchServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportSearchServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil

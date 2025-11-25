@@ -29,7 +29,7 @@ func (s *transportv4TransportProductListServer) TransportProductList(ctx context
 
 	response, ok := responseIntf.(*transportv4.TransportProductListResponse)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportProductListServiceV4Response, response)), nil
+		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", TransportProductListServiceV4Response, responseIntf)), nil
 	}
 
 	return response, nil
