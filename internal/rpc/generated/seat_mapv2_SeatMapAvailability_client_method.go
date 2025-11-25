@@ -38,7 +38,7 @@ func (s SeatMapAvailabilityV2Client) Call(ctx context.Context, requestIntf proto
 	return response, messageType
 }
 
-func (s *SeatMapAvailabilityV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *SeatMapAvailabilityV2Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), SeatMapAvailabilityServiceV2Response
 }
 

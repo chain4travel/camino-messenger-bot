@@ -38,7 +38,7 @@ func (s ActivitySearchV3Client) Call(ctx context.Context, requestIntf protorefle
 	return response, messageType
 }
 
-func (s *ActivitySearchV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *ActivitySearchV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), ActivitySearchServiceV3Response
 }
 

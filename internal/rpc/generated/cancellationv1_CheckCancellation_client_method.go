@@ -38,7 +38,7 @@ func (s CheckCancellationV1Client) Call(ctx context.Context, requestIntf protore
 	return response, messageType
 }
 
-func (s *CheckCancellationV1Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *CheckCancellationV1Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), CheckCancellationServiceV1Response
 }
 

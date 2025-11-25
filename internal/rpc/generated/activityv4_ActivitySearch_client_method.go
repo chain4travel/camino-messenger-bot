@@ -5,6 +5,7 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
@@ -23,46 +24,44 @@ func (s ActivitySearchV4Client) Call(ctx context.Context, requestIntf protorefle
 
 	request, ok := requestIntf.(*activityv4.ActivitySearchRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", ActivitySearchServiceV4Request, requestIntf)), messageType
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid request type: expected %s, got %T", ActivitySearchServiceV4Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.ActivitySearch(ctx, request, opts...)
-	if err != nil {
-		return s.errorResponse(err.Error()), messageType
-	}
-
-	if response.HasErrorResponse() {
-		innerResp := response.GetErrorResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
-	} else {
-		innerResp := response.GetSuccessResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), messageType
+	case err != nil:
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), messageType
 	}
 
 	if err := protovalidate.Validate(response); err != nil {
-		return s.errorResponse(fmt.Sprintf("response validation failed: %v", err)), messageType
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("response validation failed: %v", err)), messageType
+	}
+
+	if errResp := response.GetErrorResponse(); errResp != nil {
+		errResp.Header.BaseHeader.Version = version.VersionV4
+	} else {
+		response.GetSuccessResponse().Header.BaseHeader.Version = version.VersionV4
 	}
 
 	return response, messageType
 }
 
-func (s *ActivitySearchV4Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), ActivitySearchServiceV4Response
+func (s *ActivitySearchV4Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, errorMessage), ActivitySearchServiceV4Response
 }
 
-func (s *ActivitySearchV4Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
+func (s *ActivitySearchV4Client) errorResponse(code typesv4.ErrorCode, errorMessage string) *activityv4.ActivitySearchResponse {
 	return &activityv4.ActivitySearchResponse{
 		Response: &activityv4.ActivitySearchResponse_ErrorResponse{
 			ErrorResponse: &activityv4.ActivitySearchErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},

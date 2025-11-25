@@ -38,7 +38,7 @@ func (s ValidationV2Client) Call(ctx context.Context, requestIntf protoreflect.P
 	return response, messageType
 }
 
-func (s *ValidationV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *ValidationV2Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), ValidationServiceV2Response
 }
 

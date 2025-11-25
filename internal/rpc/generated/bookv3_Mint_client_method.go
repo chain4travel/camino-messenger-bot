@@ -38,7 +38,7 @@ func (s MintV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMe
 	return response, messageType
 }
 
-func (s *MintV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *MintV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), MintServiceV3Response
 }
 

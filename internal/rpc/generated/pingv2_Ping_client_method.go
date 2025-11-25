@@ -5,6 +5,7 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
@@ -23,46 +24,44 @@ func (s PingV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMe
 
 	request, ok := requestIntf.(*pingv2.PingRequest)
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", PingServiceV2Request, requestIntf)), messageType
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid request type: expected %s, got %T", PingServiceV2Request, requestIntf)), messageType
 	}
 
 	response, err := s.client.Ping(ctx, request, opts...)
-	if err != nil {
-		return s.errorResponse(err.Error()), messageType
-	}
-
-	if response.HasErrorResponse() {
-		innerResp := response.GetErrorResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
-	} else {
-		innerResp := response.GetSuccessResponse()
-		if innerResp.GetHeader().GetBaseHeader() == nil {
-			return s.errorResponse(rpc.ErrNilResponseHeader.Error()), messageType
-		}
-		innerResp.Header.BaseHeader.Version = version.VersionV4
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), messageType
+	case err != nil:
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), messageType
 	}
 
 	if err := protovalidate.Validate(response); err != nil {
-		return s.errorResponse(fmt.Sprintf("response validation failed: %v", err)), messageType
+		return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("response validation failed: %v", err)), messageType
+	}
+
+	if errResp := response.GetErrorResponse(); errResp != nil {
+		errResp.Header.BaseHeader.Version = version.VersionV4
+	} else {
+		response.GetSuccessResponse().Header.BaseHeader.Version = version.VersionV4
 	}
 
 	return response, messageType
 }
 
-func (s *PingV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), PingServiceV2Response
+func (s *PingV2Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+	return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, errorMessage), PingServiceV2Response
 }
 
-func (s *PingV2Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {
+func (s *PingV2Client) errorResponse(code typesv4.ErrorCode, errorMessage string) *pingv2.PingResponse {
 	return &pingv2.PingResponse{
 		Response: &pingv2.PingResponse_ErrorResponse{
 			ErrorResponse: &pingv2.PingErrorResponse{
 				Header: &typesv4.ErrorResponseHeader{
 					BaseHeader: &typesv4.Header{Version: version.VersionV4},
-					Errors:     []*typesv4.Error{{Message: errorMessage}},
+					Errors: []*typesv4.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},

@@ -38,7 +38,7 @@ func (s TransportSearchV3Client) Call(ctx context.Context, requestIntf protorefl
 	return response, messageType
 }
 
-func (s *TransportSearchV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *TransportSearchV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), TransportSearchServiceV3Response
 }
 

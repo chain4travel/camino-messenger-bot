@@ -38,7 +38,7 @@ func (s ActivityProductInfoV3Client) Call(ctx context.Context, requestIntf proto
 	return response, messageType
 }
 
-func (s *ActivityProductInfoV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *ActivityProductInfoV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), ActivityProductInfoServiceV3Response
 }
 

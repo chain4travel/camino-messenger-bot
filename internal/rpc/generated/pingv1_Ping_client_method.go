@@ -38,7 +38,7 @@ func (s PingV1Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMe
 	return response, messageType
 }
 
-func (s *PingV1Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *PingV1Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), PingServiceV1Response
 }
 

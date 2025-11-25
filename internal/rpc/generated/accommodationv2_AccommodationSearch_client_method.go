@@ -38,7 +38,7 @@ func (s AccommodationSearchV2Client) Call(ctx context.Context, requestIntf proto
 	return response, messageType
 }
 
-func (s *AccommodationSearchV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *AccommodationSearchV2Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), AccommodationSearchServiceV2Response
 }
 

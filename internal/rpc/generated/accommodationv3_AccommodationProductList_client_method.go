@@ -38,7 +38,7 @@ func (s AccommodationProductListV3Client) Call(ctx context.Context, requestIntf 
 	return response, messageType
 }
 
-func (s *AccommodationProductListV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *AccommodationProductListV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), AccommodationProductListServiceV3Response
 }
 

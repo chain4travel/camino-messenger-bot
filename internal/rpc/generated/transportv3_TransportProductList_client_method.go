@@ -38,7 +38,7 @@ func (s TransportProductListV3Client) Call(ctx context.Context, requestIntf prot
 	return response, messageType
 }
 
-func (s *TransportProductListV3Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *TransportProductListV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), TransportProductListServiceV3Response
 }
 

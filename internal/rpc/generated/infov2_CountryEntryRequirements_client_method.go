@@ -38,7 +38,7 @@ func (s CountryEntryRequirementsV2Client) Call(ctx context.Context, requestIntf 
 	return response, messageType
 }
 
-func (s *CountryEntryRequirementsV2Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *CountryEntryRequirementsV2Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
 	return s.errorResponse(errorMessage), CountryEntryRequirementsServiceV2Response
 }
 
