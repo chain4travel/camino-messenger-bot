@@ -64,14 +64,14 @@ func (tt *TestCashIn) Run(t *testing.T) {
 
 func (tt *TestCashIn) prepare(ctx context.Context, t *testing.T) {
 	// Register all the services needed for the tests
-	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV1))
+	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx, botGenerated.PingServiceV2))
 
 	tt.pingFee = 5_000_000_000_000_000
 
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV1, Fee: tt.pingFee}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: tt.pingFee}}),
 		bot.WithCashInPeriod(tt.cashInPeriodSeconds), // cash-in every 10 seconds
 	)
 

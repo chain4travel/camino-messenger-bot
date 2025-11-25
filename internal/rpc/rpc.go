@@ -15,6 +15,8 @@ import (
 var (
 	ErrNilResponseHeader = errors.New("response header is nil")
 	ErrInvalidProto      = errors.New("invalid proto message")
+	ErrBlockchain        = errors.New("blockchain error")
+	ErrBusinessProcess   = errors.New("business process error")
 )
 
 type RequestHandler interface {

@@ -22,6 +22,8 @@ const (
 	BookingTokenPriceValue             = "1"
 	FreeCancellationDuration           = 7 * 24 * time.Hour
 	CancellationPolicyID               = "pp-mock-full-refund"
+	TravelPeriodMinStartOffset         = time.Hour * 24
+	TravelPeriodMaxDuration            = time.Hour * 24 * 60
 )
 
 var (
@@ -93,10 +95,10 @@ func TimeToDateV4(time time.Time) *typesv4.Date {
 
 // only period between now + 60 days is allowed for bookings
 func IsTravelPeriodAllowedV1(travelPeriod *typesv1.TravelPeriod) bool {
-	startDate := time.Now()
-	endDate := time.Now().Add(time.Hour * 24 * 60) // 60 days from now
+	startDate := time.Now().Truncate(time.Hour * 24).Add(TravelPeriodMinStartOffset)
+	endDate := startDate.Add(TravelPeriodMaxDuration) // 60 days from startDate
 
-	return DateV1ToTime(travelPeriod.StartDate).After(startDate) && DateV1ToTime(travelPeriod.EndDate).Before(endDate) && DateV1ToTime(travelPeriod.StartDate).Before(DateV1ToTime(travelPeriod.EndDate))
+	return !DateV1ToTime(travelPeriod.StartDate).Before(startDate) && !DateV1ToTime(travelPeriod.EndDate).After(endDate) && DateV1ToTime(travelPeriod.StartDate).Before(DateV1ToTime(travelPeriod.EndDate))
 }
 
 // only period between now + 60 days is allowed for bookings
@@ -106,10 +108,10 @@ func IsTravelPeriodAllowedV4(travelPeriod *typesv4.TravelPeriod) bool {
 
 // only period between now + 60 days is allowed for bookings
 func IsTravelPeriodAllowedV4WithTime(now time.Time, travelPeriod *typesv4.TravelPeriod) bool {
-	startDate := now
-	endDate := now.Add(time.Hour * 24 * 60) // 60 days from now
+	startDate := now.Truncate(time.Hour * 24).Add(TravelPeriodMinStartOffset)
+	endDate := startDate.Add(TravelPeriodMaxDuration) // 60 days from startDate
 
-	return DateV4ToTime(travelPeriod.StartDate).After(startDate) && DateV4ToTime(travelPeriod.EndDate).Before(endDate) && DateV4ToTime(travelPeriod.StartDate).Before(DateV4ToTime(travelPeriod.EndDate))
+	return !DateV4ToTime(travelPeriod.StartDate).Before(startDate) && !DateV4ToTime(travelPeriod.EndDate).After(endDate) && DateV4ToTime(travelPeriod.StartDate).Before(DateV4ToTime(travelPeriod.EndDate))
 }
 
 func AreTravelDatesValidV1(departureDate, arrivalDate *typesv1.Date) bool {

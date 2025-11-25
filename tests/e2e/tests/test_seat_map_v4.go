@@ -254,15 +254,6 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 	for _, section := range successResp.SeatMap.Sections {
 		traverseSection(section, func(s *typesv4.Section) {
 			require.Empty(t, s.Names, "expected no section names")
-
-			seatList, ok := s.SeatInfo.(*typesv4.Section_SeatList)
-			if !ok {
-				return
-			}
-
-			for _, seat := range seatList.SeatList.Seats {
-				require.Empty(t, seat.Attributes, "expected no seat attributes")
-			}
 		})
 	}
 
@@ -274,15 +265,6 @@ func (tt *TestSeatMapV4) testSeatMapV4WithoutLocalization(ctx context.Context, t
 	for _, section := range expectedSeatMap.Sections {
 		traverseSection(section, func(s *typesv4.Section) {
 			s.Names = nil
-
-			seatList, ok := s.SeatInfo.(*typesv4.Section_SeatList)
-			if !ok {
-				return
-			}
-
-			for _, seat := range seatList.SeatList.Seats {
-				seat.Attributes = nil
-			}
 		})
 	}
 

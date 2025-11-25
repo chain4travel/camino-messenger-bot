@@ -350,8 +350,8 @@ func testAccommodationV3SearchServiceWithTravelPeriod(
 	resultID int32,
 	totalPrice *big.Int,
 ) {
-	const nights = 12                           // 12 nights
-	startDate := time.Now().Add(time.Hour * 24) // tomorrow
+	const nights = 12                                              // 12 nights
+	startDate := time.Now().Add(common.TravelPeriodMinStartOffset) // tomorrow
 	endDate := startDate.Add(time.Hour * 24 * time.Duration(nights))
 
 	req := &accommodationv3.AccommodationSearchRequest{

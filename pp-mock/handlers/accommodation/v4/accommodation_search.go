@@ -112,6 +112,47 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 				SupplierCode:   prop.Property.SupplierCode,
 			}
 
+			cancelPenalties := []*typesv4.CancelPenalty{}
+			if startDateTime.After(now.Add(common.FreeCancellationDuration)) {
+				cancelPenalties = append(cancelPenalties, &typesv4.CancelPenalty{
+					DatetimeRange: &typesv4.DateTimeRange{
+						Start: timestamppb.New(now),
+						End:   timestamppb.New(startDateTime.Add(-common.FreeCancellationDuration)),
+					},
+					Value: &typesv4.Price{
+						Value:    "0", // 0% penalty
+						Decimals: unit.PriceDetail.Price.Decimals,
+						Currency: unit.PriceDetail.Price.Currency,
+					},
+					ValidForRatePlans: []string{unit.RatePlan.Code},
+				})
+			}
+
+			penalty1StartSeconds := max(startDateTime.Add(-common.FreeCancellationDuration).Unix(), now.Unix())
+
+			cancelPenalties = append(cancelPenalties,
+				&typesv4.CancelPenalty{
+					DatetimeRange: &typesv4.DateTimeRange{
+						Start: &timestamppb.Timestamp{Seconds: penalty1StartSeconds},
+						End:   timestamppb.New(startDateTime),
+					},
+					Value: &typesv4.Price{
+						Value:    fmt.Sprintf("%d", unitPriceValue/10), // 10% penalty
+						Decimals: unit.PriceDetail.Price.Decimals,
+						Currency: unit.PriceDetail.Price.Currency,
+					},
+					ValidForRatePlans: []string{unit.RatePlan.Code},
+				},
+				&typesv4.CancelPenalty{
+					DatetimeRange: &typesv4.DateTimeRange{
+						Start: startDateTimestamp,
+						End:   endDateTimestamp,
+					},
+					Value:             unit.PriceDetail.Price,
+					ValidForRatePlans: []string{unit.RatePlan.Code},
+				},
+			)
+
 			searchResults = append(searchResults, &accommodationv4.AccommodationSearchResult{
 				ResultId: resultIDnum,
 				TotalPrice: &typesv4.TotalPrice{
@@ -119,40 +160,7 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 					CancelPolicy: &typesv4.CancelPolicy{
 						PolicyType: &typesv4.CancelPolicy_ComplexCancelPenalties{
 							ComplexCancelPenalties: &typesv4.ComplexCancelPenalties{
-								CancelPenalties: []*typesv4.CancelPenalty{
-									{
-										DatetimeRange: &typesv4.DateTimeRange{
-											Start: timestamppb.New(now),
-											End:   timestamppb.New(startDateTime.Add(-common.FreeCancellationDuration - 1)),
-										},
-										Value: &typesv4.Price{
-											Value:    "0", // 0% penalty
-											Decimals: unit.PriceDetail.Price.Decimals,
-											Currency: unit.PriceDetail.Price.Currency,
-										},
-										ValidForRatePlans: []string{unit.RatePlan.Code},
-									},
-									{
-										DatetimeRange: &typesv4.DateTimeRange{
-											Start: timestamppb.New(startDateTime.Add(-common.FreeCancellationDuration)),
-											End:   timestamppb.New(startDateTime.Add(-1)),
-										},
-										Value: &typesv4.Price{
-											Value:    fmt.Sprintf("%d", unitPriceValue/10), // 10% penalty
-											Decimals: unit.PriceDetail.Price.Decimals,
-											Currency: unit.PriceDetail.Price.Currency,
-										},
-										ValidForRatePlans: []string{unit.RatePlan.Code},
-									},
-									{
-										DatetimeRange: &typesv4.DateTimeRange{
-											Start: startDateTimestamp,
-											End:   endDateTimestamp,
-										},
-										Value:             unit.PriceDetail.Price,
-										ValidForRatePlans: []string{unit.RatePlan.Code},
-									},
-								},
+								CancelPenalties: cancelPenalties,
 							},
 						},
 					},
@@ -178,7 +186,8 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 					Id:         &typesv4.UUID{Value: uuid.New().String()},
 					Expiration: timestamppb.New(time.Now().Add(state.EntryTimeout)),
 				},
-				Results: searchResults,
+				Results:    searchResults,
+				Travellers: req.Travellers,
 			},
 		},
 	}

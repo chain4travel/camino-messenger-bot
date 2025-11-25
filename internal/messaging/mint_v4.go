@@ -29,7 +29,7 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 
 	buyableUntil, err := h.verifyAndFixBuyableUntil(successResp.BuyableUntil, time.Now())
 	if err != nil {
-		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_UNSPECIFIED, err.Error())
+		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_INTERNAL, err.Error())
 	}
 	successResp.BuyableUntil = buyableUntil
 
@@ -49,7 +49,7 @@ func (h *evmResponseHandler) prepareMintResponseV4(
 		successResp.Cancellable,
 	)
 	if err != nil {
-		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("error minting NFT: %v", err))
+		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, fmt.Sprintf("error minting NFT: %v", err))
 	}
 
 	txID := receipt.TxHash.Hex()
@@ -77,11 +77,11 @@ func (h *evmResponseHandler) processMintResponseV4(
 	}
 
 	if successResp.MintTransactionId == nil {
-		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_UNSPECIFIED, errMissingMintTxID.Error())
+		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, errMissingMintTxID.Error())
 	}
 
 	if !proto.Equal(request.ExpectedPrice, successResp.Price) {
-		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_UNSPECIFIED, "expected price does not match the mint response price")
+		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "expected price does not match the mint response price")
 	}
 
 	tokenID := new(big.Int).SetUint64(successResp.BookingTokenId)
@@ -92,7 +92,7 @@ func (h *evmResponseHandler) processMintResponseV4(
 
 	receipt, err := h.bookingService.BuyBookingToken(ctx, tokenID, price, paymentToken)
 	if err != nil {
-		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("error buying NFT: %v", err))
+		return mintErrResponseV4(typesv4.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, fmt.Sprintf("error buying NFT: %v", err))
 	}
 
 	successResp.BuyTransactionId = &typesv4.EVMTransactionID{Hash: receipt.TxHash.Hex()}

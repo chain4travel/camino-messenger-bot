@@ -183,7 +183,7 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenExpiredNotification))
 	require.NoError(t, protovalidate.Validate(tokenExpiredNotification))
 
-	require.Equal(t, balanceBefore, tt.Balance(ctx, t, tt.distributorBot), "unexpected balance")
+	require.Equal(t, balanceBefore, tt.Balance(ctx, t, tt.distributorBotWithoutFunds), "unexpected balance")
 }
 
 func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.T) {

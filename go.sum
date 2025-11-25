@@ -4,12 +4,16 @@ buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-000000000
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-13183cd03f2e.2/go.mod h1:ZXTHsUk+6mItc6lY4uTQJxRvf00KjIcoTYFrbAk1Fk0=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-475d2af3290e.2 h1:cnw+2YAWrVT6OCC4Euq4F4YbgcrmQcgorESiH3IwnaM=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-475d2af3290e.2/go.mod h1:fQgqXDNS/QTDvvfraJ0MV6G9a3BmG9X3jDhChBUpzWE=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-867f65efc78d.2 h1:Red+2eME4SLq4MPjRzGxlpGoEZOgChpULkgOFTMzroQ=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-867f65efc78d.2/go.mod h1:LuUcWcixLeEs34rRqU2aGjuEM32IdHBIe9CbJBI5zdM=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-ca503d1d2bd8.2 h1:qnwyPMh1SX6SPj/jI0uXJuT8arGYNu1R4D4M4G/9Mx0=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.5.1-00000000000000-ca503d1d2bd8.2/go.mod h1:Ri+XgOz6FW0SmmkATZfpz80r8RKChfzpF5Tq6lGCYqs=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-13183cd03f2e.1 h1:lNKWn1wsMKf2Pr0baTUhivV6+QVQDuJkadwE4PEOXK0=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-13183cd03f2e.1/go.mod h1:BFhyviS/uYeSlahPbg4k9tMd/0/KYjm9Fa6oVdMO9yk=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-475d2af3290e.1 h1:XxKfzD0DjwW9BA5h5eY75ozmlTA9mMIGiKloS6GEswc=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-475d2af3290e.1/go.mod h1:BFhyviS/uYeSlahPbg4k9tMd/0/KYjm9Fa6oVdMO9yk=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-867f65efc78d.1 h1:YxoKyG8KvGVwcI+n237npJQAdFEVnIZ+c6SBlfE5MPc=
+buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-867f65efc78d.1/go.mod h1:BFhyviS/uYeSlahPbg4k9tMd/0/KYjm9Fa6oVdMO9yk=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-ca503d1d2bd8.1 h1:Qeqt5uVLEBJ1a29DVku9fUCU5X8T+6j4jc8YQX0FTjY=
 buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.10-00000000000000-ca503d1d2bd8.1/go.mod h1:BFhyviS/uYeSlahPbg4k9tMd/0/KYjm9Fa6oVdMO9yk=
 buf.build/go/protovalidate v1.0.0 h1:IAG1etULddAy93fiBsFVhpj7es5zL53AfB/79CVGtyY=

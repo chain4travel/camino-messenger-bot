@@ -212,21 +212,20 @@ func (p *messageProcessor) SendRequestMessage(
 	// lookup for CM Account -> bot
 	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccount)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", rpc.ErrBlockchain, err)
 	}
 
 	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.botAddress)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", rpc.ErrBlockchain, err)
 	}
 	if !isBotAllowed {
-		return nil, ErrBotMissingChequeOperatorRole
+		return nil, fmt.Errorf("%w: %v", rpc.ErrBusinessProcess, ErrBotMissingChequeOperatorRole)
 	}
 
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccount, requestMsg.Type.ToServiceName())
 	if err != nil {
-		// TODO @evlekht explicitly say if service is not supported and its not just some network error
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", rpc.ErrBlockchain, err)
 	}
 
 	if serviceFee.Cmp(p.maxAllowedServiceFee) > 0 {
