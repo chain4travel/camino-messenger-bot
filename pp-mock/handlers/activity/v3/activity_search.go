@@ -41,7 +41,7 @@ func (s *activitySearchV3Server) ActivitySearch(_ context.Context, req *activity
 
 	if !common.IsTravelPeriodAllowedV1(req.TravelPeriod) {
 		return &activityv3.ActivitySearchResponse{
-			Header: common.ErrorHeaderV1("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date."),
+			Header: common.ErrorHeaderV1(common.TravelPeriodErrorStr),
 		}, nil
 	}
 

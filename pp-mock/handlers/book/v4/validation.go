@@ -28,11 +28,11 @@ func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.Va
 	// If we don't have a storedSearchData, return an error
 	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchResultIdentifier.SearchId.Value)
 	if !found {
-		return errValidationResp("Invalid validation request: searchId not found in state"), nil
+		return errValidationResp(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Invalid validation request: searchId not found in state"), nil
 	}
 
 	if req.ValidationObject.SearchResultIdentifier.ResultId >= conversion.MustIntToUInt32(len(storedSearchData.Data.Prices)) {
-		return errValidationResp("Invalid validation request: resultId out of range"), nil
+		return errValidationResp(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Invalid validation request: resultId out of range"), nil
 	}
 
 	unifiedValidationPrice := storedSearchData.Data.Prices[req.ValidationObject.SearchResultIdentifier.ResultId]
@@ -60,11 +60,11 @@ func (s *validationServiceV4Server) Validation(_ context.Context, req *bookv4.Va
 	return resp, nil
 }
 
-func errValidationResp(message string) *bookv4.ValidationResponse {
+func errValidationResp(code typesv4.ErrorCode, message string) *bookv4.ValidationResponse {
 	return &bookv4.ValidationResponse{
 		Response: &bookv4.ValidationResponse_ErrorResponse{
 			ErrorResponse: &bookv4.ValidationErrorResponse{
-				Header: common.ErrorHeaderV4(message),
+				Header: common.ErrorHeaderV4(code, message),
 			},
 		},
 	}

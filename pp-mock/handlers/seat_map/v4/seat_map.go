@@ -28,7 +28,7 @@ func (s *seatMapV4Server) SeatMap(_ context.Context, req *seat_mapv4.SeatMapRequ
 		return &seat_mapv4.SeatMapResponse{
 			Response: &seat_mapv4.SeatMapResponse_ErrorResponse{
 				ErrorResponse: &seat_mapv4.SeatMapErrorResponse{
-					Header: common.ErrorHeaderV4("Seat map not found"),
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Seat map not found"),
 				},
 			},
 		}, nil

@@ -34,7 +34,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 		travellersI := req.Queries[i].GetTravellers()
 		for j := i + 1; j < len(req.Queries); j++ {
 			if !common.ProtoSlicesEqual(travellersI, req.Queries[j].GetTravellers()) {
-				return errSearchResp("Unsupported: Traveller definitions must be identical in all queries"), nil
+				return errSearchResp(typesv4.ErrorCode_ERROR_CODE_UNIMPLEMENTED, "Unsupported: Traveller definitions must be identical in all queries"), nil
 			}
 		}
 	}
@@ -43,13 +43,13 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 	uniqueQueryIDs := make(map[uint32]struct{})
 	for _, query := range req.Queries {
 		if _, exists := uniqueQueryIDs[query.QueryId]; exists {
-			return errSearchResp("Unsupported: Duplicate QueryId found in queries"), nil
+			return errSearchResp(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "Unsupported: Duplicate QueryId found in queries"), nil
 		}
 		uniqueQueryIDs[query.QueryId] = struct{}{}
 
 		for _, queryTrip := range query.Trips {
 			if !common.AreTravelDatesValidV4(queryTrip.Departure.Date, queryTrip.Arrival.Date) {
-				return errSearchResp("Invalid travel dates: departure must be before arrival"), nil
+				return errSearchResp(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "Invalid travel dates: departure must be before arrival"), nil
 			}
 		}
 	}
@@ -60,7 +60,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 	case *typesv4.Currency_IsoCurrency:
 		currencyDecimals = price.ISODecimals
 	default:
-		return errSearchResp("Not supported currency type; only NativeToken and ISOCurrency are supported"), nil
+		return errSearchResp(typesv4.ErrorCode_ERROR_CODE_INVALID_CURRENCY, "Not supported currency type; only NativeToken and ISOCurrency are supported"), nil
 	}
 
 	resultID := uint32(0)
@@ -96,7 +96,7 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 				currencyDecimals,
 			)
 			if err != nil {
-				return errSearchResp("Failed to convert tripSegment price to big int"), nil
+				return errSearchResp(typesv4.ErrorCode_ERROR_CODE_INTERNAL, "Failed to convert tripSegment price to big int"), nil
 			}
 
 			totalPriceBig = new(big.Int).Add(totalPriceBig, tripPriceBig)
@@ -152,11 +152,11 @@ func (s *transportSearchV4Server) TransportSearch(_ context.Context, req *transp
 	return resp, nil
 }
 
-func errSearchResp(message string) *transportv4.TransportSearchResponse {
+func errSearchResp(code typesv4.ErrorCode, message string) *transportv4.TransportSearchResponse {
 	return &transportv4.TransportSearchResponse{
 		Response: &transportv4.TransportSearchResponse_ErrorResponse{
 			ErrorResponse: &transportv4.TransportSearchErrorResponse{
-				Header: common.ErrorHeaderV4(message),
+				Header: common.ErrorHeaderV4(code, message),
 			},
 		},
 	}

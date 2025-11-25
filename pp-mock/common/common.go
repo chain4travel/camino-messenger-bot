@@ -4,6 +4,7 @@
 package common
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
@@ -52,6 +53,12 @@ var (
 			Currency: &typesv4.Currency_NativeToken{},
 		},
 	}
+
+	TravelPeriodErrorStr = fmt.Sprintf(
+		"Travel period is outside of the allowed constraints. The range is [now+%d, now+%d] days. Additionally the start date must be before the end date.",
+		TravelPeriodMinStartOffset/(time.Hour*24),
+		(TravelPeriodMinStartOffset+TravelPeriodMaxDuration)/(time.Hour*24),
+	)
 )
 
 func init() {
@@ -222,11 +229,11 @@ func SuccessHeaderV4() *typesv4.SuccessResponseHeader {
 	}
 }
 
-func ErrorHeaderV4(message string) *typesv4.ErrorResponseHeader {
+func ErrorHeaderV4(code typesv4.ErrorCode, message string) *typesv4.ErrorResponseHeader {
 	return &typesv4.ErrorResponseHeader{
 		BaseHeader: &typesv4.Header{Version: &typesv4.Version{}},
 		Errors: []*typesv4.Error{{
-			Code:    typesv4.ErrorCode_ERROR_CODE_INTERNAL,
+			Code:    code,
 			Message: message,
 		}},
 	}

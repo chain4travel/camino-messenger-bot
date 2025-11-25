@@ -31,7 +31,7 @@ func (s *mintServiceV4Server) Mint(_ context.Context, req *bookv4.MintRequest) (
 		return &bookv4.MintResponse{
 			Response: &bookv4.MintResponse_ErrorResponse{
 				ErrorResponse: &bookv4.MintErrorResponse{
-					Header: common.ErrorHeaderV4("Validation not found in state"),
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Validation not found in state"),
 				},
 			},
 		}, nil

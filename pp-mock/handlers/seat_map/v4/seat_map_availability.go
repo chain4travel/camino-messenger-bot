@@ -8,6 +8,7 @@ import (
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v4/seat_mapv4grpc"
 	seat_mapv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/seat_map/v4"
+	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
@@ -42,7 +43,7 @@ func (s *seatMapAvailabilityV4Server) SeatMapAvailability(_ context.Context, req
 		return &seat_mapv4.SeatMapAvailabilityResponse{
 			Response: &seat_mapv4.SeatMapAvailabilityResponse_ErrorResponse{
 				ErrorResponse: &seat_mapv4.SeatMapAvailabilityErrorResponse{
-					Header: common.ErrorHeaderV4("Seat map availability not found for given identifier"),
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Seat map availability not found for given identifier"),
 				},
 			},
 		}, nil

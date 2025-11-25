@@ -32,7 +32,7 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 		return &accommodationv4.AccommodationSearchResponse{
 			Response: &accommodationv4.AccommodationSearchResponse_ErrorResponse{
 				ErrorResponse: &accommodationv4.AccommodationSearchErrorResponse{
-					Header: common.ErrorHeaderV4("Travel period is outside of the allowed constraints. The range is now() - now()+60 days. Additionally the start date must be before the end date."),
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, common.TravelPeriodErrorStr),
 				},
 			},
 		}, nil
