@@ -74,7 +74,7 @@ func (l *migrationLogger) Verbose() bool {
 }
 
 func (s *DB) migrate(migrationsFS fs.FS, dbName string, logMigrations bool) error {
-	s.Logger.Infof("Performing db migrations...")
+	s.Logger.Infof("Performing db migrations for %s...", dbName)
 
 	driver, err := sqlite3.WithInstance(s.DB.DB, &sqlite3.Config{})
 	if err != nil {
@@ -106,12 +106,12 @@ func (s *DB) migrate(migrationsFS fs.FS, dbName string, logMigrations bool) erro
 	if dirty {
 		return errors.New("database in dirty state after previous migration, requires manual fixing")
 	}
-	s.Logger.Infof("Migration version: %d", version)
+	s.Logger.Infof("%s db migration version: %d", dbName, version)
 
 	err = migration.Up()
 	switch {
 	case errors.Is(err, migrate.ErrNoChange):
-		s.Logger.Infof("No migrations needed")
+		s.Logger.Infof("No migrations needed for %s database", dbName)
 	case err != nil:
 		s.Logger.Error(err)
 		return err
@@ -124,9 +124,9 @@ func (s *DB) migrate(migrationsFS fs.FS, dbName string, logMigrations bool) erro
 		if dirty {
 			return errors.New("database in dirty state after previous migration, requires manual fixing")
 		}
-		s.Logger.Infof("New migration version: %d", newVersion)
+		s.Logger.Infof("New %s db migration version: %d", dbName, newVersion)
 	}
 
-	s.Logger.Infof("Finished performing db migrations")
+	s.Logger.Infof("Finished performing db migrations for %s", dbName)
 	return nil
 }
