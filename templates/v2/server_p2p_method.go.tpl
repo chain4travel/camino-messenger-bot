@@ -5,8 +5,10 @@ package generated
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
 	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
@@ -17,31 +19,41 @@ import (
 
 func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) {{METHOD}}(ctx context.Context, request *{{TYPE_PACKAGE}}.{{REQUEST}}) (*{{TYPE_PACKAGE}}.{{RESPONSE}}, error) {
 	if err := protovalidate.Validate(request); err != nil {
-		return s.errorResponse(fmt.Sprintf("request validation failed: %v", err)), nil
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INVALID_PROTO, fmt.Sprintf("request validation failed: %v", err)), nil
 	}
 
 	request.Header.BaseHeader.Version = version.VersionV{{COMMON_TYPES_VERSION}}
 
 	responseIntf, err := s.reqHandler.HandleMessageRequest(ctx, {{SERVICE}}ServiceV{{VERSION}}Request, request)
-	if err != nil {
-		return s.errorResponse(err.Error()), nil
+	switch {
+	case errors.Is(err, rpc.ErrInvalidProto):
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INVALID_PROTO, err.Error()), nil
+	case errors.Is(err, rpc.ErrBlockchain):
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_BLOCKCHAIN_ERROR, err.Error()), nil
+	case errors.Is(err, rpc.ErrBusinessProcess):
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, err.Error()), nil
+	case err != nil:
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INTERNAL, err.Error()), nil
 	}
 
 	response, ok := responseIntf.(*{{TYPE_PACKAGE}}.{{RESPONSE}})
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid response type: expected %s, got %T", {{SERVICE}}ServiceV{{VERSION}}Response, responseIntf)), nil
+		return s.errorResponse(typesv{{COMMON_TYPES_VERSION}}.ErrorCode_ERROR_CODE_INTERNAL, fmt.Sprintf("invalid response type: expected %s, got %T", {{SERVICE}}ServiceV{{VERSION}}Response, responseIntf)), nil
 	}
 
 	return response, nil
 }
 
-func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) errorResponse(errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {
+func (s *{{TYPE_PACKAGE}}{{SERVICE}}Server) errorResponse(code typesv{{COMMON_TYPES_VERSION}}.ErrorCode, errorMessage string) *{{TYPE_PACKAGE}}.{{RESPONSE}} {
 	return &{{TYPE_PACKAGE}}.{{RESPONSE}}{
 		Response: &{{TYPE_PACKAGE}}.{{RESPONSE}}_ErrorResponse{
 			ErrorResponse: &{{TYPE_PACKAGE}}.{{SERVICE}}ErrorResponse{
 				Header: &typesv{{COMMON_TYPES_VERSION}}.ErrorResponseHeader{
 					BaseHeader: &typesv{{COMMON_TYPES_VERSION}}.Header{Version: version.VersionV{{COMMON_TYPES_VERSION}}},
-					Errors:     []*typesv{{COMMON_TYPES_VERSION}}.Error{{Message: errorMessage}},
+					Errors: []*typesv{{COMMON_TYPES_VERSION}}.Error{{
+						Code:    code,
+						Message: errorMessage,
+					}},
 				},
 			},
 		},
