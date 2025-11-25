@@ -179,7 +179,6 @@ func (s *cancellationV2Service) RejectCancellation(
 	ctx context.Context,
 	request *cancellationv2.RejectCancellationRequest,
 ) (*cancellationv2.RejectCancellationResponse, error) {
-
 	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
 		errMessage := fmt.Sprintf("error converting reason to uint16: %v", err)

@@ -212,20 +212,20 @@ func (p *messageProcessor) SendRequestMessage(
 	// lookup for CM Account -> bot
 	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccount)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", rpc.ErrBlockchain, err)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
 	}
 
 	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.botAddress)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", rpc.ErrBlockchain, err)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
 	}
 	if !isBotAllowed {
-		return nil, fmt.Errorf("%w: %v", rpc.ErrBusinessProcess, ErrBotMissingChequeOperatorRole)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBusinessProcess, ErrBotMissingChequeOperatorRole)
 	}
 
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccount, requestMsg.Type.ToServiceName())
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", rpc.ErrBlockchain, err)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
 	}
 
 	if serviceFee.Cmp(p.maxAllowedServiceFee) > 0 {
@@ -280,7 +280,7 @@ func (p *messageProcessor) SendRequestMessage(
 	case responseMsg := <-responseChan:
 		if responseMsg.RequestID == requestMsg.RequestID {
 			if err := protovalidate.Validate(responseMsg.Content); err != nil {
-				return nil, fmt.Errorf("response validation failed: %w: %v", rpc.ErrInvalidProto, err)
+				return nil, fmt.Errorf("response validation failed: %w: %w", rpc.ErrInvalidProto, err)
 			}
 
 			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
