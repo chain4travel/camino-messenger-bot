@@ -77,10 +77,7 @@ func NewServer(
 	opts = append(opts, grpc.ChainUnaryInterceptor(
 		s.unaryRecoverInterceptor,
 		selector.UnaryServerInterceptor( // for all cancellation v1/v2 methods
-			chainUnaryServerInterceptors(
-				s.tracingInterceptor,
-				s.errorHandlingInterceptor,
-			),
+			s.tracingInterceptor,
 			selector.MatchFunc(func(_ context.Context, callMeta interceptors.CallMeta) bool {
 				return cancellationv1grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service ||
 					cancellationv2grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
@@ -177,58 +174,6 @@ func (s *server) HandleMessageRequest(ctx context.Context, requestType types.Mes
 	))
 }
 
-func (s *server) errorHandlingInterceptor(
-	ctx context.Context,
-	request any,
-	_ *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (response any, err error) {
-	response, err = handler(ctx, request)
-	if err != nil {
-		responseProtoMessage, ok := response.(protoreflect.ProtoMessage)
-		if !ok {
-			return response, err
-		}
-		s.responseHeaderHandler.AddError(responseProtoMessage, err.Error()) // TODO@
-	}
-	return response, nil
-}
-
-// // TODO@ will not work for v4, v4 has different structure
-// func (h *responseHeaderHandler) AddError(response protoreflect.ProtoMessage, errMessage string) {
-// 	headerFieldDescriptor := response.ProtoReflect().Descriptor().Fields().ByName("header")
-// 	headerReflectValue := response.ProtoReflect().Get(headerFieldDescriptor)
-
-// 	switch header := headerReflectValue.Message().Interface().(type) {
-// 	case *typesv1.ResponseHeader:
-// 		addErrorToResponseHeaderV1(header, errMessage)
-// 	case *typesv4.ResponseHeader:
-// 		addErrorToResponseHeaderV4(header, errMessage)
-// 	default:
-// 		h.logger.Errorf("failed add error to response header: %v", errMessage)
-// 	}
-// }
-
-// func (h *responseHeaderHandler) AddErrorV1(header *typesv1.ResponseHeader, errMessage string) {
-// 	addErrorToResponseHeaderV1(header, errMessage)
-// }
-
-// func addErrorToResponseHeaderV1(header *typesv1.ResponseHeader, errMessage string) {
-// 	header.Status = typesv1.StatusType_STATUS_TYPE_FAILURE
-// 	header.Alerts = append(header.Alerts, &typesv1.Alert{
-// 		Message: errMessage,
-// 		Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
-// 	})
-// }
-
-// func addErrorToResponseHeaderV4(header *typesv4.ResponseHeader, errMessage string) {
-// 	header.Status = typesv4.StatusType_STATUS_TYPE_FAILURE
-// 	header.Alerts = append(header.Alerts, &typesv4.Alert{
-// 		Message: errMessage,
-// 		Type:    typesv4.AlertType_ALERT_TYPE_ERROR,
-// 	})
-// }
-
 func (s *server) getRecipientAddress(ctx context.Context) (ethCommon.Address, error) {
 	mdPairs, ok := grpcMetadata.FromIncomingContext(ctx)
 	if !ok {
@@ -279,18 +224,4 @@ func (s *server) tracingInterceptor(ctx context.Context, req any, _ *grpc.UnaryS
 	}()
 
 	return handler(ctx, req)
-}
-
-func chainUnaryServerInterceptors(interceptors ...grpc.UnaryServerInterceptor) grpc.UnaryServerInterceptor {
-	composed := interceptors[len(interceptors)-1]
-	for i := len(interceptors) - 2; i >= 0; i-- {
-		interceptor := interceptors[i]
-		next := composed
-		composed = func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-			return interceptor(ctx, req, info, func(ctx2 context.Context, innerReq any) (any, error) {
-				return next(ctx2, innerReq, info, handler)
-			})
-		}
-	}
-	return composed
 }

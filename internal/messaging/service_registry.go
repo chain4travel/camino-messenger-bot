@@ -58,7 +58,7 @@ func NewServiceRegistry(
 			servicesNames[serviceName] = struct{}{}
 		}
 
-		services = generated.RegisterClientServices(rpcClient.ClientConn, servicesNames)
+		services = generated.RegisterServiceClients(rpcClient.ClientConn, servicesNames)
 
 		logStr += "\n"
 		logger.Info(logStr)

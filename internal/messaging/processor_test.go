@@ -79,7 +79,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 	networkFeeCMAccount := ethCommon.Address{6}
 
 	responseMessage := &types.Message{
-		Type:       generated.PingV1Response,
+		Type:       generated.PingServiceV1Response,
 		RequestID:  requestID,
 		Timestamps: metadata.Timestamps{},
 	}
@@ -119,7 +119,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			},
 			args: args{
 				requestMessage: &types.Message{
-					Type:       generated.PingV1Request,
+					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
 				serviceFeeCheque:       serviceFeeCheque,
@@ -144,7 +144,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			args: args{
 				requestMessage: &types.Message{
 					RequestID:  requestID,
-					Type:       generated.PingV1Request,
+					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
 				serviceFeeCheque:       serviceFeeCheque,
@@ -170,7 +170,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 			args: args{
 				requestMessage: &types.Message{
 					RequestID:  requestID,
-					Type:       generated.PingV1Request,
+					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
 				serviceFeeCheque:       serviceFeeCheque,
@@ -237,7 +237,7 @@ func TestSendRequestMessage(t *testing.T) {
 	requestID := "requestID"
 
 	responseMessage := &types.Message{
-		Type:      generated.PingV1Response,
+		Type:      generated.PingServiceV1Response,
 		RequestID: requestID,
 	}
 
@@ -295,7 +295,7 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:       generated.PingV1Request,
+					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
 				recipientCMAccount: recipientCMAccount,
@@ -315,7 +315,7 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:       generated.PingV1Request,
+					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
 				recipientCMAccount: recipientCMAccount,
@@ -336,7 +336,7 @@ func TestSendRequestMessage(t *testing.T) {
 			},
 			args: args{
 				msg: &types.Message{
-					Type:       generated.PingV1Request,
+					Type:       generated.PingServiceV1Request,
 					RequestID:  requestID,
 					Timestamps: metadata.Timestamps{},
 				},
@@ -413,7 +413,7 @@ func TestStart(t *testing.T) {
 	networkFeeCMAccount := ethCommon.Address{6}
 
 	requestMsg := &types.Message{
-		Type:       generated.PingV1Request,
+		Type:       generated.PingServiceV1Request,
 		RequestID:  "requestID",
 		Timestamps: metadata.Timestamps{},
 	}
@@ -459,7 +459,7 @@ func TestStart(t *testing.T) {
 	serviceFee := big.NewInt(1)
 	respNetworkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
 	responseMessage := &types.Message{
-		Type:       generated.PingV1Response,
+		Type:       generated.PingServiceV1Response,
 		RequestID:  requestMsg.RequestID,
 		Timestamps: metadata.Timestamps{},
 	}

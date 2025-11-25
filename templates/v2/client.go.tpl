@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	{{SERVICE}}V{{VERSION}} = "{{FQPN}}"
-	{{SERVICE}}V{{VERSION}}Request  types.MessageType = types.MessageType({{SERVICE}}V{{VERSION}} + ".Request")
-	{{SERVICE}}V{{VERSION}}Response types.MessageType = types.MessageType({{SERVICE}}V{{VERSION}} + ".Response")
+	{{SERVICE}}ServiceV{{VERSION}} = "{{FQPN}}"
+	{{SERVICE}}ServiceV{{VERSION}}Request  types.MessageType = types.MessageType({{SERVICE}}ServiceV{{VERSION}} + ".Request")
+	{{SERVICE}}ServiceV{{VERSION}}Response types.MessageType = types.MessageType({{SERVICE}}ServiceV{{VERSION}} + ".Response")
 )
 
 var _ rpc.Client = (*{{SERVICE}}V{{VERSION}}Client)(nil)
 
-func New{{SERVICE}}V{{VERSION}}(grpcCon *grpc.ClientConn) *{{SERVICE}}V{{VERSION}}Client {
+func New{{SERVICE}}ServiceV{{VERSION}}Client(grpcCon *grpc.ClientConn) *{{SERVICE}}V{{VERSION}}Client {
 	client := {{GRPC_PACKAGE}}.New{{SERVICE}}ServiceClient(grpcCon)
 	return &{{SERVICE}}V{{VERSION}}Client{client: client}
 }

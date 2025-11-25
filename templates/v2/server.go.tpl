@@ -17,6 +17,6 @@ type {{TYPE_PACKAGE}}{{SERVICE}}Server struct {
 	reqHandler rpc.RequestHandler
 }
 
-func register{{SERVICE}}V{{VERSION}}Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
+func register{{SERVICE}}ServiceV{{VERSION}}Server(grpcServer *grpc.Server, reqHandler rpc.RequestHandler) {
 	{{GRPC_PACKAGE}}.Register{{SERVICE}}ServiceServer(grpcServer, &{{TYPE_PACKAGE}}{{SERVICE}}Server{reqHandler})
 }

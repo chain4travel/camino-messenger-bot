@@ -18,11 +18,11 @@ import (
 )
 
 func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
-	messageType := {{SERVICE}}V{{VERSION}}Response
+	messageType := {{SERVICE}}ServiceV{{VERSION}}Response
 
 	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}})
 	if !ok {
-		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}V{{VERSION}}Request, requestIntf)), messageType
+		return s.errorResponse(fmt.Sprintf("invalid request type: expected %s, got %T", {{SERVICE}}ServiceV{{VERSION}}Request, requestIntf)), messageType
 	}
 	
 	response, err := s.client.{{METHOD}}(ctx, request, opts...)
@@ -39,7 +39,7 @@ func (s {{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pro
 }
 
 func (s *{{SERVICE}}V{{VERSION}}Client) ErrorResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
-	return s.errorResponse(errorMessage), {{SERVICE}}V{{VERSION}}Response
+	return s.errorResponse(errorMessage), {{SERVICE}}ServiceV{{VERSION}}Response
 }
 
 func (s *{{SERVICE}}V{{VERSION}}Client) errorResponse(errorMessage string) protoreflect.ProtoMessage {

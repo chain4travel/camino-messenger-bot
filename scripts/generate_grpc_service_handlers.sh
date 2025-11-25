@@ -163,12 +163,12 @@ function generate_register_services_client() {
 		echo "    \"google.golang.org/grpc\""
 		echo ")"
 		echo
-		echo "func RegisterClientServices(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {"
+		echo "func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {"
 		echo "    services := make(map[types.MessageType]rpc.Service, len(serviceNames))"
 		echo
 		for service in "${_SERVICES[@]}" ; do
 			echo "    if _, ok := serviceNames[${service}]; ok {"
-			echo "        services[${service}Request] = rpc.NewService(New${service}(rpcConn), ${service})"
+			echo "        services[${service}Request] = rpc.NewService(New${service}Client(rpcConn), ${service})"
 			echo "        delete(serviceNames, ${service})"
 			echo "    }"
 		done
@@ -434,8 +434,8 @@ while read -r file ; do
 		# PingServiceV1Request pingv1 PingRequest
 		# PingServiceV1Response pingv1 PingResponse
 		if [[ "$ROUTING" == "p2p" ]]; then
-			UNMARSHAL_METHODS+=("${SERVICE}V${VERSION:1}Request $TYPE $INPUT")
-			UNMARSHAL_METHODS+=("${SERVICE}V${VERSION:1}Response $TYPE $OUTPUT")
+			UNMARSHAL_METHODS+=("${SERVICE}ServiceV${VERSION:1}Request $TYPE $INPUT")
+			UNMARSHAL_METHODS+=("${SERVICE}ServiceV${VERSION:1}Response $TYPE $OUTPUT")
 		fi
 
 		echo " ◉ $method (↓ in: '$INPUT' - ↑ out: '$OUTPUT')"
@@ -455,11 +455,11 @@ while read -r file ; do
 
 	E2E_GRPC_INCLUDES+=("$GRPC_INCLUDE")
 	E2E_PACKAGES+=("$PACKAGE")
-	E2E_TYPES+=("${SERVICE}Client")
-	E2E_CLIENT_FIELDS+=("${SERVICE}V${VERSION:1}")
+	E2E_TYPES+=("${SERVICE}ServiceClient")
+	E2E_CLIENT_FIELDS+=("${SERVICE}ServiceV${VERSION:1}")
 
 	if [[ "$ROUTING" == "p2p" ]]; then
-		SERVICES_TO_REGISTER+=("${SERVICE}V${VERSION:1}")
+		SERVICES_TO_REGISTER+=("${SERVICE}ServiceV${VERSION:1}")
 		PROTO_INCLUDES_FOR_UNMARSHALLING+=("$PROTO_INCLUDE")
 	fi
 
@@ -469,7 +469,7 @@ done < <(find "$SDK_GRPC_PATH/cmp/services/" -name "*_grpc.pb.go" | sort)
 generate_register_services_server "$REGISTER_SERVICES_SERVER_FILE" SERVICES_TO_REGISTER
 generate_register_services_client "$REGISTER_SERVICES_CLIENT_FILE" SERVICES_TO_REGISTER
 generate_unmarshalling "$UNMARSHALLING_FILE" PROTO_INCLUDES_FOR_UNMARSHALLING UNMARSHAL_METHODS
-generate_e2e_bot_client "${E2E_BOT_CLIENT_FILE}" E2E_GRPC_INCLUDES E2E_PACKAGES E2E_TYPES E2E_CLIENT_FIELDS
+generate_e2e_bot_client "$E2E_BOT_CLIENT_FILE" E2E_GRPC_INCLUDES E2E_PACKAGES E2E_TYPES E2E_CLIENT_FIELDS
 
 echo "🧹 Running gofumpt on all generated files"
 $FUMPT -w $P2P_OUTPATH

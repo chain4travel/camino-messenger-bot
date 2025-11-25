@@ -59,36 +59,36 @@ func (s *cancellationV1Service) InitiateCancellation(
 	ctx context.Context,
 	request *cancellationv1.InitiateCancellationRequest,
 ) (*cancellationv1.InitiateCancellationResponse, error) {
-	response := &cancellationv1.InitiateCancellationResponse{
-		Header: &typesv1.ResponseHeader{
-			BaseHeader: &typesv1.Header{Version: version.VersionV1},
-		},
-	}
-
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
-		err := fmt.Errorf("error getting price and token: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error getting price and token: %v", err)
+		s.logger.Error(errMsg)
+		return initiateCancellationErrorResponse(errMsg), nil
+	}
+
+	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
+	if err != nil {
+		errMsg := fmt.Sprintf("error converting reason to uint16: %v", err)
+		s.logger.Error(errMsg)
+		return initiateCancellationErrorResponse(errMsg), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 
-	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
-	if err != nil {
-		err := fmt.Errorf("error converting reason to uint16: %w", err)
-		s.logger.Error(err)
-		return response, err
-	}
-
 	receipt, err := s.cmAccounts.InitiateCancellationProposal(ctx, s.botKey, s.cmAccountAddr, tokenID, refundAmount, reasonValue, cancellationReasonVersion)
 	if err != nil {
-		err := fmt.Errorf("error initiating cancellation proposal: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error initiating cancellation proposal: %v", err)
+		s.logger.Error(errMsg)
+		return initiateCancellationErrorResponse(errMsg), nil
 	}
 
-	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response := &cancellationv1.InitiateCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		TransactionId: &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()},
+	}
 
 	s.logger.Infof("Initiated cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
@@ -99,35 +99,36 @@ func (s *cancellationV1Service) CounterCancellation(
 	ctx context.Context,
 	request *cancellationv1.CounterCancellationRequest,
 ) (*cancellationv1.CounterCancellationResponse, error) {
-	response := &cancellationv1.CounterCancellationResponse{
-		Header: &typesv1.ResponseHeader{
-			BaseHeader: &typesv1.Header{Version: version.VersionV1},
-		},
-	}
-
-	tokenID := new(big.Int).SetUint64(request.TokenId)
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
-		err := fmt.Errorf("error getting price and token: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error getting price and token: %v", err)
+		s.logger.Error(errMsg)
+		return counterCancellationErrorResponse(errMsg), nil
 	}
 
 	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
 	if err != nil {
-		err := fmt.Errorf("error converting reason to uint16: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error converting reason to uint16: %v", err)
+		s.logger.Error(errMsg)
+		return counterCancellationErrorResponse(errMsg), nil
 	}
+
+	tokenID := new(big.Int).SetUint64(request.TokenId)
 
 	receipt, err := s.cmAccounts.CounterCancellation(ctx, s.botKey, s.cmAccountAddr, tokenID, refundAmount, reasonValue, counterReasonVersion)
 	if err != nil {
-		err := fmt.Errorf("error countering cancellation proposal: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error countering cancellation proposal: %v", err)
+		s.logger.Error(errMsg)
+		return counterCancellationErrorResponse(errMsg), nil
 	}
 
-	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response := &cancellationv1.CounterCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		TransactionId: &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()},
+	}
 
 	s.logger.Infof("Countered cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
@@ -138,28 +139,29 @@ func (s *cancellationV1Service) AcceptCancellation(
 	ctx context.Context,
 	request *cancellationv1.AcceptCancellationRequest,
 ) (*cancellationv1.AcceptCancellationResponse, error) {
-	response := &cancellationv1.AcceptCancellationResponse{
-		Header: &typesv1.ResponseHeader{
-			BaseHeader: &typesv1.Header{Version: version.VersionV1},
-		},
+	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
+	if err != nil {
+		errMsg := fmt.Sprintf("error getting price and payment token: %v", err)
+		s.logger.Error(errMsg)
+		return acceptCancellationErrorResponse(errMsg), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
-	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
-	if err != nil {
-		err := fmt.Errorf("error getting price and payment token: %w", err)
-		s.logger.Error(err)
-		return response, err
-	}
 
 	receipt, err := s.cmAccounts.AcceptCancellationProposal(ctx, s.botKey, s.cmAccountAddr, tokenID, refundAmount)
 	if err != nil {
-		err := fmt.Errorf("error accepting cancellation proposal: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error accepting cancellation proposal: %v", err)
+		s.logger.Error(errMsg)
+		return acceptCancellationErrorResponse(errMsg), nil
 	}
 
-	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response := &cancellationv1.AcceptCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		TransactionId: &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()},
+	}
 
 	s.logger.Infof("Accepted cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
@@ -170,29 +172,29 @@ func (s *cancellationV1Service) RejectCancellation(
 	ctx context.Context,
 	request *cancellationv1.RejectCancellationRequest,
 ) (*cancellationv1.RejectCancellationResponse, error) {
-	response := &cancellationv1.RejectCancellationResponse{
-		Header: &typesv1.ResponseHeader{
-			BaseHeader: &typesv1.Header{Version: version.VersionV1},
-		},
+	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
+	if err != nil {
+		errMsg := fmt.Sprintf("error converting reason to uint16: %v", err)
+		s.logger.Error(errMsg)
+		return rejectCancellationErrorResponse(errMsg), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 
-	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
-	if err != nil {
-		err := fmt.Errorf("error converting reason to uint16: %w", err)
-		s.logger.Error(err)
-		return response, err
-	}
-
 	receipt, err := s.cmAccounts.RejectCancellationProposal(ctx, s.botKey, s.cmAccountAddr, tokenID, reasonValue, rejectReasonVersion)
 	if err != nil {
-		err := fmt.Errorf("error rejecting cancellation proposal: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error rejecting cancellation proposal: %v", err)
+		s.logger.Error(errMsg)
+		return rejectCancellationErrorResponse(errMsg), nil
 	}
 
-	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response := &cancellationv1.RejectCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		TransactionId: &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()},
+	}
 
 	s.logger.Infof("Rejected cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
@@ -203,29 +205,29 @@ func (s *cancellationV1Service) WithdrawCancellation(
 	ctx context.Context,
 	request *cancellationv1.WithdrawCancellationRequest,
 ) (*cancellationv1.WithdrawCancellationResponse, error) {
-	response := &cancellationv1.WithdrawCancellationResponse{
-		Header: &typesv1.ResponseHeader{
-			BaseHeader: &typesv1.Header{Version: version.VersionV1},
-		},
+	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
+	if err != nil {
+		errMsg := fmt.Sprintf("error converting reason to uint16: %v", err)
+		s.logger.Error(errMsg)
+		return withdrawCancellationErrorResponse(errMsg), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 
-	reasonValue, err := conversion.ProtoEnumNumberToUInt16(request.Reason.Number())
-	if err != nil {
-		err := fmt.Errorf("error converting reason to uint16: %w", err)
-		s.logger.Error(err)
-		return response, err
-	}
-
 	receipt, err := s.cmAccounts.WithdrawCancellation(ctx, s.botKey, s.cmAccountAddr, tokenID, reasonValue, withdrawReasonVersion)
 	if err != nil {
-		err := fmt.Errorf("error withdrawing cancellation proposal: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error withdrawing cancellation proposal: %v", err)
+		s.logger.Error(errMsg)
+		return withdrawCancellationErrorResponse(errMsg), nil
 	}
 
-	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response := &cancellationv1.WithdrawCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		TransactionId: &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()},
+	}
 
 	s.logger.Infof("Withdrawn cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
@@ -236,31 +238,109 @@ func (s *cancellationV1Service) FinalizeCancellation(
 	ctx context.Context,
 	request *cancellationv1.FinalizeCancellationRequest,
 ) (*cancellationv1.FinalizeCancellationResponse, error) {
-	response := &cancellationv1.FinalizeCancellationResponse{
-		Header: &typesv1.ResponseHeader{
-			BaseHeader: &typesv1.Header{Version: version.VersionV1},
-		},
-	}
-
 	refundAmount, _, _, err := s.priceHandler.GetPriceAndTokenV3(ctx, request.RefundAmount)
 	if err != nil {
-		err := fmt.Errorf("error getting price and token: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error getting price and token: %v", err)
+		s.logger.Error(errMsg)
+		return finalizeCancellationErrorResponse(errMsg), nil
 	}
 
 	tokenID := new(big.Int).SetUint64(request.TokenId)
 
 	receipt, err := s.cmAccounts.FinalizeCancellation(ctx, s.botKey, s.cmAccountAddr, tokenID, refundAmount)
 	if err != nil {
-		err := fmt.Errorf("error finalizing cancellation proposal: %w", err)
-		s.logger.Error(err)
-		return response, err
+		errMsg := fmt.Sprintf("error finalizing cancellation proposal: %v", err)
+		s.logger.Error(errMsg)
+		return finalizeCancellationErrorResponse(errMsg), nil
 	}
 
-	response.TransactionId = &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()}
+	response := &cancellationv1.FinalizeCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_SUCCESS,
+		},
+		TransactionId: &typesv3.EVMTransactionID{Hash: receipt.TxHash.Hex()},
+	}
 
 	s.logger.Infof("Finalized cancellation for token %s with tx: %s", tokenID.String(), response.TransactionId.Hash)
 
 	return response, nil
+}
+
+func initiateCancellationErrorResponse(errorMessage string) *cancellationv1.InitiateCancellationResponse {
+	return &cancellationv1.InitiateCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
+}
+
+func counterCancellationErrorResponse(errorMessage string) *cancellationv1.CounterCancellationResponse {
+	return &cancellationv1.CounterCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
+}
+
+func acceptCancellationErrorResponse(errorMessage string) *cancellationv1.AcceptCancellationResponse {
+	return &cancellationv1.AcceptCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
+}
+
+func rejectCancellationErrorResponse(errorMessage string) *cancellationv1.RejectCancellationResponse {
+	return &cancellationv1.RejectCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
+}
+
+func withdrawCancellationErrorResponse(errorMessage string) *cancellationv1.WithdrawCancellationResponse {
+	return &cancellationv1.WithdrawCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
+}
+
+func finalizeCancellationErrorResponse(errorMessage string) *cancellationv1.FinalizeCancellationResponse {
+	return &cancellationv1.FinalizeCancellationResponse{
+		Header: &typesv1.ResponseHeader{
+			BaseHeader: &typesv1.Header{Version: version.VersionV1},
+			Status:     typesv1.StatusType_STATUS_TYPE_FAILURE,
+			Alerts: []*typesv1.Alert{{
+				Message: errorMessage,
+				Type:    typesv1.AlertType_ALERT_TYPE_ERROR,
+			}},
+		},
+	}
 }
