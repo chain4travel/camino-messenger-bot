@@ -22,19 +22,19 @@ var (
 )
 
 type SignedCheque struct {
-	Cheque    `json:"cheque"`
-	Signature []byte `json:"signature"`
+	Cheque
+	Signature []byte
 }
 
 type Cheque struct {
-	FromCMAccount common.Address `json:"fromCMAccount"`
-	ToCMAccount   common.Address `json:"toCMAccount"`
-	ToBot         common.Address `json:"toBot"`
-	Counter       *big.Int       `json:"counter"`
-	Amount        *big.Int       `json:"amount"`
-	CreatedAt     *big.Int       `json:"createdAt"`
-	ExpiresAt     *big.Int       `json:"expiresAt"`
-	PaymentToken  common.Address `json:"paymentToken"`
+	FromCMAccount common.Address
+	ToCMAccount   common.Address
+	ToBot         common.Address
+	Counter       *big.Int
+	Amount        *big.Int
+	CreatedAt     *big.Int
+	ExpiresAt     *big.Int
+	PaymentToken  common.Address
 }
 
 type signedChequeJSON struct {
