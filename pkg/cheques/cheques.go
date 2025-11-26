@@ -4,11 +4,14 @@
 package cheques
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var (
@@ -19,19 +22,95 @@ var (
 )
 
 type SignedCheque struct {
-	Cheque
-	Signature []byte
+	Cheque    `json:"cheque"`
+	Signature []byte `json:"signature"`
 }
 
 type Cheque struct {
-	FromCMAccount common.Address
-	ToCMAccount   common.Address
-	ToBot         common.Address
-	Counter       *big.Int
-	Amount        *big.Int
-	CreatedAt     *big.Int
-	ExpiresAt     *big.Int
-	PaymentToken  common.Address
+	FromCMAccount common.Address `json:"fromCMAccount"`
+	ToCMAccount   common.Address `json:"toCMAccount"`
+	ToBot         common.Address `json:"toBot"`
+	Counter       *big.Int       `json:"counter"`
+	Amount        *big.Int       `json:"amount"`
+	CreatedAt     *big.Int       `json:"createdAt"`
+	ExpiresAt     *big.Int       `json:"expiresAt"`
+	PaymentToken  common.Address `json:"paymentToken"`
+}
+
+type signedChequeJSON struct {
+	Cheque    chequeJSON `json:"cheque"`
+	Signature string     `json:"signature"`
+}
+
+type chequeJSON struct {
+	FromCMAccount string `json:"fromCMAccount"`
+	ToCMAccount   string `json:"toCMAccount"`
+	ToBot         string `json:"toBot"`
+	Counter       string `json:"counter"`
+	Amount        string `json:"amount"`
+	CreatedAt     string `json:"createdAt"`
+	ExpiresAt     string `json:"expiresAt"`
+	PaymentToken  string `json:"paymentToken"`
+}
+
+func (sc *SignedCheque) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&signedChequeJSON{
+		Cheque: chequeJSON{
+			FromCMAccount: sc.Cheque.FromCMAccount.Hex(),
+			ToCMAccount:   sc.Cheque.ToCMAccount.Hex(),
+			ToBot:         sc.Cheque.ToBot.Hex(),
+			Counter:       hexutil.EncodeBig(sc.Cheque.Counter),
+			Amount:        hexutil.EncodeBig(sc.Cheque.Amount),
+			CreatedAt:     hexutil.EncodeBig(sc.Cheque.CreatedAt),
+			ExpiresAt:     hexutil.EncodeBig(sc.Cheque.ExpiresAt),
+			PaymentToken:  sc.Cheque.PaymentToken.Hex(),
+		},
+		Signature: hex.EncodeToString(sc.Signature),
+	})
+}
+
+func (sc *SignedCheque) UnmarshalJSON(data []byte) error {
+	var raw signedChequeJSON
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	counter, err := hexutil.DecodeBig(raw.Cheque.Counter)
+	if err != nil {
+		return err
+	}
+	sc.Cheque.Counter = counter
+
+	amount, err := hexutil.DecodeBig(raw.Cheque.Amount)
+	if err != nil {
+		return err
+	}
+	sc.Cheque.Amount = amount
+
+	createdAt, err := hexutil.DecodeBig(raw.Cheque.CreatedAt)
+	if err != nil {
+		return err
+	}
+	sc.Cheque.CreatedAt = createdAt
+
+	expiresAt, err := hexutil.DecodeBig(raw.Cheque.ExpiresAt)
+	if err != nil {
+		return err
+	}
+	sc.Cheque.ExpiresAt = expiresAt
+
+	signatureBytes, err := hex.DecodeString(raw.Signature)
+	if err != nil {
+		return fmt.Errorf("invalid signature hex string: %w", err)
+	}
+	sc.Signature = signatureBytes
+
+	sc.Cheque.FromCMAccount = common.HexToAddress(raw.Cheque.FromCMAccount)
+	sc.Cheque.ToCMAccount = common.HexToAddress(raw.Cheque.ToCMAccount)
+	sc.Cheque.ToBot = common.HexToAddress(raw.Cheque.ToBot)
+	sc.Cheque.PaymentToken = common.HexToAddress(raw.Cheque.PaymentToken)
+
+	return nil
 }
 
 func VerifyCheque(previousCheque, newCheque *SignedCheque, timestamp, minDurationUntilExpiration *big.Int) error {
