@@ -38,11 +38,6 @@ type Cheque struct {
 }
 
 type signedChequeJSON struct {
-	Cheque    chequeJSON `json:"cheque"`
-	Signature string     `json:"signature"`
-}
-
-type chequeJSON struct {
 	FromCMAccount string `json:"fromCMAccount"`
 	ToCMAccount   string `json:"toCMAccount"`
 	ToBot         string `json:"toBot"`
@@ -51,64 +46,60 @@ type chequeJSON struct {
 	CreatedAt     string `json:"createdAt"`
 	ExpiresAt     string `json:"expiresAt"`
 	PaymentToken  string `json:"paymentToken"`
+	Signature     string `json:"signature"`
 }
 
-func (sc *SignedCheque) MarshalJSON() ([]byte, error) {
+func (sc SignedCheque) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&signedChequeJSON{
-		Cheque: chequeJSON{
-			FromCMAccount: sc.Cheque.FromCMAccount.Hex(),
-			ToCMAccount:   sc.Cheque.ToCMAccount.Hex(),
-			ToBot:         sc.Cheque.ToBot.Hex(),
-			Counter:       hexutil.EncodeBig(sc.Cheque.Counter),
-			Amount:        hexutil.EncodeBig(sc.Cheque.Amount),
-			CreatedAt:     hexutil.EncodeBig(sc.Cheque.CreatedAt),
-			ExpiresAt:     hexutil.EncodeBig(sc.Cheque.ExpiresAt),
-			PaymentToken:  sc.Cheque.PaymentToken.Hex(),
-		},
-		Signature: hex.EncodeToString(sc.Signature),
+		FromCMAccount: sc.Cheque.FromCMAccount.Hex(),
+		ToCMAccount:   sc.Cheque.ToCMAccount.Hex(),
+		ToBot:         sc.Cheque.ToBot.Hex(),
+		Counter:       hexutil.EncodeBig(sc.Cheque.Counter),
+		Amount:        hexutil.EncodeBig(sc.Cheque.Amount),
+		CreatedAt:     hexutil.EncodeBig(sc.Cheque.CreatedAt),
+		ExpiresAt:     hexutil.EncodeBig(sc.Cheque.ExpiresAt),
+		PaymentToken:  sc.Cheque.PaymentToken.Hex(),
+		Signature:     hex.EncodeToString(sc.Signature),
 	})
 }
 
 func (sc *SignedCheque) UnmarshalJSON(data []byte) error {
 	var raw signedChequeJSON
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
 
-	counter, err := hexutil.DecodeBig(raw.Cheque.Counter)
+	err := json.Unmarshal(data, &raw)
 	if err != nil {
 		return err
 	}
-	sc.Cheque.Counter = counter
 
-	amount, err := hexutil.DecodeBig(raw.Cheque.Amount)
+	sc.Cheque.Counter, err = hexutil.DecodeBig(raw.Counter)
 	if err != nil {
 		return err
 	}
-	sc.Cheque.Amount = amount
 
-	createdAt, err := hexutil.DecodeBig(raw.Cheque.CreatedAt)
+	sc.Cheque.Amount, err = hexutil.DecodeBig(raw.Amount)
 	if err != nil {
 		return err
 	}
-	sc.Cheque.CreatedAt = createdAt
 
-	expiresAt, err := hexutil.DecodeBig(raw.Cheque.ExpiresAt)
+	sc.Cheque.CreatedAt, err = hexutil.DecodeBig(raw.CreatedAt)
 	if err != nil {
 		return err
 	}
-	sc.Cheque.ExpiresAt = expiresAt
 
-	signatureBytes, err := hex.DecodeString(raw.Signature)
+	sc.Cheque.ExpiresAt, err = hexutil.DecodeBig(raw.ExpiresAt)
+	if err != nil {
+		return err
+	}
+
+	sc.Signature, err = hex.DecodeString(raw.Signature)
 	if err != nil {
 		return fmt.Errorf("invalid signature hex string: %w", err)
 	}
-	sc.Signature = signatureBytes
 
-	sc.Cheque.FromCMAccount = common.HexToAddress(raw.Cheque.FromCMAccount)
-	sc.Cheque.ToCMAccount = common.HexToAddress(raw.Cheque.ToCMAccount)
-	sc.Cheque.ToBot = common.HexToAddress(raw.Cheque.ToBot)
-	sc.Cheque.PaymentToken = common.HexToAddress(raw.Cheque.PaymentToken)
+	sc.Cheque.FromCMAccount = common.HexToAddress(raw.FromCMAccount)
+	sc.Cheque.ToCMAccount = common.HexToAddress(raw.ToCMAccount)
+	sc.Cheque.ToBot = common.HexToAddress(raw.ToBot)
+	sc.Cheque.PaymentToken = common.HexToAddress(raw.PaymentToken)
 
 	return nil
 }
