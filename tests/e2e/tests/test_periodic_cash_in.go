@@ -172,3 +172,5 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 	checkNativeBalance(initialSupplierBalance, tt.supplierBot.CMAccountAddress())
 	checkNativeBalance(initialASBBalance, tt.ASB.NetworkFeeRecipientCMAccountAddress())
 }
+
+// TODO@ make sure that supplier sends network fee cheque and its tested here; it looks like there is only one network fee expected on asb, but it should be x2, because request+fee, response+fee
