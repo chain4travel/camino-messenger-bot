@@ -95,12 +95,12 @@ var seatMapV4JSON []byte
 var seatMapAvailabilityV4JSON []byte
 
 var (
-	PropertiesV2             []*accommodationv2.PropertyExtendedInfo // used by product list, info and search
-	PropertiesV3             []*accommodationv3.PropertyExtendedInfo // used by product list, info and search
-	PropertiesV4             []*accommodationv4.PropertyExtendedInfo // used by product list, info and search
-	ServiceFactsV4           []*typesv4.ServiceFact                  // TODO@
-	ServiceFactDefinitionsV4 []*typesv4.ServiceFactDefinition        // TODO@
-	ServicesV4               []*accommodation.ServiceV4              // TODO@
+	PropertiesV2                    []*accommodationv2.PropertyExtendedInfo   // used by product list, info and search
+	PropertiesV3                    []*accommodationv3.PropertyExtendedInfo   // used by product list, info and search
+	PropertiesV4                    []*accommodationv4.PropertyExtendedInfo   // used by product list, info and search
+	ServiceFactsV4                  []*typesv4.ServiceFact                    // TODO@
+	ServiceFactDefinitionsV4        []*typesv4.ServiceFactDefinition          // TODO@
+	ServiceFactDefinitionsV4Mapping map[string]*typesv4.ServiceFactDefinition // TODO@
 
 	TripsV2 []*transportv2.Trip // used by search
 
@@ -135,7 +135,7 @@ func init() {
 	PropertiesV4 = mustUnmarshalStrictAndValidate[*accommodationv4.PropertyExtendedInfo](propertiesV4JSON, "error unmarshaling properties v4")
 	ServiceFactsV4 = mustUnmarshalStrictAndValidate[*typesv4.ServiceFact](serviceFactsV4JSON, "error unmarshaling service facts v4")
 	ServiceFactDefinitionsV4 = mustUnmarshalStrictAndValidate[*typesv4.ServiceFactDefinition](serviceFactDefinitionsV4JSON, "error unmarshaling service fact definitions v4")
-	ServicesV4 = accommodation.VerifyAndGetServices(ServiceFactsV4, ServiceFactDefinitionsV4)
+	ServiceFactDefinitionsV4Mapping = accommodation.VerifyAndGetMapping(ServiceFactsV4, ServiceFactDefinitionsV4)
 	// TransportV2
 	TripsV2 = mustUnmarshalStrictAndValidate[*transportv2.Trip](tripsV2JSON, "error unmarshaling trips v2")
 	// TransportV3

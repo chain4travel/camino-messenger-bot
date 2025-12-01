@@ -7,7 +7,8 @@
                 "currency": {
                     "isoCurrency": "ISO_CURRENCY_USD"
                 }
-            }
+            },
+            "chargeType": "CHARGE_TYPE_PER_PERSON"
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
         "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
@@ -22,7 +23,8 @@
                 "currency": {
                     "isoCurrency": "ISO_CURRENCY_USD"
                 }
-            }
+            },
+            "chargeType": "CHARGE_TYPE_PER_PERSON"
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_COMPULSORY",
         "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
@@ -38,7 +40,8 @@
                     "isoCurrency": "ISO_CURRENCY_USD"
                 }
             },
-            "locally_payable": true
+            "chargeType": "CHARGE_TYPE_PER_PERSON", // need one, but no match with chargeBasis
+            "locallyPayable": true
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_COMPULSORY",
         "chargeBasis": "CHARGE_BASIS_TYPE_PER_DAY",
@@ -53,7 +56,8 @@
                 "currency": {
                     "isoCurrency": "ISO_CURRENCY_USD"
                 }
-            }
+            },
+            "chargeType": "CHARGE_TYPE_PER_PERSON" // need one, but no match with chargeBasis
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_OPTIONAL",
         "chargeBasis": "CHARGE_BASIS_TYPE_ONCE",
@@ -68,7 +72,8 @@
                 "currency": {
                     "isoCurrency": "ISO_CURRENCY_USD"
                 }
-            }
+            },
+            "chargeType": "CHARGE_TYPE_PER_PERSON"
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_OPTIONAL",
         "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
@@ -83,7 +88,8 @@
                         "currency": {
                             "isoCurrency": "ISO_CURRENCY_USD"
                         }
-                    }
+                    },
+                    "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
                 "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
@@ -98,7 +104,8 @@
                         "currency": {
                             "isoCurrency": "ISO_CURRENCY_USD"
                         }
-                    }
+                    },
+                    "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
                 "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
@@ -113,7 +120,8 @@
                         "currency": {
                             "isoCurrency": "ISO_CURRENCY_USD"
                         }
-                    }
+                    },
+                    "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
                 "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
@@ -128,7 +136,8 @@
                         "currency": {
                             "isoCurrency": "ISO_CURRENCY_USD"
                         }
-                    }
+                    },
+                    "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
                 "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
