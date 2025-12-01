@@ -1,0 +1,139 @@
+[
+    {
+        "code": "XMAS_GALA",
+        "priceDetail": {
+            "price": {
+                "value": "0",
+                "currency": {
+                    "isoCurrency": "ISO_CURRENCY_USD"
+                }
+            }
+        },
+        "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
+        "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
+        "quantity": 1
+    },
+    {
+        "code": "RESORT_FEE",
+        "priceDetail": {
+            "price": {
+                "value": "1000",
+                "decimals": 2,
+                "currency": {
+                    "isoCurrency": "ISO_CURRENCY_USD"
+                }
+            }
+        },
+        "availabilityType": "SERVICE_AVAILABILITY_TYPE_COMPULSORY",
+        "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
+        "quantity": 1
+    },
+    {
+        "code": "TOURIST_TAX",
+        "priceDetail": {
+            "price": {
+                "value": "100",
+                "decimals": 2,
+                "currency": {
+                    "isoCurrency": "ISO_CURRENCY_USD"
+                }
+            },
+            "locally_payable": true
+        },
+        "availabilityType": "SERVICE_AVAILABILITY_TYPE_COMPULSORY",
+        "chargeBasis": "CHARGE_BASIS_TYPE_PER_DAY",
+        "quantity": 1
+    },
+    {
+        "code": "CHAMPAGNE_COOLER",
+        "priceDetail": {
+            "price": {
+                "value": "5000",
+                "decimals": 2,
+                "currency": {
+                    "isoCurrency": "ISO_CURRENCY_USD"
+                }
+            }
+        },
+        "availabilityType": "SERVICE_AVAILABILITY_TYPE_OPTIONAL",
+        "chargeBasis": "CHARGE_BASIS_TYPE_ONCE",
+        "quantity": 1
+    },
+    {
+        "code": "SPA_DAY",
+        "priceDetail": {
+            "price": {
+                "value": "10000",
+                "decimals": 2,
+                "currency": {
+                    "isoCurrency": "ISO_CURRENCY_USD"
+                }
+            }
+        },
+        "availabilityType": "SERVICE_AVAILABILITY_TYPE_OPTIONAL",
+        "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
+        "quantity": 1,
+        "details": [
+            {
+                "code": "TURKISH_BATH",
+                "priceDetail": {
+                    "price": {
+                        "value": "3000",
+                        "decimals": 2,
+                        "currency": {
+                            "isoCurrency": "ISO_CURRENCY_USD"
+                        }
+                    }
+                },
+                "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
+                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
+                "quantity": 1
+            },
+            {
+                "code": "MANICURE",
+                "priceDetail": {
+                    "price": {
+                        "value": "4000",
+                        "decimals": 2,
+                        "currency": {
+                            "isoCurrency": "ISO_CURRENCY_USD"
+                        }
+                    }
+                },
+                "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
+                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
+                "quantity": 1
+            },
+            {
+                "code": "MASSAGE",
+                "priceDetail": {
+                    "price": {
+                        "value": "4000",
+                        "decimals": 2,
+                        "currency": {
+                            "isoCurrency": "ISO_CURRENCY_USD"
+                        }
+                    }
+                },
+                "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
+                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
+                "quantity": 1
+            },
+            {
+                "code": "DISCOUNT",
+                "priceDetail": {
+                    "price": {
+                        "value": "-1000",
+                        "decimals": 2,
+                        "currency": {
+                            "isoCurrency": "ISO_CURRENCY_USD"
+                        }
+                    }
+                },
+                "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
+                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
+                "quantity": 1
+            }
+        ]
+    }
+]

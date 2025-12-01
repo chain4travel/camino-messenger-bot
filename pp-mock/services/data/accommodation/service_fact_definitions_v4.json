@@ -1,0 +1,83 @@
+[
+    {
+        "code": "XMAS_GALA",
+        "description": [
+            {
+                "text": "Christmas Gala dinner",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "RESORT_FEE",
+        "description": [
+            {
+                "text": "Resort Fee",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "TOURIST_TAX",
+        "description": [
+            {
+                "text": "Tourist Tax",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "CHAMPAGNE_COOLER",
+        "description": [
+            {
+                "text": "Champagne cooler in room upon arrival",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "SPA_DAY",
+        "description": [
+            {
+                "text": "Spa day",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "TURKISH_BATH",
+        "description": [
+            {
+                "text": "Turkish Bath",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "MANICURE",
+        "description": [
+            {
+                "text": "Manicure",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "MASSAGE",
+        "description": [
+            {
+                "text": "Massage",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    },
+    {
+        "code": "DISCOUNT",
+        "description": [
+            {
+                "text": "Package Discount",
+                "language": "LANGUAGE_EN"
+            }
+        ]
+    }
+]
