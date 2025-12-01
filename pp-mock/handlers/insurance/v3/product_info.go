@@ -21,6 +21,10 @@ func NewInsuranceProductInfoServiceServer() insurancev3grpc.InsuranceProductInfo
 
 func (s *insuranceProductInfoServiceV3Server) InsuranceProductInfo(_ context.Context, req *insurancev3.InsuranceProductInfoRequest) (*insurancev3.InsuranceProductInfoResponse, error) {
 	return &insurancev3.InsuranceProductInfoResponse{
-		Header: common.SuccessHeaderV4(),
+		Response: &insurancev3.InsuranceProductInfoResponse_SuccessResponse{
+			SuccessResponse: &insurancev3.InsuranceProductInfoSuccessResponse{
+				Header: common.SuccessHeaderV4(),
+			},
+		},
 	}, nil
 }

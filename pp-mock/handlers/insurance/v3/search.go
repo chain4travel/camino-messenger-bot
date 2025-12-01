@@ -21,6 +21,10 @@ func NewInsuranceSearchServiceServer() insurancev3grpc.InsuranceSearchServiceSer
 
 func (s *insuranceSearchServiceV3Server) InsuranceSearch(_ context.Context, req *insurancev3.InsuranceSearchRequest) (*insurancev3.InsuranceSearchResponse, error) {
 	return &insurancev3.InsuranceSearchResponse{
-		Header: common.SuccessHeaderV4(),
+		Response: &insurancev3.InsuranceSearchResponse_SuccessResponse{
+			SuccessResponse: &insurancev3.InsuranceSearchSuccessResponse{
+				Header: common.SuccessHeaderV4(),
+			},
+		},
 	}, nil
 }
