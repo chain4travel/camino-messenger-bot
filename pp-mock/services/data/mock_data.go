@@ -13,6 +13,7 @@ import (
 	activityv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
+	insurancev3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/insurance/v3"
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
@@ -87,6 +88,11 @@ var seatMapV4JSON []byte
 //go:embed seatmap/seatmap_availability_v4.json
 var seatMapAvailabilityV4JSON []byte
 
+// * Insurance
+
+//go:embed insurance/insurancev3.json
+var insuranceV3JSON []byte
+
 var (
 	PropertiesV2 []*accommodationv2.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV3 []*accommodationv3.PropertyExtendedInfo // used by product list, info and search
@@ -114,6 +120,8 @@ var (
 
 	SeatMapV4             []*typesv4.SeatMap          // used by seatMap
 	SeatMapAvailabilityV4 []*typesv4.SeatMapInventory // used by seatMapAvailability
+
+	InsuranceV3 []*insurancev3.PolicyExtendedInfo
 )
 
 func init() {
@@ -147,6 +155,8 @@ func init() {
 	// SeatMapV4
 	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
 	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")
+	// InsuranceV3
+	// InsuranceV3 = mustUnmarshalStrictAndValidate[*insurancev3.PolicyExtendedInfo](insuranceV3JSON, "error unmarshaling insurance v3")
 }
 
 func mustUnmarshalStrictAndValidate[T proto.Message](data []byte, panicMsg string) []T {

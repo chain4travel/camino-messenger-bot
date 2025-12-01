@@ -1,0 +1,226 @@
+[
+    {
+        "policy": {
+            "productCode": {
+                "code": "jDwNyu52WG",
+                "number": 2463468021,
+                "type": "PRODUCT_CODE_TYPE_GIATA"
+            },
+            "description": "GsA8sasr93",
+            "lastModified": "4690-11-27T08:23:12.840220874Z"
+        },
+        "carrierCode": "y5Q2Ig2Ur9",
+        "carrierName": "SLT0bVZ0x7",
+        "logo": {
+            "file": {
+                "name": "cIAkpH3kRm",
+                "uri": "6tpPh1mkzn",
+                "lastModified": "2978-04-13T10:02:22.684029598Z",
+                "description": "YHQ9vGgLUK",
+                "type": "MIME_TYPE_MJS",
+                "size": "8643972517122258721",
+                "checksum": {
+                    "hashAlgorithm": "HASH_ALGORITHM_SHA3_224",
+                    "hashBinary": "MHhUcEdZUjA0Rg=="
+                },
+                "category": "maGFxdQcdd"
+            },
+            "width": 1729607129,
+            "height": 3588152531
+        },
+        "policyType": "POLICY_TYPE_MEDICAL",
+        "supportContact": {
+            "addresses": [
+                {
+                    "line1": "BaEWj1b21w",
+                    "line2": "kZpRe8Y976",
+                    "district": "8XkeCWQEDm",
+                    "zipCode": "b1F9BMMlcJ",
+                    "geoTree": {
+                        "country": "COUNTRY_NU",
+                        "region": "bnT9CsTKwm",
+                        "cityOrResort": "UgxZBJatog"
+                    },
+                    "type": "ADDRESS_TYPE_PHYSICAL",
+                    "description": "ARF6Ci2qUg"
+                }
+            ],
+            "phones": [
+                {
+                    "number": "JPfDPS3pJe",
+                    "extension": "g1Omhj9P4J",
+                    "type": "PHONE_TYPE_WORK",
+                    "description": "Ae7Q1BEEvu"
+                }
+            ],
+            "emails": [
+                {
+                    "address": "mSKni8WOMo",
+                    "type": "EMAIL_TYPE_INQUIRY_RESPONSE"
+                }
+            ],
+            "links": [
+                {
+                    "type": "LINK_TYPE_FACEBOOK",
+                    "description": "2kIoUzz7wb",
+                    "ref": "nQOgBgb0c4"
+                }
+            ]
+        },
+        "criteria": [
+            {
+                "code": "eK12vigvTI",
+                "name": "cnmXCfXuvE"
+            }
+        ],
+        "units": [
+            {
+                "code": "7voNx2Zam0",
+                "name": "ip37NGpWbU",
+                "policyCoverage": {
+                    "maxCoverageAmount": {
+                        "value": "2BZOagKnSU",
+                        "decimals": 506930050,
+                        "currency": {
+                            "nativeToken": {}
+                        }
+                    },
+                    "coverageLink": {
+                        "type": "LINK_TYPE_INSTAGRAM",
+                        "description": "gP8lfk0ZCk",
+                        "ref": "Dj155FFWpI"
+                    },
+                    "exclusionsLink": {
+                        "type": "LINK_TYPE_FACEBOOK",
+                        "description": "a8TjKJeYNg",
+                        "ref": "KHazLeEPo4"
+                    },
+                    "preconditionsCoverage": "INCLUSIVITY_INCLUDED",
+                    "preconditionsCoverageLink": {
+                        "type": "LINK_TYPE_WHATSAPP",
+                        "description": "7rO0DLZeCC",
+                        "ref": "M6CbOwV6QT"
+                    },
+                    "terms": {
+                        "type": "LINK_TYPE_BOOKING",
+                        "description": "qA1yCDMjgi",
+                        "ref": "53Kl8b4C4R"
+                    },
+                    "faq": {
+                        "type": "LINK_TYPE_WHATSAPP",
+                        "description": "c3RSLXLVNN",
+                        "ref": "HVpE69kBZb"
+                    }
+                }
+            }
+        ],
+        "services": [
+            {
+                "code": "LDFSsg0IbP",
+                "name": "2GPsHX2YLN",
+                "unitCodes": [
+                    "agMFSevLbX"
+                ],
+                "policyCoverage": {
+                    "maxCoverageAmount": {
+                        "value": "PhMA1bGaCb",
+                        "decimals": 840474055,
+                        "currency": {
+                            "isoCurrency": "ISO_CURRENCY_XOF"
+                        }
+                    },
+                    "coverageLink": {
+                        "type": "LINK_TYPE_LINKEDIN",
+                        "description": "Lv84fYeS51",
+                        "ref": "teM5v8h9Te"
+                    },
+                    "exclusionsLink": {
+                        "type": "LINK_TYPE_SUPPORT",
+                        "description": "98vXNm5eUb",
+                        "ref": "6Nx94ebkbx"
+                    },
+                    "preconditionsCoverage": "INCLUSIVITY_INCLUDED",
+                    "preconditionsCoverageLink": {
+                        "type": "LINK_TYPE_FEEDBACK",
+                        "description": "w7gHRmUfbB",
+                        "ref": "IbO1ivYSfd"
+                    },
+                    "terms": {
+                        "type": "LINK_TYPE_TIKTOK",
+                        "description": "OGy2tTOTvp",
+                        "ref": "v8tIMOrJk6"
+                    },
+                    "faq": {
+                        "type": "LINK_TYPE_DISCORD",
+                        "description": "f0z9TaHMOD",
+                        "ref": "sYGjYwxzgb"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "policies": [
+            {
+                "productCode": {
+                    "code": "CFAR1",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "description": "Cancel for any reason Europe",
+                "last_modified": "2022-10-31T09:00:00Z"
+            },
+            {
+                "productCode": {
+                    "code": "CFAR2",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "description": "Cancel for any reason USA",
+                "last_modified": "2022-10-31T09:00:00Z"
+            },
+            {
+                "productCode": {
+                    "code": "CFAR3",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "description": "Cancel for any reason LATAM",
+                "last_modified": "2022-10-31T09:00:00Z"
+            },
+            {
+                "productCode": {
+                    "code": "CFAR4",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "description": "Cancel for any reason Asia",
+                "last_modified": "2022-10-31T09:00:00Z"
+            },
+            {
+                "productCode": {
+                    "code": "HEALTH1",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "last_modified": "2022-10-31T09:00:00Z"
+            },
+            {
+                "productCode": {
+                    "code": "LUGGAGE1",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "last_modified": "2022-10-31T09:00:00Z"
+            },
+            {
+                "productCode": {
+                    "code": "CARRENTAL1",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "last_modified": "2022-10-31T09:00:00Z"
+            },
+            {
+                "productCode": {
+                    "code": "FLIGHT1",
+                    "type": "PRODUCT_CODE_TYPE_ICAO"
+                },
+                "last_modified": "2022-10-31T09:00:00Z"
+            }
+        ]
+    }
+]
