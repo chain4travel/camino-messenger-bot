@@ -178,6 +178,19 @@
 				]
 			}
 		],
+		"attributes": [
+			{
+				"type": "ACTIVITY_ATTRIBUTE_TYPE_EQUIPMENT_SUNCREAM",
+				"bringYourOwn": true
+			},
+			{
+				"type": "ACTIVITY_ATTRIBUTE_TYPE_EQUIPMENT_BOOTS",
+				"bringYourOwn": true
+			}
+		],
+		"themes": [
+			"THEME_NATURE"
+		],
 		"spokenLanguages": [
 			"LANGUAGE_EN",
 			"LANGUAGE_DE",
@@ -495,6 +508,9 @@
 					}
 				]
 			}
+		],
+		"themes": [
+			"THEME_FAMILY"
 		],
 		"spokenLanguages": [
 			"LANGUAGE_EN",
