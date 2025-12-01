@@ -23,7 +23,11 @@ func NewCountryEntryRequirementsServiceServer() infov3grpc.CountryEntryRequireme
 
 func (s *countryEntryRequirementsServiceV3Server) CountryEntryRequirements(_ context.Context, _ *infov3.CountryEntryRequirementsRequest) (*infov3.CountryEntryRequirementsResponse, error) {
 	return &infov3.CountryEntryRequirementsResponse{
-		Header:     common.SuccessHeaderV4(),
-		ResponseId: &typesv4.UUID{Value: uuid.NewString()},
+		Response: &infov3.CountryEntryRequirementsResponse_SuccessResponse{
+			SuccessResponse: &infov3.CountryEntryRequirementsSuccessResponse{
+				Header:     common.SuccessHeaderV4(),
+				ResponseId: &typesv4.UUID{Value: uuid.NewString()},
+			},
+		},
 	}, nil
 }
