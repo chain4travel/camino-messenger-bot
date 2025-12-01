@@ -12,6 +12,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	"buf.build/go/protovalidate"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/bot"
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/partner_plugin"
@@ -85,6 +86,9 @@ func (tt *TestInfoV3) testCountryEntryRequirements(ctx context.Context, t *testi
 
 	require.NoError(t, err)
 	tt.DebugPrintRequestResponse(req, resp)
-	require.Equal(t, typesv4.StatusType_STATUS_TYPE_SUCCESS, resp.Header.Status, "unexpected response status")
-	require.Empty(t, resp.Header.Alerts, "unexpected response alerts")
+	require.NoError(t, protovalidate.Validate(resp))
+
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
 }
