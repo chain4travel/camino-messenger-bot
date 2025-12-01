@@ -114,6 +114,8 @@ var (
 
 	SeatMapV4             []*typesv4.SeatMap          // used by seatMap
 	SeatMapAvailabilityV4 []*typesv4.SeatMapInventory // used by seatMapAvailability
+
+	// CountryEntryRequirementsV3 []*infov3.CountryEntryRequirementsInfo // used by country entry requirements
 )
 
 func init() {
@@ -147,6 +149,8 @@ func init() {
 	// SeatMapV4
 	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
 	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")
+	// InfoV3
+	// CountryEntryRequirementsV3 = mustUnmarshalStrictAndValidate[*infov3.CountryEntryRequirementsInfo](countryEntryRequirementsV3JSON, "error unmarshaling country entry requirements v3")
 }
 
 func mustUnmarshalStrictAndValidate[T proto.Message](data []byte, panicMsg string) []T {
