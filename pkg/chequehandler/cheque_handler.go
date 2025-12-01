@@ -316,6 +316,11 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 
 	wg := sync.WaitGroup{}
 	for _, chequeRecord := range chequeRecords {
+		if chequeRecord.PaymentToken == (common.Address{}) {
+			ch.logger.Debugf("Skipping cheque %s (no payment token)", chequeRecord)
+			continue
+		}
+
 		ch.logger.Debugf("Checking cheque %s status...", chequeRecord)
 
 		wg.Add(1)
