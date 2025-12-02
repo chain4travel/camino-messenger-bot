@@ -73,7 +73,7 @@ func newClient(
 }
 
 type Client struct {
-	NullUSD      *nullusd.Nullusd
+	nullUSD      *nullusd.Nullusd
 	BookingToken *bookingtoken.Bookingtoken
 
 	prefundedKeys               []*ecdsa.PrivateKey
@@ -118,7 +118,7 @@ func (c *Client) CreateCMAccount(ctx context.Context, owner *ecdsa.PrivateKey) (
 		return common.Address{}, nil, fmt.Errorf("failed to create transactor: %w", err)
 	}
 
-	approveTx, err := c.NullUSD.Approve(transactor, c.cmAccountManagerAddress, prefundAmount)
+	approveTx, err := c.nullUSD.Approve(transactor, c.cmAccountManagerAddress, prefundAmount)
 	if err != nil {
 		return common.Address{}, nil, fmt.Errorf("failed to issue nullUSD.Approve tx: %w", err)
 	}
@@ -301,6 +301,14 @@ func (c *Client) BalanceOf(ctx context.Context, addr common.Address) (*big.Int, 
 	return balance, nil
 }
 
+func (c *Client) BalanceNullUSDOf(ctx context.Context, addr common.Address) (*big.Int, error) {
+	balance, err := c.nullUSD.BalanceOf(&bind.CallOpts{Context: ctx}, addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nullUSD balance: %w", err)
+	}
+	return balance, nil
+}
+
 func (c *Client) CMAccount(addr common.Address) (*cmaccount.Cmaccount, error) {
 	return cmaccount.NewCmaccount(addr, c.ethClient)
 }
@@ -453,7 +461,7 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 
 	// create nullUSD bindings
 
-	c.NullUSD, err = nullusd.NewNullusd(nullUSDAddress, c.ethClient)
+	c.nullUSD, err = nullusd.NewNullusd(nullUSDAddress, c.ethClient)
 	if err != nil {
 		return fmt.Errorf("failed to create nullUSD binding: %w", err)
 	}
