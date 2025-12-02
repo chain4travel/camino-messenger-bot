@@ -130,6 +130,7 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 
 	supplierCashedIn, _ := calculateCashIn(pingFeeBig)
 	asbCashedIn, _ := calculateCashIn(config.NetworkFee)
+	asbCashedIn = asbCashedIn.Mul(asbCashedIn, ethCommon.Big2) // ASB gets cash-in for both supplier and distributor network fee cheques
 
 	expectedSupplierBalanceNullUSD := big.NewInt(0).Add(initialSupplierBalanceNullUSD, supplierCashedIn)
 	expectedASBBalanceNullUSD := big.NewInt(0).Add(initialASBBalanceNullUSD, asbCashedIn)
@@ -178,7 +179,7 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 	tt.Logger.Debugf("Expected supplier CM account nullUSD (erc-20 service fee token) balance: %s", expectedSupplierBalanceNullUSD.String())
 	tt.Logger.Debugf("Expected ASB CM account nullUSD (erc-20 service fee token) balance: %s", expectedASBBalanceNullUSD.String())
 
-	tt.Logger.Debugf("Resulting distributor CM account nullUSD (erc-20 service fee token) balance: %s", actualDistributorBalanceNullUSD.String())
-	tt.Logger.Debugf("Resulting supplier CM account nullUSD (erc-20 service fee token) balance: %s", actualSupplierBalanceNullUSD.String())
-	tt.Logger.Debugf("Resulting ASB CM account nullUSD (erc-20 service fee token) balance: %s", actualASBBalanceNullUSD.String())
+	tt.Logger.Debugf("Actual distributor CM account nullUSD (erc-20 service fee token) balance: %s", actualDistributorBalanceNullUSD.String())
+	tt.Logger.Debugf("Actual supplier CM account nullUSD (erc-20 service fee token) balance: %s", actualSupplierBalanceNullUSD.String())
+	tt.Logger.Debugf("Actual ASB CM account nullUSD (erc-20 service fee token) balance: %s", actualASBBalanceNullUSD.String())
 }
