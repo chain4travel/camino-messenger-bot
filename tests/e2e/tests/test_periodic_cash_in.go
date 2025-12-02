@@ -137,6 +137,23 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 
 	cashInTimeout := time.Duration(tt.cashInPeriodSeconds) * time.Second * 5 // ASB and supplier cash-in every 1s, quintuple that
 
+	t.Cleanup(func() {
+		actualDistributorBalanceNullUSD, err := tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, tt.distributorBot.CMAccountAddress())
+		require.NoError(t, err)
+		actualSupplierBalanceNullUSD, err := tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, tt.supplierBot.CMAccountAddress())
+		require.NoError(t, err)
+		actualASBBalanceNullUSD, err := tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, tt.ASB.NetworkFeeRecipientCMAccountAddress())
+		require.NoError(t, err)
+
+		tt.Logger.Debugf("Expected distributor CM account nullUSD (erc-20 service fee token) balance: %s", expectedDistributorBalanceNullUSD.String())
+		tt.Logger.Debugf("Expected supplier CM account nullUSD (erc-20 service fee token) balance: %s", expectedSupplierBalanceNullUSD.String())
+		tt.Logger.Debugf("Expected ASB CM account nullUSD (erc-20 service fee token) balance: %s", expectedASBBalanceNullUSD.String())
+
+		tt.Logger.Debugf("Actual distributor CM account nullUSD (erc-20 service fee token) balance: %s", actualDistributorBalanceNullUSD.String())
+		tt.Logger.Debugf("Actual supplier CM account nullUSD (erc-20 service fee token) balance: %s", actualSupplierBalanceNullUSD.String())
+		tt.Logger.Debugf("Actual ASB CM account nullUSD (erc-20 service fee token) balance: %s", actualASBBalanceNullUSD.String())
+	})
+
 	checkNativeBalance := func(expectedBalance *big.Int, address ethCommon.Address) {
 		t.Helper()
 		actualBalance, err := tt.CaminoNetwork.Client.BalanceOf(ctx, address)
@@ -167,19 +184,4 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 	checkNativeBalance(initialDistributorBalance, tt.distributorBot.CMAccountAddress())
 	checkNativeBalance(initialSupplierBalance, tt.supplierBot.CMAccountAddress())
 	checkNativeBalance(initialASBBalance, tt.ASB.NetworkFeeRecipientCMAccountAddress())
-
-	actualDistributorBalanceNullUSD, err := tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, tt.distributorBot.CMAccountAddress())
-	require.NoError(t, err)
-	actualSupplierBalanceNullUSD, err := tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, tt.supplierBot.CMAccountAddress())
-	require.NoError(t, err)
-	actualASBBalanceNullUSD, err := tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, tt.ASB.NetworkFeeRecipientCMAccountAddress())
-	require.NoError(t, err)
-
-	tt.Logger.Debugf("Expected distributor CM account nullUSD (erc-20 service fee token) balance: %s", expectedDistributorBalanceNullUSD.String())
-	tt.Logger.Debugf("Expected supplier CM account nullUSD (erc-20 service fee token) balance: %s", expectedSupplierBalanceNullUSD.String())
-	tt.Logger.Debugf("Expected ASB CM account nullUSD (erc-20 service fee token) balance: %s", expectedASBBalanceNullUSD.String())
-
-	tt.Logger.Debugf("Actual distributor CM account nullUSD (erc-20 service fee token) balance: %s", actualDistributorBalanceNullUSD.String())
-	tt.Logger.Debugf("Actual supplier CM account nullUSD (erc-20 service fee token) balance: %s", actualSupplierBalanceNullUSD.String())
-	tt.Logger.Debugf("Actual ASB CM account nullUSD (erc-20 service fee token) balance: %s", actualASBBalanceNullUSD.String())
 }
