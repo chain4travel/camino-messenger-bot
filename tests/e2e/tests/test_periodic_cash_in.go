@@ -129,10 +129,12 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 	expectedDistributorBalanceNullUSD.Sub(expectedDistributorBalanceNullUSD, config.NetworkFee)
 
 	supplierCashedIn, _ := calculateCashIn(pingFeeBig)
-	asbCashedIn, _ := calculateCashIn(config.NetworkFee)
-	asbCashedIn = asbCashedIn.Mul(asbCashedIn, ethCommon.Big2) // ASB gets cash-in for both supplier and distributor network fee cheques
+	expectedSupplierBalanceNullUSD := big.NewInt(0).Set(initialSupplierBalanceNullUSD)
+	expectedSupplierBalanceNullUSD.Add(expectedSupplierBalanceNullUSD, supplierCashedIn)
+	expectedSupplierBalanceNullUSD.Sub(expectedSupplierBalanceNullUSD, config.NetworkFee)
 
-	expectedSupplierBalanceNullUSD := big.NewInt(0).Add(initialSupplierBalanceNullUSD, supplierCashedIn)
+	asbCashedIn, _ := calculateCashIn(config.NetworkFee)
+	asbCashedIn.Mul(asbCashedIn, ethCommon.Big2) // ASB gets cash-in for both supplier and distributor network fee cheques
 	expectedASBBalanceNullUSD := big.NewInt(0).Add(initialASBBalanceNullUSD, asbCashedIn)
 
 	cashInTimeout := time.Duration(tt.cashInPeriodSeconds) * time.Second * 5 // ASB and supplier cash-in every 1s, quintuple that
@@ -154,34 +156,27 @@ func (tt *TestCashIn) testPeriodicCashInWithPingV2(ctx context.Context, t *testi
 		tt.Logger.Debugf("Actual ASB CM account nullUSD (erc-20 service fee token) balance: %s", actualASBBalanceNullUSD.String())
 	})
 
-	checkNativeBalance := func(expectedBalance *big.Int, address ethCommon.Address) {
-		t.Helper()
-		actualBalance, err := tt.CaminoNetwork.Client.BalanceOf(ctx, address)
-		require.NoError(t, err)
-		require.True(t, actualBalance.Cmp(expectedBalance) == 0)
-	}
-
-	checkNullUSDBalanceEventually := func(
-		message string,
-		expectedBalance *big.Int,
-		address ethCommon.Address,
-	) {
-		t.Helper()
-		var actualBalance *big.Int
-		require.EventuallyWithTf(t, func(t *assert.CollectT) {
-			actualBalance, err = tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, address)
+	require.EventuallyWithT(t, func(t *assert.CollectT) {
+		checkNativeBalance := func(expectedBalance *big.Int, address ethCommon.Address) {
+			t.Helper()
+			actualBalance, err := tt.CaminoNetwork.Client.BalanceOf(ctx, address)
 			require.NoError(t, err)
 			require.True(t, actualBalance.Cmp(expectedBalance) == 0)
-		}, cashInTimeout, time.Second,
-			"%s balance did not change by expected amount before timeout: expected %s, actual %s", message, expectedBalance.String(), actualBalance.String(),
-		)
-	}
+		}
 
-	checkNullUSDBalanceEventually("distributor CM account (erc-20 service fee token)", expectedDistributorBalanceNullUSD, tt.distributorBot.CMAccountAddress())
-	checkNullUSDBalanceEventually("supplier CM account (erc-20 service fee token)", expectedSupplierBalanceNullUSD, tt.supplierBot.CMAccountAddress())
-	checkNullUSDBalanceEventually("network fee receiver (ASB) CM account (erc-20 service fee token)", expectedASBBalanceNullUSD, tt.ASB.NetworkFeeRecipientCMAccountAddress())
+		checkNullUSDBalance := func(expectedBalance *big.Int, address ethCommon.Address) {
+			t.Helper()
+			actualBalance, err := tt.CaminoNetwork.Client.BalanceNullUSDOf(ctx, address)
+			require.NoError(t, err)
+			require.True(t, actualBalance.Cmp(expectedBalance) == 0)
+		}
 
-	checkNativeBalance(initialDistributorBalance, tt.distributorBot.CMAccountAddress())
-	checkNativeBalance(initialSupplierBalance, tt.supplierBot.CMAccountAddress())
-	checkNativeBalance(initialASBBalance, tt.ASB.NetworkFeeRecipientCMAccountAddress())
+		checkNativeBalance(initialDistributorBalance, tt.distributorBot.CMAccountAddress())
+		checkNativeBalance(initialSupplierBalance, tt.supplierBot.CMAccountAddress())
+		checkNativeBalance(initialASBBalance, tt.ASB.NetworkFeeRecipientCMAccountAddress())
+
+		checkNullUSDBalance(expectedDistributorBalanceNullUSD, tt.distributorBot.CMAccountAddress())
+		checkNullUSDBalance(expectedSupplierBalanceNullUSD, tt.supplierBot.CMAccountAddress())
+		checkNullUSDBalance(expectedASBBalanceNullUSD, tt.ASB.NetworkFeeRecipientCMAccountAddress())
+	}, cashInTimeout, time.Second)
 }
