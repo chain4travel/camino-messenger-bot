@@ -195,8 +195,6 @@ func (p *messageProcessor) processIncomingMessage(
 	}
 }
 
-// TODO@ write down multi bot ticket
-
 func (p *messageProcessor) SendRequestMessage(
 	ctx context.Context,
 	requestMsg *types.Message,
