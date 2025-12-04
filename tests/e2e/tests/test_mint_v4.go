@@ -112,7 +112,7 @@ func (tt *TestMintV4) testMintV4FullWorkflow(ctx context.Context, t *testing.T) 
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
+	balanceBefore := tt.Balance(ctx, t, tt.distributorBot)
 
 	tokenID, mintID, mintRespPrice := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, common.BookingTokenPriceV4)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
@@ -155,7 +155,7 @@ func (tt *TestMintV4) testMintV4TokenExpiredCase(ctx context.Context, t *testing
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBotWithoutFunds)
+	balanceBefore := tt.Balance(ctx, t, tt.distributorBotWithoutFunds)
 
 	tt.testMintV4MintV4ExpectedError(ctx, t, tt.distributorBotWithoutFunds, validationID1, totalPrice)
 	_, err = tt.supplierPPEventStream.Recv() // skip MintRequest
@@ -195,7 +195,7 @@ func (tt *TestMintV4) testMintV4UnexpectedPrice(ctx context.Context, t *testing.
 	_, err = tt.supplierPPEventStream.Recv() // skip ValidateRequest
 	require.NoError(t, err)
 
-	balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
+	balanceBefore := tt.Balance(ctx, t, tt.distributorBot)
 
 	// modify expected price to be different from the one returned by pp-mock mint response
 	expectedPrice = common.CloneProto(common.BookingTokenPriceV4)

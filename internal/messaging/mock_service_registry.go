@@ -12,7 +12,7 @@ package messaging
 import (
 	reflect "reflect"
 
-	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	message "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	rpc "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -41,7 +41,7 @@ func (m *MockServiceRegistry) EXPECT() *MockServiceRegistryMockRecorder {
 }
 
 // GetService mocks base method.
-func (m *MockServiceRegistry) GetService(arg0 types.MessageType) (rpc.Service, bool) {
+func (m *MockServiceRegistry) GetService(arg0 message.Type) (rpc.Service, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetService", arg0)
 	ret0, _ := ret[0].(rpc.Service)

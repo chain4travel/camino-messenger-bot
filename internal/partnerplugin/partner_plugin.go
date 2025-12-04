@@ -16,8 +16,8 @@ import (
 	grpc_metadata "google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
-	rpc "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
 )
@@ -28,11 +28,11 @@ var _ PartnerPlugin = (*partnerPlugin)(nil)
 type PartnerPlugin interface {
 	DoServiceRequest(
 		ctx context.Context,
-		requestMsg *types.Message,
+		requestMsg *message.Message,
 		serviceClient rpc.Client,
 		fromCMAccount common.Address,
 		toCMAccount common.Address,
-	) (protoreflect.ProtoMessage, types.MessageType)
+	) (protoreflect.ProtoMessage, message.Type)
 
 	TokenBoughtNotificationWithoutBuyTx(ctx context.Context, tokenID *big.Int, mintID string) error
 	TokenBoughtNotificationWithBuyTx(ctx context.Context, tokenID *big.Int, mintID string, buyTxID common.Hash) error
@@ -64,11 +64,11 @@ type partnerPlugin struct {
 
 func (p *partnerPlugin) DoServiceRequest(
 	ctx context.Context,
-	requestMsg *types.Message,
+	requestMsg *message.Message,
 	serviceClient rpc.Client,
 	fromCMAccount common.Address,
 	toCMAccount common.Address,
-) (protoreflect.ProtoMessage, types.MessageType) {
+) (protoreflect.ProtoMessage, message.Type) {
 	return serviceClient.Call(grpc_metadata.NewOutgoingContext(ctx, grpc_metadata.Pairs(
 		metadata.KeyRequestID, requestMsg.RequestID,
 		metadata.KeyRecipientCMAccount, toCMAccount.Hex(),

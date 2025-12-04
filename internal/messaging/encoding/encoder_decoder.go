@@ -15,7 +15,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
@@ -100,14 +100,14 @@ func (m *publicMetadata) ExpiresAtTime() time.Time {
 }
 
 type privateMetadata struct {
-	Type             types.MessageType     `json:"type"`
+	Type             message.Type          `json:"type"`
 	Timestamps       metadata.Timestamps   `json:"timestamps"`
 	ServiceFeeCheque *cheques.SignedCheque `json:"service_fee_cheque,omitempty"`
 }
 
 func (e *encoderDecoder) EncodeMessage(
 	ctx context.Context,
-	msg *types.Message,
+	msg *message.Message,
 	serviceFeeCheque *cheques.SignedCheque,
 	toBot common.Address,
 	sharedKey encryption.Key,
@@ -193,7 +193,7 @@ func (e *encoderDecoder) DecodeAndVerifyMessage(
 	encodedMessage *messaging.EncodedSignedMessage,
 	senderBotAddress common.Address,
 ) (
-	msg *types.Message,
+	msg *message.Message,
 	serviceFeeCheque *cheques.SignedCheque,
 	sharedKey encryption.Key,
 	err error,
@@ -232,7 +232,7 @@ func (e *encoderDecoder) DecodeAndVerifyMessage(
 func (e *encoderDecoder) decodeAndVerifyMessageV1(
 	encodedData []byte,
 ) (
-	msg *types.Message,
+	msg *message.Message,
 	serviceFeeCheque *cheques.SignedCheque,
 	sharedKey encryption.Key,
 	err error,
@@ -276,7 +276,7 @@ func (e *encoderDecoder) decodeAndVerifyMessageV1(
 		return nil, nil, nil, fmt.Errorf("failed to unmarshal private metadata: %w", err)
 	}
 
-	msg = &types.Message{
+	msg = &message.Message{
 		RequestID:  publicMetadata.RequestID,
 		Type:       privateMetadata.Type,
 		Timestamps: privateMetadata.Timestamps,

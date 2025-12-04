@@ -15,9 +15,9 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/common"
 	eventlistener "github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/price"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -34,11 +34,11 @@ var _ ResponseHandler = (*evmResponseHandler)(nil)
 
 type ResponseHandler interface {
 	// Processes incoming response
-	ProcessResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
+	ProcessResponseMessage(ctx context.Context, requestMsg *message.Message, responseMsg *message.Message)
 
 	// Prepares response by performing any necessary modifications to it
 	// It expects the request and response to be of the same service.
-	PrepareResponseMessage(ctx context.Context, requestMsg *types.Message, responseMsg *types.Message)
+	PrepareResponseMessage(ctx context.Context, requestMsg *message.Message, responseMsg *message.Message)
 
 	// Prepares request by performing any necessary modifications to it
 	PrepareRequest(request protoreflect.ProtoMessage)
@@ -49,7 +49,7 @@ func NewResponseHandler(
 	cmAccountAddress ethCommon.Address,
 	eventListener eventlistener.EventListener,
 	bookingService booking.Service,
-	priceHandler common.PriceHandler,
+	priceHandler price.Handler,
 	e2eTestMode bool,
 ) (ResponseHandler, error) {
 	tokenBuyableUntil := tokenBuyableUntil{
@@ -75,7 +75,7 @@ func NewResponseHandler(
 
 type evmResponseHandler struct {
 	logger              *zap.SugaredLogger
-	priceHandler        common.PriceHandler
+	priceHandler        price.Handler
 	cmAccountAddressStr string
 	bookingService      booking.Service
 	eventListener       eventlistener.EventListener
@@ -85,8 +85,8 @@ type evmResponseHandler struct {
 // Processes incoming response
 func (h *evmResponseHandler) ProcessResponseMessage(
 	ctx context.Context,
-	requestMsg *types.Message,
-	responseMsg *types.Message,
+	requestMsg *message.Message,
+	responseMsg *message.Message,
 ) {
 	// distributor will post-process a mint request to buy the returned NFT
 	switch response := responseMsg.Content.(type) {
@@ -103,8 +103,8 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 // It expects the request and response to be of the same service.
 func (h *evmResponseHandler) PrepareResponseMessage(
 	ctx context.Context,
-	requestMsg *types.Message,
-	responseMsg *types.Message,
+	requestMsg *message.Message,
+	responseMsg *message.Message,
 ) {
 	// supplier will act upon receiving a mint response by minting an NFT
 	switch response := responseMsg.Content.(type) {

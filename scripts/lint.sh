@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-EXPECTED_VERSION="1.64.8"
+EXPECTED_VERSION="2.7.1"
 
 # Function to check if a command exists
 golangci_lint_installed() {
@@ -17,7 +17,7 @@ golangci_lint_installed() {
 # Function to install golangci-lint on Ubuntu
 install_golangci_lint() {
 	echo "Installing golangci-lint..."
-	go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v$EXPECTED_VERSION
+	go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$EXPECTED_VERSION
 }
 
 # Function to check license headers in go files

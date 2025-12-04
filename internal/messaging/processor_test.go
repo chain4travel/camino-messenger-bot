@@ -15,7 +15,7 @@ import (
 
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
-	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
@@ -78,7 +78,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 	networkFeeBot := ethCommon.Address{5}
 	networkFeeCMAccount := ethCommon.Address{6}
 
-	responseMessage := &types.Message{
+	responseMessage := &message.Message{
 		Type:       generated.PingServiceV1Response,
 		RequestID:  requestID,
 		Timestamps: metadata.Timestamps{},
@@ -92,7 +92,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 	respNetworkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
 
 	type args struct {
-		requestMessage         *types.Message
+		requestMessage         *message.Message
 		serviceFeeCheque       *cheques.SignedCheque
 		senderBotAddress       ethCommon.Address
 		senderCMAccountAddress ethCommon.Address
@@ -101,14 +101,14 @@ func TestProcessIncomingMessage(t *testing.T) {
 
 	tests := map[string]struct {
 		messageProcessorArgs func(*gomock.Controller, *messageProcessorArgs, args)
-		responseChannels     map[string]chan *types.Message
+		responseChannels     map[string]chan *message.Message
 		args                 args
 		expectedErr          error
 		require              func(*testing.T, *messageProcessor)
 	}{
 		"Invalid message type": {
 			args: args{
-				requestMessage:   &types.Message{Type: "invalid"},
+				requestMessage:   &message.Message{Type: "invalid"},
 				senderBotAddress: ethCommon.Address{},
 			},
 			expectedErr: ErrUnknownMessageCategory,
@@ -118,7 +118,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.serviceRegistry.EXPECT().GetService(args.requestMessage.Type).Return(nil, false)
 			},
 			args: args{
-				requestMessage: &types.Message{
+				requestMessage: &message.Message{
 					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
@@ -142,7 +142,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, respNetworkFeeCheque).Return(testErr)
 			},
 			args: args{
-				requestMessage: &types.Message{
+				requestMessage: &message.Message{
 					RequestID:  requestID,
 					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
@@ -168,7 +168,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, respNetworkFeeCheque).Return(nil)
 			},
 			args: args{
-				requestMessage: &types.Message{
+				requestMessage: &message.Message{
 					RequestID:  requestID,
 					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
@@ -180,8 +180,8 @@ func TestProcessIncomingMessage(t *testing.T) {
 			},
 		},
 		"OK: process response message": {
-			responseChannels: map[string]chan *types.Message{
-				requestID: make(chan *types.Message, 1),
+			responseChannels: map[string]chan *message.Message{
+				requestID: make(chan *message.Message, 1),
 			},
 			args: args{
 				requestMessage: responseMessage,
@@ -236,7 +236,7 @@ func TestSendRequestMessage(t *testing.T) {
 	testErr := errors.New("test error")
 	requestID := "requestID"
 
-	responseMessage := &types.Message{
+	responseMessage := &message.Message{
 		Type:      generated.PingServiceV1Response,
 		RequestID: requestID,
 	}
@@ -268,7 +268,7 @@ func TestSendRequestMessage(t *testing.T) {
 	networkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
 
 	type args struct {
-		msg                *types.Message
+		msg                *message.Message
 		recipientCMAccount ethCommon.Address
 	}
 
@@ -278,7 +278,7 @@ func TestSendRequestMessage(t *testing.T) {
 	tests := map[string]struct {
 		messageProcessorArgs    func(*messageProcessorArgs, args)
 		args                    args
-		expectedResponseMessage *types.Message
+		expectedResponseMessage *message.Message
 		expectedErr             error
 		responses               func(*messageProcessor)
 	}{
@@ -294,7 +294,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, networkFeeCheque).Return(testErr)
 			},
 			args: args{
-				msg: &types.Message{
+				msg: &message.Message{
 					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
@@ -314,7 +314,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, networkFeeCheque).Return(nil)
 			},
 			args: args{
-				msg: &types.Message{
+				msg: &message.Message{
 					Type:       generated.PingServiceV1Request,
 					Timestamps: metadata.Timestamps{},
 				},
@@ -335,7 +335,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.responseHandler.EXPECT().ProcessResponseMessage(m.Context, a.msg, responseMessage)
 			},
 			args: args{
-				msg: &types.Message{
+				msg: &message.Message{
 					Type:       generated.PingServiceV1Request,
 					RequestID:  requestID,
 					Timestamps: metadata.Timestamps{},
@@ -412,7 +412,7 @@ func TestStart(t *testing.T) {
 	networkFeeBot := ethCommon.Address{5}
 	networkFeeCMAccount := ethCommon.Address{6}
 
-	requestMsg := &types.Message{
+	requestMsg := &message.Message{
 		Type:       generated.PingServiceV1Request,
 		RequestID:  "requestID",
 		Timestamps: metadata.Timestamps{},
@@ -458,7 +458,7 @@ func TestStart(t *testing.T) {
 
 	serviceFee := big.NewInt(1)
 	respNetworkFeeCheque := &cheques.SignedCheque{Signature: []byte("network fee signature")}
-	responseMessage := &types.Message{
+	responseMessage := &message.Message{
 		Type:       generated.PingServiceV1Response,
 		RequestID:  requestMsg.RequestID,
 		Timestamps: metadata.Timestamps{},
@@ -510,8 +510,8 @@ func TestStart(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
-func equalExceptTimestamps(expectedMessage *types.Message) gomock.Matcher {
-	return gomock.Cond(func(actualMessage *types.Message) bool {
+func equalExceptTimestamps(expectedMessage *message.Message) gomock.Matcher {
+	return gomock.Cond(func(actualMessage *message.Message) bool {
 		return expectedMessage.RequestID == actualMessage.RequestID &&
 			expectedMessage.Type == actualMessage.Type &&
 			proto.Equal(expectedMessage.Content, actualMessage.Content)

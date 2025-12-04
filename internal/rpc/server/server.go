@@ -141,13 +141,13 @@ func (s *server) Stop() {
 	s.grpcServer.Stop()
 }
 
-func (s *server) HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+func (s *server) HandleMessageRequest(ctx context.Context, requestType message.Type, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 	recipientCMAccountAddress, err := s.getRecipientAddress(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recipient cm account address from request context: %w", err)
 	}
 
-	requestMsg := &types.Message{
+	requestMsg := &message.Message{
 		Type:       requestType,
 		Content:    request,
 		RequestID:  uuid.New().String(),

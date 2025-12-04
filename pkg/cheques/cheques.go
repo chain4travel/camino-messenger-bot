@@ -51,14 +51,14 @@ type signedChequeJSON struct {
 
 func (sc SignedCheque) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&signedChequeJSON{
-		FromCMAccount: sc.Cheque.FromCMAccount.Hex(),
-		ToCMAccount:   sc.Cheque.ToCMAccount.Hex(),
-		ToBot:         sc.Cheque.ToBot.Hex(),
-		Counter:       hexutil.EncodeBig(sc.Cheque.Counter),
-		Amount:        hexutil.EncodeBig(sc.Cheque.Amount),
-		CreatedAt:     hexutil.EncodeBig(sc.Cheque.CreatedAt),
-		ExpiresAt:     hexutil.EncodeBig(sc.Cheque.ExpiresAt),
-		PaymentToken:  sc.Cheque.PaymentToken.Hex(),
+		FromCMAccount: sc.FromCMAccount.Hex(),
+		ToCMAccount:   sc.ToCMAccount.Hex(),
+		ToBot:         sc.ToBot.Hex(),
+		Counter:       hexutil.EncodeBig(sc.Counter),
+		Amount:        hexutil.EncodeBig(sc.Amount),
+		CreatedAt:     hexutil.EncodeBig(sc.CreatedAt),
+		ExpiresAt:     hexutil.EncodeBig(sc.ExpiresAt),
+		PaymentToken:  sc.PaymentToken.Hex(),
 		Signature:     hex.EncodeToString(sc.Signature),
 	})
 }
@@ -71,22 +71,22 @@ func (sc *SignedCheque) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	sc.Cheque.Counter, err = hexutil.DecodeBig(raw.Counter)
+	sc.Counter, err = hexutil.DecodeBig(raw.Counter)
 	if err != nil {
 		return err
 	}
 
-	sc.Cheque.Amount, err = hexutil.DecodeBig(raw.Amount)
+	sc.Amount, err = hexutil.DecodeBig(raw.Amount)
 	if err != nil {
 		return err
 	}
 
-	sc.Cheque.CreatedAt, err = hexutil.DecodeBig(raw.CreatedAt)
+	sc.CreatedAt, err = hexutil.DecodeBig(raw.CreatedAt)
 	if err != nil {
 		return err
 	}
 
-	sc.Cheque.ExpiresAt, err = hexutil.DecodeBig(raw.ExpiresAt)
+	sc.ExpiresAt, err = hexutil.DecodeBig(raw.ExpiresAt)
 	if err != nil {
 		return err
 	}
@@ -96,10 +96,10 @@ func (sc *SignedCheque) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("invalid signature hex string: %w", err)
 	}
 
-	sc.Cheque.FromCMAccount = common.HexToAddress(raw.FromCMAccount)
-	sc.Cheque.ToCMAccount = common.HexToAddress(raw.ToCMAccount)
-	sc.Cheque.ToBot = common.HexToAddress(raw.ToBot)
-	sc.Cheque.PaymentToken = common.HexToAddress(raw.PaymentToken)
+	sc.FromCMAccount = common.HexToAddress(raw.FromCMAccount)
+	sc.ToCMAccount = common.HexToAddress(raw.ToCMAccount)
+	sc.ToBot = common.HexToAddress(raw.ToBot)
+	sc.PaymentToken = common.HexToAddress(raw.PaymentToken)
 
 	return nil
 }

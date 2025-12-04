@@ -9,7 +9,7 @@ import (
 
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
 	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s *{{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *{{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, message.Type) {
 	messageType := {{SERVICE}}ServiceV{{VERSION}}Response
 
 	request, ok := requestIntf.(*{{TYPE_PACKAGE}}.{{REQUEST}})
@@ -38,7 +38,7 @@ func (s *{{SERVICE}}V{{VERSION}}Client) Call(ctx context.Context, requestIntf pr
 	return response, messageType
 }
 
-func (s *{{SERVICE}}V{{VERSION}}Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *{{SERVICE}}V{{VERSION}}Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, message.Type) {
 	return s.errorResponse(errorMessage), {{SERVICE}}ServiceV{{VERSION}}Response
 }
 

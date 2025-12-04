@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	message "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	gomock "go.uber.org/mock/gomock"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -54,7 +54,7 @@ func (mr *MockResponseHandlerMockRecorder) PrepareRequest(arg0 any) *gomock.Call
 }
 
 // PrepareResponseMessage mocks base method.
-func (m *MockResponseHandler) PrepareResponseMessage(arg0 context.Context, arg1, arg2 *types.Message) {
+func (m *MockResponseHandler) PrepareResponseMessage(arg0 context.Context, arg1, arg2 *message.Message) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PrepareResponseMessage", arg0, arg1, arg2)
 }
@@ -66,7 +66,7 @@ func (mr *MockResponseHandlerMockRecorder) PrepareResponseMessage(arg0, arg1, ar
 }
 
 // ProcessResponseMessage mocks base method.
-func (m *MockResponseHandler) ProcessResponseMessage(arg0 context.Context, arg1, arg2 *types.Message) {
+func (m *MockResponseHandler) ProcessResponseMessage(arg0 context.Context, arg1, arg2 *message.Message) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ProcessResponseMessage", arg0, arg1, arg2)
 }

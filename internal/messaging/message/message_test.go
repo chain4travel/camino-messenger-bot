@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package types
+package message
 
 import (
 	"testing"
@@ -10,14 +10,14 @@ import (
 )
 
 const (
-	TestServiceV1                     = "TestServiceV1"
-	TestServiceV1Request  MessageType = TestServiceV1 + ".Request"
-	TestServiceV1Response MessageType = TestServiceV1 + ".Response"
+	TestServiceV1              = "TestServiceV1"
+	TestServiceV1Request  Type = TestServiceV1 + ".Request"
+	TestServiceV1Response Type = TestServiceV1 + ".Response"
 )
 
 func TestMessageTypeToServiceName(t *testing.T) {
 	tests := []struct {
-		messageType MessageType
+		messageType Type
 		expected    string
 	}{
 		{

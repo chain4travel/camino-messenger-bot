@@ -78,7 +78,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 					ChunkedEncodedMessage: [][]byte{[]byte("single chunk data")},
 					Signature:             messageSignature,
 				},
-				SenderCMAccountAddress: networkFeeCheque.Cheque.FromCMAccount,
+				SenderCMAccountAddress: networkFeeCheque.FromCMAccount,
 			},
 			expectedComplete: true,
 		},
@@ -96,7 +96,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 				messageID: {
 					chunksCount:   3,
 					signature:     messageSignature,
-					fromCMAccount: networkFeeCheque.Cheque.FromCMAccount,
+					fromCMAccount: networkFeeCheque.FromCMAccount,
 					chunks: []messageChunk{
 						{index: 0, data: []byte("chunk0")},
 					},
@@ -124,7 +124,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 				messageID: {
 					chunksCount:   3,
 					signature:     messageSignature,
-					fromCMAccount: networkFeeCheque.Cheque.FromCMAccount,
+					fromCMAccount: networkFeeCheque.FromCMAccount,
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 						{index: 0, data: []byte("chunk0")},
@@ -155,7 +155,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 					ChunkedEncodedMessage: [][]byte{[]byte("chunk0"), []byte("chunk1"), []byte("chunk2")},
 					Signature:             messageSignature,
 				},
-				SenderCMAccountAddress: networkFeeCheque.Cheque.FromCMAccount,
+				SenderCMAccountAddress: networkFeeCheque.FromCMAccount,
 			},
 			expectedComplete: true,
 		},

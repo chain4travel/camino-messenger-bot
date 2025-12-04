@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
@@ -21,7 +21,7 @@ import (
 var errUnsupportedService = errors.New("cm account support service, which bot doesn't support")
 
 type ServiceRegistry interface {
-	GetService(messageType types.MessageType) (rpc.Service, bool)
+	GetService(messageType message.Type) (rpc.Service, bool)
 }
 
 func NewServiceRegistry(
@@ -42,7 +42,7 @@ func NewServiceRegistry(
 
 	hasSupportedServices := len(supportedServices.ServiceNames) > 0
 	partnerPluginClientEnabled := rpcClient != nil
-	var services map[types.MessageType]rpc.Service
+	var services map[message.Type]rpc.Service
 
 	switch {
 	case hasSupportedServices && !partnerPluginClientEnabled:
@@ -86,11 +86,11 @@ func NewServiceRegistry(
 
 type serviceRegistry struct {
 	logger    *zap.SugaredLogger
-	services  map[types.MessageType]rpc.Service
+	services  map[message.Type]rpc.Service
 	rpcClient *client.RPCClient
 }
 
-func (s *serviceRegistry) GetService(requestType types.MessageType) (rpc.Service, bool) {
+func (s *serviceRegistry) GetService(requestType message.Type) (rpc.Service, bool) {
 	service, ok := s.services[requestType]
 	if !ok {
 		return nil, false

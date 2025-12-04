@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package types
+package message
 
 import (
 	"errors"
@@ -13,18 +13,18 @@ import (
 
 var ErrUnknownMessageType = errors.New("unknown message type")
 
-type MessageCategory byte
+type Category byte
 
 const (
-	Unknown MessageCategory = iota
+	Unknown Category = iota
 	Request
 	Response
 )
 
 // Always has to be in the format <ServiceName>.<Request/Response>
-type MessageType string
+type Type string
 
-func (m MessageType) ToServiceName() string {
+func (m Type) ToServiceName() string {
 	msgStr := string(m)
 	if idx := strings.LastIndex(msgStr, "."); idx != -1 {
 		return msgStr[:idx]
@@ -32,7 +32,7 @@ func (m MessageType) ToServiceName() string {
 	return ""
 }
 
-func (m MessageType) Category() MessageCategory {
+func (m Type) Category() Category {
 	switch {
 	case strings.HasSuffix(string(m), ".Request"):
 		return Request
@@ -42,12 +42,12 @@ func (m MessageType) Category() MessageCategory {
 	return Unknown
 }
 
-func ServiceNameToRequestMessageType(serviceName string) MessageType {
-	return MessageType(serviceName + ".Request")
+func ServiceNameToRequestMessageType(serviceName string) Type {
+	return Type(serviceName + ".Request")
 }
 
 type Message struct {
-	Type       MessageType
+	Type       Type
 	Content    protoreflect.ProtoMessage
 	RequestID  string
 	Timestamps metadata.Timestamps

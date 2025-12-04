@@ -1,61 +1,70 @@
 # https://golangci-lint.run/usage/configuration/
+version: "2"
 run:
-  timeout: 5m
-  exclude-files:
-    - ".*\\.pb\\.go$"
-    - ".*mock.*"
-  exclude-dirs-use-default: false
-  modules-download-mode: readonly
   relative-path-mode: gomod
   build-tags:
     - e2e
-
-issues:
-  # Maximum count of issues with the same text. Set to 0 to disable. Default: 3.
-  max-same-issues: 0
-  exclude-dirs: camino-matrix-go
-
+  modules-download-mode: readonly
+  timeout: 5m
 linters:
-  disable-all: true
+  default: none
   enable:
     - asciicheck
     - bodyclose
-    #    - cyclop TODO enable
+    - copyloopvar
     - depguard
     - errcheck
     - errorlint
-    - copyloopvar
     - goconst
     - gocritic
-    - gofmt
-    - gofumpt
-    - goimports
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
     - nakedret
     - noctx
     - prealloc
+    - revive
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
-    - revive
-
-linters-settings:
-  depguard:
-    rules:
-      packages:
-        deny:
-          - pkg: "io/ioutil"
-            desc: io/ioutil is deprecated. Use package io or os instead.
-          - pkg: "github.com/stretchr/testify/assert"
-            desc: github.com/stretchr/testify/require should be used instead.
-          - pkg: "github.com/golang/mock/gomock"
-            desc: go.uber.org/mock/gomock should be used instead.
+  settings:
+    depguard:
+      rules:
+        packages:
+          deny:
+            - pkg: io/ioutil
+              desc: io/ioutil is deprecated. Use package io or os instead.
+            - pkg: github.com/stretchr/testify/assert
+              desc: github.com/stretchr/testify/require should be used instead.
+            - pkg: github.com/golang/mock/gomock
+              desc: go.uber.org/mock/gomock should be used instead.
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - camino-matrix-go
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - camino-matrix-go
+      - third_party$
+      - builtin$
+      - examples$

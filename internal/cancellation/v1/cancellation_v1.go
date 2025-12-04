@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/common"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/price"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
@@ -36,7 +36,7 @@ func NewService(
 	botKey *ecdsa.PrivateKey,
 	cmAccountAddr ethCommon.Address,
 	cmAccounts cmaccounts.Service,
-	priceHandler common.PriceHandler,
+	priceHandler price.Handler,
 ) cancellationv1grpc.CancellationServiceServer {
 	return &cancellationV1Service{
 		botKey:        botKey,
@@ -51,7 +51,7 @@ type cancellationV1Service struct {
 	botKey        *ecdsa.PrivateKey
 	cmAccountAddr ethCommon.Address
 	logger        *zap.SugaredLogger
-	priceHandler  common.PriceHandler
+	priceHandler  price.Handler
 	cmAccounts    cmaccounts.Service
 }
 

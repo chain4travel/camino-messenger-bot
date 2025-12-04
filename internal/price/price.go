@@ -1,7 +1,7 @@
 // Copyright (C) 2022-2025, Chain4Travel AG. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package common
+package price
 
 import (
 	"context"
@@ -19,13 +19,13 @@ import (
 )
 
 var (
-	_ PriceHandler = (*priceHandler)(nil)
+	_ Handler = (*handler)(nil)
 
 	errMissingPrice    = fmt.Errorf("missing price")
 	errUnknownCurrency = fmt.Errorf("unknown currency")
 )
 
-type PriceHandler interface {
+type Handler interface {
 	GetPriceAndTokenV2(
 		ctx context.Context,
 		priceV2 *typesv2.Price,
@@ -57,17 +57,17 @@ type PriceHandler interface {
 	)
 }
 
-func NewPriceHandler(erc20 erc20.Service) PriceHandler {
-	return &priceHandler{
+func NewPriceHandler(erc20 erc20.Service) Handler {
+	return &handler{
 		erc20: erc20,
 	}
 }
 
-type priceHandler struct {
+type handler struct {
 	erc20 erc20.Service
 }
 
-func (p *priceHandler) GetPriceAndTokenV2(
+func (p *handler) GetPriceAndTokenV2(
 	ctx context.Context,
 	priceV2 *typesv2.Price,
 ) (
@@ -111,7 +111,7 @@ func (p *priceHandler) GetPriceAndTokenV2(
 	return priceBigInt, paymentToken, isoCurrency, nil
 }
 
-func (p *priceHandler) GetPriceAndTokenV3(
+func (p *handler) GetPriceAndTokenV3(
 	ctx context.Context,
 	priceV3 *typesv3.Price,
 ) (
@@ -155,7 +155,7 @@ func (p *priceHandler) GetPriceAndTokenV3(
 	return priceBigInt, paymentToken, isoCurrency, nil
 }
 
-func (p *priceHandler) GetPriceAndTokenV4(
+func (p *handler) GetPriceAndTokenV4(
 	ctx context.Context,
 	priceV4 *typesv4.Price,
 ) (

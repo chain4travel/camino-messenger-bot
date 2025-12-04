@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	message "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	gomock "go.uber.org/mock/gomock"
 	grpc "google.golang.org/grpc"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -43,7 +43,7 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Call mocks base method.
-func (m *MockService) Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
+func (m *MockService) Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, message.Type) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, request}
 	for _, a := range opts {
@@ -51,7 +51,7 @@ func (m *MockService) Call(ctx context.Context, request protoreflect.ProtoMessag
 	}
 	ret := m.ctrl.Call(m, "Call", varargs...)
 	ret0, _ := ret[0].(protoreflect.ProtoMessage)
-	ret1, _ := ret[1].(types.MessageType)
+	ret1, _ := ret[1].(message.Type)
 	return ret0, ret1
 }
 
@@ -63,11 +63,11 @@ func (mr *MockServiceMockRecorder) Call(ctx, request any, opts ...any) *gomock.C
 }
 
 // InvalidProtoErrResponseAndType mocks base method.
-func (m *MockService) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (m *MockService) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, message.Type) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InvalidProtoErrResponseAndType", errorMessage)
 	ret0, _ := ret[0].(protoreflect.ProtoMessage)
-	ret1, _ := ret[1].(types.MessageType)
+	ret1, _ := ret[1].(message.Type)
 	return ret0, ret1
 }
 

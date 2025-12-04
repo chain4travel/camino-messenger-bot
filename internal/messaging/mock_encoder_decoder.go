@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	encryption "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
-	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	message "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	cheques "github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "go.uber.org/mock/gomock"
@@ -44,10 +44,10 @@ func (m *MockEncoderDecoder) EXPECT() *MockEncoderDecoderMockRecorder {
 }
 
 // DecodeAndVerifyMessage mocks base method.
-func (m *MockEncoderDecoder) DecodeAndVerifyMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address) (*types.Message, *cheques.SignedCheque, encryption.Key, error) {
+func (m *MockEncoderDecoder) DecodeAndVerifyMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address) (*message.Message, *cheques.SignedCheque, encryption.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecodeAndVerifyMessage", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*types.Message)
+	ret0, _ := ret[0].(*message.Message)
 	ret1, _ := ret[1].(*cheques.SignedCheque)
 	ret2, _ := ret[2].(encryption.Key)
 	ret3, _ := ret[3].(error)
@@ -61,7 +61,7 @@ func (mr *MockEncoderDecoderMockRecorder) DecodeAndVerifyMessage(arg0, arg1, arg
 }
 
 // EncodeMessage mocks base method.
-func (m *MockEncoderDecoder) EncodeMessage(arg0 context.Context, arg1 *types.Message, arg2 *cheques.SignedCheque, arg3 common.Address, arg4 encryption.Key) (*EncodedSignedMessage, error) {
+func (m *MockEncoderDecoder) EncodeMessage(arg0 context.Context, arg1 *message.Message, arg2 *cheques.SignedCheque, arg3 common.Address, arg4 encryption.Key) (*EncodedSignedMessage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EncodeMessage", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*EncodedSignedMessage)

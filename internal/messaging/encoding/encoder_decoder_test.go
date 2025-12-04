@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
@@ -91,7 +91,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 		Signature: []byte{6, 7, 8, 9, 10},
 	}
 
-	requestMessage := &types.Message{
+	requestMessage := &message.Message{
 		Type: generated.PingServiceV1Request,
 		Content: &pingv1.PingRequest{
 			PingMessage: "ping",
@@ -101,7 +101,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 		Timestamps: metadata.Timestamps{"1": 100, "2": 200},
 	}
 
-	responseMessage := &types.Message{
+	responseMessage := &message.Message{
 		Type: generated.PingServiceV1Response,
 		Content: &pingv1.PingResponse{
 			PingMessage: "pong",

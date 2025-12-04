@@ -58,7 +58,7 @@ func (tt *TestTransportV4) Run(t *testing.T) {
 		productListSuccessResponse := tt.testTransportV4ProductListService(ctx, t)
 		searchID, resultID, totalPrice := testTransportV4SearchService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListSuccessResponse)
 		validationID := testValidateV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
-		balanceBefore := tt.Environment.Balance(ctx, t, tt.distributorBot)
+		balanceBefore := tt.Balance(ctx, t, tt.distributorBot)
 		tokenID, _, mintRespPrice := testMintV4(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID, common.BookingTokenPriceV4)
 		verifyBookingTokenStateBoughtWithPriceV4(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
 	})

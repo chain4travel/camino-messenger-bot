@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -20,16 +20,16 @@ var (
 )
 
 type RequestHandler interface {
-	HandleMessageRequest(ctx context.Context, requestType types.MessageType, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
+	HandleMessageRequest(ctx context.Context, requestType message.Type, request protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)
 }
 
 type Client interface {
-	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType)
-	InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType)
+	Call(ctx context.Context, request protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, message.Type)
+	InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, message.Type)
 }
 
 type ServiceRegistry interface {
-	GetService(requestType types.MessageType) (Service, bool)
+	GetService(requestType message.Type) (Service, bool)
 }
 
 var _ Service = (*service)(nil)

@@ -158,13 +158,13 @@ function generate_register_services_client() {
 		echo "package generated"
 		echo
 		echo "import ("
-		echo "    \"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types\""
+		echo "    \"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message\""
 		echo "    \"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc\""
 		echo "    \"google.golang.org/grpc\""
 		echo ")"
 		echo
-		echo "func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {"
-		echo "    services := make(map[types.MessageType]rpc.Service, len(serviceNames))"
+		echo "func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[message.Type]rpc.Service {"
+		echo "    services := make(map[message.Type]rpc.Service, len(serviceNames))"
 		echo
 		for service in "${_SERVICES[@]}" ; do
 			echo "    if _, ok := serviceNames[${service}]; ok {"
@@ -193,13 +193,13 @@ function generate_unmarshalling() {
 		for include in "${_PROTO_INCLUDES[@]}" ; do
 			echo "    \"${include}\""
 		done
-		echo "    \"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types\""
+		echo "    \"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message\""
 		echo "    \"google.golang.org/protobuf/proto\""
 		echo "    \"google.golang.org/protobuf/reflect/protoreflect\""
 		echo ")"
 		echo
 
-		echo "func UnmarshalContent(src []byte, msgType types.MessageType, destination *protoreflect.ProtoMessage) error {"
+		echo "func UnmarshalContent(src []byte, msgType message.Type, destination *protoreflect.ProtoMessage) error {"
 		echo "    switch msgType {"
 
 		for method in "${_UNMARSHAL_METHODS[@]}" ; do
@@ -209,7 +209,7 @@ function generate_unmarshalling() {
 		done
 
 		echo "    default:"
-		echo "        return types.ErrUnknownMessageType"
+		echo "        return message.ErrUnknownMessageType"
 		echo "    }"
 		echo "    return proto.Unmarshal(src, *destination)"
 		echo "}"

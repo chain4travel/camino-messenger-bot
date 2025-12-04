@@ -73,7 +73,7 @@ func (s *SQLxTxSession) Abort() error {
 	if s.committed {
 		return nil
 	}
-	return s.Tx.Rollback()
+	return s.Rollback()
 }
 
 func (s *SQLxTxSession) SQLxTx() *sqlx.Tx {

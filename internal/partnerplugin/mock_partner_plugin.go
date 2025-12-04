@@ -15,7 +15,7 @@ import (
 	reflect "reflect"
 
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
-	types "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	message "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	rpc "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "go.uber.org/mock/gomock"
@@ -102,11 +102,11 @@ func (mr *MockPartnerPluginMockRecorder) CancellationWithdrawnNotification(arg0,
 }
 
 // DoServiceRequest mocks base method.
-func (m *MockPartnerPlugin) DoServiceRequest(arg0 context.Context, arg1 *types.Message, arg2 rpc.Client, arg3, arg4 common.Address) (protoreflect.ProtoMessage, types.MessageType) {
+func (m *MockPartnerPlugin) DoServiceRequest(arg0 context.Context, arg1 *message.Message, arg2 rpc.Client, arg3, arg4 common.Address) (protoreflect.ProtoMessage, message.Type) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DoServiceRequest", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(protoreflect.ProtoMessage)
-	ret1, _ := ret[1].(types.MessageType)
+	ret1, _ := ret[1].(message.Type)
 	return ret0, ret1
 }
 

@@ -14,7 +14,7 @@ import (
 	"buf.build/go/protovalidate"
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler"
@@ -39,15 +39,15 @@ type MessageProcessor interface {
 
 	SendRequestMessage(
 		ctx context.Context,
-		message *types.Message,
+		message *message.Message,
 		recipientCMAccount ethCommon.Address,
-	) (*types.Message, error)
+	) (*message.Message, error)
 }
 
 type EncoderDecoder interface {
 	EncodeMessage(
 		ctx context.Context,
-		msg *types.Message,
+		msg *message.Message,
 		serviceFeeCheque *cheques.SignedCheque,
 		toBot ethCommon.Address,
 		sharedKey encryption.Key,
@@ -58,7 +58,7 @@ type EncoderDecoder interface {
 		encodedMessage *EncodedSignedMessage,
 		senderBotAddress ethCommon.Address,
 	) (
-		msg *types.Message,
+		msg *message.Message,
 		serviceFeeCheque *cheques.SignedCheque,
 		sharedKey encryption.Key,
 		err error,
@@ -85,7 +85,7 @@ func NewMessageProcessor(
 		messenger:                           messenger,
 		logger:                              logger,
 		responseTimeout:                     responseTimeout, // for now applies to all request types
-		responseChannels:                    make(map[string]chan *types.Message),
+		responseChannels:                    make(map[string]chan *message.Message),
 		serviceRegistry:                     registry,
 		responseHandler:                     responseHandler,
 		partnerPlugin:                       partnerPlugin,
@@ -111,7 +111,7 @@ type messageProcessor struct {
 	messenger            Messenger
 	logger               *zap.SugaredLogger
 	responseChannelsLock sync.RWMutex
-	responseChannels     map[string]chan *types.Message
+	responseChannels     map[string]chan *message.Message
 	serviceRegistry      ServiceRegistry
 	responseHandler      ResponseHandler
 	partnerPlugin        partnerplugin.PartnerPlugin
@@ -168,7 +168,7 @@ func (p *messageProcessor) Start(ctx context.Context) {
 }
 
 func (p *messageProcessor) processIncomingMessage(
-	msg *types.Message,
+	msg *message.Message,
 	serviceFeeCheque *cheques.SignedCheque,
 	senderBotAddress ethCommon.Address,
 	senderCMAccountAddress ethCommon.Address,
@@ -179,15 +179,15 @@ func (p *messageProcessor) processIncomingMessage(
 	}
 
 	msgCategory := msg.Type.Category()
-	if msgCategory == types.Request && serviceFeeCheque == nil {
+	if msgCategory == message.Request && serviceFeeCheque == nil {
 		return fmt.Errorf("request message %s without service fee cheque", msg.Type)
 	}
 
 	switch msgCategory {
-	case types.Request:
+	case message.Request:
 		msg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageReceivedFromServer)
 		return p.respond(context.Background(), msg, serviceFeeCheque, senderBotAddress, sharedKey)
-	case types.Response:
+	case message.Response:
 		msg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageReceivedFromServer)
 		return p.forwardToHandler(msg)
 	default:
@@ -197,12 +197,12 @@ func (p *messageProcessor) processIncomingMessage(
 
 func (p *messageProcessor) SendRequestMessage(
 	ctx context.Context,
-	requestMsg *types.Message,
+	requestMsg *message.Message,
 	recipientCMAccount ethCommon.Address,
-) (*types.Message, error) {
+) (*message.Message, error) {
 	p.logger.Debugf("Sending request message %s (id %s) to CMAccount %s", requestMsg.Type, requestMsg.RequestID, recipientCMAccount.Hex())
 
-	responseChan := make(chan *types.Message)
+	responseChan := make(chan *message.Message)
 	p.setResponseChannel(requestMsg.RequestID, responseChan)
 	defer p.deleteResponseChannel(requestMsg.RequestID)
 
@@ -297,7 +297,7 @@ func (p *messageProcessor) SendRequestMessage(
 
 func (p *messageProcessor) respond(
 	ctx context.Context,
-	requestMsg *types.Message,
+	requestMsg *message.Message,
 	serviceFeeCheque *cheques.SignedCheque,
 	senderBotAddress ethCommon.Address,
 	sharedKey encryption.Key,
@@ -345,12 +345,12 @@ func (p *messageProcessor) respond(
 
 func (p *messageProcessor) validateAndRespond(
 	ctx context.Context,
-	requestMsg *types.Message,
+	requestMsg *message.Message,
 	serviceClient rpc.Client,
 	fromCMAccount ethCommon.Address,
 	toCMAccount ethCommon.Address,
-) *types.Message {
-	responseMsg := &types.Message{
+) *message.Message {
+	responseMsg := &message.Message{
 		RequestID:  requestMsg.RequestID,
 		Timestamps: requestMsg.Timestamps,
 	}
@@ -382,7 +382,7 @@ func (p *messageProcessor) validateAndRespond(
 	return responseMsg
 }
 
-func (p *messageProcessor) forwardToHandler(msg *types.Message) error {
+func (p *messageProcessor) forwardToHandler(msg *message.Message) error {
 	p.logger.Debugf("Forwarding incoming response message %s (id %s) to its handler", msg.Type, msg.RequestID)
 	responseChan, ok := p.getResponseChannel(msg.RequestID)
 	if ok {
@@ -414,14 +414,14 @@ func (p *messageProcessor) issueNetworkCheque(ctx context.Context, msg *EncodedS
 	return networkFeeCheque, nil
 }
 
-func (p *messageProcessor) getResponseChannel(requestID string) (chan *types.Message, bool) {
+func (p *messageProcessor) getResponseChannel(requestID string) (chan *message.Message, bool) {
 	p.responseChannelsLock.RLock()
 	defer p.responseChannelsLock.RUnlock()
 	ch, ok := p.responseChannels[requestID]
 	return ch, ok
 }
 
-func (p *messageProcessor) setResponseChannel(requestID string, ch chan *types.Message) {
+func (p *messageProcessor) setResponseChannel(requestID string, ch chan *message.Message) {
 	p.responseChannelsLock.Lock()
 	defer p.responseChannelsLock.Unlock()
 	p.responseChannels[requestID] = ch

@@ -23,7 +23,6 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/config"
 	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v12/internal/cancellation/v1"
 	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v12/internal/cancellation/v2"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/common"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener"
 	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener/storage/sqlite"
 	matrix_client "github.com/chain4travel/camino-messenger-bot/v12/internal/matrix/client"
@@ -32,6 +31,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encoding"
 	messagesEncoderDecoderStorage "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encoding/storage/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/price"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
@@ -142,7 +142,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, err
 	}
 
-	priceHandler := common.NewPriceHandler(erc20)
+	priceHandler := price.NewPriceHandler(erc20)
 
 	// event listener with additional logic for subscribing and reacting on blockchain events
 
@@ -462,7 +462,7 @@ func (a *App) Run(ctx context.Context) error {
 			}
 
 			a.logger.Info("Starting gRPC server...")
-			errChan, err := a.rpcServer.Start()
+			errChan, err := a.rpcServer.Start(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to start gRPC server: %w", err)
 			}

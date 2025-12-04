@@ -174,7 +174,7 @@ func (b *Bot) stop(ctx context.Context) error {
 
 	if b.rpcClient != nil {
 		g.Go(func() error {
-			if err := b.rpcClient.close(); err != nil {
+			if err := b.close(); err != nil {
 				return fmt.Errorf("failed to close rpc client: %w", err)
 			}
 			b.rpcClient = nil
@@ -220,7 +220,7 @@ func (b *Bot) awaitReady(ctx context.Context) error {
 	defer ticker.Stop()
 
 	for {
-		res, err := b.rpcClient.Readiness(ctx, &emptypb.Empty{})
+		res, err := b.Readiness(ctx, &emptypb.Empty{})
 		if err == nil && res.Status == server.StatusReady {
 			return nil
 		}

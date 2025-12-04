@@ -5,7 +5,7 @@ package generated
 
 import (
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	
 	"{{GRPC_INC}}"
 
@@ -14,8 +14,8 @@ import (
 
 const (
 	{{SERVICE}}ServiceV{{VERSION}} = "{{FQPN}}"
-	{{SERVICE}}ServiceV{{VERSION}}Request  types.MessageType = types.MessageType({{SERVICE}}ServiceV{{VERSION}} + ".Request")
-	{{SERVICE}}ServiceV{{VERSION}}Response types.MessageType = types.MessageType({{SERVICE}}ServiceV{{VERSION}} + ".Response")
+	{{SERVICE}}ServiceV{{VERSION}}Request  message.Type = message.Type({{SERVICE}}ServiceV{{VERSION}} + ".Request")
+	{{SERVICE}}ServiceV{{VERSION}}Response message.Type = message.Type({{SERVICE}}ServiceV{{VERSION}} + ".Response")
 )
 
 var _ rpc.Client = (*{{SERVICE}}V{{VERSION}}Client)(nil)
