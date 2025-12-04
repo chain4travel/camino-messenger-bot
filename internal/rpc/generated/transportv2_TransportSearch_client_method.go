@@ -9,7 +9,7 @@ import (
 
 	transportv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s *TransportSearchV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *TransportSearchV2Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, message.Type) {
 	messageType := TransportSearchServiceV2Response
 
 	request, ok := requestIntf.(*transportv2.TransportSearchRequest)
@@ -38,7 +38,7 @@ func (s *TransportSearchV2Client) Call(ctx context.Context, requestIntf protoref
 	return response, messageType
 }
 
-func (s *TransportSearchV2Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *TransportSearchV2Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, message.Type) {
 	return s.errorResponse(errorMessage), TransportSearchServiceV2Response
 }
 

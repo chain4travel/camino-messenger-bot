@@ -25,12 +25,12 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func UnmarshalContent(src []byte, msgType types.MessageType, destination *protoreflect.ProtoMessage) error {
+func UnmarshalContent(src []byte, msgType message.Type, destination *protoreflect.ProtoMessage) error {
 	switch msgType {
 	case AccommodationProductInfoServiceV2Request:
 		*destination = &accommodationv2.AccommodationProductInfoRequest{}
@@ -209,7 +209,7 @@ func UnmarshalContent(src []byte, msgType types.MessageType, destination *protor
 	case TransportSearchServiceV4Response:
 		*destination = &transportv4.TransportSearchResponse{}
 	default:
-		return types.ErrUnknownMessageType
+		return message.ErrUnknownMessageType
 	}
 	return proto.Unmarshal(src, *destination)
 }

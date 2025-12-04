@@ -9,7 +9,7 @@ import (
 
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s *ActivitySearchV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *ActivitySearchV3Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, message.Type) {
 	messageType := ActivitySearchServiceV3Response
 
 	request, ok := requestIntf.(*activityv3.ActivitySearchRequest)
@@ -38,7 +38,7 @@ func (s *ActivitySearchV3Client) Call(ctx context.Context, requestIntf protorefl
 	return response, messageType
 }
 
-func (s *ActivitySearchV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *ActivitySearchV3Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, message.Type) {
 	return s.errorResponse(errorMessage), ActivitySearchServiceV3Response
 }
 

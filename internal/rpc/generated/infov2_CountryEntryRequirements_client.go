@@ -5,16 +5,16 @@ package generated
 
 import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 
 	"google.golang.org/grpc"
 )
 
 const (
-	CountryEntryRequirementsServiceV2                           = "cmp.services.info.v2.CountryEntryRequirementsService"
-	CountryEntryRequirementsServiceV2Request  types.MessageType = types.MessageType(CountryEntryRequirementsServiceV2 + ".Request")
-	CountryEntryRequirementsServiceV2Response types.MessageType = types.MessageType(CountryEntryRequirementsServiceV2 + ".Response")
+	CountryEntryRequirementsServiceV2                      = "cmp.services.info.v2.CountryEntryRequirementsService"
+	CountryEntryRequirementsServiceV2Request  message.Type = message.Type(CountryEntryRequirementsServiceV2 + ".Request")
+	CountryEntryRequirementsServiceV2Response message.Type = message.Type(CountryEntryRequirementsServiceV2 + ".Response")
 )
 
 var _ rpc.Client = (*CountryEntryRequirementsV2Client)(nil)

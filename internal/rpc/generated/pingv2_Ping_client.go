@@ -4,7 +4,7 @@
 package generated
 
 import (
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v2/pingv2grpc"
@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	PingServiceV2                           = "cmp.services.ping.v2.PingService"
-	PingServiceV2Request  types.MessageType = types.MessageType(PingServiceV2 + ".Request")
-	PingServiceV2Response types.MessageType = types.MessageType(PingServiceV2 + ".Response")
+	PingServiceV2                      = "cmp.services.ping.v2.PingService"
+	PingServiceV2Request  message.Type = message.Type(PingServiceV2 + ".Request")
+	PingServiceV2Response message.Type = message.Type(PingServiceV2 + ".Response")
 )
 
 var _ rpc.Client = (*PingV2Client)(nil)

@@ -3,13 +3,13 @@
 package generated
 
 import (
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"google.golang.org/grpc"
 )
 
-func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[types.MessageType]rpc.Service {
-	services := make(map[types.MessageType]rpc.Service, len(serviceNames))
+func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]struct{}) map[message.Type]rpc.Service {
+	services := make(map[message.Type]rpc.Service, len(serviceNames))
 
 	if _, ok := serviceNames[AccommodationProductInfoServiceV2]; ok {
 		services[AccommodationProductInfoServiceV2Request] = rpc.NewService(NewAccommodationProductInfoServiceV2Client(rpcConn), AccommodationProductInfoServiceV2)

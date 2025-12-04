@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
 
@@ -20,7 +20,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (s *ActivityProductShortListV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *ActivityProductShortListV4Client) Call(ctx context.Context, requestIntf protoreflect.ProtoMessage, opts ...grpc.CallOption) (protoreflect.ProtoMessage, message.Type) {
 	messageType := ActivityProductShortListServiceV4Response
 
 	request, ok := requestIntf.(*activityv4.ActivityProductShortListRequest)
@@ -53,7 +53,7 @@ func (s *ActivityProductShortListV4Client) Call(ctx context.Context, requestIntf
 	return response, messageType
 }
 
-func (s *ActivityProductShortListV4Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, types.MessageType) {
+func (s *ActivityProductShortListV4Client) InvalidProtoErrResponseAndType(errorMessage string) (protoreflect.ProtoMessage, message.Type) {
 	return s.errorResponse(typesv4.ErrorCode_ERROR_CODE_INVALID_PROTO, errorMessage), ActivityProductShortListServiceV4Response
 }
 
