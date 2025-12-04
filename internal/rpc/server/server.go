@@ -11,7 +11,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v12/config"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/types"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/utils/tls"
@@ -39,7 +39,7 @@ var (
 )
 
 type Server interface {
-	Start() (chan error, error)
+	Start(ctx context.Context) (chan error, error)
 	Stop()
 }
 
@@ -108,8 +108,9 @@ type server struct {
 	readiness.UnimplementedReadinessServiceServer
 }
 
-func (s *server) Start() (chan error, error) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.cfg.Port))
+func (s *server) Start(ctx context.Context) (chan error, error) {
+	listenCfg := net.ListenConfig{}
+	lis, err := listenCfg.Listen(ctx, "tcp", fmt.Sprintf(":%d", s.cfg.Port))
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen: %w", err)
 	}

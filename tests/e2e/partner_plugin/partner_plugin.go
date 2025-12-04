@@ -81,7 +81,7 @@ func (pp *PartnerPlugin) Start(ctx context.Context) (chan error, error) {
 
 	// Prepare cmd and start partner-plugin process
 
-	cmd := exec.Command(pp.binPath) //nolint:gosec // this is a partner plugin binary, not some injection.
+	cmd := exec.Command(pp.binPath) //nolint:gosec,noctx // this is a partner plugin binary, not some injection.
 	cmd.Env = append(cmd.Env,
 		fmt.Sprintf("%s=%d", ppmock.EnvKeyPort, pp.port),
 		fmt.Sprintf("%s=true", ppmock.EnvKeyEventsEnabled),

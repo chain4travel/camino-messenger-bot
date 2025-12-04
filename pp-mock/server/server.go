@@ -186,7 +186,8 @@ func Run() error {
 
 	log.SetOutput(os.Stdout)
 	log.Printf("Starting server on port: %d", port)
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	listenCfg := net.ListenConfig{}
+	lis, err := listenCfg.Listen(ctx, "tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Printf("failed to listen: %v", err)
 		return err

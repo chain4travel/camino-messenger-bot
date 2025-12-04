@@ -74,7 +74,7 @@ func StartNewMatrixServer(
 		return nil, nil, fmt.Errorf("failed to create matrix server db dir: %w", err)
 	}
 
-	cmd := exec.Command(matrixBinPath)
+	cmd := exec.Command(matrixBinPath) //nolint:noctx
 	cmd.Env = append(os.Environ(),
 		"CONDUIT_DATABASE_PATH="+dbDir,
 		"CONDUIT_PORT="+strconv.Itoa(int(port)),

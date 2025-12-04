@@ -78,7 +78,7 @@ func (b *Bot) start(ctx context.Context) (chan error, error) {
 
 	// Prepare cmd and start bot process
 
-	cmd := exec.Command(b.binPath, "--config", b.configPath) //nolint:gosec // this is a cmb binary, not some injection.
+	cmd := exec.Command(b.binPath, "--config", b.configPath) //nolint:gosec,noctx // this is a cmb binary, not some injection.
 	cmd.Stdout = b.logFile
 	cmd.Stderr = b.logFile
 

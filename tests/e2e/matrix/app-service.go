@@ -118,7 +118,7 @@ func StartNewAppService(
 		return nil, nil, fmt.Errorf("failed to write bot config file: %w", err)
 	}
 
-	cmd := exec.Command(asbBinPath, "--config", configPath)
+	cmd := exec.Command(asbBinPath, "--config", configPath) //nolint:noctx
 
 	host := fmt.Sprintf("http://localhost:%d", port)
 

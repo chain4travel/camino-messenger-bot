@@ -64,7 +64,7 @@ func StartNewNetwork(
 	var err error
 	httpPorts := make([]int32, validatorsCount)
 	stakingPorts := make([]int32, validatorsCount)
-	for i := 0; i < validatorsCount; i++ {
+	for i := range validatorsCount {
 		httpPorts[i], err = resourceManagerSession.GetNetworkPort()
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get free port: %w", err)
@@ -84,7 +84,7 @@ func StartNewNetwork(
 	bootstrapIDs := make([]string, validatorsCount)
 	bootstrapIPs := make([]string, validatorsCount)
 	validators := make([]validator, validatorsCount)
-	for i := 0; i < validatorsCount; i++ {
+	for i := range validatorsCount {
 		key, err := secp256k1Factory.NewPrivateKey()
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to generate key: %w", err)
@@ -155,7 +155,7 @@ func StartNewNetwork(
 
 	for i := range validators {
 		bootstrapIDs := slices.Delete(slices.Clone(bootstrapIDs), i, i+1)
-		boottstrapIPs := slices.Delete(slices.Clone(bootstrapIPs), i, i+1)
+		bootstrapIPs := slices.Delete(slices.Clone(bootstrapIPs), i, i+1)
 
 		errGroup.Go(func() error {
 			n.nodes[i], errChans[i], err = n.startNewNode(
@@ -166,7 +166,7 @@ func StartNewNetwork(
 				httpPorts[i],
 				stakingPorts[i],
 				strings.Join(bootstrapIDs, ","),
-				strings.Join(boottstrapIPs, ","),
+				strings.Join(bootstrapIPs, ","),
 				i,
 			)
 			if err != nil {
@@ -266,7 +266,7 @@ func (n *Network) startNewNode(
 		return nil, nil, fmt.Errorf("failed to remove blockchain node tmp dir: %w", err)
 	}
 
-	cmd := exec.Command(n.nodeBinPath, //nolint:gosec // this is a caminogo node binary, not some injection.
+	cmd := exec.Command(n.nodeBinPath, //nolint:gosec,noctx // this is a caminogo node binary, not some injection.
 		fmt.Sprintf("--%s=%d", config.HTTPPortKey, httpPort),
 		fmt.Sprintf("--%s=%d", config.StakingPortKey, stakingPort),
 		fmt.Sprintf("--%s=%s", config.StakingTLSKeyPathKey, stakerKeyPath),
