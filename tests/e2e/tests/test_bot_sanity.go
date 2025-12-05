@@ -22,6 +22,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const numberOfManyMessages = 1000
+
 var _ suite.Test = (*TestBotSanity)(nil)
 
 func init() {
@@ -147,6 +149,8 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	)
 
 	// bot with partnerPlugin (supplier), with ping service fee being very high
+	// this is needed, because conduit matrix server marshals json content of message and fails,
+	// if json contains numbers bigger than javaScript safe integer limit (2^53-1)
 	tt.supplierBotWithBigFee = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 18014398509481984}}), // 2^54 > 2^53-1
 	)
@@ -157,7 +161,7 @@ func (tt *TestBotSanity) testMessageWithBigNumberInCheque(ctx context.Context, t
 }
 
 func (tt *TestBotSanity) testManyMessages(ctx context.Context, t *testing.T) {
-	for range 1000 {
+	for range numberOfManyMessages {
 		tt.pingMessage(ctx, t, tt.supplierBot)
 	}
 }
