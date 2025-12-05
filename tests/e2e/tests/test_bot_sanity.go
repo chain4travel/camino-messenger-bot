@@ -22,7 +22,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const numberOfManyMessages = 1000
+const manyMessagesTestIterations = 1000
 
 var _ suite.Test = (*TestBotSanity)(nil)
 
@@ -161,7 +161,7 @@ func (tt *TestBotSanity) testMessageWithBigNumberInCheque(ctx context.Context, t
 }
 
 func (tt *TestBotSanity) testManyMessages(ctx context.Context, t *testing.T) {
-	for range numberOfManyMessages {
+	for range manyMessagesTestIterations {
 		tt.pingMessage(ctx, t, tt.supplierBot)
 	}
 }
