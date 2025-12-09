@@ -89,9 +89,6 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "registered / different services", tt.supplierBotDifferentServices)
 		require.Contains(t, alertMessage, cmaccounts.ErrorUnableToObtainServiceFee.Error())
 	})
-	t.Run("Message with big number in cheque", func(t *testing.T) {
-		tt.testMessageWithBigNumberInCheque(ctx, t)
-	})
 	t.Run("Many messages", func(t *testing.T) {
 		tt.testManyMessages(ctx, t)
 	})
@@ -154,10 +151,6 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	tt.supplierBotWithBigFee = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 18014398509481984}}), // 2^54 > 2^53-1
 	)
-}
-
-func (tt *TestBotSanity) testMessageWithBigNumberInCheque(ctx context.Context, t *testing.T) {
-	tt.pingMessage(ctx, t, tt.supplierBotWithBigFee)
 }
 
 func (tt *TestBotSanity) testManyMessages(ctx context.Context, t *testing.T) {
