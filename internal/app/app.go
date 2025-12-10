@@ -45,6 +45,7 @@ import (
 )
 
 // TODO@ notify cancellation after on-chain cancellation
+// TODO@ make sure that dbs are closed on New() failure
 
 const (
 	cashInJobName        = "cash_in"
