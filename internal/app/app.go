@@ -46,6 +46,7 @@ import (
 
 // TODO@ notify cancellation after on-chain cancellation
 // TODO@ make sure that dbs are closed on New() failure
+// TODO@ examples should point to columbus.messenger.chain4travel.com
 
 const (
 	cashInJobName        = "cash_in"
