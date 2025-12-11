@@ -87,7 +87,7 @@ func rootFunc(cmd *cobra.Command, _ []string) error {
 			// if context is canceled, it means that the app was stopped by a signal
 			return nil
 		}
-
+		err = fmt.Errorf("failed to create app: %w", err)
 		logger.Error(err)
 		return err
 	}
