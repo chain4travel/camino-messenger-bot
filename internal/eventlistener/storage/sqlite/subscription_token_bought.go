@@ -116,7 +116,7 @@ func (s *storage) GetTokenBoughtSubscription(ctx context.Context, session eventl
 
 	subscription := &tokenBoughtSubscription{}
 	if err := tx.StmtxContext(ctx, s.getTokenBoughtSubscription).GetContext(ctx, subscription, tokenID.Int64()); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
+		if !errors.Is(err, sql.ErrNoRows) { // TODO@ unify
 			err = fmt.Errorf("failed to execute get token bought subscription statement: %w", err)
 			s.base.Logger.Error(err)
 		}
@@ -133,7 +133,7 @@ func (s *storage) GetTokenBoughtSubscriptionByMinTimeout(ctx context.Context, se
 	}
 	subscription := &tokenBoughtSubscription{}
 	if err := tx.StmtxContext(ctx, s.getTokenBoughtSubscriptionByMinTimeout).GetContext(ctx, subscription); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
+		if !errors.Is(err, sql.ErrNoRows) { // TODO@ unify
 			err = fmt.Errorf("failed to execute get token bought subscription by min timeout statement: %w", err)
 			s.base.Logger.Error(err)
 		}

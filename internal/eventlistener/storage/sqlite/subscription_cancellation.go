@@ -108,7 +108,7 @@ func (s *storage) IsCancellationSubscriptionExist(ctx context.Context, session e
 
 	dbTokenID := int64(0)
 	if err := tx.StmtxContext(ctx, s.getCancellationSubscription).GetContext(ctx, &dbTokenID, tokenID.Int64()); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) { // TODO@ unify
 			return false, nil
 		}
 		err = fmt.Errorf("failed to execute get cancellation subscription statement: %w", err)
