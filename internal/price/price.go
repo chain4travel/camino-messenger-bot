@@ -189,7 +189,7 @@ func (p *handler) GetPriceAndTokenV4(
 		paymentToken = booking.ISOPaymentToken
 		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
 	default:
-		return nil, common.Address{}, nil, fmt.Errorf("%w (%T)", errUnknownCurrency, currency)
+		return nil, common.Address{}, nil, fmt.Errorf("%w (%T)", errUnknownCurrency, currency) // should never happen with protovalidated price
 	}
 
 	if err != nil {

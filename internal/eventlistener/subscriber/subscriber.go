@@ -75,7 +75,8 @@ func New(
 ) (Subscriber, error) {
 	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenAddress, client)
 	if err != nil {
-		logger.Errorf("failed to create booking token contract binding: %v", err)
+		err = fmt.Errorf("failed to create booking token contract binding: %w", err)
+		logger.Error(err)
 		return nil, err
 	}
 
@@ -230,7 +231,8 @@ func startResubscriber[T any](
 
 		sub, err := subscribe(ctx, eventChan)
 		if err != nil {
-			s.logger.Errorf("Failed to subscribe to %T events: %v", eventType, err)
+			err = fmt.Errorf("failed to subscribe to %T events: %w", eventType, err)
+			s.logger.Error(err)
 			return nil, err
 		}
 		return sub, nil

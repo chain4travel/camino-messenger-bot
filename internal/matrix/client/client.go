@@ -40,7 +40,8 @@ func New(
 ) (messenger.Client, error) {
 	matrixClient, err := mautrix.NewClient(homeserverURL, "", "")
 	if err != nil {
-		logger.Errorf("failed to create matrix client: %v", err)
+		err = fmt.Errorf("failed to create matrix client: %w", err)
+		logger.Error(err)
 		return nil, err
 	}
 

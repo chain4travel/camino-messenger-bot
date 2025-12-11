@@ -29,6 +29,7 @@ type tokenBoughtSubscription struct {
 func (s *storage) AddTokenBoughtSubscription(ctx context.Context, session eventlistener.Session, subscription *eventlistener.TokenBoughtSubscription) error {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
+		err = fmt.Errorf("failed to get transaction from session: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}
@@ -36,14 +37,18 @@ func (s *storage) AddTokenBoughtSubscription(ctx context.Context, session eventl
 	result, err := tx.NamedStmtContext(ctx, s.insertTokenBoughtSubscription).
 		ExecContext(ctx, tokenBoughtSubscriptionFromModel(subscription))
 	if err != nil {
+		err = fmt.Errorf("failed to execute insert token bought subscription statement: %w", err)
 		s.base.Logger.Error(err)
 		return upgradeError(err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
+		err = fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
 		s.base.Logger.Error(err)
 		return upgradeError(err)
 	} else if rowsAffected != 1 {
-		return fmt.Errorf("failed to add token bought subscription: expected to affect 1 row, but affected %d", rowsAffected)
+		err = fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
+		s.base.Logger.Error(err)
+		return err
 	}
 	return nil
 }
@@ -51,20 +56,25 @@ func (s *storage) AddTokenBoughtSubscription(ctx context.Context, session eventl
 func (s *storage) RemoveTokenBoughtSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) error {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
+		err = fmt.Errorf("failed to get transaction from session: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}
 
 	result, err := tx.StmtxContext(ctx, s.removeTokenBoughtSubscription).ExecContext(ctx, tokenID.Uint64())
 	if err != nil {
+		err = fmt.Errorf("failed to execute remove token bought subscription statement: %w", err)
 		s.base.Logger.Error(err)
 		return upgradeError(err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
+		err = fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
 		s.base.Logger.Error(err)
 		return upgradeError(err)
 	} else if rowsAffected != 1 {
-		return fmt.Errorf("error removing token bought subscription: expected to affect 1 row, but affected %d", rowsAffected)
+		err = fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
+		s.base.Logger.Error(err)
+		return err
 	}
 	return nil
 }
@@ -72,6 +82,7 @@ func (s *storage) RemoveTokenBoughtSubscription(ctx context.Context, session eve
 func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session eventlistener.Session) ([]eventlistener.TokenBoughtSubscription, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
+		err = fmt.Errorf("failed to get transaction from session: %w", err)
 		s.base.Logger.Error(err)
 		return nil, err
 	}
@@ -79,13 +90,15 @@ func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session ev
 	subscriptions := []eventlistener.TokenBoughtSubscription{}
 	rows, err := tx.StmtxContext(ctx, s.getAllTokenBoughtSubscription).QueryxContext(ctx)
 	if err != nil {
+		err = fmt.Errorf("failed to execute get all token bought subscriptions q: %w", err)
 		s.base.Logger.Error(err)
 		return nil, upgradeError(err)
 	}
 	for rows.Next() {
 		subscription := &tokenBoughtSubscription{}
 		if err := rows.StructScan(subscription); err != nil {
-			s.base.Logger.Errorf("failed to get token bought subscription from db: %v", err)
+			err = fmt.Errorf("failed to scan row to tokenBoughtSubscription: %w", err)
+			s.base.Logger.Error(err)
 			return nil, upgradeError(err)
 		}
 		subscriptions = append(subscriptions, *modelFromTokenBoughtSubscription(subscription))
@@ -96,6 +109,7 @@ func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session ev
 func (s *storage) GetTokenBoughtSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) (*eventlistener.TokenBoughtSubscription, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
+		err = fmt.Errorf("failed to get transaction from session: %w", err)
 		s.base.Logger.Error(err)
 		return nil, err
 	}
@@ -103,6 +117,7 @@ func (s *storage) GetTokenBoughtSubscription(ctx context.Context, session eventl
 	subscription := &tokenBoughtSubscription{}
 	if err := tx.StmtxContext(ctx, s.getTokenBoughtSubscription).GetContext(ctx, subscription, tokenID.Int64()); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
+			err = fmt.Errorf("failed to execute get token bought subscription statement: %w", err)
 			s.base.Logger.Error(err)
 		}
 		return nil, upgradeError(err)
@@ -119,6 +134,7 @@ func (s *storage) GetTokenBoughtSubscriptionByMinTimeout(ctx context.Context, se
 	subscription := &tokenBoughtSubscription{}
 	if err := tx.StmtxContext(ctx, s.getTokenBoughtSubscriptionByMinTimeout).GetContext(ctx, subscription); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
+			err = fmt.Errorf("failed to execute get token bought subscription by min timeout statement: %w", err)
 			s.base.Logger.Error(err)
 		}
 		return nil, upgradeError(err)
@@ -147,6 +163,7 @@ func (s *storage) prepareTokenBoughtSubscriptionsStmts(ctx context.Context) erro
 		)
 	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
+		err = fmt.Errorf("failed to prepare insert token bought subscription statement: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}
@@ -157,6 +174,7 @@ func (s *storage) prepareTokenBoughtSubscriptionsStmts(ctx context.Context) erro
 		WHERE token_id = ?
 	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
+		err = fmt.Errorf("failed to prepare remove token bought subscription statement: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}
@@ -166,6 +184,7 @@ func (s *storage) prepareTokenBoughtSubscriptionsStmts(ctx context.Context) erro
 		SELECT * FROM %s
 	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
+		err = fmt.Errorf("failed to prepare get all token bought subscriptions statement: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}
@@ -176,6 +195,7 @@ func (s *storage) prepareTokenBoughtSubscriptionsStmts(ctx context.Context) erro
 		WHERE token_id = ?
 	`, tokenBoughtSubscriptionsTable))
 	if err != nil {
+		err = fmt.Errorf("failed to prepare get token bought subscription statement: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}
@@ -188,6 +208,7 @@ func (s *storage) prepareTokenBoughtSubscriptionsStmts(ctx context.Context) erro
 		)
 	`, tokenBoughtSubscriptionsTable, tokenBoughtSubscriptionsTable))
 	if err != nil {
+		err = fmt.Errorf("failed to prepare get token bought subscription by min timeout statement: %w", err)
 		s.base.Logger.Error(err)
 	}
 	s.getTokenBoughtSubscriptionByMinTimeout = getTokenBoughtSubscriptionByMinTimeout

@@ -31,19 +31,16 @@ type CancellationSubscriber interface {
 func (l *eventListener) SubscribeCancellationEvents(ctx context.Context, tokenID *big.Int) error {
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
-		return err
+		return fmt.Errorf("failed to create db session: %w", err)
 	}
 	defer l.storage.Abort(session)
 
 	if err := l.storage.AddCancellationSubscription(ctx, session, tokenID); err != nil {
-		l.logger.Errorf("error adding cancellation events subscription: %v", err)
-		return err
+		return fmt.Errorf("error adding cancellation subscription to db: %w", err)
 	}
 
 	if err := l.storage.Commit(session); err != nil {
-		l.logger.Errorf("failed to commit session: %v", err)
-		return err
+		return fmt.Errorf("failed to commit db session: %w", err)
 	}
 
 	return nil
@@ -51,8 +48,7 @@ func (l *eventListener) SubscribeCancellationEvents(ctx context.Context, tokenID
 
 func (l *eventListener) startCancellationSubscriptions(ctx context.Context) error {
 	if err := l.cancellationSubscriptionsStartupCheck(ctx); err != nil {
-		l.logger.Errorf("error checking cancellation subscriptions: %v", err)
-		return err
+		return fmt.Errorf("cancellation subscriptions startup check error: %w", err)
 	}
 
 	unsubscribeCancellationPending := l.subscriber.SubscribeCancellationPending(l.cancellationPendingEventHandler)
@@ -72,22 +68,20 @@ func (l *eventListener) startCancellationSubscriptions(ctx context.Context) erro
 func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Context) error {
 	cancellationSubscriptionTokenIDs, err := l.getAllCancellationSubscriptionTokenIDs(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting cancellation subscription token IDs: %w", err)
 	}
 
 	for _, tokenID := range cancellationSubscriptionTokenIDs {
 		cancellation, err := l.bookingService.GetCancellationProposal(ctx, l.startingBlockNumber, tokenID)
 		if err != nil {
-			l.logger.Errorf("error getting cancellation proposal for token %s: %v", tokenID.String(), err)
-			return err
+			return fmt.Errorf("error getting cancellation proposal for token %s: %w", tokenID.String(), err)
 		}
 
 		switch cancellation.Status {
 		case booking.CancellationProposalStatusPending:
 			reasons, err := l.bookingService.GetCancellationReasons(ctx, l.startingBlockNumber, tokenID)
 			if err != nil {
-				l.logger.Errorf("error getting cancellation reasons for token %s: %v", tokenID.String(), err)
-				return err
+				return fmt.Errorf("error getting cancellation reasons for token %s: %w", tokenID.String(), err)
 			}
 
 			if err := l.partnerPlugin.CancellationPendingNotification(ctx, &notificationv3.CancellationPending{
@@ -105,14 +99,12 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 				CounterReason:      cancellationv1.CounterReason(reasons.CounterReason),
 				WithdrawalReason:   cancellationv1.WithdrawalReason(reasons.WithdrawalReason),
 			}); err != nil {
-				l.logger.Errorf("error sending CancellationPending notification: %v", err)
-				return err
+				return fmt.Errorf("error sending CancellationPending notification for token %s: %w", tokenID.String(), err)
 			}
 		case booking.CancellationProposalStatusRejected:
 			reasons, err := l.bookingService.GetCancellationReasons(ctx, l.startingBlockNumber, tokenID)
 			if err != nil {
-				l.logger.Errorf("error getting cancellation reasons for token %s: %v", tokenID.String(), err)
-				return err
+				return fmt.Errorf("error getting cancellation reasons for token %s: %w", tokenID.String(), err)
 			}
 
 			if err := l.partnerPlugin.CancellationRejectedNotification(ctx, &notificationv3.CancellationRejected{
@@ -120,14 +112,12 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 				Reason:  cancellationv1.RejectionReason(reasons.RejectionReason),
 				TxId:    &typesv4.EVMTransactionID{Hash: zeroHashStr},
 			}); err != nil {
-				l.logger.Errorf("error sending CancellationRejected notification: %v", err)
-				return err
+				return fmt.Errorf("error sending CancellationRejected notification for token %s: %w", tokenID.String(), err)
 			}
 		case booking.CancellationProposalStatusWithdrawn:
 			reasons, err := l.bookingService.GetCancellationReasons(ctx, l.startingBlockNumber, tokenID)
 			if err != nil {
-				l.logger.Errorf("error getting cancellation reasons for token %s: %v", tokenID.String(), err)
-				return err
+				return fmt.Errorf("error getting cancellation reasons for token %s: %w", tokenID.String(), err)
 			}
 
 			if err := l.partnerPlugin.CancellationWithdrawnNotification(ctx, &notificationv3.CancellationWithdrawn{
@@ -135,14 +125,12 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 				Reason:  cancellationv1.WithdrawalReason(reasons.WithdrawalReason),
 				TxId:    &typesv4.EVMTransactionID{Hash: zeroHashStr},
 			}); err != nil {
-				l.logger.Errorf("error sending CancellationWithdrawn notification: %v", err)
-				return err
+				return fmt.Errorf("error sending CancellationWithdrawn notification for token %s: %w", tokenID.String(), err)
 			}
 		case booking.CancellationProposalStatusFinalized:
 			session, err := l.storage.NewSession(ctx)
 			if err != nil {
-				l.logger.Errorf("failed to create storage session: %v", err)
-				return err
+				return fmt.Errorf("failed to create db session: %w", err)
 			}
 			defer l.storage.Abort(session)
 
@@ -150,23 +138,18 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 				TokenId: tokenID.Uint64(),
 				TxId:    &typesv4.EVMTransactionID{Hash: zeroHashStr},
 			}); err != nil {
-				l.logger.Errorf("error sending CancellationFinalized notification: %v", err)
-				return err
+				return fmt.Errorf("error sending CancellationFinalized notification for token %s: %w", tokenID.String(), err)
 			}
 
 			if err := l.storage.RemoveCancellationSubscription(ctx, session, tokenID); err != nil {
-				l.logger.Errorf("error removing CancellationFinalized subscription from db: %v", err)
-				return err
+				return fmt.Errorf("error removing CancellationFinalized subscription from db for token %s: %w", tokenID.String(), err)
 			}
 
 			if err := l.storage.Commit(session); err != nil {
-				l.logger.Errorf("failed to commit session: %v", err)
-				return err
+				return fmt.Errorf("failed to commit db session: %w", err)
 			}
 		default:
-			err := fmt.Errorf("unknown cancellation proposal status for token %s: %d", tokenID.String(), cancellation.Status)
-			l.logger.Error(err)
-			return err
+			return fmt.Errorf("unknown cancellation proposal status for token %s: %d", tokenID.String(), cancellation.Status)
 		}
 	}
 	return nil
@@ -175,15 +158,13 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 func (l *eventListener) getAllCancellationSubscriptionTokenIDs(ctx context.Context) ([]*big.Int, error) {
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create db session: %w", err)
 	}
 	defer l.storage.Abort(session)
 
 	cancellationSubscriptionTokenIDs, err := l.storage.GetAllCancellationSubscriptions(ctx, session)
 	if err != nil {
-		l.logger.Errorf("error getting all cancellation subscriptions from db: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("error getting all cancellation subscriptions from db: %w", err)
 	}
 
 	return cancellationSubscriptionTokenIDs, nil
@@ -196,7 +177,7 @@ func (l *eventListener) cancellationPendingEventHandler(event *bookingtoken.Book
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
+		l.logger.Errorf("failed to create db session for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 	defer l.storage.Abort(session)
@@ -204,16 +185,15 @@ func (l *eventListener) cancellationPendingEventHandler(event *bookingtoken.Book
 	ok, err := l.storage.IsCancellationSubscriptionExist(ctx, session, event.TokenId)
 	switch {
 	case err != nil:
-		l.logger.Errorf("error checking if cancellation subscription exists in db: %v", err)
+		l.logger.Errorf("error checking if cancellation subscription exists in db for token %s: %v", event.TokenId.String(), err)
 		return 0
 	case !ok:
-		l.logger.Infof("Ignoring CancellationPending event for token %s, subscription does not exist", event.TokenId.String())
 		return event.Raw.BlockNumber
 	}
 
 	reasons, err := l.bookingService.GetCancellationReasonsEvent(ctx, event.Raw.TxHash)
 	if err != nil {
-		l.logger.Errorf("error getting cancellation reasons event: %v", err)
+		l.logger.Errorf("error getting cancellation reasons event for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
@@ -232,7 +212,7 @@ func (l *eventListener) cancellationPendingEventHandler(event *bookingtoken.Book
 		CounterReason:      cancellationv1.CounterReason(reasons.CounterReason),
 		WithdrawalReason:   cancellationv1.WithdrawalReason(reasons.WithdrawalReason),
 	}); err != nil {
-		l.logger.Errorf("error sending CancellationPending notification: %v", err)
+		l.logger.Errorf("error sending CancellationPending notification for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
@@ -246,7 +226,7 @@ func (l *eventListener) cancellationRejectedEventHandler(event *bookingtoken.Boo
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
+		l.logger.Errorf("failed to create db session for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 	defer l.storage.Abort(session)
@@ -254,7 +234,7 @@ func (l *eventListener) cancellationRejectedEventHandler(event *bookingtoken.Boo
 	ok, err := l.storage.IsCancellationSubscriptionExist(ctx, session, event.TokenId)
 	switch {
 	case err != nil:
-		l.logger.Errorf("error checking if cancellation subscription exists in db: %v", err)
+		l.logger.Errorf("error checking if cancellation subscription exists in db for token %s: %v", event.TokenId.String(), err)
 		return 0
 	case !ok:
 		return event.Raw.BlockNumber
@@ -265,7 +245,7 @@ func (l *eventListener) cancellationRejectedEventHandler(event *bookingtoken.Boo
 		Reason:  cancellationv1.RejectionReason(event.RejectionReason),
 		TxId:    &typesv4.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
 	}); err != nil {
-		l.logger.Errorf("error sending CancellationRejected notification: %v", err)
+		l.logger.Errorf("error sending CancellationRejected notification for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
@@ -279,7 +259,7 @@ func (l *eventListener) cancellationWithdrawnEventHandler(event *bookingtoken.Bo
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
+		l.logger.Errorf("failed to create db session for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 	defer l.storage.Abort(session)
@@ -287,7 +267,7 @@ func (l *eventListener) cancellationWithdrawnEventHandler(event *bookingtoken.Bo
 	ok, err := l.storage.IsCancellationSubscriptionExist(ctx, session, event.TokenId)
 	switch {
 	case err != nil:
-		l.logger.Errorf("error checking if cancellation subscription exists in db: %v", err)
+		l.logger.Errorf("error checking if cancellation subscription exists in db for token %s: %v", event.TokenId.String(), err)
 		return 0
 	case !ok:
 		return event.Raw.BlockNumber
@@ -298,7 +278,7 @@ func (l *eventListener) cancellationWithdrawnEventHandler(event *bookingtoken.Bo
 		Reason:  cancellationv1.WithdrawalReason(event.WithdrawalReason),
 		TxId:    &typesv4.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
 	}); err != nil {
-		l.logger.Errorf("error sending CancellationWithdrawn notification: %v", err)
+		l.logger.Errorf("error sending CancellationWithdrawn notification for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
@@ -312,7 +292,7 @@ func (l *eventListener) cancellationFinalizedEventHandler(event *bookingtoken.Bo
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
+		l.logger.Errorf("failed to create db session for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 	defer l.storage.Abort(session)
@@ -320,7 +300,7 @@ func (l *eventListener) cancellationFinalizedEventHandler(event *bookingtoken.Bo
 	ok, err := l.storage.IsCancellationSubscriptionExist(ctx, session, event.TokenId)
 	switch {
 	case err != nil:
-		l.logger.Errorf("error checking if cancellation subscription exists in db: %v", err)
+		l.logger.Errorf("error checking if cancellation subscription exists in db for token %s: %v", event.TokenId.String(), err)
 		return 0
 	case !ok:
 		return event.Raw.BlockNumber
@@ -330,17 +310,17 @@ func (l *eventListener) cancellationFinalizedEventHandler(event *bookingtoken.Bo
 		TokenId: event.TokenId.Uint64(),
 		TxId:    &typesv4.EVMTransactionID{Hash: event.Raw.TxHash.Hex()},
 	}); err != nil {
-		l.logger.Errorf("error sending CancellationFinalized notification: %v", err)
+		l.logger.Errorf("error sending CancellationFinalized notification for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
 	if err := l.storage.RemoveCancellationSubscription(ctx, session, event.TokenId); err != nil {
-		l.logger.Errorf("error removing CancellationFinalized subscription from db: %v", err)
+		l.logger.Errorf("error removing CancellationFinalized subscription from db for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
 	if err := l.storage.Commit(session); err != nil {
-		l.logger.Errorf("failed to commit session: %v", err)
+		l.logger.Errorf("failed to commit db session for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 

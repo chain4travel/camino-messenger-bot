@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"embed"
 	"errors"
+	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
@@ -61,10 +62,12 @@ func (s *storage) Close() error {
 
 func (s *storage) prepare(ctx context.Context) error {
 	if err := s.prepareTokenBoughtSubscriptionsStmts(ctx); err != nil {
+		err = fmt.Errorf("failed to prepare token bought subscriptions statements: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}
 	if err := s.prepareCancellationSubscriptionsStmts(ctx); err != nil {
+		err = fmt.Errorf("failed to prepare cancellation subscriptions statements: %w", err)
 		s.base.Logger.Error(err)
 		return err
 	}

@@ -6,6 +6,7 @@ package eventlistener
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -36,25 +37,22 @@ func (l *eventListener) SubscribeTokenBoughtEvent(ctx context.Context, tokenID *
 		TokenID: tokenID,
 		MintID:  mintID,
 		// blockchain node time might be different, so we add some delay
-		// to be more sure that we are not to early, assuming timeout has already happened
+		// to be more sure that we are not too early, assuming timeout has already happened
 		Timeout: timeout.Add(timeCheckBlockchainDelay),
 	}
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
-		return err
+		return fmt.Errorf("failed to create db session: %w", err)
 	}
 	defer l.storage.Abort(session)
 
 	if err := l.storage.AddTokenBoughtSubscription(ctx, session, subscription); err != nil {
-		l.logger.Errorf("error adding token bought subscription: %v", err)
-		return err
+		return fmt.Errorf("error adding token bought subscription to db: %w", err)
 	}
 
 	if err := l.storage.Commit(session); err != nil {
-		l.logger.Errorf("failed to commit session: %v", err)
-		return err
+		return fmt.Errorf("failed to commit db session: %w", err)
 	}
 
 	l.resetTokenBoughtTimerIfAfter(subscription)
@@ -65,8 +63,7 @@ func (l *eventListener) SubscribeTokenBoughtEvent(ctx context.Context, tokenID *
 func (l *eventListener) startTokenBoughtSubscriptions(ctx context.Context) error {
 	nextToExpireSubscription, err := l.tokenBoughtSubscriptionsStartupCheck(ctx)
 	if err != nil {
-		l.logger.Errorf("error checking token bought subscriptions: %v", err)
-		return err
+		return fmt.Errorf("token bought subscriptions startup check error: %w", err)
 	}
 
 	unsubscribe := l.subscriber.SubscribeTokenBought(l.tokenBoughtEventHandler)
@@ -86,7 +83,7 @@ func (l *eventListener) startTokenBoughtSubscriptions(ctx context.Context) error
 func (l *eventListener) tokenBoughtSubscriptionsStartupCheck(ctx context.Context) (*TokenBoughtSubscription, error) {
 	tokenBoughtSubscriptions, err := l.getAllTokenBoughtSubscriptions(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting all token bought subscriptions: %w", err)
 	}
 
 	nextTimeoutTime := maxTime
@@ -95,34 +92,29 @@ func (l *eventListener) tokenBoughtSubscriptionsStartupCheck(ctx context.Context
 	for _, subscription := range tokenBoughtSubscriptions {
 		status, err := l.bookingService.GetBookingStatus(ctx, l.startingBlockNumber, subscription.TokenID)
 		if err != nil {
-			l.logger.Errorf("failed to get booking status: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to get booking status for token %s: %w", subscription.TokenID.String(), err)
 		}
 
 		if status != booking.StatusReserved {
 			// if token is expired or cancelled already, we don't send any notification here
 			if status == booking.StatusBought {
 				if err := l.partnerPlugin.TokenBoughtNotificationWithoutBuyTx(ctx, subscription.TokenID, subscription.MintID); err != nil {
-					l.logger.Errorf("error sending token bought notification: %v", err)
-					return nil, err
+					return nil, fmt.Errorf("error sending token bought notification for token %s: %w", subscription.TokenID.String(), err)
 				}
 			}
 
 			session, err := l.storage.NewSession(ctx)
 			if err != nil {
-				l.logger.Errorf("failed to create storage session: %v", err)
-				return nil, err
+				return nil, fmt.Errorf("failed to create db session for token %s: %w", subscription.TokenID.String(), err)
 			}
 			defer l.storage.Abort(session)
 
 			if err := l.storage.RemoveTokenBoughtSubscription(ctx, session, subscription.TokenID); err != nil {
-				l.logger.Errorf("error removing token bought subscription: %v", err)
-				return nil, err
+				return nil, fmt.Errorf("error removing token bought subscription for token %s: %w", subscription.TokenID.String(), err)
 			}
 
 			if err := l.storage.Commit(session); err != nil {
-				l.logger.Errorf("failed to commit session: %v", err)
-				return nil, err
+				return nil, fmt.Errorf("failed to commit db session for token %s: %w", subscription.TokenID.String(), err)
 			}
 
 			continue
@@ -140,15 +132,13 @@ func (l *eventListener) tokenBoughtSubscriptionsStartupCheck(ctx context.Context
 func (l *eventListener) getAllTokenBoughtSubscriptions(ctx context.Context) ([]TokenBoughtSubscription, error) {
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create db session: %w", err)
 	}
 	defer l.storage.Abort(session)
 
 	tokenBoughtSubscriptions, err := l.storage.GetAllTokenBoughtSubscriptions(ctx, session)
 	if err != nil {
-		l.logger.Errorf("error getting all token bought subscriptions from db: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("error getting all token bought subscriptions from db: %w", err)
 	}
 
 	return tokenBoughtSubscriptions, nil
@@ -164,7 +154,7 @@ func (l *eventListener) tokenBoughtEventHandler(event *bookingtoken.Bookingtoken
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
+		l.logger.Errorf("failed to create db session for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 	defer l.storage.Abort(session)
@@ -172,36 +162,35 @@ func (l *eventListener) tokenBoughtEventHandler(event *bookingtoken.Bookingtoken
 	subscription, err := l.storage.GetTokenBoughtSubscription(ctx, session, event.TokenId)
 	switch {
 	case errors.Is(err, ErrNotFound):
-		l.logger.Infof("Ignoring token bought event for token %s, subscription does not exist", event.TokenId.String())
 		return event.Raw.BlockNumber
 	case err != nil:
-		l.logger.Errorf("error getting token bought subscription from db: %v", err)
+		l.logger.Errorf("error getting token bought subscription from db for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
 	if err := l.partnerPlugin.TokenBoughtNotificationWithBuyTx(ctx, subscription.TokenID, subscription.MintID, event.Raw.TxHash); err != nil {
-		l.logger.Errorf("error calling partner plugin TokenBoughtNotification service: %v", err)
+		l.logger.Errorf("error calling partner plugin TokenBoughtNotification service for token %s: %v", event.TokenId.String(), err)
 		return 0
 	}
 
 	if isCancellable, err := l.bookingService.IsBookingCancellable(ctx, nil, subscription.TokenID); err != nil {
-		l.logger.Errorf("failed to get booking status: %v", err)
+		l.logger.Errorf("failed to get booking status for token %s: %v", subscription.TokenID.String(), err)
 		return 0
 	} else if isCancellable {
 		if err := l.storage.AddCancellationSubscription(ctx, session, subscription.TokenID); err != nil {
-			l.logger.Errorf("Error subscribing for cancellation events as supplier (tokenID: %d, mintID: %s): %v", subscription.TokenID.Int64(), subscription.MintID, err)
+			l.logger.Errorf("error subscribing for cancellation events as supplier for token %s: %v", subscription.TokenID.String(), err)
 			return 0
 		}
 		l.logger.Infof("Subscribed for cancellation events as supplier for token %s", subscription.TokenID.String())
 	}
 
 	if err := l.storage.RemoveTokenBoughtSubscription(ctx, session, subscription.TokenID); err != nil {
-		l.logger.Errorf("error removing token bought subscription from db: %v", err)
+		l.logger.Errorf("error removing token bought subscription from db for token %s: %v", subscription.TokenID.String(), err)
 		return 0
 	}
 
 	if err := l.storage.Commit(session); err != nil {
-		l.logger.Errorf("failed to commit session: %v", err)
+		l.logger.Errorf("failed to commit db session for token %s: %v", subscription.TokenID.String(), err)
 		return 0
 	}
 
@@ -220,7 +209,7 @@ func (l *eventListener) tokenBoughtTimeoutHandler() {
 
 	status, err := l.bookingService.GetBookingStatus(ctx, nil, l.tokenBoughtTimerSubscription.TokenID)
 	if err != nil {
-		l.logger.Errorf("failed to get booking status: %v", err)
+		l.logger.Errorf("failed to get booking status for token %s: %v", l.tokenBoughtTimerSubscription.TokenID.String(), err)
 		return
 	}
 
@@ -233,30 +222,30 @@ func (l *eventListener) tokenBoughtTimeoutHandler() {
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
+		l.logger.Errorf("failed to create db session for token %s: %v", l.tokenBoughtTimerSubscription.TokenID.String(), err)
 		return
 	}
 	defer l.storage.Abort(session)
 
 	if err := l.partnerPlugin.TokenExpiredNotification(ctx, l.tokenBoughtTimerSubscription.TokenID, l.tokenBoughtTimerSubscription.MintID); err != nil {
-		l.logger.Errorf("error calling partner plugin TokenExpiredNotification service: %v", err)
+		l.logger.Errorf("error calling partner plugin TokenExpiredNotification service for token %s: %v", l.tokenBoughtTimerSubscription.TokenID.String(), err)
 		return
 	}
 
 	if l.recordTokenExpiration {
 		if _, err := l.bookingService.RecordExpiration(ctx, l.tokenBoughtTimerSubscription.TokenID); err != nil {
-			l.logger.Errorf("error calling booking service RecordExpiration: %v", err)
+			l.logger.Errorf("error calling booking service RecordExpiration for token %s: %v", l.tokenBoughtTimerSubscription.TokenID.String(), err)
 			return
 		}
 	}
 
 	if err := l.storage.RemoveTokenBoughtSubscription(ctx, session, l.tokenBoughtTimerSubscription.TokenID); err != nil {
-		l.logger.Errorf("error removing token bought subscription: %v", err)
+		l.logger.Errorf("error removing token bought subscription from db for token %s: %v", l.tokenBoughtTimerSubscription.TokenID.String(), err)
 		return
 	}
 
 	if err := l.storage.Commit(session); err != nil {
-		l.logger.Errorf("failed to commit session: %v", err)
+		l.logger.Errorf("failed to commit db session for token %s: %v", l.tokenBoughtTimerSubscription.TokenID.String(), err)
 		return
 	}
 }
@@ -306,7 +295,7 @@ func (l *eventListener) resetTokenBoughtTimerFromDB(ctx context.Context) {
 
 	session, err := l.storage.NewSession(ctx)
 	if err != nil {
-		l.logger.Errorf("failed to create storage session: %v", err)
+		l.logger.Errorf("failed to create db session: %v", err)
 		return
 	}
 	defer l.storage.Abort(session)
@@ -315,7 +304,7 @@ func (l *eventListener) resetTokenBoughtTimerFromDB(ctx context.Context) {
 	switch {
 	case errors.Is(err, ErrNotFound): // do nothing
 	case err != nil:
-		l.logger.Errorf("error getting token bought subscription: %v", err)
+		l.logger.Errorf("error getting token bought subscription from db: %v", err)
 		return
 	case nextToExpireSubscription != nil:
 		l.tokenBoughtTimerSubscription = nextToExpireSubscription
