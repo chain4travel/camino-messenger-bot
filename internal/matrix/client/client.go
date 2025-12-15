@@ -28,7 +28,11 @@ const (
 	MaxChunkSize = 30 << 10 // max pre-encrypted chunk size is 30KB - 35KB proved to be an unsafe limit (TODO investigate optimal limit)
 )
 
-var _ messenger.Client = (*client)(nil)
+var (
+	_ messenger.Client = (*client)(nil)
+
+	errNotDefaultSyncer = errors.New("matrix client syncer is not of type DefaultSyncer")
+)
 
 func New(
 	ctx context.Context,
@@ -40,24 +44,22 @@ func New(
 ) (messenger.Client, error) {
 	matrixClient, err := mautrix.NewClient(homeserverURL, "", "")
 	if err != nil {
-		err = fmt.Errorf("failed to create matrix client: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create matrix client: %w", err)
 	}
 
 	syncer, ok := matrixClient.Syncer.(*mautrix.DefaultSyncer)
-	if !ok {
-		return nil, fmt.Errorf("failed to cast syncer to DefaultSyncer")
+	if !ok { // should never happen with current mautrix implementation
+		return nil, errNotDefaultSyncer
 	}
 
 	cryptoHelper, err := cryptohelper.NewCryptoHelper(matrixClient, []byte("meow"), dbPath) // TODO @nikos refactor
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create crypto helper: %w", err)
 	}
 
 	signature, message, err := SignPublicKey(botKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to sign public key: %w", err)
 	}
 
 	cryptoHelper.LoginAs = &mautrix.ReqLogin{
@@ -66,26 +68,23 @@ func New(
 		Signature: signature[2:], // removing 0x prefix
 	}
 
-	if err = cryptoHelper.Init(ctx); err != nil {
-		_ = cryptoHelper.Close()
-		return nil, err
-	}
-
-	if matrixClient.UserID != expectedBotUserID {
-		_ = cryptoHelper.Close()
-		return nil, fmt.Errorf("expected user ID %s, got %s", expectedBotUserID, matrixClient.UserID)
-	}
-
-	matrixClient.Crypto = cryptoHelper
-
-	logger.Infof("Successfully logged in as: %s", matrixClient.UserID)
-
-	return &client{
+	c := &client{
 		logger:       logger,
 		client:       matrixClient,
 		syncer:       syncer,
 		cryptoHelper: cryptoHelper,
-	}, nil
+	}
+
+	if err := c.initCryptoHelper(ctx, expectedBotUserID); err != nil {
+		if closeErr := c.cryptoHelper.Close(); closeErr != nil {
+			logger.Errorf("failed to close crypto helper after crypto helper init failure: %v", closeErr)
+		}
+		return nil, fmt.Errorf("failed to initialize crypto helper: %w", err)
+	}
+
+	logger.Infof("Successfully logged in as: %s", c.client.UserID)
+
+	return c, nil
 }
 
 type client struct {
@@ -93,6 +92,20 @@ type client struct {
 	client       *mautrix.Client
 	syncer       *mautrix.DefaultSyncer
 	cryptoHelper *cryptohelper.CryptoHelper
+}
+
+func (c *client) initCryptoHelper(ctx context.Context, expectedBotUserID id.UserID) error {
+	if err := c.cryptoHelper.Init(ctx); err != nil {
+		return fmt.Errorf("failed to initialize crypto helper: %w", err)
+	}
+
+	if c.client.UserID != expectedBotUserID {
+		return fmt.Errorf("logged in user ID %s does not match expected bot user ID %s", c.client.UserID, expectedBotUserID)
+	}
+
+	c.client.Crypto = c.cryptoHelper
+
+	return nil
 }
 
 func (c *client) Close() error {
@@ -115,8 +128,7 @@ func (c *client) CreateRoomForUser(ctx context.Context, recipient id.UserID) (id
 		Invite:     []id.UserID{recipient},
 	})
 	if err != nil {
-		c.logger.Errorf("Failed to create new room for user %s: %v", recipient, err)
-		return "", err
+		return "", fmt.Errorf("Failed to create new room for user %s: %v", recipient, err)
 	}
 	c.logger.Debugf("Created new room %s for user %s", resp.RoomID, recipient)
 	return resp.RoomID, nil
@@ -125,8 +137,7 @@ func (c *client) CreateRoomForUser(ctx context.Context, recipient id.UserID) (id
 func (c *client) JoinRoom(ctx context.Context, roomID id.RoomID) error {
 	c.logger.Debugf("Joining room %s", roomID)
 	if _, err := c.client.JoinRoomByID(ctx, roomID); err != nil {
-		c.logger.Errorf("Failed to join room %s: %v", roomID, err)
-		return err
+		return fmt.Errorf("Failed to join room %s: %v", roomID, err)
 	}
 	c.logger.Debugf("Joined room %s", roomID)
 	return nil
@@ -135,8 +146,7 @@ func (c *client) JoinRoom(ctx context.Context, roomID id.RoomID) error {
 func (c *client) LeaveRoom(ctx context.Context, roomID id.RoomID) error {
 	c.logger.Debugf("Leaving room %s", roomID)
 	if _, err := c.client.LeaveRoom(ctx, roomID); err != nil {
-		c.logger.Errorf("Failed to leave room %s: %v", roomID, err)
-		return err
+		return fmt.Errorf("Failed to leave room %s: %v", roomID, err)
 	}
 	c.logger.Debugf("Left room %s", roomID)
 	return nil
@@ -145,8 +155,7 @@ func (c *client) LeaveRoom(ctx context.Context, roomID id.RoomID) error {
 func (c *client) ForgetRoom(ctx context.Context, roomID id.RoomID) error {
 	c.logger.Debugf("Forgetting room %s", roomID)
 	if _, err := c.client.ForgetRoom(ctx, roomID); err != nil {
-		c.logger.Errorf("Failed to forget room %s: %v", roomID, err)
-		return err
+		return fmt.Errorf("Failed to forget room %s: %v", roomID, err)
 	}
 	c.logger.Debugf("Forgot room %s", roomID)
 	return nil
@@ -155,8 +164,7 @@ func (c *client) ForgetRoom(ctx context.Context, roomID id.RoomID) error {
 func (c *client) JoinedRooms(ctx context.Context) ([]id.RoomID, error) {
 	resp, err := c.client.JoinedRooms(ctx)
 	if err != nil {
-		c.logger.Errorf("Failed to get joined rooms: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Failed to get joined rooms: %v", err)
 	}
 	return resp.JoinedRooms, nil
 }
@@ -164,8 +172,7 @@ func (c *client) JoinedRooms(ctx context.Context) ([]id.RoomID, error) {
 func (c *client) IsUserJoinedRoom(ctx context.Context, roomID id.RoomID, userID id.UserID) (bool, error) {
 	resp, err := c.client.JoinedMembers(ctx, roomID)
 	if err != nil {
-		c.logger.Errorf("Failed to get joined members for room %s: %v", roomID, err)
-		return false, err
+		return false, fmt.Errorf("Failed to get joined members for room %s: %v", roomID, err)
 	}
 	_, joined := resp.Joined[userID]
 	return joined, nil
@@ -175,8 +182,7 @@ func (c *client) SendSignedMessageEvent(ctx context.Context, roomID id.RoomID, e
 	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeSignedMessage.Type, roomID)
 	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeSignedMessage, event, mautrix.ReqSendEvent{DontEncrypt: true})
 	if err != nil {
-		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeSignedMessage.Type, roomID, err)
-		return err
+		return fmt.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeSignedMessage.Type, roomID, err)
 	}
 	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeSignedMessage.Type, roomID)
 	return nil
@@ -186,8 +192,7 @@ func (c *client) SendMessageChunkEvent(ctx context.Context, roomID id.RoomID, ev
 	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeMessageChunk.Type, roomID)
 	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessageChunk, event, mautrix.ReqSendEvent{DontEncrypt: true})
 	if err != nil {
-		c.logger.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessageChunk.Type, roomID, err)
-		return err
+		return fmt.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessageChunk.Type, roomID, err)
 	}
 	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeMessageChunk.Type, roomID)
 	return nil
@@ -196,8 +201,7 @@ func (c *client) SendMessageChunkEvent(ctx context.Context, roomID id.RoomID, ev
 func (c *client) SyncWithContext(ctx context.Context) error {
 	c.logger.Debug("Starting sync")
 	if err := c.client.SyncWithContext(ctx); err != nil && !errors.Is(err, context.Canceled) {
-		c.logger.Errorf("Sync failed: %v", err)
-		return err
+		return fmt.Errorf("Sync failed: %v", err)
 	}
 	c.logger.Debug("Sync finished")
 	return nil

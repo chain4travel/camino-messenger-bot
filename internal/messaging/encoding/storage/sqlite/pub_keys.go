@@ -22,8 +22,7 @@ const pubKeysTableName = "pub_keys"
 func (s *storage) GetBotPubKey(ctx context.Context, session encoding.Session, address common.Address) (*ecdsa.PublicKey, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	pubKeyBytes := make([]byte, 0, 33) // 33 bytes for a compressed public key
@@ -31,14 +30,12 @@ func (s *storage) GetBotPubKey(ctx context.Context, session encoding.Session, ad
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		s.base.Logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to execute get public key statement: %w", err)
 	}
 
 	pubKey, err := crypto.DecompressPubkey(pubKeyBytes)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return nil, fmt.Errorf("failed to decompress public key for address %s: %w", address.Hex(), err)
+		return nil, fmt.Errorf("failed to decompress public key bytes: %w", err)
 	}
 
 	return pubKey, nil
@@ -47,20 +44,17 @@ func (s *storage) GetBotPubKey(ctx context.Context, session encoding.Session, ad
 func (s *storage) SetBotPubKey(ctx context.Context, session encoding.Session, address common.Address, pubKey *ecdsa.PublicKey) error {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	result, err := tx.StmtxContext(ctx, s.setPubKey).ExecContext(ctx, address.Bytes(), crypto.CompressPubkey(pubKey))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to execute set public key statement: %w", err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
 	} else if rowsAffected != 1 {
-		return fmt.Errorf("failed to set public key for address %s, expected 1 row affected, got %d", address.Hex(), rowsAffected)
+		return fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
 	}
 	return nil
 }
@@ -75,8 +69,7 @@ func (s *storage) preparePubKeysStmts(ctx context.Context) error {
 		WHERE address = ?
 	`, pubKeysTableName))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare get pub key statement: %w", err)
 	}
 	s.getPubKey = getPubKey
 
@@ -89,8 +82,7 @@ func (s *storage) preparePubKeysStmts(ctx context.Context) error {
 			pub_key = excluded.pub_key
 	`, pubKeysTableName))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare set pub key statement: %w", err)
 	}
 	s.setPubKey = setPubKey
 

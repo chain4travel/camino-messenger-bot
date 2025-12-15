@@ -5,9 +5,7 @@ package sqlite
 
 import (
 	"context"
-	"database/sql"
 	"embed"
-	"errors"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/scheduler"
@@ -72,11 +70,4 @@ func (s *storage) Commit(session scheduler.Session) error {
 
 func (s *storage) Abort(session scheduler.Session) {
 	s.base.Abort(session)
-}
-
-func upgradeError(err error) error {
-	if errors.Is(err, sql.ErrNoRows) {
-		return scheduler.ErrNotFound
-	}
-	return err
 }

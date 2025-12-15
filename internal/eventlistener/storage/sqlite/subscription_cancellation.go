@@ -22,25 +22,17 @@ var _ eventlistener.Storage = (*storage)(nil)
 func (s *storage) AddCancellationSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) error {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
-	result, err := tx.StmtxContext(ctx, s.insertCancellationSubscription).
-		ExecContext(ctx, tokenID.Int64())
+	result, err := tx.StmtxContext(ctx, s.insertCancellationSubscription).ExecContext(ctx, tokenID.Int64())
 	if err != nil {
-		err = fmt.Errorf("failed to execute insert cancellation subscription statement: %w", err)
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to execute insert cancellation subscription statement: %w", err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		err = fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
 	} else if rowsAffected != 1 {
-		err = fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
 	}
 	return nil
 }
@@ -48,25 +40,17 @@ func (s *storage) AddCancellationSubscription(ctx context.Context, session event
 func (s *storage) RemoveCancellationSubscription(ctx context.Context, session eventlistener.Session, tokenID *big.Int) error {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		err = fmt.Errorf("failed to get transaction from session: %w", err)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	result, err := tx.StmtxContext(ctx, s.removeCancellationSubscription).ExecContext(ctx, tokenID.Int64())
 	if err != nil {
-		err = fmt.Errorf("failed to execute remove cancellation subscription statement: %w", err)
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to execute remove cancellation subscription statement: %w", err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		err = fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
 	} else if rowsAffected != 1 {
-		err = fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
 	}
 	return nil
 }
@@ -74,26 +58,23 @@ func (s *storage) RemoveCancellationSubscription(ctx context.Context, session ev
 func (s *storage) GetAllCancellationSubscriptions(ctx context.Context, session eventlistener.Session) ([]*big.Int, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		err = fmt.Errorf("failed to get transaction from session: %w", err)
-		s.base.Logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	subscriptions := []*big.Int{}
 	rows, err := tx.StmtxContext(ctx, s.getAllCancellationSubscription).QueryxContext(ctx)
 	if err != nil {
-		err = fmt.Errorf("failed to execute get all cancellation subscriptions statement: %w", err)
-		s.base.Logger.Error(err)
-		return nil, upgradeError(err)
+		return nil, fmt.Errorf("failed to execute get all cancellation subscriptions statement: %w", err)
 	}
 	for rows.Next() {
 		tokenID := int64(0)
 		if err := rows.Scan(&tokenID); err != nil {
-			err = fmt.Errorf("failed to scan row to tokenID: %w", err)
-			s.base.Logger.Error(err)
-			return nil, upgradeError(err)
+			return nil, fmt.Errorf("failed to scan row to tokenID: %w", err)
 		}
 		subscriptions = append(subscriptions, big.NewInt(tokenID))
+	}
+	if err := rows.Err(); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("error occurred during rows iteration: %w", err)
 	}
 	return subscriptions, nil
 }
@@ -101,19 +82,15 @@ func (s *storage) GetAllCancellationSubscriptions(ctx context.Context, session e
 func (s *storage) IsCancellationSubscriptionExist(ctx context.Context, session eventlistener.Session, tokenID *big.Int) (bool, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		err = fmt.Errorf("failed to get transaction from session: %w", err)
-		s.base.Logger.Error(err)
-		return false, err
+		return false, fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	dbTokenID := int64(0)
 	if err := tx.StmtxContext(ctx, s.getCancellationSubscription).GetContext(ctx, &dbTokenID, tokenID.Int64()); err != nil {
-		if errors.Is(err, sql.ErrNoRows) { // TODO@ unify
+		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
-		err = fmt.Errorf("failed to execute get cancellation subscription statement: %w", err)
-		s.base.Logger.Error(err)
-		return false, upgradeError(err)
+		return false, fmt.Errorf("failed to execute get cancellation subscription statement: %w", err)
 	}
 	return true, nil
 }
@@ -130,9 +107,7 @@ func (s *storage) prepareCancellationSubscriptionsStmts(ctx context.Context) err
 		INSERT INTO %s ( token_id ) VALUES ( ? )
 	`, cancellationSubscriptionsTable))
 	if err != nil {
-		err = fmt.Errorf("failed to prepare insert cancellation subscription statement: %w", err)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare insert cancellation subscription statement: %w", err)
 	}
 	s.insertCancellationSubscription = insertCancellationSubscription
 
@@ -141,9 +116,7 @@ func (s *storage) prepareCancellationSubscriptionsStmts(ctx context.Context) err
 		WHERE token_id = ?
 	`, cancellationSubscriptionsTable))
 	if err != nil {
-		err = fmt.Errorf("failed to prepare remove cancellation subscription statement: %w", err)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare remove cancellation subscription statement: %w", err)
 	}
 	s.removeCancellationSubscription = removeCancellationSubscription
 
@@ -151,9 +124,7 @@ func (s *storage) prepareCancellationSubscriptionsStmts(ctx context.Context) err
 		SELECT * FROM %s
 	`, cancellationSubscriptionsTable))
 	if err != nil {
-		err = fmt.Errorf("failed to prepare get all cancellation subscriptions statement: %w", err)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare get all cancellation subscriptions statement: %w", err)
 	}
 	s.getAllCancellationSubscription = getAllCancellationSubscription
 
@@ -162,9 +133,7 @@ func (s *storage) prepareCancellationSubscriptionsStmts(ctx context.Context) err
 		WHERE token_id = ?
 	`, cancellationSubscriptionsTable))
 	if err != nil {
-		err = fmt.Errorf("failed to prepare get cancellation subscription statement: %w", err)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare get cancellation subscription statement: %w", err)
 	}
 	s.getCancellationSubscription = getCancellationSubscription
 

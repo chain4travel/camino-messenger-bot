@@ -7,6 +7,7 @@ import (
 	"context"
 	"embed"
 	"errors"
+	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encoding"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
@@ -35,7 +36,7 @@ type Storage interface {
 func New(ctx context.Context, logger *zap.SugaredLogger, dbPath string) (Storage, error) {
 	baseDB, err := sqlite.New(logger, embedMigrations, dbPath, dbName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create base sqlite DB: %w", err)
 	}
 
 	s := &storage{base: baseDB}

@@ -23,7 +23,13 @@ const envPrefix = "CMB"
 var (
 	_ Reader = (*reader)(nil)
 
-	errInvalidRawConfig = errors.New("invalid raw config")
+	errInvalidRawConfig                           = errors.New("invalid raw config")
+	errEmptyConfigPath                            = errors.New("config path is empty")
+	errInvalidCMAccountAddress                    = errors.New("invalid CM account address")
+	errInvalidBookingTokenAddress                 = errors.New("invalid booking token address")
+	errInvalidNetworkFeeRecipientBotAddress       = errors.New("invalid network fee recipient bot address")
+	errInvalidNetworkFeeRecipientCMAccountAddress = errors.New("invalid network fee recipient CM account address")
+	errInvalidMaxAllowedServiceFee                = errors.New("invalid max allowed service fee")
 )
 
 type Reader interface {
@@ -56,15 +62,15 @@ func (cr *reader) ReadConfig() (*Config, error) {
 	cr.viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if err := cr.viper.BindPFlags(cr.flags); err != nil {
-		cr.logger.Errorf("Error binding flags: %s", err)
+		err = fmt.Errorf("failed to bind flags: %w", err)
+		cr.logger.Error(err)
 		return nil, err
 	}
 
 	configPath := cr.viper.GetString(flagKeyConfig)
 	if configPath == "" {
-		err := errors.New("config path is empty")
-		cr.logger.Error(err)
-		return nil, err
+		cr.logger.Error(errEmptyConfigPath)
+		return nil, errEmptyConfigPath
 	}
 	cr.viper.SetConfigFile(configPath)
 
@@ -78,13 +84,16 @@ func (cr *reader) ReadConfig() (*Config, error) {
 
 	cfg := &UnparsedConfig{}
 	if err := cr.viper.Unmarshal(cfg); err != nil {
+		err = fmt.Errorf("failed to unmarshal config: %w", err)
 		cr.logger.Error(err)
 		return nil, err
 	}
 
 	parsedCfg, err := cr.parseConfig(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errInvalidRawConfig, err)
+		err = fmt.Errorf("%w: %w", errInvalidRawConfig, err)
+		cr.logger.Error(err)
+		return nil, err
 	}
 
 	return parsedCfg, nil
@@ -93,44 +102,31 @@ func (cr *reader) ReadConfig() (*Config, error) {
 func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 	botKey, err := crypto.HexToECDSA(cfg.BotKey)
 	if err != nil {
-		cr.logger.Errorf("Error parsing bot key: %s", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to parse bot key: %s", err)
 	}
 
 	if !common.IsHexAddress(cfg.CMAccountAddress) {
-		err := errors.New("invalid CM account address")
-		cr.logger.Error(err)
-		return nil, err
+		return nil, errInvalidCMAccountAddress
 	}
 
 	if !common.IsHexAddress(cfg.BookingTokenAddress) {
-		err := errors.New("invalid booking token address")
-		cr.logger.Error(err)
-		return nil, err
+		return nil, errInvalidBookingTokenAddress
 	}
 
 	if !common.IsHexAddress(cfg.NetworkFeeRecipientBotAddress) {
-		err := errors.New("invalid network fee recipient bot address")
-		cr.logger.Error(err)
-		return nil, err
+		return nil, errInvalidNetworkFeeRecipientBotAddress
 	}
 
 	if !common.IsHexAddress(cfg.NetworkFeeRecipientCMAccountAddress) {
-		err := errors.New("invalid network fee recipient CM account address")
-		cr.logger.Error(err)
-		return nil, err
+		return nil, errInvalidNetworkFeeRecipientCMAccountAddress
 	}
 
 	maxAllowedServiceFee, ok := new(big.Int).SetString(cfg.MaxAllowedServiceFee, 10)
 	if !ok {
-		err := fmt.Errorf("invalid max allowed service fee: %s", cfg.MaxAllowedServiceFee)
-		cr.logger.Error(err)
-		return nil, err
+		return nil, errInvalidMaxAllowedServiceFee
 	}
 	if maxAllowedServiceFee.Sign() < 0 {
-		err := errors.New("max allowed service fee must be non-negative")
-		cr.logger.Error(err)
-		return nil, err
+		return nil, errInvalidMaxAllowedServiceFee
 	}
 
 	return &Config{

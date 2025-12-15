@@ -29,16 +29,15 @@ type issuedChequeRecord struct {
 func (s *storage) GetIssuedChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecordID common.Hash) (*chequehandler.IssuedChequeRecord, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	chequeRecord := &issuedChequeRecord{}
 	if err := tx.StmtxContext(ctx, s.getIssuedChequeRecord).GetContext(ctx, chequeRecord, chequeRecordID); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			s.base.Logger.Error(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, chequehandler.ErrNotFound
 		}
-		return nil, upgradeError(err)
+		return nil, fmt.Errorf("failed to execute get issued cheque record by ID statement: %w", err)
 	}
 	return modelFromIssuedChequeRecord(chequeRecord), nil
 }
@@ -46,21 +45,18 @@ func (s *storage) GetIssuedChequeRecord(ctx context.Context, session chequehandl
 func (s *storage) UpsertIssuedChequeRecord(ctx context.Context, session chequehandler.Session, chequeRecord *chequehandler.IssuedChequeRecord) error {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	result, err := tx.NamedStmtContext(ctx, s.upsertIssuedChequeRecord).
 		ExecContext(ctx, issuedChequeRecordFromModel(chequeRecord))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to execute upsert issued cheque record statement: %w", err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
 	} else if rowsAffected != 1 {
-		return fmt.Errorf("failed to add chequeRecord: expected to affect 1 row, but affected %d", rowsAffected)
+		return fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
 	}
 	return nil
 }
@@ -76,8 +72,7 @@ func (s *storage) prepareIssuedChequeRecordsStmts(ctx context.Context) error {
 		WHERE cheque_record_id = ?
 	`, issuedChequeRecordsTableName))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare get issued cheque record statement: %w", err)
 	}
 	s.getIssuedChequeRecord = getIssuedChequeRecord
 
@@ -97,8 +92,7 @@ func (s *storage) prepareIssuedChequeRecordsStmts(ctx context.Context) error {
 			amount  = excluded.amount
 	`, issuedChequeRecordsTableName))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare upsert issued cheque record statement: %w", err)
 	}
 	s.upsertIssuedChequeRecord = upsertIssuedChequeRecord
 

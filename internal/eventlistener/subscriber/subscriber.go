@@ -75,9 +75,7 @@ func New(
 ) (Subscriber, error) {
 	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenAddress, client)
 	if err != nil {
-		err = fmt.Errorf("failed to create booking token contract binding: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create booking token contract binding: %w", err)
 	}
 
 	blockNumberAtomic := &atomic.Uint64{}

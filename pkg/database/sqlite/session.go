@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -33,23 +34,21 @@ func (s *DB) NewSession(ctx context.Context) (*SQLxTxSession, error) {
 		Isolation: sql.LevelSerializable,
 	})
 	if err != nil {
-		s.Logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to begin new sql transaction: %w", err)
 	}
 	return &SQLxTxSession{Tx: tx}, nil
 }
 
 func (s *DB) Commit(session Session) error {
 	if err := session.Commit(); err != nil {
-		s.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to commit db session: %w", err)
 	}
 	return nil
 }
 
 func (s *DB) Abort(session Session) {
 	if err := session.Abort(); err != nil {
-		s.Logger.Error(err)
+		s.Logger.Errorf("failed to abort db session: %v", err)
 	}
 }
 
@@ -63,7 +62,7 @@ func (s *SQLxTxSession) Commit() error {
 		return ErrAlreadyCommitted
 	}
 	if err := s.Tx.Commit(); err != nil {
-		return err
+		return fmt.Errorf("failed to commit sql transaction: %w", err)
 	}
 	s.committed = true
 	return nil
@@ -73,7 +72,10 @@ func (s *SQLxTxSession) Abort() error {
 	if s.committed {
 		return nil
 	}
-	return s.Rollback()
+	if err := s.Tx.Rollback(); err != nil {
+		return fmt.Errorf("failed to rollback sql transaction: %w", err)
+	}
+	return nil
 }
 
 func (s *SQLxTxSession) SQLxTx() *sqlx.Tx {

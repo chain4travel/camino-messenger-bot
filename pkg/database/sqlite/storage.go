@@ -5,6 +5,7 @@ package sqlite
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -18,20 +19,20 @@ import (
 	"go.uber.org/zap"
 )
 
+var errDirtyDB = errors.New("database in dirty state after previous migration, requires manual fixing")
+
 type DBConfig struct {
 	DBPath string
 }
 
 func New(logger *zap.SugaredLogger, migrationsFS fs.FS, dbPath string, dbName string) (*DB, error) {
 	if err := os.MkdirAll(filepath.Dir(dbPath), os.ModePerm); err != nil {
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create db directory: %w", err)
 	}
 
 	db, err := sqlx.Open("sqlite3", dbPath+".sqlite")
 	if err != nil {
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to open sqlite database: %w", err)
 	}
 
 	s := &DB{
@@ -40,7 +41,7 @@ func New(logger *zap.SugaredLogger, migrationsFS fs.FS, dbPath string, dbName st
 	}
 
 	if err := s.migrate(migrationsFS, dbName, false); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to migrate sqlite database: %w", err)
 	}
 
 	return s, nil
@@ -53,6 +54,7 @@ type DB struct {
 
 func (s *DB) Close() error {
 	if err := s.DB.Close(); err != nil {
+		err = fmt.Errorf("failed to close sqlite database: %w", err)
 		s.Logger.Error(err)
 		return err
 	}
@@ -78,20 +80,17 @@ func (s *DB) migrate(migrationsFS fs.FS, dbName string, logMigrations bool) erro
 
 	driver, err := sqlite3.WithInstance(s.DB.DB, &sqlite3.Config{})
 	if err != nil {
-		s.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to create sqlite3 driver: %w", err)
 	}
 
 	src, err := iofs.New(migrationsFS, "migrations")
 	if err != nil {
-		s.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to create iofs migration source: %w", err)
 	}
 
 	migration, err := migrate.NewWithInstance("iofs", src, dbName, driver)
 	if err != nil {
-		s.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}
 
 	if logMigrations {
@@ -100,11 +99,10 @@ func (s *DB) migrate(migrationsFS fs.FS, dbName string, logMigrations bool) erro
 
 	version, dirty, err := migration.Version()
 	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
-		s.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to get migration version: %w", err)
 	}
 	if dirty {
-		return errors.New("database in dirty state after previous migration, requires manual fixing")
+		return errDirtyDB
 	}
 	s.Logger.Infof("%s db migration version: %d", dbName, version)
 
@@ -113,16 +111,14 @@ func (s *DB) migrate(migrationsFS fs.FS, dbName string, logMigrations bool) erro
 	case errors.Is(err, migrate.ErrNoChange):
 		s.Logger.Infof("No migrations needed for %s database", dbName)
 	case err != nil:
-		s.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to migrate %s database: %w", dbName, err)
 	default:
 		newVersion, dirty, err := migration.Version()
 		if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
-			s.Logger.Error(err)
-			return err
+			return fmt.Errorf("failed to get new migration version: %w", err)
 		}
 		if dirty {
-			return errors.New("database in dirty state after previous migration, requires manual fixing")
+			return errDirtyDB
 		}
 		s.Logger.Infof("New %s db migration version: %d", dbName, newVersion)
 	}

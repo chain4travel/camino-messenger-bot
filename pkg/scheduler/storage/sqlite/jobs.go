@@ -28,16 +28,15 @@ type job struct {
 func (s *storage) GetJobByName(ctx context.Context, session scheduler.Session, jobName string) (*scheduler.Job, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	job := &job{}
 	if err := tx.StmtxContext(ctx, s.getJobByName).GetContext(ctx, job, jobName); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			s.base.Logger.Error(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, scheduler.ErrNotFound
 		}
-		return nil, upgradeError(err)
+		return nil, fmt.Errorf("failed to execute get job by name statement: %w", err)
 	}
 	return modelFromJob(job), nil
 }
@@ -45,21 +44,18 @@ func (s *storage) GetJobByName(ctx context.Context, session scheduler.Session, j
 func (s *storage) UpsertJob(ctx context.Context, session scheduler.Session, job *scheduler.Job) error {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	result, err := tx.NamedStmtContext(ctx, s.upsertJob).
 		ExecContext(ctx, jobFromModel(job))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to execute upsert job statement: %w", err)
 	}
 	if rowsAffected, err := result.RowsAffected(); err != nil {
-		s.base.Logger.Error(err)
-		return upgradeError(err)
+		return fmt.Errorf("failed to get rowsAffected from statement execution result: %w", err)
 	} else if rowsAffected != 1 {
-		return fmt.Errorf("failed to add cheque: expected to affect 1 row, but affected %d", rowsAffected)
+		return fmt.Errorf("unexpected number of rows affected: expected 1, but affected %d", rowsAffected)
 	}
 	return nil
 }
@@ -67,23 +63,24 @@ func (s *storage) UpsertJob(ctx context.Context, session scheduler.Session, job 
 func (s *storage) GetAllJobs(ctx context.Context, session scheduler.Session) ([]*scheduler.Job, error) {
 	tx, err := sqlite.GetSQLXTx(session)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get transaction from db session: %w", err)
 	}
 
 	jobs := []*scheduler.Job{}
 	rows, err := tx.StmtxContext(ctx, s.getAllJobs).QueryxContext(ctx)
 	if err != nil {
-		s.base.Logger.Error(err)
-		return nil, upgradeError(err)
+		return nil, fmt.Errorf("failed to execute get all jobs statement: %w", err)
 	}
 	for rows.Next() {
 		job := &job{}
 		if err := rows.StructScan(job); err != nil {
-			s.base.Logger.Errorf("failed to get not cashed cheque from db: %v", err)
+			s.base.Logger.Errorf("failed to scan row to job: %w", err)
 			continue
 		}
 		jobs = append(jobs, modelFromJob(job))
+	}
+	if err := rows.Err(); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("error occurred during rows iteration: %w", err)
 	}
 	return jobs, nil
 }
@@ -99,8 +96,7 @@ func (s *storage) prepareJobsStmts(ctx context.Context) error {
 		WHERE name = ?
 	`, jobsTableName))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare get job by name statement: %w", err)
 	}
 	s.getJobByName = getJobByName
 
@@ -120,8 +116,7 @@ func (s *storage) prepareJobsStmts(ctx context.Context) error {
 			last_executed_at = excluded.last_executed_at
 	`, jobsTableName))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare upsert job statement: %w", err)
 	}
 	s.upsertJob = upsertJob
 
@@ -129,8 +124,7 @@ func (s *storage) prepareJobsStmts(ctx context.Context) error {
 		SELECT * FROM %s
 	`, jobsTableName))
 	if err != nil {
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare get all jobs statement: %w", err)
 	}
 	s.getAllJobs = getAllJobs
 

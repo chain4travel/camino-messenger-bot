@@ -5,9 +5,7 @@ package sqlite
 
 import (
 	"context"
-	"database/sql"
 	"embed"
-	"errors"
 	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener"
@@ -37,7 +35,7 @@ type Storage interface {
 func New(ctx context.Context, logger *zap.SugaredLogger, dbPath string) (Storage, error) {
 	baseDB, err := sqlite.New(logger, embedMigrations, dbPath, dbName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create base sqlite DB: %w", err)
 	}
 
 	s := &storage{base: baseDB}
@@ -62,14 +60,10 @@ func (s *storage) Close() error {
 
 func (s *storage) prepare(ctx context.Context) error {
 	if err := s.prepareTokenBoughtSubscriptionsStmts(ctx); err != nil {
-		err = fmt.Errorf("failed to prepare token bought subscriptions statements: %w", err)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare token bought subscriptions statements: %w", err)
 	}
 	if err := s.prepareCancellationSubscriptionsStmts(ctx); err != nil {
-		err = fmt.Errorf("failed to prepare cancellation subscriptions statements: %w", err)
-		s.base.Logger.Error(err)
-		return err
+		return fmt.Errorf("failed to prepare cancellation subscriptions statements: %w", err)
 	}
 	return nil
 }
@@ -84,11 +78,4 @@ func (s *storage) Commit(session eventlistener.Session) error {
 
 func (s *storage) Abort(session eventlistener.Session) {
 	s.base.Abort(session)
-}
-
-func upgradeError(err error) error {
-	if errors.Is(err, sql.ErrNoRows) {
-		return eventlistener.ErrNotFound
-	}
-	return err
 }

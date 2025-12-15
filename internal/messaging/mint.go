@@ -15,7 +15,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var errMissingMintTxID = errors.New("missing mint transaction id")
+var (
+	errMissingMintTxID             = errors.New("missing mint transaction id")
+	errUnexpectedMintResponsePrice = errors.New("expected price does not match the mint response price")
+)
 
 func (h *evmResponseHandler) subscribeForTokenBoughtEvent(ctx context.Context, tokenID *big.Int, mintID string, buyableUntil *timestamppb.Timestamp) {
 	tokenBoughtTimeout := time.Unix(buyableUntil.Seconds, 0)
@@ -110,7 +113,7 @@ func (h *evmResponseHandler) verifyAndFixBuyableUntil(buyableUntil *timestamppb.
 
 	case buyableUntil.Seconds < timestamppb.New(currentTime).Seconds:
 		// BuyableUntil in the past
-		return nil, fmt.Errorf("refused to mint token - BuyableUntil in the past:  %v", buyableUntil)
+		return nil, fmt.Errorf("BuyableUntil is in the past: %v", buyableUntil)
 
 	case buyableUntil.Seconds < timestamppb.New(currentTime.Add(h.tokenBuyableUntil.Minimal)).Seconds:
 		// BuyableUntil too early

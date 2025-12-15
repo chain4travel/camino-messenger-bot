@@ -5,6 +5,7 @@ package messenger
 
 import (
 	"context"
+	"fmt"
 
 	"golang.org/x/sync/errgroup"
 	"maunium.net/go/mautrix/event"
@@ -40,7 +41,8 @@ func (m *messenger) stateMemberEventHandler(ctx context.Context, evt *event.Even
 func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 	rooms, err := m.client.JoinedRooms(ctx)
 	if err != nil {
-		m.logger.Errorf("failed to get joined rooms: %v", err)
+		err = fmt.Errorf("failed to get joined rooms: %w", err)
+		m.logger.Error(err)
 		return err
 	}
 
@@ -48,19 +50,22 @@ func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 	for _, roomID := range rooms {
 		g.Go(func() error {
 			if encrypted, err := m.client.IsRoomEncrypted(ctx, roomID); err != nil {
-				m.logger.Errorf("failed to check if room %s is encrypted: %v", roomID, err)
+				err = fmt.Errorf("failed to check if room %s is encrypted: %w", roomID, err)
+				m.logger.Error(err)
 				return err
 			} else if !encrypted {
 				return nil
 			}
 
 			if err := m.client.LeaveRoom(ctx, roomID); err != nil {
-				m.logger.Errorf("failed to leave room %s: %v", roomID, err)
+				err = fmt.Errorf("failed to leave room %s: %w", roomID, err)
+				m.logger.Error(err)
 				return err
 			}
 
 			if err := m.client.ForgetRoom(ctx, roomID); err != nil {
-				m.logger.Errorf("failed to forget room %s: %v", roomID, err)
+				err = fmt.Errorf("failed to forget room %s: %w", roomID, err)
+				m.logger.Error(err)
 				return err
 			}
 
@@ -69,7 +74,8 @@ func (m *messenger) removeEncryptedRooms(ctx context.Context) error {
 	}
 
 	if err = g.Wait(); err != nil {
-		m.logger.Errorf("failed to remove all encrypted rooms: %v", err)
+		err = fmt.Errorf("failed to remove all encrypted rooms: %w", err)
+		m.logger.Error(err)
 	}
 	return err
 }
@@ -82,12 +88,14 @@ func (m *messenger) getRoomForRecipient(ctx context.Context, recipient id.UserID
 
 	roomID, err := m.client.CreateRoomForUser(ctx, recipient)
 	if err != nil {
+		err = fmt.Errorf("failed to create room for user %s: %w", recipient, err)
+		m.logger.Error(err)
 		return "", err
 	}
 
 	m.rooms.Add(recipient, roomID)
 
-	return roomID, err
+	return roomID, nil
 }
 
 func (m *messenger) findExistingRoomForRecipient(ctx context.Context, recipient id.UserID) (id.RoomID, bool) {
@@ -98,13 +106,15 @@ func (m *messenger) findExistingRoomForRecipient(ctx context.Context, recipient 
 
 	rooms, err := m.client.JoinedRooms(ctx)
 	if err != nil {
-		m.logger.Errorf("failed to get joined rooms: %v", err)
+		err = fmt.Errorf("failed to get joined rooms: %w", err)
+		m.logger.Error(err)
 		return "", false
 	}
 
 	for _, roomID := range rooms {
 		if joined, err := m.client.IsUserJoinedRoom(ctx, roomID, recipient); err != nil {
-			m.logger.Errorf("failed to check if user %s is joined to room %s: %v", recipient, roomID, err)
+			err = fmt.Errorf("failed to check if user %s is joined to room %s: %w", recipient, roomID, err)
+			m.logger.Error(err)
 			return "", false
 		} else if joined {
 			m.rooms.Add(recipient, roomID)

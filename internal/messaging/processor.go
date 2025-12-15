@@ -28,10 +28,9 @@ import (
 var (
 	_ MessageProcessor = (*messageProcessor)(nil)
 
-	ErrUnknownMessageCategory       = errors.New("unknown message category")
-	ErrUnsupportedService           = errors.New("unsupported service")
-	ErrExceededResponseTimeout      = errors.New("response exceeded configured timeout")
-	ErrBotMissingChequeOperatorRole = errors.New("bot missing permission")
+	ErrUnknownMessageCategory  = errors.New("unknown message category")
+	ErrUnsupportedService      = errors.New("unsupported service")
+	ErrExceededResponseTimeout = errors.New("response exceeded configured timeout")
 )
 
 type MessageProcessor interface {
@@ -135,19 +134,19 @@ func (p *messageProcessor) Start(ctx context.Context) {
 
 					if encodedMessage.SenderBotAddress == p.botAddress {
 						// should never happen, if messenger server and p.messenger are configured and working correctly
-						p.logger.Warnf("Received message from own bot %s, ignoring", p.botAddress.Hex())
+						p.logger.Errorf("Received message from own bot %s, ignoring", p.botAddress.Hex())
 						return
 					}
 
 					if encodedMessage.SenderCMAccountAddress == p.cmAccountAddress {
 						// should never happen, if messenger server and p.messenger are configured and working correctly
-						p.logger.Warnf("Received message from own CM Account %s, ignoring", p.cmAccountAddress.Hex())
+						p.logger.Errorf("Received message from own CM Account %s, ignoring", p.cmAccountAddress.Hex())
 						return
 					}
 
 					msg, serviceFeeCheque, sharedKey, err := p.encoderDecoder.DecodeAndVerifyMessage(ctx, &encodedMessage.Message, encodedMessage.SenderBotAddress)
 					if err != nil {
-						p.logger.Errorf("Failed to decode and verify message: %v", err)
+						p.logger.Debugf("Failed to decode and verify message: %v", err)
 						return
 					}
 					p.logger.Debugf("Decoded message (%s, %s), processing", msg.Type, msg.RequestID)
@@ -212,26 +211,20 @@ func (p *messageProcessor) SendRequestMessage(
 	// lookup for CM Account -> bot
 	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccount)
 	if err != nil {
+		err = fmt.Errorf("failed to get cheque operator bot for CMAccount %s: %w", recipientCMAccount.Hex(), err)
+		p.logger.Error(err)
 		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
-	}
-
-	isBotAllowed, err := p.cmAccounts.IsBotAllowed(ctx, p.cmAccountAddress, p.botAddress)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
-	}
-	if !isBotAllowed {
-		return nil, fmt.Errorf("%w: %w", rpc.ErrBusinessProcess, ErrBotMissingChequeOperatorRole)
 	}
 
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccount, requestMsg.Type.ToServiceName())
 	if err != nil {
+		err = fmt.Errorf("failed to get service fee for service %s: %w", requestMsg.Type.ToServiceName(), err)
+		p.logger.Error(err)
 		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
 	}
 
 	if serviceFee.Cmp(p.maxAllowedServiceFee) > 0 {
-		err = fmt.Errorf("%s service fee %s exceeds maximum allowed service fee %s", requestMsg.Type.ToServiceName(), serviceFee.String(), p.maxAllowedServiceFee.String())
-		p.logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("%s service fee %s exceeds maximum allowed service fee %s: %w", requestMsg.Type.ToServiceName(), serviceFee.String(), p.maxAllowedServiceFee.String(), rpc.ErrBusinessProcess)
 	}
 
 	p.responseHandler.PrepareRequest(requestMsg.Content)
@@ -250,13 +243,17 @@ func (p *messageProcessor) SendRequestMessage(
 
 	sharedKey, err := encryption.NewKey()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get encryption key: %w", err)
+		err = fmt.Errorf("failed to create new encryption key: %w", err)
+		p.logger.Error(err)
+		return nil, err
 	}
 
 	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToServer)
 
 	encodedRequestMessage, err := p.encoderDecoder.EncodeMessage(ctx, requestMsg, serviceFeeCheque, recipientBotAddr, sharedKey)
 	if err != nil {
+		err = fmt.Errorf("failed to encode request message: %w", err)
+		p.logger.Error(err)
 		return nil, err
 	}
 
@@ -273,23 +270,19 @@ func (p *messageProcessor) SendRequestMessage(
 		recipientBotAddr,
 		networkFeeCheque,
 	); err != nil {
+		err = fmt.Errorf("failed to send request message: %w", err)
+		p.logger.Error(err)
 		return nil, err
 	}
 
 	select {
 	case responseMsg := <-responseChan:
-		if responseMsg.RequestID == requestMsg.RequestID {
-			if err := protovalidate.Validate(responseMsg.Content); err != nil {
-				return nil, fmt.Errorf("response validation failed: %w: %w", rpc.ErrInvalidProto, err)
-			}
-
-			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
-			return responseMsg, nil
-		} else {
-			err := fmt.Errorf("unexpected response (%s) for request (%s)", responseMsg.RequestID, requestMsg.RequestID)
-			p.logger.Error(err)
-			return nil, err
+		if err := protovalidate.Validate(responseMsg.Content); err != nil {
+			return nil, fmt.Errorf("response validation failed: %w: %w", rpc.ErrInvalidProto, err)
 		}
+
+		p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
+		return responseMsg, nil
 	case <-ctx.Done():
 		return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, requestMsg.RequestID)
 	}
@@ -311,11 +304,11 @@ func (p *messageProcessor) respond(
 
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, p.cmAccountAddress, service.Name())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get service fee for service %s: %w", service.Name(), err)
 	}
 
 	if err := p.chequeHandler.VerifyAndStoreCheque(ctx, serviceFeeCheque, senderBotAddress, serviceFee); err != nil {
-		return err
+		return fmt.Errorf("failed to verify and store service fee cheque: %w", err)
 	}
 
 	responseMsg := p.validateAndRespond(
@@ -332,6 +325,8 @@ func (p *messageProcessor) respond(
 
 	encodedResponseMessage, err := p.encoderDecoder.EncodeMessage(ctx, responseMsg, nil, senderBotAddress, sharedKey)
 	if err != nil {
+		err = fmt.Errorf("failed to encode response message: %w", err)
+		p.logger.Error(err)
 		return err
 	}
 
@@ -358,7 +353,7 @@ func (p *messageProcessor) validateAndRespond(
 	if err := protovalidate.Validate(requestMsg.Content); err != nil {
 		errMessage := fmt.Sprintf("request message validation failed: %v", err)
 		responseMsg.Content, responseMsg.Type = serviceClient.InvalidProtoErrResponseAndType(errMessage)
-		p.logger.Errorf(errMessage)
+		p.logger.Debug(errMessage)
 		return responseMsg
 	}
 
@@ -385,14 +380,14 @@ func (p *messageProcessor) validateAndRespond(
 func (p *messageProcessor) forwardToHandler(msg *message.Message) error {
 	p.logger.Debugf("Forwarding incoming response message %s (id %s) to its handler", msg.Type, msg.RequestID)
 	responseChan, ok := p.getResponseChannel(msg.RequestID)
-	if ok {
-		responseChan <- msg
-		close(responseChan)
-		return nil
+	if !ok {
+		err := fmt.Errorf("no response channel for request ID: %s", msg.RequestID)
+		p.logger.Errorf("Failed to forward message: %v", err)
+		return err
 	}
-	err := fmt.Errorf("no response channel for request ID: %s", msg.RequestID)
-	p.logger.Errorf("Failed to forward message: %v", err)
-	return err
+	responseChan <- msg
+	close(responseChan)
+	return nil
 }
 
 func (p *messageProcessor) issueNetworkCheque(ctx context.Context, msg *EncodedSignedMessage) (*cheques.SignedCheque, error) {

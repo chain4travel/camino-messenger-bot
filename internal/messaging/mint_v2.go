@@ -27,7 +27,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 
 	if !common.IsHexAddress(request.BuyerAddress) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress)
-		h.logger.Error(errMsg)
+		h.logger.Debug(errMsg)
 		return mintErrResponseV2(errMsg)
 	}
 	buyerAddress := common.HexToAddress(request.BuyerAddress)
@@ -49,7 +49,7 @@ func (h *evmResponseHandler) prepareMintResponseV2(
 
 	buyableUntil, err := h.verifyAndFixBuyableUntil(response.BuyableUntil, time.Now())
 	if err != nil {
-		h.logger.Error(err)
+		h.logger.Debug(err)
 		return mintErrResponseV2(err.Error())
 	}
 	response.BuyableUntil = buyableUntil
@@ -100,7 +100,7 @@ func (h *evmResponseHandler) processMintResponseV2(
 	}
 
 	if response.MintTransactionId == "" {
-		h.logger.Error(errMissingMintTxID)
+		h.logger.Debug(errMissingMintTxID)
 		return mintErrResponseV2(errMissingMintTxID.Error())
 	}
 

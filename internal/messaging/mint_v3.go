@@ -27,7 +27,7 @@ func (h *evmResponseHandler) prepareMintResponseV3(
 
 	if !common.IsHexAddress(request.BuyerAddress.Address) {
 		errMsg := fmt.Sprintf("Invalid BuyerAddress: %s", request.BuyerAddress.Address)
-		h.logger.Error(errMsg)
+		h.logger.Debug(errMsg)
 		return mintErrResponseV3(errMsg)
 	}
 	buyerAddress := common.HexToAddress(request.BuyerAddress.Address)
@@ -102,7 +102,7 @@ func (h *evmResponseHandler) processMintResponseV3(
 	}
 
 	if response.MintTransactionId == nil || response.MintTransactionId.Hash == "" {
-		h.logger.Error(errMissingMintTxID)
+		h.logger.Debug(errMissingMintTxID)
 		return mintErrResponseV3(errMissingMintTxID.Error())
 	}
 

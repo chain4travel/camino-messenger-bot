@@ -5,9 +5,9 @@ package sqlite
 
 import (
 	"context"
-	"database/sql"
 	"embed"
 	"errors"
+	"fmt"
 
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
@@ -36,7 +36,7 @@ type Storage interface {
 func New(ctx context.Context, logger *zap.SugaredLogger, dbPath string) (Storage, error) {
 	baseDB, err := sqlite.New(logger, embedMigrations, dbPath, dbName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create base sqlite DB: %w", err)
 	}
 
 	s := &storage{base: baseDB}
@@ -76,11 +76,4 @@ func (s *storage) Commit(session chequehandler.Session) error {
 
 func (s *storage) Abort(session chequehandler.Session) {
 	s.base.Abort(session)
-}
-
-func upgradeError(err error) error {
-	if errors.Is(err, sql.ErrNoRows) {
-		return chequehandler.ErrNotFound
-	}
-	return err
 }

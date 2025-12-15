@@ -86,16 +86,12 @@ func New(
 ) (EventListener, error) {
 	blockNumber, err := ethClient.BlockNumber(ctx)
 	if err != nil {
-		err = fmt.Errorf("failed to get latest block number: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get latest block number: %w", err)
 	}
 
 	subscriber, err := subscriber.New(ethClient, logger, bookingTokenAddress, cmAccounts, blockNumber)
 	if err != nil {
-		err = fmt.Errorf("failed to create subscriber: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create subscriber: %w", err)
 	}
 
 	return &eventListener{

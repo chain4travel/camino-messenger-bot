@@ -160,8 +160,7 @@ func NewService(
 ) (Service, error) {
 	bookingToken, err := bookingtoken.NewBookingtoken(bookingTokenAddress, ethClient)
 	if err != nil {
-		logger.Errorf("failed to create booking token contract binding: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create booking token contract binding: %v", err)
 	}
 
 	transactOpts, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)

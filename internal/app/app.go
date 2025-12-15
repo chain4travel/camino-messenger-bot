@@ -55,24 +55,18 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	// c-chain evm client && chain id
 	evmClient, err := ethclient.Dial(cfg.ChainRPCURL)
 	if err != nil {
-		err = fmt.Errorf("failed to connect to Ethereum client: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to Ethereum client: %w", err)
 	}
 
 	chainID, err := evmClient.NetworkID(ctx)
 	if err != nil {
-		err = fmt.Errorf("failed to fetch chain id: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch chain id: %w", err)
 	}
 
 	// partner-plugin rpc client
 	rpcClient, err := client.NewClient(cfg.PartnerPlugin, logger)
 	if err != nil {
-		err = fmt.Errorf("failed to create rpc client: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create rpc client: %w", err)
 	}
 
 	// register supported services, check if they actually supported by bot
@@ -83,9 +77,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		rpcClient,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create service registry: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create service registry: %w", err)
 	}
 
 	// partner plugin to handle partner-plugin related logic and communication
@@ -109,17 +101,13 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		evmClient,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create cm accounts service: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create cm accounts service: %w", err)
 	}
 
 	// TODO: @VjeraTurk Ensure multiple versions compatibility
 	cmAccountUpToDate, err := cmAccounts.IsCMAccountImplementationUpToDate(ctx, cfg.CMAccountAddress)
 	if err != nil {
-		err = fmt.Errorf("failed to compare CMAccount implementations: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to compare CMAccount implementations: %w", err)
 	}
 
 	if !cmAccountUpToDate {
@@ -130,9 +118,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	erc20, err := erc20.NewERC20Service(evmClient, erc20CacheSize)
 	if err != nil {
-		err = fmt.Errorf("failed to create erc20 service: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create erc20 service: %w", err)
 	}
 
 	bookingService, err := booking.NewService(
@@ -145,9 +131,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cmAccounts,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create booking service: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create booking service: %w", err)
 	}
 
 	priceHandler := price.NewPriceHandler(erc20)
@@ -156,9 +140,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 
 	eventListenerStorage, err := eventlistener_storage.New(ctx, logger, cfg.DB.EventListener.DBPath)
 	if err != nil {
-		err = fmt.Errorf("failed to create event listener storage: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create event listener storage: %w", err)
 	}
 
 	eventListener, err := eventlistener.New(
@@ -173,9 +155,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.RecordExpiration,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create event listener: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create event listener: %w", err)
 	}
 
 	// messaging components
@@ -189,9 +169,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.E2ETestMode,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create response handler: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create response handler: %w", err)
 	}
 
 	chequeHandlerStorage, err := chequeHandlerStorage.New(
@@ -200,9 +178,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.DB.ChequeHandler.DBPath,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create cheque handler storage: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create cheque handler storage: %w", err)
 	}
 
 	chequeHandler, err := chequehandler.NewChequeHandler(
@@ -219,9 +195,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cashInTxIssueTimeout,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create cheque handler: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create cheque handler: %w", err)
 	}
 
 	// get matrix hostname without schema
@@ -233,9 +207,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	}
 	u, err := url.Parse(matrixHostname)
 	if err != nil {
-		err = fmt.Errorf("failed to parse matrix host: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to parse matrix host: %w", err)
 	}
 	matrixHostname = u.Hostname()
 
@@ -251,9 +223,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		botUserID,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create matrix client: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create matrix client: %w", err)
 	}
 
 	messagesEncoderDecoderStorage, err := messagesEncoderDecoderStorage.New(
@@ -262,9 +232,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.DB.MessagesEncoderDecoder.DBPath,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create messages encoder/decoder storage: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create messages encoder/decoder storage: %w", err)
 	}
 
 	messagesEncoderDecoder, err := encoding.NewEncoderDecoder(
@@ -274,9 +242,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.BotKey,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create messages encoder/decoder: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create messages encoder/decoder: %w", err)
 	}
 
 	matrixMessenger, err := messenger.NewMessenger(
@@ -286,9 +252,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		botUserID,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create matrix messenger: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create matrix messenger: %w", err)
 	}
 
 	messageProcessor := messaging.NewMessageProcessor(
@@ -335,18 +299,14 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.DeveloperMode,
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to create rpc server: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create rpc server: %w", err)
 	}
 
 	// scheduler for periodic tasks (e.g. cheques cash-in)
 
 	storage, err := scheduler_storage.New(ctx, logger, cfg.DB.Scheduler.DBPath)
 	if err != nil {
-		err = fmt.Errorf("failed to create scheduler storage: %w", err)
-		logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create scheduler storage: %w", err)
 	}
 
 	scheduler := scheduler.New(logger, storage, clockwork.NewRealClock())

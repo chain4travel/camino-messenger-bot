@@ -30,8 +30,7 @@ func NewMessenger(
 ) (messaging.Messenger, error) {
 	roomsCache, err := lru.New[id.UserID, id.RoomID](roomsCacheSize)
 	if err != nil {
-		logger.Errorf("failed to create rooms cache: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create rooms cache: %w", err)
 	}
 
 	m := &messenger{
@@ -123,7 +122,8 @@ func (m *messenger) Stop() error {
 	}
 
 	if err := m.client.Close(); err != nil {
-		m.logger.Errorf("Failed to close matrix client: %v", err)
+		err = fmt.Errorf("failed to close matrix client: %w", err)
+		m.logger.Error(err)
 		return err
 	}
 
