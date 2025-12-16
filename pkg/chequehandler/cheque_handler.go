@@ -97,7 +97,7 @@ func NewChequeHandler(
 ) (ChequeHandler, error) {
 	signer, err := cheques.NewSigner(botKey, chainID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create signer: %w", err)
+		return nil, fmt.Errorf("failed to create cheques signer: %w", err)
 	}
 
 	paymentToken, err := cmAccounts.GetServiceFeeToken(ctx, cmAccountAddress)
@@ -147,9 +147,10 @@ func (ch *evmChequeHandler) IssueCheque(
 ) (*cheques.SignedCheque, error) {
 	session, err := ch.storage.NewSession(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create session: %w", err)
+		err = fmt.Errorf("failed to create db session: %w", err)
+		ch.logger.Error(err)
+		return nil, err
 	}
-
 	defer ch.storage.Abort(session)
 
 	now := big.NewInt(time.Now().Unix())
@@ -168,8 +169,9 @@ func (ch *evmChequeHandler) IssueCheque(
 
 	previousChequeModel, err := ch.storage.GetIssuedChequeRecord(ctx, session, chequeRecordID)
 	if err != nil && !errors.Is(err, ErrNotFound) {
-		ch.logger.Errorf("failed to get previous cheque: %v", err)
-		return nil, fmt.Errorf("failed to get previous cheque: %w", err)
+		err = fmt.Errorf("failed to get previous issued cheque record: %w", err)
+		ch.logger.Error(err)
+		return nil, err
 	}
 
 	if previousChequeModel != nil {
@@ -179,45 +181,53 @@ func (ch *evmChequeHandler) IssueCheque(
 
 	signedCheque, err := ch.signer.SignCheque(newCheque)
 	if err != nil {
-		ch.logger.Errorf("failed to sign cheque: %v", err)
-		return nil, fmt.Errorf("failed to sign cheque: %w", err)
+		err = fmt.Errorf("failed to sign new cheque: %w", err)
+		ch.logger.Error(err)
+		return nil, err
 	}
 
 	if isChequeValid, err := ch.cmAccounts.VerifyCheque(ctx, signedCheque); err != nil {
-		ch.logger.Errorf("failed to verify cheque with smart contract: %v", err)
-		return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
+		err = fmt.Errorf("failed to verify cheque with smart contract: %w", err)
+		ch.logger.Error(err)
+		return nil, err
 	} else if !isChequeValid {
 		lastCounter, lastAmount, err := ch.cmAccounts.GetLastCashIn(ctx, ch.cmAccountAddress, ch.botAddress, toBot, newCheque.PaymentToken)
 		if err != nil {
-			ch.logger.Errorf("failed to get last cash in: %v", err)
-			return nil, fmt.Errorf("failed to get last cash in: %w", err)
+			err = fmt.Errorf("failed to get last cash in: %w", err)
+			ch.logger.Error(err)
+			return nil, err
 		}
 		newCheque.Counter.Add(lastCounter, bigOne)
 		newCheque.Amount.Add(lastAmount, amount)
 
 		signedCheque, err = ch.signer.SignCheque(newCheque)
 		if err != nil {
-			ch.logger.Errorf("failed to sign cheque: %v", err)
-			return nil, fmt.Errorf("failed to sign cheque: %w", err)
+			err = fmt.Errorf("failed to sign new cheque after getting last cash-in: %w", err)
+			ch.logger.Error(err)
+			return nil, err
 		}
 
 		if isChequeValid, err := ch.cmAccounts.VerifyCheque(ctx, signedCheque); err != nil {
-			ch.logger.Errorf("failed to verify cheque with smart contract after getting last cash-in: %v", err)
-			return nil, fmt.Errorf("failed to verify cheque with smart contract: %w", err)
+			err = fmt.Errorf("failed to verify cheque with smart contract after getting last cash-in: %w", err)
+			ch.logger.Error(err)
+			return nil, err
 		} else if !isChequeValid {
-			ch.logger.Errorf("failed to issue valid cheque")
-			return nil, fmt.Errorf("failed to issue valid cheque")
+			err = fmt.Errorf("failed to issue valid cheque: %w", err)
+			ch.logger.Error(err)
+			return nil, err
 		}
 	}
 
 	if err := ch.storage.UpsertIssuedChequeRecord(ctx, session, IssuedChequeRecordCheque(chequeRecordID, signedCheque)); err != nil {
+		err = fmt.Errorf("failed to upsert issued cheque record into db: %w", err)
 		ch.logger.Error(err)
-		return nil, fmt.Errorf("failed to upsert issued cheque record: %w", err)
+		return nil, err
 	}
 
 	if err := ch.storage.Commit(session); err != nil {
+		err = fmt.Errorf("failed to commit db session: %w", err)
 		ch.logger.Error(err)
-		return nil, fmt.Errorf("failed to commit session: %w", err)
+		return nil, err
 	}
 
 	return signedCheque, nil
@@ -238,8 +248,7 @@ func (ch *evmChequeHandler) VerifyAndStoreCheque(
 
 	chequeIssuerPubKey, err := ch.signer.RecoverPublicKey(cheque)
 	if err != nil {
-		ch.logger.Errorf("failed to recover cheque issuer public key: %v", err)
-		return err
+		return fmt.Errorf("failed to recover cheque issuer public key: %w", err)
 	}
 
 	if fromBot != crypto.PubkeyToAddress(*chequeIssuerPubKey) {
@@ -248,7 +257,8 @@ func (ch *evmChequeHandler) VerifyAndStoreCheque(
 
 	session, err := ch.storage.NewSession(ctx)
 	if err != nil {
-		ch.logger.Errorf("failed to create storage session: %v", err)
+		err = fmt.Errorf("failed to create db session: %w", err)
+		ch.logger.Error(err)
 		return err
 	}
 	defer ch.storage.Abort(session)
@@ -256,7 +266,8 @@ func (ch *evmChequeHandler) VerifyAndStoreCheque(
 	chequeRecordID := ChequeRecordID(&cheque.Cheque)
 	chequeRecord, err := ch.storage.GetChequeRecord(ctx, session, chequeRecordID)
 	if err != nil && !errors.Is(err, ErrNotFound) {
-		ch.logger.Errorf("failed to get chequeRecord: %v", err)
+		err = fmt.Errorf("failed to get chequeRecord from db: %w", err)
+		ch.logger.Error(err)
 		return err
 	}
 
@@ -272,25 +283,26 @@ func (ch *evmChequeHandler) VerifyAndStoreCheque(
 		big.NewInt(time.Now().Unix()),
 		ch.minChequeDurationUntilExpiration,
 	); err != nil {
-		return err
+		return fmt.Errorf("cheque verification failed: %w", err)
 	}
 
 	amountDiff := big.NewInt(0).Sub(cheque.Amount, oldAmount)
 	if amountDiff.Cmp(expectedAmountIncrement) < 0 { // amountDiff < expectedAmountIncrement
-		return fmt.Errorf("cheque amount must at least cover expectedAmountIncrement")
+		return fmt.Errorf("cheque amount must at least cover expectedAmountIncrement (%s), amountDiff is %s", expectedAmountIncrement.String(), amountDiff.String())
 	}
 
 	if valid, err := ch.cmAccounts.VerifyCheque(ctx, cheque); err != nil {
-		ch.logger.Errorf("Failed to verify cheque with blockchain: %v", err)
+		err = fmt.Errorf("failed to verify cheque with blockchain: %w", err)
+		ch.logger.Error(err)
 		return err
 	} else if !valid {
-		ch.logger.Infof("cheque is invalid (blockchain validation)")
 		return fmt.Errorf("cheque is invalid (blockchain validation)")
 	}
 
 	chequeRecord = ChequeRecordFromCheque(chequeRecordID, cheque)
 	if err := ch.storage.UpsertChequeRecord(ctx, session, chequeRecord); err != nil {
-		ch.logger.Errorf("Failed to store cheque: %v", err)
+		err = fmt.Errorf("failed to upsert chequeRecord into db: %w", err)
+		ch.logger.Error(err)
 		return err
 	}
 
@@ -303,6 +315,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 
 	session, err := ch.storage.NewSession(ctx)
 	if err != nil {
+		err = fmt.Errorf("failed to create db session: %w", err)
 		ch.logger.Error(err)
 		return err
 	}
@@ -310,7 +323,8 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 
 	chequeRecords, err := ch.storage.GetNotCashedChequeRecords(ctx, session)
 	if err != nil {
-		ch.logger.Errorf("failed to get not cashed cheques: %v", err)
+		err = fmt.Errorf("failed to get not cashed cheques from db: %w", err)
+		ch.logger.Error(err)
 		return err
 	}
 
@@ -336,6 +350,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 				ch.botKey,
 			)
 			if err != nil {
+				ch.logger.Errorf("failed to cash in cheque %s: %v", chequeRecord, err)
 				return
 			}
 
@@ -390,6 +405,7 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 	session, err := ch.storage.NewSession(ctx)
 	if err != nil {
+		err = fmt.Errorf("failed to create db session: %w", err)
 		ch.logger.Error(err)
 		return err
 	}
@@ -397,7 +413,8 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 
 	chequeRecords, err := ch.storage.GetChequeRecordsWithPendingTxs(ctx, session)
 	if err != nil {
-		ch.logger.Errorf("failed to get not cashed cheques: %v", err)
+		err = fmt.Errorf("failed to get not cashed cheques from db: %w", err)
+		ch.logger.Error(err)
 		return err
 	}
 
@@ -417,7 +434,8 @@ func (ch *evmChequeHandler) CheckCashInStatus(ctx context.Context) error {
 	}
 
 	if err = g.Wait(); err != nil {
-		ch.logger.Errorf("CheckCashInStatus failed with error: %v", err)
+		err = fmt.Errorf("CheckCashInStatus failed with error: %w", err)
+		ch.logger.Error(err)
 	}
 
 	return err
@@ -427,12 +445,14 @@ func (ch *evmChequeHandler) checkCashInTxStatus(ctx context.Context, txID common
 	// TODO @evlekht timeout? what to do if timeouted?
 	res, err := ch.waitMined(ctx, txID)
 	if err != nil {
-		ch.logger.Errorf("failed to get cash in transaction receipt %s: %v", txID, err)
+		err = fmt.Errorf("failed to wait for tx %s to be mined: %w", txID.Hex(), err)
+		ch.logger.Error(err)
 		return err
 	}
 
 	session, err := ch.storage.NewSession(ctx)
 	if err != nil {
+		err = fmt.Errorf("failed to create db session: %w", err)
 		ch.logger.Error(err)
 		return err
 	}
@@ -440,7 +460,8 @@ func (ch *evmChequeHandler) checkCashInTxStatus(ctx context.Context, txID common
 
 	chequeRecord, err := ch.storage.GetChequeRecordByTxID(ctx, session, txID)
 	if err != nil {
-		ch.logger.Errorf("failed to get chequeRecord by txID %s: %v", txID, err)
+		err = fmt.Errorf("failed to get cheque record by txID %s from db: %w", txID.Hex(), err)
+		ch.logger.Error(err)
 		return err
 	}
 
@@ -451,7 +472,8 @@ func (ch *evmChequeHandler) checkCashInTxStatus(ctx context.Context, txID common
 
 	chequeRecord.Status = txStatus
 	if err := ch.storage.UpsertChequeRecord(ctx, session, chequeRecord); err != nil {
-		ch.logger.Errorf("failed to update chequeRecord %s: %v", chequeRecord, err)
+		err = fmt.Errorf("failed to update chequeRecord %s into db: %w", chequeRecord, err)
+		ch.logger.Error(err)
 		return err
 	}
 

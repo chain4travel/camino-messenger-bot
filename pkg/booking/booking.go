@@ -247,7 +247,6 @@ func (bs *service) BuyBookingToken(
 		return nil, fmt.Errorf("failed to buy booking token: %w", err)
 	}
 
-	bs.logger.Infof("BuyBookingToken tx sent: %s", receipt.TxHash.Hex())
 	return receipt, nil
 }
 
@@ -267,7 +266,6 @@ func (bs *service) RecordExpiration(
 		return nil, fmt.Errorf("failed to record token expiration: %w", err)
 	}
 
-	bs.logger.Infof("RecordExpiration tx sent: %s", receipt.TxHash.Hex())
 	return receipt, nil
 }
 

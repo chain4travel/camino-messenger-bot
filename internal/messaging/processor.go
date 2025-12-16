@@ -185,13 +185,18 @@ func (p *messageProcessor) processIncomingMessage(
 	switch msgCategory {
 	case message.Request:
 		msg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageReceivedFromServer)
-		return p.respond(context.Background(), msg, serviceFeeCheque, senderBotAddress, sharedKey)
+		if err := p.respond(context.Background(), msg, serviceFeeCheque, senderBotAddress, sharedKey); err != nil {
+			return fmt.Errorf("failed to respond to request message %s (id %s): %w", msg.Type, msg.RequestID, err)
+		}
 	case message.Response:
 		msg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageReceivedFromServer)
-		return p.forwardToHandler(msg)
+		if err := p.forwardToHandler(msg); err != nil {
+			return fmt.Errorf("failed to forward response message %s (id %s) to its handler: %w", msg.Type, msg.RequestID, err)
+		}
 	default:
 		return ErrUnknownMessageCategory
 	}
+	return nil
 }
 
 func (p *messageProcessor) SendRequestMessage(
@@ -219,7 +224,7 @@ func (p *messageProcessor) SendRequestMessage(
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccount, requestMsg.Type.ToServiceName())
 	if err != nil {
 		err = fmt.Errorf("failed to get service fee for service %s: %w", requestMsg.Type.ToServiceName(), err)
-		p.logger.Error(err)
+		p.logger.Debug(err)
 		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
 	}
 
@@ -304,7 +309,9 @@ func (p *messageProcessor) respond(
 
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, p.cmAccountAddress, service.Name())
 	if err != nil {
-		return fmt.Errorf("failed to get service fee for service %s: %w", service.Name(), err)
+		err = fmt.Errorf("failed to get service fee for service %s: %w", service.Name(), err)
+		p.logger.Debug(err)
+		return err
 	}
 
 	if err := p.chequeHandler.VerifyAndStoreCheque(ctx, serviceFeeCheque, senderBotAddress, serviceFee); err != nil {
@@ -381,9 +388,7 @@ func (p *messageProcessor) forwardToHandler(msg *message.Message) error {
 	p.logger.Debugf("Forwarding incoming response message %s (id %s) to its handler", msg.Type, msg.RequestID)
 	responseChan, ok := p.getResponseChannel(msg.RequestID)
 	if !ok {
-		err := fmt.Errorf("no response channel for request ID: %s", msg.RequestID)
-		p.logger.Errorf("Failed to forward message: %v", err)
-		return err
+		return fmt.Errorf("no response channel for request ID: %s", msg.RequestID)
 	}
 	responseChan <- msg
 	close(responseChan)

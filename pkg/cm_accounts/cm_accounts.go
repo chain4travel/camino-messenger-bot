@@ -45,6 +45,7 @@ type Service interface {
 
 	VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error)
 
+	// Will not wait for tx to be mined.
 	CashInCheque(
 		ctx context.Context,
 		cheque *cheques.SignedCheque,
@@ -56,12 +57,6 @@ type Service interface {
 		cmAccountAddress common.Address,
 		serviceFullName string,
 	) (*big.Int, error)
-
-	IsBotAllowed(
-		ctx context.Context,
-		cmAccountAddress common.Address,
-		botAddress common.Address,
-	) (bool, error)
 
 	GetLastCashIn(
 		ctx context.Context,
@@ -124,13 +119,12 @@ func NewService(
 ) (Service, error) {
 	chainID, err := ethClient.ChainID(ctx)
 	if err != nil {
-		logger.Errorf("Failed to get chain ID: %v", err)
 		return nil, fmt.Errorf("failed to get chain ID: %w", err)
 	}
 
 	cache, err := lru.New[common.Address, *cmaccount.Cmaccount](cacheSize)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create cm account cache: %w", err)
 	}
 
 	return &service{
@@ -144,29 +138,26 @@ func NewService(
 func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		s.logger.Errorf("Failed to get cm account: %v", err)
 		return common.Address{}, err
 	}
 
 	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{Context: ctx}, chequeOperatorRole)
 	if err != nil {
-		s.logger.Errorf("Failed to get role member count: %v", err)
-		return common.Address{}, err
+		return common.Address{}, fmt.Errorf("failed to get role member count: %w", err)
 	}
 
-	if countBig.Cmp(bigZero) <= 0 { // count <= 0
-		s.logger.Error(ErrorNoChequeOperators)
+	if countBig.Cmp(bigZero) <= 0 {
 		return common.Address{}, ErrorNoChequeOperators
 	}
 
 	botsAddress, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: ctx}, chequeOperatorRole, big.NewInt(0))
 	if err != nil {
-		s.logger.Errorf("Failed to get role member: %v", err)
-		return common.Address{}, err
+		return common.Address{}, fmt.Errorf("failed to get cheque operator role first member: %w", err)
 	}
 	return botsAddress, nil
 }
 
+// Will not wait for tx to be mined.
 func (s *service) CashInCheque(
 	ctx context.Context,
 	cheque *cheques.SignedCheque,
@@ -174,14 +165,12 @@ func (s *service) CashInCheque(
 ) (common.Hash, error) {
 	cmAccount, err := s.CMAccount(cheque.FromCMAccount)
 	if err != nil {
-		s.logger.Errorf("failed to get cmAccount contract instance: %v", err)
 		return common.Hash{}, err
 	}
 
 	transactor, err := bind.NewKeyedTransactorWithChainID(botKey, s.chainID)
 	if err != nil {
-		s.logger.Error(err)
-		return common.Hash{}, err
+		return common.Hash{}, fmt.Errorf("failed to create transactor from bot key: %w", err)
 	}
 	transactor.Context = ctx
 
@@ -198,8 +187,7 @@ func (s *service) CashInCheque(
 		cheque.Signature,
 	)
 	if err != nil {
-		s.logger.Errorf("failed to cash in cheque %s: %v", cheque, err)
-		return common.Hash{}, err
+		return common.Hash{}, fmt.Errorf("failed to cash in cheque: %w", err)
 	}
 
 	return tx.Hash(), nil
@@ -208,7 +196,6 @@ func (s *service) CashInCheque(
 func (s *service) VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error) {
 	cmAccount, err := s.CMAccount(cheque.FromCMAccount)
 	if err != nil {
-		s.logger.Errorf("failed to get cmAccount contract instance: %v", err)
 		return false, err
 	}
 
@@ -224,10 +211,13 @@ func (s *service) VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque
 		cheque.PaymentToken,
 		cheque.Signature,
 	)
-	if err != nil && err.Error() == "execution reverted" {
+	switch {
+	case err == nil:
+		return true, nil
+	case err.Error() == "execution reverted":
 		return false, nil
 	}
-	return err == nil, err
+	return false, fmt.Errorf("failed to verify cheque: %w", err)
 }
 
 func (s *service) GetServiceFee(
@@ -237,7 +227,7 @@ func (s *service) GetServiceFee(
 ) (*big.Int, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get supplier cmAccount: %w", err)
+		return nil, err
 	}
 
 	serviceFee, err := cmAccount.GetServiceFee(
@@ -250,26 +240,6 @@ func (s *service) GetServiceFee(
 	return serviceFee, nil
 }
 
-func (s *service) IsBotAllowed(
-	ctx context.Context,
-	cmAccountAddress common.Address,
-	botAddress common.Address,
-) (bool, error) {
-	cmAccount, err := s.CMAccount(cmAccountAddress)
-	if err != nil {
-		return false, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
-	}
-
-	isBotAllowed, err := cmAccount.IsBotAllowed(
-		&bind.CallOpts{Context: ctx},
-		botAddress,
-	)
-	if err != nil {
-		return false, fmt.Errorf("failed to check if bot is allowed: %w", err)
-	}
-	return isBotAllowed, nil
-}
-
 func (s *service) GetLastCashIn(
 	ctx context.Context,
 	cmAccountAddress common.Address,
@@ -279,7 +249,7 @@ func (s *service) GetLastCashIn(
 ) (counter *big.Int, amount *big.Int, err error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+		return nil, nil, err
 	}
 
 	lastCashIn, err := cmAccount.GetLastCashIn(
@@ -308,7 +278,7 @@ func (s *service) MintBookingToken(
 ) (*types.Receipt, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+		return nil, err
 	}
 
 	tx, err := cmAccount.MintBookingToken(
@@ -325,14 +295,18 @@ func (s *service) MintBookingToken(
 		return nil, fmt.Errorf("failed to mint booking token: %w", err)
 	}
 
+	s.logger.Debugf("Waiting for MintBookingToken transaction to be mined...")
+
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to wait for MintBookingToken transaction to be mined: %w", err)
 	}
 
 	if receipt.Status != types.ReceiptStatusSuccessful {
-		return nil, fmt.Errorf("transaction failed: %v", receipt)
+		return nil, fmt.Errorf("MintBookingToken transaction failed: %v", receipt)
 	}
+
+	s.logger.Infof("MintBookingToken transaction is mined. Block Nr: %s Gas used: %d", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
 }
@@ -347,7 +321,7 @@ func (s *service) BuyBookingToken(
 ) (*types.Receipt, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+		return nil, err
 	}
 
 	tx, err := cmAccount.BuyBookingToken(
@@ -360,18 +334,18 @@ func (s *service) BuyBookingToken(
 		return nil, fmt.Errorf("failed to buy booking token: %w", err)
 	}
 
-	s.logger.Infof("Waiting for BuyBookingToken transaction to be mined...")
+	s.logger.Debugf("Waiting for BuyBookingToken transaction to be mined...")
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to wait for BuyBookingToken transaction to be mined: %w", err)
 	}
 
 	if receipt.Status != types.ReceiptStatusSuccessful {
-		return nil, fmt.Errorf("transaction failed: %v", receipt)
+		return nil, fmt.Errorf("BuyBookingToken transaction failed: %v", receipt)
 	}
 
-	s.logger.Infof("Successfully mined. Block Nr: %s Gas used: %d", receipt.BlockNumber, receipt.GasUsed)
+	s.logger.Infof("BuyBookingToken transaction is mined. Block Nr: %s Gas used: %d", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
 }
@@ -384,7 +358,7 @@ func (s *service) CMAccount(cmAccountAddr common.Address) (*cmaccount.Cmaccount,
 
 	cmaccount, err := cmaccount.NewCmaccount(cmAccountAddr, s.ethClient)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create cm account contract binding: %w", err)
 	}
 	s.cache.Add(cmAccountAddr, cmaccount)
 
@@ -399,7 +373,7 @@ func (s *service) RecordExpiration(
 ) (*types.Receipt, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cmAccount contract instance: %w", err)
+		return nil, err
 	}
 
 	tx, err := cmAccount.RecordExpiration(transactOpts, tokenID)
@@ -407,14 +381,18 @@ func (s *service) RecordExpiration(
 		return nil, fmt.Errorf("failed to record expiration: %w", err)
 	}
 
+	s.logger.Debugf("Waiting for RecordExpiration transaction to be mined...")
+
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to wait for RecordExpiration transaction to be mined: %w", err)
 	}
 
 	if receipt.Status != types.ReceiptStatusSuccessful {
 		return nil, fmt.Errorf("transaction failed: %v", receipt)
 	}
+
+	s.logger.Infof("RecordExpiration transaction is mined. Block Nr: %s Gas used: %d", receipt.BlockNumber, receipt.GasUsed)
 
 	return receipt, nil
 }
@@ -422,15 +400,15 @@ func (s *service) RecordExpiration(
 func (s *service) GetServiceFeeToken(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to fetch CM account: %w", err)
+		return common.Address{}, err
 	}
 	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to fetch CM account Manager Address: %w", err)
+		return common.Address{}, fmt.Errorf("failed to get CM account manager address: %w", err)
 	}
 	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, s.ethClient)
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to get Manager: %w", err)
+		return common.Address{}, fmt.Errorf("failed to create CM account manager contract binding: %w", err)
 	}
 	paymentToken, err := manager.GetServiceFeeToken(&bind.CallOpts{Context: ctx})
 	if err != nil {
@@ -442,19 +420,19 @@ func (s *service) GetServiceFeeToken(ctx context.Context, cmAccountAddress commo
 func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to fetch CM account: %w", err)
+		return common.Address{}, err
 	}
 	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to fetch CM account Manager Address: %w", err)
+		return common.Address{}, fmt.Errorf("failed to fetch CM account manager address: %w", err)
 	}
 	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, s.ethClient)
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to get Manager: %w", err)
+		return common.Address{}, fmt.Errorf("failed to create CM account manager contract binding: %w", err)
 	}
 	currentImplOnManager, err := manager.GetAccountImplementation(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to get Account Implementation: %w", err)
+		return common.Address{}, fmt.Errorf("failed to get account implementation: %w", err)
 	}
 	return currentImplOnManager, nil
 }
@@ -470,12 +448,12 @@ func (s *service) getCurrentImplementationOnProxy(ctx context.Context, cmAccount
 func (s *service) IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error) {
 	currentImplOnManager, err := s.getLatestCMAccountImplementation(ctx, cmAccountAddress)
 	if err != nil {
-		return false, fmt.Errorf("failed to get current implementation on manager: %w", err)
+		return false, fmt.Errorf("failed to get latest cm account implementation from cm account manager: %w", err)
 	}
 
 	currentImplOnProxy, err := s.getCurrentImplementationOnProxy(ctx, cmAccountAddress)
 	if err != nil {
-		return false, fmt.Errorf("failed to get current implementation on proxy: %w", err)
+		return false, fmt.Errorf("failed to get current cm account implementation implementation: %w", err)
 	}
 	s.logger.Info("📜 CM Account Implementation:")
 	s.logger.Info("   - Active:  " + currentImplOnProxy.Hex())

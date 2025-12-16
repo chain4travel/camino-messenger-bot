@@ -75,14 +75,16 @@ type scheduler struct {
 func (s *scheduler) Start(ctx context.Context) error {
 	session, err := s.storage.NewSession(ctx)
 	if err != nil {
-		s.logger.Errorf("failed to create storage session: %v", err)
+		err = fmt.Errorf("failed to create db session: %w", err)
+		s.logger.Error(err)
 		return err
 	}
 	defer s.storage.Abort(session)
 
 	jobs, err := s.storage.GetAllJobs(ctx, session)
 	if err != nil {
-		s.logger.Errorf("failed to get all jobs: %v", err)
+		err = fmt.Errorf("failed to get all jobs from db: %w", err)
+		s.logger.Error(err)
 		return err
 	}
 
@@ -94,8 +96,7 @@ func (s *scheduler) Start(ctx context.Context) error {
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
-					err := fmt.Errorf("scheduler panicked: %v", r)
-					s.logger.Errorf("recovered from panic: %v", err)
+					s.logger.Errorf("recovered from panic: %v", r)
 				}
 				s.wg.Done()
 			}()
@@ -106,7 +107,8 @@ func (s *scheduler) Start(ctx context.Context) error {
 	for _, job := range jobs {
 		jobHandler, err := s.getJobHandler(job.Name)
 		if err != nil {
-			s.logger.Errorf("failed to get job handler: %v", err)
+			err = fmt.Errorf("failed to get job handler for job %s: %w", job.Name, err)
+			s.logger.Error(err)
 			return err
 		}
 
@@ -174,14 +176,16 @@ func (s *scheduler) Stop() {
 func (s *scheduler) Schedule(ctx context.Context, period time.Duration, jobName string) error {
 	session, err := s.storage.NewSession(ctx)
 	if err != nil {
-		s.logger.Errorf("failed to create storage session: %v", err)
+		err = fmt.Errorf("failed to create db session: %w", err)
+		s.logger.Error(err)
 		return err
 	}
 	defer s.storage.Abort(session)
 
 	job, err := s.storage.GetJobByName(ctx, session, jobName)
 	if err != nil && !errors.Is(err, ErrNotFound) {
-		s.logger.Errorf("failed to get job: %v", err)
+		err = fmt.Errorf("failed to get job %s from db: %w", jobName, err)
+		s.logger.Error(err)
 		return err
 	}
 
@@ -195,11 +199,17 @@ func (s *scheduler) Schedule(ctx context.Context, period time.Duration, jobName 
 		LastExecutedAt: lastExecutedAt,
 		Period:         period,
 	}); err != nil {
-		s.logger.Errorf("failed to store scheduled job: %v", err)
+		err = fmt.Errorf("failed to upsert job %s in db: %w", jobName, err)
+		s.logger.Error(err)
 		return err
 	}
 
-	return s.storage.Commit(session)
+	if err := s.storage.Commit(session); err != nil {
+		err = fmt.Errorf("failed to commit db session: %w", err)
+		s.logger.Error(err)
+		return err
+	}
+	return nil
 }
 
 func (s *scheduler) RegisterJobHandler(jobName string, jobHandler func()) {
@@ -211,26 +221,30 @@ func (s *scheduler) RegisterJobHandler(jobName string, jobHandler func()) {
 func (s *scheduler) updateJobExecutionTime(ctx context.Context, jobName string, executionTime time.Time) error {
 	session, err := s.storage.NewSession(ctx)
 	if err != nil {
-		s.logger.Errorf("failed to create storage session: %v", err)
+		err = fmt.Errorf("failed to create db session: %w", err)
+		s.logger.Error(err)
 		return err
 	}
 	defer s.storage.Abort(session)
 
 	job, err := s.storage.GetJobByName(ctx, session, jobName)
 	if err != nil {
-		s.logger.Errorf("failed to get job: %v", err)
+		err = fmt.Errorf("failed to get job %s from db: %w", jobName, err)
+		s.logger.Error(err)
 		return err
 	}
 
 	job.LastExecutedAt = executionTime
 
 	if err := s.storage.UpsertJob(ctx, session, job); err != nil {
-		s.logger.Errorf("failed to store scheduled job: %v", err)
+		err = fmt.Errorf("failed to upsert job %s in db: %w", jobName, err)
+		s.logger.Error(err)
 		return err
 	}
 
 	if err := s.storage.Commit(session); err != nil {
-		s.logger.Errorf("failed to commit session: %v", err)
+		err = fmt.Errorf("failed to commit db session: %w", err)
+		s.logger.Error(err)
 		return err
 	}
 
