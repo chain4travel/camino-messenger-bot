@@ -212,21 +212,6 @@ func (mr *MockServiceMockRecorder) InitiateCancellationProposal(arg0, arg1, arg2
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateCancellationProposal", reflect.TypeOf((*MockService)(nil).InitiateCancellationProposal), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-// IsBotAllowed mocks base method.
-func (m *MockService) IsBotAllowed(arg0 context.Context, arg1, arg2 common.Address) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsBotAllowed", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IsBotAllowed indicates an expected call of IsBotAllowed.
-func (mr *MockServiceMockRecorder) IsBotAllowed(arg0, arg1, arg2 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBotAllowed", reflect.TypeOf((*MockService)(nil).IsBotAllowed), arg0, arg1, arg2)
-}
-
 // IsCMAccountImplementationUpToDate mocks base method.
 func (m *MockService) IsCMAccountImplementationUpToDate(arg0 context.Context, arg1 common.Address) (bool, error) {
 	m.ctrl.T.Helper()

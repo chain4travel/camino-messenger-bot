@@ -285,7 +285,6 @@ func TestSendRequestMessage(t *testing.T) {
 		"Messenger failed to send message": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
 				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
-				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
@@ -305,7 +304,6 @@ func TestSendRequestMessage(t *testing.T) {
 		"Response timeout": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
 				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
-				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
@@ -325,7 +323,6 @@ func TestSendRequestMessage(t *testing.T) {
 		"OK": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
 				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
-				pArgs.cmAccounts.EXPECT().IsBotAllowed(m.Context, ownCMAccount, ownBot).Return(true, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)

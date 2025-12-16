@@ -72,7 +72,7 @@ func (s *SQLxTxSession) Abort() error {
 	if s.committed {
 		return nil
 	}
-	if err := s.Tx.Rollback(); err != nil {
+	if err := s.Rollback(); err != nil {
 		return fmt.Errorf("failed to rollback sql transaction: %w", err)
 	}
 	return nil

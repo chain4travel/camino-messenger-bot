@@ -76,7 +76,7 @@ func (cr *reader) ReadConfig() (*Config, error) {
 
 	if err := cr.viper.ReadInConfig(); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			cr.logger.Errorf("Error reading config file: %s", err)
+			cr.logger.Errorf("Error reading config file: %w", err)
 			return nil, err
 		}
 		cr.logger.Info("Config file not found")
@@ -102,7 +102,7 @@ func (cr *reader) ReadConfig() (*Config, error) {
 func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 	botKey, err := crypto.HexToECDSA(cfg.BotKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse bot key: %s", err)
+		return nil, fmt.Errorf("failed to parse bot key: %w", err)
 	}
 
 	if !common.IsHexAddress(cfg.CMAccountAddress) {

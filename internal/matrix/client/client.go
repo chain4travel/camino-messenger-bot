@@ -128,7 +128,7 @@ func (c *client) CreateRoomForUser(ctx context.Context, recipient id.UserID) (id
 		Invite:     []id.UserID{recipient},
 	})
 	if err != nil {
-		return "", fmt.Errorf("Failed to create new room for user %s: %v", recipient, err)
+		return "", fmt.Errorf("failed to create new room for user %s: %w", recipient, err)
 	}
 	c.logger.Debugf("Created new room %s for user %s", resp.RoomID, recipient)
 	return resp.RoomID, nil
@@ -137,7 +137,7 @@ func (c *client) CreateRoomForUser(ctx context.Context, recipient id.UserID) (id
 func (c *client) JoinRoom(ctx context.Context, roomID id.RoomID) error {
 	c.logger.Debugf("Joining room %s", roomID)
 	if _, err := c.client.JoinRoomByID(ctx, roomID); err != nil {
-		return fmt.Errorf("Failed to join room %s: %v", roomID, err)
+		return fmt.Errorf("failed to join room %s: %w", roomID, err)
 	}
 	c.logger.Debugf("Joined room %s", roomID)
 	return nil
@@ -146,7 +146,7 @@ func (c *client) JoinRoom(ctx context.Context, roomID id.RoomID) error {
 func (c *client) LeaveRoom(ctx context.Context, roomID id.RoomID) error {
 	c.logger.Debugf("Leaving room %s", roomID)
 	if _, err := c.client.LeaveRoom(ctx, roomID); err != nil {
-		return fmt.Errorf("Failed to leave room %s: %v", roomID, err)
+		return fmt.Errorf("failed to leave room %s: %w", roomID, err)
 	}
 	c.logger.Debugf("Left room %s", roomID)
 	return nil
@@ -155,7 +155,7 @@ func (c *client) LeaveRoom(ctx context.Context, roomID id.RoomID) error {
 func (c *client) ForgetRoom(ctx context.Context, roomID id.RoomID) error {
 	c.logger.Debugf("Forgetting room %s", roomID)
 	if _, err := c.client.ForgetRoom(ctx, roomID); err != nil {
-		return fmt.Errorf("Failed to forget room %s: %v", roomID, err)
+		return fmt.Errorf("failed to forget room %s: %w", roomID, err)
 	}
 	c.logger.Debugf("Forgot room %s", roomID)
 	return nil
@@ -164,7 +164,7 @@ func (c *client) ForgetRoom(ctx context.Context, roomID id.RoomID) error {
 func (c *client) JoinedRooms(ctx context.Context) ([]id.RoomID, error) {
 	resp, err := c.client.JoinedRooms(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get joined rooms: %v", err)
+		return nil, fmt.Errorf("failed to get joined rooms: %w", err)
 	}
 	return resp.JoinedRooms, nil
 }
@@ -172,7 +172,7 @@ func (c *client) JoinedRooms(ctx context.Context) ([]id.RoomID, error) {
 func (c *client) IsUserJoinedRoom(ctx context.Context, roomID id.RoomID, userID id.UserID) (bool, error) {
 	resp, err := c.client.JoinedMembers(ctx, roomID)
 	if err != nil {
-		return false, fmt.Errorf("Failed to get joined members for room %s: %v", roomID, err)
+		return false, fmt.Errorf("failed to get joined members for room %s: %w", roomID, err)
 	}
 	_, joined := resp.Joined[userID]
 	return joined, nil
@@ -182,7 +182,7 @@ func (c *client) SendSignedMessageEvent(ctx context.Context, roomID id.RoomID, e
 	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeSignedMessage.Type, roomID)
 	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeSignedMessage, event, mautrix.ReqSendEvent{DontEncrypt: true})
 	if err != nil {
-		return fmt.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeSignedMessage.Type, roomID, err)
+		return fmt.Errorf("failed to send message event of type %s to room %s: %w", matrix.EventTypeSignedMessage.Type, roomID, err)
 	}
 	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeSignedMessage.Type, roomID)
 	return nil
@@ -192,7 +192,7 @@ func (c *client) SendMessageChunkEvent(ctx context.Context, roomID id.RoomID, ev
 	c.logger.Debugf("Sending message event of type %s to room %s", matrix.EventTypeMessageChunk.Type, roomID)
 	_, err := c.client.SendMessageEvent(ctx, roomID, matrix.EventTypeMessageChunk, event, mautrix.ReqSendEvent{DontEncrypt: true})
 	if err != nil {
-		return fmt.Errorf("Failed to send message event of type %s to room %s: %v", matrix.EventTypeMessageChunk.Type, roomID, err)
+		return fmt.Errorf("failed to send message event of type %s to room %s: %w", matrix.EventTypeMessageChunk.Type, roomID, err)
 	}
 	c.logger.Debugf("Sent message event of type %s to room %s", matrix.EventTypeMessageChunk.Type, roomID)
 	return nil
@@ -201,7 +201,7 @@ func (c *client) SendMessageChunkEvent(ctx context.Context, roomID id.RoomID, ev
 func (c *client) SyncWithContext(ctx context.Context) error {
 	c.logger.Debug("Starting sync")
 	if err := c.client.SyncWithContext(ctx); err != nil && !errors.Is(err, context.Canceled) {
-		return fmt.Errorf("Sync failed: %v", err)
+		return fmt.Errorf("sync failed: %w", err)
 	}
 	c.logger.Debug("Sync finished")
 	return nil
