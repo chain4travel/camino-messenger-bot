@@ -81,7 +81,7 @@ func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session ev
 		}
 		subscriptions = append(subscriptions, *modelFromTokenBoughtSubscription(subscription))
 	}
-	if err := rows.Err(); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error occurred during rows iteration: %w", err)
 	}
 	return subscriptions, nil

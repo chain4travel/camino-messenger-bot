@@ -215,16 +215,26 @@ func (p *messageProcessor) SendRequestMessage(
 
 	// lookup for CM Account -> bot
 	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccount)
-	if err != nil {
+	switch {
+	case errors.Is(err, cmaccounts.ErrNoChequeOperators):
+		err = fmt.Errorf("failed to get cheque operator bot for CMAccount %s: %w", recipientCMAccount.Hex(), err)
+		p.logger.Debug(err)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBusinessProcess, err)
+	case err != nil:
 		err = fmt.Errorf("failed to get cheque operator bot for CMAccount %s: %w", recipientCMAccount.Hex(), err)
 		p.logger.Error(err)
 		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
 	}
 
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccount, requestMsg.Type.ToServiceName())
-	if err != nil {
-		err = fmt.Errorf("failed to get service fee for service %s: %w", requestMsg.Type.ToServiceName(), err)
+	switch {
+	case errors.Is(err, cmaccounts.ErrServiceNotSupported):
+		err = fmt.Errorf("service %s not supported by CMAccount %s: %w", requestMsg.Type.ToServiceName(), recipientCMAccount.Hex(), err)
 		p.logger.Debug(err)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBusinessProcess, err)
+	case err != nil:
+		err = fmt.Errorf("failed to get service fee for service %s: %w", requestMsg.Type.ToServiceName(), err)
+		p.logger.Error(err)
 		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
 	}
 
@@ -310,7 +320,7 @@ func (p *messageProcessor) respond(
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, p.cmAccountAddress, service.Name())
 	if err != nil {
 		err = fmt.Errorf("failed to get service fee for service %s: %w", service.Name(), err)
-		p.logger.Debug(err)
+		p.logger.Error(err)
 		return err
 	}
 

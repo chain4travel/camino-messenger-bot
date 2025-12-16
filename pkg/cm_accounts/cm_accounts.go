@@ -27,6 +27,7 @@ const (
 	// Implementation slot for ERC1967Proxy
 	// See: https://eips.ethereum.org/EIPS/eip-1967#logic-contract-address
 	managerCMAccountImplementationSlotString = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
+	evmExecutionRevertErrorMessage           = "execution reverted"
 )
 
 var (
@@ -36,8 +37,8 @@ var (
 	chequeOperatorRole                 = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
 	managerCMAccountImplementationSlot = common.HexToHash(managerCMAccountImplementationSlotString)
 
-	ErrorNoChequeOperators        = errors.New("no cheque operators found (no bots found in cmAccount)")
-	ErrorUnableToObtainServiceFee = errors.New("unable to obtain service fee")
+	ErrNoChequeOperators   = errors.New("no cheque operators found (no bots found in cmAccount)")
+	ErrServiceNotSupported = errors.New("service is not supported")
 )
 
 type Service interface {
@@ -147,7 +148,7 @@ func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress c
 	}
 
 	if countBig.Cmp(bigZero) <= 0 {
-		return common.Address{}, ErrorNoChequeOperators
+		return common.Address{}, ErrNoChequeOperators
 	}
 
 	botsAddress, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: ctx}, chequeOperatorRole, big.NewInt(0))
@@ -214,7 +215,7 @@ func (s *service) VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque
 	switch {
 	case err == nil:
 		return true, nil
-	case err.Error() == "execution reverted":
+	case err.Error() == evmExecutionRevertErrorMessage:
 		return false, nil
 	}
 	return false, fmt.Errorf("failed to verify cheque: %w", err)
@@ -234,10 +235,13 @@ func (s *service) GetServiceFee(
 		&bind.CallOpts{Context: ctx},
 		serviceFullName,
 	)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrorUnableToObtainServiceFee, err)
+	switch {
+	case err == nil:
+		return serviceFee, nil
+	case err.Error() == evmExecutionRevertErrorMessage:
+		return nil, ErrServiceNotSupported
 	}
-	return serviceFee, nil
+	return nil, fmt.Errorf("failed to get service fee: %w", err)
 }
 
 func (s *service) GetLastCashIn(

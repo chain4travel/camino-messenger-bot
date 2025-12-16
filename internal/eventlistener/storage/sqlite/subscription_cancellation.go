@@ -73,7 +73,7 @@ func (s *storage) GetAllCancellationSubscriptions(ctx context.Context, session e
 		}
 		subscriptions = append(subscriptions, big.NewInt(tokenID))
 	}
-	if err := rows.Err(); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error occurred during rows iteration: %w", err)
 	}
 	return subscriptions, nil

@@ -59,7 +59,7 @@ func (s *storage) GetNotCashedChequeRecords(ctx context.Context, session chequeh
 		}
 		chequeRecords = append(chequeRecords, modelFromChequeRecord(chequeRecord))
 	}
-	if err := rows.Err(); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error occurred during rows iteration: %w", err)
 	}
 	return chequeRecords, nil
@@ -84,7 +84,7 @@ func (s *storage) GetChequeRecordsWithPendingTxs(ctx context.Context, session ch
 		}
 		chequeRecords = append(chequeRecords, modelFromChequeRecord(chequeRecord))
 	}
-	if err := rows.Err(); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error occurred during rows iteration: %w", err)
 	}
 	return chequeRecords, nil

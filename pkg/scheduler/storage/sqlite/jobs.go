@@ -79,7 +79,7 @@ func (s *storage) GetAllJobs(ctx context.Context, session scheduler.Session) ([]
 		}
 		jobs = append(jobs, modelFromJob(job))
 	}
-	if err := rows.Err(); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error occurred during rows iteration: %w", err)
 	}
 	return jobs, nil

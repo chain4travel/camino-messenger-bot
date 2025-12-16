@@ -75,19 +75,19 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 	})
 	t.Run("Supplier bot: unregistered / no services", func(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "unregistered / no services", tt.supplierBotUnregisteredNoServices)
-		require.Contains(t, alertMessage, cmaccounts.ErrorNoChequeOperators.Error())
+		require.Contains(t, alertMessage, cmaccounts.ErrNoChequeOperators.Error())
 	})
 	t.Run("Supplier bot: unregistered / with services", func(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "unregistered / with services", tt.supplierBotUnregistered)
-		require.Contains(t, alertMessage, cmaccounts.ErrorNoChequeOperators.Error())
+		require.Contains(t, alertMessage, cmaccounts.ErrNoChequeOperators.Error())
 	})
 	t.Run("Supplier bot: registered / no services", func(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "registered / no services", tt.supplierBotNoServices)
-		require.Contains(t, alertMessage, cmaccounts.ErrorUnableToObtainServiceFee.Error())
+		require.Contains(t, alertMessage, cmaccounts.ErrServiceNotSupported.Error())
 	})
 	t.Run("Supplier bot: registered / different services", func(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "registered / different services", tt.supplierBotDifferentServices)
-		require.Contains(t, alertMessage, cmaccounts.ErrorUnableToObtainServiceFee.Error())
+		require.Contains(t, alertMessage, cmaccounts.ErrServiceNotSupported.Error())
 	})
 	t.Run("Many messages", func(t *testing.T) {
 		tt.testManyMessages(ctx, t)
