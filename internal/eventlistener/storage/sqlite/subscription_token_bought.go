@@ -72,7 +72,7 @@ func (s *storage) GetAllTokenBoughtSubscriptions(ctx context.Context, session ev
 	subscriptions := []eventlistener.TokenBoughtSubscription{}
 	rows, err := tx.StmtxContext(ctx, s.getAllTokenBoughtSubscription).QueryxContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute get all token bought subscriptions q: %w", err)
+		return nil, fmt.Errorf("failed to execute get all token bought subscriptions statement: %w", err)
 	}
 	for rows.Next() {
 		subscription := &tokenBoughtSubscription{}
