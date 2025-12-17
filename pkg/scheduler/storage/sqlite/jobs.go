@@ -74,7 +74,7 @@ func (s *storage) GetAllJobs(ctx context.Context, session scheduler.Session) ([]
 	for rows.Next() {
 		job := &job{}
 		if err := rows.StructScan(job); err != nil {
-			s.base.Logger.Errorf("failed to scan row to job: %w", err)
+			s.base.Logger.Errorf("failed to scan row to job: %v", err)
 			continue
 		}
 		jobs = append(jobs, modelFromJob(job))

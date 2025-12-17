@@ -29,6 +29,8 @@ var (
 
 	// Special address that indicates BookingToken payment will occur off-chain.
 	ISOPaymentToken = common.HexToAddress("0x0000000000000000000000000000000000000001")
+
+	errEmptyURI = fmt.Errorf("uri cannot be empty")
 )
 
 type Status uint8
@@ -66,7 +68,7 @@ type Service interface {
 
 	// BuyBookingToken buys an existing reserved booking token.
 	// Parameters:
-	// - tokenId: ID of the token to buy.
+	// - tokenID: ID of the token to buy.
 	// - price: Price of the token.
 	// - paymentToken: Address of the payment token (ERC20), if address(0) then native.
 	// Returns the transaction receipt.
@@ -198,9 +200,8 @@ func (bs *service) MintBookingToken(
 	// Validate URI
 	// TODO: Should we have default tokenURI if no URI is provided?
 	if strings.TrimSpace(uri) == "" {
-		return nil, nil, fmt.Errorf("uri cannot be empty")
+		return nil, nil, errEmptyURI
 	}
-	// Call the MintBookingToken function from the contract
 
 	receipt, err := bs.cmAccounts.MintBookingToken(
 		ctx,
@@ -236,9 +237,9 @@ func (bs *service) BuyBookingToken(
 ) (*types.Receipt, error) {
 	bs.logger.Infof("🛒 Buying BookingToken with TokenID %s", tokenID.String())
 
-	// Validate tokenId
+	// Validate tokenID
 	if tokenID.Sign() < 0 {
-		return nil, fmt.Errorf("tokenId must be a positive integer (>= 0)")
+		return nil, fmt.Errorf("tokenID must be a positive integer (>= 0)")
 	}
 
 	// Call the BuyBookingToken function from the contract
@@ -256,9 +257,9 @@ func (bs *service) RecordExpiration(
 ) (*types.Receipt, error) {
 	bs.logger.Infof("📝 Recording expiration for BookingToken with TokenID %s", tokenID.String())
 
-	// Validate tokenId
+	// Validate tokenID
 	if tokenID.Sign() < 0 {
-		return nil, fmt.Errorf("tokenId must be a positive integer (>= 0)")
+		return nil, fmt.Errorf("tokenID must be a positive integer (>= 0)")
 	}
 
 	receipt, err := bs.cmAccounts.RecordExpiration(ctx, bs.transactOpts, bs.minterCMAccountAddress, tokenID)
@@ -332,7 +333,7 @@ func (bs *service) GetCancellationReasons(
 ) (*CancellationReasons, error) {
 	reasons, err := bs.bookingToken.GetCancellationReasons(&bind.CallOpts{BlockNumber: blockNumber, Context: ctx}, tokenID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get cancellation reasons: %w", err)
 	}
 	return (*CancellationReasons)(&reasons), nil
 }
@@ -368,7 +369,7 @@ func (bs *service) GetCancellationProposal(
 		tokenID,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get cancellation proposal: %w", err)
 	}
 	return &CancellationProposal{
 		Status:           CancellationProposalStatus(status),

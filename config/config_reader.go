@@ -76,7 +76,7 @@ func (cr *reader) ReadConfig() (*Config, error) {
 
 	if err := cr.viper.ReadInConfig(); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			cr.logger.Errorf("Error reading config file: %w", err)
+			cr.logger.Errorf("Error reading config file: %v", err)
 			return nil, err
 		}
 		cr.logger.Info("Config file not found")

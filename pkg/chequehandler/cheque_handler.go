@@ -25,7 +25,8 @@ var (
 	_      ChequeHandler = (*evmChequeHandler)(nil)
 	bigOne               = big.NewInt(1)
 
-	ErrNotFound = errors.New("not found")
+	ErrNotFound                 = errors.New("not found")
+	errFailedToIssueValidCheque = errors.New("failed to issue valid cheque")
 )
 
 type Storage interface {
@@ -212,9 +213,8 @@ func (ch *evmChequeHandler) IssueCheque(
 			ch.logger.Error(err)
 			return nil, err
 		} else if !isChequeValid {
-			err = fmt.Errorf("failed to issue valid cheque: %w", err)
-			ch.logger.Error(err)
-			return nil, err
+			ch.logger.Error(errFailedToIssueValidCheque)
+			return nil, errFailedToIssueValidCheque
 		}
 	}
 
