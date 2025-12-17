@@ -306,7 +306,13 @@ func (ch *evmChequeHandler) VerifyAndStoreCheque(
 		return err
 	}
 
-	return ch.storage.Commit(session)
+	if err := ch.storage.Commit(session); err != nil {
+		err = fmt.Errorf("failed to commit db session: %w", err)
+		ch.logger.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
@@ -376,7 +382,8 @@ func (ch *evmChequeHandler) CashIn(ctx context.Context) error {
 	wg.Wait()
 
 	if err := ch.storage.Commit(session); err != nil {
-		ch.logger.Errorf("failed to commit session: %v", err)
+		err = fmt.Errorf("failed to commit db session: %w", err)
+		ch.logger.Error(err)
 		return err
 	}
 
@@ -477,7 +484,13 @@ func (ch *evmChequeHandler) checkCashInTxStatus(ctx context.Context, txID common
 		return err
 	}
 
-	return ch.storage.Commit(session)
+	if err := ch.storage.Commit(session); err != nil {
+		err = fmt.Errorf("failed to commit db session: %w", err)
+		ch.logger.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 func (ch *evmChequeHandler) waitMined(ctx context.Context, txID common.Hash) (*types.Receipt, error) {
