@@ -288,17 +288,12 @@ func (p *messageProcessor) SendRequestMessage(
 
 	select {
 	case responseMsg := <-responseChan:
-		if responseMsg.RequestID == requestMsg.RequestID {
-			if err := p.resolver.SetBotStatus(ctx, recipientBotAddr, resolver.BotStatusReachable); err != nil {
-				p.logger.Errorf("failed to set bot status to reachable: %v", err)
-			}
+		if err := p.resolver.SetBotStatus(ctx, recipientBotAddr, resolver.BotStatusReachable); err != nil {
+			p.logger.Errorf("failed to set bot status to reachable: %v", err)
+		}
 
-			if err := protovalidate.Validate(responseMsg.Content); err != nil {
-				return nil, fmt.Errorf("response validation failed: %w: %w", rpc.ErrInvalidProto, err)
-			}
-
-			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
-			return responseMsg, nil
+		if err := protovalidate.Validate(responseMsg.Content); err != nil {
+			return nil, fmt.Errorf("response validation failed: %w: %w", rpc.ErrInvalidProto, err)
 		}
 
 		p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
