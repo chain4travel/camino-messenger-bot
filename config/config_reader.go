@@ -144,6 +144,9 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 			MessagesEncoderDecoder: UnparsedSQLiteDBConfig{
 				DBPath: cfg.DB.DBPath + "/messages_encoder_decoder",
 			},
+			Resolver: UnparsedSQLiteDBConfig{
+				DBPath: cfg.DB.DBPath + "/resolver",
+			},
 		},
 		RPCServer:     cfg.RPCServer,
 		PartnerPlugin: cfg.PartnerPlugin,

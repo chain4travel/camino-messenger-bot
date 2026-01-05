@@ -31,6 +31,8 @@ import (
 	messagesEncoderDecoderStorage "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encoding/storage/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/price"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/resolver"
+	resolver_storage "github.com/chain4travel/camino-messenger-bot/v12/internal/resolver/storage/sqlite"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
@@ -245,6 +247,18 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, fmt.Errorf("failed to create messages encoder/decoder: %w", err)
 	}
 
+	resolverStorage, err := resolver_storage.New(
+		ctx,
+		logger,
+		cfg.DB.Resolver.DBPath,
+	)
+	if err != nil {
+		logger.Errorf("Failed to create resolver storage: %v", err)
+		return nil, err
+	}
+
+	resolver := resolver.NewResolver(logger, cmAccounts, resolverStorage)
+
 	matrixMessenger, err := messenger.NewMessenger(
 		logger,
 		matrixClient,
@@ -270,6 +284,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cmAccounts,
 		cfg.MaxAllowedServiceFee,
 		messagesEncoderDecoder,
+		resolver,
 	)
 
 	cancellationV1Service := cancellation_v1.NewService(

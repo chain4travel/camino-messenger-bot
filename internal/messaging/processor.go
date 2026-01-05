@@ -16,6 +16,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/resolver"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
@@ -79,6 +80,7 @@ func NewMessageProcessor(
 	cmAccounts cmaccounts.Service,
 	maxAllowedServiceFee *big.Int,
 	messageEncoder EncoderDecoder,
+	resolver resolver.Resolver,
 ) MessageProcessor {
 	return &messageProcessor{
 		messenger:                           messenger,
@@ -96,6 +98,7 @@ func NewMessageProcessor(
 		networkFeeRecipientCMAccountAddress: networkFeeRecipientCMAccountAddress,
 		maxAllowedServiceFee:                maxAllowedServiceFee,
 		encoderDecoder:                      messageEncoder,
+		resolver:                            resolver,
 	}
 }
 
@@ -117,6 +120,7 @@ type messageProcessor struct {
 	chequeHandler        chequehandler.ChequeHandler
 	cmAccounts           cmaccounts.Service
 	encoderDecoder       EncoderDecoder
+	resolver             resolver.Resolver
 }
 
 func (p *messageProcessor) Start(ctx context.Context) {
@@ -213,17 +217,9 @@ func (p *messageProcessor) SendRequestMessage(
 	ctx, cancel := context.WithTimeout(ctx, p.responseTimeout)
 	defer cancel()
 
-	// lookup for CM Account -> bot
-	recipientBotAddr, err := p.cmAccounts.GetFirstChequeOperator(ctx, recipientCMAccount)
-	switch {
-	case errors.Is(err, cmaccounts.ErrNoChequeOperators):
-		err = fmt.Errorf("failed to get cheque operator bot for CMAccount %s: %w", recipientCMAccount.Hex(), err)
-		p.logger.Debug(err)
-		return nil, fmt.Errorf("%w: %w", rpc.ErrBusinessProcess, err)
-	case err != nil:
-		err = fmt.Errorf("failed to get cheque operator bot for CMAccount %s: %w", recipientCMAccount.Hex(), err)
-		p.logger.Error(err)
-		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
+	recipientBotAddr, err := p.resolver.GetBotAddress(ctx, recipientCMAccount)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to resolve bot address for CM account %s: %w", rpc.ErrBusinessProcess, recipientCMAccount.Hex(), err)
 	}
 
 	serviceFee, err := p.cmAccounts.GetServiceFee(ctx, recipientCMAccount, requestMsg.Type.ToServiceName())
@@ -292,13 +288,25 @@ func (p *messageProcessor) SendRequestMessage(
 
 	select {
 	case responseMsg := <-responseChan:
-		if err := protovalidate.Validate(responseMsg.Content); err != nil {
-			return nil, fmt.Errorf("response validation failed: %w: %w", rpc.ErrInvalidProto, err)
+		if responseMsg.RequestID == requestMsg.RequestID {
+			if err := p.resolver.SetBotStatus(ctx, recipientBotAddr, resolver.BotStatusReachable); err != nil {
+				p.logger.Errorf("failed to set bot status to reachable: %v", err)
+			}
+
+			if err := protovalidate.Validate(responseMsg.Content); err != nil {
+				return nil, fmt.Errorf("response validation failed: %w: %w", rpc.ErrInvalidProto, err)
+			}
+
+			p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
+			return responseMsg, nil
 		}
 
 		p.responseHandler.ProcessResponseMessage(ctx, requestMsg, responseMsg)
 		return responseMsg, nil
 	case <-ctx.Done():
+		if err := p.resolver.SetBotStatus(context.Background(), recipientBotAddr, resolver.BotStatusUnreachable); err != nil {
+			p.logger.Errorf("failed to set bot status to unreachable: %v", err)
+		}
 		return nil, fmt.Errorf("%w of %v seconds for request: %s", ErrExceededResponseTimeout, p.responseTimeout, requestMsg.RequestID)
 	}
 }

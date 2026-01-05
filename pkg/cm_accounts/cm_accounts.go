@@ -33,16 +33,14 @@ const (
 var (
 	_ Service = &service{}
 
-	bigZero                            = big.NewInt(0)
 	chequeOperatorRole                 = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
 	managerCMAccountImplementationSlot = common.HexToHash(managerCMAccountImplementationSlotString)
 
-	ErrNoChequeOperators   = errors.New("no cheque operators found (no bots found in cmAccount)")
 	ErrServiceNotSupported = errors.New("service is not supported")
 )
 
 type Service interface {
-	GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error)
+	GetAllChequeOperators(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error)
 
 	VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error)
 
@@ -136,26 +134,20 @@ func NewService(
 	}, nil
 }
 
-func (s *service) GetFirstChequeOperator(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
+func (s *service) GetAllChequeOperators(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return common.Address{}, err
+		s.logger.Errorf("Failed to get cm account: %v", err)
+		return nil, err
 	}
 
-	countBig, err := cmAccount.GetRoleMemberCount(&bind.CallOpts{Context: ctx}, chequeOperatorRole)
+	botsAddresses, err := cmAccount.GetRoleMembers(&bind.CallOpts{Context: ctx}, chequeOperatorRole)
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to get role member count: %w", err)
+		s.logger.Errorf("Failed to get cheque operators: %v", err)
+		return nil, err
 	}
 
-	if countBig.Cmp(bigZero) <= 0 {
-		return common.Address{}, ErrNoChequeOperators
-	}
-
-	botsAddress, err := cmAccount.GetRoleMember(&bind.CallOpts{Context: ctx}, chequeOperatorRole, big.NewInt(0))
-	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to get cheque operator role first member: %w", err)
-	}
-	return botsAddress, nil
+	return botsAddresses, nil
 }
 
 // Will not wait for tx to be mined.

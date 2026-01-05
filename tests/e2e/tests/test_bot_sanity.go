@@ -11,6 +11,7 @@ import (
 	pingv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v2"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"buf.build/go/protovalidate"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/resolver"
 	botGenerated "github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/blockchain"
@@ -75,11 +76,11 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 	})
 	t.Run("Supplier bot: unregistered / no services", func(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "unregistered / no services", tt.supplierBotUnregisteredNoServices)
-		require.Contains(t, alertMessage, cmaccounts.ErrNoChequeOperators.Error())
+		require.Contains(t, alertMessage, resolver.ErrNotFound.Error())
 	})
 	t.Run("Supplier bot: unregistered / with services", func(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "unregistered / with services", tt.supplierBotUnregistered)
-		require.Contains(t, alertMessage, cmaccounts.ErrNoChequeOperators.Error())
+		require.Contains(t, alertMessage, resolver.ErrNotFound.Error())
 	})
 	t.Run("Supplier bot: registered / no services", func(t *testing.T) {
 		alertMessage := tt.sendPingRequestAndGetErrorMessage(ctx, t, "registered / no services", tt.supplierBotNoServices)

@@ -51,6 +51,7 @@ type SQLiteDBConfig struct {
 	ChequeHandler          UnparsedSQLiteDBConfig
 	EventListener          UnparsedSQLiteDBConfig
 	MessagesEncoderDecoder UnparsedSQLiteDBConfig
+	Resolver               UnparsedSQLiteDBConfig
 }
 
 // ******* Common *******

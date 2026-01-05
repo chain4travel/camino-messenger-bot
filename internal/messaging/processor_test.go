@@ -17,6 +17,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
+	"github.com/chain4travel/camino-messenger-bot/v12/internal/resolver"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
 	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler"
@@ -39,6 +40,7 @@ type messageProcessorArgs struct {
 	chequeHandler   *chequehandler.MockChequeHandler
 	cmAccounts      *cmaccounts.MockService
 	encoderDecoder  *MockEncoderDecoder
+	resolver        *resolver.MockResolver
 }
 
 func defaultMessageProcessorArgs(c *gomock.Controller) messageProcessorArgs {
@@ -50,6 +52,7 @@ func defaultMessageProcessorArgs(c *gomock.Controller) messageProcessorArgs {
 		chequeHandler:   chequehandler.NewMockChequeHandler(c),
 		cmAccounts:      cmaccounts.NewMockService(c),
 		encoderDecoder:  NewMockEncoderDecoder(c),
+		resolver:        resolver.NewMockResolver(c),
 	}
 }
 
@@ -217,6 +220,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				messageProcessorArgs.cmAccounts,
 				big.NewInt(0),
 				messageProcessorArgs.encoderDecoder,
+				messageProcessorArgs.resolver,
 			)
 			messageProcessor := p.(*messageProcessor)
 			for requestID, responseChan := range tt.responseChannels {
@@ -284,7 +288,7 @@ func TestSendRequestMessage(t *testing.T) {
 	}{
 		"Messenger failed to send message": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
-				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
@@ -303,13 +307,14 @@ func TestSendRequestMessage(t *testing.T) {
 		},
 		"Response timeout": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
-				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, serviceFeeCheque, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(networkFeeCheque, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, networkFeeCheque).Return(nil)
+				pArgs.resolver.EXPECT().SetBotStatus(m.Context, recipientBot, resolver.BotStatusUnreachable).Return(nil)
 			},
 			args: args{
 				msg: &message.Message{
@@ -322,7 +327,7 @@ func TestSendRequestMessage(t *testing.T) {
 		},
 		"OK": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
-				pArgs.cmAccounts.EXPECT().GetFirstChequeOperator(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().GetServiceFee(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(big.NewInt(1), nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, recipientCMAccount, recipientBot, serviceFee).Return(serviceFeeCheque, nil)
@@ -330,6 +335,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.chequeHandler.EXPECT().IssueCheque(m.Context, networkFeeCMAccount, networkFeeBot, networkFee).Return(networkFeeCheque, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, networkFeeCheque).Return(nil)
 				pArgs.responseHandler.EXPECT().ProcessResponseMessage(m.Context, a.msg, responseMessage)
+				pArgs.resolver.EXPECT().SetBotStatus(m.Context, recipientBot, resolver.BotStatusReachable).Return(nil)
 			},
 			args: args{
 				msg: &message.Message{
@@ -376,6 +382,7 @@ func TestSendRequestMessage(t *testing.T) {
 				messageProcessorArgs.cmAccounts,
 				big.NewInt(1), // max allowed service fee
 				messageProcessorArgs.encoderDecoder,
+				messageProcessorArgs.resolver,
 			)
 			if tt.responses != nil {
 				go tt.responses(p.(*messageProcessor))
@@ -399,6 +406,7 @@ func TestStart(t *testing.T) {
 	messenger := NewMockMessenger(c)
 	encoderDecoder := NewMockEncoderDecoder(c)
 	responseHandler := NewMockResponseHandler(c)
+	resolver := resolver.NewMockResolver(c)
 
 	senderBot := ethCommon.Address{1}
 	senderCMAccount := ethCommon.Address{2}
@@ -502,6 +510,7 @@ func TestStart(t *testing.T) {
 		cmAccounts,
 		big.NewInt(1),
 		encoderDecoder,
+		resolver,
 	).Start(ctx)
 
 	time.Sleep(1 * time.Second)
