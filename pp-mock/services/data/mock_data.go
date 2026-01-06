@@ -9,7 +9,6 @@ import (
 
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
-	accommodationv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v5"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 
@@ -85,7 +84,6 @@ var seatMapAvailabilityV4JSON []byte
 var (
 	PropertiesV3 []*accommodationv3.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV4 []*accommodationv4.PropertyExtendedInfo // used by product list, info and search
-	PropertiesV5 []*accommodationv5.PropertyExtendedInfo // used by product list, info and search
 
 	ServiceFactsV5                  []*typesv5.ServiceFact
 	ServiceFactDefinitionsV5        []*typesv5.ServiceFactDefinition
