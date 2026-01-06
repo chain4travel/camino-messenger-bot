@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math/big"
 
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
@@ -26,16 +25,6 @@ var (
 )
 
 type Handler interface {
-	GetPriceAndTokenV2(
-		ctx context.Context,
-		priceV2 *typesv2.Price,
-	) (
-		priceBigInt *big.Int,
-		paymentToken common.Address,
-		isoCurrency *big.Int,
-		err error,
-	)
-
 	GetPriceAndTokenV3(
 		ctx context.Context,
 		priceV3 *typesv3.Price,
@@ -65,50 +54,6 @@ func NewPriceHandler(erc20 erc20.Service) Handler {
 
 type handler struct {
 	erc20 erc20.Service
-}
-
-func (p *handler) GetPriceAndTokenV2(
-	ctx context.Context,
-	priceV2 *typesv2.Price,
-) (
-	priceBigInt *big.Int,
-	paymentToken common.Address,
-	isoCurrency *big.Int,
-	err error,
-) {
-	if priceV2 == nil {
-		return nil, common.Address{}, nil, errMissingPrice
-	}
-
-	isoCurrency = big.NewInt(0)
-	paymentToken = booking.NativePaymentToken
-
-	switch currency := priceV2.Currency.GetCurrency().(type) {
-	case *typesv2.Currency_NativeToken:
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.NativeTokenDecimals)
-	case *typesv2.Currency_TokenCurrency:
-		contractAddress := common.HexToAddress(currency.TokenCurrency.ContractAddress)
-		// if contract address is invalid in any way, Decimals() will return an error
-		tokenDecimals, decErr := p.erc20.Decimals(ctx, contractAddress)
-		if decErr != nil {
-			return nil, common.Address{}, nil, fmt.Errorf("failed to fetch token decimals: %w", decErr)
-		}
-
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, tokenDecimals)
-		paymentToken = contractAddress
-	case *typesv2.Currency_IsoCurrency:
-		priceBigInt, err = price.ToBigInt(priceV2.Value, priceV2.Decimals, price.ISODecimals)
-		paymentToken = booking.ISOPaymentToken
-		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
-	default:
-		return nil, common.Address{}, nil, fmt.Errorf("%w (%T)", errUnknownCurrency, currency)
-	}
-
-	if err != nil {
-		return nil, common.Address{}, nil, fmt.Errorf("failed to convert price to big.Int: %w", err)
-	}
-
-	return priceBigInt, paymentToken, isoCurrency, nil
 }
 
 func (p *handler) GetPriceAndTokenV3(

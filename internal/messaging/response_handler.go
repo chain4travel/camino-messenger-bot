@@ -7,7 +7,6 @@ import (
 	"context"
 	"time"
 
-	bookv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v2"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
@@ -90,8 +89,6 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 ) {
 	// distributor will post-process a mint request to buy the returned NFT
 	switch response := responseMsg.Content.(type) {
-	case *bookv2.MintResponse:
-		responseMsg.Content = h.processMintResponseV2(ctx, response)
 	case *bookv3.MintResponse:
 		responseMsg.Content = h.processMintResponseV3(ctx, response)
 	case *bookv4.MintResponse:
@@ -108,8 +105,6 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 ) {
 	// supplier will act upon receiving a mint response by minting an NFT
 	switch response := responseMsg.Content.(type) {
-	case *bookv2.MintResponse:
-		responseMsg.Content = h.prepareMintResponseV2(ctx, requestMsg.Content.(*bookv2.MintRequest), response)
 	case *bookv3.MintResponse:
 		responseMsg.Content = h.prepareMintResponseV3(ctx, requestMsg.Content.(*bookv3.MintRequest), response)
 	case *bookv4.MintResponse:
@@ -120,8 +115,6 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 // Prepares request by performing any necessary modifications to it
 func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) {
 	switch request := request.(type) {
-	case *bookv2.MintRequest:
-		request.BuyerAddress = h.cmAccountAddressStr
 	case *bookv3.MintRequest:
 		request.BuyerAddress = &typesv3.EVMAddress{Address: h.cmAccountAddressStr}
 	case *bookv4.MintRequest:

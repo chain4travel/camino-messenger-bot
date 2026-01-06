@@ -80,10 +80,10 @@ func (tt *TestTransportV3) Run(t *testing.T) {
 	t.Run("ProductList->Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		productListResponse := testTransportV3ProductListService(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
 		searchID, resultID, totalPrice := testTransportV3SearchServiceWithFilters(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, productListResponse)
-		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+		validationID := testValidateV3(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		balanceBefore := tt.Balance(ctx, t, tt.distributorBot)
-		tokenID, _, mintRespPrice := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
-		verifyBookingTokenStateBoughtWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
+		tokenID, _, mintRespPrice := testMintV3(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+		verifyBookingTokenStateBoughtWithPriceV3(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
 	})
 }
 
@@ -91,8 +91,8 @@ func (tt *TestTransportV3) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
 		botGenerated.TransportProductListServiceV3,
 		botGenerated.TransportSearchServiceV3,
-		botGenerated.ValidationServiceV2,
-		botGenerated.MintServiceV2,
+		botGenerated.ValidationServiceV3,
+		botGenerated.MintServiceV3,
 	))
 
 	// bot with partnerPlugin and without rpc server (supplier)
@@ -101,8 +101,8 @@ func (tt *TestTransportV3) prepare(ctx context.Context, t *testing.T) {
 		bot.WithServices([]bot.CMService{
 			{Name: botGenerated.TransportProductListServiceV3, Fee: 100},
 			{Name: botGenerated.TransportSearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV2, Fee: 130},
-			{Name: botGenerated.MintServiceV2, Fee: 140},
+			{Name: botGenerated.ValidationServiceV3, Fee: 130},
+			{Name: botGenerated.MintServiceV3, Fee: 140},
 		}),
 	)
 

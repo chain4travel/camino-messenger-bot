@@ -3,17 +3,19 @@
 package generated
 
 import (
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v2/accommodationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v5/accommodationv5grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v4/activityv4grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v2/bookv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v5/activityv5grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v4/bookv4grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v5/bookv5grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v3/cancellationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v1/infov1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v2/infov2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/info/v3/infov3grpc"
@@ -22,17 +24,14 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v2/seat_mapv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v3/seat_mapv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v4/seat_mapv4grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v2/transportv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v5/transportv5grpc"
 	"google.golang.org/grpc"
 )
 
 func NewClient(connection *grpc.ClientConn) *Client {
 	return &Client{
-		AccommodationProductInfoServiceV2:      accommodationv2grpc.NewAccommodationProductInfoServiceClient(connection),
-		AccommodationProductListServiceV2:      accommodationv2grpc.NewAccommodationProductListServiceClient(connection),
-		AccommodationSearchServiceV2:           accommodationv2grpc.NewAccommodationSearchServiceClient(connection),
 		AccommodationProductInfoServiceV3:      accommodationv3grpc.NewAccommodationProductInfoServiceClient(connection),
 		AccommodationProductListServiceV3:      accommodationv3grpc.NewAccommodationProductListServiceClient(connection),
 		AccommodationSearchServiceV3:           accommodationv3grpc.NewAccommodationSearchServiceClient(connection),
@@ -40,9 +39,12 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		AccommodationProductListServiceV4:      accommodationv4grpc.NewAccommodationProductListServiceClient(connection),
 		AccommodationSearchServiceV4:           accommodationv4grpc.NewAccommodationSearchServiceClient(connection),
 		AccommodationProductShortListServiceV4: accommodationv4grpc.NewAccommodationProductShortListServiceClient(connection),
+		AccommodationProductInfoServiceV5:      accommodationv5grpc.NewAccommodationProductInfoServiceClient(connection),
+		AccommodationProductListServiceV5:      accommodationv5grpc.NewAccommodationProductListServiceClient(connection),
+		AccommodationSearchServiceV5:           accommodationv5grpc.NewAccommodationSearchServiceClient(connection),
+		AccommodationProductShortListServiceV5: accommodationv5grpc.NewAccommodationProductShortListServiceClient(connection),
 		ActivityProductInfoServiceV2:           activityv2grpc.NewActivityProductInfoServiceClient(connection),
 		ActivityProductListServiceV2:           activityv2grpc.NewActivityProductListServiceClient(connection),
-		ActivitySearchServiceV2:                activityv2grpc.NewActivitySearchServiceClient(connection),
 		ActivityProductInfoServiceV3:           activityv3grpc.NewActivityProductInfoServiceClient(connection),
 		ActivityProductListServiceV3:           activityv3grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV3:                activityv3grpc.NewActivitySearchServiceClient(connection),
@@ -50,16 +52,19 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		ActivityProductListServiceV4:           activityv4grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV4:                activityv4grpc.NewActivitySearchServiceClient(connection),
 		ActivityProductShortListServiceV4:      activityv4grpc.NewActivityProductShortListServiceClient(connection),
-		MintServiceV2:                          bookv2grpc.NewMintServiceClient(connection),
-		ValidationServiceV2:                    bookv2grpc.NewValidationServiceClient(connection),
+		ActivitySearchServiceV5:                activityv5grpc.NewActivitySearchServiceClient(connection),
 		MintServiceV3:                          bookv3grpc.NewMintServiceClient(connection),
 		ValidationServiceV3:                    bookv3grpc.NewValidationServiceClient(connection),
 		MintServiceV4:                          bookv4grpc.NewMintServiceClient(connection),
 		ValidationServiceV4:                    bookv4grpc.NewValidationServiceClient(connection),
+		MintServiceV5:                          bookv5grpc.NewMintServiceClient(connection),
+		ValidationServiceV5:                    bookv5grpc.NewValidationServiceClient(connection),
 		CheckCancellationServiceV1:             cancellationv1grpc.NewCheckCancellationServiceClient(connection),
 		CancellationServiceV1:                  cancellationv1grpc.NewCancellationServiceClient(connection),
 		CheckCancellationServiceV2:             cancellationv2grpc.NewCheckCancellationServiceClient(connection),
 		CancellationServiceV2:                  cancellationv2grpc.NewCancellationServiceClient(connection),
+		CheckCancellationServiceV3:             cancellationv3grpc.NewCheckCancellationServiceClient(connection),
+		CancellationServiceV3:                  cancellationv3grpc.NewCancellationServiceClient(connection),
 		CountryEntryRequirementsServiceV1:      infov1grpc.NewCountryEntryRequirementsServiceClient(connection),
 		CountryEntryRequirementsServiceV2:      infov2grpc.NewCountryEntryRequirementsServiceClient(connection),
 		CountryEntryRequirementsServiceV3:      infov3grpc.NewCountryEntryRequirementsServiceClient(connection),
@@ -71,18 +76,16 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		SeatMapServiceV3:                       seat_mapv3grpc.NewSeatMapServiceClient(connection),
 		SeatMapAvailabilityServiceV4:           seat_mapv4grpc.NewSeatMapAvailabilityServiceClient(connection),
 		SeatMapServiceV4:                       seat_mapv4grpc.NewSeatMapServiceClient(connection),
-		TransportSearchServiceV2:               transportv2grpc.NewTransportSearchServiceClient(connection),
 		TransportProductListServiceV3:          transportv3grpc.NewTransportProductListServiceClient(connection),
 		TransportSearchServiceV3:               transportv3grpc.NewTransportSearchServiceClient(connection),
 		TransportProductListServiceV4:          transportv4grpc.NewTransportProductListServiceClient(connection),
 		TransportSearchServiceV4:               transportv4grpc.NewTransportSearchServiceClient(connection),
+		TransportProductListServiceV5:          transportv5grpc.NewTransportProductListServiceClient(connection),
+		TransportSearchServiceV5:               transportv5grpc.NewTransportSearchServiceClient(connection),
 	}
 }
 
 type Client struct {
-	AccommodationProductInfoServiceV2      accommodationv2grpc.AccommodationProductInfoServiceClient
-	AccommodationProductListServiceV2      accommodationv2grpc.AccommodationProductListServiceClient
-	AccommodationSearchServiceV2           accommodationv2grpc.AccommodationSearchServiceClient
 	AccommodationProductInfoServiceV3      accommodationv3grpc.AccommodationProductInfoServiceClient
 	AccommodationProductListServiceV3      accommodationv3grpc.AccommodationProductListServiceClient
 	AccommodationSearchServiceV3           accommodationv3grpc.AccommodationSearchServiceClient
@@ -90,9 +93,12 @@ type Client struct {
 	AccommodationProductListServiceV4      accommodationv4grpc.AccommodationProductListServiceClient
 	AccommodationSearchServiceV4           accommodationv4grpc.AccommodationSearchServiceClient
 	AccommodationProductShortListServiceV4 accommodationv4grpc.AccommodationProductShortListServiceClient
+	AccommodationProductInfoServiceV5      accommodationv5grpc.AccommodationProductInfoServiceClient
+	AccommodationProductListServiceV5      accommodationv5grpc.AccommodationProductListServiceClient
+	AccommodationSearchServiceV5           accommodationv5grpc.AccommodationSearchServiceClient
+	AccommodationProductShortListServiceV5 accommodationv5grpc.AccommodationProductShortListServiceClient
 	ActivityProductInfoServiceV2           activityv2grpc.ActivityProductInfoServiceClient
 	ActivityProductListServiceV2           activityv2grpc.ActivityProductListServiceClient
-	ActivitySearchServiceV2                activityv2grpc.ActivitySearchServiceClient
 	ActivityProductInfoServiceV3           activityv3grpc.ActivityProductInfoServiceClient
 	ActivityProductListServiceV3           activityv3grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV3                activityv3grpc.ActivitySearchServiceClient
@@ -100,16 +106,19 @@ type Client struct {
 	ActivityProductListServiceV4           activityv4grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV4                activityv4grpc.ActivitySearchServiceClient
 	ActivityProductShortListServiceV4      activityv4grpc.ActivityProductShortListServiceClient
-	MintServiceV2                          bookv2grpc.MintServiceClient
-	ValidationServiceV2                    bookv2grpc.ValidationServiceClient
+	ActivitySearchServiceV5                activityv5grpc.ActivitySearchServiceClient
 	MintServiceV3                          bookv3grpc.MintServiceClient
 	ValidationServiceV3                    bookv3grpc.ValidationServiceClient
 	MintServiceV4                          bookv4grpc.MintServiceClient
 	ValidationServiceV4                    bookv4grpc.ValidationServiceClient
+	MintServiceV5                          bookv5grpc.MintServiceClient
+	ValidationServiceV5                    bookv5grpc.ValidationServiceClient
 	CheckCancellationServiceV1             cancellationv1grpc.CheckCancellationServiceClient
 	CancellationServiceV1                  cancellationv1grpc.CancellationServiceClient
 	CheckCancellationServiceV2             cancellationv2grpc.CheckCancellationServiceClient
 	CancellationServiceV2                  cancellationv2grpc.CancellationServiceClient
+	CheckCancellationServiceV3             cancellationv3grpc.CheckCancellationServiceClient
+	CancellationServiceV3                  cancellationv3grpc.CancellationServiceClient
 	CountryEntryRequirementsServiceV1      infov1grpc.CountryEntryRequirementsServiceClient
 	CountryEntryRequirementsServiceV2      infov2grpc.CountryEntryRequirementsServiceClient
 	CountryEntryRequirementsServiceV3      infov3grpc.CountryEntryRequirementsServiceClient
@@ -121,9 +130,10 @@ type Client struct {
 	SeatMapServiceV3                       seat_mapv3grpc.SeatMapServiceClient
 	SeatMapAvailabilityServiceV4           seat_mapv4grpc.SeatMapAvailabilityServiceClient
 	SeatMapServiceV4                       seat_mapv4grpc.SeatMapServiceClient
-	TransportSearchServiceV2               transportv2grpc.TransportSearchServiceClient
 	TransportProductListServiceV3          transportv3grpc.TransportProductListServiceClient
 	TransportSearchServiceV3               transportv3grpc.TransportSearchServiceClient
 	TransportProductListServiceV4          transportv4grpc.TransportProductListServiceClient
 	TransportSearchServiceV4               transportv4grpc.TransportSearchServiceClient
+	TransportProductListServiceV5          transportv5grpc.TransportProductListServiceClient
+	TransportSearchServiceV5               transportv5grpc.TransportSearchServiceClient
 }

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
@@ -32,13 +31,6 @@ const (
 
 var (
 	DefaultPricePerNightNativeTokenBig *big.Int
-
-	BookingTokenPriceV2 = &typesv2.Price{
-		Value: BookingTokenPriceValue,
-		Currency: &typesv2.Currency{
-			Currency: &typesv2.Currency_NativeToken{},
-		},
-	}
 
 	BookingTokenPriceV3 = &typesv3.Price{
 		Value: BookingTokenPriceValue,
@@ -136,15 +128,6 @@ func AreTravelDatesValidV1(departureDate, arrivalDate *typesv1.Date) bool {
 // Fail if departure is after arrival
 func AreTravelDatesValidV4(departureDate, arrivalDate *typesv4.Date) bool {
 	return !DateV4ToTime(departureDate).After(DateV4ToTime(arrivalDate))
-}
-
-// GetTravellerIDsV2 extracts traveller IDs from []*typesv2.BasicTraveller
-func GetTravellerIDsV2(travellers []*typesv2.BasicTraveller) []int32 {
-	ids := make([]int32, len(travellers))
-	for i, traveller := range travellers {
-		ids[i] = traveller.TravellerId
-	}
-	return ids
 }
 
 // GetTravellerIDsV3 extracts traveller IDs from []*typesv3.BasicTraveller

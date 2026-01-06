@@ -79,10 +79,10 @@ func (tt *TestActivityV3) Run(t *testing.T) {
 	})
 	t.Run("Search->Validate->Mint->VerifyBlockchain", func(t *testing.T) {
 		searchID, resultID, totalPrice := testActivityV3SearchServiceWithTravelPeriod(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot)
-		validationID := testValidateV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
+		validationID := testValidateV3(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, searchID, resultID, totalPrice)
 		balanceBefore := tt.Balance(ctx, t, tt.distributorBot)
-		tokenID, _, mintRespPrice := testMintV2(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
-		verifyBookingTokenStateBoughtWithPriceV2(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
+		tokenID, _, mintRespPrice := testMintV3(ctx, t, tt.Environment, tt.distributorBot, tt.supplierBot, validationID)
+		verifyBookingTokenStateBoughtWithPriceV3(ctx, t, tt.Environment, tt.distributorBot, tokenID, mintRespPrice, balanceBefore)
 	})
 }
 
@@ -91,8 +91,8 @@ func (tt *TestActivityV3) prepare(ctx context.Context, t *testing.T) {
 		botGenerated.ActivityProductListServiceV3,
 		botGenerated.ActivityProductInfoServiceV3,
 		botGenerated.ActivitySearchServiceV3,
-		botGenerated.ValidationServiceV2,
-		botGenerated.MintServiceV2,
+		botGenerated.ValidationServiceV3,
+		botGenerated.MintServiceV3,
 	))
 
 	// bot with partnerPlugin and without rpc server (supplier)
@@ -102,8 +102,8 @@ func (tt *TestActivityV3) prepare(ctx context.Context, t *testing.T) {
 			{Name: botGenerated.ActivityProductListServiceV3, Fee: 100},
 			{Name: botGenerated.ActivityProductInfoServiceV3, Fee: 110},
 			{Name: botGenerated.ActivitySearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV2, Fee: 130},
-			{Name: botGenerated.MintServiceV2, Fee: 140},
+			{Name: botGenerated.ValidationServiceV3, Fee: 130},
+			{Name: botGenerated.MintServiceV3, Fee: 140},
 		}),
 	)
 

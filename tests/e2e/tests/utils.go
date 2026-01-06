@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
@@ -60,23 +59,6 @@ func protoPriceBigV3(t *testing.T, protoPrice *typesv3.Price) *big.Int {
 	return priceBig
 }
 
-func protoPriceBigV2(t *testing.T, protoPrice *typesv2.Price) *big.Int {
-	require.NotNil(t, protoPrice)
-	var priceBig *big.Int
-	var err error
-	switch protoPrice.Currency.Currency.(type) {
-	case *typesv2.Currency_IsoCurrency:
-		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.ISODecimals)
-	case *typesv2.Currency_NativeToken:
-		priceBig, err = price.ToBigInt(protoPrice.Value, protoPrice.Decimals, price.NativeTokenDecimals)
-	default:
-		require.FailNow(t, "unexpected currency type in price")
-		return nil
-	}
-	require.NoError(t, err)
-	return priceBig
-}
-
 func getPaymentTokenFromPriceV4(t *testing.T, price *typesv4.Price) common.Address { //nolint:unused // will be used in following PRs
 	require.NotNil(t, price, "unexpected nil price")
 	switch currency := price.GetCurrency().GetCurrency().(type) {
@@ -91,15 +73,15 @@ func getPaymentTokenFromPriceV4(t *testing.T, price *typesv4.Price) common.Addre
 	return common.Address{}
 }
 
-func getPaymentTokenFromPriceV2(t *testing.T, price *typesv2.Price) common.Address {
+func getPaymentTokenFromPriceV3(t *testing.T, price *typesv3.Price) common.Address {
 	require.NotNil(t, price, "unexpected nil price")
 	switch currency := price.GetCurrency().GetCurrency().(type) {
-	case *typesv2.Currency_NativeToken:
+	case *typesv3.Currency_NativeToken:
 		return booking.NativePaymentToken
-	case *typesv2.Currency_IsoCurrency:
+	case *typesv3.Currency_IsoCurrency:
 		return booking.ISOPaymentToken
-	case *typesv2.Currency_TokenCurrency:
-		return common.HexToAddress(currency.TokenCurrency.ContractAddress)
+	case *typesv3.Currency_TokenCurrency:
+		return common.HexToAddress(currency.TokenCurrency.ContractAddress.Address)
 	}
 	require.Fail(t, "unexpected currency type")
 	return common.Address{}
