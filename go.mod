@@ -3,8 +3,8 @@ module github.com/chain4travel/camino-messenger-bot/v12
 go 1.24.9
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.6.0-00000000000000-4cd4376be804.1
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.11-00000000000000-4cd4376be804.1
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.6.0-00000000000000-5a0329d5eff3.1
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.11-00000000000000-5a0329d5eff3.1
 	buf.build/go/protovalidate v1.0.0
 	github.com/chain4travel/camino-matrix-app-service v1.0.0-rc1
 	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20251013112359-7d9270fba024
