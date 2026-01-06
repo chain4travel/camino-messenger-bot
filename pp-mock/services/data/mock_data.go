@@ -87,9 +87,9 @@ var (
 	PropertiesV4 []*accommodationv4.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV5 []*accommodationv5.PropertyExtendedInfo // used by product list, info and search
 
-	ServiceFactsV5                  []*typesv5.ServiceFact                    // TODO@
-	ServiceFactDefinitionsV5        []*typesv5.ServiceFactDefinition          // TODO@
-	ServiceFactDefinitionsV5Mapping map[string]*typesv5.ServiceFactDefinition // TODO@
+	ServiceFactsV5                  []*typesv5.ServiceFact
+	ServiceFactDefinitionsV5        []*typesv5.ServiceFactDefinition
+	ServiceFactDefinitionsV5Mapping map[string]*typesv5.ServiceFactDefinition
 
 	TripsBasicV3    []*transportv3.TripBasic    // used by product list
 	TripsExtendedV3 []*transportv3.TripExtended // used by search

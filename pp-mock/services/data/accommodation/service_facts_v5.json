@@ -11,7 +11,6 @@
             "chargeType": "CHARGE_TYPE_PER_PERSON"
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
-        "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
         "quantity": 1
     },
     {
@@ -27,7 +26,6 @@
             "chargeType": "CHARGE_TYPE_PER_PERSON"
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_COMPULSORY",
-        "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
         "quantity": 1
     },
     {
@@ -40,11 +38,10 @@
                     "isoCurrency": "ISO_CURRENCY_USD"
                 }
             },
-            "chargeType": "CHARGE_TYPE_PER_PERSON", // need one, but no match with chargeBasis
+            "chargeType": "CHARGE_TYPE_PER_PERSON_PER_DAY",
             "locallyPayable": true
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_COMPULSORY",
-        "chargeBasis": "CHARGE_BASIS_TYPE_PER_DAY",
         "quantity": 1
     },
     {
@@ -57,10 +54,9 @@
                     "isoCurrency": "ISO_CURRENCY_USD"
                 }
             },
-            "chargeType": "CHARGE_TYPE_PER_PERSON" // need one, but no match with chargeBasis
+            "chargeType": "CHARGE_TYPE_ONCE"
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_OPTIONAL",
-        "chargeBasis": "CHARGE_BASIS_TYPE_ONCE",
         "quantity": 1
     },
     {
@@ -76,7 +72,6 @@
             "chargeType": "CHARGE_TYPE_PER_PERSON"
         },
         "availabilityType": "SERVICE_AVAILABILITY_TYPE_OPTIONAL",
-        "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
         "quantity": 1,
         "details": [
             {
@@ -92,7 +87,6 @@
                     "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
-                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
                 "quantity": 1
             },
             {
@@ -108,7 +102,6 @@
                     "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
-                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
                 "quantity": 1
             },
             {
@@ -124,7 +117,6 @@
                     "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
-                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
                 "quantity": 1
             },
             {
@@ -140,7 +132,6 @@
                     "chargeType": "CHARGE_TYPE_PER_PERSON"
                 },
                 "availabilityType": "SERVICE_AVAILABILITY_TYPE_INCLUDED",
-                "chargeBasis": "CHARGE_BASIS_TYPE_PER_PAX",
                 "quantity": 1
             }
         ]
