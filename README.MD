@@ -164,7 +164,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 #### macOS
 
 > [!IMPORTANT]
->  Either opt for a *bash* terminal or you might have to adjust $PATH in .zshrc
+>  Either opt for a **bash** terminal or you might have to adjust $PATH in .zshrc
 >  ```zsh
 > export PATH="/usr/bin:$PATH"
 > ```
@@ -182,6 +182,11 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 2. **Install libolm:**
    ```bash
    brew install libolm
+   ```
+3. **Install GNU grep**
+   ```bash
+   brew install grep
+   export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
    ```
 
 ## Build
@@ -208,6 +213,11 @@ export CGO_LDFLAGS="-L/opt/homebrew/lib"
 export CGO_CFLAGS="-I/usr/local/include"
 export CGO_LDFLAGS="-L/usr/local/lib"
 ./scripts/build.sh
+```
+
+or run
+```bash
+set -a && source homebrew.env && set +a && ./scripts/build.sh
 ```
 ## Run
 
