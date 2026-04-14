@@ -10,6 +10,12 @@ Camino-Messenger-Bot is designed to facilitate communication through various mes
 
    Currently, the only concrete implementation is the `matrix-messenger`, which utilizes the [Mautrix Golang SDK](https://github.com/mautrix/go) for the Matrix client. Note that the `mautrix` dependency requires the `olm` C library during both build time and runtime.
 
+   To update camino-matrix-go submodule run:
+
+   ```bash
+   git submodule update --init --recursive
+   ```
+
 2. **Message Processor**
 
    - The Message Processor utilizes the Messenger to receive and process messages.
@@ -106,7 +112,7 @@ yarn hardhat account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount
 yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network columbus
 ```
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > **After adding or removing the service(s)** it is necessary to **restart the bot**.
 
 
@@ -157,6 +163,9 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 
 #### macOS
 
+> [!IMPORTANT]
+> We recommend using **bash** terminal on macOS so that grep command is available to build.sh script.
+
 1. **Update Homebrew:**
 
    ```bash
@@ -175,10 +184,33 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 ## Build
 
 Use the provided build script to build the application. This will create a binary in the `./build` directory.
-Minimum required go version is 1.24
+Minimum required go version is written in [go.mod](go.mod)
+
+We recommend not using global go installation but rather installing [gvm](https://github.com/moovweb/gvm) for easier go version management. After installing go, run the following command
 
 ```bash
 ./scripts/build.sh
+```
+### Troubleshooting
+
+If on macOs you are getting
+```
+camino-matrix-go/crypto/olm/verification.go:6:11: fatal error: 'olm/olm.h' file not found
+    6 |  #include <olm/olm.h>
+      |           ^~~~~~~~~~~
+1 error generated.
+```
+
+It requires editing beginning of the file [camino-matrix-go/crypto/olm/account.go](camino-matrix-go/crypto/olm/account.go) :
+```go
+//go:build !goolm
+
+package olm
+
+// #cgo CFLAGS: -I/opt/homebrew/include
+// #cgo LDFLAGS: -L/opt/homebrew/lib -lolm -lstdc++
+// #include <olm/olm.h>
+import "C"
 ```
 
 ## Run
