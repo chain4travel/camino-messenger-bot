@@ -206,7 +206,7 @@ We recommend not using global go installation but rather installing [gvm](https:
 ```
 
 #### macOS
-##### Apple Silicon Macs
+#### Apple Silicon Macs
 ```bash
 export CGO_CFLAGS="-I/opt/homebrew/include"
 export CGO_LDFLAGS="-L/opt/homebrew/lib"
@@ -217,7 +217,7 @@ or run
 set -a && source homebrew.env && set +a && ./scripts/build.sh
 ```
 
-##### Intel Macs
+#### Intel Macs
 ```bash
 export CGO_CFLAGS="-I/usr/local/include"
 export CGO_LDFLAGS="-L/usr/local/lib"
