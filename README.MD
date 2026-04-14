@@ -165,7 +165,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 
 > [!IMPORTANT]
 >  Esure **grep** is available to your terminal by either opting for bash terminal or you might have to adjust $PATH in .zshrc
->  ```
+>  ```zsh
 > export PATH="/usr/bin:$PATH"
 > ```
 
@@ -191,31 +191,24 @@ Minimum required go version is written in [go.mod](go.mod)
 
 We recommend not using global go installation but rather installing [gvm](https://github.com/moovweb/gvm) for easier go version management. After installing go, run the following command
 
+#### Linux
 ```bash
 ./scripts/build.sh
 ```
-### Troubleshooting
 
-If on macOs you are getting
+#### macOS
+##### Apple Silicon Macs
+```bash
+export CGO_CFLAGS="-I/opt/homebrew/include"
+export CGO_LDFLAGS="-L/opt/homebrew/lib"
+./scripts/build.sh
 ```
-camino-matrix-go/crypto/olm/verification.go:6:11: fatal error: 'olm/olm.h' file not found
-    6 |  #include <olm/olm.h>
-      |           ^~~~~~~~~~~
-1 error generated.
+##### Intel Macs
+```bash
+export CGO_CFLAGS="-I/usr/local/include"
+export CGO_LDFLAGS="-L/usr/local/lib"
+./scripts/build.sh
 ```
-
-It requires editing beginning of the file [camino-matrix-go/crypto/olm/account.go](camino-matrix-go/crypto/olm/account.go) :
-```go
-//go:build !goolm
-
-package olm
-
-// #cgo CFLAGS: -I/opt/homebrew/include
-// #cgo LDFLAGS: -L/opt/homebrew/lib -lolm -lstdc++
-// #include <olm/olm.h>
-import "C"
-```
-
 ## Run
 
 ### Configuration
