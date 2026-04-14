@@ -189,7 +189,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
    MacOS ships with BSD `grep`, which does not support the `-P` flag required by the build scripts. Install GNU grep and add it to your PATH:
    ```bash
    brew install grep
-   export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
+  export PATH="$(brew --prefix)/opt/grep/libexec/gnubin:$PATH"
    ```
    Add the `export` line to your `~/.bashrc` (and put `source ~/.bashrc` in your `.bash_profile`) or `~/.zshrc` to make it permanent.
 
