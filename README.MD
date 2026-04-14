@@ -164,7 +164,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 #### macOS
 
 > [!IMPORTANT]
->  Esure **grep** is available to your terminal by either opting for bash terminal or you might have to adjust $PATH in .zshrc
+>  Either opt for a *bash* terminal or you might have to adjust $PATH in .zshrc
 >  ```zsh
 > export PATH="/usr/bin:$PATH"
 > ```
