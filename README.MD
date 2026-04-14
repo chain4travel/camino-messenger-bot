@@ -168,6 +168,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 >  ```zsh
 > export PATH="/usr/bin:$PATH"
 > ```
+> Add the `export` line to your `~/.bashrc` (and put `source ~/.bashrc` in your `.bash_profile`) or `~/.zshrc` to make it permanent.
 
 1. **Update Homebrew:**
 
@@ -184,10 +185,13 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
    brew install libolm
    ```
 3. **Install GNU grep**
+
+   MacOS ships with BSD `grep`, which does not support the `-P` flag required by the build scripts. Install GNU grep and add it to your PATH:
    ```bash
    brew install grep
    export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
    ```
+   Add the `export` line to your `~/.bashrc` (and put `source ~/.bashrc` in your `.bash_profile`) or `~/.zshrc` to make it permanent.
 
 ## Build
 
@@ -208,17 +212,22 @@ export CGO_CFLAGS="-I/opt/homebrew/include"
 export CGO_LDFLAGS="-L/opt/homebrew/lib"
 ./scripts/build.sh
 ```
+or run
+```bash
+set -a && source homebrew.env && set +a && ./scripts/build.sh
+```
+
 ##### Intel Macs
 ```bash
 export CGO_CFLAGS="-I/usr/local/include"
 export CGO_LDFLAGS="-L/usr/local/lib"
 ./scripts/build.sh
 ```
-
 or run
 ```bash
-set -a && source homebrew.env && set +a && ./scripts/build.sh
+set -a && source intel.env && set +a && ./scripts/build.sh
 ```
+
 ## Run
 
 ### Configuration
