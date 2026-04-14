@@ -164,7 +164,10 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 #### macOS
 
 > [!IMPORTANT]
-> We recommend using **bash** terminal on macOS so that grep command is available to build.sh script.
+>  Esure **grep** is available to your terminal by either opting for bash terminal or you might have to adjust $PATH in .zshrc
+>  ```
+> export PATH="/usr/bin:$PATH"
+> ```
 
 1. **Update Homebrew:**
 
