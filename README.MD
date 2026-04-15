@@ -163,13 +163,6 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
 
 #### macOS
 
-> [!IMPORTANT]
->  Either opt for a **bash** terminal or you might have to adjust $PATH in .zshrc
->  ```zsh
-> export PATH="/usr/bin:$PATH"
-> ```
-> Add the `export` line to your `~/.bashrc` (and put `source ~/.bashrc` in your `.bash_profile`) or `~/.zshrc` to make it permanent.
-
 1. **Update Homebrew:**
 
    ```bash
