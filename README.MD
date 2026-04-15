@@ -182,7 +182,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
    MacOS ships with BSD `grep`, which does not support the `-P` flag required by the build scripts. Install GNU grep and add it to your PATH:
    ```bash
    brew install grep
-  export PATH="$(brew --prefix)/opt/grep/libexec/gnubin:$PATH"
+   export PATH="$(brew --prefix)/opt/grep/libexec/gnubin:$PATH"
    ```
    Add the `export` line to your `~/.bashrc` (and put `source ~/.bashrc` in your `.bash_profile`) or `~/.zshrc` to make it permanent.
 
@@ -199,7 +199,7 @@ We recommend not using global go installation but rather installing [gvm](https:
 ```
 
 #### macOS
-#### Apple Silicon Macs
+
 ```bash
 export CGO_CFLAGS="-I/opt/homebrew/include"
 export CGO_LDFLAGS="-L/opt/homebrew/lib"
@@ -208,17 +208,6 @@ export CGO_LDFLAGS="-L/opt/homebrew/lib"
 or run
 ```bash
 set -a && source homebrew.env && set +a && ./scripts/build.sh
-```
-
-#### Intel Macs
-```bash
-export CGO_CFLAGS="-I/usr/local/include"
-export CGO_LDFLAGS="-L/usr/local/lib"
-./scripts/build.sh
-```
-or run
-```bash
-set -a && source intel.env && set +a && ./scripts/build.sh
 ```
 
 ## Run
