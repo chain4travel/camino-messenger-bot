@@ -146,11 +146,11 @@ The repository includes examples demonstrating the setup of gRPC servers and cli
 ### Operating systems Support
 > [!Note]
 > - Linux - Supported on **Ubuntu/Debian Linux** systems
-> - macOs - Only on **Apple Silicon** chip, on Intel chip it is not supported
+> - macOS - Only on **Apple Silicon** chip, on Intel chip it is not supported
 > - Windows - Not supported
 ### Install required `olm` library
 
-Below are instructions for installing the `olm` library for Linux (Debian and Ubuntu) and masOS (Apple Silicon):
+Below are instructions for installing the `olm` library for Linux (Debian and Ubuntu) and macOS (Apple Silicon):
 
 #### Linux (Debian/Ubuntu)
 
