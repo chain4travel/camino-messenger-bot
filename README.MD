@@ -143,10 +143,14 @@ The repository includes examples demonstrating the setup of gRPC servers and cli
 > If docker-compose.yml is used, please check volumes. The configuration filepath should be `cmb-config/config.yaml`. An example can be copied over from examples/config/ and modified.
 
 ## Getting Started
-
+### Operating systems Support
+> [!Note]
+> - Linux - Supported on **Ubuntu/Debian Linux** systems
+> - macOs - Only on **Apple Silicon** chip, on Intel chip it is not supported
+> - Windows - Not supported
 ### Install required `olm` library
 
-Below are instructions for installing the `olm` library for Linux (Debian and Ubuntu) and macOS:
+Below are instructions for installing the `olm` library for Linux (Debian and Ubuntu) and masOS (Apple Silicon):
 
 #### Linux (Debian/Ubuntu)
 
@@ -161,7 +165,7 @@ Below are instructions for installing the `olm` library for Linux (Debian and Ub
    sudo apt install -y libolm-dev
    ```
 
-#### macOS
+#### macOS (Apple Silicon)
 
 1. **Update Homebrew:**
 
@@ -193,12 +197,12 @@ Minimum required go version is written in [go.mod](go.mod)
 
 We recommend not using global go installation but rather installing [gvm](https://github.com/moovweb/gvm) for easier go version management. After installing go, run the following command
 
-#### Linux
+#### Linux (Debian/Ubuntu)
 ```bash
 ./scripts/build.sh
 ```
 
-#### macOS
+#### macOS (Apple Silicon)
 
 ```bash
 export CGO_CFLAGS="-I/opt/homebrew/include"
