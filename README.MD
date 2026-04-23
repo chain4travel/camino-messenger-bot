@@ -236,13 +236,13 @@ Start the bot using the related config file depending on your need.
 **Supplier Bot:**
 
 ```bash
-./build/bot --config camino-messenger-bot-supplier.yaml
+./build/camino-messenger-bot --config camino-messenger-bot-supplier.yaml
 ```
 
 **Distributor Bot:**
 
 ```bash
-./build/bot --config camino-messenger-bot-distributor.yaml
+./build/camino-messenger-bot --config camino-messenger-bot-distributor.yaml
 ```
 
 > [!TIP]
