@@ -1,10 +1,10 @@
 module github.com/chain4travel/camino-messenger-bot/v12
 
-go 1.24.9
+go 1.25.0
 
 require (
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.6.0-00000000000000-5a0329d5eff3.1
-	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.11-00000000000000-5a0329d5eff3.1
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.6.2-20260515201659-3506cdae187b.1
+	buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go v1.36.11-20260515201659-3506cdae187b.1
 	buf.build/go/protovalidate v1.0.0
 	github.com/chain4travel/camino-matrix-app-service v1.0.0-rc1
 	github.com/chain4travel/camino-messenger-contracts/go/contracts v0.0.0-20251013112359-7d9270fba024
@@ -27,13 +27,13 @@ require (
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/mock v0.6.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.17.0
-	google.golang.org/grpc v1.76.0
+	golang.org/x/sync v0.20.0
+	google.golang.org/grpc v1.81.0
 )
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20250912141014-52f32327d4b0.1 // indirect
-	cel.dev/expr v0.24.0 // indirect
+	cel.dev/expr v0.25.1 // indirect
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
@@ -83,13 +83,13 @@ require (
 	go.mau.fi/util v0.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250804133106-a7a43d27e69b // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
+	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 	maunium.net/go/maulogger/v2 v2.4.1 // indirect
