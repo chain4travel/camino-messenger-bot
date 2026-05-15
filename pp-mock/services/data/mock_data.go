@@ -9,14 +9,13 @@ import (
 
 	accommodationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	accommodationv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
+	accommodationv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v5"
 	activityv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
-
-	// activityv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v5"
+	activityv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v5"
 	transportv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v3"
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
-
-	// transportv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v5"
+	transportv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v5"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	typesv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v5"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/accommodation"
@@ -84,6 +83,7 @@ var seatMapAvailabilityV4JSON []byte
 var (
 	PropertiesV3 []*accommodationv3.PropertyExtendedInfo // used by product list, info and search
 	PropertiesV4 []*accommodationv4.PropertyExtendedInfo // used by product list, info and search
+	PropertiesV5 []*accommodationv5.PropertyExtendedInfo // used by product list, info and search
 
 	ServiceFactsV5                  []*typesv5.ServiceFact
 	ServiceFactDefinitionsV5        []*typesv5.ServiceFactDefinition
@@ -96,12 +96,15 @@ var (
 	TripsExtendedV4 []*transportv4.TripExtended // used by search
 	TripsV4         []*transport.TripV4         // basic+extended, used by search
 
+	TripsBasicV5 []*transportv5.TripBasic // used by product list
+
 	ActivityV3             []*activityv3.Activity             // used by product list
 	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo // used by product info
 	ActivitySearchResultV3 []*activityv3.ActivitySearchResult // used by search
 
 	ActivityExtendedV4     []*activityv4.ActivityExtendedInfo // used by product list and info
 	ActivitySearchResultV4 []*activityv4.ActivitySearchResult // used by search
+	ActivitySearchResultV5 []*activityv5.ActivitySearchResult // used by search
 
 	SeatMapV4             []*typesv4.SeatMap          // used by seatMap
 	SeatMapAvailabilityV4 []*typesv4.SeatMapInventory // used by seatMapAvailability
@@ -113,6 +116,7 @@ func init() {
 	// Accommodation V4
 	PropertiesV4 = mustUnmarshalStrictAndValidate[*accommodationv4.PropertyExtendedInfo](propertiesV4JSON, "error unmarshaling properties v4")
 	// Accommodation V5
+	PropertiesV5 = mustUnmarshalStrictAndValidate[*accommodationv5.PropertyExtendedInfo](propertiesV4JSON, "error unmarshaling properties v5")
 	ServiceFactsV5 = mustUnmarshalStrictAndValidate[*typesv5.ServiceFact](serviceFactsV5JSON, "error unmarshaling service facts v5")
 	ServiceFactDefinitionsV5 = mustUnmarshalStrictAndValidate[*typesv5.ServiceFactDefinition](serviceFactDefinitionsV5JSON, "error unmarshaling service fact definitions v5")
 	ServiceFactDefinitionsV5Mapping = accommodation.VerifyAndGetMapping(ServiceFactsV5, ServiceFactDefinitionsV5)
@@ -123,6 +127,8 @@ func init() {
 	TripsBasicV4 = mustUnmarshalStrictAndValidate[*transportv4.TripBasic](tripsV4BasicJSON, "error unmarshaling trips basic v4")
 	TripsExtendedV4 = mustUnmarshalStrictAndValidate[*transportv4.TripExtended](tripsV4ExtendedJSON, "error unmarshaling trips extended v4")
 	TripsV4 = transport.VerifyAndGetTrips(TripsBasicV4, TripsExtendedV4)
+	// Transport V5
+	TripsBasicV5 = mustUnmarshalStrictAndValidate[*transportv5.TripBasic](tripsV4BasicJSON, "error unmarshaling trips basic v5")
 	// ActivityV3
 	ActivityV3 = mustUnmarshalStrictAndValidate[*activityv3.Activity](activityV3JSON, "error unmarshaling activities v3")
 	ActivityExtendedV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivityExtendedInfo](activityV3ExtendedJSON, "error unmarshaling activities extended v3")
@@ -131,6 +137,8 @@ func init() {
 	ActivityExtendedV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivityExtendedInfo](activityExtendedV4JSON, "error unmarshaling activities extended v4")
 	ActivitySearchResultV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activities search v4")
 	activity.Verify(ActivityExtendedV4, ActivitySearchResultV4)
+	// Activity V5
+	ActivitySearchResultV5 = mustUnmarshalStrictAndValidate[*activityv5.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activities search v5")
 	// SeatMapV4
 	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
 	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")

@@ -11,6 +11,7 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	typesv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v5"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
 	"github.com/google/uuid"
@@ -40,6 +41,13 @@ var (
 	}
 
 	BookingTokenPriceV4 = &typesv4.Price{
+		Value: BookingTokenPriceValue,
+		Currency: &typesv4.Currency{
+			Currency: &typesv4.Currency_NativeToken{},
+		},
+	}
+
+	BookingTokenPriceV5 = &typesv5.Price{
 		Value: BookingTokenPriceValue,
 		Currency: &typesv4.Currency{
 			Currency: &typesv4.Currency_NativeToken{},

@@ -10,6 +10,7 @@ import (
 
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	typesv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v5"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v12/pkg/erc20"
@@ -38,6 +39,16 @@ type Handler interface {
 	GetPriceAndTokenV4(
 		ctx context.Context,
 		priceV4 *typesv4.Price,
+	) (
+		priceBigInt *big.Int,
+		paymentToken common.Address,
+		isoCurrency *big.Int,
+		err error,
+	)
+
+	GetPriceAndTokenV5(
+		ctx context.Context,
+		priceV5 *typesv5.Price,
 	) (
 		priceBigInt *big.Int,
 		paymentToken common.Address,
@@ -131,6 +142,50 @@ func (p *handler) GetPriceAndTokenV4(
 		paymentToken = contractAddress
 	case *typesv4.Currency_IsoCurrency:
 		priceBigInt, err = price.ToBigInt(priceV4.Value, conversion.MustUInt32ToInt32(priceV4.Decimals), price.ISODecimals)
+		paymentToken = booking.ISOPaymentToken
+		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
+	default:
+		return nil, common.Address{}, nil, fmt.Errorf("%w (%T)", errUnknownCurrency, currency) // should never happen with protovalidated price
+	}
+
+	if err != nil {
+		return nil, common.Address{}, nil, fmt.Errorf("failed to convert price to big.Int: %w", err)
+	}
+
+	return priceBigInt, paymentToken, isoCurrency, nil
+}
+
+func (p *handler) GetPriceAndTokenV5(
+	ctx context.Context,
+	priceV5 *typesv5.Price,
+) (
+	priceBigInt *big.Int,
+	paymentToken common.Address,
+	isoCurrency *big.Int,
+	err error,
+) {
+	if priceV5 == nil {
+		return nil, common.Address{}, nil, errMissingPrice
+	}
+
+	isoCurrency = big.NewInt(0)
+	paymentToken = booking.NativePaymentToken
+
+	switch currency := priceV5.Currency.GetCurrency().(type) {
+	case *typesv4.Currency_NativeToken:
+		priceBigInt, err = price.ToBigInt(priceV5.Value, conversion.MustUInt32ToInt32(priceV5.Decimals), price.NativeTokenDecimals)
+	case *typesv4.Currency_TokenCurrency:
+		contractAddress := common.HexToAddress(currency.TokenCurrency.Address)
+		// if contract address is invalid in any way, Decimals() will return an error
+		tokenDecimals, decErr := p.erc20.Decimals(ctx, contractAddress)
+		if decErr != nil {
+			return nil, common.Address{}, nil, fmt.Errorf("failed to fetch token decimals: %w", decErr)
+		}
+
+		priceBigInt, err = price.ToBigInt(priceV5.Value, conversion.MustUInt32ToInt32(priceV5.Decimals), tokenDecimals)
+		paymentToken = contractAddress
+	case *typesv4.Currency_IsoCurrency:
+		priceBigInt, err = price.ToBigInt(priceV5.Value, conversion.MustUInt32ToInt32(priceV5.Decimals), price.ISODecimals)
 		paymentToken = booking.ISOPaymentToken
 		isoCurrency = big.NewInt(int64(currency.IsoCurrency))
 	default:

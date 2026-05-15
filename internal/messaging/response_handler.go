@@ -9,6 +9,7 @@ import (
 
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
+	bookv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v5"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 
@@ -93,6 +94,8 @@ func (h *evmResponseHandler) ProcessResponseMessage(
 		responseMsg.Content = h.processMintResponseV3(ctx, response)
 	case *bookv4.MintResponse:
 		responseMsg.Content = h.processMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
+	case *bookv5.MintResponse:
+		responseMsg.Content = h.processMintResponseV5(ctx, requestMsg.Content.(*bookv5.MintRequest), response)
 	}
 }
 
@@ -109,6 +112,8 @@ func (h *evmResponseHandler) PrepareResponseMessage(
 		responseMsg.Content = h.prepareMintResponseV3(ctx, requestMsg.Content.(*bookv3.MintRequest), response)
 	case *bookv4.MintResponse:
 		responseMsg.Content = h.prepareMintResponseV4(ctx, requestMsg.Content.(*bookv4.MintRequest), response)
+	case *bookv5.MintResponse:
+		responseMsg.Content = h.prepareMintResponseV5(ctx, requestMsg.Content.(*bookv5.MintRequest), response)
 	}
 }
 
@@ -118,6 +123,8 @@ func (h *evmResponseHandler) PrepareRequest(request protoreflect.ProtoMessage) {
 	case *bookv3.MintRequest:
 		request.BuyerAddress = &typesv3.EVMAddress{Address: h.cmAccountAddressStr}
 	case *bookv4.MintRequest:
+		request.BuyerAddress = &typesv4.EVMAddress{Address: h.cmAccountAddressStr}
+	case *bookv5.MintRequest:
 		request.BuyerAddress = &typesv4.EVMAddress{Address: h.cmAccountAddressStr}
 	}
 }

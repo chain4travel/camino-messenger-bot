@@ -17,12 +17,16 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/events"
 	accommodation_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/accommodation/v3"
 	accommodation_v4 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/accommodation/v4"
+	accommodation_v5 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/accommodation/v5"
 	activity_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/activity/v3"
 	activity_v4 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/activity/v4"
+	activity_v5 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/activity/v5"
 	book_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/book/v3"
 	book_v4 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/book/v4"
+	book_v5 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/book/v5"
 	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/cancellation/v1"
 	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/cancellation/v2"
+	cancellation_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/cancellation/v3"
 	notification_v1 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v1"
 	notification_v2 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v2"
 	notification_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/notification/v3"
@@ -31,17 +35,22 @@ import (
 	seat_map_v4 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/seat_map/v4"
 	transport_v3 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/transport/v3"
 	transport_v4 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/transport/v4"
+	transport_v5 "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/transport/v5"
 	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/metadata"
 	events_pb "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/proto/pb/events"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v5/accommodationv5grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v4/activityv4grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v5/activityv5grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v4/bookv4grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v5/bookv5grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v3/cancellationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v1/notificationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v2/notificationv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/notification/v3/notificationv3grpc"
@@ -50,6 +59,7 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/seat_map/v4/seat_mapv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v3/transportv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v4/transportv4grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v5/transportv5grpc"
 	"buf.build/go/protovalidate"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
@@ -100,6 +110,11 @@ func Run() error {
 	accommodationv4grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v4.NewAccommodationProductInfoServer())
 	accommodationv4grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v4.NewAccommodationProductListServer())
 	accommodationv4grpc.RegisterAccommodationProductShortListServiceServer(grpcServer, accommodation_v4.NewAccommodationProductShortListServer())
+	// Accommodation V5
+	accommodationv5grpc.RegisterAccommodationSearchServiceServer(grpcServer, accommodation_v5.NewAccommodationSearchServer())
+	accommodationv5grpc.RegisterAccommodationProductInfoServiceServer(grpcServer, accommodation_v5.NewAccommodationProductInfoServer())
+	accommodationv5grpc.RegisterAccommodationProductListServiceServer(grpcServer, accommodation_v5.NewAccommodationProductListServer())
+	accommodationv5grpc.RegisterAccommodationProductShortListServiceServer(grpcServer, accommodation_v5.NewAccommodationProductShortListServer())
 
 	// Activity V3
 	activityv3grpc.RegisterActivityProductListServiceServer(grpcServer, activity_v3.NewActivityProductListServer())
@@ -110,6 +125,8 @@ func Run() error {
 	activityv4grpc.RegisterActivityProductInfoServiceServer(grpcServer, activity_v4.NewActivityProductInfoServer())
 	activityv4grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v4.NewActivitySearchServer())
 	activityv4grpc.RegisterActivityProductShortListServiceServer(grpcServer, activity_v4.NewActivityProductShortListServer())
+	// Activity V5
+	activityv5grpc.RegisterActivitySearchServiceServer(grpcServer, activity_v5.NewActivitySearchServer())
 
 	// Book V3
 	bookv3grpc.RegisterMintServiceServer(grpcServer, book_v3.NewMintServiceServer())
@@ -117,6 +134,9 @@ func Run() error {
 	// Book V4
 	bookv4grpc.RegisterMintServiceServer(grpcServer, book_v4.NewMintServiceServer())
 	bookv4grpc.RegisterValidationServiceServer(grpcServer, book_v4.NewValidationServiceServer())
+	// Book V5
+	bookv5grpc.RegisterMintServiceServer(grpcServer, book_v5.NewMintServiceServer())
+	bookv5grpc.RegisterValidationServiceServer(grpcServer, book_v5.NewValidationServiceServer())
 
 	// Ping V1
 	pingv1grpc.RegisterPingServiceServer(grpcServer, ping_v1.NewPingServiceServer())
@@ -136,6 +156,9 @@ func Run() error {
 	// Transport V4
 	transportv4grpc.RegisterTransportProductListServiceServer(grpcServer, transport_v4.NewTransportProductListServer())
 	transportv4grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v4.NewTransportSearchServer())
+	// Transport V5
+	transportv5grpc.RegisterTransportProductListServiceServer(grpcServer, transport_v5.NewTransportProductListServer())
+	transportv5grpc.RegisterTransportSearchServiceServer(grpcServer, transport_v5.NewTransportSearchServer())
 
 	// SeatMap V4
 	seat_mapv4grpc.RegisterSeatMapServiceServer(grpcServer, seat_map_v4.NewSeatMapServer())
@@ -145,6 +168,8 @@ func Run() error {
 	cancellationv1grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v1.NewCheckCancellationServer())
 	// Cancellation V2
 	cancellationv2grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v2.NewCheckCancellationServer())
+	// Cancellation V3
+	cancellationv3grpc.RegisterCheckCancellationServiceServer(grpcServer, cancellation_v3.NewCheckCancellationServer())
 
 	reflection.Register(grpcServer)
 
