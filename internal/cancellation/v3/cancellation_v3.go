@@ -14,10 +14,9 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/conversion"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v3/cancellationv3grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v3"
+	cancellationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/cancellation/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"buf.build/go/protovalidate"
-
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"

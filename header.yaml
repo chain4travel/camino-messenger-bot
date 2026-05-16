@@ -11,3 +11,4 @@ headers-excluded-paths:
   - "./internal/rpc/generated/*.go"
   - "./tests/e2e/bot/generated/*.go"
   - "./**/proto/pb/**/*.go"
+  - "./build/**/*.go"

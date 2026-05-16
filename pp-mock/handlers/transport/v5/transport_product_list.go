@@ -21,12 +21,9 @@ func NewTransportProductListServer() transportv5grpc.TransportProductListService
 	return &transportProductListV5Server{}
 }
 
-func (s *transportProductListV5Server) TransportProductList(_ context.Context, req *transportv5.TransportProductListRequest) (*transportv5.TransportProductListResponse, error) {
-	// Simple mock implementation: filter by modified after if provided, otherwise return all
+func (s *transportProductListV5Server) TransportProductList(_ context.Context, _ *transportv5.TransportProductListRequest) (*transportv5.TransportProductListResponse, error) {
+	// Simple mock implementation: return all
 	filteredTrips := mockdata.TripsBasicV5
-	if req.ModifiedAfter != nil {
-		// Mapping TripsBasicV5 is needed if we wanted real filtering
-	}
 
 	response := &transportv5.TransportProductListResponse{
 		Response: &transportv5.TransportProductListResponse_SuccessResponse{

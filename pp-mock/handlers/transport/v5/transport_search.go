@@ -5,7 +5,6 @@ package v5
 
 import (
 	"context"
-	"math/big"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v5/transportv5grpc"
 	transportv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v5"
@@ -75,10 +74,8 @@ func (s *transportSearchV5Server) TransportSearch(_ context.Context, req *transp
 			continue
 		}
 
-		totalPriceBig := big.NewInt(0)
-
 		trip := filteredTrips[0]
-		tripPriceBig, err := price.ToBigInt(
+		totalPriceBig, err := price.ToBigInt(
 			trip.Extended.Price.Value,
 			conversion.MustUInt32ToInt32(trip.Extended.Price.Decimals),
 			currencyDecimals,
@@ -86,7 +83,6 @@ func (s *transportSearchV5Server) TransportSearch(_ context.Context, req *transp
 		if err != nil {
 			return errSearchResp(typesv4.ErrorCode_ERROR_CODE_INTERNAL, "Failed to convert tripSegment price to big int"), nil
 		}
-		totalPriceBig = tripPriceBig
 
 		searchPrice := &typesv5.Price{
 			Value:    totalPriceBig.String(),
