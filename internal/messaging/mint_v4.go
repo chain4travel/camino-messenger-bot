@@ -11,7 +11,7 @@ import (
 
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/version"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/proto"
 )

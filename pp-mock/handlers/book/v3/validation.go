@@ -11,8 +11,8 @@ import (
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/handlers/state"
 	"github.com/google/uuid"
 )
 

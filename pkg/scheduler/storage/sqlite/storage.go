@@ -7,8 +7,8 @@ import (
 	"context"
 	"embed"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/scheduler"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/database/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/scheduler"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required by migrate
 	_ "github.com/mattn/go-sqlite3"                      // sql driver, required
 	"go.uber.org/zap"

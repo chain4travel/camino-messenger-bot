@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )

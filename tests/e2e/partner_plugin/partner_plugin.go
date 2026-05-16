@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/proto/pb/events"
-	ppmock "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/server"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/common"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/proto/pb/events"
+	ppmock "github.com/chain4travel/camino-messenger-bot/v13/pp-mock/server"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/process"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/ping/v1/pingv1grpc"
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"

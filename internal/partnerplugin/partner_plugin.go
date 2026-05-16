@@ -16,10 +16,10 @@ import (
 	grpc_metadata "google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/client"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/metadata"
 )
 
 var _ PartnerPlugin = (*partnerPlugin)(nil)

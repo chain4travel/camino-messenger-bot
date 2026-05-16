@@ -9,9 +9,9 @@ import (
 
 	{{TYPE_PACKAGE}} "{{PROTO_INC}}"
 	typesv{{COMMON_TYPES_VERSION}} "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v{{COMMON_TYPES_VERSION}}"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/version"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"

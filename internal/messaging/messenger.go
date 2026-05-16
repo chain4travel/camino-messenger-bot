@@ -6,7 +6,7 @@ package messaging
 import (
 	"context"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 )
 

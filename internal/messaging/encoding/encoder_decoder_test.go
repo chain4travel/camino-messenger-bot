@@ -10,11 +10,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encryption"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/cheques"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/encryption"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/metadata"
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 

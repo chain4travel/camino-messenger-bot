@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	message "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
+	message "github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
 	gomock "go.uber.org/mock/gomock"
 	grpc "google.golang.org/grpc"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

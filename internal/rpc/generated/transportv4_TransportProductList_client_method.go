@@ -8,9 +8,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/version"
 
 	transportv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"

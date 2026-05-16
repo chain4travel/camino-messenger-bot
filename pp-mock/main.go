@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/server"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/server"
 )
 
 func main() {

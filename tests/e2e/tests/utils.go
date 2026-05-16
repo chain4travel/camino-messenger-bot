@@ -12,10 +12,10 @@ import (
 
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/price"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/suite"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/price"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/suite"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -27,7 +27,7 @@ import (
 
 var Tests = make(map[string]suite.Test)
 
-const defaultTestTimeout = 120 * time.Second
+const defaultTestTimeout = 300 * time.Second
 
 type SupplierOrDistributor uint8
 

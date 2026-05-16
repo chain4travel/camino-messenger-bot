@@ -19,30 +19,31 @@ import (
 	"google.golang.org/grpc"
 	"maunium.net/go/mautrix/id"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/config"
-	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v12/internal/cancellation/v1"
-	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v12/internal/cancellation/v2"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener"
-	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v12/internal/eventlistener/storage/sqlite"
-	matrix_client "github.com/chain4travel/camino-messenger-bot/v12/internal/matrix/client"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/matrix/messenger"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encoding"
-	messagesEncoderDecoderStorage "github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/encoding/storage/sqlite"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/partnerplugin"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/price"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/resolver"
-	resolver_storage "github.com/chain4travel/camino-messenger-bot/v12/internal/resolver/storage/sqlite"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/client"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/server"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler"
-	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler/storage/sqlite"
-	cmaccounts "github.com/chain4travel/camino-messenger-bot/v12/pkg/cm_accounts"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/erc20"
-	matrixPkg "github.com/chain4travel/camino-messenger-bot/v12/pkg/matrix"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/scheduler"
-	scheduler_storage "github.com/chain4travel/camino-messenger-bot/v12/pkg/scheduler/storage/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/v13/config"
+	cancellation_v1 "github.com/chain4travel/camino-messenger-bot/v13/internal/cancellation/v1"
+	cancellation_v2 "github.com/chain4travel/camino-messenger-bot/v13/internal/cancellation/v2"
+	cancellation_v3 "github.com/chain4travel/camino-messenger-bot/v13/internal/cancellation/v3"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/eventlistener"
+	eventlistener_storage "github.com/chain4travel/camino-messenger-bot/v13/internal/eventlistener/storage/sqlite"
+	matrix_client "github.com/chain4travel/camino-messenger-bot/v13/internal/matrix/client"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/matrix/messenger"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/encoding"
+	messagesEncoderDecoderStorage "github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/encoding/storage/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/partnerplugin"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/price"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/resolver"
+	resolver_storage "github.com/chain4travel/camino-messenger-bot/v13/internal/resolver/storage/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/client"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/server"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/booking"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/chequehandler"
+	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/v13/pkg/chequehandler/storage/sqlite"
+	cmaccounts "github.com/chain4travel/camino-messenger-bot/v13/pkg/cm_accounts"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/erc20"
+	matrixPkg "github.com/chain4travel/camino-messenger-bot/v13/pkg/matrix"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/scheduler"
+	scheduler_storage "github.com/chain4travel/camino-messenger-bot/v13/pkg/scheduler/storage/sqlite"
 )
 
 const (
@@ -303,6 +304,14 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		priceHandler,
 	)
 
+	cancellationV3Service := cancellation_v3.NewServiceV3(
+		logger,
+		cfg.BotKey,
+		cfg.CMAccountAddress,
+		cmAccounts,
+		priceHandler,
+	)
+
 	// rpc server for incoming requests
 	rpcServer, err := server.NewServer(
 		cfg.RPCServer,
@@ -311,6 +320,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		serviceRegistry,
 		cancellationV1Service,
 		cancellationV2Service,
+		cancellationV3Service,
 		cfg.DeveloperMode,
 	)
 	if err != nil {

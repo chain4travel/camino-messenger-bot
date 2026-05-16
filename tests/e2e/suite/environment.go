@@ -19,12 +19,12 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/blockchain"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/bot"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/common"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/matrix"
-	partnerplugin "github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/partner_plugin"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/resources"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/blockchain"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/bot"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/matrix"
+	partnerplugin "github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/partner_plugin"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/resources"
 )
 
 type Environment struct {

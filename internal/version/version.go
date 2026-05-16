@@ -11,7 +11,7 @@ import (
 
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/conversion"
 	"go.uber.org/zap"
 )
 

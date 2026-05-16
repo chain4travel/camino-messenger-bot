@@ -18,9 +18,9 @@ import (
 	transportv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v5"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	typesv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v5"
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/accommodation"
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/activity"
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data/transport"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data/accommodation"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data/activity"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data/transport"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/protobuf/encoding/protojson"

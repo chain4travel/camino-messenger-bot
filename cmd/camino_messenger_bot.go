@@ -10,9 +10,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/config"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/app"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/version"
+	"github.com/chain4travel/camino-messenger-bot/v13/config"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/app"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/version"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/metadata"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 

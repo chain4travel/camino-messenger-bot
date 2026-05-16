@@ -9,9 +9,9 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v5/activityv5grpc"
 	activityv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v5"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/common"
-	"github.com/chain4travel/camino-messenger-bot/v12/pp-mock/handlers/state"
-	mockdata "github.com/chain4travel/camino-messenger-bot/v12/pp-mock/services/data"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/handlers/state"
+	mockdata "github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data"
 )
 
 var _ activityv5grpc.ActivitySearchServiceServer = (*activitySearchV5Server)(nil)

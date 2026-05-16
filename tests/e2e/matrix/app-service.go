@@ -14,11 +14,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/conversion"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/blockchain"
-	e2eCommon "github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/common"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/process"
-	"github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/resources"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/conversion"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/blockchain"
+	e2eCommon "github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/process"
+	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/resources"
 
 	"github.com/chain4travel/camino-matrix-app-service/config"
 	"github.com/ethereum/go-ethereum/common"

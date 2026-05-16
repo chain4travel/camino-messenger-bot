@@ -4,7 +4,7 @@ package readiness;
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/chain4travel/camino-messenger-bot/v12/proto/pb/readiness";
+option go_package = "github.com/chain4travel/camino-messenger-bot/v13/proto/pb/readiness";
 
 service ReadinessService {
   rpc Readiness(google.protobuf.Empty) returns (ReadinessResponse);

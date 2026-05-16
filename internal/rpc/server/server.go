@@ -9,18 +9,19 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/config"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/messaging/message"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v12/internal/utils/tls"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/metadata"
-	"github.com/chain4travel/camino-messenger-bot/v12/proto/pb/readiness"
+	"github.com/chain4travel/camino-messenger-bot/v13/config"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/generated"
+	"github.com/chain4travel/camino-messenger-bot/v13/internal/utils/tls"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/metadata"
+	"github.com/chain4travel/camino-messenger-bot/v13/proto/pb/readiness"
 	"github.com/google/uuid"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v1/cancellationv1grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v2/cancellationv2grpc"
+	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/cancellation/v3/cancellationv3grpc"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
@@ -50,6 +51,7 @@ func NewServer(
 	serviceRegistry messaging.ServiceRegistry,
 	cancellationV1Service cancellationv1grpc.CancellationServiceServer,
 	cancellationV2Service cancellationv2grpc.CancellationServiceServer,
+	cancellationV3Service cancellationv3grpc.CancellationServiceServer,
 	developerMode bool,
 ) (Server, error) {
 	if !cfg.Enabled {
@@ -76,11 +78,12 @@ func NewServer(
 
 	opts = append(opts, grpc.ChainUnaryInterceptor(
 		s.unaryRecoverInterceptor,
-		selector.UnaryServerInterceptor( // for all cancellation v1/v2 methods
+		selector.UnaryServerInterceptor( // for all cancellation v1/v2/v3 methods
 			s.tracingInterceptor,
 			selector.MatchFunc(func(_ context.Context, callMeta interceptors.CallMeta) bool {
 				return cancellationv1grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service ||
-					cancellationv2grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
+					cancellationv2grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service ||
+					cancellationv3grpc.CancellationService_ServiceDesc.ServiceName == callMeta.Service
 			}),
 		),
 	))
@@ -89,6 +92,7 @@ func NewServer(
 	generated.RegisterServerServices(s.grpcServer, s)
 	cancellationv1grpc.RegisterCancellationServiceServer(s.grpcServer, cancellationV1Service)
 	cancellationv2grpc.RegisterCancellationServiceServer(s.grpcServer, cancellationV2Service)
+	cancellationv3grpc.RegisterCancellationServiceServer(s.grpcServer, cancellationV3Service)
 	readiness.RegisterReadinessServiceServer(s.grpcServer, s)
 
 	// Register reflection service on gRPC server in developerMode.

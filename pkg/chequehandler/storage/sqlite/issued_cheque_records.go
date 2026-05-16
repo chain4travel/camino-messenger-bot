@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/chequehandler"
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/database/sqlite"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/chequehandler"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/database/sqlite"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 )

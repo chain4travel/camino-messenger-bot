@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	e2eCommon "github.com/chain4travel/camino-messenger-bot/v12/tests/e2e/common"
+	e2eCommon "github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/common"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtokenoperator"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"

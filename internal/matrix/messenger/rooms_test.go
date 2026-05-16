@@ -10,7 +10,7 @@ import (
 
 	"go.uber.org/mock/gomock"
 
-	"github.com/chain4travel/camino-messenger-bot/v12/pkg/matrix"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/matrix"
 	"github.com/stretchr/testify/require"
 
 	"go.uber.org/zap"

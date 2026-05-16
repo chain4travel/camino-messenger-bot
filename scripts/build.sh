@@ -29,7 +29,7 @@ done
 # Dockerfile
 # README.md
 # go.mod
-go_version_minimum="1.24"
+go_version_minimum="1.25"
 
 go_version() {
     go version | sed -nE -e 's/[^0-9.]+([0-9.]+).+/\1/p'
@@ -74,10 +74,10 @@ echo "  git_commit             : $git_commit"
 echo "  protocolbuffers_release: $protocolbuffers_release"
 echo "  grpc_release           : $grpc_release"
 
-LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/v12/internal/version.AppGitCommit=$git_commit"
-LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v12/internal/version.AppVersion=$git_tag"
-LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v12/internal/version.BufBuildPBCMPRelease=$protocolbuffers_release"
-LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v12/internal/version.BufBuildGRPCCMPRelease=$grpc_release"
+LDFLAGS="-X github.com/chain4travel/camino-messenger-bot/v13/internal/version.AppGitCommit=$git_commit"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v13/internal/version.AppVersion=$git_tag"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v13/internal/version.BufBuildPBCMPRelease=$protocolbuffers_release"
+LDFLAGS="$LDFLAGS -X github.com/chain4travel/camino-messenger-bot/v13/internal/version.BufBuildGRPCCMPRelease=$grpc_release"
 
 # Build the Go application
 echo "Building camino-messenger-bot..."
