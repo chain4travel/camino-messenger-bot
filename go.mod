@@ -1,6 +1,6 @@
 module github.com/chain4travel/camino-messenger-bot/v13
 
-go 1.25.0
+go 1.25.10
 
 require (
 	buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go v1.6.2-20260515201659-3506cdae187b.1
