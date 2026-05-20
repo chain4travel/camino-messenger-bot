@@ -25,6 +25,13 @@ func NewValidationServiceServer() bookv5grpc.ValidationServiceServer {
 }
 
 func (s *validationV5Server) Validation(_ context.Context, req *bookv5.ValidationRequest) (*bookv5.ValidationResponse, error) {
+	if req.ValidationObject == nil ||
+		req.ValidationObject.SearchResultIdentifier == nil ||
+		req.ValidationObject.SearchResultIdentifier.SearchId == nil ||
+		req.ValidationObject.SearchResultIdentifier.SearchId.Value == "" {
+		return errValidationResp(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Invalid validation request: missing required validation identifier fields"), nil
+	}
+
 	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchResultIdentifier.SearchId.Value)
 	if !found {
 		return errValidationResp(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Invalid validation request: searchId not found in state"), nil

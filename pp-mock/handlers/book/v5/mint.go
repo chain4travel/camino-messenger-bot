@@ -26,6 +26,16 @@ func NewMintServiceServer() bookv5grpc.MintServiceServer {
 }
 
 func (s *mintV5Server) Mint(_ context.Context, req *bookv5.MintRequest) (*bookv5.MintResponse, error) {
+	if req.ValidationId == nil || req.ValidationId.Value == "" {
+		return &bookv5.MintResponse{
+			Response: &bookv5.MintResponse_ErrorResponse{
+				ErrorResponse: &bookv5.MintErrorResponse{
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Validation ID is missing or invalid"),
+				},
+			},
+		}, nil
+	}
+
 	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
 	if !ok {
 		return &bookv5.MintResponse{
