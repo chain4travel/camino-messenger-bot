@@ -82,7 +82,7 @@ func (s *accommodationSearchV5Server) AccommodationSearch(_ context.Context, req
 	for _, prop := range filteredProps {
 		for _, room := range prop.Rooms {
 			unitPriceValue := common.DefaultPricePerNight * duration // we use the same value for different currencies, because it's mock and its fine if it will be different prices
-			
+
 			var mealPlan *typesv4.MealPlan
 			if len(room.MealPlans) > 0 {
 				mealPlan = room.MealPlans[0]
