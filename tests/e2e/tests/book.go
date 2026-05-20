@@ -10,10 +10,13 @@ import (
 
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
 	bookv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v4"
+	bookv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v5"
 	notificationv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/notification/v3"
 	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	typesv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v5"
+
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/price"
@@ -321,4 +324,131 @@ func verifyBookingTokenStateBought(
 
 	expectedBalanceAfter := big.NewInt(0).Sub(distributorBalanceBefore, expectedReservationPrice)
 	require.Equal(t, expectedBalanceAfter, e.Balance(ctx, t, distributorBot), "unexpected balance")
+}
+
+func mintBuyAccommodationTokenV5(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	supplierPPEventStream events.EventsService_SubscribeClient,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+) (
+	tokenID uint64,
+	mintID string,
+	price *typesv5.Price,
+) {
+	searchID, resultID, totalPrice := testAccommodationV5SearchService(ctx, t, e, distributorBot, supplierBot) // see test_accommodation_v5.go
+	_, err := supplierPPEventStream.Recv()                                                                     // skip AccommodationSearchRequest
+	require.NoError(t, err)
+
+	validationID := testValidateV5(ctx, t, e, distributorBot, supplierBot, searchID, resultID, totalPrice)
+	_, err = supplierPPEventStream.Recv() // skip ValidateRequest
+	require.NoError(t, err)
+
+	tokenID, mintID, bookingPrice := testMintV5(ctx, t, e, distributorBot, supplierBot, validationID, common.BookingTokenPriceV5)
+	_, err = supplierPPEventStream.Recv() // skip MintRequest
+	require.NoError(t, err)
+
+	eventMsg, err := supplierPPEventStream.Recv()
+	require.NoError(t, err)
+	e.DebugPrintProtoMessage(eventMsg)
+	tokenBoughtNotification := &notificationv3.TokenBought{}
+	require.NoError(t, proto.Unmarshal(eventMsg.Data, tokenBoughtNotification))
+
+	return tokenID, mintID, bookingPrice
+}
+
+func testValidateV5(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	searchID string,
+	resultID uint32,
+	expectedTotalPrice *typesv5.Price,
+) (validateID string) {
+	req := &bookv5.ValidationRequest{
+		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		ValidationObject: &bookv5.ValidationObject{
+			SearchResultIdentifier: &typesv4.SearchResultIdentifier{
+				SearchId: &typesv4.UUID{Value: searchID},
+				ResultId: resultID,
+			},
+		},
+	}
+	resp, err := distributorBot.ValidationServiceV5.Validation(
+		requestContext(ctx, supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	e.DebugPrintRequestResponse(req, resp)
+
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
+
+	require.Equal(t, searchID, successResp.ValidationObject.SearchResultIdentifier.SearchId.Value, "unexpected searchID in response")
+	require.Equal(t, resultID, successResp.ValidationObject.SearchResultIdentifier.ResultId, "unexpected resultID in response")
+
+	require.True(t, proto.Equal(expectedTotalPrice, successResp.TotalPrice.Value), "unexpected response TotalPrice: got %+v, want %+v", successResp.TotalPrice.Value, expectedTotalPrice)
+
+	return successResp.ValidationId.Id.Value
+}
+
+func testMintV5(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	supplierBot *bot.Bot,
+	validationID string,
+	expectedPrice *typesv5.Price,
+) (
+	tokenID uint64,
+	mintID string, //nolint:unparam // will be used in seatmap/cancellation tests
+	price *typesv5.Price,
+) {
+	req := &bookv5.MintRequest{
+		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		ValidationId:  &typesv4.UUID{Value: validationID},
+		BuyerAddress:  &typesv4.EVMAddress{Address: "0x0000000000000000000000000000000000000000"},
+		ExpectedPrice: expectedPrice,
+		Travellers: []*typesv4.ExtensiveTraveller{{
+			FirstNames: []string{"FirstName"},
+			Surnames:   []string{"Surname"},
+			Gender:     typesv4.GenderType_GENDER_TYPE_UNSPECIFIED,
+		}},
+	}
+	resp, err := distributorBot.MintServiceV5.Mint(
+		requestContext(ctx, supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	e.DebugPrintRequestResponse(req, resp)
+
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Len(t, successResp.Header.Alerts, 1, "expected one alert in response header")
+
+	require.NotEmpty(t, successResp.MintTransactionId, "unexpected empty response MintTransactionId")
+	require.NotEmpty(t, successResp.BuyTransactionId, "unexpected empty response BuyTransactionId")
+
+	return successResp.BookingTokenId, successResp.MintId.Value, successResp.Price
+}
+
+func verifyBookingTokenStateBoughtWithPriceV5(
+	ctx context.Context,
+	t *testing.T,
+	e *suite.Environment,
+	distributorBot *bot.Bot,
+	tokenID uint64,
+	tokenPrice *typesv5.Price,
+	distributorBalanceBefore *big.Int,
+) {
+	require.Equal(t, booking.NativePaymentToken, getPaymentTokenFromPriceV5(t, tokenPrice))
+	expectedReservationPrice, err := price.ToBigInt(tokenPrice.Value, conversion.MustUInt32ToInt32(tokenPrice.Decimals), price.NativeTokenDecimals)
+	require.NoError(t, err)
+	verifyBookingTokenStateBought(ctx, t, e, distributorBot, tokenID, expectedReservationPrice, distributorBalanceBefore)
 }

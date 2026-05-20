@@ -12,6 +12,7 @@ import (
 
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
+	typesv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v5"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/booking"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/metadata"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/price"
@@ -82,6 +83,20 @@ func getPaymentTokenFromPriceV3(t *testing.T, price *typesv3.Price) common.Addre
 		return booking.ISOPaymentToken
 	case *typesv3.Currency_TokenCurrency:
 		return common.HexToAddress(currency.TokenCurrency.ContractAddress.Address)
+	}
+	require.Fail(t, "unexpected currency type")
+	return common.Address{}
+}
+
+func getPaymentTokenFromPriceV5(t *testing.T, price *typesv5.Price) common.Address {
+	require.NotNil(t, price, "unexpected nil price")
+	switch currency := price.GetCurrency().GetCurrency().(type) {
+	case *typesv4.Currency_NativeToken:
+		return booking.NativePaymentToken
+	case *typesv4.Currency_IsoCurrency:
+		return booking.ISOPaymentToken
+	case *typesv4.Currency_TokenCurrency:
+		return common.HexToAddress(currency.TokenCurrency.Address)
 	}
 	require.Fail(t, "unexpected currency type")
 	return common.Address{}
