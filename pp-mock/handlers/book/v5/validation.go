@@ -10,6 +10,7 @@ import (
 	bookv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v5"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	typesv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v5"
+	"github.com/chain4travel/camino-messenger-bot/v13/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
 )
 
@@ -30,8 +31,8 @@ func (s *validationV5Server) Validation(_ context.Context, req *bookv5.Validatio
 				ValidationObject: req.ValidationObject,
 				TotalPrice: &typesv5.TotalPrice{
 					Value: &typesv5.Price{
-						Value:    "100",
-						Decimals: 0,
+						Value:    "100000000000000000000",
+						Decimals: uint32(price.NativeTokenDecimals),
 						Currency: &typesv4.Currency{
 							Currency: &typesv4.Currency_NativeToken{},
 						},
