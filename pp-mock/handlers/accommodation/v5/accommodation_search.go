@@ -29,6 +29,26 @@ func NewAccommodationSearchServer() accommodationv5grpc.AccommodationSearchServi
 func (s *accommodationSearchV5Server) AccommodationSearch(_ context.Context, req *accommodationv5.AccommodationSearchRequest) (*accommodationv5.AccommodationSearchResponse, error) {
 	now := time.Now()
 
+	if req.GetSearchParameters() == nil || req.SearchParameters.GetCurrency() == nil {
+		return &accommodationv5.AccommodationSearchResponse{
+			Response: &accommodationv5.AccommodationSearchResponse_ErrorResponse{
+				ErrorResponse: &accommodationv5.AccommodationSearchErrorResponse{
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "search_parameters.currency is required"),
+				},
+			},
+		}, nil
+	}
+
+	if req.GetTravelPeriod() == nil || req.TravelPeriod.GetStartDate() == nil || req.TravelPeriod.GetEndDate() == nil {
+		return &accommodationv5.AccommodationSearchResponse{
+			Response: &accommodationv5.AccommodationSearchResponse_ErrorResponse{
+				ErrorResponse: &accommodationv5.AccommodationSearchErrorResponse{
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "travel_period (start_date and end_date) is required"),
+				},
+			},
+		}, nil
+	}
+
 	if !common.IsTravelPeriodAllowedV4WithTime(now, req.TravelPeriod) {
 		return &accommodationv5.AccommodationSearchResponse{
 			Response: &accommodationv5.AccommodationSearchResponse_ErrorResponse{
@@ -62,6 +82,12 @@ func (s *accommodationSearchV5Server) AccommodationSearch(_ context.Context, req
 	for _, prop := range filteredProps {
 		for _, room := range prop.Rooms {
 			unitPriceValue := common.DefaultPricePerNight * duration // we use the same value for different currencies, because it's mock and its fine if it will be different prices
+			
+			var mealPlan *typesv4.MealPlan
+			if len(room.MealPlans) > 0 {
+				mealPlan = room.MealPlans[0]
+			}
+
 			unit := &accommodationv5.Unit{
 				SupplierRoomCode: room.SupplierCode,
 				SupplierRoomName: room.SupplierName,
@@ -101,7 +127,7 @@ func (s *accommodationSearchV5Server) AccommodationSearch(_ context.Context, req
 					},
 					AvailabilityType: typesv5.ServiceAvailabilityType_SERVICE_AVAILABILITY_TYPE_COMPULSORY,
 				}}, // TODO evlekht@ use mockdata for services (not there yet)
-				MealPlan: room.MealPlans[0],
+				MealPlan: mealPlan,
 				RatePlan: &typesv4.RatePlan{
 					Code: "DS",
 					Type: typesv4.RatePlanType_RATE_PLAN_TYPE_REGULAR,

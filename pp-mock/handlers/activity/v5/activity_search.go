@@ -23,6 +23,26 @@ func NewActivitySearchServer() activityv5grpc.ActivitySearchServiceServer {
 }
 
 func (s *activitySearchV5Server) ActivitySearch(_ context.Context, req *activityv5.ActivitySearchRequest) (*activityv5.ActivitySearchResponse, error) {
+	if req.GetSearchParameters() == nil || req.SearchParameters.GetCurrency() == nil {
+		return &activityv5.ActivitySearchResponse{
+			Response: &activityv5.ActivitySearchResponse_ErrorResponse{
+				ErrorResponse: &activityv5.ActivitySearchErrorResponse{
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "search_parameters.currency is required"),
+				},
+			},
+		}, nil
+	}
+
+	if req.GetTravelPeriod() == nil || req.TravelPeriod.GetStartDate() == nil || req.TravelPeriod.GetEndDate() == nil {
+		return &activityv5.ActivitySearchResponse{
+			Response: &activityv5.ActivitySearchResponse_ErrorResponse{
+				ErrorResponse: &activityv5.ActivitySearchErrorResponse{
+					Header: common.ErrorHeaderV4(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "travel_period (start_date and end_date) is required"),
+				},
+			},
+		}, nil
+	}
+
 	if !common.IsTravelPeriodAllowedV4(req.TravelPeriod) {
 		return &activityv5.ActivitySearchResponse{
 			Response: &activityv5.ActivitySearchResponse_ErrorResponse{

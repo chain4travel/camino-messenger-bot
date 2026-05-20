@@ -5,6 +5,7 @@ package v5
 
 import (
 	"context"
+	"math/big"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/transport/v5/transportv5grpc"
 	transportv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/transport/v5"
@@ -27,6 +28,10 @@ func NewTransportSearchServer() transportv5grpc.TransportSearchServiceServer {
 }
 
 func (s *transportSearchV5Server) TransportSearch(_ context.Context, req *transportv5.TransportSearchRequest) (*transportv5.TransportSearchResponse, error) {
+	if req.GetSearchParameters() == nil || req.SearchParameters.GetCurrency() == nil {
+		return errSearchResp(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, "search_parameters.currency is required"), nil
+	}
+
 	// edge-case prevention: check if the traveller definition is identical
 	// in all queries. If not return an "unsupported" error.
 	for i := 0; i < len(req.Queries); i++ {
@@ -74,14 +79,17 @@ func (s *transportSearchV5Server) TransportSearch(_ context.Context, req *transp
 			continue
 		}
 
-		trip := filteredTrips[0]
-		totalPriceBig, err := price.ToBigInt(
-			trip.Extended.Price.Value,
-			conversion.MustUInt32ToInt32(trip.Extended.Price.Decimals),
-			currencyDecimals,
-		)
-		if err != nil {
-			return errSearchResp(typesv4.ErrorCode_ERROR_CODE_INTERNAL, "Failed to convert tripSegment price to big int"), nil
+		totalPriceBig := big.NewInt(0)
+		for _, trip := range filteredTrips {
+			tripPriceBig, err := price.ToBigInt(
+				trip.Extended.Price.Value,
+				conversion.MustUInt32ToInt32(trip.Extended.Price.Decimals),
+				currencyDecimals,
+			)
+			if err != nil {
+				return errSearchResp(typesv4.ErrorCode_ERROR_CODE_INTERNAL, "Failed to convert tripSegment price to big int"), nil
+			}
+			totalPriceBig = new(big.Int).Add(totalPriceBig, tripPriceBig)
 		}
 
 		searchPrice := &typesv5.Price{

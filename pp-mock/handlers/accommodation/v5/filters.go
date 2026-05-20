@@ -74,6 +74,11 @@ func filterExtendedPropertiesByGeoTreeLocation(
 
 	filtered := []*accommodationv5.PropertyExtendedInfo{}
 	for _, prop := range properties {
+		if prop.GetProperty() == nil ||
+			prop.Property.GetContactInfo() == nil ||
+			len(prop.Property.ContactInfo.GetAddresses()) == 0 {
+			continue
+		}
 		// Mock simplification: mock data only has one address
 		address := prop.Property.ContactInfo.Addresses[0]
 		if address.GeoTree != nil &&
