@@ -17,6 +17,7 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data/transport"
 )
 
 var _ transportv5grpc.TransportSearchServiceServer = (*transportSearchV5Server)(nil)
@@ -71,10 +72,22 @@ func (s *transportSearchV5Server) TransportSearch(_ context.Context, req *transp
 	searchResults := []*transportv5.TransportSearchResult{}
 	validationPrices := []*state.UnifiedPrice{}
 
-	tripsFilteredByCurrency := filterTripsByCurrency(mockdata.TripsV4, req.SearchParameters.Currency)
+	tripsFilteredByCurrency := filterTripsByCurrency(mockdata.TripsV5, req.SearchParameters.Currency)
 
 	for _, query := range req.Queries {
 		filteredTrips := tripsFilteredByCurrency
+		for _, queryTrip := range query.Trips {
+			filteredTrips = filterTripsByDates(filteredTrips, queryTrip)
+			filteredTrips = filterTripsByLocations(filteredTrips, queryTrip)
+
+			if queryTrip.SearchParametersTransport == nil { // its optional
+				continue
+			}
+
+			filteredTrips = filterTripsBySupplierCodes(filteredTrips, queryTrip.SearchParametersTransport.TripSupplierCodes)
+			filteredTrips = filterTripsByMaxSegments(filteredTrips, queryTrip.SearchParametersTransport.MaxSegments)
+		}
+
 		if len(filteredTrips) == 0 {
 			continue
 		}
@@ -98,16 +111,11 @@ func (s *transportSearchV5Server) TransportSearch(_ context.Context, req *transp
 			Currency: common.CloneProto(req.SearchParameters.Currency),
 		}
 
-		travellingTrips := make([]*transportv5.TripExtended, 1)
-		travellingTrips[0] = &transportv5.TripExtended{
-			Price:    searchPrice,
-			Segments: make([]*transportv5.SegmentExtended, 0), // Placeholder
-		}
-
 		searchResults = append(searchResults, &transportv5.TransportSearchResult{
 			ResultId:        resultID,
 			QueryId:         query.QueryId,
-			TravellingTrips: travellingTrips,
+			TravellerIds:    common.GetTravellerIDsV4(query.Travellers),
+			TravellingTrips: transport.ExtendedV5(filteredTrips),
 			TotalPrice: &typesv5.TotalPrice{
 				Value: searchPrice,
 			},
@@ -140,6 +148,7 @@ func (s *transportSearchV5Server) TransportSearch(_ context.Context, req *transp
 			Prices:       validationPrices,
 			JSONRequest:  req.String(),
 			JSONResponse: resp.String(),
+			SeatMapID:    resp.GetSuccessResponse().Results[0].TravellingTrips[0].Segments[0].SeatMapId.GetId(),
 		})
 	}
 

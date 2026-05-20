@@ -21,9 +21,12 @@ func NewTransportProductListServer() transportv5grpc.TransportProductListService
 	return &transportProductListV5Server{}
 }
 
-func (s *transportProductListV5Server) TransportProductList(_ context.Context, _ *transportv5.TransportProductListRequest) (*transportv5.TransportProductListResponse, error) {
-	// Simple mock implementation: return all
+func (s *transportProductListV5Server) TransportProductList(_ context.Context, req *transportv5.TransportProductListRequest) (*transportv5.TransportProductListResponse, error) {
 	filteredTrips := mockdata.TripsBasicV5
+
+	if req.ModifiedAfter != nil {
+		filteredTrips = filterTripsBasicByModifiedAfter(filteredTrips, req.ModifiedAfter.AsTime())
+	}
 
 	response := &transportv5.TransportProductListResponse{
 		Response: &transportv5.TransportProductListResponse_SuccessResponse{

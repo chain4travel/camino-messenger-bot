@@ -96,7 +96,9 @@ var (
 	TripsExtendedV4 []*transportv4.TripExtended // used by search
 	TripsV4         []*transport.TripV4         // basic+extended, used by search
 
-	TripsBasicV5 []*transportv5.TripBasic // used by product list
+	TripsBasicV5    []*transportv5.TripBasic    // used by product list
+	TripsExtendedV5 []*transportv5.TripExtended // used by search
+	TripsV5         []*transport.TripV5         // basic+extended, used by search
 
 	ActivityV3             []*activityv3.Activity             // used by product list
 	ActivityExtendedV3     []*activityv3.ActivityExtendedInfo // used by product info
@@ -129,6 +131,8 @@ func init() {
 	TripsV4 = transport.VerifyAndGetTrips(TripsBasicV4, TripsExtendedV4)
 	// Transport V5
 	TripsBasicV5 = mustUnmarshalStrictAndValidate[*transportv5.TripBasic](tripsV4BasicJSON, "error unmarshaling trips basic v5")
+	TripsExtendedV5 = mustUnmarshalStrictAndValidate[*transportv5.TripExtended](tripsV4ExtendedJSON, "error unmarshaling trips extended v5")
+	TripsV5 = transport.VerifyAndGetTripsV5(TripsBasicV5, TripsExtendedV5)
 	// ActivityV3
 	ActivityV3 = mustUnmarshalStrictAndValidate[*activityv3.Activity](activityV3JSON, "error unmarshaling activities v3")
 	ActivityExtendedV3 = mustUnmarshalStrictAndValidate[*activityv3.ActivityExtendedInfo](activityV3ExtendedJSON, "error unmarshaling activities extended v3")
