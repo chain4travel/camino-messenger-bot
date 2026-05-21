@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="e2e" type="GoTestRunConfiguration" factoryName="Go Test">
+        <module name="camino-messenger-bot" />
+        <working_directory value="$PROJECT_DIR$" />
+        <go_parameters value="-tags=e2e" />
+        <parameters value="-test.parallel=4 -node=$PROJECT_DIR$/build/dependencies/caminogo/build/caminogo -matrix=$PROJECT_DIR$/build/dependencies/camino-conduit/build/camino-conduit -asb=$PROJECT_DIR$/build/dependencies/camino-matrix-app-service/build/camino-matrix-app-service/ -partner-plugin=$PROJECT_DIR$/build/pp-mock -cmb=$PROJECT_DIR$/build/camino-messenger-bot -tests-data-dir=/tmp/cmb-e2e --debug" />
+        <!-- envs for macOS:-->
+        <envs>
+            <env name="CGO_CFLAGS" value="-I/opt/homebrew/include" />
+            <env name="CGO_LDFLAGS" value="-L/opt/homebrew/lib" />
+        </envs>
+        <kind value="FILE" />
+        <package value="github.com/chain4travel/camino-messenger-bot/v12/tests/e2e" />
+        <directory value="$PROJECT_DIR$" />
+        <filePath value="$PROJECT_DIR$/tests/e2e/e2e_test.go" />
+        <framework value="gotest" />
+        <method v="2" />
+    </configuration>
+</component>
