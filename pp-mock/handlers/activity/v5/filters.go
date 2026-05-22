@@ -5,6 +5,9 @@ package v5
 
 import (
 	activityv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v5"
+	"time"
+	typesv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v1"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/localization"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
 	"google.golang.org/protobuf/proto"
@@ -68,4 +71,77 @@ func filterSearchResultActivitiesByCurrency(
 		}
 	}
 	return filtered
+}
+
+
+func filterExtendedBySupplierCodes(
+	activities []*activityv5.ActivityExtendedInfo,
+	supplierCodes []*typesv4.SupplierProductCode,
+) []*activityv5.ActivityExtendedInfo {
+	if len(supplierCodes) == 0 {
+		return common.CloneProtoSlice(activities)
+	}
+
+	filtered := []*activityv5.ActivityExtendedInfo{}
+	for _, activity := range activities {
+		for _, code := range supplierCodes {
+			if proto.Equal(activity.Activity.SupplierCode, code) {
+				filtered = append(filtered, common.CloneProto(activity))
+				break
+			}
+		}
+	}
+	return filtered
+}
+
+func filterExtendedByModifiedAfter(
+	activities []*activityv5.ActivityExtendedInfo,
+	modifiedAfter time.Time,
+) []*activityv5.ActivityExtendedInfo {
+	filtered := []*activityv5.ActivityExtendedInfo{}
+	for _, activity := range activities {
+		if activity.Activity.LastModified.AsTime().After(modifiedAfter) {
+			filtered = append(filtered, common.CloneProto(activity))
+		}
+	}
+	return filtered
+}
+
+func filterExtendedByLanguage(
+	activities []*activityv5.ActivityExtendedInfo,
+	languages []typesv1.Language,
+) []*activityv5.ActivityExtendedInfo {
+	if len(languages) == 0 {
+		return common.CloneProtoSlice(activities)
+	}
+
+	filtered := []*activityv5.ActivityExtendedInfo{}
+	for _, activity := range activities {
+		filteredDescriptions := localization.FilterDescriptionsV4(activity.Descriptions, languages)
+		if len(filteredDescriptions) > 0 {
+			clonedActivity := common.CloneProto(activity)
+			clonedActivity.Descriptions = filteredDescriptions
+			filtered = append(filtered, clonedActivity)
+		}
+	}
+	return filtered
+}
+
+func extendedToShortListItem(activities []*activityv5.ActivityExtendedInfo) []*activityv5.ActivityShortListItem {
+	shortListItems := make([]*activityv5.ActivityShortListItem, 0, len(activities))
+	for _, activity := range activities {
+		shortListItems = append(shortListItems, &activityv5.ActivityShortListItem{
+			SupplierCode: common.CloneProto(activity.Activity.SupplierCode),
+			Status:       activity.Activity.Status,
+		})
+	}
+	return shortListItems
+}
+
+func extendedToActivityInfo(activities []*activityv5.ActivityExtendedInfo) []*activityv5.ActivityInfo {
+	infoItems := make([]*activityv5.ActivityInfo, 0, len(activities))
+	for _, activity := range activities {
+		infoItems = append(infoItems, common.CloneProto(activity.Activity))
+	}
+	return infoItems
 }

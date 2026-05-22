@@ -6,7 +6,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v3/accommodationv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v5/accommodationv5grpc"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v2/activityv2grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v3/activityv3grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v4/activityv4grpc"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/activity/v5/activityv5grpc"
@@ -43,8 +42,6 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		AccommodationProductListServiceV5:      accommodationv5grpc.NewAccommodationProductListServiceClient(connection),
 		AccommodationSearchServiceV5:           accommodationv5grpc.NewAccommodationSearchServiceClient(connection),
 		AccommodationProductShortListServiceV5: accommodationv5grpc.NewAccommodationProductShortListServiceClient(connection),
-		ActivityProductInfoServiceV2:           activityv2grpc.NewActivityProductInfoServiceClient(connection),
-		ActivityProductListServiceV2:           activityv2grpc.NewActivityProductListServiceClient(connection),
 		ActivityProductInfoServiceV3:           activityv3grpc.NewActivityProductInfoServiceClient(connection),
 		ActivityProductListServiceV3:           activityv3grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV3:                activityv3grpc.NewActivitySearchServiceClient(connection),
@@ -52,7 +49,10 @@ func NewClient(connection *grpc.ClientConn) *Client {
 		ActivityProductListServiceV4:           activityv4grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV4:                activityv4grpc.NewActivitySearchServiceClient(connection),
 		ActivityProductShortListServiceV4:      activityv4grpc.NewActivityProductShortListServiceClient(connection),
+		ActivityProductInfoServiceV5:           activityv5grpc.NewActivityProductInfoServiceClient(connection),
+		ActivityProductListServiceV5:           activityv5grpc.NewActivityProductListServiceClient(connection),
 		ActivitySearchServiceV5:                activityv5grpc.NewActivitySearchServiceClient(connection),
+		ActivityProductShortListServiceV5:      activityv5grpc.NewActivityProductShortListServiceClient(connection),
 		MintServiceV3:                          bookv3grpc.NewMintServiceClient(connection),
 		ValidationServiceV3:                    bookv3grpc.NewValidationServiceClient(connection),
 		MintServiceV4:                          bookv4grpc.NewMintServiceClient(connection),
@@ -97,8 +97,6 @@ type Client struct {
 	AccommodationProductListServiceV5      accommodationv5grpc.AccommodationProductListServiceClient
 	AccommodationSearchServiceV5           accommodationv5grpc.AccommodationSearchServiceClient
 	AccommodationProductShortListServiceV5 accommodationv5grpc.AccommodationProductShortListServiceClient
-	ActivityProductInfoServiceV2           activityv2grpc.ActivityProductInfoServiceClient
-	ActivityProductListServiceV2           activityv2grpc.ActivityProductListServiceClient
 	ActivityProductInfoServiceV3           activityv3grpc.ActivityProductInfoServiceClient
 	ActivityProductListServiceV3           activityv3grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV3                activityv3grpc.ActivitySearchServiceClient
@@ -106,7 +104,10 @@ type Client struct {
 	ActivityProductListServiceV4           activityv4grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV4                activityv4grpc.ActivitySearchServiceClient
 	ActivityProductShortListServiceV4      activityv4grpc.ActivityProductShortListServiceClient
+	ActivityProductInfoServiceV5           activityv5grpc.ActivityProductInfoServiceClient
+	ActivityProductListServiceV5           activityv5grpc.ActivityProductListServiceClient
 	ActivitySearchServiceV5                activityv5grpc.ActivitySearchServiceClient
+	ActivityProductShortListServiceV5      activityv5grpc.ActivityProductShortListServiceClient
 	MintServiceV3                          bookv3grpc.MintServiceClient
 	ValidationServiceV3                    bookv3grpc.ValidationServiceClient
 	MintServiceV4                          bookv4grpc.MintServiceClient

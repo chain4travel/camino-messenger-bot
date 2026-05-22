@@ -105,8 +105,9 @@ var (
 	ActivitySearchResultV3 []*activityv3.ActivitySearchResult // used by search
 
 	ActivityExtendedV4     []*activityv4.ActivityExtendedInfo // used by product list and info
-	ActivitySearchResultV4 []*activityv4.ActivitySearchResult // used by search
+	ActivityExtendedV5     []*activityv5.ActivityExtendedInfo // used by product list and info
 	ActivitySearchResultV5 []*activityv5.ActivitySearchResult // used by search
+	ActivitySearchResultV4 []*activityv4.ActivitySearchResult // used by search
 
 	SeatMapV4             []*typesv4.SeatMap          // used by seatMap
 	SeatMapAvailabilityV4 []*typesv4.SeatMapInventory // used by seatMapAvailability
@@ -141,8 +142,10 @@ func init() {
 	ActivityExtendedV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivityExtendedInfo](activityExtendedV4JSON, "error unmarshaling activities extended v4")
 	ActivitySearchResultV4 = mustUnmarshalStrictAndValidate[*activityv4.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activities search v4")
 	activity.Verify(ActivityExtendedV4, ActivitySearchResultV4)
-	// Activity V5
-	ActivitySearchResultV5 = mustUnmarshalStrictAndValidate[*activityv5.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activities search v5")
+	// ActivityV5
+	ActivityExtendedV5 = mustUnmarshalStrictAndValidate[*activityv5.ActivityExtendedInfo](activityExtendedV4JSON, "error unmarshaling activities extended v5")
+	ActivitySearchResultV5 = mustUnmarshalStrictAndValidate[*activityv5.ActivitySearchResult](activitySearchResultV4JSON, "error unmarshaling activity search result v5")
+	activity.VerifyV5(ActivityExtendedV5, ActivitySearchResultV5)
 	// SeatMapV4
 	SeatMapV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMap](seatMapV4JSON, "error unmarshaling seat map v4")
 	SeatMapAvailabilityV4 = mustUnmarshalStrictAndValidate[*typesv4.SeatMapInventory](seatMapAvailabilityV4JSON, "error unmarshaling seat map availability v4")

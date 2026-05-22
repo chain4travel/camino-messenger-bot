@@ -55,14 +55,6 @@ func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]st
 		services[AccommodationProductShortListServiceV5Request] = rpc.NewService(NewAccommodationProductShortListServiceV5Client(rpcConn), AccommodationProductShortListServiceV5)
 		delete(serviceNames, AccommodationProductShortListServiceV5)
 	}
-	if _, ok := serviceNames[ActivityProductInfoServiceV2]; ok {
-		services[ActivityProductInfoServiceV2Request] = rpc.NewService(NewActivityProductInfoServiceV2Client(rpcConn), ActivityProductInfoServiceV2)
-		delete(serviceNames, ActivityProductInfoServiceV2)
-	}
-	if _, ok := serviceNames[ActivityProductListServiceV2]; ok {
-		services[ActivityProductListServiceV2Request] = rpc.NewService(NewActivityProductListServiceV2Client(rpcConn), ActivityProductListServiceV2)
-		delete(serviceNames, ActivityProductListServiceV2)
-	}
 	if _, ok := serviceNames[ActivityProductInfoServiceV3]; ok {
 		services[ActivityProductInfoServiceV3Request] = rpc.NewService(NewActivityProductInfoServiceV3Client(rpcConn), ActivityProductInfoServiceV3)
 		delete(serviceNames, ActivityProductInfoServiceV3)
@@ -91,9 +83,21 @@ func RegisterServiceClients(rpcConn *grpc.ClientConn, serviceNames map[string]st
 		services[ActivityProductShortListServiceV4Request] = rpc.NewService(NewActivityProductShortListServiceV4Client(rpcConn), ActivityProductShortListServiceV4)
 		delete(serviceNames, ActivityProductShortListServiceV4)
 	}
+	if _, ok := serviceNames[ActivityProductInfoServiceV5]; ok {
+		services[ActivityProductInfoServiceV5Request] = rpc.NewService(NewActivityProductInfoServiceV5Client(rpcConn), ActivityProductInfoServiceV5)
+		delete(serviceNames, ActivityProductInfoServiceV5)
+	}
+	if _, ok := serviceNames[ActivityProductListServiceV5]; ok {
+		services[ActivityProductListServiceV5Request] = rpc.NewService(NewActivityProductListServiceV5Client(rpcConn), ActivityProductListServiceV5)
+		delete(serviceNames, ActivityProductListServiceV5)
+	}
 	if _, ok := serviceNames[ActivitySearchServiceV5]; ok {
 		services[ActivitySearchServiceV5Request] = rpc.NewService(NewActivitySearchServiceV5Client(rpcConn), ActivitySearchServiceV5)
 		delete(serviceNames, ActivitySearchServiceV5)
+	}
+	if _, ok := serviceNames[ActivityProductShortListServiceV5]; ok {
+		services[ActivityProductShortListServiceV5Request] = rpc.NewService(NewActivityProductShortListServiceV5Client(rpcConn), ActivityProductShortListServiceV5)
+		delete(serviceNames, ActivityProductShortListServiceV5)
 	}
 	if _, ok := serviceNames[MintServiceV3]; ok {
 		services[MintServiceV3Request] = rpc.NewService(NewMintServiceV3Client(rpcConn), MintServiceV3)

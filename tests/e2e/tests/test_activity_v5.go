@@ -21,12 +21,14 @@ import (
 	partnerplugin "github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/partner_plugin"
 	"github.com/chain4travel/camino-messenger-bot/v13/tests/e2e/suite"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ suite.Test = (*TestActivityV5)(nil)
 
 func init() {
-	Tests["Activityv5"] = &TestActivityV5{}
+	Tests["ActivityV5"] = &TestActivityV5{}
 }
 
 type TestActivityV5 struct {
@@ -47,6 +49,22 @@ func (tt *TestActivityV5) Run(t *testing.T) {
 
 	tt.prepare(ctx, t)
 
+	t.Run("Product short list", func(t *testing.T) {
+		// Happy path: will just return all the properties
+		tt.testActivityV5ProductShortListService(ctx, t)
+	})
+	t.Run("Product short list with filter", func(t *testing.T) {
+		// Happy path: will return only one property
+		tt.testActivityV5ProductShortListServiceWithFilter(ctx, t)
+	})
+	t.Run("Product list", func(t *testing.T) {
+		// Happy path: will just return all the properties
+		tt.testActivityV5ProductListService(ctx, t)
+	})
+	t.Run("Product info", func(t *testing.T) {
+		// Happy path: will return the detailed info of a property
+		tt.testActivityV5ProductInfoService(ctx, t)
+	})
 	t.Run("Search with travel period oob", func(t *testing.T) {
 		// ERROR path: with travel period outside of allowed constraints it should return an error
 		tt.testActivityV5SearchServiceTravelPeriodOutOfBounds(ctx, t)
@@ -62,6 +80,9 @@ func (tt *TestActivityV5) Run(t *testing.T) {
 
 func (tt *TestActivityV5) prepare(ctx context.Context, t *testing.T) {
 	require.NoError(t, tt.CaminoNetwork.Client.RegisterCMServices(ctx,
+		botGenerated.ActivityProductShortListServiceV5,
+		botGenerated.ActivityProductListServiceV5,
+		botGenerated.ActivityProductInfoServiceV5,
 		botGenerated.ActivitySearchServiceV5,
 		botGenerated.ValidationServiceV5,
 		botGenerated.MintServiceV5,
@@ -72,6 +93,9 @@ func (tt *TestActivityV5) prepare(ctx context.Context, t *testing.T) {
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
+			{Name: botGenerated.ActivityProductShortListServiceV5, Fee: 100},
+			{Name: botGenerated.ActivityProductListServiceV5, Fee: 110},
+			{Name: botGenerated.ActivityProductInfoServiceV5, Fee: 120},
 			{Name: botGenerated.ActivitySearchServiceV5, Fee: 130},
 			{Name: botGenerated.ValidationServiceV5, Fee: 140},
 			{Name: botGenerated.MintServiceV5, Fee: 150},
@@ -80,6 +104,119 @@ func (tt *TestActivityV5) prepare(ctx context.Context, t *testing.T) {
 
 	// bot without partnerPlugin and with rpc server (distributor)
 	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
+}
+
+// Simple product list request which shall return all activities. Checking if all are present
+func (tt *TestActivityV5) testActivityV5ProductShortListService(ctx context.Context, t *testing.T) {
+	expectedItems := make([]*activityv5.ActivityShortListItem, 0, len(mockdata.ActivityExtendedV5))
+	for _, activity := range mockdata.ActivityExtendedV5 {
+		expectedItems = append(expectedItems, &activityv5.ActivityShortListItem{
+			SupplierCode: activity.Activity.SupplierCode,
+			Status:       activity.Activity.Status,
+		})
+	}
+
+	req := &activityv5.ActivityProductShortListRequest{
+		Header: &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+	}
+
+	resp, err := tt.distributorBot.ActivityProductShortListServiceV5.ActivityProductShortList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
+
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
+
+	requireProtoSlicesElementsMatch(t, expectedItems, successResp.ActivityShortListItems)
+}
+
+// Product list request with a modification filter set. It should only return one fitting result.
+func (tt *TestActivityV5) testActivityV5ProductShortListServiceWithFilter(ctx context.Context, t *testing.T) {
+	modifiedAfter := time.Unix(1710237631, 0)
+	expectedItems := make([]*activityv5.ActivityShortListItem, 0, len(mockdata.ActivityExtendedV5))
+	for _, activity := range mockdata.ActivityExtendedV5 {
+		if activity.Activity.LastModified.AsTime().After(modifiedAfter) {
+			expectedItems = append(expectedItems, &activityv5.ActivityShortListItem{
+				SupplierCode: activity.Activity.SupplierCode,
+				Status:       activity.Activity.Status,
+			})
+		}
+	}
+	require.NotEmpty(t, expectedItems)
+
+	req := &activityv5.ActivityProductShortListRequest{
+		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		ModifiedAfter: timestamppb.New(modifiedAfter),
+	}
+	resp, err := tt.distributorBot.ActivityProductShortListServiceV5.ActivityProductShortList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
+
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
+
+	requireProtoSlicesElementsMatch(t, expectedItems, successResp.ActivityShortListItems)
+}
+
+// Simple product list request which shall return all activities. Checking if all are present
+func (tt *TestActivityV5) testActivityV5ProductListService(ctx context.Context, t *testing.T) {
+	expectedItems := []*activityv5.ActivityInfo{mockdata.ActivityExtendedV5[1].Activity}
+
+	req := &activityv5.ActivityProductListRequest{
+		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		SupplierCodes: []*typesv4.SupplierProductCode{expectedItems[0].SupplierCode},
+	}
+
+	resp, err := tt.distributorBot.ActivityProductListServiceV5.ActivityProductList(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
+
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
+
+	requireProtoSlicesElementsMatch(t, expectedItems, successResp.Activities)
+}
+
+// Get detailed activity information for a specific supplier code.
+func (tt *TestActivityV5) testActivityV5ProductInfoService(ctx context.Context, t *testing.T) {
+	expectedSupplierCode := &typesv4.SupplierProductCode{Code: "XPTFAOH15O"}
+	req := &activityv5.ActivityProductInfoRequest{
+		Header:        &typesv4.RequestHeader{BaseHeader: &typesv4.Header{Version: &typesv4.Version{}}},
+		SupplierCodes: []*typesv4.SupplierProductCode{expectedSupplierCode},
+		Languages:     []typesv1.Language{typesv1.Language_LANGUAGE_EN},
+	}
+	resp, err := tt.distributorBot.ActivityProductInfoServiceV5.ActivityProductInfo(
+		requestContext(ctx, tt.supplierBot.CMAccountAddress()),
+		req,
+	)
+	require.NoError(t, err)
+	tt.DebugPrintRequestResponse(req, resp)
+	require.NoError(t, protovalidate.Validate(resp))
+
+	successResp := resp.GetSuccessResponse()
+	require.NotNil(t, successResp, "unexpected response status")
+	require.Empty(t, successResp.Header.Alerts, "unexpected response alerts")
+
+	// The response should contain only the one activity filtered in the request
+	require.Len(t, successResp.Activities, 1, "unexpected number of activities in response")
+
+	expectedActivity := activityExtendedV5WithSupplierCode(t, mockdata.ActivityExtendedV5, expectedSupplierCode)
+	require.True(t, proto.Equal(successResp.Activities[0], expectedActivity), "activity fields does not match expected mock data activity, but their supplier codes match (%+v)", expectedSupplierCode)
 }
 
 func (tt *TestActivityV5) testActivityV5SearchServiceTravelPeriodOutOfBounds(ctx context.Context, t *testing.T) {
@@ -179,4 +316,18 @@ func testActivityV5SearchService(
 	requireProtoSlicesElementsMatch(t, expectedSearchResults, successResp.Results)
 
 	return successResp.SearchId.Id.Value, successResp.Results[0].ResultId, successResp.Results[0].TotalPrice.Value
+}
+
+func activityExtendedV5WithSupplierCode(
+	t *testing.T,
+	activities []*activityv5.ActivityExtendedInfo,
+	supplierCode *typesv4.SupplierProductCode,
+) *activityv5.ActivityExtendedInfo {
+	for _, activity := range activities {
+		if proto.Equal(activity.Activity.GetSupplierCode(), supplierCode) {
+			return activity
+		}
+	}
+	require.FailNow(t, "activity with supplier code not found", "supplier code: %s", supplierCode)
+	return nil
 }

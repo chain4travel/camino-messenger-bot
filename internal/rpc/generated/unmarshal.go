@@ -6,7 +6,6 @@ import (
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v4"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/accommodation/v5"
-	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v2"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v3"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v5"
@@ -78,14 +77,6 @@ func UnmarshalContent(src []byte, msgType message.Type, destination *protoreflec
 		*destination = &accommodationv5.AccommodationProductShortListRequest{}
 	case AccommodationProductShortListServiceV5Response:
 		*destination = &accommodationv5.AccommodationProductShortListResponse{}
-	case ActivityProductInfoServiceV2Request:
-		*destination = &activityv2.ActivityProductInfoRequest{}
-	case ActivityProductInfoServiceV2Response:
-		*destination = &activityv2.ActivityProductInfoResponse{}
-	case ActivityProductListServiceV2Request:
-		*destination = &activityv2.ActivityProductListRequest{}
-	case ActivityProductListServiceV2Response:
-		*destination = &activityv2.ActivityProductListResponse{}
 	case ActivityProductInfoServiceV3Request:
 		*destination = &activityv3.ActivityProductInfoRequest{}
 	case ActivityProductInfoServiceV3Response:
@@ -114,10 +105,22 @@ func UnmarshalContent(src []byte, msgType message.Type, destination *protoreflec
 		*destination = &activityv4.ActivityProductShortListRequest{}
 	case ActivityProductShortListServiceV4Response:
 		*destination = &activityv4.ActivityProductShortListResponse{}
+	case ActivityProductInfoServiceV5Request:
+		*destination = &activityv5.ActivityProductInfoRequest{}
+	case ActivityProductInfoServiceV5Response:
+		*destination = &activityv5.ActivityProductInfoResponse{}
+	case ActivityProductListServiceV5Request:
+		*destination = &activityv5.ActivityProductListRequest{}
+	case ActivityProductListServiceV5Response:
+		*destination = &activityv5.ActivityProductListResponse{}
 	case ActivitySearchServiceV5Request:
 		*destination = &activityv5.ActivitySearchRequest{}
 	case ActivitySearchServiceV5Response:
 		*destination = &activityv5.ActivitySearchResponse{}
+	case ActivityProductShortListServiceV5Request:
+		*destination = &activityv5.ActivityProductShortListRequest{}
+	case ActivityProductShortListServiceV5Response:
+		*destination = &activityv5.ActivityProductShortListResponse{}
 	case MintServiceV3Request:
 		*destination = &bookv3.MintRequest{}
 	case MintServiceV3Response:
