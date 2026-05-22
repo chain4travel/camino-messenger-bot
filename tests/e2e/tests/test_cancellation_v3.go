@@ -56,7 +56,7 @@ func (tt *TestCancellationV3) Run(t *testing.T) {
 
 	tt.prepare(ctx, t)
 
-	t.Run("CheckCancellationV2", func(t *testing.T) {
+	t.Run("CheckCancellationV3", func(t *testing.T) {
 		tt.testCheckCancellationV3(ctx, t)
 	})
 	t.Run("Distributor initiates, basic flow", func(t *testing.T) {
