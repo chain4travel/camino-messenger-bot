@@ -10,12 +10,12 @@
 ### Dependencies
 
 #### Linux
-```
+```sh
 sudo apt install libclang-dev build-essential
 ```
 
 #### macOS
-```
+```sh
 brew install rust
 brew install llvm
 ```
