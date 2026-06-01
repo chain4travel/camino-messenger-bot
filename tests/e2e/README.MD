@@ -9,12 +9,12 @@
 
 ### Dependencies
 
-### Linux
+#### Linux
 ```
 sudo apt install libclang-dev build-essential
 ```
 
-### MacOS
+#### macOS
 ```
 brew install rust
 brew install llvm
@@ -40,7 +40,7 @@ or to download from the dev branch
 ```sh
 ./scripts/e2e.sh --clean --debug --caminogo "dev" --camino-conduit "dev" --asb "dev"
 ```
-Different dependencies might require different go versions or otherwise will fail to build. In this case, manually delete the dependency from `build/depencexies` folder, use gvm to adjust the version and re-run the script with just the dependency.
+Different dependencies might require different go versions or otherwise will fail to build. In this case, manually delete the dependency from `build/dependencies` folder, use gvm to adjust the version and re-run the script with just the dependency.
 ```
 gvm use go1.20
 ./scripts/e2e.sh --debug --caminogo "dev"
@@ -82,6 +82,6 @@ Example runConfiguration .xml file can be found [here](../../examples/debug-laun
 
 ## Troubleshooting
 The logs of tests are stored inside `/tmp/cmb-e2e` folder. 
-```
+```sh
 find /tmp/cmb-e2e -name "node-*.log" 2>/dev/null
 ```
