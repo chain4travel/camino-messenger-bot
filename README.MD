@@ -1,3 +1,5 @@
+> **Development continues at Travel Token Marketplace.** Chain4Travel built Camino Messenger, the B2B transactional distribution layer for travel: connect once, book everywhere. This repository is kept as its original source. Active development: [TravelTokenMarketplace/travel-token-messenger-bot](https://github.com/TravelTokenMarketplace/travel-token-messenger-bot).
+
 # Camino-Messenger-Bot
 
 Camino-Messenger-Bot is designed to facilitate communication through various messaging platforms. The application is modularized into distinct components, each serving a specific purpose.
